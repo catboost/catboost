@@ -1,6 +1,6 @@
 <img src=http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png width=300/>
 
-[Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) | [Python Installation](https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/)|
+[Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) | [Python Installation](https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/) |
 [R Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
 CatBoost is a machine learning method based on gradient boosting over decision trees.
