@@ -3,7 +3,7 @@
 Run `R` in `catboost/R-package` directory, execute the following commands:
 ```r
 install.packages('devtools')
-devtools::install_github('exprmntr/catboost', host = "https://api.github.yandex-team.ru", subdir='catboost/R-package')
+devtools::install_github('catboost/catboost', subdir = 'catboost/R-package')
 ```
 
 #### Install via local copy

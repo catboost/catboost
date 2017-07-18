@@ -1,11 +1,9 @@
 Package: catboost
-Title: CatBoost Title ## *
-Version: 0.1
-Date: 2017-06-01
+Title: R package for catboost
+Version: {version}
+Date: 2017-07-18
 RoxygenNote: 6.0.1
-Suggests: testthat
 Imports: jsonlite
-License: TODO
-Description: TODO
-Author: TODO
-Maintainer: Anna Veronika Dorogush <TODO@yandex-team.ru>
+License: Apache License, Version 2.0
+Description: This is CatBoost R package. An open-source gradient boosting on decision trees library with categorical features support out of the box. 
+Author: CatBoost Developers
