@@ -327,10 +327,10 @@ cdef class PyExportType:
         else:
             self.exportType = EModelExportType_Catboost
 
-cdef to_binary_str(str):
+cdef to_binary_str(string):
     if PY3:
-        return str.encode()
-    return str
+        return string.encode()
+    return string
 
 cdef to_native_str(binary):
     if PY3:
@@ -424,7 +424,7 @@ cdef class _PoolBase:
         cdef bytes pystr
         for value in self.__pool.FeatureId:
             pystr = value.c_str()
-            feature_names.append(pystr)
+            feature_names.append(to_native_str(pystr))
         return feature_names
 
     cpdef num_row(self):
@@ -679,11 +679,12 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
-        cdef const char* c_string = self.__model.ParamsJson.c_str()
-        cdef bytes py_string = c_string
+        cdef const char* c_params_json = self.__model.ParamsJson.c_str()
+        cdef bytes py_params_json = c_params_json
+        params_json = to_native_str(py_params_json)
         params = {}
-        if py_string:
-            for key, value in loads(py_string).iteritems():
+        if params_json:
+            for key, value in loads(params_json).iteritems():
                 if key not in params:
                     params[str(key)] = value
         return params
@@ -712,6 +713,8 @@ class _CatBoostBase(object):
             self.object = _CatBoost()
         if '_is_fitted' not in dict(self.__dict__.items()):
             self._is_fitted = False
+        if '_init_params' not in dict(self.__dict__.items()):
+            self._init_params = {}
         if '__model' in state:
             self._deserialize_model(state['__model'])
             self._is_fitted = True
@@ -719,7 +722,7 @@ class _CatBoostBase(object):
         if '_test_eval' in state:
             self.set_test_eval(state['_test_eval'])
             del state['_test_eval']
-        self.__dict__.update(state)
+        self._init_params.update(state)
 
     def __copy__(self):
         return self.__deepcopy__(None)
