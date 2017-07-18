@@ -1,0 +1,14 @@
+message TTestMessage {
+    required string ff = 1;
+};
+
+message TTestMessage2 {
+    optional string ff = 1;
+};
+
+message TJSONTest {
+    repeated uint32 A = 1;
+    repeated TTestMessage B = 2;
+    required string TheC = 3;
+    optional bool Test = 4;
+};

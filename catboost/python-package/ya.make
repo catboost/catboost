@@ -1,0 +1,5 @@
+RECURSE(
+    catboost
+    lib
+    ut
+)

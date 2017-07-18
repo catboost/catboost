@@ -1,0 +1,374 @@
+As shipped, "makefile" is a copy of "makefile.u", a Unix makefile.
+Variants for other systems have names of the form makefile.* and
+have initial comments saying how to invoke them.  You may wish to
+copy one of the other makefile.* files to makefile.
+
+If you use a C++ compiler, first say
+
+	make hadd
+
+to create a suitable f2c.h from f2c.h0 and f2ch.add.  Otherwise,
+
+	make f2c.h
+
+will just copy f2c.h0 to f2c.h .
+
+If your compiler does not recognize ANSI C headers,
+compile with KR_headers defined:  either add -DKR_headers
+to the definition of CFLAGS in the makefile, or insert
+
+#define KR_headers
+
+at the top of f2c.h .
+
+If your system lacks onexit() and you are not using an ANSI C
+compiler, then you should compile main.c with NO_ONEXIT defined.
+See the comments about onexit in makefile.u.
+
+If your system has a double drem() function such that drem(a,b)
+is the IEEE remainder function (with double a, b), then you may
+wish to compile r_mod.c and d_mod.c with IEEE_drem defined.
+
+To check for transmission errors, issue the command
+	make check
+or
+	make -f makefile.u check
+
+This assumes you have the xsum program whose source, xsum.c,
+is distributed as part of "all from f2c/src", and that it
+is installed somewhere in your search path.  If you do not
+have xsum, you can obtain xsum.c by sending the following E-mail
+message to netlib@netlib.bell-labs.com
+	send xsum.c from f2c/src
+
+For convenience, the f2c.h0 in this directory is a copy of netlib's
+"f2c.h from f2c".  It is best to install f2c.h in a standard place,
+so "include f2c.h" will work in any directory without further ado.
+Beware that the makefiles do not cause recompilation when f2c.h is
+changed.
+
+On machines, such as those using a DEC Alpha processor, on which
+sizeof(short) == 2, sizeof(int) == sizeof(float) == 4, and
+sizeof(long) == sizeof(double) == 8, it suffices to modify f2c.h by
+removing the first occurrence of "long " on each line containing
+"long ".  On Unix systems, you can do this by issuing the commands
+	mv f2c.h f2c.h0
+	sed 's/long int /int /' f2c.h0 >f2c.h
+On such machines, one can enable INTEGER*8 by uncommenting the typedefs
+of longint and ulongint in f2c.h and adjusting them, so they read
+	typedef long longint;
+	typedef unsigned long ulongint;
+and by compiling libf2c with -DAllow_TYQUAD, as discussed below.
+
+
+Most of the routines in libf2c are support routines for Fortran
+intrinsic functions or for operations that f2c chooses not
+to do "in line".  There are a few exceptions, summarized below --
+functions and subroutines that appear to your program as ordinary
+external Fortran routines.
+
+If you use the REAL valued functions listed below (ERF, ERFC,
+DTIME, and ETIME) with "f2c -R", then you need to compile the
+corresponding source files with -DREAL=float.  To do this, it is
+perhaps simplest to add "-DREAL=float" to CFLAGS in the makefile.
+
+1.	CALL ABORT prints a message and causes a core dump.
+
+2.	ERF(r) and DERF(d) and the REAL and DOUBLE PRECISION
+	error functions (with x REAL and d DOUBLE PRECISION);
+	DERF must be declared DOUBLE PRECISION in your program.
+	Both ERF and DERF assume your C library provides the
+	underlying erf() function (which not all systems do).
+
+3.	ERFC(r) and DERFC(d) are the complementary error functions:
+	ERFC(r) = 1 - ERF(r) and DERFC(d) = 1.d0 - DERFC(d)
+	(except that their results may be more accurate than
+	explicitly evaluating the above formulae would give).
+	Again, ERFC and r are REAL, and DERFC and d are DOUBLE
+	PRECISION (and must be declared as such in your program),
+	and ERFC and DERFC rely on your system's erfc().
+
+4.	CALL GETARG(n,s), where n is an INTEGER and s is a CHARACTER
+	variable, sets s to the n-th command-line argument (or to
+	all blanks if there are fewer than n command-line arguments);
+	CALL GETARG(0,s) sets s to the name of the program (on systems
+	that support this feature).  See IARGC below.
+
+5.	CALL GETENV(name, value), where name and value are of type
+	CHARACTER, sets value to the environment value, $name, of
+	name (or to blanks if $name has not been set).
+
+6.	NARGS = IARGC() sets NARGS to the number of command-line
+	arguments (an INTEGER value).
+
+7.	CALL SIGNAL(n,func), where n is an INTEGER and func is an
+	EXTERNAL procedure, arranges for func to be invoked when n
+	occurs (on systems where this makes sense).
+	
+If your compiler complains about the signal calls in main.c, s_paus.c,
+and signal_.c, you may need to adjust signal1.h suitably.  See the
+comments in signal1.h.
+
+8.	ETIME(ARR) and DTIME(ARR) are REAL functions that return
+	execution times.  ARR is declared REAL ARR(2).  The elapsed
+	user and system CPU times are stored in ARR(1) and ARR(2),
+	respectively.  ETIME returns the total elapsed CPU time,
+	i.e., ARR(1) + ARR(2).  DTIME returns total elapsed CPU
+	time since the previous call on DTIME.
+
+9.	CALL SYSTEM(cmd), where cmd is of type CHARACTER, passes
+	cmd to the system's command processor (on systems where
+	this can be done).
+
+10.	CALL FLUSH flushes all buffers.
+
+11.	FTELL(i) is an INTEGER function that returns the current
+	offset of Fortran unit i (or -1 if unit i is not open).
+
+12.	CALL FSEEK(i, offset, whence, *errlab) attemps to move
+	Fortran unit i to the specified offset: absolute offset
+	if whence = 0; relative to the current offset if whence = 1;
+	relative to the end of the file if whence = 2.  It branches
+	to label errlab if unit i is not open or if the call
+	otherwise fails.
+
+The routines whose objects are makefile.u's $(I77) are for I/O.
+The following comments apply to them.
+
+If your system lacks /usr/include/local.h ,
+then you should create an appropriate local.h in
+this directory.  An appropriate local.h may simply
+be empty, or it may #define VAX or #define CRAY
+(or whatever else you must do to make fp.h work right).
+Alternatively, edit fp.h to suite your machine.
+
+If your system lacks /usr/include/fcntl.h , then you
+should simply create an empty fcntl.h in this directory.
+If your compiler then complains about creat and open not
+having a prototype, compile with OPEN_DECL defined.
+On many systems, open and creat are declared in fcntl.h .
+
+If your system's sprintf does not work the way ANSI C
+specifies -- specifically, if it does not return the
+number of characters transmitted -- then insert the line
+
+#define USE_STRLEN
+
+at the end of fmt.h .  This is necessary with
+at least some versions of Sun software.
+In particular, if you get a warning about an improper
+pointer/integer combination in compiling wref.c, then
+you need to compile with -DUSE_STRLEN .
+
+If your system's fopen does not like the ANSI binary
+reading and writing modes "rb" and "wb", then you should
+compile open.c with NON_ANSI_RW_MODES #defined.
+
+If you get error messages about references to cf->_ptr
+and cf->_base when compiling wrtfmt.c and wsfe.c or to
+stderr->_flag when compiling err.c, then insert the line
+
+#define NON_UNIX_STDIO
+
+at the beginning of fio.h, and recompile everything (or
+at least those modules that contain NON_UNIX_STDIO).
+
+Unformatted sequential records consist of a length of record
+contents, the record contents themselves, and the length of
+record contents again (for backspace).  Prior to 17 Oct. 1991,
+the length was of type int; now it is of type long, but you
+can change it back to int by inserting
+
+#define UIOLEN_int
+
+at the beginning of fio.h.  This affects only sue.c and uio.c .
+
+If you have a really ancient K&R C compiler that does not understand
+void, add -Dvoid=int to the definition of CFLAGS in the makefile.
+
+On VAX, Cray, or Research Tenth-Edition Unix systems, you may
+need to add -DVAX, -DCRAY, or -DV10 (respectively) to CFLAGS
+to make fp.h work correctly.  Alternatively, you may need to
+edit fp.h to suit your machine.
+
+If your compiler complains about the signal calls in main.c, s_paus.c,
+and signal_.c, you may need to adjust signal1.h suitably.  See the
+comments in signal1.h.
+
+You may need to supply the following non-ANSI routines:
+
+  fstat(int fileds, struct stat *buf) is similar
+to stat(char *name, struct stat *buf), except that
+the first argument, fileds, is the file descriptor
+returned by open rather than the name of the file.
+fstat is used in the system-dependent routine
+canseek (in the libf2c source file err.c), which
+is supposed to return 1 if it's possible to issue
+seeks on the file in question, 0 if it's not; you may
+need to suitably modify err.c .  On non-UNIX systems,
+you can avoid references to fstat and stat by compiling
+with NON_UNIX_STDIO defined; in that case, you may need
+to supply access(char *Name,0), which is supposed to
+return 0 if file Name exists, nonzero otherwise.
+
+  char * mktemp(char *buf) is supposed to replace the
+6 trailing X's in buf with a unique number and then
+return buf.  The idea is to get a unique name for
+a temporary file.
+
+On non-UNIX systems, you may need to change a few other,
+e.g.: the form of name computed by mktemp() in endfile.c and
+open.c; the use of the open(), close(), and creat() system
+calls in endfile.c, err.c, open.c; and the modes in calls on
+fopen() and fdopen() (and perhaps the use of fdopen() itself
+-- it's supposed to return a FILE* corresponding to a given
+an integer file descriptor) in err.c and open.c (component ufmt
+of struct unit is 1 for formatted I/O -- text mode on some systems
+-- and 0 for unformatted I/O -- binary mode on some systems).
+Compiling with -DNON_UNIX_STDIO omits all references to creat()
+and almost all references to open() and close(), the exception
+being in the function f__isdev() (in open.c).
+
+If you wish to use translated Fortran that has funny notions
+of record length for direct unformatted I/O (i.e., that assumes
+RECL= values in OPEN statements are not bytes but rather counts
+of some other units -- e.g., 4-character words for VMS), then you
+should insert an appropriate #define for url_Adjust at the
+beginning of open.c .  For VMS Fortran, for example,
+#define url_Adjust(x) x *= 4
+would suffice.
+
+By default, Fortran I/O units 5, 6, and 0 are pre-connected to
+stdin, stdout, and stderr, respectively.  You can change this
+behavior by changing f_init() in err.c to suit your needs.
+Note that f2c assumes READ(*... means READ(5... and WRITE(*...
+means WRITE(6... .  Moreover, an OPEN(n,... statement that does
+not specify a file name (and does not specify STATUS='SCRATCH')
+assumes FILE='fort.n' .  You can change this by editing open.c
+and endfile.c suitably.
+
+Unless you adjust the "#define MXUNIT" line in fio.h, Fortran units
+0, 1, ..., 99 are available, i.e., the highest allowed unit number
+is MXUNIT - 1.
+
+Lines protected from compilation by #ifdef Allow_TYQUAD
+are for a possible extension to 64-bit integers in which
+integer = int = 32 bits and longint = long = 64 bits.
+
+The makefile does not attempt to compile pow_qq.c, qbitbits.c,
+and qbitshft.c, which are meant for use with INTEGER*8.  To use
+INTEGER*8, you must modify f2c.h to declare longint and ulongint
+appropriately; then add $(QINT) to the end of the makefile's
+dependency list for libf2c.a (if makefile is a copy of makefile.u;
+for the PC makefiles, add pow_qq.obj qbitbits.obj qbitshft.obj
+to the library's dependency list and adjust libf2c.lbc or libf2c.sy
+accordingly).  Also add -DAllow_TYQUAD to the makefile's CFLAGS
+assignment.  To make longint and ulongint available, it may suffice
+to add -DINTEGER_STAR_8 to the CFLAGS assignment.
+
+Following Fortran 90, s_cat.c and s_copy.c allow the target of a
+(character string) assignment to be appear on its right-hand, at
+the cost of some extra overhead for all run-time concatenations.
+If you prefer the  extra efficiency that comes with the Fortran 77
+requirement that the left-hand side of a character assignment not
+be involved in the right-hand side, compile s_cat.c and s_copy.c
+with -DNO_OVERWRITE .
+
+Extensions (Feb. 1993) to NAMELIST processing:
+ 1. Reading a ? instead of &name (the start of a namelist) causes
+the namelist being sought to be written to stdout (unit 6);
+to omit this feature, compile rsne.c with -DNo_Namelist_Questions.
+ 2. Reading the wrong namelist name now leads to an error message
+and an attempt to skip input until the right namelist name is found;
+to omit this feature, compile rsne.c with -DNo_Bad_Namelist_Skip.
+ 3. Namelist writes now insert newlines before each variable; to omit
+this feature, compile xwsne.c with -DNo_Extra_Namelist_Newlines.
+ 4. (Sept. 1995) When looking for the &name that starts namelist
+input, lines whose first non-blank character is something other
+than &, $, or ? are treated as comment lines and ignored, unless
+rsne.c is compiled with -DNo_Namelist_Comments.
+
+Nonstandard extension (Feb. 1993) to open: for sequential files,
+ACCESS='APPEND' (or access='anything else starting with "A" or "a"')
+causes the file to be positioned at end-of-file, so a write will
+append to the file.
+
+Some buggy Fortran programs use unformatted direct I/O to write
+an incomplete record and later read more from that record than
+they have written.  For records other than the last, the unwritten
+portion of the record reads as binary zeros.  The last record is
+a special case: attempting to read more from it than was written
+gives end-of-file -- which may help one find a bug.  Some other
+Fortran I/O libraries treat the last record no differently than
+others and thus give no help in finding the bug of reading more
+than was written.  If you wish to have this behavior, compile
+uio.c with -DPad_UDread .
+
+If you want to be able to catch write failures (e.g., due to a
+disk being full) with an ERR= specifier, compile dfe.c, due.c,
+sfe.c, sue.c, and wsle.c with -DALWAYS_FLUSH.  This will lead to
+slower execution and more I/O, but should make ERR= work as
+expected, provided fflush returns an error return when its
+physical write fails.
+
+Carriage controls are meant to be interpreted by the UNIX col
+program (or a similar program).  Sometimes it's convenient to use
+only ' ' as the carriage control character (normal single spacing).
+If you compile lwrite.c and wsfe.c with -DOMIT_BLANK_CC, formatted
+external output lines will have an initial ' ' quietly omitted,
+making use of the col program unnecessary with output that only
+has ' ' for carriage control.
+
+The Fortran 77 Standard leaves it up to the implementation whether
+formatted writes of floating-point numbers of absolute value < 1 have
+a zero before the decimal point.  By default, libI77 omits such
+superfluous zeros, but you can cause them to appear by compiling
+lwrite.c, wref.c, and wrtfmt.c with -DWANT_LEAD_0 .
+
+If your (Unix) system lacks a ranlib command, you don't need it.
+Either comment out the makefile's ranlib invocation, or install
+a harmless "ranlib" command somewhere in your PATH, such as the
+one-line shell script
+
+	exit 0
+
+or (on some systems)
+
+	exec /usr/bin/ar lts $1 >/dev/null
+
+By default, the routines that implement complex and double complex
+division, c_div.c and z_div.c, call sig_die to print an error message
+and exit if they see a divisor of 0, as this is sometimes helpful for
+debugging.  On systems with IEEE arithmetic, compiling c_div.c and
+z_div.c with -DIEEE_COMPLEX_DIVIDE causes them instead to set both
+the real and imaginary parts of the result to +INFINITY if the
+numerator is nonzero, or to NaN if it vanishes.
+
+Nowadays most Unix and Linux systems have function
+	int ftruncate(int fildes, off_t len);
+defined in system header file unistd.h that adjusts the length of file
+descriptor fildes to length len.  Unless endfile.c is compiled with
+-DNO_TRUNCATE, endfile.c #includes "unistd.h" and calls ftruncate() if
+necessary to shorten files.  If your system lacks ftruncate(), compile
+endfile.c with -DNO_TRUNCATE to make endfile.c use the older and more
+portable scheme of shortening a file by copying to a temporary file
+and back again.
+
+The initializations for "f2c -trapuv" are done by _uninit_f2c(),
+whose source is uninit.c, introduced June 2001.  On IEEE-arithmetic
+systems, _uninit_f2c should initialize floating-point variables to
+signaling NaNs and, at its first invocation, should enable the
+invalid operation exception.  Alas, the rules for distinguishing
+signaling from quiet NaNs were not specified in the IEEE P754 standard,
+nor were the precise means of enabling and disabling IEEE-arithmetic
+exceptions, and these details are thus system dependent.  There are
+#ifdef's in uninit.c that specify them for some popular systems.  If
+yours is not one of these systems, it may take some detective work to
+discover the appropriate details for your system.  Sometimes it helps
+to look in the standard include directories for header files with
+relevant-sounding names, such as ieeefp.h, nan.h, or trap.h, and
+it may be simplest to run experiments to see what distinguishes a
+signaling from a quiet NaN.  (If x is initialized to a signaling
+NaN and the invalid operation exception is masked off, as it should
+be by default on IEEE-arithmetic systems, then computing, say,
+y = x + 1 will yield a quiet NaN.)

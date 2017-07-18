@@ -1,0 +1,13 @@
+#pragma once
+
+#include "../tuple"
+
+namespace std {
+    namespace tr1 {
+        using std::tuple;
+        using std::get;
+        using std::tuple_element;
+        using std::tuple_size;
+        using std::make_tuple;
+    }
+}

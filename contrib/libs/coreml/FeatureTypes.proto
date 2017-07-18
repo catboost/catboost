@@ -1,0 +1,87 @@
+// Copyright (c) 2017, Apple Inc. All rights reserved.
+//
+// Use of this source code is governed by a BSD-3-clause license that can be
+// found in LICENSE.txt or at https://opensource.org/licenses/BSD-3-Clause
+
+syntax = "proto3";
+// option optimize_for = LITE_RUNTIME;
+
+package CoreML.Specification;
+
+/**
+ * The 64-bit integer feature type.
+ */
+message Int64FeatureType {}
+
+/**
+ * The double-precision floating point number feature type.
+ */
+message DoubleFeatureType {}
+
+/**
+ * The string feature type.
+ */
+message StringFeatureType {}
+
+/**
+ * The image feature type.
+ */
+message ImageFeatureType {
+    // Assumes raw (decompressed) format
+    enum ColorSpace {
+        INVALID_COLOR_SPACE = 0;
+        GRAYSCALE = 10; //  8 bit pixel: 0=black, 255=white
+        RGB = 20;       // 32 bit pixel: RGBA with A channel ignored
+        BGR = 30;       // 32 bit pixel: BGRA with A channel ignored
+    }
+
+    uint64 width = 1;
+    uint64 height = 2;
+    ColorSpace colorSpace = 3;
+}
+
+/**
+ * The array feature type.
+ */
+message ArrayFeatureType {
+    enum ArrayDataType {
+        INVALID_ARRAY_DATA_TYPE = 0;
+        FLOAT32 = 65568; // 0x10000 | 32
+        DOUBLE = 65600;  // 0x10000 | 64
+        INT32 = 131104;  // 0x20000 | 32
+    }
+
+    repeated uint64 shape = 1; /// For neural networks, must be of length 1 or 3, representing input shape [C] or [C,H,W], respectively.
+    ArrayDataType dataType = 2;
+}
+
+/**
+ * The dictionary feature type.
+ */
+message DictionaryFeatureType {
+    /**
+     *  Key/value type tags, with the following restrictions:
+     *  - ``keyType`` must be a hashable type
+     *  - ``valueType`` is assumed to be a ``double``
+     */
+    oneof KeyType {
+        Int64FeatureType int64KeyType = 1;
+        StringFeatureType stringKeyType = 2;
+    }
+}
+
+/**
+ * A feature, which may be optional.
+ */
+message FeatureType {
+    oneof Type {
+        Int64FeatureType int64Type = 1;
+        DoubleFeatureType doubleType = 2;
+        StringFeatureType stringType = 3;
+        ImageFeatureType imageType = 4;
+        ArrayFeatureType multiArrayType = 5;
+        DictionaryFeatureType dictionaryType = 6;
+    }
+
+    bool isOptional = 1000;
+}

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{18399176-5408-8102-7C5F-8DA029B8F78E}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>contrib-libs-protobuf</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>contrib-libs-protobuf</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\18399176-5408-8102-7C5F-8DA029B8F78E\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r2983760 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r2983760 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/zlib;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/cxxsupp/libcxx-next/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\any.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\any.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\api.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\arena.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\arenastring.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\importer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\parser.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor_database.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\duration.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\dynamic_message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\empty.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\extension_set.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\extension_set_heavy.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\field_mask.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\gzip_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\printer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\strtod.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\tokenizer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\json_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\map_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\message_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\messagext.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\messagext_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\reflection_ops.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\repeated_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\service.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\source_context.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\struct.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_x86_gcc.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_x86_msvc.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\bytestream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\common.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\int128.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\mathlimits.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\once.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\status.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\statusor.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\stringpiece.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\stringprintf.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\structurally_valid.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\strutil.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\substitute.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\time.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\text_format.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\timestamp.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\type.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\unknown_field_set.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_comparator.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_mask_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\datapiece.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\default_value_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\error_listener.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\field_mask_utility.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_escaping.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_stream_parser.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\object_writer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\proto_writer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\protostream_objectsource.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\protostream_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\type_info.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\utility.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\json_util.cc">
+      <ObjectFileName>$(IntDir)json_util_extra1.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\message_differencer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\time_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\util\type_resolver_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wrappers.pb.cc"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\any.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arenastring.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\code_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\command_line_interface.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_enum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_enum_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_extension.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_file.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_map_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_primitive_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_service.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_string_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\importer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_doc_comment.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_enum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_enum_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_enum_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_enum_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_extension.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_extension_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_file.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_generator_factory.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_lazy_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_lazy_message_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_map_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_map_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message_builder_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_message_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_name_resolver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_primitive_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_primitive_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_service.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_shared_code_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_string_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_string_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\plugin.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\plugin.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\python\python_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\subprocess.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\zip_writer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor_database.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\dynamic_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\extension_set.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_enum_reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_enum_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\any.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\api.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\descriptor.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\duration.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\empty.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\field_mask.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\source_context.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\struct.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\timestamp.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\type.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\wrappers.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\gzip_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\printer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\strtod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\tokenizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\json_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_entry.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_entry_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_type_handler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\messageint.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\messagext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\messagext_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\metadata.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\reflection_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\reflection_ops.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\repeated_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\service.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomic_sequence_num.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_arm64_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_arm_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_atomicword_compat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_generic_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_macosx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_power.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_tsan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_x86_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\atomicops_internals_x86_msvc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\bytestream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\callback.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\casts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\fastmem.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\int128.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\logging.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\map_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\mathlimits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\mathutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\once.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\platform_macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\port.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\scoped_ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\shared_ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\singleton.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\status.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\status_macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\statusor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\stl_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\stringpiece.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\stringprintf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\strutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\substitute.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\template_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\time.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\type_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\text_format.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\unknown_field_set.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_comparator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_mask_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\constants.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\datapiece.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\default_value_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\error_listener.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\field_mask_utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_escaping.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\json_stream_parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\location_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\object_location_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\object_source.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\object_writer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\proto_writer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\protostream_objectsource.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\protostream_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\structured_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\type_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\internal\utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\json_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\message_differencer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\time_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\type_resolver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\type_resolver_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\ya_nulls.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx-next\libs-cxxsupp-libcxx-next.vcxproj">
+      <Project>27312BC1-F7F1-210E-870A-4D9860365283</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
+      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

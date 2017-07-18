@@ -1,0 +1,95 @@
+From da691c0aa87fbcd525a33aa6251721571f093947 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=D0=93=D0=B5=D0=BE=D1=80=D0=B3=D0=B8=D0=B9=20=D0=9A=D0=BE?=
+ =?UTF-8?q?=D0=BD=D0=B4=D1=80=D0=B0=D1=82=D1=8C=D0=B5=D0=B2?=
+ <orivej@yandex-team.ru>
+Date: Tue, 8 Nov 2016 02:58:54 +0000
+Subject: [PATCH] Add missing declarations
+
+Upstream pull request: https://github.com/pandas-dev/pandas/pull/14611
+---
+ pandas/src/datetime/np_datetime.h | 2 ++
+ pandas/src/datetime_helper.h      | 4 ++++
+ pandas/src/numpy_helper.h         | 4 ++++
+ 3 files changed, 10 insertions(+)
+
+diff --git a/pandas/src/datetime/np_datetime.h b/pandas/src/datetime/np_datetime.h
+index 83c056e..f5fb228 100644
+--- a/pandas/src/datetime/np_datetime.h
++++ b/pandas/src/datetime/np_datetime.h
+@@ -45,6 +45,8 @@ typedef struct {
+ // stuff pandas needs
+ // ----------------------------------------------------------------------------
+ 
++int cmp_pandas_datetimestruct(pandas_datetimestruct *a, pandas_datetimestruct *b);
++
+ int convert_pydatetime_to_datetimestruct(PyObject *obj, pandas_datetimestruct *out,
+                                          PANDAS_DATETIMEUNIT *out_bestunit,
+                                          int apply_tzinfo);
+diff --git a/pandas/src/datetime_helper.h b/pandas/src/datetime_helper.h
+index d78e91e..1f9dad3 100644
+--- a/pandas/src/datetime_helper.h
++++ b/pandas/src/datetime_helper.h
+@@ -2,16 +2,19 @@
+ #include "numpy/arrayobject.h"
+ #include "numpy/arrayscalars.h"
+ #include <stdio.h>
++#include "helper.h"
+ 
+ #if PY_MAJOR_VERSION >= 3
+ #define PyInt_AS_LONG PyLong_AsLong
+ #endif
+ 
++PANDAS_INLINE
+ void mangle_nat(PyObject *val) {
+   PyDateTime_GET_MONTH(val) = -1;
+   PyDateTime_GET_DAY(val) = -1;
+ }
+ 
++PANDAS_INLINE
+ npy_int64 get_long_attr(PyObject *o, const char *attr) {
+   npy_int64 long_val;
+   PyObject *value = PyObject_GetAttrString(o, attr);
+@@ -20,6 +23,7 @@ npy_int64 get_long_attr(PyObject *o, const char *attr) {
+   return long_val;
+ }
+ 
++PANDAS_INLINE
+ npy_float64 total_seconds(PyObject *td) {
+   // Python 2.6 compat
+   npy_int64 microseconds = get_long_attr(td, "microseconds");
+diff --git a/pandas/src/numpy_helper.h b/pandas/src/numpy_helper.h
+index 9f40689..8062b6b 100644
+--- a/pandas/src/numpy_helper.h
++++ b/pandas/src/numpy_helper.h
+@@ -130,6 +130,7 @@ char_to_string(char* data) {
+ //   return PyString_Check(obj);
+ // #endif
+ 
++PANDAS_INLINE
+ PyObject* sarr_from_data(PyArray_Descr *descr, int length, void* data) {
+     PyArrayObject *result;
+     npy_intp dims[1] = {length};
+@@ -144,6 +145,7 @@ PyObject* sarr_from_data(PyArray_Descr *descr, int length, void* data) {
+ }
+ 
+ 
++PANDAS_INLINE
+ void transfer_object_column(char *dst, char *src, size_t stride,
+                             size_t length) {
+     int i;
+@@ -162,10 +164,12 @@ void transfer_object_column(char *dst, char *src, size_t stride,
+     }
+ }
+ 
++PANDAS_INLINE
+ void set_array_owndata(PyArrayObject *ao) {
+     ao->flags |= NPY_OWNDATA;
+ }
+ 
++PANDAS_INLINE
+ void set_array_not_contiguous(PyArrayObject *ao) {
+     ao->flags &= ~(NPY_C_CONTIGUOUS | NPY_F_CONTIGUOUS);
+ }
+-- 
+2.10.0
+

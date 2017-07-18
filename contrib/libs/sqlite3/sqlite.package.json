@@ -1,0 +1,44 @@
+{
+    "meta": {
+        "name": "yandex-contrib-sqlite-linux",
+        "maintainer": "devtools <devtools@yandex-team.ru>",
+        "description": "yandex-contrib-sqlite-linux",
+        "version": "{revision}"
+    },
+    "build": {
+        "targets": [
+            "contrib/libs/sqlite3"
+        ],
+        "flags": [
+            {
+                "name": "CFLAGS",
+                "value": "-fPIC"
+            }
+        ]
+    },
+    "data": [
+        {
+            "source": {
+                "type": "ARCADIA",
+                "path": "contrib/libs/sqlite3",
+                "files": [
+                    "test_multiplex.h",
+                    "sqlite3ext.h",
+                    "sqlite3.h"
+                ]
+            },
+            "destination": {
+                "path": "/local/linux.x86-64/include/"
+            }
+        },
+        {
+            "source": {
+                "type": "BUILD_OUTPUT",
+                "path": "contrib/libs/sqlite3/libcontrib-libs-sqlite3.a"
+            },
+            "destination": {
+                "path": "/local/linux.x86-64/lib/libcontrib-sqlite.a"
+            }
+        }
+    ]
+}

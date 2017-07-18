@@ -1,0 +1,63 @@
+{
+    "meta": {
+        "name": "yandex-mapsmobi-contrib-zlib-uwp",
+        "maintainer": "devtools <devtools@yandex-team.ru>",
+        "description": "yandex-mapsmobi-contrib-zlib-uwp",
+        "version": "1.2.8-yandex.{revision}",
+        "depends": [
+            "yandex-mapsmobi-contrib-util"
+        ]
+    },
+    "data": [
+        {
+            "source": {
+                "type": "ARCADIA",
+                "path": "contrib/libs/zlib",
+                "files": [
+                    "zconf.h",
+                    "zlib.h"
+                ]
+            },
+            "destination": {
+                "path": "/local/uwp.x86/include/"
+            }
+        },
+        {
+            "source": {
+                "type": "ARCADIA",
+                "path": "contrib/libs/zlib",
+                "files": [
+                    "zconf.h",
+                    "zlib.h"
+                ]
+            },
+            "destination": {
+                "path": "/local/uwp.x64/include/"
+            }
+        },
+        {
+            "source": {
+                "type": "ARCADIA",
+                "path": "contrib/libs/zlib",
+                "files": [
+                    "zconf.h",
+                    "zlib.h"
+                ]
+            },
+            "destination": {
+                "path": "/local/uwp.arm/include/"
+            }
+        },
+        {
+            "source": {
+                "type": "SANDBOX_RESOURCE",
+                "id": 126768004,
+                "path": "local",
+                "files": ["*"]
+            },
+            "destination": {
+                "path": "/local/"
+            }
+        }
+    ]
+}

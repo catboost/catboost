@@ -1,0 +1,1513 @@
+/*
+ *  Copyright 2001-2007 Adrian Thurston <thurston@complang.org>
+ */
+
+/*  This file is part of Ragel.
+ *
+ *  Ragel is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  Ragel is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with Ragel; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ */
+
+#include "rlparse.h"
+#include "ragel.h"
+#include <iostream>
+#include <errno.h>
+#include <stdlib.h>
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
+%%{
+
+parser Parser;
+
+include "rlparse.kh";
+
+start: section_list;
+
+section_list: section_list statement_list TK_EndSection;
+section_list: ;
+
+statement_list: statement_list statement;
+statement_list: ;
+
+statement: assignment commit;
+statement: instantiation commit;
+statement: action_spec commit;
+statement: alphtype_spec commit;
+statement: range_spec commit;
+statement: getkey_spec commit;
+statement: access_spec commit;
+statement: variable_spec commit;
+statement: export_block commit;
+statement: pre_push_spec commit;
+statement: post_pop_spec commit;
+statement: length_spec commit;
+
+length_spec:
+	KW_Length TK_Word ';'
+	final {
+		LengthDef *lengthDef = new LengthDef( $2->data );
+		pd->lengthDefList.append( lengthDef );
+
+		/* Generic creation of machine for instantiation and assignment. */
+		MachineDef *machineDef = new MachineDef( lengthDef );
+		tryMachineDef( $2->loc, $2->data, machineDef, false );
+	};
+
+pre_push_spec:
+	KW_PrePush '{' inline_block '}' 
+	final {
+		if ( pd->prePushExpr != 0 ) {
+			/* Recover by just ignoring the duplicate. */
+			error($2->loc) << "pre_push code already defined" << endl;
+		}
+
+		pd->prePushExpr = $3->inlineList;
+	};
+
+
+post_pop_spec:
+	KW_PostPop '{' inline_block '}' 
+	final {
+		if ( pd->postPopExpr != 0 ) {
+			/* Recover by just ignoring the duplicate. */
+			error($2->loc) << "post_pop code already defined" << endl;
+		}
+
+		pd->postPopExpr = $3->inlineList;
+	};
+
+
+export_open: KW_Export 
+	final {
+		exportContext.append( true );
+	};
+
+nonterm opt_export
+{
+	bool isSet;
+};
+
+opt_export: export_open final { $$->isSet = true; };
+opt_export: final { $$->isSet = false; };
+
+export_block: export_open '{' statement_list '}' 
+	final {
+		exportContext.remove( exportContext.length()-1 );
+	};
+
+assignment:
+	opt_export machine_name '=' join ';' final {
+		/* Main machine must be an instance. */
+		bool isInstance = false;
+		if ( strcmp($2->token.data, mainMachine) == 0 ) {
+			warning($2->token.loc) << 
+					"main machine will be implicitly instantiated" << endl;
+			isInstance = true;
+		}
+
+		/* Generic creation of machine for instantiation and assignment. */
+		MachineDef *machineDef = new MachineDef( $4->join );
+		tryMachineDef( $2->token.loc, $2->token.data, machineDef, isInstance );
+
+		if ( $1->isSet )
+			exportContext.remove( exportContext.length()-1 );
+
+		$4->join->loc = $3->loc;
+	};
+
+instantiation: 
+	opt_export machine_name TK_ColonEquals join_or_lm ';' final {
+		/* Generic creation of machine for instantiation and assignment. */
+		tryMachineDef( $2->token.loc, $2->token.data, $4->machineDef, true );
+
+		if ( $1->isSet )
+			exportContext.remove( exportContext.length()-1 );
+
+		/* Pass a location to join_or_lm */
+		if ( $4->machineDef->join != 0 )
+			$4->machineDef->join->loc = $3->loc;
+	};
+
+type token_type
+{
+	Token token;
+};
+
+nonterm machine_name uses token_type;
+
+machine_name: 
+	TK_Word final {
+		/* Make/get the priority key. The name may have already been referenced
+		 * and therefore exist. */
+		PriorDictEl *priorDictEl;
+		if ( pd->priorDict.insert( $1->data, pd->nextPriorKey, &priorDictEl ) )
+			pd->nextPriorKey += 1;
+		pd->curDefPriorKey = priorDictEl->value;
+
+		/* Make/get the local error key. */
+		LocalErrDictEl *localErrDictEl;
+		if ( pd->localErrDict.insert( $1->data, pd->nextLocalErrKey, &localErrDictEl ) )
+			pd->nextLocalErrKey += 1;
+		pd->curDefLocalErrKey = localErrDictEl->value;
+
+		$$->token = *$1;
+	};
+
+action_spec:
+	KW_Action TK_Word '{' inline_block '}' final {
+		if ( pd->actionDict.find( $2->data ) ) {
+			/* Recover by just ignoring the duplicate. */
+			error($2->loc) << "action \"" << $2->data << "\" already defined" << endl;
+		}
+		else {
+			//cerr << "NEW ACTION " << $2->data << " " << $4->inlineList << endl;
+			/* Add the action to the list of actions. */
+			Action *newAction = new Action( $3->loc, $2->data, 
+					$4->inlineList, pd->nextCondId++ );
+
+			/* Insert to list and dict. */
+			pd->actionList.append( newAction );
+			pd->actionDict.insert( newAction );
+		}
+	};
+
+# Specifies the data type of the input alphabet. One or two words followed by a
+# semi-colon.
+alphtype_spec:
+	KW_AlphType TK_Word TK_Word ';' final {
+		if ( ! pd->setAlphType( $1->loc, $2->data, $3->data ) ) {
+			// Recover by ignoring the alphtype statement.
+			error($2->loc) << "\"" << $2->data << 
+					" " << $3->data << "\" is not a valid alphabet type" << endl;
+		}
+	};
+
+alphtype_spec:
+	KW_AlphType TK_Word ';' final {
+		if ( ! pd->setAlphType( $1->loc, $2->data ) ) {
+			// Recover by ignoring the alphtype statement.
+			error($2->loc) << "\"" << $2->data << 
+					"\" is not a valid alphabet type" << endl;
+		}
+	};
+
+# Specifies a range to assume that the input characters will fall into.
+range_spec:
+	KW_Range alphabet_num alphabet_num ';' final {
+		// Save the upper and lower ends of the range and emit the line number.
+		pd->lowerNum = $2->token.data;
+		pd->upperNum = $3->token.data;
+		pd->rangeLowLoc = $2->token.loc;
+		pd->rangeHighLoc = $3->token.loc;
+	};
+
+getkey_spec:
+	KW_GetKey inline_expr ';' final {
+		pd->getKeyExpr = $2->inlineList;
+	};
+
+access_spec:
+	KW_Access inline_expr ';' final {
+		pd->accessExpr = $2->inlineList;
+	};
+
+variable_spec:
+	KW_Variable opt_whitespace TK_Word inline_expr ';' final {
+		/* FIXME: Need to implement the rest of this. */
+		bool wasSet = pd->setVariable( $3->data, $4->inlineList );
+		if ( !wasSet )
+			error($3->loc) << "bad variable name" << endl;
+	};
+
+opt_whitespace: opt_whitespace IL_WhiteSpace;
+opt_whitespace: ;
+
+#
+# Expressions
+#
+
+nonterm join_or_lm
+{
+	MachineDef *machineDef;
+};
+
+join_or_lm: 
+	join final {
+		$$->machineDef = new MachineDef( $1->join );
+	};
+join_or_lm:
+	TK_BarStar lm_part_list '*' '|' final {
+		/* Create a new factor going to a longest match structure. Record
+		 * in the parse data that we have a longest match. */
+		LongestMatch *lm = new LongestMatch( $1->loc, $2->lmPartList );
+		pd->lmList.append( lm );
+		for ( LmPartList::Iter lmp = *($2->lmPartList); lmp.lte(); lmp++ )
+			lmp->longestMatch = lm;
+		$$->machineDef = new MachineDef( lm );
+	};
+
+nonterm lm_part_list
+{
+	LmPartList *lmPartList;
+};
+
+lm_part_list:
+	lm_part_list longest_match_part
+	final {
+		if ( $2->lmPart != 0 ) 
+			$1->lmPartList->append( $2->lmPart );
+		$$->lmPartList = $1->lmPartList;
+	};
+lm_part_list:
+	longest_match_part
+	final {
+		/* Create a new list with the part. */
+		$$->lmPartList = new LmPartList;
+		if ( $1->lmPart != 0 )
+			$$->lmPartList->append( $1->lmPart );
+	};
+
+nonterm longest_match_part
+{
+	LongestMatchPart *lmPart;
+};
+
+longest_match_part: 
+	action_spec final { $$->lmPart = 0; };
+longest_match_part: 
+	assignment final { $$->lmPart = 0; };
+longest_match_part: 
+	join opt_lm_part_action ';' final {
+		$$->lmPart = 0;
+		Action *action = $2->action;
+		if ( action != 0 )
+			action->isLmAction = true;
+		$$->lmPart = new LongestMatchPart( $1->join, action, 
+				$3->loc, pd->nextLongestMatchId++ );
+
+		/* Provide a location to join. Unfortunately We don't
+		 * have the start of the join as in other occurances. Use the end. */
+		$1->join->loc = $3->loc;
+	};
+
+nonterm opt_lm_part_action
+{
+	Action *action;
+};
+
+opt_lm_part_action:
+	TK_DoubleArrow action_embed final { 
+		$$->action = $2->action;
+	};
+opt_lm_part_action:
+	action_embed_block final {
+		$$->action = $1->action;
+	};
+opt_lm_part_action:
+	final {
+		$$->action = 0;
+	};
+
+
+nonterm join
+{
+	Join *join;
+};
+
+join: 
+	join ',' expression final {
+		/* Append the expression to the list and return it. */
+		$1->join->exprList.append( $3->expression );
+		$$->join = $1->join;
+	};
+join: 
+	expression final {
+		$$->join = new Join( $1->expression );
+	};
+
+nonterm expression
+{
+	Expression *expression;
+};
+
+expression: 
+	expression '|' term_short final {
+		$$->expression = new Expression( $1->expression, 
+				$3->term, Expression::OrType );
+	};
+expression: 
+	expression '&' term_short final {
+		$$->expression = new Expression( $1->expression, 
+				$3->term, Expression::IntersectType );
+	};
+expression: 
+	expression '-' term_short final {
+		$$->expression = new Expression( $1->expression, 
+				$3->term, Expression::SubtractType );
+	};
+expression: 
+	expression TK_DashDash term_short final {
+		$$->expression = new Expression( $1->expression, 
+				$3->term, Expression::StrongSubtractType );
+	};
+expression: 
+	term_short final {
+		$$->expression = new Expression( $1->term );
+	};
+
+# This is where we resolve the ambiguity involving -. By default ragel tries to
+# do a longest match, which gives precedence to a concatenation because it is
+# innermost. What we need is to force term into a shortest match so that when -
+# is seen it doesn't try to extend term with a concatenation, but ends term and
+# goes for a subtraction.
+#
+# The shortest tag overrides the default longest match action ordering strategy
+# and instead forces a shortest match stragegy. The wrap the term production in
+# a new nonterminal 'term_short' to guarantee the shortest match behaviour.
+
+shortest term_short;
+nonterm term_short
+{
+	Term *term;
+};
+
+term_short:
+	term final {
+		$$->term = $1->term;
+	};
+
+nonterm term
+{
+	Term *term;
+};
+
+term:
+	term factor_with_label final {
+		$$->term = new Term( $1->term, $2->factorWithAug );
+	};
+term:
+	term '.' factor_with_label final {
+		$$->term = new Term( $1->term, $3->factorWithAug );
+	};
+term:
+	term TK_ColonGt factor_with_label final {
+		$$->term = new Term( $1->term, $3->factorWithAug, Term::RightStartType );
+	};
+term:
+	term TK_ColonGtGt factor_with_label final {
+		$$->term = new Term( $1->term, $3->factorWithAug, Term::RightFinishType );
+	};
+term:
+	term TK_LtColon factor_with_label final {
+		$$->term = new Term( $1->term, 
+				$3->factorWithAug, Term::LeftType );
+	};
+term:
+	factor_with_label final {
+		$$->term = new Term( $1->factorWithAug );
+	};
+
+nonterm factor_with_label
+{
+	FactorWithAug *factorWithAug;
+};
+
+factor_with_label: 
+	TK_Word ':' factor_with_label final { 
+		/* Add the label to the list and pass the factor up. */
+		$3->factorWithAug->labels.prepend( Label($1->loc, $1->data) );
+		$$->factorWithAug = $3->factorWithAug; 
+	};
+factor_with_label: 
+	factor_with_ep final {
+		$$->factorWithAug = $1->factorWithAug;
+	};
+
+nonterm factor_with_ep
+{
+	FactorWithAug *factorWithAug;
+};
+
+factor_with_ep: 
+	factor_with_ep TK_Arrow local_state_ref final { 
+		/* Add the target to the list and return the factor object. */
+		$1->factorWithAug->epsilonLinks.append( EpsilonLink( $2->loc, nameRef ) );
+		$$->factorWithAug = $1->factorWithAug; 
+	};
+factor_with_ep: 
+	factor_with_aug final {
+		$$->factorWithAug = $1->factorWithAug;
+	};
+
+nonterm factor_with_aug
+{
+	FactorWithAug *factorWithAug;
+};
+
+factor_with_aug:
+	factor_with_aug aug_type_base action_embed final {
+		/* Append the action to the factorWithAug, record the refernce from 
+		 * factorWithAug to the action and pass up the factorWithAug. */
+		$1->factorWithAug->actions.append( 
+				ParserAction( $2->loc, $2->augType, 0, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_base priority_aug final {
+		/* Append the named priority to the factorWithAug and pass it up. */
+		$1->factorWithAug->priorityAugs.append( 
+				PriorityAug( $2->augType, pd->curDefPriorKey, $3->priorityNum ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_base '(' priority_name ',' priority_aug ')' final {
+		/* Append the priority using a default name. */
+		$1->factorWithAug->priorityAugs.append( 
+				PriorityAug( $2->augType, $4->priorityName, $6->priorityNum ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_cond action_embed final {
+		$1->factorWithAug->conditions.append( ConditionTest( $2->loc, 
+				$2->augType, $3->action, true ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_cond '!' action_embed final {
+		$1->factorWithAug->conditions.append( ConditionTest( $2->loc, 
+				$2->augType, $4->action, false ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_to_state action_embed final {
+		/* Append the action, pass it up. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc, 
+				$2->augType, 0, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_from_state action_embed final {
+		/* Append the action, pass it up. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc,
+				$2->augType, 0, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_eof action_embed final {
+		/* Append the action, pass it up. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc,
+				$2->augType, 0, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_gbl_error action_embed final {
+		/* Append the action to the factorWithAug, record the refernce from 
+		 * factorWithAug to the action and pass up the factorWithAug. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc,
+				$2->augType, pd->curDefLocalErrKey, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_local_error action_embed final {
+		/* Append the action to the factorWithAug, record the refernce from 
+		 * factorWithAug to the action and pass up the factorWithAug. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc, 
+				$2->augType, pd->curDefLocalErrKey, $3->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_aug aug_type_local_error '(' local_err_name ',' action_embed ')' final {
+		/* Append the action to the factorWithAug, record the refernce from
+		 * factorWithAug to the action and pass up the factorWithAug. */
+		$1->factorWithAug->actions.append( ParserAction( $2->loc,
+				$2->augType, $4->error_name, $6->action ) );
+		$$->factorWithAug = $1->factorWithAug;
+	};
+factor_with_aug:
+	factor_with_rep final {
+		$$->factorWithAug = new FactorWithAug( $1->factorWithRep );
+	};
+
+type aug_type
+{
+	InputLoc loc;
+	AugType augType;
+};
+
+#  Classes of transtions on which to embed actions or change priorities.
+nonterm aug_type_base uses aug_type;
+
+aug_type_base: '@' final { $$->loc = $1->loc; $$->augType = at_finish; };
+aug_type_base: '%' final { $$->loc = $1->loc; $$->augType = at_leave; };
+aug_type_base: '$' final { $$->loc = $1->loc; $$->augType = at_all; };
+aug_type_base: '>' final { $$->loc = $1->loc; $$->augType = at_start; };
+
+# Embedding conditions.
+nonterm aug_type_cond uses aug_type;
+
+aug_type_cond: TK_StartCond final { $$->loc = $1->loc; $$->augType = at_start; };
+aug_type_cond: '>' KW_When final { $$->loc = $1->loc; $$->augType = at_start; };
+aug_type_cond: TK_AllCond final { $$->loc = $1->loc; $$->augType = at_all; };
+aug_type_cond: '$' KW_When final { $$->loc = $1->loc; $$->augType = at_all; };
+aug_type_cond: TK_LeavingCond final { $$->loc = $1->loc; $$->augType = at_leave; };
+aug_type_cond: '%' KW_When final { $$->loc = $1->loc; $$->augType = at_leave; };
+aug_type_cond: KW_When final { $$->loc = $1->loc; $$->augType = at_all; };
+aug_type_cond: KW_InWhen final { $$->loc = $1->loc; $$->augType = at_start; };
+aug_type_cond: KW_OutWhen final { $$->loc = $1->loc; $$->augType = at_leave; };
+
+#
+# To state actions.
+#
+
+nonterm aug_type_to_state uses aug_type;
+
+aug_type_to_state: TK_StartToState 
+		final { $$->loc = $1->loc; $$->augType = at_start_to_state; };
+aug_type_to_state: '>' KW_To 
+		final { $$->loc = $1->loc; $$->augType = at_start_to_state; };
+
+aug_type_to_state: TK_NotStartToState 
+		final { $$->loc = $1->loc; $$->augType = at_not_start_to_state; };
+aug_type_to_state: '<' KW_To 
+		final { $$->loc = $1->loc; $$->augType = at_not_start_to_state; };
+
+aug_type_to_state: TK_AllToState 
+		final { $$->loc = $1->loc; $$->augType = at_all_to_state; };
+aug_type_to_state: '$' KW_To 
+		final { $$->loc = $1->loc; $$->augType = at_all_to_state; };
+
+aug_type_to_state: TK_FinalToState
+		final { $$->loc = $1->loc; $$->augType = at_final_to_state; };
+aug_type_to_state: '%' KW_To
+		final { $$->loc = $1->loc; $$->augType = at_final_to_state; };
+
+aug_type_to_state: TK_NotFinalToState
+		final { $$->loc = $1->loc; $$->augType = at_not_final_to_state; };
+aug_type_to_state: '@' KW_To
+		final { $$->loc = $1->loc; $$->augType = at_not_final_to_state; };
+
+aug_type_to_state: TK_MiddleToState
+		final { $$->loc = $1->loc; $$->augType = at_middle_to_state; };
+aug_type_to_state: TK_Middle KW_To
+		final { $$->loc = $1->loc; $$->augType = at_middle_to_state; };
+
+#
+# From state actions.
+#
+
+nonterm aug_type_from_state uses aug_type;
+
+aug_type_from_state: TK_StartFromState 
+		final { $$->loc = $1->loc; $$->augType = at_start_from_state; };
+aug_type_from_state: '>' KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_start_from_state; };
+
+aug_type_from_state: TK_NotStartFromState 
+		final { $$->loc = $1->loc; $$->augType = at_not_start_from_state; };
+aug_type_from_state: '<' KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_not_start_from_state; };
+
+aug_type_from_state: TK_AllFromState 
+		final { $$->loc = $1->loc; $$->augType = at_all_from_state; };
+aug_type_from_state: '$' KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_all_from_state; };
+
+aug_type_from_state: TK_FinalFromState 
+		final { $$->loc = $1->loc; $$->augType = at_final_from_state; };
+aug_type_from_state: '%' KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_final_from_state; };
+
+aug_type_from_state: TK_NotFinalFromState 
+		final { $$->loc = $1->loc; $$->augType = at_not_final_from_state; };
+aug_type_from_state: '@' KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_not_final_from_state; };
+
+aug_type_from_state: TK_MiddleFromState 
+		final { $$->loc = $1->loc; $$->augType = at_middle_from_state; };
+aug_type_from_state: TK_Middle KW_From 
+		final { $$->loc = $1->loc; $$->augType = at_middle_from_state; };
+
+#
+# Eof state actions.
+#
+
+nonterm aug_type_eof uses aug_type;
+
+aug_type_eof: TK_StartEOF 
+		final { $$->loc = $1->loc; $$->augType = at_start_eof; };
+aug_type_eof: '>' KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_start_eof; };
+
+aug_type_eof: TK_NotStartEOF
+		final { $$->loc = $1->loc; $$->augType = at_not_start_eof; };
+aug_type_eof: '<' KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_not_start_eof; };
+
+aug_type_eof: TK_AllEOF
+		final { $$->loc = $1->loc; $$->augType = at_all_eof; };
+aug_type_eof: '$' KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_all_eof; };
+
+aug_type_eof: TK_FinalEOF
+		final { $$->loc = $1->loc; $$->augType = at_final_eof; };
+aug_type_eof: '%' KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_final_eof; };
+
+aug_type_eof: TK_NotFinalEOF
+		final { $$->loc = $1->loc; $$->augType = at_not_final_eof; };
+aug_type_eof: '@' KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_not_final_eof; };
+
+aug_type_eof: TK_MiddleEOF
+		final { $$->loc = $1->loc; $$->augType = at_middle_eof; };
+aug_type_eof: TK_Middle KW_Eof
+		final { $$->loc = $1->loc; $$->augType = at_middle_eof; };
+
+#
+# Global error actions.
+#
+
+nonterm aug_type_gbl_error uses aug_type;
+
+aug_type_gbl_error: TK_StartGblError 
+		final { $$->loc = $1->loc; $$->augType = at_start_gbl_error; };
+aug_type_gbl_error: '>' KW_Err 
+		final { $$->loc = $1->loc; $$->augType = at_start_gbl_error; };
+
+aug_type_gbl_error: TK_NotStartGblError 
+		final { $$->loc = $1->loc; $$->augType = at_not_start_gbl_error; };
+aug_type_gbl_error: '<' KW_Err
+		final { $$->loc = $1->loc; $$->augType = at_not_start_gbl_error; };
+
+aug_type_gbl_error: TK_AllGblError
+		final { $$->loc = $1->loc; $$->augType = at_all_gbl_error; };
+aug_type_gbl_error: '$' KW_Err
+		final { $$->loc = $1->loc; $$->augType = at_all_gbl_error; };
+
+aug_type_gbl_error: TK_FinalGblError
+		final { $$->loc = $1->loc; $$->augType = at_final_gbl_error; };
+aug_type_gbl_error: '%' KW_Err
+		final { $$->loc = $1->loc; $$->augType = at_final_gbl_error; };
+
+aug_type_gbl_error: TK_NotFinalGblError
+		final { $$->loc = $1->loc; $$->augType = at_not_final_gbl_error; };
+aug_type_gbl_error: '@' KW_Err
+		final { $$->loc = $1->loc; $$->augType = at_not_final_gbl_error; };
+
+aug_type_gbl_error: TK_MiddleGblError
+		final { $$->loc = $1->loc; $$->augType = at_middle_gbl_error; };
+aug_type_gbl_error: TK_Middle KW_Err
+		final { $$->loc = $1->loc; $$->augType = at_middle_gbl_error; };
+
+
+#
+# Local error actions.
+#
+
+nonterm aug_type_local_error uses aug_type;
+
+aug_type_local_error: TK_StartLocalError
+		final { $$->loc = $1->loc; $$->augType = at_start_local_error; };
+aug_type_local_error: '>' KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_start_local_error; };
+
+aug_type_local_error: TK_NotStartLocalError
+		final { $$->loc = $1->loc; $$->augType = at_not_start_local_error; };
+aug_type_local_error: '<' KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_not_start_local_error; };
+
+aug_type_local_error: TK_AllLocalError
+		final { $$->loc = $1->loc; $$->augType = at_all_local_error; };
+aug_type_local_error: '$' KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_all_local_error; };
+
+aug_type_local_error: TK_FinalLocalError
+		final { $$->loc = $1->loc; $$->augType = at_final_local_error; };
+aug_type_local_error: '%' KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_final_local_error; };
+
+aug_type_local_error: TK_NotFinalLocalError
+		final { $$->loc = $1->loc; $$->augType = at_not_final_local_error; };
+aug_type_local_error: '@' KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_not_final_local_error; };
+
+aug_type_local_error: TK_MiddleLocalError
+		final { $$->loc = $1->loc; $$->augType = at_middle_local_error; };
+aug_type_local_error: TK_Middle KW_Lerr
+		final { $$->loc = $1->loc; $$->augType = at_middle_local_error; };
+
+
+type action_ref
+{
+	Action *action;
+};
+
+# Different ways to embed actions. A TK_Word is reference to an action given by
+# the user as a statement in the fsm specification. An action can also be
+# specified immediately.
+nonterm action_embed uses action_ref;
+
+action_embed: action_embed_word final { $$->action = $1->action; };
+action_embed: '(' action_embed_word ')' final { $$->action = $2->action; };
+action_embed: action_embed_block final { $$->action = $1->action; };
+
+nonterm action_embed_word uses action_ref;
+
+action_embed_word:
+	TK_Word final {
+		/* Set the name in the actionDict. */
+		Action *action = pd->actionDict.find( $1->data );
+		if ( action != 0 ) {
+			/* Pass up the action element */
+			$$->action = action;
+		}
+		else {
+			/* Will recover by returning null as the action. */
+			error($1->loc) << "action lookup of \"" << $1->data << "\" failed" << endl;
+			$$->action = 0;
+		}
+	};
+
+nonterm action_embed_block uses action_ref;
+
+action_embed_block:
+	'{' inline_block '}' final {
+		/* Create the action, add it to the list and pass up. */
+		Action *newAction = new Action( $1->loc, 0, $2->inlineList, pd->nextCondId++ );
+		pd->actionList.append( newAction );
+		$$->action = newAction;
+	};
+
+nonterm priority_name
+{
+	int priorityName;
+};
+
+# A specified priority name. Looks up the name in the current priority
+# dictionary.
+priority_name:
+	TK_Word final {
+		// Lookup/create the priority key.
+		PriorDictEl *priorDictEl;
+		if ( pd->priorDict.insert( $1->data, pd->nextPriorKey, &priorDictEl ) )
+			pd->nextPriorKey += 1;
+
+		// Use the inserted/found priority key.
+		$$->priorityName = priorDictEl->value;
+	};
+
+nonterm priority_aug
+{
+	int priorityNum;
+};
+
+# Priority change specs.
+priority_aug: 
+	priority_aug_num final {
+		// Convert the priority number to a long. Check for overflow.
+		errno = 0;
+		//cerr << "PRIOR AUG: " << $1->token.data << endl;
+		long aug = strtol( $1->token.data, 0, 10 );
+		if ( errno == ERANGE && aug == LONG_MAX ) {
+			/* Priority number too large. Recover by setting the priority to 0. */
+			error($1->token.loc) << "priority number " << $1->token.data << 
+					" overflows" << endl;
+			$$->priorityNum = 0;
+		}
+		else if ( errno == ERANGE && aug == LONG_MIN ) {
+			/* Priority number too large in the neg. Recover by using 0. */
+			error($1->token.loc) << "priority number " << $1->token.data << 
+					" underflows" << endl;
+			$$->priorityNum = 0;
+		}
+		else {
+			/* No overflow or underflow. */
+			$$->priorityNum = aug;
+		}
+	};
+
+nonterm priority_aug_num uses token_type;
+
+priority_aug_num:
+	TK_UInt final {
+		$$->token = *$1;
+	};
+priority_aug_num:
+	'+' TK_UInt final {
+		$$->token.set( "+", 1 );
+		$$->token.loc = $1->loc;
+		$$->token.append( *$2 );
+	};
+priority_aug_num:
+	'-' TK_UInt final {
+		$$->token.set( "-", 1 );
+		$$->token.loc = $1->loc;
+		$$->token.append( *$2 );
+	};
+
+nonterm local_err_name
+{
+	int error_name;
+};
+
+local_err_name:
+	TK_Word final {
+		/* Lookup/create the priority key. */
+		LocalErrDictEl *localErrDictEl;
+		if ( pd->localErrDict.insert( $1->data, pd->nextLocalErrKey, &localErrDictEl ) )
+			pd->nextLocalErrKey += 1;
+
+		/* Use the inserted/found priority key. */
+		$$->error_name = localErrDictEl->value;
+	};
+
+
+
+# The fourth level of precedence. These are the trailing unary operators that
+# allow for repetition.
+
+nonterm factor_with_rep
+{
+	FactorWithRep *factorWithRep;
+};
+
+factor_with_rep:
+	factor_with_rep '*' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				0, 0, FactorWithRep::StarType );
+	};
+factor_with_rep:
+	factor_with_rep TK_StarStar final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				0, 0, FactorWithRep::StarStarType );
+	};
+factor_with_rep:
+	factor_with_rep '?' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				0, 0, FactorWithRep::OptionalType );
+	};
+factor_with_rep:
+	factor_with_rep '+' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				0, 0, FactorWithRep::PlusType );
+	};
+factor_with_rep:
+	factor_with_rep '{' factor_rep_num '}' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				$3->rep, 0, FactorWithRep::ExactType );
+	};
+factor_with_rep:
+	factor_with_rep '{' ',' factor_rep_num '}' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				0, $4->rep, FactorWithRep::MaxType );
+	};
+factor_with_rep:
+	factor_with_rep '{' factor_rep_num ',' '}' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep,
+				$3->rep, 0, FactorWithRep::MinType );
+	};
+factor_with_rep:
+	factor_with_rep '{' factor_rep_num ',' factor_rep_num '}' final {
+		$$->factorWithRep = new FactorWithRep( $2->loc, $1->factorWithRep, 
+				$3->rep, $5->rep, FactorWithRep::RangeType );
+	};
+factor_with_rep:
+	factor_with_neg final {
+		$$->factorWithRep = new FactorWithRep( $1->factorWithNeg );
+	};
+
+nonterm factor_rep_num
+{
+	int rep;
+};
+
+factor_rep_num:
+	TK_UInt final {
+		// Convert the priority number to a long. Check for overflow.
+		errno = 0;
+		long rep = strtol( $1->data, 0, 10 );
+		if ( errno == ERANGE && rep == LONG_MAX ) {
+			// Repetition too large. Recover by returing repetition 1. */
+			error($1->loc) << "repetition number " << $1->data << " overflows" << endl;
+			$$->rep = 1;
+		}
+		else {
+			// Cannot be negative, so no overflow.
+			$$->rep = rep;
+ 		}
+	};
+
+
+#
+# The fifth level up in precedence. Negation.
+#
+
+nonterm factor_with_neg
+{
+	FactorWithNeg *factorWithNeg;
+};
+
+factor_with_neg:
+	'!' factor_with_neg final {
+		$$->factorWithNeg = new FactorWithNeg( $1->loc,
+				$2->factorWithNeg, FactorWithNeg::NegateType );
+	};
+factor_with_neg:
+	'^' factor_with_neg final {
+		$$->factorWithNeg = new FactorWithNeg( $1->loc,
+				$2->factorWithNeg, FactorWithNeg::CharNegateType );
+	};
+factor_with_neg:
+	factor final {
+		$$->factorWithNeg = new FactorWithNeg( $1->factor );
+	};
+
+nonterm factor
+{
+	Factor *factor;
+};
+
+factor: 
+	TK_Literal final {
+		/* Create a new factor node going to a concat literal. */
+		$$->factor = new Factor( new Literal( *$1, Literal::LitString ) );
+	};
+factor: 
+	alphabet_num final {
+		/* Create a new factor node going to a literal number. */
+		$$->factor = new Factor( new Literal( $1->token, Literal::Number ) );
+	};
+factor:
+	TK_Word final {
+		/* Find the named graph. */
+		GraphDictEl *gdNode = pd->graphDict.find( $1->data );
+		if ( gdNode == 0 ) {
+			/* Recover by returning null as the factor node. */
+			error($1->loc) << "graph lookup of \"" << $1->data << "\" failed" << endl;
+			$$->factor = 0;
+		}
+		else if ( gdNode->isInstance ) {
+			/* Recover by retuning null as the factor node. */
+			error($1->loc) << "references to graph instantiations not allowed "
+					"in expressions" << endl;
+			$$->factor = 0;
+		}
+		else {
+			/* Create a factor node that is a lookup of an expression. */
+			$$->factor = new Factor( $1->loc, gdNode->value );
+		}
+	};
+factor:
+	RE_SqOpen regular_expr_or_data RE_SqClose final {
+		/* Create a new factor node going to an OR expression. */
+		$$->factor = new Factor( new ReItem( $1->loc, $2->reOrBlock, ReItem::OrBlock ) );
+	};
+factor:
+	RE_SqOpenNeg regular_expr_or_data RE_SqClose final {
+		/* Create a new factor node going to a negated OR expression. */
+		$$->factor = new Factor( new ReItem( $1->loc, $2->reOrBlock, ReItem::NegOrBlock ) );
+	};
+factor:
+	RE_Slash regular_expr RE_Slash final {
+		if ( $3->length > 1 ) {
+			for ( char *p = $3->data; *p != 0; p++ ) {
+				if ( *p == 'i' )
+					$2->regExpr->caseInsensitive = true;
+			}
+		}
+
+		/* Create a new factor node going to a regular exp. */
+		$$->factor = new Factor( $2->regExpr );
+	};
+factor:
+	range_lit TK_DotDot range_lit final {
+		/* Create a new factor node going to a range. */
+		$$->factor = new Factor( new Range( $1->literal, $3->literal ) );
+	};
+factor:
+	'(' join ')' final {
+		/* Create a new factor going to a parenthesized join. */
+		$$->factor = new Factor( $2->join );
+		$2->join->loc = $1->loc;
+	};
+
+nonterm range_lit
+{
+	Literal *literal;
+};
+
+# Literals which can be the end points of ranges.
+range_lit:
+	TK_Literal final {
+		/* Range literas must have only one char. We restrict this in the parse tree. */
+		$$->literal = new Literal( *$1, Literal::LitString );
+	};
+range_lit:
+	alphabet_num final {
+		/* Create a new literal number. */
+		$$->literal = new Literal( $1->token, Literal::Number );
+	};
+
+nonterm alphabet_num uses token_type;
+
+# Any form of a number that can be used as a basic machine. */
+alphabet_num:
+	TK_UInt final { 
+		$$->token = *$1;
+	};
+alphabet_num: 
+	'-' TK_UInt final { 
+		$$->token.set( "-", 1 );
+		$$->token.loc = $1->loc;
+		$$->token.append( *$2 );
+	};
+alphabet_num: 
+	TK_Hex final { 
+		$$->token = *$1;
+	};
+#
+# Regular Expressions.
+#
+
+nonterm regular_expr
+{
+	RegExpr *regExpr;
+};
+
+# Parser for regular expression fsms. Any number of expression items which
+# generally gives a machine one character long or one character long stared.
+regular_expr:
+	regular_expr regular_expr_item final {
+		/* An optimization to lessen the tree size. If a non-starred char is
+		 * directly under the left side on the right and the right side is
+		 * another non-starred char then paste them together and return the
+		 * left side. Otherwise just put the two under a new reg exp node. */
+		if ( $2->reItem->type == ReItem::Data && !$2->reItem->star &&
+			$1->regExpr->type == RegExpr::RecurseItem &&
+			$1->regExpr->item->type == ReItem::Data && !$1->regExpr->item->star )
+		{
+			/* Append the right side to the right side of the left and toss the
+			 * right side. */
+			$1->regExpr->item->token.append( $2->reItem->token );
+			delete $2->reItem;
+			$$->regExpr = $1->regExpr;
+		}
+		else {
+			$$->regExpr = new RegExpr( $1->regExpr, $2->reItem );
+		}
+	};
+regular_expr:
+	final {
+		/* Can't optimize the tree. */
+		$$->regExpr = new RegExpr();
+	};
+
+nonterm regular_expr_item
+{
+	ReItem *reItem;
+};
+
+# RegularExprItems can be a character spec with an optional staring of the char.
+regular_expr_item:
+	regular_expr_char RE_Star final {
+		$1->reItem->star = true;
+		$$->reItem = $1->reItem;
+	};
+regular_expr_item:
+	regular_expr_char final {
+		$$->reItem = $1->reItem;
+	};
+
+nonterm regular_expr_char
+{
+	ReItem *reItem;
+};
+
+# A character spec can be a set of characters inside of square parenthesis, a
+# dot specifying any character or some explicitly stated character.
+regular_expr_char:
+	RE_SqOpen regular_expr_or_data RE_SqClose final {
+		$$->reItem = new ReItem( $1->loc, $2->reOrBlock, ReItem::OrBlock );
+	};
+regular_expr_char:
+	RE_SqOpenNeg regular_expr_or_data RE_SqClose final {
+		$$->reItem = new ReItem( $1->loc, $2->reOrBlock, ReItem::NegOrBlock );
+	};
+regular_expr_char:
+	RE_Dot final {
+		$$->reItem = new ReItem( $1->loc, ReItem::Dot );
+	};
+regular_expr_char:
+	RE_Char final {
+		$$->reItem = new ReItem( $1->loc, *$1 );
+	};
+
+# The data inside of a [] expression in a regular expression. Accepts any
+# number of characters or ranges. */
+nonterm regular_expr_or_data
+{
+	ReOrBlock *reOrBlock;
+};
+
+regular_expr_or_data:
+	regular_expr_or_data regular_expr_or_char final {
+		/* An optimization to lessen the tree size. If an or char is directly
+		 * under the left side on the right and the right side is another or
+		 * char then paste them together and return the left side. Otherwise
+		 * just put the two under a new or data node. */
+		if ( $2->reOrItem->type == ReOrItem::Data &&
+				$1->reOrBlock->type == ReOrBlock::RecurseItem &&
+				$1->reOrBlock->item->type == ReOrItem::Data )
+		{
+			/* Append the right side to right side of the left and toss the
+			 * right side. */
+			$1->reOrBlock->item->token.append( $2->reOrItem->token );
+			delete $2->reOrItem;
+			$$->reOrBlock = $1->reOrBlock;
+		}
+		else {
+			/* Can't optimize, put the left and right under a new node. */
+			$$->reOrBlock = new ReOrBlock( $1->reOrBlock, $2->reOrItem );
+		}
+	};
+regular_expr_or_data:
+	final {
+		$$->reOrBlock = new ReOrBlock();
+	};
+
+# A single character inside of an or expression. Can either be a character or a
+# set of characters.
+nonterm regular_expr_or_char
+{
+	ReOrItem *reOrItem;
+};
+
+regular_expr_or_char:
+	RE_Char final {
+		$$->reOrItem = new ReOrItem( $1->loc, *$1 );
+	};
+regular_expr_or_char:
+	RE_Char RE_Dash RE_Char final {
+		$$->reOrItem = new ReOrItem( $2->loc, $1->data[0], $3->data[0] );
+	};
+
+#
+# Inline Lists for inline host code.
+#
+
+type inline_list
+{
+	InlineList *inlineList;
+};
+
+nonterm inline_block uses inline_list;
+
+inline_block:
+	inline_block inline_block_item 
+	final {
+		/* Append the item to the list, return the list. */
+		$$->inlineList = $1->inlineList;
+		$$->inlineList->append( $2->inlineItem );
+	};
+
+inline_block:
+	final {
+		/* Start with empty list. */
+		$$->inlineList = new InlineList;
+	};
+
+type inline_item
+{
+	InlineItem *inlineItem;
+};
+
+nonterm inline_block_item uses inline_item;
+nonterm inline_block_interpret uses inline_item;
+
+inline_block_item:
+	inline_expr_any 
+	final {
+		$$->inlineItem = new InlineItem( $1->token.loc, $1->token.data, InlineItem::Text );
+	};
+
+inline_block_item:
+	inline_block_symbol 
+	final {
+		$$->inlineItem = new InlineItem( $1->token.loc, $1->token.data, InlineItem::Text );
+	};
+
+inline_block_item:
+	inline_block_interpret
+	final {
+		/* Pass the inline item up. */
+		$$->inlineItem = $1->inlineItem;
+	};
+
+nonterm inline_block_symbol uses token_type;
+
+inline_block_symbol: ',' final { $$->token = *$1; };
+inline_block_symbol: ';' final { $$->token = *$1; };
+inline_block_symbol: '(' final { $$->token = *$1; };
+inline_block_symbol: ')' final { $$->token = *$1; };
+inline_block_symbol: '*' final { $$->token = *$1; };
+inline_block_symbol: TK_NameSep final { $$->token = *$1; };
+
+# Interpreted statements in a struct block. */
+inline_block_interpret:
+	inline_expr_interpret final {
+		/* Pass up interpreted items of inline expressions. */
+		$$->inlineItem = $1->inlineItem;
+	};
+inline_block_interpret:
+	KW_Hold ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Hold );
+	};
+inline_block_interpret:
+	KW_Exec inline_expr ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Exec );
+		$$->inlineItem->children = $2->inlineList;
+	};
+inline_block_interpret:
+	KW_Goto state_ref ';' final { 
+		$$->inlineItem = new InlineItem( $1->loc, 
+				new NameRef(nameRef), InlineItem::Goto );
+	};
+inline_block_interpret:
+	KW_Goto '*' inline_expr ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::GotoExpr );
+		$$->inlineItem->children = $3->inlineList;
+	};
+inline_block_interpret:
+	KW_Next state_ref ';' final { 
+		$$->inlineItem = new InlineItem( $1->loc, new NameRef(nameRef), InlineItem::Next );
+	};
+inline_block_interpret:
+	KW_Next '*' inline_expr ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::NextExpr );
+		$$->inlineItem->children = $3->inlineList;
+	};
+inline_block_interpret:
+	KW_Call state_ref ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, new NameRef(nameRef), InlineItem::Call );
+	};
+inline_block_interpret:
+	KW_Call '*' inline_expr ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::CallExpr );
+		$$->inlineItem->children = $3->inlineList;
+	};
+inline_block_interpret:
+	KW_Ret ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Ret );
+	};
+inline_block_interpret:
+	KW_Break ';' final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Break );
+	};
+
+nonterm inline_expr uses inline_list;
+
+inline_expr:
+	inline_expr inline_expr_item 
+	final {
+		$$->inlineList = $1->inlineList;
+		$$->inlineList->append( $2->inlineItem );
+	};
+inline_expr:
+	final {
+		/* Init the list used for this expr. */
+		$$->inlineList = new InlineList;
+	};
+
+nonterm inline_expr_item uses inline_item;
+
+inline_expr_item: 
+	inline_expr_any 
+	final {
+		/* Return a text segment. */
+		$$->inlineItem = new InlineItem( $1->token.loc, $1->token.data, InlineItem::Text );
+	};
+inline_expr_item:
+	inline_expr_symbol
+	final {
+		/* Return a text segment, must heap alloc the text. */
+		$$->inlineItem = new InlineItem( $1->token.loc, $1->token.data, InlineItem::Text );
+	};
+inline_expr_item:
+	inline_expr_interpret
+	final{
+		/* Pass the inline item up. */
+		$$->inlineItem = $1->inlineItem;
+	};
+
+nonterm inline_expr_any uses token_type;
+
+inline_expr_any: IL_WhiteSpace try { $$->token = *$1; };
+inline_expr_any: IL_Comment try { $$->token = *$1; };
+inline_expr_any: IL_Literal try { $$->token = *$1; };
+inline_expr_any: IL_Symbol try { $$->token = *$1; };
+inline_expr_any: TK_UInt try { $$->token = *$1; };
+inline_expr_any: TK_Hex try { $$->token = *$1; };
+inline_expr_any: TK_Word try { $$->token = *$1; };
+
+# Anything in a ExecValExpr that is not dynamically allocated. This includes
+# all special symbols caught in inline code except the semi.
+
+nonterm inline_expr_symbol uses token_type;
+
+inline_expr_symbol: ',' try { $$->token = *$1; };
+inline_expr_symbol: '(' try { $$->token = *$1; };
+inline_expr_symbol: ')' try { $$->token = *$1; };
+inline_expr_symbol: '*' try { $$->token = *$1; };
+inline_expr_symbol: TK_NameSep try { $$->token = *$1; };
+
+nonterm inline_expr_interpret uses inline_item;
+
+inline_expr_interpret:
+	KW_PChar 
+	final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::PChar );
+	};
+inline_expr_interpret:
+	KW_Char 
+	final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Char );
+	};
+inline_expr_interpret:
+	KW_CurState 
+	final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Curs );
+	};
+inline_expr_interpret:
+	KW_TargState 
+	final {
+		$$->inlineItem = new InlineItem( $1->loc, InlineItem::Targs );
+	};
+inline_expr_interpret:
+	KW_Entry '(' state_ref ')' 
+	final {
+		$$->inlineItem = new InlineItem( $1->loc, 
+			new NameRef(nameRef), InlineItem::Entry );
+	};
+
+#  A local state reference. Cannot have :: prefix.
+local_state_ref:
+	no_name_sep state_ref_names;
+
+# Clear the name ref structure.
+no_name_sep:
+	final {
+		nameRef.empty();
+	};
+
+# A qualified state reference.
+state_ref: opt_name_sep state_ref_names;
+
+# Optional leading name separator.
+opt_name_sep:
+	TK_NameSep 
+	final {
+		/* Insert an initial null pointer val to indicate the existence of the
+		 * initial name seperator. */
+		nameRef.setAs( 0 );
+	};
+opt_name_sep:
+	final {
+		nameRef.empty();
+	};
+
+# List of names separated by ::
+state_ref_names:
+	state_ref_names TK_NameSep TK_Word
+	final {
+		nameRef.append( $3->data );
+	};
+state_ref_names:
+	TK_Word 
+	final {
+		nameRef.append( $1->data );
+	};
+
+}%%
+
+%%{
+	write types;
+	write data;
+}%%
+
+void Parser::init()
+{
+	%% write init;
+}
+
+int Parser::parseLangEl( int type, const Token *token )
+{
+	%% write exec;
+	return errCount == 0 ? 0 : -1;
+}
+
+void Parser::tryMachineDef( InputLoc &loc, char *name, 
+		MachineDef *machineDef, bool isInstance )
+{
+	GraphDictEl *newEl = pd->graphDict.insert( name );
+	if ( newEl != 0 ) {
+		/* New element in the dict, all good. */
+		newEl->value = new VarDef( name, machineDef );
+		newEl->isInstance = isInstance;
+		newEl->loc = loc;
+		newEl->value->isExport = exportContext[exportContext.length()-1];
+
+		/* It it is an instance, put on the instance list. */
+		if ( isInstance )
+			pd->instanceList.append( newEl );
+	}
+	else {
+		// Recover by ignoring the duplicate.
+		error(loc) << "fsm \"" << name << "\" previously defined" << endl;
+	}
+}
+
+ostream &Parser::parse_error( int tokId, Token &token )
+{
+	/* Maintain the error count. */
+	gblErrorCount += 1;
+
+	cerr << token.loc << ": ";
+	cerr << "at token ";
+	if ( tokId < 128 )
+		cerr << "\"" << Parser_lelNames[tokId] << "\"";
+	else 
+		cerr << Parser_lelNames[tokId];
+	if ( token.data != 0 )
+		cerr << " with data \"" << token.data << "\"";
+	cerr << ": ";
+	
+	return cerr;
+}
+
+int Parser::token( InputLoc &loc, int tokId, char *tokstart, int toklen )
+{
+	Token token;
+	token.data = tokstart;
+	token.length = toklen;
+	token.loc = loc;
+	int res = parseLangEl( tokId, &token );
+	if ( res < 0 ) {
+		parse_error(tokId, token) << "parse error" << endl;
+		exit(1);
+	}
+	return res;
+}

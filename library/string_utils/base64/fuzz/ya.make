@@ -1,0 +1,6 @@
+
+
+RECURSE(
+    generic
+    lib
+)

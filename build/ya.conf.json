@@ -1,0 +1,2477 @@
+{
+    "tools": {
+        "cc": { "description": "Run C compiler" },
+        "c++": { "description": "Run C++ compiler" },
+        "clang-format": { "description": "Run Clang Format" },
+        "clang-tidy": { "description": "Run Clang Tidy" },
+        "cling": { "description": "Run cling" },
+        "llvm-profdata": { "description": "Run llvm-profdata Clang utility" },
+        "llvm-symbolizer": { "description": "Run llvm-symbolizer Clang utility" },
+        "llvm-cov": { "description": "Run llvm-cov Clang utility" },
+        "strip": { "description": "Run strip utility" },
+        "c++filt": { "description": "Run c++filt" },
+        "nm": { "description": "Run nm" },
+        "svn": { "description": "Subversion command-line client" },
+        "ymake": { "description": "Run ymake", "visible": false },
+        "ymake_dev": { "description": "Run ymake dev version", "visible": false },
+        "test_tool": { "description": "Test tools for tests", "visible": false },
+        "maven_import_sandbox_uploader": { "description": "Sandbox uploader for maven-import cmd", "visible": false },
+        "cmake": { "description": "Run cmake" },
+        "ninja": { "description": "Run ninja" },
+        "gdb": { "description": "Run gdb" },
+        "gdbserver": { "description": "Run gdbserver" },
+        "ag": { "description": "Run ag (super fast source-code grep)" },
+        "valgrind": { "description": "Run valgrind" },
+        "python": { "description": "Run pseudo-python", "visible": false },
+        "java": { "description": "Run java" },
+        "javac": { "description": "Run javac" },
+        "jar": {"description": "Run jar" },
+        "jq": {"description": "Run jq" },
+        "vim": { "description": "Run vim" },
+        "nvim": { "description": "Run neovim" },
+        "ctags": { "description": "Run ctags" },
+        "emacs": { "description": "Run emacs" },
+        "tmux": { "description": "Run Tmux" },
+        "gpt_perf": { "description": "Google performance tools: performance checker" },
+        "gpt_heap": { "description": "Google performance tools: heap checker" },
+        "wine": { "description": "Run wine64", "visible": false },
+        "deploy": { "description": "Run Samogon", "visible": false },
+        "uc": { "description": "Run Uber Compressor" },
+        "ant": { "description": "Ant build system", "visible": false },
+        "mvn": { "description": "Maven build system", "visible": false },
+        "gcov": { "description": "Run gcov" },
+        "protoc": { "description": "Run protoc", "visible": false },
+        "hg": { "description": "Run mercurial", "visible": false },
+        "bloat": { "description": "Run bloat2 tool", "visible": false },
+        "ipython": { "description": "Run IPython console", "visible": false },
+        "ptpython": { "description": "Run PTPython console", "visible": false },
+        "allure": {"description": "Run Allure commandline"},
+        "rsync": {"description": "Run RSync"},
+        "yt": {"description": "Run YT client"},
+        "yndexer": {"description": "Run Yndexer"},
+        "transfer-manager": { "description": "Run Transfer Manager client" },
+        "rem-tool": { "description": "Run REM cli client" },
+        "afl-fuzz": { "description": "Run afl-fuzz" }
+    },
+    "toolchain": {
+        "msvc2015-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64/cl.exe",
+                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64/cl.exe",
+                "arch_opt": ["/D_WIN64", "/DWIN64"],
+                "lib": "$(MSVC)/msvc/VC/bin/amd64/lib.exe",
+                "link": "$(MSVC)/msvc/VC/bin/amd64/link.exe",
+                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64/ml64.exe",
+                "sdk_root": "$(MSVC)/msvc",
+                "for_ide": "msvs2015"
+            }
+        },
+        "msvc2015_i686-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
+                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
+                "arch_opt": [],
+                "lib": "$(MSVC)/msvc/VC/bin/amd64_x86/lib.exe",
+                "link": "$(MSVC)/msvc/VC/bin/amd64_x86/link.exe",
+                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/ml.exe",
+                "sdk_root": "$(MSVC)/msvc"
+            }
+        },
+        "msvc2015_arm-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/cl.exe",
+                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/cl.exe",
+                "arch_opt": [],
+                "lib": "$(MSVC)/msvc/VC/bin/amd64_arm/lib.exe",
+                "link": "$(MSVC)/msvc/VC/bin/amd64_arm/link.exe",
+                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/armasm.exe",
+                "sdk_root": "$(MSVC)/msvc"
+            }
+        },
+        "win_cygwin_gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "win_cygwin_gcc49", "executable": "cc" },
+                "c++": { "bottle": "win_cygwin_gcc49", "executable": "c++" },
+                "gcov": { "bottle": "win_cygwin_gcc49", "executable": "gcov"},
+                "c++filt": { "bottle": "win_cygwin_gcc49", "executable": "c++filt" },
+                "nm": { "bottle": "win_cygwin_gcc49", "executable": "nm" },
+                "strip": { "bottle": "win_cygwin_gcc49", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "WIN"}, "target": {"os": "CYGWIN"}},
+                {"host": {"os": "CYGWIN"}, "target": {"os": "CYGWIN"}, "default": true}
+            ],
+            "params": {
+                "type": "gnu",
+                "werror_mode": "compiler_specific",
+                "match_root": "GCC",
+                "c_compiler": "$(GCC)/bin/gcc.exe",
+                "cxx_compiler": "$(GCC)/bin/g++.exe",
+                "ar": "$(GCC)/bin/ar.exe",
+                "gcc_version": "4.9.3",
+                "arch_opt": ["-I$(GCC)/include", "-I$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3/include", "-fno-use-linker-plugin"],
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "sys_lib": {
+                    "CYGWIN": [
+                        "-L$(GCC)/lib",
+                        "-fno-use-linker-plugin"
+                    ]
+                }
+            },
+            "env": {
+                "PATH": [
+                    "$(GCC)/bin"
+                ],
+                "LD_LIBRARY_PATH": [
+                    "$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3"
+                ],
+                "LIBRARY_PATH": [
+                    "$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3"
+                ]
+            }
+        },
+        "linux-cygwin-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "linux_cygwin_gcc49", "executable": "cc" },
+                "c++": { "bottle": "linux_cygwin_gcc49", "executable": "c++" },
+                "gcov": { "bottle": "linux_cygwin_gcc49", "executable": "gcov" },
+                "strip": { "bottle": "linux_cygwin_gcc49", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "CYGWIN"}}],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
+                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
+                "ar": "$(GCC)/gcc/bin/gcc-ar-4.9",
+                "gcc_version": "4.9.3",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "sys_lib": {
+                    "CYGWIN": [
+                        "$(GCC)/gcc/lib/gcc/x86_64-pc-cygwin/4.9.3/libgcc.a"
+                    ]
+                }
+            }
+        },
+        "wine-msvc2015-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64/cl.exe",
+                "arch_opt": ["/D_WIN64", "/DWIN64"],
+                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64/lib.exe",
+                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64/link.exe",
+                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64/ml64.exe",
+                "sdk_root": "$(MSVC)/msvc",
+                "wine": "yes",
+                "disable_fix_msvc_output": "yes"
+            }
+        },
+        "wine-msvc2015-arm-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64_arm/cl.exe /D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE /D__arm__",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64_arm/cl.exe /D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE /D__arm__",
+                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64_arm/lib.exe",
+                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_arm/link.exe",
+                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_arm/armasm.exe",
+                "sdk_root": "$(MSVC)/msvc",
+                "wine": "yes",
+                "disable_fix_msvc_output": "yes"
+            }
+        },
+        "wine-msvc2015-x86-up3": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
+                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
+                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64_x86/lib.exe",
+                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_x86/link.exe",
+                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_x86/ml.exe",
+                "sdk_root": "$(MSVC)/msvc",
+                "wine": "yes",
+                "disable_fix_msvc_output": "yes"
+            }
+        },
+        "ymake": {
+            "tools": {
+                "ymake": { "bottle": "ymake", "executable": "ymake" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "CYGWIN"}, "default": true},
+                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "ymake_dev": {
+            "tools": {
+                "ymake_dev": { "bottle": "ymake_dev", "executable": "ymake" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "CYGWIN"}, "default": true},
+                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "test_tool": {
+            "tools": {
+                "test_tool": { "bottle": "test_tool", "executable": "test_tool" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "maven_import_sandbox_uploader": {
+            "tools": {
+                "maven_import_sandbox_uploader": { "bottle": "maven_import_sandbox_uploader", "executable": "maven_import_sandbox_uploader" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "hg": {
+            "tools": {
+                "hg": { "bottle": "hg", "executable": "hg" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "gcc49": {
+            "tools": {
+                "cc": { "bottle": "gcc49", "executable": "cc" },
+                "c++": { "bottle": "gcc49", "executable": "c++" },
+                "gcov": { "bottle": "gcc49", "executable": "gcov" },
+                "c++filt": { "bottle": "gcc49", "executable": "c++filt" },
+                "nm": { "bottle": "gcc49", "executable": "nm" },
+                "strip": { "bottle": "gcc49", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
+                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
+                "ar": "$(GCC)/gcc/bin/gcc-ar-4.9",
+                "gcc_version": "4.9.2",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "sys_lib": {
+                    "FREEBSD": [
+                        "$(GCC)/gcc/lib/libsupc++.a",
+                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/4.9.2/libgcc.a",
+                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/4.9.2/libgcc_eh.a"
+                    ],
+                    "LINUX": [
+                        "-L$(GCC)/gcc/lib",
+                        "-L$(GCC)/gcc/lib/gcc/x86_64-unknown-linux-gnu/4.9.2",
+                        "-L/usr/lib/x86_64-linux-gnu"
+                    ],
+                    "DARWIN": [
+                        "$(GCC)/gcc/lib/gcc/platform/4.9.2/libgcc.a"
+                    ]
+                }
+            }
+        },
+        "gcc61": {
+            "tools": {
+                "cc": { "bottle": "gcc61", "executable": "cc" },
+                "c++": { "bottle": "gcc61", "executable": "c++" },
+                "gcov": { "bottle": "gcc61", "executable": "gcov" },
+                "c++filt": { "bottle": "gcc61", "executable": "c++filt" },
+                "nm": { "bottle": "gcc61", "executable": "nm" },
+                "strip": { "bottle": "gcc61", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/gcc-6.1",
+                "cxx_compiler": "$(GCC)/gcc/bin/g++-6.1",
+                "ar": "$(GCC)/gcc/bin/gcc-ar-6.1",
+                "gcc_version": "6.1.0",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "arch_opt": ["-Wno-error=unused-function"],
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "sys_lib": {
+                    "FREEBSD": [
+                        "$(GCC)/gcc/lib/libsupc++.a",
+                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/6.1.0/libgcc.a",
+                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/6.1.0/libgcc_eh.a"
+                    ],
+                    "LINUX": [
+                        "-L$(GCC)/gcc/lib",
+                        "-L$(GCC)/gcc/lib/gcc/x86_64-unknown-linux-gnu/6.1.0",
+                        "-L/usr/lib/x86_64-linux-gnu"
+                    ],
+                    "DARWIN": [
+                        "$(GCC)/gcc/lib/gcc/platform/6.1.0/libgcc.a"
+                    ]
+                }
+            }
+        },
+        "clang37": {
+            "tools": {
+                "cc": { "bottle": "clang37", "executable": "cc" },
+                "c++": { "bottle": "clang37", "executable": "c++" },
+                "gcov": { "bottle": "clang37", "executable": "gcov" },
+                "c++filt": { "bottle": "clang37", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang37", "executable": "llvm-symbolizer" },
+                "llvm-profdata": { "bottle": "clang37", "executable": "llvm-profdata" },
+                "llvm-cov": { "bottle": "clang37", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang37", "executable": "nm" },
+                "strip": { "bottle": "clang37", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "FREEBSD"}},
+                {"host": {"os": "WIN"}},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "sys_lib": {
+                    "LINUX": [
+                        "-L/usr/lib/x86_64-linux-gnu"
+                    ]
+                }
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib"
+                ]
+            }
+        },
+        "clang38": {
+            "tools": {
+                "cc": { "bottle": "clang38", "executable": "cc" },
+                "c++": { "bottle": "clang38", "executable": "c++" },
+                "gcov": { "bottle": "clang38", "executable": "gcov" },
+                "c++filt": { "bottle": "clang38", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang38", "executable": "llvm-symbolizer" },
+                "llvm-profdata": { "bottle": "clang38", "executable": "llvm-profdata" },
+                "llvm-cov": { "bottle": "clang38", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang38", "executable": "nm" },
+                "strip": { "bottle": "clang38", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.8",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "platform": {
+                    "DARWIN": [
+                        "contrib/libs/platform/darwin/sdk"
+                    ]
+                },
+                "sys_lib": {
+                    "LINUX": [
+                        "-L/usr/lib/x86_64-linux-gnu"
+                    ]
+                }
+            },
+            "env": {
+            }
+        },
+        "clang39": {
+            "tools": {
+                "cc": { "bottle": "clang39", "executable": "cc" },
+                "c++": { "bottle": "clang39", "executable": "c++" },
+                "gcov": { "bottle": "clang39", "executable": "gcov" },
+                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
+                "llvm-profdata": { "bottle": "clang39", "executable": "llvm-profdata" },
+                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang39", "executable": "nm" },
+                "strip": { "bottle": "clang39", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.9",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "sys_lib": {
+                    "LINUX": [
+                        "-L/usr/lib/x86_64-linux-gnu"
+                    ]
+                }
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib"
+                ]
+            }
+        },
+        "clang39ppc64le": {
+            "name": "clang39",
+            "tools": {
+                "cc": { "bottle": "clang39", "executable": "cc" },
+                "c++": { "bottle": "clang39", "executable": "c++" },
+                "gcov": { "bottle": "clang39", "executable": "gcov" },
+                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang39", "executable": "nm" },
+                "strip": { "bottle": "clang39", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.9",
+                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$(LINUX_PPC64LE_SDK)", "-B$(LINUX_PPC64LE_SDK)/usr/bin", "-maltivec", "-mcpu=power8"],
+                "platform": {
+                    "LINUX": [
+                        "contrib/libs/platform/ppc/sdk"
+                    ]
+                }
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$(LINUX_PPC64LE_SDK)/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
+                ]
+            }
+        },
+        "clang40": {
+            "tools": {
+                "cc": { "bottle": "clang40", "executable": "cc" },
+                "c++": { "bottle": "clang40", "executable": "c++" },
+                "gcov": { "bottle": "clang40", "executable": "gcov" },
+                "c++filt": { "bottle": "clang40", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang40", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang40", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang40", "executable": "nm" },
+                "strip": { "bottle": "clang40", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "4.0",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "platform" : {
+                    "LINUX": [
+                        "contrib/libs/platform/linux"
+                    ]
+                },
+                "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$OS_SDK_ROOT/usr/lib/x86_64-linux-gnu"
+                ]
+            }
+        },
+        "clang40ppc64le": {
+            "name": "clang40",
+            "tools": {
+                "cc": { "bottle": "clang40", "executable": "cc" },
+                "c++": { "bottle": "clang40", "executable": "c++" },
+                "gcov": { "bottle": "clang40", "executable": "gcov" },
+                "c++filt": { "bottle": "clang40", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang40", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang40", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang40", "executable": "nm" },
+                "strip": { "bottle": "clang40", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "4.0",
+                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$(LINUX_PPC64LE_SDK)", "-B$(LINUX_PPC64LE_SDK)/usr/bin", "-maltivec", "-mcpu=power8"],
+                "platform": {
+                    "LINUX": [
+                        "contrib/libs/platform/ppc/sdk"
+                    ]
+                }
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$(LINUX_PPC64LE_SDK)/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
+                ]
+            }
+        },
+        "linux-freebsd-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "linux-freebsd-gcc49", "executable": "cc" },
+                "c++": { "bottle": "linux-freebsd-gcc49", "executable": "c++" },
+                "gcov": { "bottle": "linux-freebsd-gcc49", "executable": "gcov" },
+                "strip": { "bottle": "linux-freebsd-gcc49", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "FREEBSD"}}],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/bin/gcc-4.9",
+                "cxx_compiler": "$(GCC)/bin/g++-4.9",
+                "ar": "$(GCC)/bin/x86_64-pc-freebsd9-ar",
+                "gcc_version": "4.9.2",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "sys_lib": {
+                    "FREEBSD": [
+                        "$(GCC)/lib/gcc/x86_64-pc-freebsd9/4.9.3/libgcc.a"
+                    ]
+                }
+            }
+        },
+        "linux-darwin-clang37": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "darwin37", "executable": "cc" },
+                "c++": { "bottle": "darwin37", "executable": "c++" },
+                "gcov": { "bottle": "darwin37", "executable": "gcov" },
+                "strip": { "bottle": "darwin37", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/x86_64-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "DARWIN": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "target_opt": ["-target", "x86_64-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/sdk"],
+                "sdk_lib": ["-Wl,-syslibroot,$(CLANG)/sdk", "-Wl,-sdk_version,10.10", "-L$(CLANG)/sdk/usr/lib", "-L$(CLANG)/sdk/usr/lib/system"],
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"]
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$(CLANG)/sdk/usr/lib"
+                ]
+            }
+        },
+        "linux-darwin-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "darwin49", "executable": "cc" },
+                "c++": { "bottle": "darwin49", "executable": "c++" },
+                "gcov": { "bottle": "darwin49", "executable": "gcov" },
+                "strip": { "bottle": "darwin49", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN"}}],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
+                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
+                "arch_opt": [],
+                "ar": "$(GCC)/gcc/bin/x86_64-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "DARWIN": "$(GCC)/bin/x86_64-apple-darwin14-dsymutil"
+                },
+                "gcc_version": "4.9.2",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
+                "sys_lib": {
+                    "DARWIN": [
+                        "$(GCC)/gcc/lib/gcc/x86_64-apple-darwin14/4.9.2/libgcc.a"
+                    ]
+                }
+            }
+        },
+        "linux-ios-armv7": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "armv7-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/armv7-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
+                }
+            }
+        },
+        "linux-ios-x86_64": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "x86_64-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
+                }
+            }
+        },
+        "linux-ios-i386": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "i386-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
+                }
+            }
+        },
+        "linux-ios-arm64": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "arm64-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-D_LARGEFILE64_SOURCE", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/arm64-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
+                }
+            }
+        },
+        "darwin-ios-armv7": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "armv7-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/armv7-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
+                }
+            }
+        },
+        "darwin-ios-x86_64": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "x86_64-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
+                }
+            }
+        },
+        "darwin-ios-i386": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "i386-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
+                }
+            }
+        },
+        "darwin-ios-arm64": {
+            "name": "clang37",
+            "tools": {
+                "cc": { "bottle": "clang37-ios", "executable": "cc" },
+                "c++": { "bottle": "clang37-ios", "executable": "c++" },
+                "strip": { "bottle": "clang37-ios", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "target_opt": ["-target", "arm64-apple-darwin14"],
+                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-D_LARGEFILE64_SOURCE", "-Wno-deprecated-declarations"],
+                "ar": "$(CLANG)/bin/arm64-apple-darwin14-libtool",
+                "dwarf_tool": {
+                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.7",
+                "sys_lib": {
+                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
+                }
+            }
+        },
+        "android-armv7a-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "android", "executable": "cc" },
+                "c++": { "bottle": "android", "executable": "c++" },
+                "gcov": { "bottle": "android", "executable": "gcov" },
+                "strip": { "bottle": "android", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-gcc",
+                "cxx_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-g++",
+                "gcc_version": "4.9",
+                "ar": "$(GCC)/gcc/bin/arm-linux-androideabi-ar",
+                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE"],
+                "werror_mode": "compiler_specific",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-Wl,--fix-cortex-a8", "-fPIE",
+                        "-L$(GCC)/gcc/lib",
+                        "$(GCC)/gcc/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
+                        "$(GCC)/gcc/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-armv7a_neon-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "android", "executable": "cc" },
+                "c++": { "bottle": "android", "executable": "c++" },
+                "gcov": { "bottle": "android", "executable": "gcov" },
+                "strip": { "bottle": "android", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-gcc",
+                "cxx_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-g++",
+                "gcc_version": "4.9",
+                "ar": "$(GCC)/gcc/bin/arm-linux-androideabi-ar",
+                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE", "-mfpu=neon"],
+                "werror_mode": "compiler_specific",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-Wl,--fix-cortex-a8", "-fPIE",
+                        "-L$(GCC)/gcc/lib",
+                        "$(GCC)/gcc/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
+                        "$(GCC)/gcc/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-armv7a-clang38": {
+            "name": "clang38",
+            "tools": {
+                "cc": { "bottle": "android-clang", "executable": "cc" },
+                "c++": { "bottle": "android-clang", "executable": "c++" },
+                "gcov": { "bottle": "android-clang", "executable": "gcov" },
+                "strip": { "bottle": "android-clang", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/clang/bin/clang",
+                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
+                "ar": "$(CLANG)/clang/bin/arm-linux-androideabi-ar",
+                "ar_plugin": "$(CLANG)/clang/lib64/LLVMgold.so",
+                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE", "-march=armv7-a"],
+                "werror_mode": "compiler_specific",
+                "gcc_version": "3.8",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-Wl,--fix-cortex-a8", "-fPIE",
+                        "-L$(CLANG)/clang/lib",
+                        "$(CLANG)/clang/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
+                        "$(CLANG)/clang/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-armv7a_neon-clang38": {
+            "name": "clang38",
+            "tools": {
+                "cc": { "bottle": "android-clang", "executable": "cc" },
+                "c++": { "bottle": "android-clang", "executable": "c++" },
+                "gcov": { "bottle": "android-clang", "executable": "gcov" },
+                "strip": { "bottle": "android-clang", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/clang/bin/clang",
+                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
+                "ar": "$(CLANG)/clang/bin/arm-linux-androideabi-ar",
+                "ar_plugin": "$(CLANG)/clang/lib64/LLVMgold.so",
+                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE", "-mfpu=neon", "-march=armv7-a"],
+                "werror_mode": "compiler_specific",
+                "gcc_version": "3.8",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-Wl,--fix-cortex-a8", "-fPIE",
+                        "-L$(CLANG)/clang/lib",
+                        "$(CLANG)/clang/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
+                        "$(CLANG)/clang/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-x86-clang38": {
+            "name": "clang38",
+            "tools": {
+                "cc": { "bottle": "android-x86-clang", "executable": "cc" },
+                "c++": { "bottle": "android-x86-clang", "executable": "c++" },
+                "gcov": { "bottle": "android-x86-clang", "executable": "gcov" },
+                "strip": { "bottle": "android-x86-clang", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/i686-linux-android-ar",
+                "ar_plugin": "$(CLANG)/lib64/LLVMgold.so",
+                "arch_opt": [],
+                "werror_mode": "compiler_specific",
+                "gcc_version": "3.8",
+                "sys_lib": {
+                    "ANDROID": [
+                        "$(CLANG)/lib/gcc/i686-linux-android/4.9.x/libgcc.a",
+                        "$(CLANG)/i686-linux-android/lib/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-armv8a-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "android-armv8a-gcc", "executable": "cc" },
+                "c++": { "bottle": "android-armv8a-gcc", "executable": "c++" },
+                "gcov": { "bottle": "android-armv8a-gcc", "executable": "gcov" },
+                "strip": { "bottle": "android-armv8a-gcc", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/aarch64-linux-android-gcc",
+                "cxx_compiler": "$(GCC)/gcc/bin/aarch64-linux-android-g++",
+                "gcc_version": "4.9",
+                "ar": "$(GCC)/gcc/bin/aarch64-linux-android-ar",
+                "arch_opt": ["-march=armv8-a", "-fexceptions", "-fsigned-char", "-fPIE"],
+                "werror_mode": "compiler_specific",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-fPIE",
+                        "-L$(GCC)/gcc/lib",
+                        "$(GCC)/gcc/lib/gcc/aarch64-linux-android/4.9/libgcc.a",
+                        "$(GCC)/gcc/aarch64-linux-android/lib/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "android-armv8a-clang38": {
+            "name": "clang38",
+            "tools": {
+                "cc": { "bottle": "android-armv8a-clang", "executable": "cc" },
+                "c++": { "bottle": "android-armv8a-clang", "executable": "c++" },
+                "gcov": { "bottle": "android-armv8a-clang", "executable": "gcov" },
+                "strip": { "bottle": "android-armv8a-clang", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/clang/bin/clang",
+                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
+                "ar": "$(CLANG)/clang/bin/aarch64-linux-android-ar",
+                "arch_opt": ["-march=armv8-a", "-fexceptions", "-fsigned-char", "-fPIE"],
+                "werror_mode": "compiler_specific",
+                "gcc_version": "3.8",
+                "sys_lib": {
+                    "ANDROID": [
+                        "-fPIE",
+                        "-L$(CLANG)/clang/lib",
+                        "$(CLANG)/clang/lib/gcc/aarch64-linux-android/4.9/libgcc.a",
+                        "$(CLANG)/clang/aarch64-linux-android/lib/libsupc++.a"
+                    ]
+                }
+            }
+        },
+        "linux-aarch64-gcc49": {
+            "name": "gcc49",
+            "tools": {
+                "cc": { "bottle": "aarch49", "executable": "cc" },
+                "c++": { "bottle": "aarch49", "executable": "c++" },
+                "gcov": { "bottle": "aarch49", "executable": "gcov" },
+                "strip": { "bottle": "aarch49", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true}],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "all",
+                "c_compiler": "$(GCC)/gcc/bin/aarch64-linux-gcc",
+                "cxx_compiler": "$(GCC)/gcc/bin/aarch64-linux-g++",
+                "gcc_version": "4.9.2",
+                "ar": "$(GCC)/gcc/aarch64-linux/bin/ar",
+                "arch_opt": [],
+                "werror_mode": "compiler_specific",
+                "sys_lib": {
+                    "LINUX": [
+                        "-L$(GCC)/gcc/aarch64-linux/lib",
+                        "-L$(GCC)/gcc/aarch64-linux/lib64",
+                        "-L$(GCC)/gcc/lib/gcc/aarch64-linux/4.9.2"
+                    ]
+                }
+            }
+        },
+        "clang-format": {
+            "tools": {
+                "clang-format": { "bottle": "clang40", "executable": "clang-format" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "clang-tidy": {
+            "tools": {
+                "clang-tidy": { "bottle": "clang38", "executable": "clang-tidy" }
+            },
+            "platforms": [
+                { "host": { "os": "LINUX" }, "default": true }
+            ]
+        },
+        "bloat": {
+            "tools": {
+                "bloat": { "bottle": "bloat", "executable": "bloat2" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "gdb": {
+            "tools": {
+                "gdb": {  "bottle": "gdb", "executable": "gdb" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ],
+            "env": {
+                "TERMINFO": [
+                    "$(ROOT)/gdb/lib/terminfo"
+                ]
+            }
+        },
+        "gdbserver": {
+            "tools": {
+                "gdbserver": { "bottle": "gdb", "executable": "gdbserver" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "python": {
+            "tools": {
+                "python": {  "bottle": "python", "executable": "python" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true},
+                  {"host": {"os": "CYGWIN"}, "default": true},
+                  {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "ipython": {
+            "tools": {
+                "ipython": {  "bottle": "ptipython", "executable": "ptipython" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "ptpython": {
+            "tools": {
+                "ptpython": {  "bottle": "ptpython", "executable": "ptpython" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "wine": {
+            "tools": {
+                "wine": {  "bottle": "wine", "executable": "wine" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "deploy": {
+            "tools": {
+                "deploy": {  "bottle": "deploy", "executable": "deploy" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "yt": {
+            "tools": {
+                "yt": {  "bottle": "yt", "executable": "yt" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "yndexer": {
+            "tools": {
+                "yndexer": {  "bottle": "yndexer", "executable": "yndexer" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "transfer-manager": {
+            "tools": {
+                "transfer-manager": { "bottle": "transfer-manager", "executable": "transfer-manager" }
+            },
+            "platforms": [
+                { "host": { "os": "DARWIN"}, "default": true},
+                { "host": { "os": "LINUX"}, "default": true},
+                { "host": { "os": "WIN"}, "default": true}
+            ]
+        },
+        "rem-tool": {
+            "tools": {
+                "rem-tool": { "bottle": "rem-tool", "executable": "rem-tool" }
+            },
+            "platforms": [
+                { "host": { "os": "DARWIN"}, "default": true},
+                { "host": { "os": "LINUX"}, "default": true},
+                { "host": { "os": "WIN"}, "default": true}
+            ]
+        },
+        "uc": {
+            "tools": {
+                "uc": {  "bottle": "uc", "executable": "uc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "jdk": {
+            "tools": {
+                "javac": {  "bottle": "jdk", "executable": "javac" },
+                "java": {  "bottle": "jdk", "executable": "java" },
+                "jar": {  "bottle": "jdk", "executable": "jar" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "svn17": {
+            "tools": {
+                "svn": { "bottle": "svn17", "executable": "svn" },
+                "svnadmin": { "bottle": "svn17", "executable": "svnadmin" },
+                "svnlook": { "bottle": "svn17", "executable": "svnlook" },
+                "svnversion": { "bottle": "svn17", "executable": "svnversion" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}},
+                  {"host": {"os": "FREEBSD"}},
+                  {"host": {"os": "WIN"}},
+                  {"host": {"os": "DARWIN"}}
+            ]
+        },
+        "svn18": {
+            "tools": {
+                "svn": { "bottle": "svn18", "executable": "svn" },
+                "svnadmin": { "bottle": "svn18", "executable": "svnadmin" },
+                "svnlook": { "bottle": "svn18", "executable": "svnlook" },
+                "svnversion": { "bottle": "svn18", "executable": "svnversion" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "cmake": {
+            "tools": {
+                "cmake": { "bottle": "cmake", "executable": "cmake" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "cling": {
+            "tools": {
+                "cling": { "bottle": "cling", "executable": "cling" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX" }, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "ninja": {
+            "tools": {
+                "ninja": { "bottle": "ninja", "executable": "ninja" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "valgrind": {
+            "tools": {
+                "valgrind": { "bottle": "valgrind", "executable": "valgrind" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "ag": {
+            "tools": {
+                "ag": { "bottle": "ag", "executable": "ag" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "jq": {
+            "tools": {
+                "jq": { "bottle": "jq", "executable": "jq" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "vim": {
+            "tools": {
+                "vim": { "bottle": "vim", "executable": "vim" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "nvim": {
+            "tools": {
+                "nvim": { "bottle": "nvim", "executable": "nvim" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "emacs": {
+            "tools": {
+                "emacs": { "bottle": "emacs", "executable": "emacs" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "tmux": {
+            "tools": {
+                "tmux": { "bottle": "tmux", "executable": "tmux" }
+            },
+            "env": {
+                "TERMINFO": [
+                    "$(ROOT)/lib/terminfo"
+                ]
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "rsync": {
+            "tools": {
+                "rsync": { "bottle": "rsync", "executable": "rsync" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "kiwi": {
+            "tools": {
+                "kwmktorrent": { "bottle": "kwmktorrent", "executable": "kwmktorrent" },
+                "kwmqbuild": { "bottle": "kwmqbuild", "executable": "kwmqbuild" },
+                "kwfeed": { "bottle": "kwfeed", "executable": "kwfeed" },
+                "metaquery.sh": { "bottle": "kwfeed", "executable": "metaquery.sh" },
+                "protoc": { "bottle": "protoc", "executable": "protoc" },
+                "protobin_diff": { "bottle": "protobin_diff", "executable": "protobin_diff" },
+                "multipb_convert": { "bottle": "multipb_convert", "executable": "multipb_convert" },
+                "kwworm": { "bottle": "kwworm", "executable": "kwworm" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "icc": {
+            "tools": {
+                "cc": { "bottle": "icc", "executable": "icc" },
+                "c++": { "bottle": "icc", "executable": "icpc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}}],
+            "params": {
+                "type": "intel",
+                "match_root": "ICC",
+                "tool_toolchain": "gcc48",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(ICC)/bin/icc",
+                "cxx_compiler": "$(ICC)/bin/icpc",
+                "ar": "$(ICC)/composer_xe_2015.1.133/bin/intel64/xiar",
+                "gcc_version": "4.8.2",
+                "sys_lib": {
+                    "LINUX": [
+                        "-L$(ICC)/gcc/lib",
+                        "-L$(ICC)/gcc/lib/gcc/x86_64-unknown-linux-gnu/4.8.2",
+                        "-L$(ICC)/mkl/lib/intel64",
+                        "-L$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64"
+                    ]
+                }
+            },
+            "env": {
+                "LIBRARY_PATH": [
+                    "$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64",
+                    "$(ICC)/mkl/lib/intel64"
+                ],
+                "LD_LIBRARY_PATH": [
+                    "$(ICC)/mkl/lib/intel64",
+                    "$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64"
+                ],
+                "CPATH": [
+                    "$(ICC)/composer_xe_2015.1.133/ipp/include",
+                    "$(ICC)/mkl/include"
+                ],
+                "INCLUDE": [
+                     "$(ICC)/composer_xe_2015.1.133/ipp/include"
+                ]
+            }
+        },
+        "icc_mic": {
+            "name": "icc",
+            "tools": {
+                "cc": { "bottle": "icc", "executable": "icc" },
+                "c++": { "bottle": "icc", "executable": "icpc" }
+            },
+            "platforms": [
+                {
+                    "host": { "os": "LINUX" },
+                    "target": { "os": "LINUX", "arch": "k1om" }
+                }
+            ],
+            "params": {
+                "type": "intel_mic",
+                "match_root": "ICC_MIC",
+                "tool_toolchain": "gcc48",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(ICC_MIC)/bin/icc",
+                "cxx_compiler": "$(ICC_MIC)/bin/icpc",
+                "ar": "$(ICC_MIC)/composer_xe_2015.1.133/bin/intel64_mic/xiar",
+                "gcc_version": "4.7.0",
+                "mpss_sysroots": "$(ICC_MIC)/mpss/sysroots",
+                "sys_lib": {
+                   "LINUX": [
+                            "-L$(ICC_MIC)/mpss/sysroots/k1om-mpss-linux/usr/lib64",
+                            "-L$(ICC_MIC)/mpss/sysroots/k1om-mpss-linux/usr/lib64/k1om-mpss-linux/4.7.0",
+                            "-L$(ICC_MIC)/mkl/lib/mic",
+                            "-L$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/mic"
+                    ]
+                 }
+
+            },
+            "env": {
+                "LIBRARY_PATH": [
+                    "$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/intel64",
+                    "$(ICC_MIC)/mkl/lib/intel64"
+                ],
+                "LD_LIBRARY_PATH": [
+                    "$(ICC_MIC)/mkl/lib/intel64",
+                    "$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/intel64"
+                ],
+                "CPATH": [
+                    "$(ICC_MIC)/composer_xe_2015.1.133/ipp/include",
+                    "$(ICC_MIC)/mkl/include"
+                ],
+                "INCLUDE": [
+                     "$(ICC_MIC)/composer_xe_2015.1.133/ipp/include"
+                ]
+            }
+         },
+        "gpt": {
+            "tools": {
+                "gpt_perf": {
+                    "bottle": "gpt"
+                },
+                "gpt_heap": {
+                    "bottle": "gpt"
+                }
+            },
+            "params": {
+                "gpt_perf": {
+                    "LD_PRELOAD": [
+                        "$(GPT_PERF)/gpt/lib/libprofiler.so"
+                    ],
+                    "HEAPCHECK": [
+                        "normal"
+                    ],
+                    "PPROF_PATH": [
+                        "$(GPT_PERF)/gpt/bin/pprof"
+                    ]
+                    },
+                "gpt_heap": {
+                    "LD_PRELOAD": [
+                        "$(GPT_HEAP)/gpt/lib/libtcmalloc.so"
+                    ],
+                    "PPROF_PATH": [
+                        "$(GPT_HEAP)/gpt/bin/pprof"
+                    ]
+                    }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "ant": {
+            "tools": {
+                "ant": { "bottle": "ant", "executable": "ant" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "mvn": {
+            "tools": {
+                "mvn": { "bottle": "maven", "executable": "mvn" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true}
+            ]
+        },
+        "fast_diff": {
+            "tools": {
+                "fast_diff": { "bottle": "fast_diff", "executable": "fast_diff"}
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "cuda": {
+            "tools": {
+                "cuda": { "bottle": "cuda" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "idea_run_plugin": {
+            "tools": {
+                "idea_run_plugin": { "bottle": "idea_run_plugin" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "kiwi_protos": {
+            "tools": {
+                "kiwi_protos": { "bottle": "kiwi_protos" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "allure_commandline": {
+            "tools": {
+                "allure": { "bottle": "allure_commandline", "executable": "allure" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
+        },
+        "ctags": {
+            "tools": {
+                "ctags": { "bottle": "ctags", "executable": "ctags" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "you_complete_me": {
+            "tools": {
+                "you_complete_me": { "bottle": "you_complete_me" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "FREEBSD"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "rtags": {
+            "tools": {
+                "rtags": { "bottle": "rtags" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "afl-fuzz": {
+            "tools": {
+                "afl-fuzz": { "bottle": "afl-fuzz", "executable": "afl-fuzz" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        }
+    },
+    "bottles": {
+        "linux_cygwin_gcc49": {
+            "formula": {
+                "sandbox_id": 50821731,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "c++filt": ["gcc", "bin", "x86_64-pc-cygwin-c++filt"],
+                "nm": ["gcc", "bin", "x86_64-pc-cygwin-nm"]
+            }
+        },
+        "win_cygwin_gcc49": {
+            "formula": {
+                "sandbox_id": 55433245,
+                "match": "CYGWIN"
+            },
+            "executable": {
+                "c++": ["bin", "g++.exe"],
+                "cc": ["bin", "gcc"],
+                "gcov": ["bin", "gcov.exe"],
+                "c++filt": ["bin", "c++filt.exe"],
+                "nm": ["bin", "nm.exe"]
+            }
+        },
+        "msvc2015_up3_full_native": {
+            "formula": {
+                "sandbox_id": 70007402,
+                "match": "MSVC"
+            },
+            "executable": {
+                "msvc": ["msvc","VC", "bin", "x86_amd64", "cl.exe"]
+            }
+        },
+        "msvc2015_up3_full_wine": {
+            "formula": {
+                "sandbox_id": 70004441,
+                "match": "MSVC"
+            },
+            "executable": {
+                "cross_msvc": ["msvc","VC", "bin", "x86_amd64", "cl.exe"]
+            }
+        },
+        "ymake": {
+            "formula": {
+                "sandbox_id": 127584355,
+                "match": "YMake"
+            },
+            "executable": {
+                "ymake": ["ymake"]
+            }
+        },
+        "ymake_dev": {
+            "formula": {
+                "sandbox_id": 124407090,
+                "match": "YMake"
+            },
+            "executable": {
+                "ymake": ["ymake"]
+            }
+        },
+        "test_tool": {
+            "formula": {
+                "sandbox_id": 128718363,
+                "match": "test_tool"
+            },
+            "executable": {
+                "test_tool": ["test_tool"]
+            }
+        },
+        "maven_import_sandbox_uploader": {
+            "formula": {
+                "sandbox_id": 85560945,
+                "match": "uploader"
+            },
+            "executable": {
+                "maven_import_sandbox_uploader": ["uploader"]
+            }
+        },
+        "hg": {
+            "formula": {
+                "sandbox_id": [126847288, 126847830, 74450064],
+                "match": "Hg"
+            },
+            "executable": {
+                "hg": ["hg/hg"]
+            }
+        },
+        "python": {
+            "formula": {
+                "sandbox_id": 74052635,
+                "match": "Python"
+            },
+            "executable": {
+                "python": ["python"]
+            }
+        },
+        "bloat": {
+            "formula": {
+                "sandbox_id": [49648326],
+                "match": "Bloat"
+            },
+            "executable": {
+                "bloat2": ["bloat2"]
+            }
+        },
+        "jdk": {
+            "formula": {
+                "sandbox_id": [40196274, 59946869, 60223717],
+                "match": "jdk"
+            },
+            "executable": {
+                "javac": ["bin", "javac"],
+                "java": ["bin", "java"],
+                "jar": ["bin", "jar"]
+            }
+        },
+        "gcc47": {
+            "formula": {
+                "sandbox_id": 19418099,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.7"],
+                "cc": ["gcc", "bin", "gcc-4.7"],
+                "gcov": ["gcc", "bin", "gcov-4.7"],
+                "c++filt": ["gcc", "bin", "c++filt"],
+                "nm": ["gcc", "bin", "nm"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "gcc48": {
+            "formula": {
+                "sandbox_id": [19087734, 24619051],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.8"],
+                "cc": ["gcc", "bin", "gcc-4.8"],
+                "gcov": ["gcc", "bin", "gcov-4.8"],
+                "c++filt": ["gcc", "bin", "c++filt"],
+                "nm": ["gcc", "bin", "nm"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "clang36": {
+            "formula": {
+                "sandbox_id": [36808942, 31849723, 31849777, 31850034],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang37": {
+            "formula": {
+                "sandbox_id": [67917118],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "gcov": ["bin", "llvm-gcov"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang38": {
+            "formula": {
+                "sandbox_id": [59389221],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "gcov": ["bin", "llvm-gcov"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang39": {
+            "formula": {
+                "sandbox_id": [127828138, 127490348],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "gcov": ["bin", "llvm-gcov"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang40": {
+            "formula": {
+                "sandbox_id": [102658453],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "gcov": ["bin", "llvm-gcov"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "cuda": {
+            "formula": {
+                "sandbox_id": [29625981],
+                "match": "CUDA"
+            }
+        },
+        "idea_run_plugin": {
+            "formula": {
+                "sandbox_id": [98817148],
+                "match": "ya runner idea plugin"
+            }
+        },
+        "wine": {
+            "formula": {
+                "sandbox_id": 42480153,
+                "match": "Wine"
+            },
+            "executable": {
+                "wine": ["bin", "wine64"]
+            }
+        },
+        "deploy": {
+            "formula": {
+                "sandbox_id": 117076601,
+                "match": "DEPLOY"
+            },
+            "executable": {
+                "deploy": ["samogon", "deploy"]
+            }
+        },
+        "yt": {
+            "formula": {
+                "sandbox_id": 104069539,
+                "match": "YT"
+            },
+            "executable": {
+                "yt": ["yt"]
+            }
+        },
+        "yndexer": {
+            "formula": {
+                "sandbox_id": 125405256,
+                "match": "YNDEXER"
+            },
+            "executable": {
+                "yndexer": ["yndexer"]
+            }
+        },
+        "transfer-manager": {
+            "formula": {
+                "sandbox_id": 104070121,
+                "match": "transfer-manager"
+            },
+            "executable": {
+                "transfer-manager": ["transfer-manager"]
+            }
+        },
+        "rem-tool": {
+            "formula": {
+                "sandbox_id": 79265295,
+                "match": "rem-tool"
+            },
+            "executable": {
+                "rem-tool": ["rem-tool"]
+            }
+        },
+        "uc": {
+            "formula": {
+                "sandbox_id": 62742305,
+                "match": "UC"
+            },
+            "executable": {
+                "uc": ["uc"]
+            }
+        },
+        "darwin48": {
+            "formula": {
+                "sandbox_id": [30510379],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.8"],
+                "cc": ["gcc", "bin", "gcc-4.8"],
+                "gcov": ["gcc", "bin", "gcov-4.8"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "gcc49": {
+            "formula": {
+                "sandbox_id": 42932852,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "c++filt": ["gcc", "bin", "c++filt"],
+                "nm": ["gcc", "bin", "nm"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "gcc61": {
+            "formula": {
+                "sandbox_id": 63189766,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-6.1"],
+                "cc": ["gcc", "bin", "gcc-6.1"],
+                "gcov": ["gcc", "bin", "gcov-6.1"],
+                "c++filt": ["gcc", "bin", "c++filt"],
+                "nm": ["gcc", "bin", "nm"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "darwin37": {
+            "formula": {
+                "sandbox_id": [48027726],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "darwin49": {
+            "formula": {
+                "sandbox_id": 30445459,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "linux-freebsd-gcc49": {
+            "formula": {
+                "sandbox_id": 53503170,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["bin", "g++-4.9"],
+                "cc": ["bin", "gcc-4.9"],
+                "gcov": ["bin", "gcov-4.9"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang37-ios": {
+            "formula": {
+                "sandbox_id": [68505884],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "android": {
+            "formula": {
+                "sandbox_id": [35845891, 39145481],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "android-clang": {
+            "formula": {
+                "sandbox_id": [54574062, 54573889],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["clang", "bin", "clang++"],
+                "cc": ["clang", "bin", "clang"],
+                "gcov": ["clang", "bin", "gcov"],
+                "strip": ["clang", "bin", "strip"]
+            }
+        },
+        "android-x86-clang": {
+            "formula": {
+                "sandbox_id": [75207504, 75207586],
+                "match": "toolchain"
+            },
+            "executable": {
+                "c++": ["clang", "bin", "clang++"],
+                "cc": ["clang", "bin", "clang"],
+                "strip": ["clang", "bin", "strip"]
+            }
+        },
+        "android-armv8a-gcc": {
+            "formula": {
+                "sandbox_id": [66062689],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "android-armv8a-clang": {
+            "formula": {
+                "sandbox_id": [55422447],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["clang", "bin", "clang++"],
+                "cc": ["clang", "bin", "clang"],
+                "gcov": ["clang", "bin", "gcov"],
+                "strip": ["clang", "bin", "strip"]
+            }
+        },
+        "aarch49": {
+            "formula": {
+                "sandbox_id": [34464430],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++-4.9"],
+                "cc": ["gcc", "bin", "gcc-4.9"],
+                "gcov": ["gcc", "bin", "gcov-4.9"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "gdb": {
+            "formula": {
+                "sandbox_id": 123001907,
+                "match": "GDB"
+            },
+            "executable": {
+                "gdb": ["gdb", "bin", "gdb"],
+                "gdbserver": ["gdb", "bin", "gdbserver"]
+            }
+        },
+        "ag": {
+            "formula": {
+                "sandbox_id": 75851513,
+                "match": "Ag"
+
+            },
+            "executable": {
+                "ag": ["ag"]
+            }
+        },
+        "valgrind": {
+            "formula": {
+                "sandbox_id": 97383708,
+                "match": "Valgrind"
+
+            },
+            "executable": {
+                "valgrind": ["valgrind"]
+            }
+        },
+        "jq": {
+            "formula": {
+                "sandbox_id": [38336932, 38337150, 38337983],
+                "match": "jq"
+            },
+            "executable": {
+                "jq": ["jq"]
+            }
+        },
+        "vim": {
+            "formula": {
+                "sandbox_id": 82345405,
+                "match": "vim"
+            },
+            "executable": {
+                "vim": ["vim"]
+            }
+        },
+        "nvim": {
+            "formula": {
+                "sandbox_id": 123061100,
+                "match": "nvim"
+            },
+            "executable": {
+                "nvim": ["nvim"]
+            }
+        },
+        "emacs": {
+            "formula": {
+                "sandbox_id": 84328012,
+                "match": "emacs"
+            },
+            "executable": {
+                "emacs": ["emacs"]
+            }
+        },
+        "tmux": {
+            "formula": {
+                "sandbox_id": 38325457,
+                "match": "tmux"
+            },
+            "executable": {
+                "tmux": ["bin", "tmux"]
+            }
+        },
+        "rsync": {
+            "formula": {
+                "sandbox_id": [65088954],
+                "match": "rsync"
+            },
+            "executable": {
+                "rsync": ["bin", "rsync"]
+            }
+        },
+        "svn17": {
+            "formula": {
+                "sandbox_id": [20095848, 22391628, 24233243],
+                "match": "Svn"
+            },
+            "executable": {
+                "svn": ["bin", "svn"],
+                "svnadmin": ["bin", "svnadmin"],
+                "svnlook": ["bin", "svnlook"],
+                "svnversion": ["bin", "svnversion"]
+            }
+        },
+        "svn18": {
+            "formula": {
+                "sandbox_id": [56236637, 22390926],
+                "match": "Svn"
+            },
+            "executable": {
+                "svn": ["bin", "svn"],
+                "svnadmin": ["bin", "svnadmin"],
+                "svnlook": ["bin", "svnlook"],
+                "svnversion": ["bin", "svnversion"]
+            }
+        },
+        "cmake": {
+            "formula": {
+                "sandbox_id": 105454515,
+                "match": "cmake"
+            },
+            "executable": {
+                "cmake": ["bin", "cmake"]
+            }
+        },
+        "cling": {
+            "formula": {
+                "sandbox_id": 87671454,
+                "match": "cling"
+            },
+            "executable": {
+                "cling": ["cling"]
+            }
+        },
+        "ninja": {
+            "formula": {
+                "sandbox_id": 19094385,
+                "match": "ninja"
+            },
+            "executable": "ninja"
+        },
+        "kwfeed": {
+            "formula": {
+                "sandbox_id": 36077631,
+                "match": "KWFeed"
+            },
+            "executable": {
+                "kwfeed": ["kwfeed"],
+                "metaquery.sh": ["metaquery.sh"]
+            }
+        },
+        "protoc": {
+            "formula": {
+                "sandbox_id": 32993876,
+                "match": "Protoc"
+            },
+            "executable": {
+                "protoc": ["protoc"]
+            }
+        },
+        "protobin_diff": {
+            "formula": {
+                "sandbox_id": 28621470,
+                "match": "protobin_diff"
+            },
+            "executable": {
+                "protobin_diff": ["protobin_diff"]
+            }
+        },
+        "multipb_convert": {
+            "formula": {
+                "sandbox_id": 31061929,
+                "match": "Multipb_convert"
+            },
+            "executable": {
+                "multipb_convert": ["multipb_convert"]
+            }
+        },
+        "kwworm": {
+            "formula": {
+                "sandbox_id": 18521490,
+                "match": "Kwworm"
+            },
+            "executable": {
+                "kwworm": ["kwworm"]
+            }
+        },
+        "kwmktorrent": {
+            "formula": {
+                "sandbox_id": 30970326,
+                "match": "KWMKTorrent"
+            },
+            "executable": {
+                "kwmktorrent": ["kwmktorrent"]
+            }
+        },
+        "kwmqbuild": {
+            "formula": {
+                "sandbox_id": 41067877,
+                "match": "KWMQBuild"
+            },
+            "executable": {
+                "kwmqbuild": ["kwmqbuild"]
+            }
+        },
+        "icc": {
+            "formula": {
+                "sandbox_id": 33107540,
+                "match": "ICC"
+            },
+            "executable": {
+                "icc": ["bin", "icc"],
+                "icpc": ["bin", "icpc"]
+            }
+        },
+        "gpt": {
+            "formula": {
+                "sandbox_id": 21836503,
+                "match": "GooglePerformanceTools"
+            }
+        },
+        "ant": {
+            "formula": {
+                "sandbox_id": 36996223,
+                "match": "ant"
+            },
+            "executable": {
+                "ant": ["apache-ant-1.9.6", "bin", "ant"]
+            }
+        },
+        "maven": {
+            "formula": {
+                "sandbox_id": 39222824,
+                "match": "maven"
+            },
+            "executable": {
+                "mvn": ["bin", "mvn"]
+            }
+        },
+        "fast_diff":{
+            "formula": {
+                "sandbox_id": 42519064,
+                "match": "fast_diff"
+            }
+        },
+        "kiwi_protos":{
+            "formula": {
+                "sandbox_id": 32521995,
+                "match": "KiWi python protos"
+            }
+        },
+        "allure_commandline":{
+            "formula": {
+                "sandbox_id": 50911273,
+                "match": "Allure Commandline"
+            },
+            "executable": {
+                "allure": ["bin", "allure"]
+            }
+        },
+        "ctags":{
+            "formula": {
+                "sandbox_id": 55229519,
+                "match": "ctags"
+            },
+            "executable": {
+                "ctags": ["bin", "ctags"]
+            }
+        },
+        "you_complete_me":{
+            "formula": {
+                "sandbox_id": 121751471,
+                "match": "YouCompleteMe"
+            }
+        },
+        "rtags":{
+            "formula": {
+                "sandbox_id": 84460170,
+                "match": "rtags"
+            }
+        },
+        "afl-fuzz":{
+            "formula": {
+                "sandbox_id": 80600007,
+                "match": "afl-fuzz"
+            },
+            "executable": {
+                "afl-fuzz": ["afl-fuzz"]
+            }
+        },
+        "ptpython":{
+            "formula": {
+                "sandbox_id": 50746186,
+                "match": "PTPython"
+            },
+            "executable": {
+                "ptpython": ["ptpython"]
+            }
+        },
+        "ptipython":{
+            "formula": {
+                "sandbox_id": 50746160,
+                "match": "PTIPython"
+            },
+            "executable": {
+                "ptipython": ["ptipython"]
+            }
+        }
+    }
+}

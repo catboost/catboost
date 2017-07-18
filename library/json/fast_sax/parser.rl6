@@ -1,0 +1,306 @@
+#include <library/json/fast_sax/unescape.h>
+#include <library/json/fast_sax/parser.h>
+
+#include <util/string/cast.h>
+#include <util/generic/buffer.h>
+
+namespace NJson {
+
+enum EStoredStr {
+    SS_NONE = 0, SS_NOCOPY, SS_MUSTCOPY
+};
+
+struct TParserCtx {
+    TJsonCallbacks& Hndl;
+
+    TBuffer Buffer;
+    TStringBuf String;
+    EStoredStr Stored;
+    bool ExpectValue;
+
+    const char* p0;
+    const char* p;
+    const char* pe;
+    const char* eof;
+    const char* ts;
+    const char* te;
+    int cs;
+    int act;
+
+    TParserCtx(TJsonCallbacks& h, TStringBuf data)
+        : Hndl(h)
+        , Stored()
+        , ExpectValue(true)
+        , p0(~data)
+        , p(~data)
+        , pe(data.end())
+        , eof(data.end())
+        , ts()
+        , te()
+        , cs()
+        , act()
+    {}
+
+    static inline bool GoodPtrs(const char* b, const char* e) {
+        return b && e && b <= e;
+    }
+
+    bool OnError(TStringBuf reason = STRINGBUF(""), bool end = false) const {
+        size_t off = 0;
+        TStringBuf token;
+
+        if (GoodPtrs(p0, ts))
+            off = ts - p0;
+        else if (end && GoodPtrs(p0, pe))
+            off = pe - p0;
+
+        if (GoodPtrs(ts, te))
+            token = TStringBuf(ts, te);
+
+        if (!token) {
+            Hndl.OnError(off, reason);
+        } else {
+            Hndl.OnError(off, TString::Join(reason, " at token: '", token, "'"));
+        }
+
+        return false;
+    }
+
+    bool OnVal() {
+        if (Y_UNLIKELY(!ExpectValue))
+            return false;
+        ExpectValue = false;
+        return true;
+    }
+
+    bool OnNull() {
+        return Y_LIKELY(OnVal()) && Hndl.OnNull();
+    }
+
+    bool OnTrue() {
+        return Y_LIKELY(OnVal()) && Hndl.OnBoolean(true);
+    }
+
+    bool OnFalse() {
+        return Y_LIKELY(OnVal()) && Hndl.OnBoolean(false);
+    }
+
+    bool OnPInt() {
+        return Y_LIKELY(OnVal()) && Hndl.OnUInteger(FromString<unsigned long long>(TStringBuf(ts, te)));
+    }
+
+    bool OnNInt() {
+        return Y_LIKELY(OnVal()) &&  Hndl.OnInteger(FromString<long long>(TStringBuf(ts, te)));
+    }
+
+    bool OnFlt() {
+        return Y_LIKELY(OnVal()) &&  Hndl.OnDouble(FromString<double>(TStringBuf(ts, te)));
+    }
+
+    bool OnMapOpen() {
+        bool res = Y_LIKELY(OnVal()) && Hndl.OnOpenMap();
+        ExpectValue = true;
+        return res;
+    }
+
+    bool OnArrOpen() {
+        bool res = Y_LIKELY(OnVal()) && Hndl.OnOpenArray();
+        ExpectValue = true;
+        return res;
+    }
+
+    bool OnString(TStringBuf s, EStoredStr t) {
+        if (Y_LIKELY(OnVal())) {
+            String = s;
+            Stored = t;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    bool OnStrU() {
+        return OnString(TStringBuf(ts, te), SS_NOCOPY);
+    }
+
+    bool OnStrQ() {
+        return OnString(TStringBuf(ts + 1, te - 1), SS_NOCOPY);
+    }
+
+    bool OnStrE() {
+        Buffer.Clear();
+        Buffer.Reserve(2 * (te - ts));
+
+        return OnString(UnescapeJsonUnicode(TStringBuf(ts + 1, te - ts - 2), ~Buffer), SS_MUSTCOPY);
+    }
+
+    bool OnMapClose() {
+        ExpectValue = false;
+        return Y_LIKELY(OnAfterVal()) && Hndl.OnCloseMap();
+    }
+
+    bool OnArrClose() {
+        ExpectValue = false;
+        return Y_LIKELY(OnAfterVal()) && Hndl.OnCloseArray();
+    }
+
+    bool OnColon() {
+        if (ExpectValue)
+            return false;
+        ExpectValue = true;
+        bool res = false;
+
+        switch (Stored) {
+        default:
+            return false;
+        case SS_NOCOPY:
+            res = Hndl.OnMapKeyNoCopy(String);
+            break;
+        case SS_MUSTCOPY:
+            res = Hndl.OnMapKey(String);
+            break;
+        }
+
+        Stored = SS_NONE;
+        return res;
+    }
+
+    bool OnAfterVal() {
+        bool res = false;
+
+        switch (Stored) {
+        default:
+            res = true;
+            break;
+        case SS_NOCOPY:
+            res = Hndl.OnStringNoCopy(String);
+            break;
+        case SS_MUSTCOPY:
+            res = Hndl.OnString(String);
+            break;
+        }
+
+        Stored = SS_NONE;
+        return res;
+    }
+
+    bool OnComma() {
+        if (Y_UNLIKELY(ExpectValue))
+            return false;
+        ExpectValue = true;
+        return OnAfterVal();
+    }
+
+    bool Parse();
+};
+
+#if 0
+%%{
+machine fastjson;
+
+alphtype char;
+
+action OnNull  { if (Y_UNLIKELY(!OnNull()))  goto TOKEN_ERROR; }
+action OnTrue  { if (Y_UNLIKELY(!OnTrue()))  goto TOKEN_ERROR; }
+action OnFalse { if (Y_UNLIKELY(!OnFalse())) goto TOKEN_ERROR; }
+action OnPInt  { if (Y_UNLIKELY(!OnPInt()))  goto TOKEN_ERROR; }
+action OnNInt  { if (Y_UNLIKELY(!OnNInt()))  goto TOKEN_ERROR; }
+action OnFlt   { if (Y_UNLIKELY(!OnFlt()))   goto TOKEN_ERROR; }
+action OnStrU  { if (Y_UNLIKELY(!OnStrU()))  goto TOKEN_ERROR; }
+action OnStrQ  { if (Y_UNLIKELY(!OnStrQ()))  goto TOKEN_ERROR; }
+action OnStrE  { if (Y_UNLIKELY(!OnStrE()))  goto TOKEN_ERROR; }
+action OnDictO { if (Y_UNLIKELY(!OnMapOpen()))  goto TOKEN_ERROR; }
+action OnDictC { if (Y_UNLIKELY(!OnMapClose())) goto TOKEN_ERROR; }
+action OnArrO  { if (Y_UNLIKELY(!OnArrOpen()))  goto TOKEN_ERROR; }
+action OnArrC  { if (Y_UNLIKELY(!OnArrClose())) goto TOKEN_ERROR; }
+action OnComma { if (Y_UNLIKELY(!OnComma())) goto TOKEN_ERROR; }
+action OnColon { if (Y_UNLIKELY(!OnColon())) goto TOKEN_ERROR; }
+action OnError { goto TOKEN_ERROR; }
+
+comment1 = "//" any* '\r'?'\n';
+comment2 = "/*" (any* -- "*/") "*/";
+
+pint = [0-9]+;
+nint = '-'[0-9]+;
+flt  = '-'?[0-9.][0-9.eE+\-]+;
+
+uchar0 = [a-zA-Z_@$] | (0x80 .. 0xFF);
+uchar  = uchar0 | digit | [.\-];
+
+qchar = [^'\\]; #';
+dchar = [^"\\]; #";
+
+echar = "\\" any;
+
+qechar = qchar | echar;
+dechar = dchar | echar;
+
+strq = "'" qchar* "'";
+strd = '"' dchar* '"';
+
+strqe = "'" qechar* "'";
+strde = '"' dechar* '"';
+
+strU = uchar0 uchar*;
+strQ = strq | strd;
+strE = strqe | strde;
+
+ws = (0x00 .. 0x20) | 0x7F;
+sp = ws+;
+
+main := |*
+    'null'  => OnNull;
+    'true'  => OnTrue;
+    'false' => OnFalse;
+
+    pint => OnPInt;
+    nint => OnNInt;
+    flt  => OnFlt;
+
+    strU => OnStrU;
+    strQ => OnStrQ;
+    strE => OnStrE;
+
+    ',' => OnComma;
+    ':' => OnColon;
+
+    '{' => OnDictO;
+    '}' => OnDictC;
+    '[' => OnArrO;
+    ']' => OnArrC;
+
+    sp;
+    comment1;
+    comment2;
+
+    (flt | pint | nint) (any - (ws | ',' | ':' | '{' | '}' | '[' | ']')) => OnError;
+
+    any => OnError;
+         *|;
+}%%
+#endif
+
+bool TParserCtx::Parse() {
+    try {
+        %%{
+            write data noerror nofinal;
+            write init;
+            write exec;
+        }%%
+        ;
+        Y_UNUSED(fastjson_en_main);
+    } catch (const TFromStringException& e) {
+        return OnError(e.what());
+    }
+
+    return OnAfterVal() && Hndl.OnEnd() || OnError("invalid or truncated", true);
+
+    TOKEN_ERROR:
+    return OnError("invalid syntax");
+}
+
+bool ReadJsonFast(TStringBuf data, TJsonCallbacks* h) {
+    return TParserCtx(*h, data).Parse();
+}
+
+}

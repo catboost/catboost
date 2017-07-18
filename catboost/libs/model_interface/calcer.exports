@@ -1,0 +1,8 @@
+C ModelCalcerCreate
+C ModelCalcerDelete
+
+C PredictFloatValue
+C PredictDoubleValue
+
+C PredictMultiFloatValue
+C PredictMultiDoubleValue

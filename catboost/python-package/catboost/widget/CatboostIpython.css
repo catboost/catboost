@@ -1,0 +1,253 @@
+.highcharts-tooltip {
+    display: none !important;
+}
+.highcharts-halo {
+    display: none !important;
+}
+
+.catboost {
+    position: relative;
+}
+
+.catboost-panel {
+    position: absolute;
+    height: 100%;
+    width: 280px;
+}
+
+.catboost-panel__controls {
+    margin-left: 0;
+}
+
+.catboost-panel__controls_label {
+    padding: 5px 0 0 8px;
+    cursor: pointer;
+    width: 80px;
+    box-sizing: content-box;
+}
+.catboost-panel__controls_label_time {
+    width: inherit;
+}
+
+.catboost-panel__controls2 {
+    margin-top: 10px;
+}
+
+.catboost-panel__controls2_label {
+    padding: 5px 11px 0 8px;
+    cursor: pointer;
+    width: 90px;
+    box-sizing: content-box;
+}
+
+.catboost-panel__series {
+    height: 300px;
+    overflow-y: auto;
+}
+
+.catboost-graph {
+    margin-left: 290px;
+}
+
+.catboost-graph__tabs {
+    padding: 0 0 0 20px;
+}
+
+.catboost-graph__tab {
+    display: inline-block;
+    padding: 5px 10px 0 0;
+}
+
+.catboost-graph__tab {
+    color: #999;
+    cursor: pointer;
+    transition: color 0.1s linear;
+}
+
+.catboost-graph__tab:hover {
+    color: #333;
+}
+
+.catboost-graph__tab_active {
+    color: #000;
+    cursor: auto;
+}
+
+.catboost-graph__charts {
+    padding-top: 20px;
+}
+
+.catboost-graph__chart {
+    display: none;
+}
+
+.catboost-graph__chart_active {
+    display: block;
+}
+
+.catboost-panel__serie {
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.catboost-panel__serie_bottom,
+.catboost-panel__serie_middle,
+.catboost-panel__serie_top {
+    white-space: nowrap;
+    position: relative;
+}
+
+#catboost-control-test {
+    margin-left: 11px;
+}
+
+.catboost-panel__serie_label {
+    padding: 0 0 0 8px;
+    width: 200px;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    cursor: pointer;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+    top: 5px;
+}
+
+.catboost-panel__serie_hint {
+    position: absolute;
+    top: 6px;
+    left: -20px;
+    font-size: 9px;
+}
+
+.catboost-panel__serie_middle,
+.catboost-panel__serie_bottom {
+    margin-left: 20px;
+}
+
+.catboost-panel__serie_time {
+    position: absolute;
+    top: 5px;
+    right: 2px;
+    height: 20px;
+    padding: 0 0 0 20px;
+    margin-bottom: 3px;
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.catboost-panel__serie_learn_pic,
+.catboost-panel__serie_test_pic {
+    width: 13px;
+    height: 1px;
+    border-top-width: 1px;
+    position: relative;
+    top: -3px;
+    margin-right: 5px;
+}
+
+.catboost-panel__serie_learn_pic {
+    border-top-style: dashed;
+}
+
+.catboost-panel__serie_test_pic {
+    border-top-style: solid;
+}
+
+.catboost-panel__serie-value {
+    display: inline-block;
+    min-width: 30px;
+    margin-right: 2px;
+}
+
+.catboost-panel__controls_label .catboost-panel__serie_learn_pic {
+    padding-left: 4px;
+}
+
+.catboost-panel__serie_learn_value,
+.catboost-panel__serie_test_value,
+.catboost-panel__serie_best_learn_value,
+.catboost-panel__serie_best_test_value {
+    width: 85px;
+    position: relative;
+    padding: 0 8px 0 0;
+    box-sizing: content-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    top: 5px;
+}
+
+.catboost-panel__serie_iteration,
+.catboost-panel__serie_best_iteration {
+    display: inline-block;
+    position: absolute;
+    box-sizing: content-box;
+    overflow: hidden;
+    top: 5px;
+    right: 2px;
+}
+
+.catboost-panel__control_slider {
+    width: 100px !important;
+    margin-left: 0;
+    position: relative;
+    display: inline-block !important;
+    top: 3px;
+}
+
+.catboost-panel__control_slidervalue {
+    width: 50px;
+    padding: 2px 3px;
+    margin-left: 4px;
+}
+
+.catboost-panel__serie_time_spend,
+.catboost-panel__serie_time_left {
+    display: inline-block;
+}
+
+.catboost-panel__serie_time_left {
+    margin-left: 10px;
+}
+
+.catboost-panel__serie_learn_pic,
+.catboost-panel__serie_learn_value,
+.catboost-panel__serie_best_learn_value {
+    display: inline-block;
+}
+.catboost-panel__serie_test_pic,
+.catboost-panel__serie_test_value,
+.catboost-panel__serie_best_test_value {
+    display: inline-block;
+}
+
+.catboost-panel__series_learn_disabled .catboost-panel__serie_learn_pic,
+.catboost-panel__series_learn_disabled .catboost-panel__serie_learn_value,
+.catboost-panel__series_learn_disabled .catboost-panel__serie_best_learn_value {
+    display: none;
+}
+.catboost-panel__series_test_disabled .catboost-panel__serie_test_pic,
+.catboost-panel__series_test_disabled .catboost-panel__serie_test_value,
+.catboost-panel__series_test_disabled .catboost-panel__serie_best_test_value {
+    display: none;
+}
+
+.catboost-panel__series_learn_disabled .catboost-panel__serie_test_value,
+.catboost-panel__series_learn_disabled .catboost-panel__serie_best_test_value {
+    width: 216px;
+}
+.catboost-panel__series_test_disabled .catboost-panel__serie_learn_value,
+.catboost-panel__series_test_disabled .catboost-panel__serie_best_learn_value {
+    width: 216px;
+}
+
+.catboost-panel__series_test_disabled.catboost-panel__series_learn_disabled .catboost-panel__serie_middle {
+    display: none;
+}
+
+.catboost-panel__series_test_disabled .catboost-panel__serie_bottom {
+    display: none;
+}

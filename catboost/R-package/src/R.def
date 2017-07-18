@@ -1,0 +1,27 @@
+LIBRARY R
+EXPORTS
+INTEGER
+LOGICAL
+REAL
+R_CHAR
+R_ClearExternalPtr
+R_ExternalPtrAddr
+R_MakeExternalPtr
+R_RegisterCFinalizerEx
+Rf_ScalarInteger
+Rf_ScalarLogical
+Rf_allocVector
+Rf_asChar
+Rf_asInteger
+Rf_asLogical
+Rf_error
+Rf_getAttrib
+Rf_length
+Rf_mkString
+Rf_protect
+Rf_unprotect
+SET_VECTOR_ELT
+STRING_ELT
+TYPEOF
+R_NilValue
+R_DimSymbol

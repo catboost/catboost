@@ -1,0 +1,78 @@
+make "AR_FLAGS=" "CC_FOR_BUILD=" "CFLAGS=-g -O2" "CXXFLAGS=" "CFLAGS_FOR_BUILD=" "CFLAGS_FOR_TARGET=" "INSTALL=/usr/bin/install -c" "INSTALL_DATA=/usr/bin/install -c -m 644" "INSTALL_PROGRAM=/usr/bin/install -c" "INSTALL_SCRIPT=/usr/bin/install -c" "JC1FLAGS=" "LDFLAGS=" "LIBCFLAGS=" "LIBCFLAGS_FOR_TARGET=" "MAKE=make" "MAKEINFO=/bin/bash /home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/missing --run makeinfo " "PICFLAG=" "PICFLAG_FOR_TARGET=" "RUNTESTFLAGS=" "SHELL=/bin/bash" "exec_prefix=/usr/local" "infodir=/usr/local/share/info" "libdir=/usr/local/lib" "prefix=/usr/local" "AR=ar" "AS=as" "CC=gcc" "CXX=g++" "LD=/usr/bin/ld -m elf_x86_64" "NM=/usr/bin/nm -B" "RANLIB=ranlib" "DESTDIR=" all-recursive
+make[1]: Вход в каталог `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi'
+Making all in include
+make[2]: Вход в каталог `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/include'
+make[2]: Цель `all' не требует выполнения команд.
+make[2]: Выход из каталога `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/include'
+Making all in testsuite
+make[2]: Вход в каталог `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/testsuite'
+make[2]: Цель `all' не требует выполнения команд.
+make[2]: Выход из каталога `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/testsuite'
+Making all in man
+make[2]: Вход в каталог `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/man'
+make[2]: Цель `all' не требует выполнения команд.
+make[2]: Выход из каталога `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi/man'
+make[2]: Вход в каталог `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi'
+depbase=`echo src/debug.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/debug.lo -MD -MP -MF $depbase.Tpo -c -o src/debug.lo src/debug.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/debug.lo -MD -MP -MF src/.deps/debug.Tpo -c src/debug.c  -fPIC -DPIC -o src/.libs/debug.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/debug.lo -MD -MP -MF src/.deps/debug.Tpo -c src/debug.c -o src/debug.o >/dev/null 2>&1
+depbase=`echo src/prep_cif.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/prep_cif.lo -MD -MP -MF $depbase.Tpo -c -o src/prep_cif.lo src/prep_cif.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/prep_cif.lo -MD -MP -MF src/.deps/prep_cif.Tpo -c src/prep_cif.c  -fPIC -DPIC -o src/.libs/prep_cif.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/prep_cif.lo -MD -MP -MF src/.deps/prep_cif.Tpo -c src/prep_cif.c -o src/prep_cif.o >/dev/null 2>&1
+depbase=`echo src/types.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/types.lo -MD -MP -MF $depbase.Tpo -c -o src/types.lo src/types.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/types.lo -MD -MP -MF src/.deps/types.Tpo -c src/types.c  -fPIC -DPIC -o src/.libs/types.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/types.lo -MD -MP -MF src/.deps/types.Tpo -c src/types.c -o src/types.o >/dev/null 2>&1
+depbase=`echo src/raw_api.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/raw_api.lo -MD -MP -MF $depbase.Tpo -c -o src/raw_api.lo src/raw_api.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/raw_api.lo -MD -MP -MF src/.deps/raw_api.Tpo -c src/raw_api.c  -fPIC -DPIC -o src/.libs/raw_api.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/raw_api.lo -MD -MP -MF src/.deps/raw_api.Tpo -c src/raw_api.c -o src/raw_api.o >/dev/null 2>&1
+depbase=`echo src/java_raw_api.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/java_raw_api.lo -MD -MP -MF $depbase.Tpo -c -o src/java_raw_api.lo src/java_raw_api.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/java_raw_api.lo -MD -MP -MF src/.deps/java_raw_api.Tpo -c src/java_raw_api.c  -fPIC -DPIC -o src/.libs/java_raw_api.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/java_raw_api.lo -MD -MP -MF src/.deps/java_raw_api.Tpo -c src/java_raw_api.c -o src/java_raw_api.o >/dev/null 2>&1
+depbase=`echo src/closures.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/closures.lo -MD -MP -MF $depbase.Tpo -c -o src/closures.lo src/closures.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/closures.lo -MD -MP -MF src/.deps/closures.Tpo -c src/closures.c  -fPIC -DPIC -o src/.libs/closures.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/closures.lo -MD -MP -MF src/.deps/closures.Tpo -c src/closures.c -o src/closures.o >/dev/null 2>&1
+depbase=`echo src/x86/ffi64.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/x86/ffi64.lo -MD -MP -MF $depbase.Tpo -c -o src/x86/ffi64.lo src/x86/ffi64.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/x86/ffi64.lo -MD -MP -MF src/x86/.deps/ffi64.Tpo -c src/x86/ffi64.c  -fPIC -DPIC -o src/x86/.libs/ffi64.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/x86/ffi64.lo -MD -MP -MF src/x86/.deps/ffi64.Tpo -c src/x86/ffi64.c -o src/x86/ffi64.o >/dev/null 2>&1
+depbase=`echo src/x86/unix64.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/unix64.lo -MD -MP -MF $depbase.Tpo -c -o src/x86/unix64.lo src/x86/unix64.S &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/unix64.lo -MD -MP -MF src/x86/.deps/unix64.Tpo -c src/x86/unix64.S  -fPIC -DPIC -o src/x86/.libs/unix64.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/unix64.lo -MD -MP -MF src/x86/.deps/unix64.Tpo -c src/x86/unix64.S -o src/x86/unix64.o >/dev/null 2>&1
+depbase=`echo src/x86/ffi.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -Wall -g -fexceptions -g -O2 -MT src/x86/ffi.lo -MD -MP -MF $depbase.Tpo -c -o src/x86/ffi.lo src/x86/ffi.c &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/x86/ffi.lo -MD -MP -MF src/x86/.deps/ffi.Tpo -c src/x86/ffi.c  -fPIC -DPIC -o src/x86/.libs/ffi.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -Wall -g -fexceptions -g -O2 -MT src/x86/ffi.lo -MD -MP -MF src/x86/.deps/ffi.Tpo -c src/x86/ffi.c -o src/x86/ffi.o >/dev/null 2>&1
+depbase=`echo src/x86/sysv.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+	/bin/bash ./libtool   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I. -I./include -Iinclude -I./src  -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/sysv.lo -MD -MP -MF $depbase.Tpo -c -o src/x86/sysv.lo src/x86/sysv.S &&\
+	mv -f $depbase.Tpo $depbase.Plo
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/sysv.lo -MD -MP -MF src/x86/.deps/sysv.Tpo -c src/x86/sysv.S  -fPIC -DPIC -o src/x86/.libs/sysv.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I. -I./include -Iinclude -I./src -I. -I./include -Iinclude -I./src -g -O2 -MT src/x86/sysv.lo -MD -MP -MF src/x86/.deps/sysv.Tpo -c src/x86/sysv.S -o src/x86/sysv.o >/dev/null 2>&1
+/bin/bash ./libtool --tag=CC   --mode=link gcc -Wall -g -fexceptions -g -O2 -version-info `grep -v '^#' ./libtool-version`   -o libffi.la -rpath /usr/local/lib src/debug.lo src/prep_cif.lo src/types.lo src/raw_api.lo src/java_raw_api.lo src/closures.lo                     src/x86/ffi64.lo src/x86/unix64.lo src/x86/ffi.lo src/x86/sysv.lo      
+libtool: link: gcc -shared  src/.libs/debug.o src/.libs/prep_cif.o src/.libs/types.o src/.libs/raw_api.o src/.libs/java_raw_api.o src/.libs/closures.o src/x86/.libs/ffi64.o src/x86/.libs/unix64.o src/x86/.libs/ffi.o src/x86/.libs/sysv.o      -Wl,-soname -Wl,libffi.so.5 -o .libs/libffi.so.5.0.10
+libtool: link: (cd ".libs" && rm -f "libffi.so.5" && ln -s "libffi.so.5.0.10" "libffi.so.5")
+libtool: link: (cd ".libs" && rm -f "libffi.so" && ln -s "libffi.so.5.0.10" "libffi.so")
+libtool: link: ar cru .libs/libffi.a  src/debug.o src/prep_cif.o src/types.o src/raw_api.o src/java_raw_api.o src/closures.o src/x86/ffi64.o src/x86/unix64.o src/x86/ffi.o src/x86/sysv.o
+libtool: link: ranlib .libs/libffi.a
+libtool: link: ( cd ".libs" && rm -f "libffi.la" && ln -s "../libffi.la" "libffi.la" )
+/bin/bash ./libtool --tag=CC   --mode=link gcc -Wall -g -fexceptions -g -O2   -o libffi_convenience.la  src/debug.lo src/prep_cif.lo src/types.lo src/raw_api.lo src/java_raw_api.lo src/closures.lo                     src/x86/ffi64.lo src/x86/unix64.lo src/x86/ffi.lo src/x86/sysv.lo      
+libtool: link: ar cru .libs/libffi_convenience.a src/.libs/debug.o src/.libs/prep_cif.o src/.libs/types.o src/.libs/raw_api.o src/.libs/java_raw_api.o src/.libs/closures.o src/x86/.libs/ffi64.o src/x86/.libs/unix64.o src/x86/.libs/ffi.o src/x86/.libs/sysv.o 
+libtool: link: ranlib .libs/libffi_convenience.a
+libtool: link: ( cd ".libs" && rm -f "libffi_convenience.la" && ln -s "../libffi_convenience.la" "libffi_convenience.la" )
+make[2]: Выход из каталога `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi'
+make[1]: Выход из каталога `/home/nikitozzz/arcadia-minimal/python/Modules/_ctypes/libffi'

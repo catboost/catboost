@@ -1,0 +1,6 @@
+include *.c
+include *.h
+include ext-date-lib/*
+include *.pyx
+include Makefile
+include README.rst

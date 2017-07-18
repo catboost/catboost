@@ -1,0 +1,6 @@
+Yandex-specific: mutex_yandex.cpp and os_yandex.cpp.
+
+  * Extracted some constants from sqlite3.c to bridge.h.
+  * Added include of util/system/defaults.h to sqlite3.c.
+  * Added usage of SQLITE_UINT64_TYPE to sqlite3.c instead of 'unsigned SQLITE_INT64_TYPE'.
+  * Do not add shell.c (it's a console client for sqlite3, if needed - should be a separate lib/application).

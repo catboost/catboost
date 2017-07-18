@@ -1,0 +1,13 @@
+C CatBoostCreateFromFile_R
+C CatBoostCreateFromMatrix_R
+C CatBoostHashStrings_R
+C CatBoostPoolNumRow_R
+C CatBoostPoolNumCol_R
+C CatBoostPoolNumTrees_R
+C CatBoostFit_R
+C CatBoostReadModel_R
+C CatBoostOutputModel_R
+C CatBoostGetModelParams_R
+C CatBoostPredictMulti_R
+C CatBoostPoolHead_R
+C CatBoostCalcRegularFeatureEffect_R

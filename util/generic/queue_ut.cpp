@@ -1,0 +1,210 @@
+#include "queue.h"
+#include "list.h"
+#include "vector.h"
+
+#include <library/unittest/registar.h>
+
+#include <utility>
+
+SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
+    SIMPLE_UNIT_TEST(ConstructorsAndAssignments) {
+        {
+            using container = yqueue<int>;
+
+            container c1;
+            UNIT_ASSERT(!c1);
+            c1.push(100);
+            c1.push(200);
+            UNIT_ASSERT(c1);
+
+            container c2(c1);
+
+            UNIT_ASSERT_VALUES_EQUAL(2, c1.size());
+            UNIT_ASSERT_VALUES_EQUAL(2, c2.size());
+
+            container c3(std::move(c1));
+
+            UNIT_ASSERT_VALUES_EQUAL(0, c1.size());
+            UNIT_ASSERT_VALUES_EQUAL(2, c3.size());
+
+            c2.push(300);
+            c3 = c2;
+
+            UNIT_ASSERT_VALUES_EQUAL(3, c2.size());
+            UNIT_ASSERT_VALUES_EQUAL(3, c3.size());
+
+            c2.push(400);
+            c3 = std::move(c2);
+
+            UNIT_ASSERT_VALUES_EQUAL(0, c2.size());
+            UNIT_ASSERT_VALUES_EQUAL(4, c3.size());
+        }
+
+        {
+            using container = ypriority_queue<int>;
+
+            container c1;
+            UNIT_ASSERT(!c1);
+            c1.push(100);
+            c1.push(200);
+            UNIT_ASSERT(c1);
+
+            container c2(c1);
+
+            UNIT_ASSERT_VALUES_EQUAL(2, c1.size());
+            UNIT_ASSERT_VALUES_EQUAL(2, c2.size());
+
+            container c3(std::move(c1));
+
+            UNIT_ASSERT_VALUES_EQUAL(0, c1.size());
+            UNIT_ASSERT_VALUES_EQUAL(2, c3.size());
+
+            c2.push(300);
+            c3 = c2;
+
+            UNIT_ASSERT_VALUES_EQUAL(3, c2.size());
+            UNIT_ASSERT_VALUES_EQUAL(3, c3.size());
+
+            c2.push(400);
+            c3 = std::move(c2);
+
+            UNIT_ASSERT_VALUES_EQUAL(0, c2.size());
+            UNIT_ASSERT_VALUES_EQUAL(4, c3.size());
+        }
+    }
+
+    SIMPLE_UNIT_TEST(pqueue1) {
+        ypriority_queue<int, ydeque<int>, TLess<int>> q;
+
+        q.push(42);
+        q.push(101);
+        q.push(69);
+        UNIT_ASSERT(q.top() == 101);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 69);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 42);
+
+        q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(pqueue2) {
+        using TPQueue = ypriority_queue<int, ydeque<int>, TLess<int>>;
+        TPQueue q;
+
+        {
+            TPQueue qq;
+
+            qq.push(42);
+            qq.push(101);
+            qq.push(69);
+
+            qq.swap(q);
+        }
+
+        UNIT_ASSERT(q.top() == 101);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 69);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 42);
+
+        q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(pqueue3) {
+        ypriority_queue<int, ydeque<int>, TLess<int>> q;
+
+        q.push(42);
+        q.push(101);
+        q.push(69);
+        q.clear();
+
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(pqueue4) {
+        ydeque<int> c;
+        c.push_back(42);
+        c.push_back(101);
+        c.push_back(69);
+
+        ypriority_queue<int, ydeque<int>, TLess<int>> q(TLess<int>(), std::move(c));
+
+        UNIT_ASSERT(c.empty());
+
+        UNIT_ASSERT_EQUAL(q.size(), 3);
+
+        UNIT_ASSERT(q.top() == 101);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 69);
+
+        q.pop();
+        UNIT_ASSERT(q.top() == 42);
+
+        q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(queue1) {
+        yqueue<int, ylist<int>> q;
+
+        q.push(42);
+        q.push(101);
+        q.push(69);
+        UNIT_ASSERT(q.front() == 42);
+
+        q.pop();
+        UNIT_ASSERT(q.front() == 101);
+
+        q.pop();
+        UNIT_ASSERT(q.front() == 69);
+
+        q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(queue2) {
+        using TQueue = yqueue<int>;
+        TQueue q;
+
+        {
+            TQueue qq;
+
+            qq.push(42);
+            qq.push(101);
+            qq.push(69);
+
+            qq.swap(q);
+        }
+
+        UNIT_ASSERT(q.front() == 42);
+
+        q.pop();
+        UNIT_ASSERT(q.front() == 101);
+
+        q.pop();
+        UNIT_ASSERT(q.front() == 69);
+
+        q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    SIMPLE_UNIT_TEST(queue3) {
+        using TQueue = yqueue<int>;
+        TQueue q;
+
+        q.push(42);
+        q.push(101);
+        q.push(69);
+        q.clear();
+
+        UNIT_ASSERT(q.empty());
+    }
+}

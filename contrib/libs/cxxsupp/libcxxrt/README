@@ -1,0 +1,50 @@
+libcxxabi
+=========
+
+This library implements the Code Sourcery C++ ABI, as documented here:
+
+http://www.codesourcery.com/public/cxx-abi/abi.html
+
+It is intended to sit below an STL implementation, and provide features required by the compiler for implementation of the C++ language.
+
+Current Status
+--------------
+
+At present, the library implements the following parts of the ABI specification:
+
+- RTTI classes and support for the dynamic_cast<> operator.
+- Exception handling.
+- Thread-safe initializers.
+
+Exception handling requires the assistance of a stack-unwinding library
+implementing the low-level parts of the ABI.  Either libgcc_s or libunwind
+should work for this purpose.
+
+The library depends on various libc features, but does not depend on any C++
+features not implemented purely in the compiler or in the library itself.
+
+Supported Platforms
+-------------------
+
+This code was initially developed on FreeBSD/x86, and has also been tested on FreeBSD/x86-64.  It should work on other platforms that use the Code Sourcery ABI, for example Itanium, however this is untested.
+
+This library also supports the ARM EH ABI.
+
+Installation
+------------
+
+The default build system does not perform any installation.  It is expected that this will be done by at a higher level.  The exact installation steps depend on how you plan on deploying libcxxrt.
+
+There are three files that you may consider installing:
+
+- cxxabi.h (and unwind.h and either unwind-arm.h or unwind-itanium.h)
+- libcxxrt.a
+- libcxxrt.so
+
+The first describes the contract between this library and the compiler / STL implementation (lib[std]{cxx,c++}).  Its contents should be considered semi-private, as it is probably not a good idea to encourage any code above the STL implementation to depend on it.  Doing so will introduce portability issues.  You may install this file but I recommend simply copying or linking it into your STL implementation's build directory.
+
+In general, I recommend against installing both the .a and the .so file.  For static linking, the .a file should be linked against the static and dynamic versions of your STL implementation.  Statically linking libcxxrt into your STL implementation means that users who dynamically link against the STL implementation can have libcxxrt upgraded automatically when you ship a new version of your STL implementation.
+
+The other option, installing the .so, is recommended for situations where you have two or more STL implementations and wish to be able to link against both (e.g. where an application links one library using libstdc++ and another using libc++).  To support this case, you should link both STL implementations against libcxxrt.so.  
+
+Supporting all of these options in the CMake build system is not practical - the amount of effort required to select the one that you want would be more than the effort required to perform the installation from an external script or build system.

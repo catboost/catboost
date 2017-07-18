@@ -1,0 +1,505 @@
+Sentences that contain all letters commonly used in a language
+--------------------------------------------------------------
+
+Markus Kuhn <http://www.cl.cam.ac.uk/~mgk25/> -- 2001-09-02
+
+This file is UTF-8 encoded.
+
+
+Danish (da)
+---------
+
+  Quizdeltagerne spiste jordbær med fløde, mens cirkusklovnen
+  Wolther spillede på xylofon.
+  (= Quiz contestants were eating strawbery with cream while Wolther
+  the circus clown played on xylophone.)
+
+German (de)
+-----------
+
+  Falsches Üben von Xylophonmusik quält jeden größeren Zwerg
+  (= Wrongful practicing of xylophone music tortures every larger dwarf)
+
+  Zwölf Boxkämpfer jagten Eva quer über den Sylter Deich
+  (= Twelve boxing fighters hunted Eva across the dike of Sylt)
+
+  Heizölrückstoßabdämpfung
+  (= fuel oil recoil absorber)
+  (jqvwxy missing, but all non-ASCII letters in one word)
+
+English (en)
+------------
+
+  The quick brown fox jumps over the lazy dog
+
+Spanish (es)
+------------
+
+  El pingüino Wenceslao hizo kilómetros bajo exhaustiva lluvia y 
+  frío, añoraba a su querido cachorro.
+  (Contains every letter and every accent, but not every combination
+  of vowel + acute.)
+
+French (fr)
+-----------
+
+  Portez ce vieux whisky au juge blond qui fume sur son île intérieure, à
+  côté de l'alcôve ovoïde, où les bûches se consument dans l'âtre, ce
+  qui lui permet de penser à la cænogenèse de l'être dont il est question
+  dans la cause ambiguë entendue à Moÿ, dans un capharnaüm qui,
+  pense-t-il, diminue çà et là la qualité de son œuvre. 
+
+  l'île exiguë
+  Où l'obèse jury mûr
+  Fête l'haï volapük,
+  Âne ex aéquo au whist,
+  Ôtez ce vœu déçu.
+
+  Le cœur déçu mais l'âme plutôt naïve, Louÿs rêva de crapaüter en
+  canoë au delà des îles, près du mälström où brûlent les novæ.
+
+Irish Gaelic (ga)
+-----------------
+
+  D'fhuascail Íosa, Úrmhac na hÓighe Beannaithe, pór Éava agus Ádhaimh
+
+Hungarian (hu)
+--------------
+
+  Árvíztűrő tükörfúrógép
+  (= flood-proof mirror-drilling machine, only all non-ASCII letters)
+
+Icelandic (is)
+--------------
+
+  Kæmi ný öxi hér ykist þjófum nú bæði víl og ádrepa
+
+  Sævör grét áðan því úlpan var ónýt
+  (some ASCII letters missing)
+
+Japanese (jp)
+-------------
+
+  Hiragana: (Iroha)
+
+  いろはにほへとちりぬるを
+  わかよたれそつねならむ
+  うゐのおくやまけふこえて
+  あさきゆめみしゑひもせす
+
+  Katakana:
+
+  イロハニホヘト チリヌルヲ ワカヨタレソ ツネナラム
+  ウヰノオクヤマ ケフコエテ アサキユメミシ ヱヒモセスン
+
+Hebrew (iw)
+-----------
+
+  ? דג סקרן שט בים מאוכזב ולפתע מצא לו חברה איך הקליטה
+
+Polish (pl)
+-----------
+
+  Pchnąć w tę łódź jeża lub ośm skrzyń fig
+  (= To push a hedgehog or eight bins of figs in this boat)
+
+Russian (ru)
+------------
+
+  В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!
+  (= Would a citrus live in the bushes of south? Yes, but only a fake one!)
+
+Thai (th)
+---------
+
+  [--------------------------|------------------------]
+  ๏ เป็นมนุษย์สุดประเสริฐเลิศคุณค่า  กว่าบรรดาฝูงสัตว์เดรัจฉาน
+  จงฝ่าฟันพัฒนาวิชาการ           อย่าล้างผลาญฤๅเข่นฆ่าบีฑาใคร
+  ไม่ถือโทษโกรธแช่งซัดฮึดฮัดด่า     หัดอภัยเหมือนกีฬาอัชฌาสัย
+  ปฏิบัติประพฤติกฎกำหนดใจ        พูดจาให้จ๊ะๆ จ๋าๆ น่าฟังเอย ฯ
+
+  [The copyright for the Thai example is owned by The Computer
+  Association of Thailand under the Royal Patronage of His Majesty the
+  King.]
+
+Please let me know if you find others! Special thanks to the people
+from all over the world who contributed these sentences.
+? 	*Unicode Transcriptions* 	Notes <#Notes>
+
+Glyphs <http://www.macchiato.com/unicode/show.html> | Samples
+<http://www.macchiato.com/unicode/Unicode_transcriptions.html> | Charts
+<http://www.macchiato.com/unicode/charts.html> | UTF
+<http://www.macchiato.com/unicode/convert.html> | Forms
+<http://www-4.ibm.com/software/developer/library/utfencodingforms/> |
+Home <http://www.macchiato.com>.
+<http://member.linkexchange.com/cgi-bin/fc/fastcounter-login?750641>
+
+Name 	Text 	Image
+Arabic (Arabic) 	يونِكود 	?
+Arabic (Persian) 	یونی‌کُد 	/ ?/
+Armenian 	Յունիկօդ 	
+Bengali 	য়ূনিকোড 	
+Bopomofo 	ㄊㄨㄥ˅ ㄧˋ ㄇㄚ˅ 	
+ㄨㄢˋ ㄍㄨㄛˊ ㄇㄚ˅ 	
+Braille 	  	 
+Buhid 	  	 
+Canadian Aboriginal 	ᔫᗂᑰᑦ 	
+Cherokee 	ᏳᏂᎪᏛ 	
+Cypriot 	  	 
+Cyrillic (Russian) 	Юникод 	?
+Deseret (English) 	??????? 	
+Devanagari (Hindi) 	यूनिकोड 	?
+Ethiopic 	ዩኒኮድ 	
+Georgian 	უნიკოდი 	?
+Gothic 	  	 
+Greek 	Γιούνικοντ 	
+Gujarati 	યૂનિકોડ 	
+Gurmukhi 	ਯੂਨਿਕੋਡ 	
+Han (Chinese) 	统一码 	?
+統一碼 	?
+万国码 	?
+萬國碼 	?
+Hangul 	유니코드 	
+Hanunoo 	  	 
+Hebrew 	יוניקוד 	
+Hebrew (pointed) 	יוּנִיקוׁד 	
+Hebrew (Yiddish) 	יוניקאָד 	?
+Hiragana (Japanese) 	ゆにこおど 	 
+Katakana (Japanese) 	ユニコード 	?
+Kannada 	ಯೂನಿಕೋಡ್ 	
+Khmer 	យូនីគោដ 	
+Lao 	  	 
+Latin 	Unicode 	Unicode
+Latin (IPA <#English_Pronunciation>) 	ˈjunɪˌkoːd 	?
+Latin (Am. Dict. <#American_Dictionary>) 	Ūnĭcōde̽ 	?
+Limbu 	  	 
+Linear B 	  	 
+Malayalam 	യൂനികോഡ് 	
+Mongolian 	  	
+Myanmar 	  	
+Ogham 	ᚔᚒᚅᚔᚉᚑᚇ 	/ /
+Old Italic 	  	 
+Oriya 	ୟୂନିକୋଡ 	
+Osmanya 	  	 
+Runic (Anglo-Saxon) 	ᛡᚢᚾᛁᚳᚩᛞ 	
+Shavian 	  	 
+Sinhala 	යණනිකෞද් 	
+Syriac 	ܝܘܢܝܩܘܕ 	
+Tagbanwa 	  	 
+Tagalog 	  	 
+Tai Le 	  	 
+Tamil 	யூனிகோட் 	
+Telugu 	యూనికోడ్ 	
+Thaana 	  	
+Thai 	ยูนืโคด 	
+Tibetan (Dzongkha) 	ཨུ་ནི་ཀོཌྲ། 	
+Ugaritic 	  	 
+Yi 	  	
+
+
+      Notes:
+
+There are different ways to transcribe the word “Unicode”, depending on
+the language and script. In some cases there is only one language that
+customarily uses a given script; in others there are many languages. The
+goal here is at a minimum to collect at least one transcription for each
+script in a language customarily written in that script, with more
+languages if possible. If the transcription is the same for multiple
+languages in a script, then a single representative language is used.
+
+Still missing are transcriptions for the items above in RED (in at least
+one language). I would appreciate any other transcriptions, or
+corrections for the ones listed here. Send to mark3@macchiato.com
+<mailto:mark3@macchiato.com>, using the directions below:
+
+    * *Supplying Missing Items*
+          o Most Latin-script languages will follow the spelling, and
+            change the pronunciation. For any that would not, it would
+            be good to have the alternate spelling.
+          o For non-Latin scripts the goal is to match the English
+            pronunciation — /*not*/ spelling. Above is the IPA <#IPA>
+            (in phonemic transcription) that should be matched as
+            closely as possible (without sounding affected in the target
+            language)
+          o Text would be best in either the UTF-8 text, or the code
+            points in hex HTML. E.g. either of the following:
+                + "Юникод"
+                + "&#x042E;&#x043D;&#x0438;&#x043A;&#x043E;&#x0434;"
+                + Note: for / supplementary characters/
+                  <http://www.unicode.org/glossary/#supplementary_character>,
+                  there should be one hex number per code point, not two
+                  surrogates
+                  <http://www.unicode.org/glossary/#surrogate_code_point>:
+                      # &#x10000; /*not*/ &#xD800;&xDC00;
+          o If you have a good font, I'd also appreciate a GIF. It
+            should be *96 x 24* bits, with the text centered, in black
+            on white (plus grays if smoothed).
+    * *Other Comments*
+          o Because some browsers won't handle the text, both text and
+            GIF image are supplied. If you can’t read the text columns,
+            see Display Problems
+            <http://www.unicode.org/help/display_problems.html>.
+          o The Chinese versions (inc. Bopomofo) are translations, not
+            transcriptions, since "transcription in Chinese is pretty
+            lame" [J. Becker].
+          o There are other "translations" of Unicode that may be in
+            use, such as the Vietnamese "Thống Nhất Mã".
+          o For sample pages in different languages on the Unicode site,
+            see What is Unicode?
+            <http://www.unicode.org/unicode/standard/WhatIsUnicode.html>
+          o Americans are not generally used to IPA, and find a variety
+            of different systems in their dictionaries. This one leaves
+            the base letters as they are, and uses diacritics for
+            pronunciation.
+    * *Etymology of /Unicode/*
+          o Coined by J. Becker. Not related to previous usages, such as:
+                + A telegraphic code in which one word or set of letters
+                  represents a sentence or phrase; a telegram or message
+                  in this. (late 19th century, OED)
+          o According to my references, the prefix "uni" is directly
+            from Latin while the word "code" is through French.
+          o The original Indo-European apparently would have been
+            *oino-kau-do ("one strike give"): *kau apparently being
+            related to such English words as: hew, haggle, hoe, hag,
+            hay, hack, caudad, caudal, caudate, caudex, coda, codex,
+            codicil, coward, incus, and Kovač (personal name: "smith").
+                + I will leave the exact derivations to the exegetes,
+                  but I like the association with "haggle" myself.
+    * *Contributions*
+          o This draws on contributions or comments from:
+                + Dixon Au
+                + Joe Becker
+                + Maurice Bauhahn
+                + Abel Cheung
+                + Peter Constable
+                + Michael Everson
+                + Christopher John Fynn
+                + Michael Kaplan
+                + George Kiraz
+                + Abdul Malik
+                + Siva Nataraja
+                + Roozbeh Pournader
+                + Jonathan Rosenne
+                + Jungshik Shin
+
+------------------------------------------------------------------------
+	
+
+Terms of Use <http://www.macchiato.com/terms_of_use.html>. Last updated:
+MED - 04/20/2003 15:30:33.
+<http://member.linkexchange.com/cgi-bin/fc/fastcounter-login?750641>
+
+ 
+
+
+UTF-8 encoded sample plain-text file
+‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Markus Kuhn [ˈmaʳkʊs kuːn] <http://www.cl.cam.ac.uk/~mgk25/> — 2002-07-25
+
+
+The ASCII compatible UTF-8 encoding used in this plain-text file
+is defined in Unicode, ISO 10646-1, and RFC 2279.
+
+
+Using Unicode/UTF-8, you can write in emails and source code things such as
+
+Mathematics and sciences:
+
+  ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫
+                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
+  ∀x∈ℝ: ⌈x⌉ = −⌊−x⌋, α ∧ ¬β = ¬(¬α ∨ β),    ⎪⎢⎜│───── ⎟⎥⎪
+                                            ⎪⎢⎜⎷ c₈   ⎟⎥⎪
+  ℕ ⊆ ℕ₀ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ,                   ⎨⎢⎜       ⎟⎥⎬
+                                            ⎪⎢⎜ ∞     ⎟⎥⎪
+  ⊥ < a ≠ b ≡ c ≤ d ≪ ⊤ ⇒ (⟦A⟧ ⇔ ⟪B⟫),      ⎪⎢⎜ ⎲     ⎟⎥⎪
+                                            ⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪
+  2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 mm     ⎩⎣⎝i=1    ⎠⎦⎭
+
+Linguistics and dictionaries:
+
+  ði ıntəˈnæʃənəl fəˈnɛtık əsoʊsiˈeıʃn
+  Y [ˈʏpsilɔn], Yen [jɛn], Yoga [ˈjoːgɑ]
+
+APL:
+
+  ((V⍳V)=⍳⍴V)/V←,V    ⌷←⍳→⍴∆∇⊃‾⍎⍕⌈
+
+Nicer typography in plain text files:
+
+  ╔══════════════════════════════════════════╗
+  ║                                          ║
+  ║   • ‘single’ and “double” quotes         ║
+  ║                                          ║
+  ║   • Curly apostrophes: “We’ve been here” ║
+  ║                                          ║
+  ║   • Latin-1 apostrophe and accents: '´`  ║
+  ║                                          ║
+  ║   • ‚deutsche‘ „Anführungszeichen“       ║
+  ║                                          ║
+  ║   • †, ‡, ‰, •, 3–4, —, −5/+5, ™, …      ║
+  ║                                          ║
+  ║   • ASCII safety test: 1lI|, 0OD, 8B     ║
+  ║                      ╭─────────╮         ║
+  ║   • the euro symbol: │ 14.95 € │         ║
+  ║                      ╰─────────╯         ║
+  ╚══════════════════════════════════════════╝
+
+Combining characters:
+
+  STARGΛ̊TE SG-1, a = v̇ = r̈, a⃑ ⊥ b⃑
+
+Greek (in Polytonic):
+
+  The Greek anthem:
+
+  Σὲ γνωρίζω ἀπὸ τὴν κόψη
+  τοῦ σπαθιοῦ τὴν τρομερή,
+  σὲ γνωρίζω ἀπὸ τὴν ὄψη
+  ποὺ μὲ βία μετράει τὴ γῆ.
+
+  ᾿Απ᾿ τὰ κόκκαλα βγαλμένη
+  τῶν ῾Ελλήνων τὰ ἱερά
+  καὶ σὰν πρῶτα ἀνδρειωμένη
+  χαῖρε, ὦ χαῖρε, ᾿Ελευθεριά!
+
+  From a speech of Demosthenes in the 4th century BC:
+
+  Οὐχὶ ταὐτὰ παρίσταταί μοι γιγνώσκειν, ὦ ἄνδρες ᾿Αθηναῖοι,
+  ὅταν τ᾿ εἰς τὰ πράγματα ἀποβλέψω καὶ ὅταν πρὸς τοὺς
+  λόγους οὓς ἀκούω· τοὺς μὲν γὰρ λόγους περὶ τοῦ
+  τιμωρήσασθαι Φίλιππον ὁρῶ γιγνομένους, τὰ δὲ πράγματ᾿
+  εἰς τοῦτο προήκοντα,  ὥσθ᾿ ὅπως μὴ πεισόμεθ᾿ αὐτοὶ
+  πρότερον κακῶς σκέψασθαι δέον. οὐδέν οὖν ἄλλο μοι δοκοῦσιν
+  οἱ τὰ τοιαῦτα λέγοντες ἢ τὴν ὑπόθεσιν, περὶ ἧς βουλεύεσθαι,
+  οὐχὶ τὴν οὖσαν παριστάντες ὑμῖν ἁμαρτάνειν. ἐγὼ δέ, ὅτι μέν
+  ποτ᾿ ἐξῆν τῇ πόλει καὶ τὰ αὑτῆς ἔχειν ἀσφαλῶς καὶ Φίλιππον
+  τιμωρήσασθαι, καὶ μάλ᾿ ἀκριβῶς οἶδα· ἐπ᾿ ἐμοῦ γάρ, οὐ πάλαι
+  γέγονεν ταῦτ᾿ ἀμφότερα· νῦν μέντοι πέπεισμαι τοῦθ᾿ ἱκανὸν
+  προλαβεῖν ἡμῖν εἶναι τὴν πρώτην, ὅπως τοὺς συμμάχους
+  σώσομεν. ἐὰν γὰρ τοῦτο βεβαίως ὑπάρξῃ, τότε καὶ περὶ τοῦ
+  τίνα τιμωρήσεταί τις καὶ ὃν τρόπον ἐξέσται σκοπεῖν· πρὶν δὲ
+  τὴν ἀρχὴν ὀρθῶς ὑποθέσθαι, μάταιον ἡγοῦμαι περὶ τῆς
+  τελευτῆς ὁντινοῦν ποιεῖσθαι λόγον.
+
+  Δημοσθένους, Γ´ ᾿Ολυνθιακὸς
+
+Georgian:
+
+  From a Unicode conference invitation:
+
+  გთხოვთ ახლავე გაიაროთ რეგისტრაცია Unicode-ის მეათე საერთაშორისო
+  კონფერენციაზე დასასწრებად, რომელიც გაიმართება 10-12 მარტს,
+  ქ. მაინცში, გერმანიაში. კონფერენცია შეჰკრებს ერთად მსოფლიოს
+  ექსპერტებს ისეთ დარგებში როგორიცაა ინტერნეტი და Unicode-ი,
+  ინტერნაციონალიზაცია და ლოკალიზაცია, Unicode-ის გამოყენება
+  ოპერაციულ სისტემებსა, და გამოყენებით პროგრამებში, შრიფტებში,
+  ტექსტების დამუშავებასა და მრავალენოვან კომპიუტერულ სისტემებში.
+
+Russian:
+
+  From a Unicode conference invitation:
+
+  Зарегистрируйтесь сейчас на Десятую Международную Конференцию по
+  Unicode, которая состоится 10-12 марта 1997 года в Майнце в Германии.
+  Конференция соберет широкий круг экспертов по  вопросам глобального
+  Интернета и Unicode, локализации и интернационализации, воплощению и
+  применению Unicode в различных операционных системах и программных
+  приложениях, шрифтах, верстке и многоязычных компьютерных системах.
+
+Thai (UCS Level 2):
+
+  Excerpt from a poetry on The Romance of The Three Kingdoms (a Chinese
+  classic 'San Gua'):
+
+  [----------------------------|------------------------]
+    ๏ แผ่นดินฮั่นเสื่อมโทรมแสนสังเวช  พระปกเกศกองบู๊กู้ขึ้นใหม่
+  สิบสองกษัตริย์ก่อนหน้าแลถัดไป       สององค์ไซร้โง่เขลาเบาปัญญา
+    ทรงนับถือขันทีเป็นที่พึ่ง           บ้านเมืองจึงวิปริตเป็นนักหนา
+  โฮจิ๋นเรียกทัพทั่วหัวเมืองมา         หมายจะฆ่ามดชั่วตัวสำคัญ
+    เหมือนขับไสไล่เสือจากเคหา      รับหมาป่าเข้ามาเลยอาสัญ
+  ฝ่ายอ้องอุ้นยุแยกให้แตกกัน          ใช้สาวนั้นเป็นชนวนชื่นชวนใจ
+    พลันลิฉุยกุยกีกลับก่อเหตุ          ช่างอาเพศจริงหนาฟ้าร้องไห้
+  ต้องรบราฆ่าฟันจนบรรลัย           ฤๅหาใครค้ำชูกู้บรรลังก์ ฯ
+
+  (The above is a two-column text. If combining characters are handled
+  correctly, the lines of the second column should be aligned with the
+  | character above.)
+
+Ethiopian:
+
+  Proverbs in the Amharic language:
+
+  ሰማይ አይታረስ ንጉሥ አይከሰስ።
+  ብላ ካለኝ እንደአባቴ በቆመጠኝ።
+  ጌጥ ያለቤቱ ቁምጥና ነው።
+  ደሀ በሕልሙ ቅቤ ባይጠጣ ንጣት በገደለው።
+  የአፍ ወለምታ በቅቤ አይታሽም።
+  አይጥ በበላ ዳዋ ተመታ።
+  ሲተረጉሙ ይደረግሙ።
+  ቀስ በቀስ፥ ዕንቁላል በእግሩ ይሄዳል።
+  ድር ቢያብር አንበሳ ያስር።
+  ሰው እንደቤቱ እንጅ እንደ ጉረቤቱ አይተዳደርም።
+  እግዜር የከፈተውን ጉሮሮ ሳይዘጋው አይድርም።
+  የጎረቤት ሌባ፥ ቢያዩት ይስቅ ባያዩት ያጠልቅ።
+  ሥራ ከመፍታት ልጄን ላፋታት።
+  ዓባይ ማደሪያ የለው፥ ግንድ ይዞ ይዞራል።
+  የእስላም አገሩ መካ የአሞራ አገሩ ዋርካ።
+  ተንጋሎ ቢተፉ ተመልሶ ባፉ።
+  ወዳጅህ ማር ቢሆን ጨርስህ አትላሰው።
+  እግርህን በፍራሽህ ልክ ዘርጋ።
+
+Runes:
+
+  ᚻᛖ ᚳᚹᚫᚦ ᚦᚫᛏ ᚻᛖ ᛒᚢᛞᛖ ᚩᚾ ᚦᚫᛗ ᛚᚪᚾᛞᛖ ᚾᚩᚱᚦᚹᛖᚪᚱᛞᚢᛗ ᚹᛁᚦ ᚦᚪ ᚹᛖᛥᚫ
+
+  (Old English, which transcribed into Latin reads 'He cwaeth that he
+  bude thaem lande northweardum with tha Westsae.' and means 'He said
+  that he lived in the northern land near the Western Sea.')
+
+Braille:
+
+  ⡌⠁⠧⠑ ⠼⠁⠒  ⡍⠜⠇⠑⠹⠰⠎ ⡣⠕⠌
+
+  ⡍⠜⠇⠑⠹ ⠺⠁⠎ ⠙⠑⠁⠙⠒ ⠞⠕ ⠃⠑⠛⠔ ⠺⠊⠹⠲ ⡹⠻⠑ ⠊⠎ ⠝⠕ ⠙⠳⠃⠞
+  ⠱⠁⠞⠑⠧⠻ ⠁⠃⠳⠞ ⠹⠁⠞⠲ ⡹⠑ ⠗⠑⠛⠊⠌⠻ ⠕⠋ ⠙⠊⠎ ⠃⠥⠗⠊⠁⠇ ⠺⠁⠎
+  ⠎⠊⠛⠝⠫ ⠃⠹ ⠹⠑ ⠊⠇⠻⠛⠹⠍⠁⠝⠂ ⠹⠑ ⠊⠇⠻⠅⠂ ⠹⠑ ⠥⠝⠙⠻⠞⠁⠅⠻⠂
+  ⠁⠝⠙ ⠹⠑ ⠡⠊⠑⠋ ⠍⠳⠗⠝⠻⠲ ⡎⠊⠗⠕⠕⠛⠑ ⠎⠊⠛⠝⠫ ⠊⠞⠲ ⡁⠝⠙
+  ⡎⠊⠗⠕⠕⠛⠑⠰⠎ ⠝⠁⠍⠑ ⠺⠁⠎ ⠛⠕⠕⠙ ⠥⠏⠕⠝ ⠰⡡⠁⠝⠛⠑⠂ ⠋⠕⠗ ⠁⠝⠹⠹⠔⠛ ⠙⠑
+  ⠡⠕⠎⠑ ⠞⠕ ⠏⠥⠞ ⠙⠊⠎ ⠙⠁⠝⠙ ⠞⠕⠲
+
+  ⡕⠇⠙ ⡍⠜⠇⠑⠹ ⠺⠁⠎ ⠁⠎ ⠙⠑⠁⠙ ⠁⠎ ⠁ ⠙⠕⠕⠗⠤⠝⠁⠊⠇⠲
+
+  ⡍⠔⠙⠖ ⡊ ⠙⠕⠝⠰⠞ ⠍⠑⠁⠝ ⠞⠕ ⠎⠁⠹ ⠹⠁⠞ ⡊ ⠅⠝⠪⠂ ⠕⠋ ⠍⠹
+  ⠪⠝ ⠅⠝⠪⠇⠫⠛⠑⠂ ⠱⠁⠞ ⠹⠻⠑ ⠊⠎ ⠏⠜⠞⠊⠊⠥⠇⠜⠇⠹ ⠙⠑⠁⠙ ⠁⠃⠳⠞
+  ⠁ ⠙⠕⠕⠗⠤⠝⠁⠊⠇⠲ ⡊ ⠍⠊⠣⠞ ⠙⠁⠧⠑ ⠃⠑⠲ ⠔⠊⠇⠔⠫⠂ ⠍⠹⠎⠑⠇⠋⠂ ⠞⠕
+  ⠗⠑⠛⠜⠙ ⠁ ⠊⠕⠋⠋⠔⠤⠝⠁⠊⠇ ⠁⠎ ⠹⠑ ⠙⠑⠁⠙⠑⠌ ⠏⠊⠑⠊⠑ ⠕⠋ ⠊⠗⠕⠝⠍⠕⠝⠛⠻⠹
+  ⠔ ⠹⠑ ⠞⠗⠁⠙⠑⠲ ⡃⠥⠞ ⠹⠑ ⠺⠊⠎⠙⠕⠍ ⠕⠋ ⠳⠗ ⠁⠝⠊⠑⠌⠕⠗⠎
+  ⠊⠎ ⠔ ⠹⠑ ⠎⠊⠍⠊⠇⠑⠆ ⠁⠝⠙ ⠍⠹ ⠥⠝⠙⠁⠇⠇⠪⠫ ⠙⠁⠝⠙⠎
+  ⠩⠁⠇⠇ ⠝⠕⠞ ⠙⠊⠌⠥⠗⠃ ⠊⠞⠂ ⠕⠗ ⠹⠑ ⡊⠳⠝⠞⠗⠹⠰⠎ ⠙⠕⠝⠑ ⠋⠕⠗⠲ ⡹⠳
+  ⠺⠊⠇⠇ ⠹⠻⠑⠋⠕⠗⠑ ⠏⠻⠍⠊⠞ ⠍⠑ ⠞⠕ ⠗⠑⠏⠑⠁⠞⠂ ⠑⠍⠏⠙⠁⠞⠊⠊⠁⠇⠇⠹⠂ ⠹⠁⠞
+  ⡍⠜⠇⠑⠹ ⠺⠁⠎ ⠁⠎ ⠙⠑⠁⠙ ⠁⠎ ⠁ ⠙⠕⠕⠗⠤⠝⠁⠊⠇⠲
+
+  (The first couple of paragraphs of "A Christmas Carol" by Dickens)
+
+Compact font selection example text:
+
+  ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789
+  abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
+  –—‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд
+  ∀∂∈ℝ∧∪≡∞ ↑↗↨↻⇣ ┐┼╔╘░►☺♀ ﬁ�⑀₂ἠḂӥẄɐː⍎אԱა
+
+Greetings in various languages:
+
+  Hello world, Καλημέρα κόσμε, コンニチハ
+
+Box drawing alignment tests:                                          █
+                                                                      ▉
+  ╔══╦══╗  ┌──┬──┐  ╭──┬──╮  ╭──┬──╮  ┏━━┳━━┓  ┎┒┏┑   ╷  ╻ ┏┯┓ ┌┰┐    ▊ ╱╲╱╲╳╳╳
+  ║┌─╨─┐║  │╔═╧═╗│  │╒═╪═╕│  │╓─╁─╖│  ┃┌─╂─┐┃  ┗╃╄┙  ╶┼╴╺╋╸┠┼┨ ┝╋┥    ▋ ╲╱╲╱╳╳╳
+  ║│╲ ╱│║  │║   ║│  ││ │ ││  │║ ┃ ║│  ┃│ ╿ │┃  ┍╅╆┓   ╵  ╹ ┗┷┛ └┸┘    ▌ ╱╲╱╲╳╳╳
+  ╠╡ ╳ ╞╣  ├╢   ╟┤  ├┼─┼─┼┤  ├╫─╂─╫┤  ┣┿╾┼╼┿┫  ┕┛┖┚     ┌┄┄┐ ╎ ┏┅┅┓ ┋ ▍ ╲╱╲╱╳╳╳
+  ║│╱ ╲│║  │║   ║│  ││ │ ││  │║ ┃ ║│  ┃│ ╽ │┃  ░░▒▒▓▓██ ┊  ┆ ╎ ╏  ┇ ┋ ▎
+  ║└─╥─┘║  │╚═╤═╝│  │╘═╪═╛│  │╙─╀─╜│  ┃└─╂─┘┃  ░░▒▒▓▓██ ┊  ┆ ╎ ╏  ┇ ┋ ▏
+  ╚══╩══╝  └──┴──┘  ╰──┴──╯  ╰──┴──╯  ┗━━┻━━┛  ▗▄▖▛▀▜   └╌╌┘ ╎ ┗╍╍┛ ┋  ▁▂▃▄▅▆▇█
+                                               ▝▀▘▙▄▟

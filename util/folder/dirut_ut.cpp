@@ -1,0 +1,134 @@
+#include "dirut.h"
+#include "tempdir.h"
+
+#include <library/unittest/registar.h>
+
+#include <util/generic/string.h>
+#include <util/memory/tempbuf.h>
+#include <util/stream/file.h>
+#include <util/system/platform.h>
+
+SIMPLE_UNIT_TEST_SUITE(TDirutTest){
+    SIMPLE_UNIT_TEST(TestRealPath){
+        UNIT_ASSERT(IsDir(RealPath(".")));
+}
+
+SIMPLE_UNIT_TEST(TestRealLocation) {
+    UNIT_ASSERT(IsDir(RealLocation(".")));
+
+    TTempDir tempDir;
+    TString base = RealPath(tempDir());
+    UNIT_ASSERT(!base.Empty());
+
+    if (base.back() == GetDirectorySeparator()) {
+        base.pop_back();
+    }
+
+    TString path;
+    TString pathNotNorm;
+
+    path = base + GetDirectorySeparatorS() + "no_such_file";
+    UNIT_ASSERT(NFs::Exists(GetDirName(path)));
+    UNIT_ASSERT(!NFs::Exists(path));
+    path = RealLocation(path);
+    UNIT_ASSERT(NFs::Exists(GetDirName(path)));
+    UNIT_ASSERT(!NFs::Exists(path));
+    UNIT_ASSERT_EQUAL(GetDirName(path), base);
+
+    pathNotNorm = base + GetDirectorySeparatorS() + "some_dir" + GetDirectorySeparatorS() + ".." + GetDirectorySeparatorS() + "no_such_file";
+    MakeDirIfNotExist(~(base + GetDirectorySeparatorS() + "some_dir"));
+    pathNotNorm = RealLocation(pathNotNorm);
+    UNIT_ASSERT(NFs::Exists(GetDirName(pathNotNorm)));
+    UNIT_ASSERT(!NFs::Exists(pathNotNorm));
+    UNIT_ASSERT_EQUAL(GetDirName(pathNotNorm), base);
+
+    UNIT_ASSERT_EQUAL(path, pathNotNorm);
+
+    path = base + GetDirectorySeparatorS() + "file";
+    {
+        TBufferedFileOutput file(path);
+    }
+    UNIT_ASSERT(NFs::Exists(GetDirName(path)));
+    UNIT_ASSERT(NFs::Exists(path));
+    UNIT_ASSERT(NFs::Exists(path));
+    path = RealLocation(path);
+    UNIT_ASSERT(NFs::Exists(GetDirName(path)));
+    UNIT_ASSERT(NFs::Exists(path));
+    UNIT_ASSERT_EQUAL(GetDirName(path), base);
+}
+
+void DoTest(const char* p, const char* base, const char* canon) {
+    TString path(p);
+    UNIT_ASSERT(resolvepath(path, base));
+    UNIT_ASSERT(path == canon);
+}
+
+SIMPLE_UNIT_TEST(TestResolvePath) {
+#ifdef _win_
+    DoTest("bar", "c:\\foo\\baz", "c:\\foo\\baz\\bar");
+    DoTest("c:\\foo\\bar", "c:\\bar\\baz", "c:\\foo\\bar");
+#else
+    DoTest("bar", "/foo/baz", "/foo/bar");
+    DoTest("/foo/bar", "/bar/baz", "/foo/bar");
+
+#ifdef NDEBUG
+    DoTest("bar", "./baz", "./bar");
+#if 0 // should we support, for consistency, single-label dirs
+        DoTest("bar", "baz", "bar");
+#endif
+#endif
+#endif
+}
+
+SIMPLE_UNIT_TEST(TestResolvePathRelative) {
+    TTempDir tempDir;
+    TTempBuf tempBuf;
+    TString base = RealPath(tempDir());
+    if (base.back() == GetDirectorySeparator()) {
+        base.pop_back();
+    }
+
+    // File
+    TString path = base + GetDirectorySeparatorS() + "file";
+    {
+        TBufferedFileOutput file(path);
+    }
+    ResolvePath("file", ~base, tempBuf.Data(), false);
+    UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
+
+    // Dir
+    path = base + GetDirectorySeparatorS() + "dir";
+    MakeDirIfNotExist(~path);
+    ResolvePath("dir", ~base, tempBuf.Data(), true);
+    UNIT_ASSERT_EQUAL(tempBuf.Data(), path + GetDirectorySeparatorS());
+
+    // Absent file in existent dir
+    path = base + GetDirectorySeparatorS() + "nofile";
+    ResolvePath("nofile", ~base, tempBuf.Data(), false);
+    UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
+}
+
+SIMPLE_UNIT_TEST(TestGetDirName) {
+    UNIT_ASSERT_VALUES_EQUAL(".", GetDirName("parambambam"));
+}
+
+SIMPLE_UNIT_TEST(TestStripFileComponent) {
+    static const TString tmpDir = "tmp_dir_for_tests";
+    static const TString tmpSubDir = tmpDir + GetDirectorySeparatorS() + "subdir";
+    static const TString tmpFile = tmpDir + GetDirectorySeparatorS() + "file";
+
+    // creating tmp dir and subdirs
+    MakeDirIfNotExist(~tmpDir);
+    MakeDirIfNotExist(~tmpSubDir);
+    {
+        TBufferedFileOutput file(tmpFile);
+    }
+
+    UNIT_ASSERT_EQUAL(StripFileComponent(tmpDir), tmpDir + GetDirectorySeparatorS());
+    UNIT_ASSERT_EQUAL(StripFileComponent(tmpSubDir), tmpSubDir + GetDirectorySeparatorS());
+    UNIT_ASSERT_EQUAL(StripFileComponent(tmpFile), tmpDir + GetDirectorySeparatorS());
+
+    RemoveDirWithContents(tmpDir);
+}
+}
+;

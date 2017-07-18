@@ -1,0 +1,50 @@
+#pragma once
+
+#include <util/random/fast.h>
+
+#include <util/ysaveload.h>
+
+struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
+    template<typename T>
+    TRestorableFastRng64(T&& seedSource)
+        : SeedArgs(std::forward<T>(seedSource))
+        , Rng(SeedArgs)
+    {
+    }
+
+    inline void Save(TOutputStream* s) const {
+        ::SaveMany(
+            s,
+            SeedArgs.Seed1,
+            SeedArgs.Seed2,
+            SeedArgs.Seq1,
+            SeedArgs.Seq2,
+            CallCount);
+    }
+    inline void Load(TInputStream* s) {
+        ::LoadMany(
+            s,
+            SeedArgs.Seed1,
+            SeedArgs.Seed2,
+            SeedArgs.Seq1,
+            SeedArgs.Seq2,
+            CallCount);
+        new (&Rng) TFastRng64(SeedArgs);
+        if (CallCount > 0) {
+            Rng.Advance(CallCount);
+        }
+    }
+    inline ui64 GenRand() noexcept {
+        ++CallCount;
+        return Rng.GenRand();
+    }
+
+    inline void Advance(ui64 delta) noexcept {
+        CallCount += delta;
+        Rng.Advance(delta);
+    }
+private:
+    TFastRng64::TArgs SeedArgs;
+    TFastRng64 Rng;
+    ui64 CallCount = 0;
+};

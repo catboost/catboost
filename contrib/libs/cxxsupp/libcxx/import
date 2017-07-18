@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+rev=235607
+
+svn export http://llvm.org/svn/llvm-project/libcxx/trunk libcxx-r$rev
+cd libcxx-r$rev
+
+rm -r cmake lib test utils www CMakeLists.txt CREDITS.TXT LICENSE.TXT Makefile .arcconfig .gitignore include/CMakeLists.txt

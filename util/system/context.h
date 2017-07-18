@@ -1,0 +1,170 @@
+#pragma once
+
+#include "align.h"
+#include "defaults.h"
+#include "compiler.h"
+#include "sanitizers.h"
+
+#include <util/generic/region.h>
+#include <util/generic/utility.h>
+#include <util/generic/yexception.h>
+#include <util/generic/reinterpretcast.h>
+
+#define STACK_ALIGN (8 * PLATFORM_DATA_ALIGN)
+
+#if defined(_x86_64_) || defined(_i386_) || defined(_arm_) || defined(_ppc64_)
+#define STACK_GROW_DOWN 1
+#else
+#error todo
+#endif
+
+/*
+ * switch method
+ */
+#if defined(_bionic_)
+#define USE_GENERIC_CONT
+#elif defined(_cygwin_)
+#define USE_UCONTEXT_CONT
+#elif defined(_win_)
+#define USE_FIBER_CONT
+#elif (defined(_i386_) || defined(_x86_64_) || defined(_arm64_)) && !defined(_k1om_)
+#define USE_JUMP_CONT
+#else
+#define USE_UCONTEXT_CONT
+#endif
+
+#if defined(USE_JUMP_CONT)
+#if defined(_arm64_)
+#include "context_aarch64.h"
+#else
+#include "context_x86.h"
+#endif
+#endif
+
+#if defined(USE_UCONTEXT_CONT)
+#include <ucontext.h>
+#endif
+
+struct ITrampoLine {
+    virtual ~ITrampoLine() = default;
+
+    virtual void DoRun() = 0;
+};
+
+struct TContClosure {
+    ITrampoLine* TrampoLine;
+    TMemRegion Stack;
+};
+
+#if defined(USE_UCONTEXT_CONT)
+class TContMachineContext {
+    typedef void (*ucontext_func_t)(void);
+
+public:
+    inline TContMachineContext() {
+        getcontext(&Ctx_);
+    }
+
+    inline TContMachineContext(const TContClosure& c) {
+        getcontext(&Ctx_);
+
+        Ctx_.uc_link = 0;
+        Ctx_.uc_stack.ss_sp = (void*)c.Stack.Data();
+        Ctx_.uc_stack.ss_size = c.Stack.Size();
+        Ctx_.uc_stack.ss_flags = 0;
+
+        extern void ContextTrampoLine(void* arg);
+        makecontext(&Ctx_, (ucontext_func_t)ContextTrampoLine, 1, c.TrampoLine);
+    }
+
+    inline ~TContMachineContext() {
+    }
+
+    inline void SwitchTo(TContMachineContext* next) noexcept {
+        swapcontext(&Ctx_, &next->Ctx_);
+    }
+
+private:
+    ucontext_t Ctx_;
+};
+#endif
+
+#if defined(USE_GENERIC_CONT)
+class TContMachineContext {
+    struct TImpl;
+
+public:
+    TContMachineContext();
+    TContMachineContext(const TContClosure& c);
+
+    ~TContMachineContext();
+
+    void SwitchTo(TContMachineContext* next) noexcept;
+
+private:
+    THolder<TImpl> Impl_;
+};
+#endif
+
+#if defined(USE_FIBER_CONT)
+class TContMachineContext {
+public:
+    TContMachineContext();
+    TContMachineContext(const TContClosure& c);
+    ~TContMachineContext();
+
+    void SwitchTo(TContMachineContext* next) noexcept;
+
+private:
+    void* Fiber_;
+    bool MainFiber_;
+};
+#endif
+
+#if defined(USE_JUMP_CONT)
+class TContMachineContext {
+public:
+    inline TContMachineContext() {
+        Zero(Buf_);
+    }
+
+    TContMachineContext(const TContClosure& c);
+
+    inline ~TContMachineContext() = default;
+
+    void SwitchTo(TContMachineContext* next) noexcept;
+
+private:
+    __myjmp_buf Buf_;
+
+    struct TSan: public ITrampoLine, public ::NSan::TFiberContext {
+        TSan() noexcept;
+        TSan(const TContClosure& c) noexcept;
+
+        void DoRun() override;
+
+        ITrampoLine* TL;
+    };
+
+#if defined(_asan_enabled_)
+    TSan San_;
+#endif
+};
+#endif
+
+static inline size_t MachineContextSize() noexcept {
+    return sizeof(TContMachineContext);
+}
+
+/*
+ * be polite
+ */
+#if !defined(FROM_CONTEXT_IMPL)
+#undef USE_JUMP_CONT
+#undef USE_FIBER_CONT
+#undef USE_GENERIC_CONT
+#undef USE_UCONTEXT_CONT
+#undef PROGR_CNT
+#undef STACK_CNT
+#undef EXTRA_PUSH_ARGS
+#endif

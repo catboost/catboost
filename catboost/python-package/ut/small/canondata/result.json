@@ -1,0 +1,82 @@
+{
+    "test.test_class_weights": {
+        "checksum": "1a8a51ebdcaef10f010fe1d2f39bd984",
+        "uri": "file://test.test_class_weights/model.bin"
+    },
+    "test.test_classification_ctr": {
+        "checksum": "2d867102e03eb1a9d3f2cd88098ad51e",
+        "uri": "file://test.test_classification_ctr/model.bin"
+    },
+    "test.test_copy_model": {
+        "checksum": "51bf7fb648dec46a8fd5116c90bcc6cf",
+        "uri": "file://test.test_copy_model/model.bin"
+    },
+    "test.test_fit_data": {
+        "checksum": "df19c68f141f12bd3a1568df377fffa0",
+        "uri": "file://test.test_fit_data/model.bin"
+    },
+    "test.test_ignored_features": {
+        "checksum": "e4c94da8bf2b8022b3d6f358b5a609fe",
+        "uri": "file://test.test_ignored_features/model.bin"
+    },
+    "test.test_multiclass": {
+        "checksum": "205b21416c60771c9a423467d9f2f15a",
+        "uri": "file://test.test_multiclass/predictions.npy"
+    },
+    "test.test_non_ones_weight": {
+        "checksum": "d4aa0b603fc70235d0d30f5b27e8ed87",
+        "uri": "file://test.test_non_ones_weight/model.bin"
+    },
+    "test.test_non_zero_bazeline": {
+        "checksum": "97f80cba2d0b7a92d3093c5d58909d9b",
+        "uri": "file://test.test_non_zero_bazeline/model.bin"
+    },
+    "test.test_ntree_limit": {
+        "checksum": "b6d54a18554abb64d2286cb4a5176567",
+        "uri": "file://test.test_ntree_limit/predictions.npy"
+    },
+    "test.test_ones_weight": {
+        "checksum": "94b4edb4bdb51f89403c636340a3cea7",
+        "uri": "file://test.test_ones_weight/model.bin"
+    },
+    "test.test_predict_class": {
+        "checksum": "c169f2c6ebc7fb5ff2ad141acd10532d",
+        "uri": "file://test.test_predict_class/predictions.npy"
+    },
+    "test.test_predict_class_proba": {
+        "checksum": "4ee1f6aae444bae1a94eb82f0f723bf7",
+        "uri": "file://test.test_predict_class_proba/predictions.npy"
+    },
+    "test.test_predict_class_raw": {
+        "checksum": "c169f2c6ebc7fb5ff2ad141acd10532d",
+        "uri": "file://test.test_predict_class_raw/predictions.npy"
+    },
+    "test.test_predict_regress": {
+        "checksum": "f77d1774ea0c7b41d84e5efd2376fa27",
+        "uri": "file://test.test_predict_regress/model.bin"
+    },
+    "test.test_predict_sklearn_class": {
+        "checksum": "8c09ce5bb3ddc4f652843c27021316d7",
+        "uri": "file://test.test_predict_sklearn_class/model.bin"
+    },
+    "test.test_predict_sklearn_regress": {
+        "checksum": "ef750b9ae907545c3745ea43f07e8805",
+        "uri": "file://test.test_predict_sklearn_regress/model.bin"
+    },
+    "test.test_priors": {
+        "checksum": "181a949a38db617623abba7e0b683898",
+        "uri": "file://test.test_priors/model.bin"
+    },
+    "test.test_regression_ctr": {
+        "checksum": "de08cdf4336f587afa81b323928b660e",
+        "uri": "file://test.test_regression_ctr/model.bin"
+    },
+    "test.test_staged_predict": {
+        "checksum": "195925b457f2fc59f2176969f4536818",
+        "uri": "file://test.test_staged_predict/predictions.npy"
+    },
+    "test.test_zero_baseline": {
+        "checksum": "94b4edb4bdb51f89403c636340a3cea7",
+        "uri": "file://test.test_zero_baseline/model.bin"
+    }
+}

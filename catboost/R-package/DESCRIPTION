@@ -1,0 +1,11 @@
+Package: catboost
+Title: CatBoost Title ## *
+Version: 0.1
+Date: 2017-06-01
+RoxygenNote: 6.0.1
+Suggests: testthat
+Imports: jsonlite
+License: TODO
+Description: TODO
+Author: TODO
+Maintainer: Anna Veronika Dorogush <TODO@yandex-team.ru>

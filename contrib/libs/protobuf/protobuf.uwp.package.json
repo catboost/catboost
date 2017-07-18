@@ -1,0 +1,20 @@
+{
+    "meta": {
+        "name": "yandex-mapsmobi-contrib-protobuf-lite-uwp",
+        "maintainer": "devtools <devtools@yandex-team.ru>",
+        "description": "yandex-mapsmobi-contrib-protobuf-lite-uwp",
+        "version": "0.0.0-17"
+    },
+    "data": [
+        {
+            "source": {
+                "type": "SANDBOX_RESOURCE",
+                "id": 113745672,
+                "path": "contrib-libs-protobuf.lib"
+            },
+            "destination": {
+                "path": "/local/uwp.x86/lib/contrib-protobuf-lite.lib"
+            }
+        }
+    ]
+}

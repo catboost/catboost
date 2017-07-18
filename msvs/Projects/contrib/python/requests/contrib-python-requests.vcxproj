@@ -1,0 +1,1127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{CA818680-C291-79F0-A841-DEF3141E1D49}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>contrib-python-requests</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>contrib-python-requests</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\requests\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\CA818680-C291-79F0-A841-DEF3141E1D49\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r2983760 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r2983760 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx-next/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.0b08bf07b293b5b96d53d08ddf9cb4e7.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.126d72b01b6e8c0beccc02c4f67bad2d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.34faccf8f94a132e0238cb8c0d5fc577.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.41631552c29131f8426567fe6a2b6ca0.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.55735b91f112564dfe473d8670367443.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.65ca07ffc465e96bb3ee466880c29632.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.7c0332862a12d276997f267e54348508.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.86e67505376cd37f2c4c05de726b9095.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.b1e864f65733abcfe05e6e59a392fd99.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.dfecfdc618cc7f6b77248ca076823ebb.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\resource.f728f5de8d011b61145d49aa05bcedb1.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\requests\exceptions.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.f728f5de8d011b61145d49aa05bcedb1.cpp" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc" "/py_code/requests.exceptions" "-" "/py_fs/requests.exceptions=contrib/python/requests/requests/exceptions.py" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "/py_modules/requests.cookies" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc" "/py_code/requests.cookies" "-" "/py_fs/requests.cookies=contrib/python/requests/requests/cookies.py" "$(SolutionDir)../contrib/python/requests/requests/models.py" "/py_modules/requests.models" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc" "/py_code/requests.models" "-" "/py_fs/requests.models=contrib/python/requests/requests/models.py" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "/py_modules/requests.sessions" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc" "/py_code/requests.sessions" "-" "/py_fs/requests.sessions=contrib/python/requests/requests/sessions.py" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "/py_modules/requests.packages.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc" "/py_code/requests.packages.__init__" "-" "/py_fs/requests.packages.__init__=contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "/py_modules/requests.packages.urllib3.poolmanager" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc" "/py_code/requests.packages.urllib3.poolmanager" "-" "/py_fs/requests.packages.urllib3.poolmanager=contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "/py_modules/requests.packages.urllib3._collections" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc" "/py_code/requests.packages.urllib3._collections" "-" "/py_fs/requests.packages.urllib3._collections=contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "/py_modules/requests.packages.urllib3.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc" "/py_code/requests.packages.urllib3.__init__" "-" "/py_fs/requests.packages.urllib3.__init__=contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "/py_modules/requests.packages.urllib3.connection" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc" "/py_code/requests.packages.urllib3.connection" "-" "/py_fs/requests.packages.urllib3.connection=contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "/py_modules/requests.packages.urllib3.request" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc" "/py_code/requests.packages.urllib3.request" "-" "/py_fs/requests.packages.urllib3.request=contrib/python/requests/requests/packages/urllib3/request.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.f728f5de8d011b61145d49aa05bcedb1.cpp" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc" "/py_code/requests.exceptions" "-" "/py_fs/requests.exceptions=contrib/python/requests/requests/exceptions.py" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "/py_modules/requests.cookies" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc" "/py_code/requests.cookies" "-" "/py_fs/requests.cookies=contrib/python/requests/requests/cookies.py" "$(SolutionDir)../contrib/python/requests/requests/models.py" "/py_modules/requests.models" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc" "/py_code/requests.models" "-" "/py_fs/requests.models=contrib/python/requests/requests/models.py" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "/py_modules/requests.sessions" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc" "/py_code/requests.sessions" "-" "/py_fs/requests.sessions=contrib/python/requests/requests/sessions.py" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "/py_modules/requests.packages.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc" "/py_code/requests.packages.__init__" "-" "/py_fs/requests.packages.__init__=contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "/py_modules/requests.packages.urllib3.poolmanager" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc" "/py_code/requests.packages.urllib3.poolmanager" "-" "/py_fs/requests.packages.urllib3.poolmanager=contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "/py_modules/requests.packages.urllib3._collections" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc" "/py_code/requests.packages.urllib3._collections" "-" "/py_fs/requests.packages.urllib3._collections=contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "/py_modules/requests.packages.urllib3.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc" "/py_code/requests.packages.urllib3.__init__" "-" "/py_fs/requests.packages.urllib3.__init__=contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "/py_modules/requests.packages.urllib3.connection" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc" "/py_code/requests.packages.urllib3.connection" "-" "/py_fs/requests.packages.urllib3.connection=contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "/py_modules/requests.packages.urllib3.request" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc" "/py_code/requests.packages.urllib3.request" "-" "/py_fs/requests.packages.urllib3.request=contrib/python/requests/requests/packages/urllib3/request.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.f728f5de8d011b61145d49aa05bcedb1.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\requests\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\cookies.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\cookies.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\models.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\models.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\sessions.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\sessions.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\poolmanager.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\poolmanager.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\_collections.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\_collections.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connection.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connection.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\request.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\request.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.f728f5de8d011b61145d49aa05bcedb1.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/requests/__init__.py.yapyc	$B/contrib/python/requests/requests/adapters.py.yapyc	$B/contrib/python/requests/requests/api.py.yapyc	$B/contrib/python/requests/requests/auth.py.yapyc	$B/contrib/python/requests/requests/certs.py.yapyc	$B/contrib/python/requests/requests/compat.py.yapyc	$B/contrib/python/requests/requests/cookies.py.yapyc	$B/contrib/python/requests/requests/exceptions.py.yapyc	$B/contrib/python/requests/requests/hooks.py.yapyc	$B/contrib/python/requests/requests/models.py.yapyc	$B/contrib/python/requests/requests/packages/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/compat.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/constants.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc	$B/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/request.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/response.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc	$B/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc	$B/contrib/python/requests/requests/sessions.py.yapyc	$B/contrib/python/requests/requests/status_codes.py.yapyc	$B/contrib/python/requests/requests/structures.py.yapyc	$B/contrib/python/requests/requests/utils.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\requests\requests\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\adapters.py;$(SolutionDir)..\contrib\python\requests\requests\api.py;$(SolutionDir)..\contrib\python\requests\requests\auth.py;$(SolutionDir)..\contrib\python\requests\requests\certs.py;$(SolutionDir)..\contrib\python\requests\requests\compat.py;$(SolutionDir)..\contrib\python\requests\requests\cookies.py;$(SolutionDir)..\contrib\python\requests\requests\exceptions.py;$(SolutionDir)..\contrib\python\requests\requests\hooks.py;$(SolutionDir)..\contrib\python\requests\requests\models.py;$(SolutionDir)..\contrib\python\requests\requests\packages\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\big5freq.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\big5prober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\chardetect.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\chardistribution.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\charsetgroupprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\charsetprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\codingstatemachine.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\compat.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\constants.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\cp949prober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\escprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\escsm.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\eucjpprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euckrfreq.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euckrprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euctwfreq.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euctwprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\gb2312freq.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\gb2312prober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\hebrewprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\jisfreq.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\jpcntx.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langbulgarianmodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langcyrillicmodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langgreekmodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langhebrewmodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langhungarianmodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langthaimodel.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\latin1prober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcharsetprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcsgroupprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcssm.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sbcharsetprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sbcsgroupprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sjisprober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\universaldetector.py;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\utf8prober.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\_collections.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connection.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connectionpool.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\ntlmpool.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\pyopenssl.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\exceptions.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\fields.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\filepost.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\six.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\poolmanager.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\request.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\response.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\__init__.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\connection.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\request.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\response.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\retry.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\ssl_.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\timeout.py;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\url.py;$(SolutionDir)..\contrib\python\requests\requests\sessions.py;$(SolutionDir)..\contrib\python\requests\requests\status_codes.py;$(SolutionDir)..\contrib\python\requests\requests\structures.py;$(SolutionDir)..\contrib\python\requests\requests\utils.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\requests\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\adapters.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\api.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\auth.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\certs.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\cookies.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\exceptions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\hooks.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\models.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\big5freq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\big5prober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\chardetect.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\chardistribution.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\charsetgroupprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\charsetprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\codingstatemachine.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\constants.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\cp949prober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\escprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\escsm.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\eucjpprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euckrfreq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euckrprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euctwfreq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euctwprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\gb2312freq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\gb2312prober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\hebrewprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\jisfreq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\jpcntx.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langbulgarianmodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langcyrillicmodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langgreekmodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langhebrewmodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langhungarianmodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langthaimodel.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\latin1prober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcharsetprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcsgroupprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcssm.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sbcharsetprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sbcsgroupprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sjisprober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\universaldetector.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\utf8prober.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\_collections.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connection.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connectionpool.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\ntlmpool.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\pyopenssl.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\exceptions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\fields.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\filepost.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\six.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\poolmanager.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\request.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\response.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\connection.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\request.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\response.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\retry.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\ssl_.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\timeout.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\url.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\sessions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\status_codes.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\structures.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\utils.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.7c0332862a12d276997f267e54348508.cpp" "$(SolutionDir)../contrib/python/requests/.dist-info/METADATA" "/fs/contrib/python/requests/.dist-info/METADATA" "$(SolutionDir)../contrib/python/requests/.dist-info/top_level.txt" "/fs/contrib/python/requests/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.7c0332862a12d276997f267e54348508.cpp" "$(SolutionDir)../contrib/python/requests/.dist-info/METADATA" "/fs/contrib/python/requests/.dist-info/METADATA" "$(SolutionDir)../contrib/python/requests/.dist-info/top_level.txt" "/fs/contrib/python/requests/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.7c0332862a12d276997f267e54348508.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\.dist-info\METADATA;$(SolutionDir)..\contrib\python\requests\.dist-info\top_level.txt;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.7c0332862a12d276997f267e54348508.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\adapters.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.41631552c29131f8426567fe6a2b6ca0.cpp" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "/py_modules/requests.adapters" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc" "/py_code/requests.adapters" "-" "/py_fs/requests.adapters=contrib/python/requests/requests/adapters.py" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "/py_modules/requests.status_codes" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc" "/py_code/requests.status_codes" "-" "/py_fs/requests.status_codes=contrib/python/requests/requests/status_codes.py" "$(SolutionDir)../contrib/python/requests/requests/api.py" "/py_modules/requests.api" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc" "/py_code/requests.api" "-" "/py_fs/requests.api=contrib/python/requests/requests/api.py" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "/py_modules/requests.compat" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc" "/py_code/requests.compat" "-" "/py_fs/requests.compat=contrib/python/requests/requests/compat.py" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "/py_modules/requests.auth" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc" "/py_code/requests.auth" "-" "/py_fs/requests.auth=contrib/python/requests/requests/auth.py" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "/py_modules/requests.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc" "/py_code/requests.__init__" "-" "/py_fs/requests.__init__=contrib/python/requests/requests/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "/py_modules/requests.utils" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc" "/py_code/requests.utils" "-" "/py_fs/requests.utils=contrib/python/requests/requests/utils.py" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "/py_modules/requests.certs" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc" "/py_code/requests.certs" "-" "/py_fs/requests.certs=contrib/python/requests/requests/certs.py" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "/py_modules/requests.hooks" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc" "/py_code/requests.hooks" "-" "/py_fs/requests.hooks=contrib/python/requests/requests/hooks.py" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "/py_modules/requests.structures" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc" "/py_code/requests.structures" "-" "/py_fs/requests.structures=contrib/python/requests/requests/structures.py" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "/py_modules/requests.exceptions"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.41631552c29131f8426567fe6a2b6ca0.cpp" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "/py_modules/requests.adapters" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc" "/py_code/requests.adapters" "-" "/py_fs/requests.adapters=contrib/python/requests/requests/adapters.py" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "/py_modules/requests.status_codes" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc" "/py_code/requests.status_codes" "-" "/py_fs/requests.status_codes=contrib/python/requests/requests/status_codes.py" "$(SolutionDir)../contrib/python/requests/requests/api.py" "/py_modules/requests.api" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc" "/py_code/requests.api" "-" "/py_fs/requests.api=contrib/python/requests/requests/api.py" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "/py_modules/requests.compat" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc" "/py_code/requests.compat" "-" "/py_fs/requests.compat=contrib/python/requests/requests/compat.py" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "/py_modules/requests.auth" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc" "/py_code/requests.auth" "-" "/py_fs/requests.auth=contrib/python/requests/requests/auth.py" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "/py_modules/requests.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc" "/py_code/requests.__init__" "-" "/py_fs/requests.__init__=contrib/python/requests/requests/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "/py_modules/requests.utils" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc" "/py_code/requests.utils" "-" "/py_fs/requests.utils=contrib/python/requests/requests/utils.py" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "/py_modules/requests.certs" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc" "/py_code/requests.certs" "-" "/py_fs/requests.certs=contrib/python/requests/requests/certs.py" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "/py_modules/requests.hooks" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc" "/py_code/requests.hooks" "-" "/py_fs/requests.hooks=contrib/python/requests/requests/hooks.py" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "/py_modules/requests.structures" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc" "/py_code/requests.structures" "-" "/py_fs/requests.structures=contrib/python/requests/requests/structures.py" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "/py_modules/requests.exceptions"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.41631552c29131f8426567fe6a2b6ca0.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\adapters.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\adapters.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\status_codes.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\status_codes.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\api.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\api.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\compat.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\compat.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\auth.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\auth.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\utils.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\utils.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\certs.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\certs.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\hooks.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\hooks.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\structures.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\structures.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\exceptions.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.41631552c29131f8426567fe6a2b6ca0.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\cacert.pem">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.86e67505376cd37f2c4c05de726b9095.cpp" "$(SolutionDir)../contrib/python/requests/requests/cacert.pem" "/py_modules/cacert"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.86e67505376cd37f2c4c05de726b9095.cpp" "$(SolutionDir)../contrib/python/requests/requests/cacert.pem" "/py_modules/cacert"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.86e67505376cd37f2c4c05de726b9095.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\cacert.pem;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.86e67505376cd37f2c4c05de726b9095.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.dfecfdc618cc7f6b77248ca076823ebb.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "/py_modules/requests.packages.chardet.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc" "/py_code/requests.packages.chardet.__init__" "-" "/py_fs/requests.packages.chardet.__init__=contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "/py_modules/requests.packages.chardet.chardetect" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc" "/py_code/requests.packages.chardet.chardetect" "-" "/py_fs/requests.packages.chardet.chardetect=contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "/py_modules/requests.packages.chardet.euctwprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc" "/py_code/requests.packages.chardet.euctwprober" "-" "/py_fs/requests.packages.chardet.euctwprober=contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "/py_modules/requests.packages.chardet.cp949prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc" "/py_code/requests.packages.chardet.cp949prober" "-" "/py_fs/requests.packages.chardet.cp949prober=contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "/py_modules/requests.packages.chardet.big5prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc" "/py_code/requests.packages.chardet.big5prober" "-" "/py_fs/requests.packages.chardet.big5prober=contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "/py_modules/requests.packages.chardet.langhebrewmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc" "/py_code/requests.packages.chardet.langhebrewmodel" "-" "/py_fs/requests.packages.chardet.langhebrewmodel=contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "/py_modules/requests.packages.chardet.utf8prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc" "/py_code/requests.packages.chardet.utf8prober" "-" "/py_fs/requests.packages.chardet.utf8prober=contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "/py_modules/requests.packages.chardet.escprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc" "/py_code/requests.packages.chardet.escprober" "-" "/py_fs/requests.packages.chardet.escprober=contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "/py_modules/requests.packages.chardet.charsetgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc" "/py_code/requests.packages.chardet.charsetgroupprober" "-" "/py_fs/requests.packages.chardet.charsetgroupprober=contrib/python/requests/requests/packages/chardet/charsetgroupprober.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.dfecfdc618cc7f6b77248ca076823ebb.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "/py_modules/requests.packages.chardet.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc" "/py_code/requests.packages.chardet.__init__" "-" "/py_fs/requests.packages.chardet.__init__=contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "/py_modules/requests.packages.chardet.chardetect" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc" "/py_code/requests.packages.chardet.chardetect" "-" "/py_fs/requests.packages.chardet.chardetect=contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "/py_modules/requests.packages.chardet.euctwprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc" "/py_code/requests.packages.chardet.euctwprober" "-" "/py_fs/requests.packages.chardet.euctwprober=contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "/py_modules/requests.packages.chardet.cp949prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc" "/py_code/requests.packages.chardet.cp949prober" "-" "/py_fs/requests.packages.chardet.cp949prober=contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "/py_modules/requests.packages.chardet.big5prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc" "/py_code/requests.packages.chardet.big5prober" "-" "/py_fs/requests.packages.chardet.big5prober=contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "/py_modules/requests.packages.chardet.langhebrewmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc" "/py_code/requests.packages.chardet.langhebrewmodel" "-" "/py_fs/requests.packages.chardet.langhebrewmodel=contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "/py_modules/requests.packages.chardet.utf8prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc" "/py_code/requests.packages.chardet.utf8prober" "-" "/py_fs/requests.packages.chardet.utf8prober=contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "/py_modules/requests.packages.chardet.escprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc" "/py_code/requests.packages.chardet.escprober" "-" "/py_fs/requests.packages.chardet.escprober=contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "/py_modules/requests.packages.chardet.charsetgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc" "/py_code/requests.packages.chardet.charsetgroupprober" "-" "/py_fs/requests.packages.chardet.charsetgroupprober=contrib/python/requests/requests/packages/chardet/charsetgroupprober.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.dfecfdc618cc7f6b77248ca076823ebb.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\chardetect.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\chardetect.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euctwprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euctwprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\cp949prober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\cp949prober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\big5prober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\big5prober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langhebrewmodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langhebrewmodel.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\utf8prober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\utf8prober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\escprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\escprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\charsetgroupprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\charsetgroupprober.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.dfecfdc618cc7f6b77248ca076823ebb.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\chardistribution.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.34faccf8f94a132e0238cb8c0d5fc577.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "/py_modules/requests.packages.chardet.chardistribution" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc" "/py_code/requests.packages.chardet.chardistribution" "-" "/py_fs/requests.packages.chardet.chardistribution=contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "/py_modules/requests.packages.chardet.mbcharsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc" "/py_code/requests.packages.chardet.mbcharsetprober" "-" "/py_fs/requests.packages.chardet.mbcharsetprober=contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "/py_modules/requests.packages.chardet.sjisprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc" "/py_code/requests.packages.chardet.sjisprober" "-" "/py_fs/requests.packages.chardet.sjisprober=contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "/py_modules/requests.packages.chardet.mbcsgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc" "/py_code/requests.packages.chardet.mbcsgroupprober" "-" "/py_fs/requests.packages.chardet.mbcsgroupprober=contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "/py_modules/requests.packages.chardet.jisfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc" "/py_code/requests.packages.chardet.jisfreq" "-" "/py_fs/requests.packages.chardet.jisfreq=contrib/python/requests/requests/packages/chardet/jisfreq.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.34faccf8f94a132e0238cb8c0d5fc577.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "/py_modules/requests.packages.chardet.chardistribution" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc" "/py_code/requests.packages.chardet.chardistribution" "-" "/py_fs/requests.packages.chardet.chardistribution=contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "/py_modules/requests.packages.chardet.mbcharsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc" "/py_code/requests.packages.chardet.mbcharsetprober" "-" "/py_fs/requests.packages.chardet.mbcharsetprober=contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "/py_modules/requests.packages.chardet.sjisprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc" "/py_code/requests.packages.chardet.sjisprober" "-" "/py_fs/requests.packages.chardet.sjisprober=contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "/py_modules/requests.packages.chardet.mbcsgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc" "/py_code/requests.packages.chardet.mbcsgroupprober" "-" "/py_fs/requests.packages.chardet.mbcsgroupprober=contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "/py_modules/requests.packages.chardet.jisfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc" "/py_code/requests.packages.chardet.jisfreq" "-" "/py_fs/requests.packages.chardet.jisfreq=contrib/python/requests/requests/packages/chardet/jisfreq.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.34faccf8f94a132e0238cb8c0d5fc577.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\chardistribution.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\chardistribution.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcharsetprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcharsetprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sjisprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sjisprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcsgroupprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcsgroupprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\jisfreq.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\jisfreq.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.34faccf8f94a132e0238cb8c0d5fc577.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langgreekmodel.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.126d72b01b6e8c0beccc02c4f67bad2d.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "/py_modules/requests.packages.chardet.langgreekmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc" "/py_code/requests.packages.chardet.langgreekmodel" "-" "/py_fs/requests.packages.chardet.langgreekmodel=contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "/py_modules/requests.packages.chardet.compat" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc" "/py_code/requests.packages.chardet.compat" "-" "/py_fs/requests.packages.chardet.compat=contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "/py_modules/requests.packages.chardet.euckrprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc" "/py_code/requests.packages.chardet.euckrprober" "-" "/py_fs/requests.packages.chardet.euckrprober=contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "/py_modules/requests.packages.chardet.langcyrillicmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc" "/py_code/requests.packages.chardet.langcyrillicmodel" "-" "/py_fs/requests.packages.chardet.langcyrillicmodel=contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "/py_modules/requests.packages.chardet.codingstatemachine" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc" "/py_code/requests.packages.chardet.codingstatemachine" "-" "/py_fs/requests.packages.chardet.codingstatemachine=contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "/py_modules/requests.packages.chardet.big5freq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc" "/py_code/requests.packages.chardet.big5freq" "-" "/py_fs/requests.packages.chardet.big5freq=contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "/py_modules/requests.packages.chardet.universaldetector" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc" "/py_code/requests.packages.chardet.universaldetector" "-" "/py_fs/requests.packages.chardet.universaldetector=contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "/py_modules/requests.packages.chardet.euctwfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc" "/py_code/requests.packages.chardet.euctwfreq" "-" "/py_fs/requests.packages.chardet.euctwfreq=contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "/py_modules/requests.packages.chardet.langthaimodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc" "/py_code/requests.packages.chardet.langthaimodel" "-" "/py_fs/requests.packages.chardet.langthaimodel=contrib/python/requests/requests/packages/chardet/langthaimodel.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.126d72b01b6e8c0beccc02c4f67bad2d.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "/py_modules/requests.packages.chardet.langgreekmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc" "/py_code/requests.packages.chardet.langgreekmodel" "-" "/py_fs/requests.packages.chardet.langgreekmodel=contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "/py_modules/requests.packages.chardet.compat" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc" "/py_code/requests.packages.chardet.compat" "-" "/py_fs/requests.packages.chardet.compat=contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "/py_modules/requests.packages.chardet.euckrprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc" "/py_code/requests.packages.chardet.euckrprober" "-" "/py_fs/requests.packages.chardet.euckrprober=contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "/py_modules/requests.packages.chardet.langcyrillicmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc" "/py_code/requests.packages.chardet.langcyrillicmodel" "-" "/py_fs/requests.packages.chardet.langcyrillicmodel=contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "/py_modules/requests.packages.chardet.codingstatemachine" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc" "/py_code/requests.packages.chardet.codingstatemachine" "-" "/py_fs/requests.packages.chardet.codingstatemachine=contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "/py_modules/requests.packages.chardet.big5freq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc" "/py_code/requests.packages.chardet.big5freq" "-" "/py_fs/requests.packages.chardet.big5freq=contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "/py_modules/requests.packages.chardet.universaldetector" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc" "/py_code/requests.packages.chardet.universaldetector" "-" "/py_fs/requests.packages.chardet.universaldetector=contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "/py_modules/requests.packages.chardet.euctwfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc" "/py_code/requests.packages.chardet.euctwfreq" "-" "/py_fs/requests.packages.chardet.euctwfreq=contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "/py_modules/requests.packages.chardet.langthaimodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc" "/py_code/requests.packages.chardet.langthaimodel" "-" "/py_fs/requests.packages.chardet.langthaimodel=contrib/python/requests/requests/packages/chardet/langthaimodel.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.126d72b01b6e8c0beccc02c4f67bad2d.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langgreekmodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langgreekmodel.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\compat.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\compat.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euckrprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euckrprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langcyrillicmodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langcyrillicmodel.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\codingstatemachine.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\codingstatemachine.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\big5freq.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\big5freq.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\universaldetector.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\universaldetector.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euctwfreq.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euctwfreq.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langthaimodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langthaimodel.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.126d72b01b6e8c0beccc02c4f67bad2d.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcssm.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.55735b91f112564dfe473d8670367443.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "/py_modules/requests.packages.chardet.mbcssm" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc" "/py_code/requests.packages.chardet.mbcssm" "-" "/py_fs/requests.packages.chardet.mbcssm=contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "/py_modules/requests.packages.chardet.latin1prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc" "/py_code/requests.packages.chardet.latin1prober" "-" "/py_fs/requests.packages.chardet.latin1prober=contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "/py_modules/requests.packages.chardet.sbcsgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc" "/py_code/requests.packages.chardet.sbcsgroupprober" "-" "/py_fs/requests.packages.chardet.sbcsgroupprober=contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "/py_modules/requests.packages.chardet.escsm" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc" "/py_code/requests.packages.chardet.escsm" "-" "/py_fs/requests.packages.chardet.escsm=contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "/py_modules/requests.packages.chardet.constants" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc" "/py_code/requests.packages.chardet.constants" "-" "/py_fs/requests.packages.chardet.constants=contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "/py_modules/requests.packages.chardet.sbcharsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc" "/py_code/requests.packages.chardet.sbcharsetprober" "-" "/py_fs/requests.packages.chardet.sbcharsetprober=contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "/py_modules/requests.packages.chardet.hebrewprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc" "/py_code/requests.packages.chardet.hebrewprober" "-" "/py_fs/requests.packages.chardet.hebrewprober=contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "/py_modules/requests.packages.chardet.gb2312prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc" "/py_code/requests.packages.chardet.gb2312prober" "-" "/py_fs/requests.packages.chardet.gb2312prober=contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "/py_modules/requests.packages.chardet.charsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc" "/py_code/requests.packages.chardet.charsetprober" "-" "/py_fs/requests.packages.chardet.charsetprober=contrib/python/requests/requests/packages/chardet/charsetprober.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.55735b91f112564dfe473d8670367443.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "/py_modules/requests.packages.chardet.mbcssm" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc" "/py_code/requests.packages.chardet.mbcssm" "-" "/py_fs/requests.packages.chardet.mbcssm=contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "/py_modules/requests.packages.chardet.latin1prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc" "/py_code/requests.packages.chardet.latin1prober" "-" "/py_fs/requests.packages.chardet.latin1prober=contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "/py_modules/requests.packages.chardet.sbcsgroupprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc" "/py_code/requests.packages.chardet.sbcsgroupprober" "-" "/py_fs/requests.packages.chardet.sbcsgroupprober=contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "/py_modules/requests.packages.chardet.escsm" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc" "/py_code/requests.packages.chardet.escsm" "-" "/py_fs/requests.packages.chardet.escsm=contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "/py_modules/requests.packages.chardet.constants" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc" "/py_code/requests.packages.chardet.constants" "-" "/py_fs/requests.packages.chardet.constants=contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "/py_modules/requests.packages.chardet.sbcharsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc" "/py_code/requests.packages.chardet.sbcharsetprober" "-" "/py_fs/requests.packages.chardet.sbcharsetprober=contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "/py_modules/requests.packages.chardet.hebrewprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc" "/py_code/requests.packages.chardet.hebrewprober" "-" "/py_fs/requests.packages.chardet.hebrewprober=contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "/py_modules/requests.packages.chardet.gb2312prober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc" "/py_code/requests.packages.chardet.gb2312prober" "-" "/py_fs/requests.packages.chardet.gb2312prober=contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "/py_modules/requests.packages.chardet.charsetprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc" "/py_code/requests.packages.chardet.charsetprober" "-" "/py_fs/requests.packages.chardet.charsetprober=contrib/python/requests/requests/packages/chardet/charsetprober.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.55735b91f112564dfe473d8670367443.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\mbcssm.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\mbcssm.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\latin1prober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\latin1prober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sbcsgroupprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sbcsgroupprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\escsm.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\escsm.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\constants.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\constants.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\sbcharsetprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\sbcharsetprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\hebrewprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\hebrewprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\gb2312prober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\gb2312prober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\charsetprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\charsetprober.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.55735b91f112564dfe473d8670367443.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.b1e864f65733abcfe05e6e59a392fd99.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "/py_modules/requests.packages.urllib3.contrib.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc" "/py_code/requests.packages.urllib3.contrib.__init__" "-" "/py_fs/requests.packages.urllib3.contrib.__init__=contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "/py_modules/requests.packages.urllib3.contrib.pyopenssl" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc" "/py_code/requests.packages.urllib3.contrib.pyopenssl" "-" "/py_fs/requests.packages.urllib3.contrib.pyopenssl=contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "/py_modules/requests.packages.urllib3.contrib.ntlmpool" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc" "/py_code/requests.packages.urllib3.contrib.ntlmpool" "-" "/py_fs/requests.packages.urllib3.contrib.ntlmpool=contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "/py_modules/requests.packages.chardet.langbulgarianmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc" "/py_code/requests.packages.chardet.langbulgarianmodel" "-" "/py_fs/requests.packages.chardet.langbulgarianmodel=contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "/py_modules/requests.packages.chardet.gb2312freq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc" "/py_code/requests.packages.chardet.gb2312freq" "-" "/py_fs/requests.packages.chardet.gb2312freq=contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "/py_modules/requests.packages.chardet.eucjpprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc" "/py_code/requests.packages.chardet.eucjpprober" "-" "/py_fs/requests.packages.chardet.eucjpprober=contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "/py_modules/requests.packages.chardet.euckrfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc" "/py_code/requests.packages.chardet.euckrfreq" "-" "/py_fs/requests.packages.chardet.euckrfreq=contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "/py_modules/requests.packages.chardet.jpcntx" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc" "/py_code/requests.packages.chardet.jpcntx" "-" "/py_fs/requests.packages.chardet.jpcntx=contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "/py_modules/requests.packages.chardet.langhungarianmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc" "/py_code/requests.packages.chardet.langhungarianmodel" "-" "/py_fs/requests.packages.chardet.langhungarianmodel=contrib/python/requests/requests/packages/chardet/langhungarianmodel.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.b1e864f65733abcfe05e6e59a392fd99.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "/py_modules/requests.packages.urllib3.contrib.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc" "/py_code/requests.packages.urllib3.contrib.__init__" "-" "/py_fs/requests.packages.urllib3.contrib.__init__=contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "/py_modules/requests.packages.urllib3.contrib.pyopenssl" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc" "/py_code/requests.packages.urllib3.contrib.pyopenssl" "-" "/py_fs/requests.packages.urllib3.contrib.pyopenssl=contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "/py_modules/requests.packages.urllib3.contrib.ntlmpool" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc" "/py_code/requests.packages.urllib3.contrib.ntlmpool" "-" "/py_fs/requests.packages.urllib3.contrib.ntlmpool=contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "/py_modules/requests.packages.chardet.langbulgarianmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc" "/py_code/requests.packages.chardet.langbulgarianmodel" "-" "/py_fs/requests.packages.chardet.langbulgarianmodel=contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "/py_modules/requests.packages.chardet.gb2312freq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc" "/py_code/requests.packages.chardet.gb2312freq" "-" "/py_fs/requests.packages.chardet.gb2312freq=contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "/py_modules/requests.packages.chardet.eucjpprober" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc" "/py_code/requests.packages.chardet.eucjpprober" "-" "/py_fs/requests.packages.chardet.eucjpprober=contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "/py_modules/requests.packages.chardet.euckrfreq" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc" "/py_code/requests.packages.chardet.euckrfreq" "-" "/py_fs/requests.packages.chardet.euckrfreq=contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "/py_modules/requests.packages.chardet.jpcntx" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc" "/py_code/requests.packages.chardet.jpcntx" "-" "/py_fs/requests.packages.chardet.jpcntx=contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "/py_modules/requests.packages.chardet.langhungarianmodel" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc" "/py_code/requests.packages.chardet.langhungarianmodel" "-" "/py_fs/requests.packages.chardet.langhungarianmodel=contrib/python/requests/requests/packages/chardet/langhungarianmodel.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.b1e864f65733abcfe05e6e59a392fd99.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\pyopenssl.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\pyopenssl.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\contrib\ntlmpool.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\contrib\ntlmpool.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langbulgarianmodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langbulgarianmodel.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\gb2312freq.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\gb2312freq.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\eucjpprober.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\eucjpprober.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\euckrfreq.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euckrfreq.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\jpcntx.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\jpcntx.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\chardet\langhungarianmodel.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\langhungarianmodel.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.b1e864f65733abcfe05e6e59a392fd99.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\fields.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.65ca07ffc465e96bb3ee466880c29632.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "/py_modules/requests.packages.urllib3.fields" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc" "/py_code/requests.packages.urllib3.fields" "-" "/py_fs/requests.packages.urllib3.fields=contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "/py_modules/requests.packages.urllib3.filepost" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc" "/py_code/requests.packages.urllib3.filepost" "-" "/py_fs/requests.packages.urllib3.filepost=contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "/py_modules/requests.packages.urllib3.connectionpool" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc" "/py_code/requests.packages.urllib3.connectionpool" "-" "/py_fs/requests.packages.urllib3.connectionpool=contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "/py_modules/requests.packages.urllib3.response" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc" "/py_code/requests.packages.urllib3.response" "-" "/py_fs/requests.packages.urllib3.response=contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "/py_modules/requests.packages.urllib3.exceptions" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc" "/py_code/requests.packages.urllib3.exceptions" "-" "/py_fs/requests.packages.urllib3.exceptions=contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "/py_modules/requests.packages.urllib3.packages.ordered_dict" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc" "/py_code/requests.packages.urllib3.packages.ordered_dict" "-" "/py_fs/requests.packages.urllib3.packages.ordered_dict=contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "/py_modules/requests.packages.urllib3.packages.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc" "/py_code/requests.packages.urllib3.packages.__init__" "-" "/py_fs/requests.packages.urllib3.packages.__init__=contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "/py_modules/requests.packages.urllib3.packages.six" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc" "/py_code/requests.packages.urllib3.packages.six" "-" "/py_fs/requests.packages.urllib3.packages.six=contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "/py_modules/requests.packages.urllib3.packages.ssl_match_hostname._implementation" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc" "/py_code/requests.packages.urllib3.packages.ssl_match_hostname._implementation" "-" "/py_fs/requests.packages.urllib3.packages.ssl_match_hostname._implementation=contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.65ca07ffc465e96bb3ee466880c29632.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "/py_modules/requests.packages.urllib3.fields" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc" "/py_code/requests.packages.urllib3.fields" "-" "/py_fs/requests.packages.urllib3.fields=contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "/py_modules/requests.packages.urllib3.filepost" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc" "/py_code/requests.packages.urllib3.filepost" "-" "/py_fs/requests.packages.urllib3.filepost=contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "/py_modules/requests.packages.urllib3.connectionpool" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc" "/py_code/requests.packages.urllib3.connectionpool" "-" "/py_fs/requests.packages.urllib3.connectionpool=contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "/py_modules/requests.packages.urllib3.response" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc" "/py_code/requests.packages.urllib3.response" "-" "/py_fs/requests.packages.urllib3.response=contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "/py_modules/requests.packages.urllib3.exceptions" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc" "/py_code/requests.packages.urllib3.exceptions" "-" "/py_fs/requests.packages.urllib3.exceptions=contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "/py_modules/requests.packages.urllib3.packages.ordered_dict" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc" "/py_code/requests.packages.urllib3.packages.ordered_dict" "-" "/py_fs/requests.packages.urllib3.packages.ordered_dict=contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "/py_modules/requests.packages.urllib3.packages.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc" "/py_code/requests.packages.urllib3.packages.__init__" "-" "/py_fs/requests.packages.urllib3.packages.__init__=contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "/py_modules/requests.packages.urllib3.packages.six" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc" "/py_code/requests.packages.urllib3.packages.six" "-" "/py_fs/requests.packages.urllib3.packages.six=contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "/py_modules/requests.packages.urllib3.packages.ssl_match_hostname._implementation" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc" "/py_code/requests.packages.urllib3.packages.ssl_match_hostname._implementation" "-" "/py_fs/requests.packages.urllib3.packages.ssl_match_hostname._implementation=contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.65ca07ffc465e96bb3ee466880c29632.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\fields.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\fields.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\filepost.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\filepost.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connectionpool.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connectionpool.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\response.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\response.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\six.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\six.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.65ca07ffc465e96bb3ee466880c29632.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.0b08bf07b293b5b96d53d08ddf9cb4e7.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "/py_modules/requests.packages.urllib3.packages.ssl_match_hostname.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc" "/py_code/requests.packages.urllib3.packages.ssl_match_hostname.__init__" "-" "/py_fs/requests.packages.urllib3.packages.ssl_match_hostname.__init__=contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "/py_modules/requests.packages.urllib3.util.timeout" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc" "/py_code/requests.packages.urllib3.util.timeout" "-" "/py_fs/requests.packages.urllib3.util.timeout=contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "/py_modules/requests.packages.urllib3.util.retry" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc" "/py_code/requests.packages.urllib3.util.retry" "-" "/py_fs/requests.packages.urllib3.util.retry=contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "/py_modules/requests.packages.urllib3.util.ssl_" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc" "/py_code/requests.packages.urllib3.util.ssl_" "-" "/py_fs/requests.packages.urllib3.util.ssl_=contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "/py_modules/requests.packages.urllib3.util.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc" "/py_code/requests.packages.urllib3.util.__init__" "-" "/py_fs/requests.packages.urllib3.util.__init__=contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "/py_modules/requests.packages.urllib3.util.connection" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc" "/py_code/requests.packages.urllib3.util.connection" "-" "/py_fs/requests.packages.urllib3.util.connection=contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "/py_modules/requests.packages.urllib3.util.url" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc" "/py_code/requests.packages.urllib3.util.url" "-" "/py_fs/requests.packages.urllib3.util.url=contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "/py_modules/requests.packages.urllib3.util.request" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc" "/py_code/requests.packages.urllib3.util.request" "-" "/py_fs/requests.packages.urllib3.util.request=contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "/py_modules/requests.packages.urllib3.util.response" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc" "/py_code/requests.packages.urllib3.util.response" "-" "/py_fs/requests.packages.urllib3.util.response=contrib/python/requests/requests/packages/urllib3/util/response.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/resource.0b08bf07b293b5b96d53d08ddf9cb4e7.cpp" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "/py_modules/requests.packages.urllib3.packages.ssl_match_hostname.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc" "/py_code/requests.packages.urllib3.packages.ssl_match_hostname.__init__" "-" "/py_fs/requests.packages.urllib3.packages.ssl_match_hostname.__init__=contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "/py_modules/requests.packages.urllib3.util.timeout" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc" "/py_code/requests.packages.urllib3.util.timeout" "-" "/py_fs/requests.packages.urllib3.util.timeout=contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "/py_modules/requests.packages.urllib3.util.retry" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc" "/py_code/requests.packages.urllib3.util.retry" "-" "/py_fs/requests.packages.urllib3.util.retry=contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "/py_modules/requests.packages.urllib3.util.ssl_" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc" "/py_code/requests.packages.urllib3.util.ssl_" "-" "/py_fs/requests.packages.urllib3.util.ssl_=contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "/py_modules/requests.packages.urllib3.util.__init__" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc" "/py_code/requests.packages.urllib3.util.__init__" "-" "/py_fs/requests.packages.urllib3.util.__init__=contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "/py_modules/requests.packages.urllib3.util.connection" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc" "/py_code/requests.packages.urllib3.util.connection" "-" "/py_fs/requests.packages.urllib3.util.connection=contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "/py_modules/requests.packages.urllib3.util.url" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc" "/py_code/requests.packages.urllib3.util.url" "-" "/py_fs/requests.packages.urllib3.util.url=contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "/py_modules/requests.packages.urllib3.util.request" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc" "/py_code/requests.packages.urllib3.util.request" "-" "/py_fs/requests.packages.urllib3.util.request=contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "/py_modules/requests.packages.urllib3.util.response" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc" "/py_code/requests.packages.urllib3.util.response" "-" "/py_fs/requests.packages.urllib3.util.response=contrib/python/requests/requests/packages/urllib3/util/response.py"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/resource.0b08bf07b293b5b96d53d08ddf9cb4e7.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\timeout.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\timeout.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\retry.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\retry.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\ssl_.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\ssl_.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\connection.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\connection.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\url.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\url.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\request.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\request.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\util\response.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\util\response.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\resource.0b08bf07b293b5b96d53d08ddf9cb4e7.cpp;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx-next\libs-cxxsupp-libcxx-next.vcxproj">
+      <Project>27312BC1-F7F1-210E-870A-4D9860365283</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>95B1672E-65CB-6C0E-8AEB-4971392AB876</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd01\contrib-libs-zstd01.vcxproj">
+      <Project>F2A1D92A-7737-7A89-BAE3-4E9214D488D0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
+      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
+      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
+      <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompiler\rescompiler.vcxproj">
+      <Project>A0201048-2AC1-B189-065A-E3A41D4119A9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
+      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

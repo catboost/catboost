@@ -1,0 +1,8 @@
+unexport YA_BUILD_RESULTS_REPORT
+
+.PHONY : libcatboostr.dll clean
+
+libcatboostr.dll:
+	$(CURDIR)/../../../ya.bat make -r -o ../../..
+
+clean:
