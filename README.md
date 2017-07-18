@@ -24,4 +24,4 @@ Questions and bug reports
 
 License
 -------
-© Contributors, 2017. Licensed under an [Apache-2](https://github.com/catboost/catboost/blob/master/LICENSE) license.
+© YANDEX LLC, 2017. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
