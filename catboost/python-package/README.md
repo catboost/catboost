@@ -7,7 +7,7 @@ CatBoost Python Package
 Installation
 ------------
 For stable version, please install using pip:
--  ``pip install -i https://pypi.yandex-team.ru/simple/ catboost``
+-  ``pip install catboost``
 
 For up-to-date version, please install from github.
 -  To make the python module, type ``ya make -DUSE_ARCADIA_PYTHON=no`` from this directory
@@ -17,9 +17,9 @@ For up-to-date version, please install from github.
 
 Examples
 --------
--  Refer to examples `<https://api-trunk-d-guitarman-d-tech2.dev1f.tech.yandex.ru:5555/catboost/doc/dg/concepts/python-docpage/examples>`__
+-  Refer to examples <https://tech.yandex.com/catboost/doc/dg/concepts/python-usages-examples-docpage/>
 
 
 Documentation
 -------------
--  Refer to documentation `<https://api-trunk-d-guitarman-d-tech2.dev1f.tech.yandex.ru:5555/catboost/doc/dg/concepts/python-docpage/>`__
+-  Refer to documentation <https://tech.yandex.com/catboost/doc/dg/concepts/python-quickstart-docpage/>
