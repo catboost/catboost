@@ -19,7 +19,7 @@ The following implementations are available:
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
-* Ask your question about CatBoost on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost)
+* Ask your question about CatBoost on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost).
 
 
 License
