@@ -16,11 +16,6 @@ devtools::install()
 
 ### Quick start
 
-```sh
-# download data
-sky get -wu --network=Backbone rbtorrent:45de565860210ca922cc684d33f6a6b989320456
-```
-
 ```r
 # load data to R
 pool_path = 'train_full3'
