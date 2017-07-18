@@ -16,6 +16,11 @@ The following implementations are available:
   - [Command-line interface](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
 
+Tutorials
+--------------
+ * Tutorials are avaliable [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
+
+
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
