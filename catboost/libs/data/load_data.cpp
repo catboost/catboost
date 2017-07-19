@@ -132,6 +132,7 @@ static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
             case EColumn::Baseline:
             case EColumn::Weight:
             case EColumn::DocId:
+            case EColumn::QueryId:
                 break;
             default:
                 CB_ENSURE(false, "this column type is not supported");

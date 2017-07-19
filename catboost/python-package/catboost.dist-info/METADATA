@@ -1,10 +1,9 @@
 Metadata-Version: 2.0
 Name: catboost
-Version: 0.1.1
+Version: {version}
 Summary: Python package for catboost
 Home-page: http://github.com/catboost
 Author: CatBoost Developers
-Author-email: catboost@yandex-team.ru
 License: Apache License, Version 2.0
 Download-URL: https://pypi.python.org/pypi/catboost/
 Keywords: catboost
@@ -14,6 +13,5 @@ Platform: Windows
 Platform: Unix
 Requires-Dist: six
 Requires-Dist: numpy
-Requires-Dist: pandas
 
 This is CatBoost Python package. An open-source gradient boosting on decision trees library with categorical features support out of the box. 

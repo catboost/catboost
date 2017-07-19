@@ -1,5 +1,5 @@
 import sys
-from six import iteritems, string_types
+from six import iteritems, string_types, integer_types
 import os.path
 from collections import Iterable, Sequence, Mapping, MutableMapping
 import warnings
@@ -22,11 +22,39 @@ except ImportError:
 from contextlib import contextmanager
 
 
+INTEGER_TYPES = (integer_types, np.integer)
+FLOAT_TYPES = (float, np.floating)
+STRING_TYPES = (string_types,)
+ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
+
+
 @contextmanager
 def log_fixup():
     _set_logger(sys.stdout)
     yield
     _reset_logger()
+
+
+def _cast_to_base_types(value):
+    if isinstance(value, ARRAY_TYPES):
+        new_value = []
+        for val in value:
+            val = _cast_to_base_types(val)
+            new_value.append(val)
+        return new_value
+    if isinstance(value, (Mapping, MutableMapping)):
+        new_value = {}
+        for k, v in iteritems(value):
+            v = _cast_to_base_types(v)
+            new_value[k] = v
+        return new_value
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, INTEGER_TYPES):
+        return int(value)
+    if isinstance(value, FLOAT_TYPES):
+        return float(value)
+    return value
 
 
 def _is_classification_objective(loss_function):
@@ -88,7 +116,7 @@ class Pool(_PoolBase):
         if data is not None:
             self._check_data_type(data)
             self._check_data_empty(data)
-            if isinstance(data, string_types):
+            if isinstance(data, STRING_TYPES):
                 self._read(data, column_description, delimiter, has_header, thread_count)
             else:
                 self._init(data, label, cat_features, weight, baseline, feature_names)
@@ -104,7 +132,7 @@ class Pool(_PoolBase):
             raise CatboostError("Invalid column_description path='{}': file does not exist.".format(column_description))
 
     def _check_delimiter(self, delimiter):
-        if not isinstance(delimiter, string_types):
+        if not isinstance(delimiter, STRING_TYPES):
             raise CatboostError("Invalid delimiter type={} : must be str().".format(type(delimiter)))
         if len(delimiter) < 1:
             raise CatboostError("Invalid delimiter length={} : must be > 0.".format(len(delimiter)))
@@ -113,7 +141,7 @@ class Pool(_PoolBase):
         """
         Check type of ColumnsDescription parameter.
         """
-        if not isinstance(column_description, string_types):
+        if not isinstance(column_description, STRING_TYPES):
             raise CatboostError("Invalid column_description type={}: must be str().".format(type(column_description)))
 
     def _check_cf_type(self, cat_features):
@@ -128,24 +156,24 @@ class Pool(_PoolBase):
         Check values in cat_feature parameter. Must be int indices.
         """
         for indx, feature in enumerate(cat_features):
-            if not isinstance(feature, int):
+            if not isinstance(feature, INTEGER_TYPES):
                 raise CatboostError("Invalid cat_features[{}] = {} value type={}: must be int().".format(indx, feature, type(feature)))
 
     def _check_data_type(self, data):
         """
         Check type of data.
         """
-        if not isinstance(data, (string_types, list, np.ndarray, DataFrame, Series)):
+        if not isinstance(data, (STRING_TYPES, ARRAY_TYPES)):
             raise CatboostError("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series() or filename str().".format(type(data)))
 
     def _check_data_empty(self, data):
         """
         Check data is not empty.
         """
-        if isinstance(data, string_types):
+        if isinstance(data, STRING_TYPES):
             if not data:
                 raise CatboostError("Features filename is empty.")
-        elif isinstance(data, (list, np.ndarray, DataFrame, Series)):
+        elif isinstance(data, ARRAY_TYPES):
             data_shape = np.shape(data)
             if isinstance(data, Series) and data_shape[0] > 0:
                 if isinstance(data[0], Iterable):
@@ -159,7 +187,7 @@ class Pool(_PoolBase):
         """
         Check type of label.
         """
-        if not isinstance(label, (list, np.ndarray, DataFrame, Series)):
+        if not isinstance(label, ARRAY_TYPES):
             raise CatboostError("Invalid label type={}: must be array like.".format(type(label)))
 
     def _check_label_empty(self, label):
@@ -182,7 +210,7 @@ class Pool(_PoolBase):
         """
         if len(label) != data_len:
             raise CatboostError("Length of label={} and length of data={} is different.".format(len(label), data_len))
-        if isinstance(label[0], Iterable) and not isinstance(label[0], string_types):
+        if isinstance(label[0], Iterable) and not isinstance(label[0], STRING_TYPES):
             if len(label[0]) > 1:
                 raise CatboostError("Input label cannot have multiple values per row.")
 
@@ -190,7 +218,7 @@ class Pool(_PoolBase):
         """
         Check type of baseline parameter.
         """
-        if not isinstance(baseline, (list, np.ndarray, DataFrame, Series)):
+        if not isinstance(baseline, ARRAY_TYPES):
             raise CatboostError("Invalid baseline type={}: must be array like.".format(type(baseline)))
 
     def _check_baseline_shape(self, baseline, data_len):
@@ -199,7 +227,7 @@ class Pool(_PoolBase):
         """
         if len(baseline) != data_len:
             raise CatboostError("Length of baseline={} and length of data={} are different.".format(len(baseline), data_len))
-        if not isinstance(baseline[0], Iterable) or isinstance(baseline[0], string_types):
+        if not isinstance(baseline[0], Iterable) or isinstance(baseline[0], STRING_TYPES):
             raise CatboostError("baseline must be 2 dimensional data, 1 column for each class.")
         try:
             if np.array(baseline).dtype not in (np.dtype('float'), np.dtype('int')):
@@ -211,7 +239,7 @@ class Pool(_PoolBase):
         """
         Check type of weight parameter.
         """
-        if not isinstance(weight, (list, np.ndarray, DataFrame, Series)):
+        if not isinstance(weight, ARRAY_TYPES):
             raise CatboostError("Invalid weight type={}: must be array like.".format(type(weight)))
 
     def _check_weight_shape(self, weight, data_len):
@@ -220,7 +248,7 @@ class Pool(_PoolBase):
         """
         if len(weight) != data_len:
             raise CatboostError("Length of weight={} and length of data={} are different.".format(len(weight), data_len))
-        if not isinstance(weight[0], (int, float, long)):
+        if not isinstance(weight[0], (INTEGER_TYPES, FLOAT_TYPES)):
             raise CatboostError("Invalid weight value type={}: must be 1 dimensional data with int, float or long types.".format(type(weight[0])))
 
     def _check_feature_names(self, feature_names, num_col=None):
@@ -229,10 +257,10 @@ class Pool(_PoolBase):
         if not isinstance(feature_names, Sequence):
             raise CatboostError("Invalid feature_names type={} : must be list".format(type(feature_names)))
         if len(feature_names) != num_col:
-            raise CatboostError("Invalid length feature_names={} : must be equal to number of columns in data={}".format(len(feature_names), self.num_col()))
+            raise CatboostError("Invalid length feature_names={} : must be equal to number of columns in data={}".format(len(feature_names), num_col))
 
     def _check_thread_count(self, thread_count):
-        if not isinstance(thread_count, int):
+        if not isinstance(thread_count, INTEGER_TYPES):
             raise CatboostError("Invalid thread_count type={} : must be int".format(type(thread_count)))
         if thread_count < 1:
             raise CatboostError("Invalid thread_count value={} : must be > 0".format(thread_count))
@@ -328,9 +356,17 @@ class CatBoost(_CatBoostBase):
         if params is None:
             params = {}
         self._check_params(params)
+        params = self._params_type_cast(params)
         super(CatBoost, self).__init__(params)
         if model_file is not None:
             self.load_model(model_file)
+
+    def _params_type_cast(self, params):
+        casted_params = {}
+        for key, value in iteritems(params):
+            value = _cast_to_base_types(value)
+            casted_params[key] = value
+        return casted_params
 
     def _check_params(self, params):
         if not isinstance(params, (Mapping, MutableMapping)):
@@ -339,7 +375,7 @@ class CatBoost(_CatBoostBase):
             if not isinstance(params['ctr_description'], Sequence):
                 raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
         if 'custom_loss' in params:
-            if isinstance(params['custom_loss'], string_types):
+            if isinstance(params['custom_loss'], STRING_TYPES):
                 params['custom_loss'] = [params['custom_loss']]
             if not isinstance(params['custom_loss'], Sequence):
                 raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
@@ -378,12 +414,12 @@ class CatBoost(_CatBoostBase):
             train_dir = self.get_param('train_dir') or '.'
 
             try:
-                from widget import CatboostIpythonWidget
+                from .widget import CatboostIpythonWidget
                 widget = CatboostIpythonWidget(train_dir)
                 widget.run_update()
             except ImportError as e:
                 warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
-                raise ImportError(e.message)
+                raise ImportError(str(e))
         with log_fixup():
             self._train(X, eval_set, params)
         if calc_feature_importance:
@@ -445,7 +481,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty():
             raise CatboostError("data is empty.")
-        if not isinstance(prediction_type, string_types):
+        if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
@@ -597,7 +633,7 @@ class CatBoost(_CatBoostBase):
         """
         if not self.is_fitted():
             raise CatboostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
-        if not isinstance(fname, string_types):
+        if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
         self._save_model(fname, format, export_parameters)
 
@@ -610,7 +646,7 @@ class CatBoost(_CatBoostBase):
         fname : string
             Input file name.
         """
-        if not isinstance(fname, string_types):
+        if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
         self._load_model(fname)
         return self

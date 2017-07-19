@@ -1,8 +1,8 @@
 unexport YA_BUILD_RESULTS_REPORT
 
-.PHONY : libcatboostr.so
+.PHONY : all
 
 THIS_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-libcatboostr.so:
+all:
 	$(THIS_DIR)/../../../ya make -r

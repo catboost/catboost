@@ -14,6 +14,7 @@ def just_do_it(argv):
     dll_cmd, java_cmd, inputs, dll_out, java_out, jsrs_out, build_root = args
     dll_out, java_out, jsrs_out, build_root = dll_out[0], java_out[0], jsrs_out[0], build_root[0]
     for inp in inputs:
+        origin_inp = inp
         if os.path.isabs(inp):
             inp = os.path.relpath(inp, build_root)
         ext = os.path.splitext(inp)[1]
@@ -22,7 +23,9 @@ def just_do_it(argv):
                 inp = os.path.join(build_root, inp)
             java_cmd.remove(inp)
         if ext in ('.java', '.jsrc'):
-            if os.path.join(build_root, inp) in dll_cmd:
+            if origin_inp in dll_cmd:
+                inp = origin_inp
+            elif os.path.join(build_root, inp) in dll_cmd:
                 inp = os.path.join(build_root, inp)
             dll_cmd.remove(inp)
     java_cmd.insert(java_cmd.index(dll_out), java_out)

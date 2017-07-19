@@ -46,7 +46,7 @@ def main():
         if dst.startswith(opts.build_root):
             dst = dst[len(opts.build_root) + 1:]
 
-        if dest_arch:
+        if dest_arch and not arg.endswith('.pkg.fake'):
             dest_arch.add(arg, arcname=dst)
 
         copy_file(arg, os.path.join(opts.dest_dir, dst))

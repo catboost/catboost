@@ -1,12 +1,10 @@
 #pragma once
 
 #include "fwd.h"
-#include "vector.h"
 #include "mapfindptr.h"
 
 #include <util/memory/alloc.h>
 #include <util/system/yassert.h>
-#include <util/system/defaults.h>
 #include <util/str_stl.h>
 #include "yexception.h"
 #include "typetraits.h"
@@ -14,7 +12,6 @@
 #include "type_name.h"
 
 #include <algorithm>
-#include <functional>
 #include <initializer_list>
 #include <memory>
 #include <tuple>

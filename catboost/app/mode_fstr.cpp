@@ -21,6 +21,7 @@ int mode_fstr(int argc, const char* argv[]) {
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
         });
+    parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     CB_ENSURE(NFs::Exists(params.ModelFileName));

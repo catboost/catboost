@@ -14,11 +14,11 @@
 .om.cache
 .ropeproject
 .svn
-.ycm
+.vscode
 /.gcc-compiler
 /.gxx-compiler
+/.ycm
 /local.cmake
 /local.ymake
 om.conf.local
 test-results
-.vscode

@@ -25,6 +25,7 @@ int mode_calc(int argc, const char* argv[]) {
         .Handler1T<TString>([&params](const TString& predictionType) {
             params.PredictionType = FromString<EPredictionType>(predictionType);
         });
+    parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     CB_ENSURE(NFs::Exists(params.ModelFileName));

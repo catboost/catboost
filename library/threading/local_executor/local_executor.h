@@ -204,4 +204,10 @@ namespace NPar {
         params.WaitCompletion();
         LocalExecutor().ExecRange(std::move(body), params);
     }
+
+    template <typename TBody>
+    inline void AsyncParallelFor(ui32 from, ui32 to, TBody&& body) {
+        TLocalExecutor::TBlockParams params(from, to);
+        LocalExecutor().ExecRange(std::move(body), params);
+    }
 }

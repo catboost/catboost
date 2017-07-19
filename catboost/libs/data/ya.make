@@ -13,8 +13,6 @@ PEERDIR(
     catboost/libs/logging
 )
 
-
 GENERATE_ENUM_SERIALIZATION(column.h)
-
 
 END()

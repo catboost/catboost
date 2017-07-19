@@ -16,6 +16,8 @@ def gen_platform():
 
     value = distutils.util.get_platform().replace("linux", "manylinux1")
     value = value.replace('-', '_').replace('.', '_')
+    if 'macosx' in value:
+        value = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
     return value
 
 
@@ -63,11 +65,12 @@ def build(arc_root, out_root, tail_args):
         lang = 'cp27'
     else:
         py_config = 'python3-config'
-        lang = 'py3'
+        lang = 'cp3' + str(sys.version_info.minor)
     ver = get_version()
     cmd = [
               sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, 'catboost', 'python-package', 'catboost'),
-              '--no-src-links', '-r', '--output', out_root, '-DUSE_ARCADIA_PYTHON=no', '-DPYTHON_CONFIG=' + py_config
+              '--no-src-links', '-r', '--output', out_root, '-DUSE_ARCADIA_PYTHON=no', '-DPYTHON_CONFIG=' + py_config,
+              '-DNO_DEBUGINFO',
           ] + extra_opts() + tail_args
     print(' '.join(cmd), file=sys.stderr)
     subprocess.check_call(cmd)
@@ -79,7 +82,14 @@ def build(arc_root, out_root, tail_args):
     shutil.copy('version.py', 'catboost/catboost/version.py')
     shutil.copy('core.py', 'catboost/catboost/core.py')
     shutil.copytree('widget', 'catboost/catboost/widget')
-    shutil.copytree(os.path.join(arc_root, 'catboost', 'python-package','catboost.dist-info'), 'catboost/catboost-{}.dist-info'.format(ver))
+    dist_info_dir = 'catboost/catboost-{}.dist-info'.format(ver)
+    shutil.copytree(os.path.join(arc_root, 'catboost', 'python-package','catboost.dist-info'), dist_info_dir)
+
+    with open(os.path.join(dist_info_dir, 'METADATA'), 'r') as fm:
+        metadata = fm.read()
+    metadata = metadata.format(version=ver)
+    with open(os.path.join(dist_info_dir, 'METADATA'), 'w') as fm:
+        fm.write(metadata)
 
     plat = gen_platform()
     wheel_name = 'catboost-{}-{}-none-{}.whl'.format(ver, lang, plat)

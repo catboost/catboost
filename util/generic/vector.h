@@ -5,7 +5,6 @@
 
 #include <util/memory/alloc.h>
 
-#include <memory>
 #include <vector>
 #include <initializer_list>
 

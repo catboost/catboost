@@ -409,6 +409,8 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default).");
 
+    parser.SetFreeArgsNum(0);
+
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 }
 

@@ -586,12 +586,12 @@ public:
 
 template <class T>
 static inline void SaveLoad(TOutputStream* out, const T& t) {
-    ::Save(out, t);
+    Save(out, t);
 }
 
 template <class T>
 static inline void SaveLoad(TInputStream* in, T& t) {
-    ::Load(in, t);
+    Load(in, t);
 }
 
 template <typename S>
@@ -600,7 +600,7 @@ static inline void SaveMany(S*) {
 
 template <typename S, typename T, typename... R>
 static inline void SaveMany(S* s, const T& t, const R&... r) {
-    ::Save(s, t);
+    Save(s, t);
     ::SaveMany(s, r...);
 }
 
@@ -610,7 +610,7 @@ static inline void LoadMany(S*) {
 
 template <typename S, typename T, typename... R>
 static inline void LoadMany(S* s, T& t, R&... r) {
-    ::Load(s, t);
+    Load(s, t);
     ::LoadMany(s, r...);
 }
 

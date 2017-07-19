@@ -49,6 +49,7 @@
         "rsync": {"description": "Run RSync"},
         "yt": {"description": "Run YT client"},
         "yndexer": {"description": "Run Yndexer"},
+        "ytyndexer": {"description": "Run YtYndexer"},
         "transfer-manager": { "description": "Run Transfer Manager client" },
         "rem-tool": { "description": "Run REM cli client" },
         "afl-fuzz": { "description": "Run afl-fuzz" }
@@ -1315,6 +1316,15 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "ytyndexer": {
+            "tools": {
+                "ytyndexer": {  "bottle": "ytyndexer", "executable": "ytyndexer" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "transfer-manager": {
             "tools": {
                 "transfer-manager": { "bottle": "transfer-manager", "executable": "transfer-manager" }
@@ -1652,6 +1662,17 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "error_prone": {
+            "tools": {
+                "error_prone": { "bottle": "error_prone" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "kiwi_protos": {
             "tools": {
                 "kiwi_protos": { "bottle": "kiwi_protos" }
@@ -1753,7 +1774,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 127584355,
+                "sandbox_id": 129235399,
                 "match": "YMake"
             },
             "executable": {
@@ -1953,6 +1974,12 @@
                 "match": "ya runner idea plugin"
             }
         },
+        "error_prone": {
+            "formula": {
+                "sandbox_id": [126915432],
+                "match": "ERRORPRONE"
+            }
+        },
         "wine": {
             "formula": {
                 "sandbox_id": 42480153,
@@ -1982,11 +2009,20 @@
         },
         "yndexer": {
             "formula": {
-                "sandbox_id": 125405256,
+                "sandbox_id": 129061120,
                 "match": "YNDEXER"
             },
             "executable": {
                 "yndexer": ["yndexer"]
+            }
+        },
+        "ytyndexer": {
+            "formula": {
+                "sandbox_id": 129393237,
+                "match": "YTYNDEXER"
+            },
+            "executable": {
+                "ytyndexer": ["ytyndexer"]
             }
         },
         "transfer-manager": {

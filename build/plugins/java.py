@@ -82,6 +82,9 @@ def onjava_module(unit, *args):
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
         data['ADD_DLLS_FROM_DEPENDS'] = extract_macro_calls(unit, 'JAVA_ADD_DLLS_VALUE', args_delim)
 
+    if unit.get('ERROR_PRONE_VALUE') == 'yes':
+        data['ERROR_PRONE'] = extract_macro_calls(unit, 'ERROR_PRONE_VALUE', args_delim)
+
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
             unit.oninternal_recurse(p)

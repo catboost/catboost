@@ -67,8 +67,8 @@ catboost.save_pool <- function(data, target, weight, baseline, pool_path, column
 catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = NULL, cat_features = NULL) {
   if (!is.matrix(data))
       stop("Unsupported data type, expecting matrix, got: ", class(data))
-  if (!is.double(target) && !is.null(target))
-      stop("Unsupported target type, expecting double, got: ", typeof(target))
+  if (!is.double(target) && !is.integer(target) && !is.null(target))
+      stop("Unsupported target type, expecting double or int, got: ", typeof(target))
   if (length(target) != nrow(data) && !is.null(target))
       stop("Data has ", nrow(data), " rows, target has ", length(target), " rows.")
   if (!is.double(weight) && !is.null(weight))
@@ -84,8 +84,11 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
   if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
       stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
 
+  if (!is.double(target) && !is.null(target))
+      target <- as.double(target)
+
   pool <- .Call("CatBoostCreateFromMatrix_R", data, target, weight, baseline, cat_features)
-  attributes(pool) <- list(.Dimnames = list(NULL, colnames(data)), class = "catboost.Pool")
+  attributes(pool) <- list(.Names = colnames(data), class = "catboost.Pool")
   return(pool)
 }
 
@@ -100,22 +103,26 @@ catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baselin
   cat_features <- c()
   preprocessed <- data.frame(row.names = seq(1, nrow(data)))
   column_names <- colnames(data)
-  for (column_index in seq(1, length(column_names))) {
+  for (column_index in c(1:ncol(data))) {
     if (any(is.na(data[, column_index]) || is.null(data[, column_index]))) {
-      stop("NA and NULL values are not supported.")
+      stop("NA and NULL values are not supported: ",  column_names[column_index])
     }
     if (is.double(data[, column_index])) {
       preprocessed[, column_names[column_index]] <- data[, column_index]
+    }
+    else if (is.integer(data[, column_index])) {
+      preprocessed[, column_names[column_index]] <- as.integer(data[, column_index])
     }
     else if (is.factor(data[, column_index])) {
       preprocessed[, column_names[column_index]] <- .Call("CatBoostHashStrings_R", as.character(data[, column_index]))
       cat_features <- c(cat_features, column_index - 1)
     }
     else {
-      stop("Unsupported column type: ", typeof(data[, column_index]))
+      stop("Unsupported column type: ", column_names[column_index], typeof(data[, column_index]))
     }
   }
-  pool <- catboost.from_matrix(as.matrix(preprocessed), target, weight, baseline, cat_features)
+  preprocessed <- as.matrix(preprocessed)
+  pool <- catboost.from_matrix(preprocessed, target, weight, baseline, cat_features)
   return(pool)
 }
 
@@ -231,6 +238,7 @@ catboost.importance <- function(model, pool = NULL, thread_count = 1) {
     return(model$var_imp)
   }
   importance <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, thread_count)
+  names(importance) <- attr(pool, '.Names')
   return(importance)
 }
 

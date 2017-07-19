@@ -3,6 +3,8 @@
 [Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) |
 [Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
+[![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost) |
+
 CatBoost is a machine learning method based on gradient boosting over decision trees.
 
 Main advantages of CatBoost:
@@ -18,7 +20,15 @@ The following implementations are available:
 
 Tutorials
 --------------
- * Tutorials are avaliable [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
+* Tutorials are avaliable [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
+
+
+For contributors
+--------------
+* To contribute to CatBoost you need to first read CLA text and add to your pull request, that you agree to the terms of the CLA. More information can be found
+in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md)
+
+* Instructions for contributors can be found [here](https://tech.yandex.com/catboost/doc/dg/concepts/development-and-contributions-docpage/).
 
 
 Questions and bug reports

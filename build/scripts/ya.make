@@ -7,6 +7,7 @@ TEST_SRCS(
     build_mn.py
     build_pln_header.py
     build_info_gen.py
+    build_java_with_error_prone.py
     cat.py
     check_config_h.py
     compile_cuda.py
@@ -14,7 +15,6 @@ TEST_SRCS(
     configure_file.py
     copy_to_dir.py
     coverage-info.py
-    create_empty_tar.py
     create_jcoverage_report.py
     extract_jacoco_report.py
     f2c.py

@@ -415,7 +415,8 @@ cdef class _PoolBase:
     cpdef _set_feature_names(self, feature_names):
         self.__pool.FeatureId.clear()
         for value in feature_names:
-            self.__pool.FeatureId.push_back(str(value))
+            value = to_binary_str(str(value))
+            self.__pool.FeatureId.push_back(value)
 
     cpdef get_feature_names(self):
         if self.is_empty():

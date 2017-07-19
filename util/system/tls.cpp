@@ -6,6 +6,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/singleton.h>
+#include <util/generic/vector.h>
 
 #if defined(_unix_)
 #include <pthread.h>

@@ -336,7 +336,9 @@ class YMake(object):
         emit('NO_MAPREDUCE')
         emit('ARCADIA_TEST_ROOT', '../arcadia_tests_data/')
         print """
-? ($NO_MAPREDUCE ==  \"yes\")C_DEFINES += -DNO_MAPREDUCE
+when ($NO_MAPREDUCE ==  \"yes\") {
+    C_DEFINES += -DNO_MAPREDUCE
+}
 """
 
     @staticmethod
@@ -498,12 +500,20 @@ class System(object):
         par_blk.emit("WRITE_COMMAND", "/bin/echo", "-e")
 
         par_blk.add("""
-  ? ($USE_PYTHON) C_DEFINES+= -DUSE_PYTHON
+  when ($USE_PYTHON) {
+      C_DEFINES+= -DUSE_PYTHON
+  }
 
-  ? ($USE_CUDA == \"yes\")CFLAGS+= -fno-strict-aliasing -I${CUDA_ROOT}/SDK/common/inc -I${CUDA_ROOT}/include -DUNIX
+  when ($USE_CUDA == \"yes\") {
+      CFLAGS+= -fno-strict-aliasing -I${CUDA_ROOT}/SDK/common/inc -I${CUDA_ROOT}/include -DUNIX
+  }
   CUDART=-lcudart_static
-  ? ($PIC)CUDART=-lcudart
-  ? ($USE_CUDA == \"yes\")LINK_OPTIONS_END+= -L${CUDA_ROOT}/lib64 $CUDART
+  when ($PIC) {
+      CUDART=-lcudart
+  }
+  when ($USE_CUDA == \"yes\") {
+      LINK_OPTIONS_END+= -L${CUDA_ROOT}/lib64 $CUDART
+  }
 """)
 
     def print_freebsd_const(self, par_blk):
@@ -517,13 +527,21 @@ class System(object):
         par_blk.add('FREEBSD_VER=%s' % major)
         par_blk.add('FREEBSD_VER_MINOR=%s' % minor)
         par_blk.add("""
-  ? (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\"))MPROFLIB+= -L/usr/local/lib -lc_mp
-  ? (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\"))C_DEFINES+= -DUSE_MPROF
+  when (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\")) {
+      MPROFLIB+= -L/usr/local/lib -lc_mp
+  }
+  when (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\")) {
+      C_DEFINES+= -DUSE_MPROF
+  }
 """)
 
     @staticmethod
     def print_linux_const(par_blk):
-        par_blk.add("""? (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\"))MPROFLIB+= -ldmalloc""")
+        par_blk.add("""
+  when (($USEMPROF == \"yes\") || ($USE_MPROF == \"yes\")) {
+      MPROFLIB+= -ldmalloc
+  }
+""")
 
     def print_target_settings(self):
         blk = BuildTypeBlock("name=System.tOS={0}.tType={1}".format(self.os, self.type))
@@ -585,14 +603,26 @@ class System(object):
         if preset('HAVE_CUDA') is None:
             blk.add("HAVE_CUDA=no")
             if self.os == "LINUX":
-                blk.add("? ($ARCH_X86_64 && !$SANITIZER_TYPE && !$PIC) HAVE_CUDA=yes")
+                blk.add("""
+  when ($ARCH_X86_64 && !$SANITIZER_TYPE && !$PIC) {
+      HAVE_CUDA=yes
+  }
+""")
             if self.os in ("LINUX", "ANDROID"):
-                blk.add("? ($ARCH_AARCH64 && $ARM_CUDA) HAVE_CUDA=yes")
+                blk.add("""
+  when ($ARCH_AARCH64 && $ARM_CUDA) {
+      HAVE_CUDA=yes
+  }
+""")
 
         if preset('HAVE_MKL') is None:
             blk.add("HAVE_MKL=no")
             if self.os == "LINUX":
-                blk.add("? ($ARCH_X86_64 && !$SANITIZER_TYPE) HAVE_MKL=yes")
+                blk.add("""
+  when ($ARCH_X86_64 && !$SANITIZER_TYPE) {
+      HAVE_MKL=yes
+  }
+""")
 
     def print_host_settings(self):
         blk = BuildTypeBlock("name=System.bs=*.hOS={0}.hType={1}".format(self.os, self.type))
@@ -843,8 +873,14 @@ class GNU(object):
         blk.append("CXX_WARNING_OPTS", "-Woverloaded-virtual")
         blk.append("USER_CFLAGS_GLOBAL", "")
         blk.append("USER_CFLAGS_GLOBAL", "")
-        blk.emit("? ($PIC && $PIC == \"yes\") PICFLAGS", "-fPIC");
-        blk.emit("? (!$PIC || $PIC != \"yes\") PICFLAGS", "");
+        blk.add("""
+  when ($PIC && $PIC == \"yes\") {
+      PICFLAGS=-fPIC
+  }
+  otherwise {
+      PICFLAGS=
+  }
+""");
         blk.append("CFLAGS", self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', "$PICFLAGS", "$USER_CFLAGS", "$USER_CFLAGS_GLOBAL",
                    "-DFAKEID=$FAKEID", "-DARCADIA_ROOT=${ARCADIA_ROOT}", "-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}")
         blk.append("CXXFLAGS", "$CXX_WARNING_OPTS", "$CFLAGS", self.cxx_flags, "$USER_CXXFLAGS")
@@ -868,15 +904,25 @@ class GNU(object):
             for x, y in self.tc.params["emit_extra"]:
                 blk.emit(x, y)
         blk.add("""
-  ? ($NO_COMPILER_WARNINGS == \"yes\") CFLAGS+= -w
-  ? ($NO_OPTIMIZE == \"yes\") OPTIMIZE=-O0
-  ? ($SAVE_TEMPS ==  \"yes\") CXXFLAGS += -save-temps
-  ? ($NOGCCSTACKCHECK != \"yes\") FSTACK+= -fstack-check
-  ? ($NO_WSHADOW == \"yes\") CFLAGS += -Wno-shadow
+  when ($NO_COMPILER_WARNINGS == \"yes\") {
+      CFLAGS+= -w
+  }
+  when ($NO_OPTIMIZE == \"yes\") {
+      OPTIMIZE=-O0
+  }
+  when ($SAVE_TEMPS ==  \"yes\") {
+      CXXFLAGS += -save-temps
+  }
+  when ($NOGCCSTACKCHECK != \"yes\") {
+      FSTACK+= -fstack-check
+  }
+  when ($NO_WSHADOW == \"yes\") {
+      CFLAGS += -Wno-shadow
+  }
 
-  MSVC_FLAGS(Flags...) {
+  macro MSVC_FLAGS(Flags...) {
       # TODO: FIXME
-      $ENABLE(UNUSED_MACRO)
+      ENABLE(UNUSED_MACRO)
   }
 """)
         # specific options for LD linker
@@ -920,10 +966,16 @@ class GNU(object):
         self.extend_cxx_args()
 
         blk.add("""
-  SRCS(SRC...) {
-      foreach_in=SRC;
-      [.cxx, .cpp, .cc, .C]=""" + "  " + " ".join(self.cxx_args) + """;
-      [.c, .m]=""" + "  " + " ".join(self.c_args) + """;
+  macro _SRC_cpp(SRC, OPTIONS...) {
+      MACRO_PROP(CMD """ + " ".join(self.cxx_args) + ")" + """
+  }
+  macro _SRC_c(SRC, OPTIONS...) {
+      MACRO_PROP(CMD """ + " ".join(self.c_args) + ")" + """
+  }
+  macro _SRC_m(SRC, OPTIONS...) {
+      MACRO_PROP(CMD $SRC_c($SRC $OPTIONS))
+  }
+  macro _SRC_masm(SRC, OPTIONS...) {
   }""")
 
     def extend_c_args(self):
@@ -1418,7 +1470,9 @@ class LD(object):
         blk.emit("USE_STDLIB", '' if preset('SANITIZER_TYPE') else self.use_stdlib)
         blk.emit("LINKER_ENV", reformat_env(self.tc.env, values_sep=":"))
         blk.add("""
-  ? ($EXPORTS_FILE) EXPORTS_VALUE=-Wl,--version-script=${input:EXPORTS_FILE}
+  when ($EXPORTS_FILE) {
+      EXPORTS_VALUE=-Wl,--version-script=${input:EXPORTS_FILE}
+  }
 """)
         if self.build_type == "coverage":
             sub_blk = blk.sub_block("bt=coverage")
@@ -1586,8 +1640,13 @@ def detect_msvc(tc):
         logging.error("Could not find any versions of installed Platform SDK " + sdk_kit + " for " + tc.cxx_compiler)
         sys.exit(1)
 
+    try:
+        vc_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\Vc7")
+    except Exception:
+        logging.error("Could not find VC shared version " + vc_shared_version + " for " + tc.cxx_compiler)
+        sys.exit(1)
+
     vc_shared = ""
-    vc_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\Vc7")
     vid = 0
     while True:
         try:
@@ -1714,8 +1773,12 @@ class MSVC(MSVCBase):
 
         print """\
 MSVC_INLINE_OPTIMIZED=yes
-? ($MSVC_INLINE_OPTIMIZED == "yes") MSVC_INLINE_FLAG=/Zc:inline
-? ($MSVC_INLINE_OPTIMIZED == "no") MSVC_INLINE_FLAG=/Zc:inline-
+when ($MSVC_INLINE_OPTIMIZED == "yes") {
+    MSVC_INLINE_FLAG=/Zc:inline
+}
+when ($MSVC_INLINE_OPTIMIZED == "no") {
+    MSVC_INLINE_FLAG=/Zc:inline-
+}
 """
 
         flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
@@ -1810,9 +1873,15 @@ MSVC_INLINE_OPTIMIZED=yes
         append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
 
         print '''\
-? ($NO_OPTIMIZE == "yes") OPTIMIZE = {no_opt}
-? ($NO_COMPILER_WARNINGS == "yes") CFLAGS += {no_warn}
-? ($NO_WSHADOW == "yes") CFLAGS += {no_shadow}
+when ($NO_OPTIMIZE == "yes") {{
+    OPTIMIZE = {no_opt}
+}}
+when ($NO_COMPILER_WARNINGS == "yes") {{
+    CFLAGS += {no_warn}
+}}
+when ($NO_WSHADOW == "yes") {{
+    CFLAGS += {no_shadow}
+}}
 '''.format(no_opt=' '.join(flags_no_optimize), no_warn=' '.join(flags_no_compiler_warnings), no_shadow=' '.join(flags_no_shadow))
 
         emit("SFDL_FLAG", flags_sfdl)
@@ -1826,20 +1895,23 @@ MSVC_INLINE_OPTIMIZED=yes
             emit('ML_WRAPPER')
 
         print """\
-MSVC_FLAGS(Flags...) {
-    $CFLAGS($Flags);
+macro MSVC_FLAGS(Flags...) {
+    CFLAGS($Flags)
 }
 
-SRCS(SRC...) {
-    foreach_in=SRC;
-    [.cxx, .cpp, .cc, .C]=  ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} \
-${pre=/I :INCLUDE} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+macro _SRC_cpp(SRC, OPTIONS...) {
+    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"})
+}
 
-    [.c]=  ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} \
-${pre=/I :INCLUDE} ${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+macro _SRC_c(SRC, OPTIONS...) {
+    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"})
+}
 
-    [.masm]=${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} """ + masm_io + """ \
-${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
+macro _SRC_m(SRC, OPTIONS...) {
+}
+
+macro _SRC_masm(SRC, OPTIONS...) {
+    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} """ + masm_io + """ ${kv;hide:"p AS"} ${kv;hide:"pc yellow"})
 }
 """
 
@@ -1989,7 +2061,9 @@ class MSVCLinker(MSVCBase):
         emit('EXPORTS_VALUE')
 
         print """\
-? ($EXPORTS_FILE) EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
+when ($EXPORTS_FILE) {
+    EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
+}
 
 LINK_LIB=${LINKER_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
 ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
@@ -2141,7 +2215,7 @@ def find_perl(host_os_id):
         perl_dict["PERL_POLLUTE"] = "-DPERL_POLLUTE"
         perl_dict["YMAKE_PRINT_SPECS"] = """
 USE_PERL_LIB {
-    $SET_APPEND(C_DEFINES $PERL_POLLUTE);
+    SET_APPEND(C_DEFINES $PERL_POLLUTE);
 }"""
     return perl_dict
 
