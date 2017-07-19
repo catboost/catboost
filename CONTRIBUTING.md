@@ -28,8 +28,8 @@ I hereby agree to the terms of the CLA available at: [link].
 Replace the bracketed text as follows:
 * [link] is the link at the current version of the CLA (you may add here a link https://yandex.ru/legal/cla/?lang=en (in English) or a link https://yandex.ru/legal/cla/?lang=ru (in Russian).
 
-It is enough to provide us such notification at once. 
+It is enough to provide such a notification once. 
 
 ## Other questions
 
-If you have any questions, please mail us at opensource@yandex-team.ru.
+If you have any questions, please write to us: [opensource@yandex-team.ru](mailto:opensource@yandex-team.ru).
