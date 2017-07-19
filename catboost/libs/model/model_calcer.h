@@ -74,7 +74,7 @@ private:
         for (const auto& floatFeature : UsedFloatFeatures) {
             const auto val = features[floatFeature.FeatureIndex];
             for (const auto& border : floatFeature.Borders) {
-                result[currendBinIndex] =  val > border;
+                result[currendBinIndex] = val > border;
                 ++currendBinIndex;
             }
         }
