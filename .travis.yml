@@ -28,36 +28,12 @@ matrix:
           unset CC
           unset CXX
       env: CB_BUILD_AGENT='clang-linux-x86_64-debug'
-    - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='python2-linux-x86_64-debug'
-    - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='python3-linux-x86_64-debug'
     - os: osx
       before_install:
         - |
           unset CC
           unset CXX
       env: CB_BUILD_AGENT='clang-darwin-x86_64-debug'
-    - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='python2-darwin-x86_64-debug'
-    - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='python3-darwin-x86_64-debug'
     - os: linux
       before_install:
         - |
@@ -97,28 +73,14 @@ matrix:
 
 script:
   - |
+    set -x
+    set -e
     if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-debug' ]; then
         ./ya make --stat -d catboost/app catboost/pytest;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-debug' ]; then
         ./ya make --stat -d catboost/app catboost/pytest;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-debug' ]; then
-        ./ya make --stat -d -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python2.7' -DPYTHON_LIBRARY='python2.7' catboost/python-package;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python2-darwin-x86_64-debug' ]; then
-        ./ya make --stat -d -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python2.7' -DPYTHON_LIBRARY='python2.7' catboost/python-package;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python3-linux-x86_64-debug' ]; then
-        ./ya make --stat -d -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python3.4' -DPYTHON_LIBRARY='python3.4' catboost/python-package;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python3-darwin-x86_64-debug' ]; then
-        ./ya make --stat -d -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python3.4' -DPYTHON_LIBRARY='python3.4' catboost/python-package;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-release' ]; then
@@ -130,17 +92,21 @@ script:
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
-        ./ya make --stat -rttt -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python2.7' -DPYTHON_LIBRARY='python2.7' catboost/python-package;
+        cd catboost/python-package;
+        python2.7 ./mk_wheel.py;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python2-darwin-x86_64-release' ]; then
-        ./ya make --stat -rttt -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python2.7' -DPYTHON_LIBRARY='python2.7' catboost/python-package;
+        cd catboost/python-package;
+        python2.7 ./mk_wheel.py;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python3-linux-x86_64-release' ]; then
-        ./ya make --stat -rttt -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python3.4' -DPYTHON_LIBRARY='python3.4' catboost/python-package;
+        cd catboost/python-package;
+        python3.4 ./mk_wheel.py;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python3-darwin-x86_64-release' ]; then
-        ./ya make --stat -rttt -DNO_DEBUG_INFO -DNO_ERROR -DUSE_ARCADIA_PYTHON=no -DPYTHON_INCLUDE_DIR='/usr/include/python3.4' -DPYTHON_LIBRARY='python3.4' catboost/python-package;
+        cd catboost/python-package;
+        python3.4 ./mk_wheel.py;
     fi
