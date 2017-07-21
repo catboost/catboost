@@ -64,49 +64,38 @@ matrix:
           unset CC
           unset CXX
       env: CB_BUILD_AGENT='python2-darwin-x86_64-release'
-    - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='python3-darwin-x86_64-release'
 
 script:
   - |
     set -x
     set -e
     if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-debug' ]; then
-        ./ya make --stat -d catboost/app catboost/pytest;
+        ./ya make --stat -j4 -d catboost/app catboost/pytest;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-debug' ]; then
-        ./ya make --stat -d catboost/app catboost/pytest;
+        ./ya make --stat -j4 -d catboost/app catboost/pytest;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-release' ]; then
-        ./ya make --stat -rttt catboost/app catboost/pytest;
+        ./ya make --stat -j4 -rttt catboost/app catboost/pytest;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
-        ./ya make --stat -rttt catboost/app catboost/pytest;
+        ./ya make --stat -j4 -rttt catboost/app catboost/pytest;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
         cd catboost/python-package;
-        python2.7 ./mk_wheel.py;
+        python2.7 ./mk_wheel.py -j4;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python2-darwin-x86_64-release' ]; then
         cd catboost/python-package;
-        python2.7 ./mk_wheel.py;
+        python2.7 ./mk_wheel.py -j4;
     fi
 
     if [ "${CB_BUILD_AGENT}" == 'python3-linux-x86_64-release' ]; then
         cd catboost/python-package;
-        python3.4 ./mk_wheel.py;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python3-darwin-x86_64-release' ]; then
-        cd catboost/python-package;
-        python3.4 ./mk_wheel.py;
+        python3.4 ./mk_wheel.py -j4;
     fi
