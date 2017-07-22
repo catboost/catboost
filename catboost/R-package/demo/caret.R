@@ -6,6 +6,10 @@ set.seed(12345)
 
 data <- as.data.frame(as.matrix(titanic_train), stringsAsFactors=TRUE)
 
+age_levels <- levels(data$Age)
+most_frequent_age <- which.max(table(data$Age))
+data$Age[is.na(data$Age)] <- age_levels[most_frequent_age]
+
 drop_columns = c("PassengerId", "Survived", "Name", "Ticket", "Cabin")
 x <- data[,!(names(data) %in% drop_columns)]
 y <- data[,c("Survived")]
