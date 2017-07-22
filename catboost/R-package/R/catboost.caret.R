@@ -82,8 +82,9 @@ catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs,
 catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels = NULL) {
   pool <- catboost.from_data_frame(newdata)
   param <- catboost.get_model_params(modelFit)
-  prediction <- catboost.predict(modelFit, pool, type = "Class")
-  if (!is.null(modelFit$lev)) {
+  pred_type <- if (modelFit$problemType == 'Regression') 'RawFormulaVal' else 'Class'
+  prediction <- catboost.predict(modelFit, pool, type = pred_type)
+  if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
     prediction <- modelFit$lev[prediction + 1]
   }
   return(prediction)
