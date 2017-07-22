@@ -104,7 +104,6 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
   param <- catboost.get_model_params(modelFit)
   if (param$loss_function == "Logloss") {
     prediction <- cbind(1 - prediction, prediction)
-    colnames(prediction) <- modelFit$lev
   }
   return(prediction)
 }
