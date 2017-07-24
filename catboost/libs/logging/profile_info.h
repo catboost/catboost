@@ -41,26 +41,27 @@ public:
     }
 
     void PrintState() const {
+        TStringStream log;
         if (DetailedProfile) {
-            MATRIXNET_INFO_LOG << "\nProfile:" << Endl;
+            log << "\nProfile:" << Endl;
         }
         double time = Timer.Passed();
         for (const auto& it : OperationToTime) {
             time += it.second;
             if (DetailedProfile) {
-                MATRIXNET_INFO_LOG << it.first << ": " << FloatToString(it.second, PREC_NDIGITS, 3) << " sec" << Endl;
+                log << it.first << ": " << FloatToString(it.second, PREC_NDIGITS, 3) << " sec" << Endl;
             }
         }
-        MATRIXNET_INFO_LOG << "passed: " << FloatToString(time, PREC_NDIGITS, 3) << " sec";
+        log << "passed: " << FloatToString(time, PREC_NDIGITS, 3) << " sec";
 
         double remainingTime = 0;
         if (PassedIterations > 0) {
             remainingTime = PassedTime / PassedIterations * (Iterations - PassedIterations);
-            MATRIXNET_INFO_LOG << "\ttotal: " << HumanReadable(TDuration::Seconds(PassedTime));
-            MATRIXNET_INFO_LOG << "\tremaining: " << HumanReadable(TDuration::Seconds(remainingTime));
+            log << "\ttotal: " << HumanReadable(TDuration::Seconds(PassedTime));
+            log << "\tremaining: " << HumanReadable(TDuration::Seconds(remainingTime));
         }
 
-        MATRIXNET_INFO_LOG << Endl;
+        MATRIXNET_INFO_LOG << log.Str() << Endl;
         if (TimeLeftLog) {
             *TimeLeftLog << PassedIterations - 1 << "\t" << TDuration::Seconds(remainingTime).MilliSeconds() << "\t"
                          << TDuration::Seconds(PassedTime).MilliSeconds() << Endl;

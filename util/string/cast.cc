@@ -791,7 +791,7 @@ namespace {
     static inline size_t DoDtoa(double d, char* buf, size_t len, int prec) noexcept {
         TBuilder sb(buf, len);
 
-        Y_VERIFY(ToStringConverterNoPad().ToPrecision(d, prec, sb.SB), "shit happen");
+        Y_VERIFY(ToStringConverterNoPad().ToPrecision(d, prec, sb.SB), "conversion failed");
 
         return FixEnd(buf, FixZeros(buf, sb.SB->position()));
     }
@@ -811,7 +811,7 @@ size_t FloatToString(float t, char* buf, size_t len, EFloatToStringMode mode, in
     if (mode == PREC_AUTO) {
         TBuilder sb(buf, len);
 
-        Y_VERIFY(ToStringConverterNoPad().ToShortestSingle(t, sb.SB), "shit happen");
+        Y_VERIFY(ToStringConverterNoPad().ToShortestSingle(t, sb.SB), "conversion failed");
 
         return FixEnd(buf, sb.SB->position());
     }
@@ -830,7 +830,7 @@ size_t FloatToString(double t, char* buf, size_t len, EFloatToStringMode mode, i
     TBuilder sb(buf, len);
 
     if (mode == PREC_AUTO) {
-        Y_VERIFY(ToStringConverterNoPad().ToShortest(t, sb.SB), "shit happen");
+        Y_VERIFY(ToStringConverterNoPad().ToShortest(t, sb.SB), "conversion failed");
 
         return FixEnd(buf, sb.SB->position());
     }

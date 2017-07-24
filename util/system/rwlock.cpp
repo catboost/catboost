@@ -41,8 +41,8 @@ TRWMutex::TImpl::TImpl()
 }
 
 TRWMutex::TImpl::~TImpl() {
-    Y_VERIFY(State_ == 0, "shit happen, State_ != 0");
-    Y_VERIFY(BlockedWriters_ == 0, "shit happen, BlockedWriters_ != 0");
+    Y_VERIFY(State_ == 0, "failure, State_ != 0");
+    Y_VERIFY(BlockedWriters_ == 0, "failure, BlockedWriters_ != 0");
 }
 
 void TRWMutex::TImpl::AcquireRead() noexcept {

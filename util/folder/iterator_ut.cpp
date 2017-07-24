@@ -59,7 +59,7 @@ private:
                     break;
 
                 case 2:
-                    ythrow yexception() << "shit happen";
+                    ythrow yexception() << "unknown path type";
             }
 
             Paths_.push_back(path);

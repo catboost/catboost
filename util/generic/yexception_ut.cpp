@@ -45,14 +45,14 @@ private:
     inline void TestRethrowAppend() {
         try {
             try {
-                ythrow yexception() << "shit";
+                ythrow yexception() << "it";
             } catch (yexception& e) {
                 e << "happens";
 
                 throw;
             }
         } catch (...) {
-            UNIT_ASSERT(CurrentExceptionMessage().Contains("shithappens"))
+            UNIT_ASSERT(CurrentExceptionMessage().Contains("ithappens"))
         }
     }
 

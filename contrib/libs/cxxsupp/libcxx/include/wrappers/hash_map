@@ -1,6 +1,0 @@
-#include "__wrappers_config"
-#include _LIBCXX_PROPER_HEADER(ext/hash_map)
-
-namespace std {
-    using __gnu_cxx::hash_map;
-}

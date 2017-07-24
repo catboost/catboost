@@ -51,7 +51,9 @@ def main(opts, props_args):
         with open(jacoco_report_path, 'w') as dest:
             with tarfile.open(opts.java_coverage_merged_tar) as tar:
                 for src in tar:
-                    shutil.copyfileobj(tar.extractfile(src), dest)
+                    extracted = tar.extractfile(src)
+                    if extracted is not None:
+                        shutil.copyfileobj(extracted, dest)
 
         base_props_args += [
             '-Dsonar.core.codeCoveragePlugin=jacoco',

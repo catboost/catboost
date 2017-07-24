@@ -49,7 +49,7 @@
 #define _GNUC_VER_NEW 0
 #endif
 
-#define _LIBCPP_VERSION 5000
+#define _LIBCPP_VERSION 6000
 
 #ifndef _LIBCPP_ABI_VERSION
 #define _LIBCPP_ABI_VERSION 1
@@ -92,6 +92,9 @@
 // its vtable and typeinfo to libc++ rather than having all other libraries
 // using that class define their own copies.
 #define _LIBCPP_ABI_BAD_FUNCTION_CALL_KEY_FUNCTION
+
+// Enable optimized version of __do_get_(un)signed which avoids redundant copies.
+#define _LIBCPP_ABI_OPTIMIZED_LOCALE_NUM_GET
 #elif _LIBCPP_ABI_VERSION == 1
 #if !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 // Enable compiling copies of now inline methods into the dylib to support
@@ -229,8 +232,9 @@
 #  define _LIBCPP_SHORT_WCHAR   1
 // Both MinGW and native MSVC provide a "MSVC"-like enviroment
 #  define _LIBCPP_MSVCRT_LIKE
-// If mingw not explicitly detected, assume using MS C runtime only.
-#  ifndef __MINGW32__
+// If mingw not explicitly detected, assume using MS C runtime only if
+// a MS compatibility version is specified.
+#  if defined(_MSC_VER) && !defined(__MINGW32__)
 #    define _LIBCPP_MSVCRT // Using Microsoft's C Runtime library
 #  endif
 #  if (defined(_M_AMD64) || defined(__x86_64__)) || (defined(_M_ARM) || defined(__arm__))
@@ -292,7 +296,7 @@
 # endif
 #endif  // !defined(_LIBCPP_LITTLE_ENDIAN) || !defined(_LIBCPP_BIG_ENDIAN)
 
-#if __has_attribute(__no_sanitize__)
+#if __has_attribute(__no_sanitize__) && !defined(_LIBCPP_COMPILER_GCC)
 #define _LIBCPP_NO_CFI __attribute__((__no_sanitize__("cfi")))
 #else
 #define _LIBCPP_NO_CFI
@@ -656,7 +660,6 @@ namespace std {
 #define _LIBCPP_HIDDEN
 #define _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
 #define _LIBCPP_TEMPLATE_VIS
-#define _LIBCPP_FUNC_VIS_ONLY
 #define _LIBCPP_ENUM_VIS
 
 #if defined(_LIBCPP_COMPILER_MSVC)
@@ -713,10 +716,6 @@ namespace std {
 #  else
 #    define _LIBCPP_TEMPLATE_VIS
 #  endif
-#endif
-
-#ifndef _LIBCPP_FUNC_VIS_ONLY
-# define _LIBCPP_FUNC_VIS_ONLY _LIBCPP_FUNC_VIS
 #endif
 
 #ifndef _LIBCPP_EXTERN_VIS
@@ -956,8 +955,10 @@ template <unsigned> struct __static_assert_check {};
 #    define _LIBCPP_STD_VER 11
 #  elif __cplusplus <= 201402L
 #    define _LIBCPP_STD_VER 14
+#  elif __cplusplus <= 201703L
+#    define _LIBCPP_STD_VER 17
 #  else
-#    define _LIBCPP_STD_VER 16  // current year, or date of c++17 ratification
+#    define _LIBCPP_STD_VER 18  // current year, or date of c++2a ratification
 #  endif
 #endif  // _LIBCPP_STD_VER
 
@@ -1186,6 +1187,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
   __attribute__((availability(watchos,strict,introduced=3.0)))
 #define _LIBCPP_AVAILABILITY_BAD_OPTIONAL_ACCESS __attribute__((unavailable))
 #define _LIBCPP_AVAILABILITY_BAD_ARRAY_LENGTH __attribute__((unavailable))
+#define _LIBCPP_AVAILABILITY_BAD_ANY_CAST __attribute__((unavailable))
 #define _LIBCPP_AVAILABILITY_UNCAUGHT_EXCEPTIONS                               \
   __attribute__((availability(macosx,strict,introduced=10.12)))                \
   __attribute__((availability(ios,strict,introduced=10.0)))                    \
@@ -1211,6 +1213,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_AVAILABILITY_SHARED_MUTEX
 #define _LIBCPP_AVAILABILITY_BAD_OPTIONAL_ACCESS
 #define _LIBCPP_AVAILABILITY_BAD_ARRAY_LENGTH
+#define _LIBCPP_AVAILABILITY_BAD_ANY_CAST
 #define _LIBCPP_AVAILABILITY_UNCAUGHT_EXCEPTIONS
 #define _LIBCPP_AVAILABILITY_SIZED_NEW_DELETE
 #define _LIBCPP_AVAILABILITY_FUTURE_ERROR
@@ -1223,9 +1226,12 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #ifdef _LIBCPP_NO_EXCEPTIONS
 #define _LIBCPP_AVAILABILITY_DYNARRAY
 #define _LIBCPP_AVAILABILITY_FUTURE
+#define _LIBCPP_AVAILABILITY_THROW_BAD_ANY_CAST
 #else
 #define _LIBCPP_AVAILABILITY_DYNARRAY _LIBCPP_AVAILABILITY_BAD_ARRAY_LENGTH
 #define _LIBCPP_AVAILABILITY_FUTURE _LIBCPP_AVAILABILITY_FUTURE_ERROR
+#define _LIBCPP_AVAILABILITY_THROW_BAD_ANY_CAST                                \
+  _LIBCPP_AVAILABILITY_BAD_ANY_CAST
 #endif
 
 // Availability of stream API in the dylib got dropped and re-added.  The
@@ -1234,12 +1240,11 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 //    availability(ios,introduced=7.0)
 #if defined(_LIBCPP_USE_AVAILABILITY_APPLE) &&                                 \
     ((defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&                \
-      __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1090) ||                \
+      __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1090) ||                 \
      (defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) &&               \
-      __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ <= 70000))
+      __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ < 70000))
 #define _LIBCPP_AVAILABILITY_NO_STREAMS_EXTERN_TEMPLATE
 #endif
-#endif // __cplusplus
 
 #if defined(_LIBCPP_COMPILER_IBM)
 #define _LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO
@@ -1270,5 +1275,8 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
       _Pragma("pop_macro(\"max\")")
 # endif
 #endif // defined(_LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO)
+
+
+#endif // __cplusplus
 
 #endif // _LIBCPP_CONFIG

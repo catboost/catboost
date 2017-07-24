@@ -554,7 +554,7 @@ class System(object):
         elif self.arch == 64:
             blk.emit("ARCH_TYPE_64", "yes")
         else:
-            logging.error("Shit happen when ARCH_TYPE detection: %s", self.arch)
+            logging.error("Unsupported ARCH_TYPE: %s", self.arch)
 
         if "i386" in self.type:
             blk.emit("ARCH_I386", "yes")
@@ -580,7 +580,7 @@ class System(object):
         elif "ppc64le" == self.type:
             blk.emit("ARCH_PPC64LE", "yes")
         else:
-            logging.error("Shit happen when ARCH detection: %s", self.type)
+            logging.error("Unsupported ARCH: %s", self.type)
 
         if self.os:
             blk.emit(self.os, "yes")

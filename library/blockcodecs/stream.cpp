@@ -94,7 +94,7 @@ void TCodedOutput::DoWrite(const void* buf, size_t len) {
         in += avail;
         len -= avail;
 
-        Y_VERIFY(FlushImpl(), "shit happen");
+        Y_VERIFY(FlushImpl(), "flush on writing failed");
     }
 }
 

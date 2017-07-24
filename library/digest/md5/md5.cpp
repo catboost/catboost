@@ -1,5 +1,7 @@
 #include "md5.h"
 
+#include <contrib/libs/nayuki_md5/md5.h>
+
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/stream/input.h>
@@ -59,10 +61,8 @@ MD5& MD5::Update(TInputStream* in) {
     return *this;
 }
 
-#include "md5.c"
-
 static inline void MD5Transform(ui32 state[4], const unsigned char block[64]) {
-    return md5_compress(state, (const ui32*)block);
+    return md5_compress((uint32_t*)state, (const uint8_t*)block);
 }
 
 /*

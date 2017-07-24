@@ -1,8 +1,6 @@
-dist: trusty
 sudo: false
-language: cpp
-cache: apt
 cache:
+  packages: true
   apt: true
   directories:
     - $HOME/.ya
@@ -20,82 +18,83 @@ addons:
       - python-dev
       - python3-dev
 
+before_script: |
+    # `ya` provides it's own compiler toolchains, `CC` and CXX` environment variables will override
+    # them so we have to unset them.
+    #
+    unset CC
+    unset CXX
+
 matrix:
   include:
     - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      dist: trusty
+      language: cpp
       env: CB_BUILD_AGENT='clang-linux-x86_64-debug'
-    - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
-      env: CB_BUILD_AGENT='clang-darwin-x86_64-debug'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      dist: trusty
+      language: cpp
       env: CB_BUILD_AGENT='clang-linux-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      dist: trusty
+      language: python
+      python: 2.7
       env: CB_BUILD_AGENT='python2-linux-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: linux
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      dist: trusty
+      language: python
+      python: 3.4
       env: CB_BUILD_AGENT='python3-linux-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+    - os: linux
+      dist: trusty
+      language: r
+      r: release
+      before_install: cd catboost/R-package
+      env: CB_BUILD_AGENT='r-linux-x86_64-release'
     - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      osx_image: xcode8.3
+      language: cpp
+      env: CB_BUILD_AGENT='clang-darwin-x86_64-debug'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+    - os: osx
+      osx_image: xcode8.3
+      language: cpp
       env: CB_BUILD_AGENT='clang-darwin-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: osx
-      before_install:
-        - |
-          unset CC
-          unset CXX
+      osx_image: xcode8.3
+      # python runtime is not available yet [1], so we have to prepare sandbox by ourselves
+      # [1] https://github.com/travis-ci/travis-ci/issues/2312
+      #
+      language: generic
+      before_install: brew update
+      install: |
+        # vm already has python 2.7 installed, we do it here only for consistency with python3 build
+        #
+        brew install python
+        virtualenv py2env -p python2
+        source py2env/bin/activate
       env: CB_BUILD_AGENT='python2-darwin-x86_64-release'
-
-script:
-  - |
-    set -x
-    set -e
-    if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-debug' ]; then
-        ./ya make --stat -j4 -d catboost/app catboost/pytest;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-debug' ]; then
-        ./ya make --stat -j4 -d catboost/app catboost/pytest;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-release' ]; then
-        ./ya make --stat -j4 -rttt catboost/app catboost/pytest;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
-        ./ya make --stat -j4 -rttt catboost/app catboost/pytest;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
-        cd catboost/python-package;
-        python2.7 ./mk_wheel.py -j4;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python2-darwin-x86_64-release' ]; then
-        cd catboost/python-package;
-        python2.7 ./mk_wheel.py -j4;
-    fi
-
-    if [ "${CB_BUILD_AGENT}" == 'python3-linux-x86_64-release' ]; then
-        cd catboost/python-package;
-        python3.4 ./mk_wheel.py -j4;
-    fi
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+    - os: osx
+      osx_image: xcode8.3
+      language: generic
+      before_install: brew update
+      install: |
+        brew install python3
+        virtualenv py3env -p python3
+        source py3env/bin/activate
+      env: CB_BUILD_AGENT='python3-darwin-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+    - os: osx
+      osx_image: xcode8.3
+      language: r
+      r: release
+      before_install: cd catboost/R-package
+      env: CB_BUILD_AGENT='r-darwin-x86_64-release'
+  allow_failures:
+    - language: r

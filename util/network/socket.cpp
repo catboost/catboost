@@ -631,7 +631,7 @@ static inline SOCKET DoConnectImpl(const struct addrinfo* res, const TInstant& d
         return s.Release();
     }
 
-    ythrow yexception() << "shit happen";
+    ythrow yexception() << "something went wrong: nullptr at addrinfo";
 }
 
 static inline SOCKET DoConnect(const struct addrinfo* res, const TInstant& deadLine) {

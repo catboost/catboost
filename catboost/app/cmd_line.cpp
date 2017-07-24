@@ -1,12 +1,15 @@
 #include "cmd_line.h"
 #include <library/grid_creator/binarization.h>
 
-#include <util/system/info.h>
+#include <util/generic/strbuf.h>
+#include <util/string/iterator.h>
 #include <util/string/vector.h>
+#include <util/system/info.h>
 
-static yvector<int> ParseIndicesLine(const TString& indicesLine) {
+static yvector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     yvector<int> result;
-    for (TStringBuf s : splitStroku(indicesLine, ":")) {
+    for (const auto& t : StringSplitter(indicesLine).Split(':')) {
+        const auto s = t.Token();
         int from = FromString<int>(s.Before('-'));
         int to = FromString<int>(s.After('-')) + 1;
         for (int i = from; i < to; ++i) {
@@ -49,8 +52,8 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, AUC")
         .RequiredArgument("comma separated list of loss functions")
         .Handler1T<TString>([&trainJson](const TString& lossFunctionsLine) {
-            for (TStringBuf lossFunction : splitStroku(lossFunctionsLine, ",")) {
-                (*trainJson)["custom_loss"].AppendValue(lossFunction);
+            for (const auto& t : StringSplitter(lossFunctionsLine).Split(',')) {
+                (*trainJson)["custom_loss"].AppendValue(t.Token());
             }
         });
 
@@ -67,12 +70,14 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongName("cd")
         .RequiredArgument("PATH")
         .StoreResult(&params->CdFile);
-    parser.AddLongOption("delimiter", "Read first line as header")
+
+    parser.AddLongOption("delimiter", "Learning and training sets delimiter")
         .RequiredArgument("SYMBOL")
         .Handler1T<TString>([&params](const TString& oneChar) {
             CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
             params->Delimiter = oneChar[0];
         });
+
     parser.AddLongOption("has-header", "Read first line as header")
         .NoArgument()
         .StoreValue(&params->HasHeaders, true);
@@ -153,8 +158,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongName("ctr")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([&trainJson](const TString& ctrDescriptionLine) {
-        for (TStringBuf ctrDescription : splitStroku(ctrDescriptionLine, ",")) {
-            (*trainJson)["ctr_description"].AppendValue(ctrDescription);
+            for (const auto& t : StringSplitter(ctrDescriptionLine).Split(',')) {
+                (*trainJson)["ctr_description"].AppendValue(t.Token());
         }});
 
     parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
@@ -270,8 +275,8 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("feature-priors")
         .RequiredArgument("priors-line")
         .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
-        for (TStringBuf featurePriors : splitStroku(priorsDesctiption, ",")) {
-            (*trainJson)["feature_priors"].AppendValue(featurePriors);
+            for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
+                (*trainJson)["feature_priors"].AppendValue(t.Token());
         }})
         .Help("You might provide custom per feature priors. They will be used instead of default ones. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1.");
 
@@ -327,8 +332,8 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
         .Handler1T<TString>([&trainJson](const TString& weightsLine) {
-            for (TStringBuf weight : splitStroku(weightsLine, ",")) {
-                (*trainJson)["class_weights"].AppendValue(FromString<float>(weight));
+            for (const auto& t : StringSplitter(weightsLine).Split(',')) {
+                (*trainJson)["class_weights"].AppendValue(FromString<float>(t.Token()));
             }
         });
 

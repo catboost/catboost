@@ -9,6 +9,8 @@
 #include <util/generic/deque.h>
 #include <util/generic/queue.h>
 
+#include <tuple>
+
 #include <cstdlib>
 
 namespace {
@@ -22,15 +24,7 @@ namespace {
 
         struct TCmp {
             inline bool operator()(const TFunc* l, const TFunc* r) const noexcept {
-                if (l->Priority < r->Priority) {
-                    return true;
-                }
-
-                if (l->Priority == r->Priority) {
-                    return l->Number < r->Number;
-                }
-
-                return false;
+                return std::tie(l->Priority, l->Number) < std::tie(r->Priority, r->Number);
             }
         };
 

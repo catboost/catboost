@@ -4,7 +4,7 @@ RECURSE(
     base64
     clapack
     coreml
-    cxxsupp/libcxx
+    cxxsupp/libcxx-next
     fastlz
     fmath
     jemalloc
@@ -14,6 +14,7 @@ RECURSE(
     lz4
     lz4/generated
     lzmasdk
+    nayuki_md5
     openssl
     openssl/apps
     openssl/dynamic

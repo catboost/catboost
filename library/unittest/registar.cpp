@@ -8,6 +8,7 @@
 #include <util/string/printf.h>
 #include <util/system/backtrace.h>
 #include <util/system/tls.h>
+#include <util/system/error.h>
 
 bool NUnitTest::ShouldColorizeDiff = true;
 bool NUnitTest::ContinueOnFail = false;
@@ -307,7 +308,7 @@ void NUnitTest::TTestBase::SetUp() {
 void NUnitTest::TTestBase::TearDown() {
 }
 
-void NUnitTest::TTestBase::AddError(const char* msg, const TString& backtrace, const TTestContext* context) {
+void NUnitTest::TTestBase::AddError(const char* msg, const TString& backtrace, TTestContext* context) {
     ++TestErrors_;
     const NUnitTest::ITestSuiteProcessor::TUnit unit = {Name()};
     const NUnitTest::ITestSuiteProcessor::TTest test = {&unit, CurrentSubtest_};
@@ -316,7 +317,7 @@ void NUnitTest::TTestBase::AddError(const char* msg, const TString& backtrace, c
     Processor()->Error(err);
 }
 
-void NUnitTest::TTestBase::AddError(const char* msg, const TTestContext* context) {
+void NUnitTest::TTestBase::AddError(const char* msg, TTestContext* context) {
     AddError(msg, TString(), context);
 }
 
@@ -327,10 +328,17 @@ bool NUnitTest::TTestBase::CheckAccessTest(const char* test) {
 void NUnitTest::TTestBase::BeforeTest(const char* func) {
     const NUnitTest::ITestSuiteProcessor::TUnit unit = {Name()};
     const NUnitTest::ITestSuiteProcessor::TTest test = {&unit, func};
+    rusage.Fill();
     Processor()->BeforeTest(test);
 }
 
-void NUnitTest::TTestBase::Finish(const char* func, const TTestContext* context) {
+void NUnitTest::TTestBase::Finish(const char* func, TTestContext* context) {
+    TRusage finishRusage = TRusage::Get();
+    context->Metrics["ru_rss"] = finishRusage.Rss - rusage.Rss;
+    context->Metrics["ru_major_pagefaults"] = finishRusage.MajorPageFaults - rusage.MajorPageFaults;
+    context->Metrics["ru_utime"] = (finishRusage.Utime - rusage.Utime).MicroSeconds();
+    context->Metrics["ru_stime"] = (finishRusage.Stime - rusage.Stime).MicroSeconds();
+
     const NUnitTest::ITestSuiteProcessor::TUnit unit = {Name()};
     const NUnitTest::ITestSuiteProcessor::TTest test = {&unit, func};
     const NUnitTest::ITestSuiteProcessor::TFinish finish = {&test, context, TestErrors_ == 0};

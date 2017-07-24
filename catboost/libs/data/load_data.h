@@ -41,6 +41,8 @@ public:
     virtual void SetFeatureIds(const yvector<TString>& featureIds) = 0;
 
     virtual void Finish() = 0;
+
+    virtual ~IPoolBuilder() = default;
 };
 
 void ReadPool(const std::string& cdFile,

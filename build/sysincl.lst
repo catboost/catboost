@@ -621,6 +621,7 @@ sys/mutex.h
 sys/namei.h
 sys/nlist_aout.h
 sys/osd.h
+sys/quota.h
 sys/param.h
 sys/pciio.h
 sys/pcpu.h

@@ -130,6 +130,7 @@ SRCS(
     src/utility.cpp
     src/valarray.cpp
     src/variant.cpp
+    src/vector.cpp
 )
 
 IF(NOT OS_WINDOWS)

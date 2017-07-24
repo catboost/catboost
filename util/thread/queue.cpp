@@ -371,7 +371,7 @@ public:
 
             Obj_ = obj;
 
-            Y_ENSURE(!AllDone_, STRINGBUF("shit happen"));
+            Y_ENSURE(!AllDone_, STRINGBUF("adding to a stopped queue"));
         }
 
         CondReady_.Signal();

@@ -137,6 +137,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
       <Project>90F91270-0728-ADD6-69B3-0B2735FE25FB</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
+      <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>18399176-5408-8102-7C5F-8DA029B8F78E</Project>
     </ProjectReference>

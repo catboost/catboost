@@ -107,8 +107,10 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\utility.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\valarray.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\variant.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\vector.cpp"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\include\atomic_support.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\include\config_elast.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx-next\src\include\refstring.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -107,9 +107,9 @@ struct TSplitCandidate {
     }
 
     bool operator==(const TSplitCandidate& other) const {
-        return Type == other.Type && ((Type == ESplitType::FloatFeature || Type == ESplitType::OneHotFeature) &&
-                                      FeatureIdx == other.FeatureIdx ||
-                                      Type == ESplitType::OnlineCtr && Ctr == other.Ctr);
+        return Type == other.Type &&
+            (((Type == ESplitType::FloatFeature || Type == ESplitType::OneHotFeature) && FeatureIdx == other.FeatureIdx)
+            || (Type == ESplitType::OnlineCtr && Ctr == other.Ctr));
     }
 };
 
@@ -171,9 +171,9 @@ struct TSplit {
     }
 
     bool operator==(const TSplit& other) const {
-        return Type == other.Type && (Type == ESplitType::FloatFeature && BinFeature == other.BinFeature ||
-                                      Type == ESplitType::OnlineCtr && OnlineCtr == other.OnlineCtr ||
-                                      Type == ESplitType::OneHotFeature && OneHotFeature == other.OneHotFeature);
+        return Type == other.Type && ((Type == ESplitType::FloatFeature && BinFeature == other.BinFeature) ||
+                                      (Type == ESplitType::OnlineCtr && OnlineCtr == other.OnlineCtr) ||
+                                      (Type == ESplitType::OneHotFeature && OneHotFeature == other.OneHotFeature));
     }
 
     bool operator<(const TSplit& other) const {

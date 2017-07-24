@@ -69,7 +69,7 @@ void CheckValues(const TFitParams& params) {
     CB_ENSURE(!params.TimeLeftLog.empty(), "empty time_left filename");
     CB_ENSURE(!params.LearnErrorLog.empty(), "empty learn_error filename");
     CB_ENSURE(params.L2LeafRegularizer >= 0, "L2LeafRegularizer should be >= 0, current value: " << params.L2LeafRegularizer);
-    const int maxModelDepth = sizeof(TIndexType) * 8;
+    const int maxModelDepth = Min(sizeof(TIndexType) * 8, size_t(16));
     CB_ENSURE(params.Depth > 0);
     CB_ENSURE(params.Depth <= maxModelDepth, "Maximum depth is " << maxModelDepth);
     CB_ENSURE(params.GradientIterations > 0);

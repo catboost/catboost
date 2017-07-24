@@ -20,6 +20,8 @@
 #include <util/system/defaults.h>
 #include <util/system/src_location.h>
 
+#include <util/system/rusage.h>
+
 #include <cmath>
 #include <cstdio>
 #include <functional>
@@ -77,12 +79,12 @@ namespace NUnitTest {
             const TTest* test;
             const char* msg;
             TString BackTrace;
-            const TTestContext* Context;
+            TTestContext* Context;
         };
 
         struct TFinish {
             const TTest* test;
-            const TTestContext* Context;
+            TTestContext* Context;
             bool Success;
         };
 
@@ -169,6 +171,7 @@ namespace NUnitTest {
 
     class TTestBase {
         friend class TTestFactory;
+        TRusage rusage;
 
     public:
         TTestBase() noexcept;
@@ -184,16 +187,16 @@ namespace NUnitTest {
 
         virtual void TearDown();
 
-        void AddError(const char* msg, const TString& backtrace = TString(), const TTestContext* context = nullptr);
+        void AddError(const char* msg, const TString& backtrace = TString(), TTestContext* context = nullptr);
 
-        void AddError(const char* msg, const TTestContext* context);
+        void AddError(const char* msg, TTestContext* context);
 
     protected:
         bool CheckAccessTest(const char* test);
 
         void BeforeTest(const char* func);
 
-        void Finish(const char* func, const TTestContext* context);
+        void Finish(const char* func, TTestContext* context);
 
         void AtStart();
 
@@ -801,6 +804,7 @@ public:                       \
     namespace NTestSuite##N
 
 #define SIMPLE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, TTestBase)
+#define RUSAGE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, NUnitTest::TRusageTest)
 
 #define SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF)                                                  \
     void N(NUnitTest::TTestContext&);                                                          \
