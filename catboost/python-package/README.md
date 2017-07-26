@@ -1,7 +1,7 @@
 CatBoost Python Package
 ======================
 
-|PyPI version|
+[![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
 
 
 Installation
