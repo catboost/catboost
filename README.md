@@ -1,7 +1,7 @@
 <img src=http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png width=300/>
 
-[Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) |
-[Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
+[Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) | [Python Installation](https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/) |
+[R Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
 [![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost)
 [![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
