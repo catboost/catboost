@@ -9,7 +9,38 @@ from catboost_pytest_lib import data_file, local_canonical_file
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
 
-def test_overfit_detector():
+def test_overfit_detector_iter():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '1000',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-x', '1',
+        '-n', '8',
+        '-w', '1',
+        '--rsm', '1',
+        '--overfitting-detector-type', 'Iter',
+        '--overfitting-detector-iterations-wait', '10'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+DETECTOR_TYPES = ['Wilcoxon', 'IncToDec']
+
+
+@pytest.mark.parametrize('detector_type', DETECTOR_TYPES)
+def test_overfit_detector_types(detector_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -28,8 +59,10 @@ def test_overfit_detector():
         '-x', '1',
         '-n', '8',
         '-w', '1',
-        '--auto-stop-pval', '0.99',
-        '--rsm', '1'
+        '--rsm', '1',
+        '--od-pval', '0.99',
+        '--od-type', detector_type,
+        '--od-wait', '10'
     )
     yatest.common.execute(cmd)
 
@@ -660,6 +693,33 @@ def test_target_border(border_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--ctr', 'Borders:3:' + border_type
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+COUNTER_METHODS = ['Basic', 'Static', 'Universal']
+
+
+@pytest.mark.parametrize('counter_calc_method', COUNTER_METHODS)
+def test_counter_calc(counter_calc_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
+        '-i', '3',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--counter-calc-method', counter_calc_method
     )
     yatest.common.execute(cmd)
 

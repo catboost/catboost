@@ -162,7 +162,7 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
     Y_ASSERT(lossFunction == ELossFunction::Quantile || lossFunction == ELossFunction::MAE);
     CB_ENSURE(lossFunction == ELossFunction::Quantile || alpha == 0.5, "Alpha parameter should not be used for MAE loss");
     CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6,
-              "Alpha parameter for quantile metric should be in interval (0, 1)");
+              "Alpha parameter for quantile metric should be in interval [0, 1]");
 }
 
 TErrorHolder TQuantileMetric::Eval(const yvector<yvector<double>>& approx,
@@ -183,7 +183,9 @@ TErrorHolder TQuantileMetric::Eval(const yvector<yvector<double>>& approx,
         error.Error += (multiplier * val) * w;
         error.Weight += w;
     }
-
+    if(LossFunction == ELossFunction::MAE) {
+        error.Error *= 2;
+    }
     return error;
 }
 

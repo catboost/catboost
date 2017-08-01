@@ -69,8 +69,9 @@ public:
 
     void InsertEscaped(const TStringBuf name, const TStringBuf value);
 
-    inline void InsertUnescaped(const TStringBuf name, const TStringBuf value) {
-        emplace(TString(name), TString(value));
+    template <typename TName, typename TValue>
+    inline void InsertUnescaped(TName&& name, TValue&& value) {
+        emplace(std::forward<TName>(name), std::forward<TValue>(value));
     }
 
     // will replace one or more values with a single one

@@ -11,15 +11,13 @@
 #include <util/stream/str.h>
 #include <util/stream/file.h>
 
-void OutputModel(const TFullModel& model, const std::string& modelFile) {
-    TString modelFileStr(modelFile);
-    TOFStream f(modelFileStr);
+void OutputModel(const TFullModel& model, const TString& modelFile) {
+    TOFStream f(modelFile);
     Save(&f, model);
 }
 
-TFullModel ReadModel(const std::string& modelFile) {
-    TString modelFileStr(modelFile);
-    TIFStream f(modelFileStr);
+TFullModel ReadModel(const TString& modelFile) {
+    TIFStream f(modelFile);
     TFullModel model;
     Load(&f, model);
     return model;

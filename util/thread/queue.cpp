@@ -34,9 +34,10 @@ class TMtpQueue::TImpl: public TIntrusiveListItem<TImpl>, public IThreadPool::IT
     using TThreadRef = TAutoPtr<IThreadPool::IThread>;
 
 public:
-    inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, bool blocking)
+    inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, bool blocking, ECatching catching)
         : Parent_(parent)
         , Blocking(blocking)
+        , Catching(catching)
         , ShouldTerminate(1)
         , MaxQueueSize(0)
         , ThreadCountExpected(0)
@@ -174,13 +175,17 @@ private:
 
             QueuePopCond.Signal();
 
-            try {
+            if (Catching == CatchingMode) {
                 try {
-                    job->Process(*tsr);
+                    try {
+                        job->Process(*tsr);
+                    } catch (...) {
+                        Cdbg << "[mtp queue] " << CurrentExceptionMessage() << Endl;
+                    }
                 } catch (...) {
-                    Cdbg << "[mtp queue] " << CurrentExceptionMessage() << Endl;
                 }
-            } catch (...) {
+            } else {
+                job->Process(*tsr);
             }
         }
 
@@ -197,6 +202,7 @@ private:
 private:
     TMtpQueue* Parent_;
     const bool Blocking;
+    const ECatching Catching;
     mutable TMutex QueueMutex;
     mutable TMutex StopMutex;
     TCondVar QueuePushCond;
@@ -255,14 +261,16 @@ private:
     };
 };
 
-TMtpQueue::TMtpQueue(bool blocking)
+TMtpQueue::TMtpQueue(bool blocking, ECatching catching)
     : Blocking(blocking)
+    , Catching(catching)
 {
 }
 
-TMtpQueue::TMtpQueue(IThreadPool* pool, bool blocking)
+TMtpQueue::TMtpQueue(IThreadPool* pool, bool blocking, ECatching catching)
     : TThreadPoolHolder(pool)
     , Blocking(blocking)
+    , Catching(catching)
 {
 }
 
@@ -287,7 +295,7 @@ bool TMtpQueue::Add(IObjectInQueue* obj) {
 }
 
 void TMtpQueue::Start(size_t thrnum, size_t maxque) {
-    Impl_.Reset(new TImpl(this, thrnum, maxque, Blocking));
+    Impl_.Reset(new TImpl(this, thrnum, maxque, Blocking, Catching));
 }
 
 void TMtpQueue::Stop() noexcept {

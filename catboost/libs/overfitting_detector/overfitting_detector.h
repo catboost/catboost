@@ -9,7 +9,8 @@
 
 enum class EOverfittingDetectorType {
     Wilcoxon,
-    IncToDec
+    IncToDec,
+    Iter
 };
 
 class IOverfittingDetector {
@@ -24,15 +25,14 @@ public:
     virtual bool IsActive() const = 0;
 };
 
-class TOverfittingDetectorBase: public IOverfittingDetector {
+class TOverfittingDetectorBase : public IOverfittingDetector {
 public:
     TOverfittingDetectorBase(bool maxIsOptimal, double threshold, int iterationsWait)
         : IsEmpty(true)
         , Threshold(threshold)
         , MaxIsOptimal(maxIsOptimal)
         , IterationsWait(iterationsWait)
-        , CurrentPValue(1.0)
-    {
+        , CurrentPValue(1.0) {
     }
 
     double GetCurrentPValue() const override {
@@ -65,11 +65,10 @@ protected:
     double CurrentPValue;
 };
 
-class TOverfittingDetectorWilcoxon: public TOverfittingDetectorBase {
+class TOverfittingDetectorWilcoxon : public TOverfittingDetectorBase {
 public:
     TOverfittingDetectorWilcoxon(bool maxIsOptimal, double threshold, int iterationsWait, bool hasTest)
-        : TOverfittingDetectorBase(maxIsOptimal, hasTest ? threshold : 0, iterationsWait)
-    {
+        : TOverfittingDetectorBase(maxIsOptimal, hasTest ? threshold : 0, iterationsWait) {
         CB_ENSURE(hasTest || threshold == 0, "No test provided, cannot check overfitting.");
     }
 
@@ -83,11 +82,10 @@ private:
     double LocalMax;
 };
 
-class TOverfittingDetectorIncToDec: public TOverfittingDetectorBase {
+class TOverfittingDetectorIncToDec : public TOverfittingDetectorBase {
 public:
     TOverfittingDetectorIncToDec(bool maxIsOptimal, double threshold, int iterationsWait, bool hasTest)
-        : TOverfittingDetectorBase(maxIsOptimal, hasTest ? threshold : 0, iterationsWait)
-    {
+        : TOverfittingDetectorBase(maxIsOptimal, hasTest ? threshold : 0, iterationsWait) {
     }
 
     void AddError(double err) override;
@@ -133,6 +131,8 @@ inline TAutoPtr<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDete
         return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorWilcoxon(maxIsOptimal, threshold, iterationsWait, hasTest));
     } else if (type == EOverfittingDetectorType::IncToDec) {
         return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, threshold, iterationsWait, hasTest));
+    } else if (type == EOverfittingDetectorType::Iter) {
+        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, 1.0, iterationsWait, hasTest));
     } else {
         CB_ENSURE(false);
     }

@@ -153,8 +153,8 @@ int ConvertFloatCatFeatureToIntHash(float feature) {
     return *reinterpret_cast<const int*>(&feature);
 }
 
-void ReadPool(const std::string& cdFile,
-              const std::string& poolFile,
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
               int threadCount,
               bool verbose,
               TPool* pool,
@@ -164,8 +164,8 @@ void ReadPool(const std::string& cdFile,
     ReadPool(cdFile, poolFile, threadCount, verbose, builder, fieldDelimiter, hasHeader);
 }
 
-void ReadPool(const std::string& cdFile,
-              const std::string& poolFile,
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
               int threadCount,
               bool verbose,
               IPoolBuilder& poolBuilder,
@@ -280,7 +280,7 @@ void ReadPool(const std::string& cdFile,
             yvector<TStringBuf> words;
             const auto& line = parseBuffer[lineIdx];
             SplitRangeTo<const char, yvector<TStringBuf>>(~line, ~line + line.size(), fieldDelimiter, &words);
-            CB_ENSURE(words.ysize() == columnsDescription.ysize(), "wrong columns number in pool line");
+            CB_ENSURE(words.ysize() == columnsDescription.ysize(), "wrong columns number in pool line " << lineIdx + 1 << ": expected " << columnsDescription.ysize() << ", found " << words.ysize());
 
             ui32 featureId = 0;
             ui32 baselineIdx = 0;

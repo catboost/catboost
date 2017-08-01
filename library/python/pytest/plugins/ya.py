@@ -246,6 +246,18 @@ def pytest_runtest_call(item):
     yatest_logger.info("Test call")
 
 
+def pytest_deselected(items):
+    config = pytest.config
+    if config.option.report_deselected:
+        for item in items:
+            deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
+            config.ya_trace_reporter.on_start_test_class(deselected_item)
+            config.ya_trace_reporter.on_start_test_case(deselected_item)
+            config.ya_trace_reporter.on_finish_test_case(deselected_item)
+            config.ya_trace_reporter.on_finish_test_class(deselected_item)
+
+
+@pytest.mark.trylast
 def pytest_collection_modifyitems(items, config):
 
     def filter_items(filters):
@@ -263,13 +275,6 @@ def pytest_collection_modifyitems(items, config):
                 filtered_items.append(item)
             else:
                 deselected_items.append(item)
-
-                if config.option.report_deselected:
-                    deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
-                    config.ya_trace_reporter.on_start_test_class(deselected_item)
-                    config.ya_trace_reporter.on_start_test_case(deselected_item)
-                    config.ya_trace_reporter.on_finish_test_case(deselected_item)
-                    config.ya_trace_reporter.on_finish_test_class(deselected_item)
 
         config.hook.pytest_deselected(items=deselected_items)
         items[:] = filtered_items

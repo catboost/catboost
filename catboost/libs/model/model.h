@@ -130,8 +130,8 @@ struct TFullModel: public TCoreModel {
     }
 };
 
-void OutputModel(const TFullModel& model, const std::string& modelFile);
-TFullModel ReadModel(const std::string& modelFile);
+void OutputModel(const TFullModel& model, const TString& modelFile);
+TFullModel ReadModel(const TString& modelFile);
 
 enum class EModelExportType {
     CatboostBinary,

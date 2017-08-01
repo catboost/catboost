@@ -7,7 +7,6 @@
 #include <util/system/fs.h>
 #include <util/stream/file.h>
 
-
 TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
     TFsPath filePath(fileName);
     if (filePath.IsAbsolute()) {
@@ -65,7 +64,7 @@ void TLearnContext::OutputMeta(int approxDimension) {
 void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
     for (const auto& ctr : Params.CtrParams.Ctrs) {
         int targetBorderCount = 0;
-        if (!IsCounter(ctr.CtrType)) {
+        if (ctr.CtrType != ECtrType::Counter) {
             if (Params.LossFunction == ELossFunction::MultiClass) {
                 targetBorderCount = approxDimension - 1;
             } else {
@@ -121,11 +120,10 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
 }
 
 namespace {
-    class TMD5Output: public TOutputStream {
+    class TMD5Output : public TOutputStream {
     public:
         explicit inline TMD5Output(TOutputStream* slave) noexcept
-            : Slave_(slave)
-        {
+            : Slave_(slave) {
         }
 
         inline const char* Sum(char* buf) {
@@ -139,7 +137,7 @@ namespace {
         }
 
         /* Note that default implementation of DoSkip works perfectly fine here as
-     * it's implemented in terms of DoRead. */
+         * it's implemented in terms of DoRead. */
 
     private:
         TOutputStream* Slave_;
@@ -178,9 +176,10 @@ void TLearnContext::LoadProgress() {
     try {
         TIFStream in(Files.SnapshotFile);
         TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
-        ::LoadMany(&in, Rand, LearnProgressRestored);         // fail here does nothing with real LearnProgress
+        ::LoadMany(&in, Rand, LearnProgressRestored); // fail here does nothing with real LearnProgress
         LearnProgress = std::move(LearnProgressRestored);
         LearnProgress.Model.ParamsJson = ToString(ResultingParams); // substitute real
+        Profile.SetInitIterations(LearnProgress.Model.TreeStruct.ysize());
     } catch (...) {
         MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: " << CurrentExceptionMessage() << Endl;
     }

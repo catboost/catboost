@@ -2,10 +2,19 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.ncol}
 \alias{catboost.ncol}
-\title{Returns number of columns in a pool}
+\title{catboost.ncol}
 \usage{
 catboost.ncol(pool)
 }
+\arguments{
+\item{pool}{The input dataset.}
+}
+\value{
+The number of columns.
+}
 \description{
-Returns number of columns in a pool
+Calculate the number of columns in the dataset.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-ncol-docpage/}
 }

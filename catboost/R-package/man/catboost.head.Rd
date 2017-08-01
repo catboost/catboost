@@ -2,10 +2,30 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.head}
 \alias{catboost.head}
-\title{Returns top n objects from pool}
+\title{catboost.head}
 \usage{
 catboost.head(pool, n = 10)
 }
+\arguments{
+\item{pool}{The input dataset.
+
+Default value: Required argument}
+
+\item{n}{The quantity of the first objects in the dataset to be returned.
+
+Default value: 10}
+}
 \description{
-Returns top n objects from pool
+Return a list with the first n objects of the dataset.
+}
+\details{
+Each line of this list contains the following information for each object:
+\itemize{
+  \item The target value.
+  \item The weight of the object.
+  \item The feature values for the object.
+}
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-head-docpage/}
 }

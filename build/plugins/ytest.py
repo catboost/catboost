@@ -195,6 +195,7 @@ def onadd_ytest(unit, *args):
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
+        'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
 
     # use all cores if fuzzing requested
@@ -273,7 +274,6 @@ def onadd_check(unit, *args):
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
         flat_args[1] = allowed_levels[check_level]
         script_rel_path = "java.style"
-        unit.oninternal_recurse("devtools/jstyle-runner")
     else:
         script_rel_path = check_type
 
@@ -457,6 +457,7 @@ def onjava_test(unit, *args):
         'JVM_ARGS': serialize_list(get_values_list(unit, 'JVM_ARGS_VALUE')),
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
+        'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
 
     data = dump_test(test_record)
@@ -555,6 +556,7 @@ def _dump_test(
             'OLD_PYTEST': 'yes' if old_pytest else 'no',
             'PYTHON-PATHS': serialize_list(python_paths),
             'TEST-CWD': test_cwd or '',
+            'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
         }
         if binary_path:
             test_record['BINARY-PATH'] = strip_roots(binary_path)

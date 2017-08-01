@@ -7,7 +7,30 @@ namespace NMemInfo {
 }
 
 namespace NLoggingImpl {
-    TString GetLocalTimeS();
+    class TLocalTimeS {
+    public:
+        TLocalTimeS(TInstant instant = TInstant::Now())
+            : Instant(instant)
+        {
+        }
+
+        TInstant GetInstant() const {
+            return Instant;
+        }
+
+        operator TString() const;
+        TString operator+(TStringBuf right) const;
+
+    private:
+        TInstant Instant;
+    };
+
+    TOutputStream& operator<<(TOutputStream& out, TLocalTimeS localTimeS);
+
+    inline TLocalTimeS GetLocalTimeS() {
+        return TLocalTimeS();
+    }
+
     TString GetSystemResources();
     TString PrintSystemResources(const NMemInfo::TMemInfo& info);
 }

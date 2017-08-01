@@ -2,24 +2,45 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.save_pool}
 \alias{catboost.save_pool}
-\title{Writes data.frame in pool format}
+\title{catboost.save_pool}
 \usage{
-catboost.save_pool(data, target, weight, baseline, pool_path,
-  column_description_path)
+catboost.save_pool(data, target, weight, baseline, pool_path, cd_path)
 }
 \arguments{
-\item{data}{Features data.frame}
+\item{data}{A data.frame with features.
+The following column types are supported:
+\itemize{
+\item double
+\item factor.
+It is assumed that categorical features are given in this type of columns.
+A standard CatBoost processing procedure is applied to this type of columns:
+  \describe{
+  \item{1.}{The values are converted to strings.}
+  \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+  }
+}}
 
-\item{target}{Target vector}
+\item{target}{The target vector.}
 
-\item{baseline}{Baseline vector}
+\item{weight}{The weights of the target vector.}
 
-\item{pool_path}{Pool file path}
+\item{baseline}{Vector of initial (raw) values of the target function for the object.
+Used in the calculation of final values of trees.}
 
-\item{column_description_path}{Column description file path}
+\item{pool_path}{The path to the otuptut file that contains the dataset description.}
 
-\item{weights}{Weights vector}
+\item{cd_path}{The path to the output file that contains the column descriptions.}
 }
 \description{
-Writes data.frame in pool format
+Save the dataset to the CatBoost format.
+Files with the following data are created:
+\itemize{
+\item Dataset description
+\item Column descriptions
+}
+Use the catboost.load_pool function to read the resulting files.
+These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version} and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost_save_pool-docpage/}
 }

@@ -45,8 +45,8 @@ public:
     virtual ~IPoolBuilder() = default;
 };
 
-void ReadPool(const std::string& cdFile,
-              const std::string& poolFile,
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
               int threadCount,
               bool verbose,
               IPoolBuilder& poolBuilder,
@@ -54,8 +54,8 @@ void ReadPool(const std::string& cdFile,
               bool hasHeader = false);
 
 
-void ReadPool(const std::string& cdFile,
-              const std::string& poolFile,
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
               int threadCount,
               bool verbose,
               TPool* pool,

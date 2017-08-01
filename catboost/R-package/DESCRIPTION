@@ -7,3 +7,4 @@ Imports: jsonlite
 License: Apache License, Version 2.0
 Description: This is CatBoost R package. An open-source gradient boosting on decision trees library with categorical features support out of the box. 
 Author: CatBoost Developers
+

@@ -157,8 +157,13 @@ public:
 /** queue processed by fixed size thread pool */
 class TMtpQueue: public IMtpQueue, public TThreadPoolHolder {
 public:
-    TMtpQueue(bool blocking = false);
-    TMtpQueue(IThreadPool* pool, bool blocking = false);
+    enum ECatching {
+        NonCatchingMode,
+        CatchingMode
+    };
+
+    TMtpQueue(bool blocking = false, ECatching catching = CatchingMode);
+    TMtpQueue(IThreadPool* pool, bool blocking = false, ECatching catching = CatchingMode);
     ~TMtpQueue() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -175,6 +180,7 @@ private:
     THolder<TImpl> Impl_;
 
     const bool Blocking;
+    const ECatching Catching;
 };
 
 /**

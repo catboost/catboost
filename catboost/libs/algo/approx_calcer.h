@@ -17,13 +17,51 @@ inline int GetLeafCount(const TTensorStructure3& tree) {
     return 1 << tree.SelectedSplits.ysize();
 }
 
+template <int vectorWidth>
+inline void UpdateApproxKernel(const double* leafValues, const TIndexType* indices, double* resArr) {
+    Y_ASSERT(vectorWidth == 4);
+    const TIndexType idx0 = indices[0];
+    const TIndexType idx1 = indices[1];
+    const TIndexType idx2 = indices[2];
+    const TIndexType idx3 = indices[3];
+    const double value0 = leafValues[idx0];
+    const double value1 = leafValues[idx1];
+    const double value2 = leafValues[idx2];
+    const double value3 = leafValues[idx3];
+    resArr[0] += value0;
+    resArr[1] += value1;
+    resArr[2] += value2;
+    resArr[3] += value3;
+}
+
+inline void UpdateApproxBlock(const NPar::TLocalExecutor::TBlockParams& params, int blockIdx, const double* leafValues, const TIndexType* indices, double* resArr) {
+    const int blockStart = blockIdx * params.GetBlockSize();
+    const int nextBlockStart = Min<ui64>(blockStart + params.GetBlockSize(), params.LastId);
+    constexpr int vectorWidth = 4;
+    int doc;
+    for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
+        UpdateApproxKernel<vectorWidth>(leafValues, indices + doc, resArr + doc);
+    }
+    for (; doc < nextBlockStart; ++doc) {
+        resArr[doc] += leafValues[indices[doc]];
+    }
+}
+
 inline void UpdateApproxDeltas(const yvector<double>& leafValues,
                                const yvector<TIndexType>& indices,
                                int docCount,
+                               TLearnContext* ctx,
                                yvector<double>* resArr) {
-    for (int z = 0; z < docCount; ++z) {
-        (*resArr)[z] += leafValues[indices[z]];
-    }
+    double* resArrData = resArr->data();
+    const TIndexType* indicesData = indices.data();
+    const double* leafValuesData = leafValues.data();
+
+    NPar::TLocalExecutor::TBlockParams blockParams(0, docCount);
+    blockParams.SetBlockSize(10000).WaitCompletion();
+
+    ctx->LocalExecutor.ExecRange([=] (int blockIdx) {
+        UpdateApproxBlock(blockParams, blockIdx, leafValuesData, indicesData, resArrData);
+    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 inline void UpdateApproxDeltasMulti(const yvector<yvector<double>>& leafValues, //leafValues[dimension][bucketId]
@@ -180,21 +218,25 @@ void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
         curLeafValues[leaf] = CalcModel<type>((*buckets)[leaf], iteration, l2Regularizer);
     }
 
-    UpdateApproxDeltas(curLeafValues, indices, mt.MixCount, resArr);
-
     // compute tail
-    CalcShiftedApproxDers(mt.MixCount, mt.TailFinish, mt.Approx[0], *resArr, target, weight, error, scratchDers, scratchApprox, ctx);
-    TSum* bucketsData = buckets->data();
-    const TIndexType* indicesData = indices.data();
-    const float* weightData = weight.empty() ? nullptr : weight.data();
-    const TDer1Der2* scratchDersData = scratchDers->data();
-    double* resArrData = resArr->data();
-    for (int z = mt.MixCount; z < mt.TailFinish; ++z) {
-        TSum& bucket = bucketsData[indicesData[z]];
-        double w = weightData == nullptr ? 1 : weightData[z];
-        UpdateBucket<type>(scratchDersData[z - mt.MixCount], w, iteration, &bucket);
-        double avrg = CalcModel<type>(bucket, iteration, l2Regularizer);
-        resArrData[z] += avrg;
+    if (ctx->Params.ApproxOnAllHistory) {
+        UpdateApproxDeltas(curLeafValues, indices, mt.TailFinish, ctx, resArr);
+    } else {
+        UpdateApproxDeltas(curLeafValues, indices, mt.MixCount, ctx, resArr);
+
+        CalcShiftedApproxDers(mt.MixCount, mt.TailFinish, mt.Approx[0], *resArr, target, weight, error, scratchDers, scratchApprox, ctx);
+        TSum* bucketsData = buckets->data();
+        const TIndexType* indicesData = indices.data();
+        const float* weightData = weight.empty() ? nullptr : weight.data();
+        const TDer1Der2* scratchDersData = scratchDers->data();
+        double* resArrData = resArr->data();
+        for (int z = mt.MixCount; z < mt.TailFinish; ++z) {
+            TSum& bucket = bucketsData[indicesData[z]];
+            double w = weightData == nullptr ? 1 : weightData[z];
+            UpdateBucket<type>(scratchDersData[z - mt.MixCount], w, iteration, &bucket);
+            double avrg = CalcModel<type>(bucket, iteration, l2Regularizer);
+            resArrData[z] += avrg;
+        }
     }
 }
 
@@ -296,10 +338,11 @@ void CalcApproxDelta(const TFold& ff,
         const int leafCount = GetLeafCount(ts);
 
         if (approxDimension == 1) {
+            const int scratchSize = Max(ctx->Params.ApproxOnAllHistory ? 0 : mt.TailFinish - mt.MixCount, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
             yvector<TDer1Der2> scratchDers;
-            scratchDers.yresize(Max(mt.TailFinish - mt.MixCount, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT));
+            scratchDers.yresize(scratchSize);
             yvector<double> scratchApprox;
-            scratchApprox.yresize(Max(mt.TailFinish - mt.MixCount, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT));
+            scratchApprox.yresize(scratchSize);
             yvector<TSum> buckets(leafCount, TSum(gradientIterations));
 
             for (int it = 0; it < gradientIterations; ++it) {
@@ -353,7 +396,7 @@ void CalcLeafValuesIteration(const yvector<TIndexType>& indices,
         curLeafValues[leaf] = CalcModel<type>((*buckets)[leaf], iteration, l2Regularizer);
     }
 
-    UpdateApproxDeltas(curLeafValues, indices, learnSampleCount, approx);
+    UpdateApproxDeltas(curLeafValues, indices, learnSampleCount, ctx, approx);
 }
 
 

@@ -391,6 +391,41 @@ public:
     }
 };
 
+template <size_t I, typename... TArgs>
+struct TTupleSerializer {
+    static inline void Save(TOutputStream* stream, const std::tuple<TArgs...>& tuple) {
+        ::Save(stream, std::get<I>(tuple));
+        TTupleSerializer<I - 1, TArgs...>::Save(stream, tuple);
+    }
+
+    static inline void Load(TInputStream* stream, std::tuple<TArgs...>& tuple) {
+        ::Load(stream, std::get<I>(tuple));
+        TTupleSerializer<I - 1, TArgs...>::Load(stream, tuple);
+    }
+};
+
+template <typename... TArgs>
+struct TTupleSerializer<0, TArgs...> {
+    static inline void Save(TOutputStream* stream, const std::tuple<TArgs...>& tuple) {
+        ::Save(stream, std::get<0>(tuple));
+    }
+
+    static inline void Load(TInputStream* stream, std::tuple<TArgs...>& tuple) {
+        ::Load(stream, std::get<0>(tuple));
+    }
+};
+
+template <typename... TArgs>
+struct TSerializer<std::tuple<TArgs...>> {
+    static inline void Save(TOutputStream* stream, const std::tuple<TArgs...>& tuple) {
+        TTupleSerializer<sizeof...(TArgs) - 1, TArgs...>::Save(stream, tuple);
+    }
+
+    static inline void Load(TInputStream* stream, std::tuple<TArgs...>& tuple) {
+        TTupleSerializer<sizeof...(TArgs) - 1, TArgs...>::Load(stream, tuple);
+    }
+};
+
 template <>
 class TSerializer<TBuffer> {
 public:

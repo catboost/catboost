@@ -38,7 +38,7 @@ static void ClearVector(yvector<int>* dst) {
     dst->shrink_to_fit();
 }
 
-static void ExtractBoolsFromDocInfo(const yvector<TDocInfo> docInfos,
+static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                                     const yvector<size_t>& docIndices,
                                     const yhash_set<int>& categFeatures,
                                     const yvector<yvector<float>>& allBorders,

@@ -383,7 +383,7 @@ inline char* mutable_string_data(string* s) {
 #ifdef LANG_CXX11
   // This should be simpler & faster than string_as_array() because the latter
   // is guaranteed to return NULL when *s is empty, so it has to check for that.
-  return &(*s)[0];
+  return &*s->begin();
 #else
   return string_as_array(s);
 #endif

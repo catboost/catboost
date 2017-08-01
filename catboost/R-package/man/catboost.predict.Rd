@@ -2,24 +2,53 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.predict}
 \alias{catboost.predict}
-\title{Get model prediction}
+\title{catboost.predict}
 \usage{
 catboost.predict(model, pool, verbose = FALSE, type = "RawFormulaVal",
   tree_count_limit = 0, thread_count = 1)
 }
 \arguments{
-\item{model}{trained model}
+\item{model}{The model obtained as the result of training.
 
-\item{pool}{data to make predictions on}
+Default value: Required argument}
 
-\item{verbose}{output log while making prediction}
+\item{pool}{The input dataset.
 
-\item{type}{'Probability', 'Class' or 'RawFormulaVal'}
+Default value: Required argument}
 
-\item{tree_count_limit}{tree number to make prediction on}
+\item{verbose}{Verbose output to stdout.
 
-\item{thread_count}{number of parallel threads}
+Default value: FALSE (not used)}
+
+\item{type}{The format for displaying approximated values in output data
+(see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
+
+Possible values:
+\itemize{
+  \item 'Probability'
+  \item 'Class'
+  \item 'RawFormulaVal'
+}
+
+Default value: 'RawFormulaVal'}
+
+\item{tree_count_limit}{The number of trees from the model to use when applying. If specified, the first <value> trees are used.
+
+Default value: 0 (if value equals to 0 this parameter is ignored and all trees from the model are used)}
+
+\item{thread_count}{The number of threads to use when applying the model.
+
+Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
+Default value: 1}
 }
 \description{
-Get model prediction
+Apply the model to the given dataset.
+}
+\details{
+Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+Each line of this matrix contains the predictions for one object of the input dataset.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
 }

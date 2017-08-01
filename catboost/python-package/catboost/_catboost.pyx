@@ -9,7 +9,6 @@ from collections import Sequence, defaultdict
 from cython.operator cimport dereference
 
 from libcpp cimport bool as bool_t
-from libcpp.string cimport string
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
@@ -50,8 +49,8 @@ cdef extern from "catboost/libs/data/pool.h":
         yhash[int, TString] CatFeaturesHashToString
 
 cdef extern from "catboost/libs/data/load_data.h":
-    cdef void ReadPool(const string& fdFile,
-                        const string& poolFile,
+    cdef void ReadPool(const TString& fdFile,
+                        const TString& poolFile,
                         int threadCount,
                         bool_t verbose,
                         TPool* pool,
@@ -80,8 +79,8 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef void ExportModel(const TFullModel& model, const TString& modelFile, const EModelExportType format, const TString& userParametersJSON ) except +ProcessException
 
-    cdef void OutputModel(const TFullModel& model, const string& modelFile) except +ProcessException
-    cdef TFullModel ReadModel(const string& modelFile) nogil except +ProcessException
+    cdef void OutputModel(const TFullModel& model, const TString& modelFile) except +ProcessException
+    cdef TFullModel ReadModel(const TString& modelFile) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
 
@@ -339,11 +338,11 @@ cdef to_native_str(binary):
 
 cdef class _PoolBase:
     cdef TPool* __pool
-    cdef bool_t has_label
+    cdef bool_t has_label_
 
     def __cinit__(self):
         self.__pool = new TPool()
-        self.has_label = False
+        self.has_label_ = False
 
     def __dealloc__(self):
         del self.__pool
@@ -353,10 +352,18 @@ cdef class _PoolBase:
         for feature in cat_features:
             self.__pool.CatFeatures.push_back(int(feature))
 
-    cpdef _read_pool(self, string pool_file, string cd_file, string delimiter, bool_t has_header, int thread_count):
-        ReadPool(cd_file, pool_file, thread_count, False, self.__pool, ord(delimiter), has_header)
+    cpdef _read_pool(self, pool_file, cd_file, delimiter, bool_t has_header, int thread_count):
+        pool_file = to_binary_str(pool_file)
+        cd_file = to_binary_str(cd_file)
+        ReadPool(TString(<char*>cd_file),
+                TString(<char*>pool_file),
+                thread_count,
+                False,
+                self.__pool,
+                ord(delimiter),
+                has_header)
         if len(set([doc.Target for doc in self.__pool.Docs])) > 1:
-            self.has_label = True
+            self.has_label_ = True
 
     cpdef _init_pool(self, data, label, weight, baseline, feature_names):
         self._set_data(data)
@@ -364,7 +371,7 @@ cdef class _PoolBase:
         if label is not None:
             self._set_label(label)
             num_class = len(set(label))
-            self.has_label = True
+            self.has_label_ = True
         if baseline is not None:
             self._set_baseline(baseline)
         if weight is not None:
@@ -419,7 +426,7 @@ cdef class _PoolBase:
             self.__pool.FeatureId.push_back(value)
 
     cpdef get_feature_names(self):
-        if self.is_empty():
+        if self.is_empty_:
             return None
         feature_names = []
         cdef bytes pystr
@@ -436,7 +443,7 @@ cdef class _PoolBase:
         -------
         number of rows : int
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             return self.__pool.Docs.size()
         return None
 
@@ -448,7 +455,7 @@ cdef class _PoolBase:
         -------
         number of cols : int
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             row = self.num_row()
             if row > 0:
                 return self.__pool.Docs[0].Factors.size()
@@ -464,7 +471,7 @@ cdef class _PoolBase:
         shape : (int, int)
             (rows, cols)
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             return tuple([self.num_row(), self.num_col()])
         return None
 
@@ -476,7 +483,7 @@ cdef class _PoolBase:
         -------
         feature matrix : list(list)
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             data = []
             for doc in self.__pool.Docs:
                 factors = []
@@ -494,7 +501,7 @@ cdef class _PoolBase:
         -------
         labels : list
         """
-        if self.has_label:
+        if self.has_label_:
             return [doc.Target for doc in self.__pool.Docs]
         return None
 
@@ -516,7 +523,7 @@ cdef class _PoolBase:
         -------
         weight : list
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             return [doc.Weight for doc in self.__pool.Docs]
         return None
 
@@ -528,7 +535,7 @@ cdef class _PoolBase:
         -------
         baseline : list(list)
         """
-        if not self.is_empty():
+        if not self.is_empty_:
             baseline = []
             for doc in self.__pool.Docs:
                 doc_approxes = []
@@ -538,13 +545,14 @@ cdef class _PoolBase:
             return baseline
         return None
 
-    cpdef is_empty(self):
+    @property
+    def is_empty_(self):
         """
         Check if Pool is empty.
 
         Returns
         -------
-        is_empty : bool
+        is_empty_ : bool
         """
         return self.__pool.Docs.empty()
 
@@ -617,7 +625,7 @@ cdef class _CatBoost:
             finally:
                 ResetPythonInterruptHandler()
 
-    cpdef set_test_eval(self, test_eval):
+    cpdef _set_test_eval(self, test_eval):
         cdef yvector[double] vector
         for row in test_eval:
             for value in row:
@@ -625,7 +633,7 @@ cdef class _CatBoost:
             self.__test_eval.push_back(vector)
             vector.clear()
 
-    cpdef get_test_eval(self):
+    cpdef _get_test_eval(self):
         test_eval = []
         for i in range(self.__test_eval.size()):
             test_eval.append([value for value in dereference(self.__test_eval)[i]])
@@ -659,13 +667,16 @@ cdef class _CatBoost:
     cpdef _calc_fstr(self, _PoolBase pool, int thread_count):
         return [value for value in CalcRegularFeatureEffect(dereference(self.__model), dereference(pool.__pool), thread_count)]
 
-    cpdef _load_model(self, string model_file):
+    cpdef _load_model(self, model_file):
         cdef TFullModel tmp_model
-        tmp_model = ReadModel(model_file)
+        model_file = to_binary_str(model_file)
+        tmp_model = ReadModel(TString(<const char*>model_file))
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters):
         cdef EModelExportType exportType = PyExportType(format).exportType
+        export_parameters = to_binary_str(export_parameters)
+        output_file = to_binary_str(output_file)
         ExportModel(dereference(self.__model), output_file, exportType, export_parameters)
 
     cpdef _serialize_model(self):
@@ -690,14 +701,13 @@ cdef class _CatBoost:
                     params[str(key)] = value
         return params
 
-    def get_tree_count(self):
+    def _get_tree_count(self):
         return self.__model.TreeStruct.size()
 
 class _CatBoostBase(object):
     def __init__(self, params):
-        self._is_fitted = False
         self._init_params = params
-        self.object = _CatBoost()
+        self._object = _CatBoost()
 
     def __getstate__(self):
         params = self.get_init_params()
@@ -705,24 +715,29 @@ class _CatBoostBase(object):
         if test_evals:
             if test_evals[0]:
                 params['_test_eval'] = test_evals
-        if self._is_fitted:
+        if self.is_fitted_:
             params['__model'] = self._serialize_model()
+        for attr in ['_classes', '_feature_importance']:
+            if getattr(self, attr, None) is not None:
+                params[attr] = getattr(self, attr, None)
         return params
 
     def __setstate__(self, state):
-        if 'object' not in dict(self.__dict__.items()):
-            self.object = _CatBoost()
-        if '_is_fitted' not in dict(self.__dict__.items()):
-            self._is_fitted = False
+        if '_object' not in dict(self.__dict__.items()):
+            self._object = _CatBoost()
         if '_init_params' not in dict(self.__dict__.items()):
             self._init_params = {}
         if '__model' in state:
             self._deserialize_model(state['__model'])
-            self._is_fitted = True
+            setattr(self, '_is_fitted', True)
             del state['__model']
         if '_test_eval' in state:
-            self.set_test_eval(state['_test_eval'])
+            self._set_test_eval(state['_test_eval'])
             del state['_test_eval']
+        for attr in ['_classes', '_feature_importance']:
+            if attr in state:
+                setattr(self, attr, state[attr])
+                del state[attr]
         self._init_params.update(state)
 
     def __copy__(self):
@@ -738,44 +753,44 @@ class _CatBoostBase(object):
         return self.__copy__()
 
     def _train(self, train_pool, test_pool, params):
-        self.object._train(train_pool, test_pool, params)
-        self._is_fitted = True
+        self._object._train(train_pool, test_pool, params)
+        setattr(self, '_is_fitted', True)
 
-    def set_test_eval(self, test_eval):
-        self.object.set_test_eval(test_eval)
+    def _set_test_eval(self, test_eval):
+        self._object._set_test_eval(test_eval)
 
     def get_test_eval(self):
-        return self.object.get_test_eval()
+        return self._object._get_test_eval()
 
     def _get_cat_feature_indices(self):
-        return self.object._get_cat_feature_indices()
+        return self._object._get_cat_feature_indices()
 
     def _base_predict(self, pool, prediction_type, ntree_limit, verbose):
-        return self.object._base_predict(pool, prediction_type, ntree_limit, verbose)
+        return self._object._base_predict(pool, prediction_type, ntree_limit, verbose)
 
     def _base_predict_multi(self, pool, prediction_type, ntree_limit, verbose):
-        return self.object._base_predict_multi(pool, prediction_type, ntree_limit, verbose)
+        return self._object._base_predict_multi(pool, prediction_type, ntree_limit, verbose)
 
     def _calc_fstr(self, pool, thread_count):
-        return self.object._calc_fstr(pool, thread_count)
+        return self._object._calc_fstr(pool, thread_count)
 
     def _save_model(self, output_file, format, export_parameters):
-        if self._is_fitted:
+        if self.is_fitted_:
             params_string = ""
             if export_parameters:
                 params_string = dumps(export_parameters)
 
-            self.object._save_model(output_file, format, params_string)
+            self._object._save_model(output_file, format, params_string)
 
     def _load_model(self, model_file):
-        self.object._load_model(model_file)
-        self._is_fitted = True
+        self._object._load_model(model_file)
+        setattr(self, '_is_fitted', True)
 
     def _serialize_model(self):
-        return self.object._serialize_model()
+        return self._object._serialize_model()
 
     def _deserialize_model(self, dump_model_str):
-        self.object._deserialize_model(dump_model_str)
+        self._object._deserialize_model(dump_model_str)
 
     def get_init_params(self):
         init_params = self._init_params.copy()
@@ -791,21 +806,23 @@ class _CatBoostBase(object):
         return params
 
     def _get_params(self):
-        params = self.object._get_params()
+        params = self._object._get_params()
         init_params = self.get_init_params()
         for key, value in iteritems(init_params):
             if key not in params:
                 params[key] = value
         return params
 
-    def get_tree_count(self):
-        return self.object.get_tree_count()
-
     def _set_param(self, key, value):
         self._init_params[key] = value
 
-    def is_fitted(self):
-        return self._is_fitted
+    @property
+    def tree_count_(self):
+        return self._object._get_tree_count()
+
+    @property
+    def is_fitted_(self):
+        return getattr(self, '_is_fitted', False)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int random_seed,
           bool_t shuffle, bool_t enable_early_stopping, int eval_period):

@@ -99,10 +99,10 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddLongOption("border", "target border for Logloss mode")
-            .RequiredArgument("float")
-            .Handler1T<float>([&trainJson](float border) {
-                trainJson->InsertValue("border", border);
-            });
+        .RequiredArgument("float")
+        .Handler1T<float>([&trainJson](float border) {
+            trainJson->InsertValue("border", border);
+        });
 
     parser.AddLongOption("gradient-iterations", "gradient iterations count")
         .RequiredArgument("int")
@@ -154,13 +154,13 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     // TODO(annaveronika): Save properly in json.
-    parser.AddLongOption("ctr-description", "Ctr description should be written in format CtrType[:TargetBorderCount][:TargetBorderType]. CtrType should be one of: Borders, Buckets, MeanValue, CounterTotal, CounterMax. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
+    parser.AddLongOption("ctr-description", "Ctr description should be written in format CtrType[:TargetBorderCount][:TargetBorderType]. CtrType should be one of: Borders, Buckets, MeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .AddLongName("ctr")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([&trainJson](const TString& ctrDescriptionLine) {
             for (const auto& t : StringSplitter(ctrDescriptionLine).Split(',')) {
                 (*trainJson)["ctr_description"].AppendValue(t.Token());
-        }});
+        } });
 
     parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
         .RequiredArgument("int")
@@ -169,10 +169,25 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddLongOption("auto-stop-pval", "set threshold for overfitting detector and stop matrixnet autom  aticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
+        .AddLongName("od-pval")
         .RequiredArgument("float")
         .Handler1T<float>([&trainJson](float pval) {
-            trainJson->InsertValue("auto_stop_pval", pval);
+            trainJson->InsertValue("od_pval", pval);
         });
+
+    parser.AddLongOption("overfitting-detector-iterations-wait", "number of iterations which overfitting detector will wait after new best error")
+        .AddLongName("od-wait")
+        .RequiredArgument("int")
+        .Handler1T<int>([&trainJson](int iters) {
+            trainJson->InsertValue("od_wait", iters);
+        });
+
+    parser.AddLongOption("overfitting-detector-type", "Should be one of {Wilcoxon, IncToDec, Iter}")
+        .AddLongName("od-type")
+        .RequiredArgument("detector-type")
+        .Handler1T<TString>([&trainJson](const TString& type) {
+        trainJson->InsertValue("od_type", type);
+    });
 
     parser.AddLongOption("use-best-model", "save all trees until best iteration on test")
         .NoArgument()
@@ -206,6 +221,12 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("leaf_estimation_method", method);
         });
 
+    parser.AddLongOption("counter-calc-method", "Should be one of {Universal, Static, Basic}")
+        .RequiredArgument("method-name")
+        .Handler1T<TString>([&trainJson](const TString& method) {
+            trainJson->InsertValue("counter_calc_method", method);
+        });
+
     parser.AddLongOption('I', "ignore-features", "don't use the specified features in the learn set (the features are separated by colon and can be specified as an inclusive interval, for example: -I 4:78-89:312)")
         .RequiredArgument("INDEXES")
         .Handler1T<TString>([&trainJson](const TString& indicesLine) {
@@ -213,21 +234,21 @@ void ParseCommandLine(int argc, const char* argv[],
             for (int f : ignoredFeatures) {
                 (*trainJson)["ignored_features"].AppendValue(f);
             }
-    });
+        });
 
     parser.AddCharOption('X', "xross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([&params](const TStringBuf& str) {
             Split(str, '/', params->CvParams.FoldIdx, params->CvParams.FoldCount);
             params->CvParams.Inverted = false;
-    });
+        });
 
     parser.AddCharOption('Y', "inverted xross validation, train on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([&params](const TStringBuf& str) {
             Split(str, '/', params->CvParams.FoldIdx, params->CvParams.FoldCount);
             params->CvParams.Inverted = true;
-    });
+        });
 
     parser.AddLongOption("cv-rand", "cross-validation random seed")
         .RequiredArgument("seed")
@@ -269,7 +290,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([&trainJson](const TString& priorsLine) {
             TStringBuf priorsLineBuf(priorsLine);
             (*trainJson)["priors"] = ParsePriors(priorsLineBuf);
-    });
+        });
 
     // TODO(annaveronika): Save properly in json.
     parser.AddLongOption("feature-priors")
@@ -277,7 +298,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
             for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
                 (*trainJson)["feature_priors"].AppendValue(t.Token());
-        }})
+        } })
         .Help("You might provide custom per feature priors. They will be used instead of default ones. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1.");
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
@@ -320,8 +341,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([&trainJson](const TString& metric) {
             trainJson->InsertValue("eval_metric", metric);
         })
-    .Help("evaluation metric for overfitting detector (if enabled) and best model "
-          "selection in format MetricName:param=value. If not specified default metric for objective is used.");
+        .Help("evaluation metric for overfitting detector (if enabled) and best model "
+              "selection in format MetricName:param=value. If not specified default metric for objective is used.");
 
     parser.AddLongOption("prediction-type", "Should be one of: Probability, Class, RawFormulaVal")
         .RequiredArgument("prediction-type")
@@ -413,6 +434,13 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("bagging_temperature", baggingTemperature);
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default).");
+
+    parser.AddLongOption("reduced-history-approx")
+        .NoArgument()
+        .Handler0([&trainJson]() {
+            trainJson->InsertValue("approx_on_all_history", false);
+        })
+        .Help("Reduce history to calculate approxes.");
 
     parser.SetFreeArgsNum(0);
 

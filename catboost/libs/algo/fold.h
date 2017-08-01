@@ -20,6 +20,7 @@ struct TFold {
     struct TMixTail {
         yvector<yvector<double>> Approx;
         yvector<yvector<double>> Derivatives;
+        // TODO(annaveronika): make a single vector<vector> for all MixTail
         yvector<yvector<double>> WeightedDer;
 
         int MixCount;

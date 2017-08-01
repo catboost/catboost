@@ -2,10 +2,26 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.save_model}
 \alias{catboost.save_model}
-\title{Writes model to file}
+\title{catboost.save_model}
 \usage{
 catboost.save_model(model, model_path)
 }
+\arguments{
+\item{model}{The model to be saved.
+
+Default value: Required argument}
+
+\item{model_path}{The path to the resulting binary file with the model description.
+Used for solving other machine learning problems (for instance, applying a model).
+
+Default value: Required argument}
+}
 \description{
-Writes model to file
+Save the model to a file.
+}
+\details{
+Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-save_model-docpage/}
 }

@@ -2,10 +2,19 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.ntrees}
 \alias{catboost.ntrees}
-\title{Returns number of trees in a model}
+\title{catboost.ntrees}
 \usage{
 catboost.ntrees(model)
 }
+\arguments{
+\item{model}{The model obtained as the result of training.}
+}
+\value{
+The number of trees.
+}
 \description{
-Returns number of trees in a model
+Return the number of trees in the model.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-ntrees-docpage/}
 }

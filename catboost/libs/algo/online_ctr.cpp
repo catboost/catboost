@@ -1,17 +1,17 @@
 #include "online_ctr.h"
 
-#include "fold.h"
 #include "bin_tracker.h"
+#include "fold.h"
 #include "index_hash_calcer.h"
-#include "score_calcer.h"
 #include "learn_context.h"
+#include "score_calcer.h"
 #include <catboost/libs/model/tensor_struct.h>
 
 #include <util/generic/utility.h>
 #include <util/thread/singleton.h>
 
 struct TCtrCalcer {
-    template<typename T>
+    template <typename T>
     T* Alloc(size_t count) {
         static_assert(std::is_pod<T>::value, "expected POD type");
         const size_t neededSize = count * sizeof(T);
@@ -30,20 +30,19 @@ struct TCtrCalcer {
     static inline int* GetCtrArrTotal(size_t maxCount) {
         return FastTlsSingleton<TCtrCalcer>()->Alloc<int>(maxCount);
     }
+
 private:
     yvector<char> Storage;
 };
 
 struct TBucketsView {
-
     size_t MaxElem = 0;
     size_t BorderCount = 0;
     int* Data = 0;
     int* BucketData = 0;
     TBucketsView(size_t maxElem, size_t borderCount)
         : MaxElem(maxElem)
-        , BorderCount(borderCount)
-    {
+        , BorderCount(borderCount) {
         Data = FastTlsSingleton<TCtrCalcer>()->Alloc<int>(MaxElem * (BorderCount + 1));
         BucketData = Data + MaxElem;
     }
@@ -56,7 +55,6 @@ struct TBucketsView {
         return NArrayRef::TArrayRef<int>(BucketData + BorderCount * i, BorderCount);
     }
 };
-
 
 void CalcNormalization(const yvector<float>& priors, yvector<float>* shift, yvector<float>* norm) {
     shift->yresize(priors.size());
@@ -71,7 +69,7 @@ void CalcNormalization(const yvector<float>& priors, yvector<float>* shift, yvec
 }
 
 int GetCtrBorderCount(int targetClassesCount, ECtrType ctrType) {
-    if (ctrType == ECtrType::MeanValue || IsCounter(ctrType)) {
+    if (ctrType == ECtrType::MeanValue || ctrType == ECtrType::Counter) {
         return 1;
     }
     return ctrType == ECtrType::Buckets ? targetClassesCount : targetClassesCount - 1;
@@ -133,7 +131,7 @@ static void CalcOnlineCTRClasses(const TTrainData& data,
                 ui8* featureData = (*feature)[border][prior].data();
                 for (int docId = blockStart; docId < nextBlockStart; ++docId) {
                     featureData[docId] = CalcCTR(goodCountData[docId - blockStart], totalCountByDoc[docId - blockStart], priorX,
-                                                               shiftX, normX, ctrBorderCount);
+                                                 shiftX, normX, ctrBorderCount);
                 }
             }
         }
@@ -173,7 +171,7 @@ static void CalcOnlineCTRSimple(const TTrainData& data,
             ui8* featureData = (*feature)[0][prior].data();
             for (int docId = blockStart; docId < nextBlockStart; ++docId) {
                 featureData[docId] = CalcCTR(goodCount[docId - blockStart], totalCount[docId - blockStart], priorX,
-                                                      shiftX, normX, ctrBorderCount);
+                                             shiftX, normX, ctrBorderCount);
             }
         }
     }
@@ -214,7 +212,7 @@ static void CalcOnlineCTRMean(const TTrainData& data,
             ui8* featureData = (*feature)[0][prior].data();
             for (int docId = blockStart; docId < nextBlockStart; ++docId) {
                 featureData[docId] = CalcCTR(sum[docId - blockStart], count[docId - blockStart], priorX,
-                                                      shiftX, normX, ctrBorderCount);
+                                             shiftX, normX, ctrBorderCount);
             }
         }
     }
@@ -225,53 +223,67 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
                                  size_t leafCount,
                                  const yvector<float>& priors,
                                  int ctrBorderCount,
-                                 ECtrType ctrType,
+                                 ECounterCalc counterCalc,
                                  TArray2D<yvector<ui8>>* feature) {
     const auto docCount = enumeratedCatFeatures.ysize();
     auto ctrArrTotal = TCtrCalcer::GetCtrArrTotal(leafCount);
     yvector<float> shift;
     yvector<float> norm;
     CalcNormalization(priors, &shift, &norm);
-    Y_ASSERT(docCount>=data.LearnSampleCount);
+    Y_ASSERT(docCount >= data.LearnSampleCount);
+
     int denominator = 0;
-    for (int docId = 0; docId < data.LearnSampleCount; ++docId) {
-        const auto bucketId = enumeratedCatFeatures[docId];
-        ++ctrArrTotal[bucketId];
-        if (ctrType == ECtrType::CounterMax) {
-            denominator = Max(denominator, ctrArrTotal[bucketId]);
-        }
-    }
-
-    if (ctrType == ECtrType::CounterTotal) {
-        denominator = data.LearnSampleCount;
-    }
-
-    const int blockSize = 1000;
-    yvector<int> ctrTotal(blockSize);
-    yvector<int> ctrDenominator(blockSize);
-    for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-        const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
-        for (int docId = blockStart; docId < nextBlockStart; ++docId) {
-            const auto elemId = enumeratedCatFeatures[docId];
-            if (docId >= data.LearnSampleCount) {
-                ++ctrArrTotal[elemId];
-                if (ctrType == ECtrType::CounterTotal) {
-                    ++denominator;
-                } else {
-                    denominator = Max(denominator, ctrArrTotal[elemId]);
+    if (counterCalc == ECounterCalc::Universal) {
+        auto CalcInlineCTR = [&](int firstPos, int lastPos) {
+            for (int docId = firstPos; docId < lastPos; ++docId) {
+                const auto bucketId = enumeratedCatFeatures[docId];
+                ++ctrArrTotal[bucketId];
+                denominator = Max(denominator, ctrArrTotal[bucketId]);
+            }
+            for (int prior = 0; prior < priors.ysize(); ++prior) {
+                const float priorX = priors[prior];
+                const float shiftX = shift[prior];
+                const float normX = norm[prior];
+                ui8* featureData = (*feature)[0][prior].data();
+                for (int docId = firstPos; docId < lastPos; ++docId) {
+                    const auto bucketId = enumeratedCatFeatures[docId];
+                    featureData[docId] = CalcCTR(ctrArrTotal[bucketId], denominator, priorX,
+                                                 shiftX, normX, ctrBorderCount);
                 }
             }
-            ctrTotal[docId - blockStart] = ctrArrTotal[elemId];
-            ctrDenominator[docId - blockStart] = denominator;
+        };
+        CalcInlineCTR(0, data.LearnSampleCount);
+        CalcInlineCTR(data.LearnSampleCount, docCount);
+    } else {
+        for (int docId = 0; docId < data.LearnSampleCount; ++docId) {
+            const auto bucketId = enumeratedCatFeatures[docId];
+            ++ctrArrTotal[bucketId];
+            denominator = Max(denominator, ctrArrTotal[bucketId]);
         }
-        for (int prior = 0; prior < priors.ysize(); ++prior) {
-            const float priorX = priors[prior];
-            const float shiftX = shift[prior];
-            const float normX = norm[prior];
-            ui8* featureData = (*feature)[0][prior].data();
+
+        const int blockSize = 1000;
+        yvector<int> ctrTotal(blockSize);
+        yvector<int> ctrDenominator(blockSize);
+        for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+            const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
             for (int docId = blockStart; docId < nextBlockStart; ++docId) {
-                featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], ctrDenominator[docId - blockStart], priorX,
-                                                      shiftX, normX, ctrBorderCount);
+                const auto elemId = enumeratedCatFeatures[docId];
+                if (docId >= data.LearnSampleCount && counterCalc == ECounterCalc::Basic) {
+                    ++ctrArrTotal[elemId];
+                    denominator = Max(denominator, ctrArrTotal[elemId]);
+                }
+                ctrTotal[docId - blockStart] = ctrArrTotal[elemId];
+                ctrDenominator[docId - blockStart] = denominator;
+            }
+            for (int prior = 0; prior < priors.ysize(); ++prior) {
+                const float priorX = priors[prior];
+                const float shiftX = shift[prior];
+                const float normX = norm[prior];
+                ui8* featureData = (*feature)[0][prior].data();
+                for (int docId = blockStart; docId < nextBlockStart; ++docId) {
+                    featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], ctrDenominator[docId - blockStart], priorX,
+                                                 shiftX, normX, ctrBorderCount);
+                }
             }
         }
     }
@@ -346,14 +358,14 @@ void ComputeOnlineCTRs(const TTrainData& data,
                 ctrType,
                 &dst->Feature[ctrIdx]);
         } else {
-            Y_ASSERT(IsCounter(ctrType));
+            Y_ASSERT(ctrType == ECtrType::Counter);
             CalcOnlineCTRCounter(
                 data,
                 hashArr,
                 leafCount.second,
                 priors,
                 ctx->Params.CtrParams.CtrBorderCount,
-                ctrType,
+                ctx->Params.CounterCalcMethod,
                 &dst->Feature[ctrIdx]);
         }
     }
@@ -377,10 +389,10 @@ void ComputeOnlineCTRs(const TTrainData& data,
 void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx) {
     auto calcer = [&](int i) {
         ComputeOnlineCTRs(data,
-            *tasks[i].Fold,
-            tasks[i].Projection,
-            ctx,
-            tasks[i].Ctr);
+                          *tasks[i].Fold,
+                          tasks[i].Projection,
+                          ctx,
+                          tasks[i].Ctr);
     };
     ctx->LocalExecutor.ExecRange(calcer, 0, tasks.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }

@@ -177,6 +177,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
             print 'TRY:', module
             if module == '__main__':
                 importer.load_module('__main__', '__main__py')
+            elif module.endswith('.__init__'):
+                __import__(module[:-len('.__init__')])
             else:
                 __import__(module)
             print 'OK:', module

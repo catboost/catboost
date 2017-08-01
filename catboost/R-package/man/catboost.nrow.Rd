@@ -2,10 +2,19 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.nrow}
 \alias{catboost.nrow}
-\title{Returns number of objects in a pool}
+\title{catboost.nrow}
 \usage{
 catboost.nrow(pool)
 }
+\arguments{
+\item{pool}{The input dataset.}
+}
+\value{
+The number of objects.
+}
 \description{
-Returns number of objects in a pool
+Calculate the number of objects in the dataset.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-nrow-docpage/}
 }

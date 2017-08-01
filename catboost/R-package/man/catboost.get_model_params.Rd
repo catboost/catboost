@@ -2,10 +2,18 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.get_model_params}
 \alias{catboost.get_model_params}
-\title{Returns model params}
+\title{catboost.get_model_params}
 \usage{
 catboost.get_model_params(model)
 }
+\arguments{
+\item{model}{The model obtained as the result of training.
+
+Default value: Required argument}
+}
 \description{
-Returns model params
+Return the model parameters.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-get_model_params-docpage/}
 }

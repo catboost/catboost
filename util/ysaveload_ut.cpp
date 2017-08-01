@@ -26,6 +26,7 @@ class TSaveLoadTest: public TTestBase {
     UNIT_TEST(TestNewStyle)
     UNIT_TEST(TestNewNewStyle)
     UNIT_TEST(TestList)
+    UNIT_TEST(TestTuple)
     UNIT_TEST_SUITE_END();
 
     struct TSaveHelper {
@@ -385,6 +386,22 @@ private:
         UNIT_ASSERT_VALUES_EQUAL(*std::next(list.begin(), 1), 1);
         UNIT_ASSERT_VALUES_EQUAL(*std::next(list.begin(), 2), 10);
     }
+
+    void TestTuple() {
+        TBufferStream s;
+
+        using TTuple = std::tuple<int, TString, unsigned int>;
+        const TTuple toSave{-10, "qwerty", 15};
+        Save(&s, toSave);
+
+        TTuple toLoad;
+        Load(&s, toLoad);
+
+        UNIT_ASSERT_VALUES_EQUAL(std::get<0>(toLoad), std::get<0>(toSave));
+        UNIT_ASSERT_VALUES_EQUAL(std::get<1>(toLoad), std::get<1>(toSave));
+        UNIT_ASSERT_VALUES_EQUAL(std::get<2>(toLoad), std::get<2>(toSave));
+    }
+
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSaveLoadTest);

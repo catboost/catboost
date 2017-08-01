@@ -104,7 +104,6 @@ using TTrainFunc = std::function<void(const TTrainData& data,
 using TTrainOneIterationFunc = std::function<void(const TTrainData& data,
                                                   TLearnContext* ctx)>;
 
-
 template <typename TError>
 inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
                                     const yvector<float>& target,
@@ -189,12 +188,13 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
         if (i == 0) {
             errorTracker.AddError(testErr, iteration, &valuesToLog);
             double bestErr = errorTracker.GetBestError();
+
             MATRIXNET_INFO_LOG << "\ttest " << testErr << "\tbestTest " << bestErr << "\t";
         }
         testErrorsHistory->back().push_back(testErr);
         *testErrLog << "\t" << testErr;
     }
-    *testErrLog << "\n";
+    *testErrLog << Endl;
 }
 
 template <typename TError>
@@ -388,6 +388,12 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
     }
 
     ctx->LoadProgress();
+
+    yvector<yvector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
+    yvector<double> valuesToLog;
+    for (int i = 0; i < errorsHistory.ysize(); ++i) {
+        errorTracker.AddError(errorsHistory[i][0], i, &valuesToLog);
+    }
 
     yvector<TFold*> folds;
     for (auto& fold : ctx->LearnProgress.Folds) {

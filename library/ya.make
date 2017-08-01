@@ -32,6 +32,8 @@ RECURSE(
     lfalloc/yt
     logger
     logger/ut
+    logger/global
+    logger/global/ut
     malloc
     python
     resource

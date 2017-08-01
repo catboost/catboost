@@ -32,14 +32,14 @@ void CalcFinalCtrs(const TCtr& ctr,
     }
 
     auto leafCount = ReindexHash(
-        data.LearnSampleCount,
-        topSize,
-        &hashArr,
-        &result->Hash).first;
+                         data.LearnSampleCount,
+                         topSize,
+                         &hashArr,
+                         &result->Hash).first;
 
     if (ctrType == ECtrType::MeanValue) {
         result->CtrMean.resize(leafCount);
-    } else if (IsCounter(ctrType)) {
+    } else if (ctrType == ECtrType::Counter) {
         result->CtrTotal.resize(leafCount);
         result->CounterDenominator = 0;
     } else {
@@ -55,7 +55,7 @@ void CalcFinalCtrs(const TCtr& ctr,
         if (ctrType == ECtrType::MeanValue) {
             TCtrMeanHistory& elem = result->CtrMean[elemId];
             elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
-        } else if (IsCounter(ctrType)) {
+        } else if (ctrType == ECtrType::Counter) {
             ++result->CtrTotal[elemId];
         } else {
             yvector<int>& elem = result->Ctr[elemId];
@@ -63,13 +63,8 @@ void CalcFinalCtrs(const TCtr& ctr,
         }
     }
 
-    if (IsCounter(ctrType)) {
-        if (ctrType == ECtrType::CounterMax) {
-            result->CounterDenominator = *MaxElement(result->CtrTotal.begin(), result->CtrTotal.end());
-        } else {
-            Y_ASSERT(ctrType == ECtrType::CounterTotal);
-            result->CounterDenominator = data.LearnSampleCount;
-        }
+    if (ctrType == ECtrType::Counter) {
+        result->CounterDenominator = *MaxElement(result->CtrTotal.begin(), result->CtrTotal.end());
     }
 }
 

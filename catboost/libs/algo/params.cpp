@@ -11,10 +11,6 @@
 #include <util/string/split.h>
 #include <util/string/iterator.h>
 
-bool IsCounter(ECtrType ctrType) {
-    return ctrType == ECtrType::CounterTotal || ctrType == ECtrType::CounterMax;
-}
-
 NJson::TJsonValue ReadTJsonValue(const TString& paramsJson) {
     TStringInput is(paramsJson);
     NJson::TJsonValue tree;
@@ -140,8 +136,8 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(ctr_border_count, CtrParams.CtrBorderCount, Integer)
     GET_FIELD(max_ctr_complexity, CtrParams.MaxCtrComplexity, Integer)
     GET_FIELD(border_count, BorderCount, Integer)
-    GET_FIELD(auto_stop_pval, AutoStopPval, Double)
-    GET_FIELD(overfitting_detector_iterations_wait, OverfittingDetectorIterationsWait, Integer)
+    GET_FIELD(od_pval, AutoStopPval, Double)
+    GET_FIELD(od_wait, OverfittingDetectorIterationsWait, Integer)
     GET_FIELD(use_best_model, UseBestModel, Boolean)
     GET_FIELD(detailed_profile, DetailedProfile, Boolean)
     GET_FIELD(learn_error_log, LearnErrorLog, String)
@@ -166,6 +162,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(print_trees, PrintTrees, Boolean)
     GET_FIELD(developer_mode, DeveloperMode, Boolean)
     GET_FIELD(used_ram_limit, UsedRAMLimit, UInteger)
+    GET_FIELD(approx_on_all_history, ApproxOnAllHistory, Boolean)
 #undef GET_FIELD
 
 #define GET_ENUM_FIELD(json_name, target_name, type)                            \
@@ -173,8 +170,9 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     if (tree.Has(#json_name)) {                                                 \
         this->target_name = FromString<type>(tree[#json_name].GetStringSafe()); \
     }
-    GET_ENUM_FIELD(overfitting_detector_type, OverfittingDetectorType, EOverfittingDetectorType)
+    GET_ENUM_FIELD(od_type, OverfittingDetectorType, EOverfittingDetectorType)
     GET_ENUM_FIELD(leaf_estimation_method, LeafEstimationMethod, ELeafEstimation)
+    GET_ENUM_FIELD(counter_calc_method, CounterCalcMethod, ECounterCalc)
     GET_ENUM_FIELD(feature_border_type, FeatureBorderType, EBorderSelectionType)
     GET_ENUM_FIELD(prediction_type, PredictionType, EPredictionType)
 #undef GET_ENUM_FIELD
@@ -309,6 +307,9 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     if (tree.Has("classes_count")) {
         CB_ENSURE(LossFunction == ELossFunction::MultiClass, "classes_count parameter takes effect only with MultiClass loss function");
         CB_ENSURE(ClassesCount > 1, "classes-count should be at least 2");
+    }
+    if (tree.Has("od_pval")) {
+        CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Iter, "Auto-stop-lval is not supported with iterational overfitting detector");
     }
 
     CheckValues(*this);

@@ -64,7 +64,7 @@ def main(opts, props_args):
         opts.java_binary_path,
         '-classpath',
         opts.sonar_scanner_jar_path,
-    ] + base_props_args + props_args + [opts.sonar_scanner_main_class]
+    ] + base_props_args + props_args + [opts.sonar_scanner_main_class, '-X']
 
     p = sp.Popen(sonar_cmd, stdout=sp.PIPE, stderr=sp.STDOUT)
     out, _ = p.communicate()

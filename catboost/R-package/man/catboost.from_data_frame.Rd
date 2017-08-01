@@ -2,16 +2,54 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.from_data_frame}
 \alias{catboost.from_data_frame}
-\title{Create pool from data frame}
+\title{catboost.from_data_frame}
 \usage{
 catboost.from_data_frame(data, target = NULL, weight = NULL,
   baseline = NULL)
 }
 \arguments{
-\item{data}{data.frame object}
+\item{data}{A data.frame with features.
+The following column types are supported:
+\itemize{
+\item double
+\item factor.
+It is assumed that categorical features are given in this type of columns.
+A standard CatBoost processing procedure is applied to this type of columns:
+  \describe{
+  \item{1.}{The values are converted to strings.}
+  \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+  }
+}}
 
-\item{target}{Target vector}
+\item{target}{The target vector.}
+
+\item{weight}{The weights of the target vector.}
+
+\item{baseline}{Vector of initial (raw) values of the target function for the object.
+Used in the calculation of final values of trees.}
+}
+\value{
+catboost.Pool
 }
 \description{
-Create pool from data frame
+Create a dataset from the given data.frame.
+Only numeric features are supported (their type should be double or factor).
+Categorical features must be converted to numerical first.
+For example, use \code{as.factor()} or the \code{colClasses} argument of the \code{read.table} method. The target type should be double.
+}
+\examples{
+pool_path <- 'train_full3'
+cd_vector <- c('numeric',  rep('numeric',2), rep('factor',7))
+data <- read.table(pool_path, head = F, sep = "\\t", colClasses = cd_vector)
+target <- c(1)
+learn_size <- floor(0.8 * nrow(data))
+learn_ind <- sample(nrow(data), learn_size)
+learn <- data[learn_ind,]
+test <- data[-learn_ind,]
+learn_pool <- catboost.from_data_frame(data = learn[,-target], target = learn[,target])
+test_pool <- catboost.from_data_frame(data = test[,-target], target = test[,target])
+
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_data_frame-docpage/}
 }

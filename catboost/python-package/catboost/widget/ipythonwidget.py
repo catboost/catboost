@@ -78,7 +78,7 @@ class CatboostIpythonWidget(DOMWidget):
 
         meta_tsv = os.path.join(path, 'meta.tsv')
         if os.path.isfile(meta_tsv):
-            with open(meta_tsv, 'rb') as meta_in:
+            with open(meta_tsv, 'r') as meta_in:
                 data['meta'] = {}
                 for row in list(csv.reader(meta_in, delimiter='\t')):
                     if not len(row):
@@ -98,7 +98,7 @@ class CatboostIpythonWidget(DOMWidget):
         for error_type in logs:
             file_path = os.path.join(path, logs[error_type])
             if os.path.isfile(file_path):
-                with open(file_path, 'rb') as f:
+                with open(file_path, 'r') as f:
                     data[error_type] = list(csv.reader(f, delimiter='\t'))
 
         passed_test_iterations = len(data['test_error']) - 1

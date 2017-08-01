@@ -11,20 +11,25 @@ class TProfileInfo {
 public:
     TProfileInfo(bool detailedProfile, int iterations, TOFStream* timeLeftLog)
         : PassedIterations(0)
+        , InitIterations(0)
         , DetailedProfile(detailedProfile)
         , Iterations(iterations)
         , PassedTime(0)
-        , TimeLeftLog(timeLeftLog)
-    {
+        , TimeLeftLog(timeLeftLog) {
     }
 
-    TProfileInfo(bool detailedProfile)
+    explicit TProfileInfo(bool detailedProfile)
         : PassedIterations(0)
+        , InitIterations(0)
         , DetailedProfile(detailedProfile)
         , Iterations(0)
         , PassedTime(0)
-        , TimeLeftLog(nullptr)
-    {
+        , TimeLeftLog(nullptr) {
+    }
+
+    void SetInitIterations(int iter) {
+        PassedIterations = iter;
+        InitIterations = iter;
     }
 
     void StartNextIteration() {
@@ -52,11 +57,12 @@ public:
                 log << it.first << ": " << FloatToString(it.second, PREC_NDIGITS, 3) << " sec" << Endl;
             }
         }
-        log << "passed: " << FloatToString(time, PREC_NDIGITS, 3) << " sec";
-
+        if (DetailedProfile) {
+            log << "Passed: " << FloatToString(time, PREC_NDIGITS, 3) << " sec";
+        }
         double remainingTime = 0;
-        if (PassedIterations > 0) {
-            remainingTime = PassedTime / PassedIterations * (Iterations - PassedIterations);
+        if (PassedIterations - InitIterations > 0) {
+            remainingTime = PassedTime / (PassedIterations - InitIterations) * (Iterations - PassedIterations);
             log << "\ttotal: " << HumanReadable(TDuration::Seconds(PassedTime));
             log << "\tremaining: " << HumanReadable(TDuration::Seconds(remainingTime));
         }
@@ -89,6 +95,7 @@ private:
     ymap<TString, double> OperationToTimeInAllIterations;
     THPTimer Timer;
     int PassedIterations;
+    int InitIterations;
     bool DetailedProfile;
     const int Iterations;
     double PassedTime;

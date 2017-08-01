@@ -1630,3 +1630,14 @@ TOStream& operator<<(TOStream&, const TString&);
 
 template <class TChar>
 using TGenericString = typename TCharToString<TChar>::TResult;
+
+namespace std {
+    template<>
+    struct hash<TString> {
+        using argument_type = TString;
+        using result_type = size_t;
+        inline result_type operator()(argument_type const& s) const noexcept {
+            return s.hash();
+        }
+    };
+};

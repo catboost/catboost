@@ -70,7 +70,7 @@ class InvalidExecutionStateError(Exception):
 
 class _Execution(object):
 
-    def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0):
+    def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
         self._command = command
         self._process = process
         self._out_file = out_file
@@ -86,6 +86,8 @@ class _Execution(object):
         self._check_sanitizer = check_sanitizer
         self._metrics = {}
         self._started = started
+        self._user_stdout = bool(user_stdout)
+        self._user_stderr = bool(user_stderr)
         if process_progress_listener:
             process_progress_listener.open(command, process, out_file, err_file)
 
@@ -123,16 +125,18 @@ class _Execution(object):
 
     @property
     def std_out(self):
-        if self._process.stdout and not self._std_out:
-            self._std_out = self._process.stdout.read()
         if self._std_out is not None:
+            return self._std_out
+        if self._process.stdout and not self._user_stdout:
+            self._std_out = self._process.stdout.read()
             return self._std_out
 
     @property
     def std_err(self):
-        if self._process.stderr and not self._std_err:
-            self._std_err = self._process.stderr.read()
         if self._std_err is not None:
+            return self._std_err
+        if self._process.stderr and not self._user_stderr:
+            self._std_err = self._process.stderr.read()
             return self._std_err
 
     @property
@@ -151,14 +155,21 @@ class _Execution(object):
         if self._process_progress_listener:
             self._process_progress_listener()
             self._process_progress_listener.close()
-        if self._out_file:
-            self._out_file.flush()
-            self._out_file.seek(0, os.SEEK_SET)
-            self._std_out = self._out_file.read()
-        if self._err_file:
-            self._err_file.flush()
-            self._err_file.seek(0, os.SEEK_SET)
-            self._std_err = self._err_file.read()
+        if not self._user_stdout:
+            if self._out_file != subprocess.PIPE:
+                self._out_file.flush()
+                self._out_file.seek(0, os.SEEK_SET)
+                self._std_out = self._out_file.read()
+            else:
+                self._std_out = self._process.stdout.read()
+        if not self._user_stderr:
+            if self._err_file != subprocess.PIPE:
+                self._err_file.flush()
+                self._err_file.seek(0, os.SEEK_SET)
+                self._std_err = self._err_file.read()
+            else:
+                self._std_err = self._process.stderr.read()
+
         if clean_files:
             self._clean_files()
         yatest_logger.debug("Command (pid %s) rc: %s", self._process.pid, self.exit_code)
@@ -170,13 +181,10 @@ class _Execution(object):
         yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
 
     def _clean_files(self):
-        open_files = []
-        if self._err_file:
-            open_files.append(self._err_file)
-        if self._out_file:
-            open_files.append(self._out_file)
-        for f in open_files:
-            f.close()
+        if not self._user_stderr and self._err_file != subprocess.PIPE:
+            self._err_file.close()
+        if not self._user_stdout and self._out_file != subprocess.PIPE:
+            self._out_file.close()
 
     def _recover_core(self):
         core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid)
@@ -336,6 +344,9 @@ def execute(
     if not wait and timeout is not None:
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
 
+    # if subprocess.PIPE in [stdout, stderr]:
+    #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
+
     def get_temp_file(ext):
         command_name = get_command_name(command)
         file_name = command_name + "." + ext
@@ -391,7 +402,11 @@ def execute(
             else:
                 raise type(e), type(e)(e.message + message), sys.exc_info()[2]
         raise e
-    res = _Execution(command, process, not stdout and out_file, not stderr and err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started)
+
+    user_stdout = stdout and not stdout == subprocess.PIPE
+    user_stderr = stderr and not stderr == subprocess.PIPE
+
+    res = _Execution(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res

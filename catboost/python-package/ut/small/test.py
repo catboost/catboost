@@ -450,7 +450,7 @@ def test_class_weights():
 
 def test_classification_ctr():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, ctr_description=['Borders', 'CounterTotal'])
+    model = CatBoostClassifier(iterations=5, random_seed=0, ctr_description=['Borders', 'Counter'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return local_canonical_file(OUTPUT_MODEL_PATH)
@@ -458,7 +458,7 @@ def test_classification_ctr():
 
 def test_regression_ctr():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:5:Uniform', 'CounterTotal:10:MinEntropy'])
+    model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:5:Uniform', 'Counter:10:MinEntropy'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return local_canonical_file(OUTPUT_MODEL_PATH)

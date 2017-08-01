@@ -2,10 +2,21 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.load_model}
 \alias{catboost.load_model}
-\title{Loads model from file}
+\title{catboost.load_model}
 \usage{
 catboost.load_model(model_path)
 }
+\arguments{
+\item{model_path}{The path to the model.
+
+Default value: Required argument}
+}
 \description{
-Loads model from file
+Load the model from a file.
+}
+\details{
+Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
 }

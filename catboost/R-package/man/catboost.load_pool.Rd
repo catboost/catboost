@@ -2,20 +2,34 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.load_pool}
 \alias{catboost.load_pool}
-\title{Load the catboost pool}
+\title{catboost.load_pool}
 \usage{
-catboost.load_pool(pool_path, column_description_path = "",
-  thread_count = 1, verbose = FALSE)
+catboost.load_pool(pool_path, cd_path = "", thread_count = 1,
+  verbose = FALSE)
 }
 \arguments{
-\item{pool_path}{A path to the catboost pool file (First 4 columns has special meaning. Colums after 5-th contain features).}
+\item{pool_path}{The path to the input file that contains the dataset description.}
 
-\item{column_description_path}{Feature descriptor file path.}
+\item{cd_path}{The path to the input file that contains the column descriptions.}
 
-\item{thread_count}{Number of threads used while reading data.}
+\item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.}
 
-\item{verbose}{Log output.}
+\item{verbose}{Verbose output to stdout.}
+}
+\value{
+catboost.Pool
 }
 \description{
-Load the catboost pool
+Load the CatBoost dataset.
+}
+\examples{
+pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
+cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+pool <- catboost.load_pool(pool_path, cd_path)
+test_pool <- catboost.load_pool(test_pool_path, cd_path)
+
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load-docpage/}
 }

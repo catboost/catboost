@@ -2,22 +2,43 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.from_matrix}
 \alias{catboost.from_matrix}
-\title{Create pool from matrix}
+\title{catboost.from_matrix}
 \usage{
-catboost.from_matrix(data, target, weight = NULL, baseline = NULL,
+catboost.from_matrix(data, target = NULL, weight = NULL, baseline = NULL,
   cat_features = NULL)
 }
 \arguments{
-\item{data}{Feature matrix}
+\item{data}{A matrix with features.}
 
-\item{target}{Target vector}
+\item{target}{The target vector.}
 
-\item{weight}{Weight vector}
+\item{weight}{The weights of the target vector.}
 
-\item{baseline}{Baseline vector}
+\item{baseline}{Vector of initial (raw) values of the target function for the object.
+Used in the calculation of final values of trees.}
 
-\item{cat_features}{Vector of categorical feature indices}
+\item{cat_features}{A vector of categorical features indices.
+The indices are zero based and can differ from the given in the Column descriptions file.}
+}
+\value{
+catboost.Pool
 }
 \description{
-Create pool from matrix
+Create a dataset from the given matrix.
+Only numeric features are supported (their type should be double or factor).
+Categorical features must be converted to numerical first.
+For example, use \code{as.factor()} or the \code{colClasses} argument of the \code{read.table} method.
+The target type should be double.
+}
+\examples{
+pool_path <- 'train_full3'
+data <- read.table(pool_path, head = F, sep = "\\t", colClasses = rep('numeric', 10))
+target <- c(1)
+cat_features <- seq(1,8)
+data_matrix <- as.matrix(data)
+pool <- catboost.from_matrix(data = as.matrix(data[,-target]), target = as.matrix(data[,target]), cat_features = cat_features)
+
+}
+\seealso{
+\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_matrix-docpage/}
 }

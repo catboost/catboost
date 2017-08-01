@@ -562,6 +562,44 @@
                 ]
             }
         },
+        "clang39aarch64": {
+            "name": "clang39",
+            "tools": {
+                "cc": { "bottle": "clang39", "executable": "cc" },
+                "c++": { "bottle": "clang39", "executable": "c++" },
+                "gcov": { "bottle": "clang39", "executable": "gcov" },
+                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang39", "executable": "nm" },
+                "strip": { "bottle": "clang39", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "3.9",
+                "target_opt": ["--target=aarch64-linux-gnu", "--sysroot=$(OS_SDK_ROOT)", "-B$(OS_SDK_ROOT)/usr/bin", "-march=armv8a"],
+                "platform": {
+                    "LINUX": [
+                        "contrib/libs/platform/linux"
+                    ]
+                }
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$(OS_SDK_ROOT)/usr/lib/x86_64-linux-gnu"
+                ]
+            }
+        },
         "clang40": {
             "tools": {
                 "cc": { "bottle": "clang40", "executable": "cc" },
@@ -1673,6 +1711,17 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "jstyle_runner": {
+            "tools": {
+                "jstyle_runner": { "bottle": "jstyle_runner" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "kiwi_protos": {
             "tools": {
                 "kiwi_protos": { "bottle": "kiwi_protos" }
@@ -1792,7 +1841,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 130175340,
+                "sandbox_id": 133697471,
                 "match": "test_tool"
             },
             "executable": {
@@ -1828,7 +1877,7 @@
         },
         "bloat": {
             "formula": {
-                "sandbox_id": [49648326],
+                "sandbox_id": [132153728],
                 "match": "Bloat"
             },
             "executable": {
@@ -1980,6 +2029,12 @@
                 "match": "ERRORPRONE"
             }
         },
+        "jstyle_runner": {
+            "formula": {
+                "sandbox_id": [131011094],
+                "match": "JSTYLERUNNER"
+            }
+        },
         "wine": {
             "formula": {
                 "sandbox_id": 42480153,
@@ -1991,7 +2046,7 @@
         },
         "deploy": {
             "formula": {
-                "sandbox_id": 117076601,
+                "sandbox_id": 132426558,
                 "match": "DEPLOY"
             },
             "executable": {
@@ -2018,7 +2073,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 129716924,
+                "sandbox_id": 131259617,
                 "match": "YTYNDEXER"
             },
             "executable": {

@@ -284,7 +284,7 @@ public:
         return TStringBuf(Split.Str + region.Begin, region.End - region.Begin);
     }
 
-    const TString& NextStroka() {
+    const TString& NextString() {
         if (!CurrentStroka)
             CurrentStroka = new TString();
         TSizeTRegion region = Next();
@@ -313,5 +313,5 @@ void Split(const TSplit& split, TSplitTokens* words) {
     words->clear();
     TSplitIterator<TSplit> it(split);
     while (!it.Eof())
-        words->push_back(it.NextStroka());
+        words->push_back(it.NextString());
 }

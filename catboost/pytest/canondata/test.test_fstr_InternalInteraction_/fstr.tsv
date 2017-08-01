@@ -13,7 +13,6 @@
 0.3272384248	{c10} pr0 tb0 type0	{c8, c16} pr0 tb0 type1
 0.3240182682	f15	{c10, f15 b12} pr1 tb0 type1
 0.3186360947	f13	{c9} pr0 tb0 type1
-0.3140991177	{c4, c8} pr1 tb0 type0	{c9, c12} pr1 tb0 type0
 0.2959916377	f13	{c16} pr1 tb0 type1
 0.2955423285	{c8} pr0 tb0 type1	{c4, c9} pr1 tb0 type1
 0.28676449	f13	f5
@@ -24,11 +23,8 @@
 0.2720976894	{c11} pr1 tb0 type0	{c8, c11} pr0 tb0 type1
 0.268736754	{c10} pr0 tb0 type1	{c6, c10, c16} pr2 tb0 type1
 0.2491568023	{c10} pr0 tb0 type0	{c6, c10, c16} pr2 tb0 type1
-0.2429336245	{c4} pr2 tb0 type1	{c4, c10} pr0 tb0 type0
 0.2413618711	{c10} pr0 tb0 type0	{c10, c11} pr2 tb0 type1
-0.2399315122	{c4, c8} pr1 tb0 type0	{c9, c12} pr2 tb0 type0
 0.2260119572	{c10, c16} pr2 tb0 type1	{c10, c11} pr1 tb0 type1
-0.2245764612	{c4, c10} pr0 tb0 type0	{c9, c12} pr2 tb0 type0
 0.2241998287	{c11} pr0 tb0 type0	{c10, c12} pr0 tb0 type0
 0.2241919934	{c8, c16} pr0 tb0 type1	{c4, c8, c16} pr1 tb0 type1
 0.2199731685	{c8, c11} pr0 tb0 type1	{c11} pr0 tb0 type0
@@ -37,9 +33,7 @@
 0.211535948	f3	{c10} pr2 tb0 type1
 0.2092207109	{c10} pr0 tb0 type0	{c11} pr1 tb0 type0
 0.2063526322	{c10, c11} pr1 tb0 type1	{c10, c11, c16} pr1 tb0 type1
-0.2023110095	{c4, c10} pr0 tb0 type0	{c9, c12} pr1 tb0 type0
 0.1975581379	{c8} pr2 tb0 type1	{c4, f15 b12} pr2 tb0 type1
-0.1965445842	{c4, c8} pr1 tb0 type0	{c9} pr1 tb0 type0
 0.1958954033	{c8, c11} pr0 tb0 type1	{c10, c12} pr0 tb0 type0
 0.1851822472	f3	{c10, c11} pr2 tb0 type1
 0.1793618434	{c10} pr2 tb0 type1	{c10, c11, c16} pr1 tb0 type1
@@ -57,21 +51,18 @@
 0.1438118359	{c10} pr0 tb0 type0	{c4, c8, c11} pr2 tb0 type1
 0.1392491442	{c10, f13 b4} pr1 tb0 type1	{c8, c9, c12} pr2 tb0 type1
 0.1360642323	{c10} pr0 tb0 type0	{c4, c8, c16} pr1 tb0 type1
-0.1227468835	{c4, c10} pr0 tb0 type0	{c9} pr1 tb0 type0
 0.1213102815	{c8} pr0 tb0 type1	{c4} pr2 tb0 type1
 0.116605984	{c11} pr0 tb0 type0	{c4, c8, c11} pr2 tb0 type1
 0.1143544213	{c4} pr2 tb0 type1	{c4, c9} pr1 tb0 type1
 0.1097741638	{c9} pr0 tb0 type1	{c8, c9} pr2 tb0 type1
-0.1068964765	{c9, c12} pr2 tb0 type0	{c9, c12} pr1 tb0 type0
 0.1024841637	{c6, c10, c16} pr2 tb0 type1	{c10, c11} pr2 tb0 type1
 0.09837334846	f7	{c8, c16} pr0 tb0 type1
-0.09746953078	{c4} pr2 tb0 type1	{c9} pr1 tb0 type0
 0.0973959152	{c10} pr0 tb0 type0	f13
 0.09721812537	f3	{c6, c10} pr1 tb0 type0
 0.09097684647	f3	{c6, c10, c16} pr2 tb0 type1
-0.08980422593	{c4} pr2 tb0 type1	{c9, c12} pr2 tb0 type0
 0.07545143837	{c11} pr1 tb0 type0	{c10, c12} pr0 tb0 type0
 0.07435564447	{c10, f13 b4} pr1 tb0 type1	{c9} pr0 tb0 type1
+0.07252843395	{c8} pr2 tb0 type0	{c4} pr2 tb0 type1
 0.06938008154	f5	{c8, c9, c12} pr2 tb0 type1
 0.06736570436	{c10, c12} pr0 tb0 type0	{c4, c8, c11} pr2 tb0 type1
 0.06626111935	{c10} pr0 tb0 type0	f7
@@ -79,22 +70,17 @@
 0.06538120116	{c6, c10} pr0 tb0 type0	{c4, c9} pr1 tb0 type1
 0.06303901501	{c10} pr0 tb0 type1	{c6, c10} pr0 tb0 type0
 0.06160253087	f3	{c10, c16} pr2 tb0 type1
-0.05704784034	{c4, c10} pr0 tb0 type0	{c4, c8} pr1 tb0 type0
 0.05697949008	{c6, c10} pr0 tb0 type0	{c4} pr2 tb0 type1
 0.05168738301	f3	{c10, c11} pr1 tb0 type1
 0.04940780541	{c10} pr0 tb0 type0	{c16} pr1 tb0 type1
 0.04700886993	{c8} pr2 tb0 type0	{c4} pr1 tb0 type1
 0.0464363608	{c8, c9} pr2 tb0 type1	f5
-0.04270295367	{c9} pr1 tb0 type0	{c9, c12} pr2 tb0 type0
 0.04187322864	{c11} pr1 tb0 type0	{c11} pr0 tb0 type0
-0.04024734234	{c4} pr2 tb0 type1	{c4, c8} pr1 tb0 type0
 0.03807998396	{c9} pr0 tb0 type1	{c8, c9, c12} pr2 tb0 type1
 0.03501057655	{c10, c16} pr2 tb0 type1	{c10, c11, c16} pr1 tb0 type1
 0.03012681699	{c10, f13 b4} pr1 tb0 type1	f5
 0.02587210471	{c6, c10} pr1 tb0 type0	{c6, c10, c16} pr2 tb0 type1
-0.02043750204	{c9} pr1 tb0 type0	{c9, c12} pr1 tb0 type0
 0.01929484705	{c8} pr0 tb0 type1	{c6, c10} pr0 tb0 type0
-0.01773560739	{c4} pr2 tb0 type1	{c9, c12} pr1 tb0 type0
 0.006620810563	f13	{c4, c8, c16} pr1 tb0 type1
 0.005501792875	{c9} pr0 tb0 type1	f5
 0.004748466164	f13	{c8, c9, c12} pr2 tb0 type1

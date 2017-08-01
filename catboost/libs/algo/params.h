@@ -48,11 +48,15 @@ enum class ECtrType {
     Borders,
     Buckets,
     MeanValue,
-    CounterTotal,
-    CounterMax
+    Counter
 };
 
-bool IsCounter(ECtrType ctrType);
+enum class ECounterCalc {
+    Universal,
+    Static,
+    Basic
+};
+
 
 constexpr int CB_THREAD_LIMIT = 32;
 
@@ -64,8 +68,8 @@ struct TCtrDescription {
     TCtrDescription() = default;
 
     explicit TCtrDescription(const ECtrType& ctrType)
-        : CtrType(ctrType)
-    { }
+        : CtrType(ctrType) {
+    }
 };
 
 struct TCtrParams {
@@ -73,7 +77,7 @@ struct TCtrParams {
     int MaxCtrComplexity = 4;
     yvector<float> DefaultPriors = {0, 0.5, 1};
     yvector<std::pair<int, yvector<float>>> PerFeaturePriors;
-    yvector<TCtrDescription> Ctrs = { TCtrDescription(), TCtrDescription(ECtrType::CounterMax) };
+    yvector<TCtrDescription> Ctrs = {TCtrDescription(), TCtrDescription(ECtrType::Counter)};
 };
 
 enum class EPredictionType {
@@ -141,6 +145,7 @@ public:
     int FoldPermutationBlockSize = ParameterNotSet;
     int BorderCount = 128;
     TCtrParams CtrParams;
+    ECounterCalc CounterCalcMethod = ECounterCalc::Basic;
     float AutoStopPval = 0;
     EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
     int OverfittingDetectorIterationsWait = 20;
@@ -176,6 +181,7 @@ public:
     bool StoreAllSimpleCtr = false;
     bool PrintTrees = false;
     bool DeveloperMode = false;
+    bool ApproxOnAllHistory = true;
 
     TFitParams() = default;
 
@@ -184,8 +190,7 @@ public:
                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                         NJson::TJsonValue* resultingParams = nullptr)
         : ObjectiveDescriptor(objectiveDescriptor)
-        , EvalMetricDescriptor(evalMetricDescriptor)
-    {
+        , EvalMetricDescriptor(evalMetricDescriptor) {
         InitFromJson(tree, resultingParams);
     }
 

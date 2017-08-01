@@ -383,7 +383,7 @@ class CatBoost(_CatBoostBase):
     def _fit(self, X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot):
         params = self._get_init_train_params()
         init_params = self.get_init_params()
-        calc_feature_importance = False
+        calc_feature_importance = True
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
         if verbose is not None:
@@ -407,7 +407,7 @@ class CatBoost(_CatBoostBase):
             if len(eval_set) != 2:
                 raise CatboostError("Invalid eval_set shape={}: must be (X, y).".format(np.shape(eval_set)))
             eval_set = Pool(eval_set[0], eval_set[1], cat_features=cat_features)
-        if X.is_empty():
+        if X.is_empty_:
             raise CatboostError("X is empty.")
 
         if plot:
@@ -423,7 +423,7 @@ class CatBoost(_CatBoostBase):
         with log_fixup():
             self._train(X, eval_set, params)
         if calc_feature_importance:
-            setattr(self, "feature_importance", self.feature_importances(X))
+            setattr(self, "_feature_importance", self.get_feature_importance(X))
         return self
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, plot=False):
@@ -473,13 +473,13 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        if not self.is_fitted():
+        if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
             data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
         elif not np.all(data.get_cat_feature_indices() == self._get_cat_feature_indices()):
             raise CatboostError("data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
-        if data.is_empty():
+        if data.is_empty_:
             raise CatboostError("data is empty.")
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
@@ -529,10 +529,9 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        tree_count = self.get_tree_count()
-        if not self.is_fitted() or tree_count is None:
+        if not self.is_fitted_ or self.tree_count_ is None:
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
-        for ntree_limit in range(1, tree_count + 1):
+        for ntree_limit in range(1, self.tree_count_ + 1):
             yield self._predict(data, weight, prediction_type, ntree_limit, verbose)
 
     def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', verbose=None):
@@ -564,14 +563,14 @@ class CatBoost(_CatBoostBase):
 
     @property
     def feature_importance_(self):
-        feature_importance_ = getattr(self, "feature_importance", None)
-        if not self.is_fitted():
+        feature_importance_ = getattr(self, "_feature_importance", None)
+        if not self.is_fitted_:
             raise CatboostError("There is no trained model to use `feature_importance_`. Use fit() to train model with param `calc_feature_importance=True`. Then use `feature_importance_`.")
         if feature_importance_ is None:
             raise CatboostError("Invalid attribute `feature_importance_`: use calc_feature_importance=True in model params for use it")
         return feature_importance_
 
-    def feature_importances(self, X, y=None, cat_features=None, weight=None, baseline=None, thread_count=1):
+    def get_feature_importance(self, X, y=None, cat_features=None, weight=None, baseline=None, thread_count=1):
         """
         Parameters
         ----------
@@ -609,7 +608,7 @@ class CatBoost(_CatBoostBase):
             if y is None:
                 raise CatboostError("y has not initialized in feature_importances(): X is not Pool object, y must be not None in feature_importances().")
             X = Pool(X, y, cat_features=cat_features, weight=weight, baseline=baseline)
-        if X.is_empty():
+        if X.is_empty_:
             raise CatboostError("X is empty.")
         return self._calc_fstr(X, thread_count)
 
@@ -631,7 +630,7 @@ class CatBoost(_CatBoostBase):
                 * coreml_model_author : string
                 * coreml_model_license: string
         """
-        if not self.is_fitted():
+        if not self.is_fitted_:
             raise CatboostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
         if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
@@ -717,10 +716,10 @@ class CatBoostClassifier(CatBoost):
         Subsample ratio of columns when constructing each tree.
         range: [0,1]
     loss_function : string, [default='Logloss']
-        Can be:
-        - 'Logloss'
-        - 'CrossEntropy'
-        - 'MultiClass'
+        Possible values:
+            - 'Logloss'
+            - 'CrossEntropy'
+            - 'MultiClass'
     border : float, [default=None]
         Threshold of positive class.
         range: (0,1)
@@ -729,28 +728,43 @@ class CatBoostClassifier(CatBoost):
         range: (0,+inf]
     feature_border_type : string, [default='MinEntropy']
         Type of binarization target. Used only in Reggression tasks.
-        Can be:
-        - 'Median'
-        - 'UniformAndQuantiles'
-        - 'GreedyLogSum'
-        - 'MaxSumLog'
-        - 'MinEntropy'
+        Possible values:
+            - 'Median'
+            - 'UniformAndQuantiles'
+            - 'GreedyLogSum'
+            - 'MaxSumLog'
+            - 'MinEntropy'
     fold_permutation_block_size : int, [default=1]
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
         range: [1,+inf]
-    auto_stop_pval : float, [default=0]
-        Use overfitting detector to stop training when reaching a specified threshold. Can be used only with eval_set.
+    od_pval : float, [default=0]
+        Use overfitting detector to stop training when reaching a specified threshold.
+        Can be used only with eval_set.
         range: [0,1]
+    od_wait : int, [default=None]
+        Number of iterations which overfitting detector will wait after new best error.
+    od_type : string, [default=None]
+        Type of overfitting detector which will be used in program.
+        Posible values:
+            - 'IncToDec'
+            - 'Iter'
+        For 'Iter' type od_pval must not be set.
+    counter_calc_method : string, [default=None]
+        The method used to calculate counters for test dataset with Counter type.
+        Possible values:
+            - 'Basic' - only objects up to current in the test dataset are considered
+            - 'Universal' - all objects are considered in the test dataset
+            - 'Static' - Objects from test dataset are not considered
     gradient_iterations : int, [default=None]
         The number of steps in the gradient when calculating the values in the leaves.
         If None, then gradient_iterations=1.
         range: [1,+inf]
     leaf_estimation_method : string, [default='Gradient']
         The method used to calculate the values in the leaves.
-        Can be:
-        - 'Newton'
-        - 'Gradient'
+        Possible values:
+            - 'Newton'
+            - 'Gradient'
     thread_count : int, [default=None]
         Number of parallel threads used to run CatBoost.
         If None, then used maximum of the possible threads.
@@ -774,8 +788,7 @@ class CatBoostClassifier(CatBoost):
             - 'Borders'
             - 'Buckets'
             - 'MeanValue'
-            - 'CounterTotal'
-            - 'CounterMax'
+            - 'Counter'
         Number_of_borders and Binarization_type are optional parametrs
         that only used for regression.
             you can fit ctr_description like ['<CTR_type_1>', '<CTR_type_2>', ... ]
@@ -875,7 +888,10 @@ class CatBoostClassifier(CatBoost):
         border_count=None,
         feature_border_type='MinEntropy',
         fold_permutation_block_size=None,
-        auto_stop_pval=0,
+        od_pval=0,
+        od_wait=None,
+        od_type=None,
+        counter_calc_method=None,
         gradient_iterations=None,
         leaf_estimation_method=None,
         thread_count=None,
@@ -919,7 +935,7 @@ class CatBoostClassifier(CatBoost):
 
     @property
     def classes_(self):
-        return getattr(self, "classes", None)
+        return getattr(self, "_classes", None)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, plot=False):
         """
@@ -964,9 +980,9 @@ class CatBoostClassifier(CatBoost):
         """
         self._fit(X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot)
         if y is not None:
-            setattr(self, "classes", np.unique(y))
+            setattr(self, "_classes", np.unique(y))
         else:
-            setattr(self, "classes", np.unique(X.get_label()))
+            setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
     def predict(self, data, weight=None, prediction_type='Class', ntree_limit=0, verbose=None):
@@ -1125,7 +1141,10 @@ class CatBoostRegressor(CatBoost):
         border_count=None,
         feature_border_type='MinEntropy',
         fold_permutation_block_size=None,
-        auto_stop_pval=0,
+        od_pval=0,
+        od_wait=None,
+        od_type=None,
+        counter_calc_method=None,
         gradient_iterations=None,
         leaf_estimation_method=None,
         thread_count=None,
