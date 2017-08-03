@@ -4,7 +4,7 @@
 ## General info
 
 Hello! In order for us (YANDEX LLC) to accept patches and other contributions from you, you will have to adopt our Yandex Contributor License Agreement (the “**CLA**”). The current version of the CLA can be found here:
-1) https://yandex.ru/legal/cla/?lang=en (in English) and 
+1) https://yandex.ru/legal/cla/?lang=en (in English) and
 2) https://yandex.ru/legal/cla/?lang=ru (in Russian).
 
 By adopting the CLA, you state the following:
@@ -19,7 +19,7 @@ If you agree with these principles, please read and adopt our CLA. By providing 
 
 ## Provide contributions
 
-If you have already adopted terms and conditions of the CLA, you are able to provide your contributions. When you submit your pull request, please add the following information into it:
+If you have already adopted terms and conditions of the CLA, you are able to provide your contributions. When you submit your first pull request, please add the following information into it:
 
 ```
 I hereby agree to the terms of the CLA available at: [link].
@@ -28,4 +28,4 @@ I hereby agree to the terms of the CLA available at: [link].
 Replace the bracketed text as follows:
 * [link] is the link to the current version of the CLA: https://yandex.ru/legal/cla/?lang=en (in English) or https://yandex.ru/legal/cla/?lang=ru (in Russian).
 
-It is enough to provide such notification once. 
+It is enough to provide this notification only once. 
