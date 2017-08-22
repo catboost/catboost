@@ -5,6 +5,6 @@
 using namespace NMalloc;
 
 template <>
-void Out<TMallocInfo>(TOutputStream& out, const TMallocInfo& info) {
+void Out<TMallocInfo>(IOutputStream& out, const TMallocInfo& info) {
     out << "malloc (name = " << info.Name << ")";
 }

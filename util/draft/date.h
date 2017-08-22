@@ -81,8 +81,8 @@ public:
     friend bool operator==(const TDate& left, const TDate& right);
     friend int operator-(const TDate& left, const TDate& right);
 
-    friend TInputStream& operator>>(TInputStream& left, TDate& right);
-    friend TOutputStream& operator<<(TOutputStream& left, const TDate& right);
+    friend IInputStream& operator>>(IInputStream& left, TDate& right);
+    friend IOutputStream& operator<<(IOutputStream& left, const TDate& right);
 };
 
 Y_DECLARE_PODTYPE(TDate);
@@ -114,7 +114,7 @@ inline int operator-(const TDate& left, const TDate& right) {
     return static_cast<int>((left.Timestamp + SECONDS_IN_DAY / 2 - right.Timestamp) / SECONDS_IN_DAY);
 }
 
-inline TInputStream& operator>>(TInputStream& left, TDate& right) {
+inline IInputStream& operator>>(IInputStream& left, TDate& right) {
     TString stroka;
     left >> stroka;
     TDate date(stroka.c_str());
@@ -122,6 +122,6 @@ inline TInputStream& operator>>(TInputStream& left, TDate& right) {
     return left;
 }
 
-inline TOutputStream& operator<<(TOutputStream& left, const TDate& right) {
+inline IOutputStream& operator<<(IOutputStream& left, const TDate& right) {
     return left << right.ToStroka();
 }

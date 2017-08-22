@@ -6,7 +6,7 @@
 
 #include "input.h"
 
-class TOutputStream;
+class IOutputStream;
 
 /**
  * @addtogroup Streams
@@ -18,13 +18,13 @@ class TOutputStream;
  *
  * Derived classes must implement `DoNext` method.
  */
-class TZeroCopyInput: public TInputStream {
+class IZeroCopyInput: public IInputStream {
 public:
-    TZeroCopyInput() noexcept = default;
-    ~TZeroCopyInput() override;
+    IZeroCopyInput() noexcept = default;
+    ~IZeroCopyInput() override;
 
-    TZeroCopyInput(TZeroCopyInput&&) noexcept = default;
-    TZeroCopyInput& operator=(TZeroCopyInput&&) noexcept = default;
+    IZeroCopyInput(IZeroCopyInput&&) noexcept = default;
+    IZeroCopyInput& operator=(IZeroCopyInput&&) noexcept = default;
 
     /**
      * Returns the next data chunk from this input stream.
@@ -52,7 +52,7 @@ public:
 protected:
     size_t DoRead(void* buf, size_t len) override;
     size_t DoSkip(size_t len) override;
-    ui64 DoReadAll(TOutputStream& out) override;
+    ui64 DoReadAll(IOutputStream& out) override;
     virtual size_t DoNext(const void** ptr, size_t len) = 0;
 };
 
@@ -61,13 +61,13 @@ protected:
 *
 * Derived classes must implement `DoUndo` method.
 */
-class TZeroCopyInputFastReadTo: public TZeroCopyInput {
+class IZeroCopyInputFastReadTo: public IZeroCopyInput {
 public:
-    TZeroCopyInputFastReadTo() noexcept = default;
-    ~TZeroCopyInputFastReadTo() override;
+    IZeroCopyInputFastReadTo() noexcept = default;
+    ~IZeroCopyInputFastReadTo() override;
 
-    TZeroCopyInputFastReadTo(TZeroCopyInputFastReadTo&&) noexcept = default;
-    TZeroCopyInputFastReadTo& operator=(TZeroCopyInputFastReadTo&&) noexcept = default;
+    IZeroCopyInputFastReadTo(IZeroCopyInputFastReadTo&&) noexcept = default;
+    IZeroCopyInputFastReadTo& operator=(IZeroCopyInputFastReadTo&&) noexcept = default;
 
 protected:
     size_t DoReadTo(TString& st, char ch) override;

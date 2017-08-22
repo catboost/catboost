@@ -44,7 +44,7 @@ namespace {
     }
 
     struct TChunkedZeroCopyInput {
-        inline TChunkedZeroCopyInput(TZeroCopyInput* in)
+        inline TChunkedZeroCopyInput(IZeroCopyInput* in)
             : In(in)
             , Buf(nullptr)
             , Len(0)
@@ -71,7 +71,7 @@ namespace {
             return true;
         }
 
-        TZeroCopyInput* In;
+        IZeroCopyInput* In;
         const char* Buf;
         size_t Len;
     };
@@ -79,7 +79,7 @@ namespace {
 
 class TZLibDecompress::TImpl: private TZLibCommon, public TChunkedZeroCopyInput {
 public:
-    inline TImpl(TZeroCopyInput* in, ZLib::StreamType type)
+    inline TImpl(IZeroCopyInput* in, ZLib::StreamType type)
         : TChunkedZeroCopyInput(in)
     {
         if (inflateInit2(Z(), opts[type]) != Z_OK) {
@@ -142,9 +142,9 @@ private:
 };
 
 namespace {
-    class TDecompressStream: public TZeroCopyInput, public TZLibDecompress::TImpl, public TAdditionalStorage<TDecompressStream> {
+    class TDecompressStream: public IZeroCopyInput, public TZLibDecompress::TImpl, public TAdditionalStorage<TDecompressStream> {
     public:
-        inline TDecompressStream(TInputStream* input, ZLib::StreamType type)
+        inline TDecompressStream(IInputStream* input, ZLib::StreamType type)
             : TZLibDecompress::TImpl(this, type)
             , Stream_(input)
         {
@@ -161,7 +161,7 @@ namespace {
         }
 
     private:
-        TInputStream* Stream_;
+        IInputStream* Stream_;
     };
 
     using TZeroCopyDecompress = TZLibDecompress::TImpl;
@@ -266,15 +266,15 @@ private:
     }
 
 private:
-    TOutputStream* Stream_;
+    IOutputStream* Stream_;
 };
 
-TZLibDecompress::TZLibDecompress(TZeroCopyInput* input, ZLib::StreamType type)
+TZLibDecompress::TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type)
     : Impl_(new TZeroCopyDecompress(input, type))
 {
 }
 
-TZLibDecompress::TZLibDecompress(TInputStream* input, ZLib::StreamType type, size_t buflen)
+TZLibDecompress::TZLibDecompress(IInputStream* input, ZLib::StreamType type, size_t buflen)
     : Impl_(new (buflen) TDecompressStream(input, type))
 {
 }

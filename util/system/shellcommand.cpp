@@ -167,9 +167,9 @@ private:
     TString WorkDir;
     TShellCommand::ECommandStatus ExecutionStatus;
     TMaybe<int> ExitCode;
-    TInputStream* InputStream;
-    TOutputStream* OutputStream;
-    TOutputStream* ErrorStream;
+    IInputStream* InputStream;
+    IOutputStream* OutputStream;
+    IOutputStream* ErrorStream;
     TString CollectedOutput;
     TString CollectedError;
     TString InternalError;
@@ -685,17 +685,17 @@ void TShellCommand::TImpl::Run() {
 }
 
 void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
-    THolder<TOutputStream> outputHolder;
-    TOutputStream* output = pi->Parent->OutputStream;
+    THolder<IOutputStream> outputHolder;
+    IOutputStream* output = pi->Parent->OutputStream;
     if (!output)
         outputHolder.Reset(output = new TStringOutput(pi->Parent->CollectedOutput));
 
-    THolder<TOutputStream> errorHolder;
-    TOutputStream* error = pi->Parent->ErrorStream;
+    THolder<IOutputStream> errorHolder;
+    IOutputStream* error = pi->Parent->ErrorStream;
     if (!error)
         errorHolder.Reset(error = new TStringOutput(pi->Parent->CollectedError));
 
-    TInputStream*& input = pi->Parent->InputStream;
+    IInputStream*& input = pi->Parent->InputStream;
 
     try {
         TBuffer buffer(1024 * 1024);

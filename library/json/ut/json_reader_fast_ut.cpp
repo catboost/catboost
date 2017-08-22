@@ -289,8 +289,30 @@ public:
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{k:v,a:b,x:[1,2,3]}", false, 2, true),
                           "{\n  'k' : 'v',\n  'a' : 'b',\n  'x' : [\n    1,\n    2,\n    3\n  ]\n}");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{k:v,a:b,x:[1,{f:b},3],m:n}", false, 2, true),
-      "{\n  'k' : 'v',\n  'a' : 'b',\n  'x' : [\n    1,\n    {\n      'f' : 'b'\n    },\n    3\n  ],\n  'm' : 'n'\n}");
+            "{\n"
+            "  'k' : 'v',\n"
+            "  'a' : 'b',\n"
+            "  'x' : [\n"
+            "    1,\n"
+            "    {\n"
+            "      'f' : 'b'\n"
+            "    },\n"
+            "    3\n"
+            "  ],\n"
+            "  'm' : 'n'\n"
+            "}"
+        );
 
+        NJson::TJsonPrettifier prettifierMaxLevel1 = NJson::TJsonPrettifier::Prettifier(false, 2, true);
+        prettifierMaxLevel1.MaxPaddingLevel = 1;
+        UNIT_ASSERT_STRINGS_EQUAL(prettifierMaxLevel1.Prettify("{k:v,a:b,x:[1,{f:b},3],m:n}"),
+            "{\n"
+            "  'k' : 'v',\n"
+            "  'a' : 'b',\n"
+            "  'x' : [ 1, { 'f' : 'b' }, 3 ],\n"
+            "  'm' : 'n'\n"
+            "}"
+        );
 
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("Test545", true, 2), "Test545");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("'null'", true, 2, true), "'null'");
@@ -314,7 +336,35 @@ public:
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("[]]]"), "");
 
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{g:{x:{a:{b:c,e:f},q:{x:y}},y:fff}}", true, 2),
-  "{\n  g : {\n    x : {\n      a : {\n        b : c,\n        e : f\n      },\n      q : {\n        x : y\n      }\n    },\n    y : fff\n  }\n}");
+            "{\n"
+            "  g : {\n"
+            "    x : {\n"
+            "      a : {\n"
+            "        b : c,\n"
+            "        e : f\n"
+            "      },\n"
+            "      q : {\n"
+            "        x : y\n"
+            "      }\n"
+            "    },\n"
+            "    y : fff\n"
+            "  }\n"
+            "}"
+        );
+
+        NJson::TJsonPrettifier prettifierMaxLevel = NJson::TJsonPrettifier::Prettifier(true, 2);
+        prettifierMaxLevel.MaxPaddingLevel = 3;
+        UNIT_ASSERT_STRINGS_EQUAL(prettifierMaxLevel.Prettify("{g:{x:{a:{b:c,e:f},q:{x:y}},y:fff}}"),
+            "{\n"
+            "  g : {\n"
+            "    x : {\n"
+            "      a : { b : c, e : f },\n"
+            "      q : { x : y }\n"
+            "    },\n"
+            "    y : fff\n"
+            "  }\n"
+            "}"
+        );
     }
 
     void TestCompact() {

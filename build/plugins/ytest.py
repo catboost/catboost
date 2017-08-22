@@ -5,6 +5,7 @@ import json
 import base64
 import _common
 import StringIO
+import subprocess
 import collections
 
 import ymake
@@ -577,7 +578,7 @@ def onsetup_pytest_bin(unit, *args):
 
 def onrun(unit, *args):
     exectest_cmd = unit.get(["EXECTEST_COMMAND_VALUE"]) or ''
-    exectest_cmd += "\n" + " ".join(args)
+    exectest_cmd += "\n" + subprocess.list2cmdline(args)
     unit.set(["EXECTEST_COMMAND_VALUE", exectest_cmd])
 
 

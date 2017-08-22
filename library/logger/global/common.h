@@ -121,7 +121,7 @@ TSimpleSharedPtr<TLogElement> GetLoggerForce(TLog& log, const TLogRecordContext&
 
 namespace NPrivateGlobalLogger {
     struct TEatStream {
-        Y_FORCE_INLINE bool operator|(const TOutputStream&) const {
+        Y_FORCE_INLINE bool operator|(const IOutputStream&) const {
             return true;
         }
     };

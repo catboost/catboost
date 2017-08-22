@@ -259,6 +259,10 @@ public:
         return TPages::empty() || 1 == NPages() && CurrentPage().empty();
     }
 
+    explicit operator bool() const noexcept {
+        return !empty();
+    }
+
     void emplace_back() {
         PrepareAppend();
         CurrentPage().emplace_back();

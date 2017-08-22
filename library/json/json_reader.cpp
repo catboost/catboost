@@ -199,7 +199,7 @@ namespace {
 
         template <class U>
         bool ProcessUint(U u) {
-            if (Y_LIKELY(u <= Max<int64_t>())) {
+            if (Y_LIKELY(u <= static_cast<uint64_t>(Max<int64_t>()))) {
                 Set(int64_t(u));
             } else {
                 Set(u);
@@ -369,15 +369,15 @@ bool ReadJsonTree(TStringBuf in, const TJsonReaderConfig *config, TJsonValue *ou
     return ReadJsonTreeImpl(&in, config, out, throwOnError);
 }
 
-bool ReadJsonTree(TInputStream *in, TJsonValue *out, bool throwOnError) {
+bool ReadJsonTree(IInputStream *in, TJsonValue *out, bool throwOnError) {
     return ReadJsonTreeImpl(in, out, throwOnError);
 }
 
-bool ReadJsonTree(TInputStream *in, bool allowComments, TJsonValue *out, bool throwOnError) {
+bool ReadJsonTree(IInputStream *in, bool allowComments, TJsonValue *out, bool throwOnError) {
     return ReadJsonTreeImpl(in, allowComments, out, throwOnError);
 }
 
-bool ReadJsonTree(TInputStream *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError) {
+bool ReadJsonTree(IInputStream *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError) {
     return ReadJsonTreeImpl(in, config, out, throwOnError);
 }
 
@@ -471,17 +471,17 @@ namespace {
     };
 }
 
-bool ReadJson(TInputStream *in, TJsonCallbacks *cbs) {
+bool ReadJson(IInputStream *in, TJsonCallbacks *cbs) {
     return ReadJson(in, false, cbs);
 }
 
-bool ReadJson(TInputStream *in, bool allowComments, TJsonCallbacks *cbs) {
+bool ReadJson(IInputStream *in, bool allowComments, TJsonCallbacks *cbs) {
     TJsonReaderConfig config;
     config.AllowComments = allowComments;
     return ReadJson(in, &config, cbs);
 }
 
-bool ReadJson(TInputStream *in, const TJsonReaderConfig *config, TJsonCallbacks *cbs) {
+bool ReadJson(IInputStream *in, const TJsonReaderConfig *config, TJsonCallbacks *cbs) {
     TJsonCallbacksWrapper wrapper(*cbs);
     TInputStreamWrapper is(*in);
 

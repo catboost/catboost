@@ -174,7 +174,7 @@ IF (WIN32)
          Modules/selectmodule.c
          Modules/socketmodule.c
     )
-    EXTRALIBS(crypt32.lib ws2_32.lib)
+    LDFLAGS(crypt32.lib ws2_32.lib)
 
     CFLAGS(-DHAVE_EXPAT_CONFIG_H=1 -DHAVE_MEMMOVE)
     CFLAGS(-DHAVE_EXPAT_CONFIG_H=1 -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI)

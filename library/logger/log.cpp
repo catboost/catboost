@@ -49,7 +49,7 @@ static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, TLogP
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {
-    class TPriorityLogStream: public TOutputStream {
+    class TPriorityLogStream: public IOutputStream {
     public:
         inline TPriorityLogStream(TLogPriority p, const TImpl* parent)
             : Priority_(p)

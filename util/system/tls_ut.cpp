@@ -25,7 +25,7 @@ SIMPLE_UNIT_TEST_SUITE(TTestTLS) {
     SIMPLE_UNIT_TEST(TestHugeSetup) {
         TArrayHolder<X> x(new X[100000]);
 
-        struct TThr: public TSimpleThread {
+        struct TThr: public ISimpleThread {
             inline TThr(X* ptr)
                 : P(ptr)
             {

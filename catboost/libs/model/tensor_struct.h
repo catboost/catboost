@@ -5,11 +5,11 @@
 #include <util/digest/multi.h>
 
 struct TTensorStructure3 {
-    yvector<TSplit> SelectedSplits;
+    yvector<TModelSplit> SelectedSplits;
 
     Y_SAVELOAD_DEFINE(SelectedSplits)
 
-    void Add(const TSplit& split) {
+    void Add(const TModelSplit& split) {
         SelectedSplits.push_back(split);
     }
 
@@ -32,4 +32,4 @@ struct TTensorStructure3 {
 
 yvector<TBinFeature> GetBinFeatures(const TTensorStructure3& tree);
 yvector<TOneHotFeature> GetOneHotFeatures(const TTensorStructure3& tree);
-yvector<TCtrSplit> GetCtrSplits(const TTensorStructure3& tree);
+yvector<TModelCtrSplit> GetCtrSplits(const TTensorStructure3& tree);

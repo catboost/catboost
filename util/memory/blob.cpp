@@ -329,7 +329,7 @@ static inline TBlob ConstructFromBuffer(TBuffer& in) {
 }
 
 template <class TCounter>
-static inline TBlob ConstructFromStream(TInputStream& in) {
+static inline TBlob ConstructFromStream(IInputStream& in) {
     TBuffer buf;
 
     {
@@ -341,11 +341,11 @@ static inline TBlob ConstructFromStream(TInputStream& in) {
     return ConstructFromBuffer<TCounter>(buf);
 }
 
-TBlob TBlob::FromStreamSingleThreaded(TInputStream& in) {
+TBlob TBlob::FromStreamSingleThreaded(IInputStream& in) {
     return ConstructFromStream<TSimpleCounter>(in);
 }
 
-TBlob TBlob::FromStream(TInputStream& in) {
+TBlob TBlob::FromStream(IInputStream& in) {
     return ConstructFromStream<TAtomicCounter>(in);
 }
 

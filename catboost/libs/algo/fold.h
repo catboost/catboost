@@ -3,6 +3,7 @@
 #include "restorable_rng.h"
 #include "target_classifier.h"
 #include "train_data.h"
+#include "online_ctr.h"
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/model/projection.h>
@@ -17,17 +18,17 @@ static int SelectMinBatchSize(int sampleCount) {
 }
 
 struct TFold {
-    struct TMixTail {
+    struct TBodyTail {
         yvector<yvector<double>> Approx;
         yvector<yvector<double>> Derivatives;
-        // TODO(annaveronika): make a single vector<vector> for all MixTail
+        // TODO(annaveronika): make a single vector<vector> for all BodyTail
         yvector<yvector<double>> WeightedDer;
 
-        int MixCount;
+        int BodyFinish;
         int TailFinish;
 
-        TMixTail()
-            : MixCount(0)
+        TBodyTail()
+            : BodyFinish(0)
             , TailFinish(0)
         {
         }
@@ -35,7 +36,7 @@ struct TFold {
 
     yvector<float> LearnWeights;
     yvector<int> LearnPermutation; // index in original array
-    yvector<TMixTail> MixTailArr;
+    yvector<TBodyTail> BodyTailArr;
     yvector<float> LearnTarget;
     yvector<float> SampleWeights;
     yvector<yvector<int>> LearnTargetClass;
@@ -102,7 +103,7 @@ struct TFold {
     }
 
     int GetApproxDimension() const {
-        return MixTailArr[0].Approx.ysize();
+        return BodyTailArr[0].Approx.ysize();
     }
 
     void TrimOnlineCTR(size_t maxOnlineCTRFeatures) {
@@ -111,19 +112,19 @@ struct TFold {
         }
     }
 
-    void SaveApproxes(TOutputStream* s) const {
-        const ui64 mixTailCount = MixTailArr.size();
-        ::Save(s, mixTailCount);
-        for (ui64 i = 0; i < mixTailCount; ++i) {
-            ::Save(s, MixTailArr[i].Approx);
+    void SaveApproxes(IOutputStream* s) const {
+        const ui64 bodyTailCount = BodyTailArr.size();
+        ::Save(s, bodyTailCount);
+        for (ui64 i = 0; i < bodyTailCount; ++i) {
+            ::Save(s, BodyTailArr[i].Approx);
         }
     }
-    void LoadApproxes(TInputStream* s) {
-        ui64 mixTailCount;
-        ::Load(s, mixTailCount);
-        CB_ENSURE(mixTailCount == MixTailArr.size());
-        for (ui64 i = 0; i < mixTailCount; ++i) {
-            ::Load(s, MixTailArr[i].Approx);
+    void LoadApproxes(IInputStream* s) {
+        ui64 bodyTailCount;
+        ::Load(s, bodyTailCount);
+        CB_ENSURE(bodyTailCount == BodyTailArr.size());
+        for (ui64 i = 0; i < bodyTailCount; ++i) {
+            ::Load(s, BodyTailArr[i].Approx);
         }
     }
 private:
@@ -191,17 +192,17 @@ inline TFold BuildLearnFold(const TTrainData& data,
     ff.EffectiveDocCount = data.LearnSampleCount;
     int leftPartLen = SelectMinBatchSize(data.LearnSampleCount);
     while (leftPartLen < data.LearnSampleCount) {
-        TFold::TMixTail mt;
-        mt.MixCount = leftPartLen;
-        mt.TailFinish = Min(ceil(leftPartLen * multiplier), ff.LearnPermutation.ysize() + 0.);
-        mt.Approx.resize(approxDimension, yvector<double>(mt.TailFinish));
+        TFold::TBodyTail bt;
+        bt.BodyFinish = leftPartLen;
+        bt.TailFinish = Min(ceil(leftPartLen * multiplier), ff.LearnPermutation.ysize() + 0.);
+        bt.Approx.resize(approxDimension, yvector<double>(bt.TailFinish));
         if (!data.Baseline[0].empty()) {
-            InitFromBaseline(leftPartLen, mt.TailFinish, data.Baseline, ff.LearnPermutation, &mt.Approx);
+            InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, &bt.Approx);
         }
-        mt.Derivatives.resize(approxDimension, yvector<double>(mt.TailFinish));
-        mt.WeightedDer.resize(approxDimension, yvector<double>(mt.TailFinish));
-        ff.MixTailArr.emplace_back(std::move(mt));
-        leftPartLen = mt.TailFinish;
+        bt.Derivatives.resize(approxDimension, yvector<double>(bt.TailFinish));
+        bt.WeightedDer.resize(approxDimension, yvector<double>(bt.TailFinish));
+        ff.BodyTailArr.emplace_back(std::move(bt));
+        leftPartLen = bt.TailFinish;
     }
     return ff;
 }
@@ -225,14 +226,14 @@ inline TFold BuildAveragingFold(const TTrainData& data,
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
     ff.EffectiveDocCount = data.GetSampleCount();
-    TFold::TMixTail mt;
-    mt.MixCount = data.LearnSampleCount;
-    mt.TailFinish = data.LearnSampleCount;
-    mt.Approx.resize(approxDimension, yvector<double>(data.GetSampleCount()));
-    mt.WeightedDer.resize(approxDimension, yvector<double>(data.GetSampleCount()));
+    TFold::TBodyTail bt;
+    bt.BodyFinish = data.LearnSampleCount;
+    bt.TailFinish = data.LearnSampleCount;
+    bt.Approx.resize(approxDimension, yvector<double>(data.GetSampleCount()));
+    bt.WeightedDer.resize(approxDimension, yvector<double>(data.GetSampleCount()));
     if (!data.Baseline[0].empty()) {
-        InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, &mt.Approx);
+        InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, &bt.Approx);
     }
-    ff.MixTailArr.emplace_back(std::move(mt));
+    ff.BodyTailArr.emplace_back(std::move(bt));
     return ff;
 }

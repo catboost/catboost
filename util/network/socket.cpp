@@ -550,7 +550,7 @@ private:
 };
 
 template <>
-void Out<const struct addrinfo*>(TOutputStream& os, const struct addrinfo* ai) {
+void Out<const struct addrinfo*>(IOutputStream& os, const struct addrinfo* ai) {
     if (ai->ai_flags & AI_CANONNAME)
         os << "`" << ai->ai_canonname << "' ";
 
@@ -565,12 +565,12 @@ void Out<const struct addrinfo*>(TOutputStream& os, const struct addrinfo* ai) {
 }
 
 template <>
-void Out<struct addrinfo*>(TOutputStream& os, struct addrinfo* ai) {
+void Out<struct addrinfo*>(IOutputStream& os, struct addrinfo* ai) {
     Out<const struct addrinfo*>(os, static_cast<const struct addrinfo*>(ai));
 }
 
 template <>
-void Out<TNetworkAddress>(TOutputStream& os, const TNetworkAddress& addr) {
+void Out<TNetworkAddress>(IOutputStream& os, const TNetworkAddress& addr) {
     os << &*addr.Begin();
 }
 

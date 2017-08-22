@@ -10,9 +10,9 @@
 /**
  * A proxy input stream that concatenates two slave streams into one.
  */
-class TMultiInput: public TInputStream {
+class TMultiInput: public IInputStream {
 public:
-    TMultiInput(TInputStream* f, TInputStream* s) noexcept;
+    TMultiInput(IInputStream* f, IInputStream* s) noexcept;
     ~TMultiInput() override;
 
 private:
@@ -21,8 +21,8 @@ private:
     size_t DoReadTo(TString& st, char ch) override;
 
 private:
-    TInputStream* C_;
-    TInputStream* N_;
+    IInputStream* C_;
+    IInputStream* N_;
 };
 
 /** @} */

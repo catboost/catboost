@@ -23,8 +23,8 @@ struct TLearnProgress {
     TCoreModel Model;
     yvector<yvector<double>> LearnErrorsHistory, TestErrorsHistory;
 
-    void Save(TOutputStream* s) const;
-    void Load(TInputStream* s);
+    void Save(IOutputStream* s) const;
+    void Load(IInputStream* s);
 };
 
 class TCommonContext : public TNonCopyable {
@@ -37,10 +37,9 @@ public:
                    const yvector<TString>& featureId)
         : Params(jsonParams, objectiveDescriptor, evalMetricDescriptor, &ResultingParams)
         , Layout(featureCount, catFeatures, featureId)
-        , CatFeatures(catFeatures.begin(), catFeatures.end())
-    {
+        , CatFeatures(catFeatures.begin(), catFeatures.end()) {
         LocalExecutor.RunAdditionalThreads(Params.ThreadCount - 1);
-        Priors.Init(Params.CtrParams.DefaultPriors, Params.CtrParams.PerFeaturePriors, Layout);
+        Priors.Init(Params.CtrParams.DefaultPriors, Params.CtrParams.PerFeaturePriors, Params.CtrParams.PerCtrPriors, Params.CtrParams.PerFeatureCtrPriors, Params.CtrParams.Ctrs.ysize(), Layout);
     }
 
 public:
@@ -68,6 +67,7 @@ public:
     TString SnapshotFile;
     TString MetaFile;
     static TString AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
+
 private:
     void InitializeFiles(const TFitParams& params, const TString& namesPrefix);
 };
@@ -76,7 +76,7 @@ private:
 /* Class for storing learn specific data structures like:               */
 /* prng, learn progress and target classifiers                          */
 /************************************************************************/
-class TLearnContext: public TCommonContext {
+class TLearnContext : public TCommonContext {
 public:
     TLearnContext(const NJson::TJsonValue& jsonParams,
                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -89,9 +89,9 @@ public:
         , Rand(Params.RandomSeed)
         , Files(Params, fileNamesPrefix)
         , TimeLeftLog(Files.TimeLeftLogFile)
-        , Profile(Params.DetailedProfile, Params.Iterations, &TimeLeftLog)
-    {
-        LearnProgress.Model.ParamsJson = ToString(ResultingParams);
+        , Profile(Params.DetailedProfile, Params.Iterations, &TimeLeftLog) {
+        LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams);
+        LearnProgress.Model.FeatureCount = featureCount;
     }
 
     void OutputMeta(int approxDimension);
@@ -102,7 +102,6 @@ public:
 public:
     TRestorableFastRng64 Rand;
     TLearnProgress LearnProgress;
-    yvector<TTargetClassifier> TargetClassifiers;
     TOutputFiles Files;
     TOFStream TimeLeftLog;
     TProfileInfo Profile;

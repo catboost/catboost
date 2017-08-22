@@ -2,16 +2,16 @@
 
 #include "backend.h"
 
-class TOutputStream;
+class IOutputStream;
 
 class TStreamLogBackend: public TLogBackend {
 public:
-    TStreamLogBackend(TOutputStream* slave);
+    TStreamLogBackend(IOutputStream* slave);
     ~TStreamLogBackend() override;
 
     void WriteData(const TLogRecord& rec) override;
     void ReopenLog() override;
 
 private:
-    TOutputStream* Slave_;
+    IOutputStream* Slave_;
 };

@@ -73,7 +73,7 @@ inline bool YaIsDebuggerPresent() {
                 assert(false && "Exception during assert"); \
             }                                               \
         }                                                   \
-    } while (0)
+    } while (false)
 #else
 #define Y_ASSERT(a)                            \
     do {                                       \
@@ -81,7 +81,7 @@ inline bool YaIsDebuggerPresent() {
             bool __xxx = static_cast<bool>(a); \
             Y_UNUSED(__xxx);                   \
         }                                      \
-    } while (0)
+    } while (false)
 #endif
 
 namespace NPrivate {
@@ -95,12 +95,12 @@ namespace NPrivate {
         if (Y_UNLIKELY(!(expr))) {                                                                   \
             ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__); \
         }                                                                                            \
-    } while (0)
+    } while (false)
 
 #define Y_FAIL(...)                                                                                \
     do {                                                                                           \
         ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, nullptr, " " __VA_ARGS__); \
-    } while (0)
+    } while (false)
 
 #ifndef NDEBUG
 /// Assert that depend on NDEBUG macro and outputs message like printf
@@ -109,7 +109,7 @@ namespace NPrivate {
         if (Y_UNLIKELY(!(expr))) {                                                                   \
             ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__); \
         }                                                                                            \
-    } while (0)
+    } while (false)
 #else
 #define Y_VERIFY_DEBUG(expr, ...)                 \
     do {                                          \
@@ -117,5 +117,5 @@ namespace NPrivate {
             bool __xxx = static_cast<bool>(expr); \
             Y_UNUSED(__xxx);                      \
         }                                         \
-    } while (0)
+    } while (false)
 #endif

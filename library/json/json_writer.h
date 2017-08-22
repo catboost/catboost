@@ -41,7 +41,7 @@ struct TJsonWriterConfig {
 };
 
 class TJsonWriter {
-    TOutputStream *Out;
+    IOutputStream *Out;
     NJsonWriter::TBuf Buf;
     const bool SortKeys;
     const bool ValidateUtf8;
@@ -49,8 +49,8 @@ class TJsonWriter {
     const bool DontFlushInDestructor;
 
 public:
-    TJsonWriter(TOutputStream *out, bool formatOutput, bool sortkeys = false, bool validateUtf8 = true);
-    TJsonWriter(TOutputStream *out, const TJsonWriterConfig& config, bool DontFlushInDestructor = false);
+    TJsonWriter(IOutputStream *out, bool formatOutput, bool sortkeys = false, bool validateUtf8 = true);
+    TJsonWriter(IOutputStream *out, const TJsonWriterConfig& config, bool DontFlushInDestructor = false);
     ~TJsonWriter();
 
     void Flush();
@@ -143,9 +143,9 @@ public:
     }
 };
 
-void WriteJson(TOutputStream*, const TJsonValue*, bool formatOutput = false, bool sortkeys = false, bool validateUtf8 = true);
+void WriteJson(IOutputStream*, const TJsonValue*, bool formatOutput = false, bool sortkeys = false, bool validateUtf8 = true);
 TString WriteJson(const TJsonValue*, bool formatOutput = true, bool sortkeys = false, bool validateUtf8 = false);
 TString WriteJson(const TJsonValue&, bool formatOutput = true, bool sortkeys = false, bool validateUtf8 = false);
-void WriteJson(TOutputStream*, const TJsonValue*, const TJsonWriterConfig& config);
+void WriteJson(IOutputStream*, const TJsonValue*, const TJsonWriterConfig& config);
 
 }

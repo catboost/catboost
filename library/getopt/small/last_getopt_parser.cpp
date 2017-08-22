@@ -377,11 +377,11 @@ void TOptsParser::Finish() {
     throw usage; // don't need lineinfo, just the message
 }
 
-void TOptsParser::PrintUsage(TOutputStream& os, const NColorizer::TColors& colors) const {
+void TOptsParser::PrintUsage(IOutputStream& os, const NColorizer::TColors& colors) const {
     Opts_->PrintUsage(ProgramName(), os, colors);
 }
 
-void TOptsParser::PrintUsage(TOutputStream& os) const {
+void TOptsParser::PrintUsage(IOutputStream& os) const {
     PrintUsage(os, NColorizer::AutoColors(os));
 }
 

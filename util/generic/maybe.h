@@ -234,7 +234,7 @@ public:
         return Defined_;
     }
 
-    void Save(TOutputStream* out) const {
+    void Save(IOutputStream* out) const {
         const bool defined = Defined();
 
         ::Save<bool>(out, defined);
@@ -244,7 +244,7 @@ public:
         }
     }
 
-    void Load(TInputStream* in) {
+    void Load(IInputStream* in) {
         bool defined;
 
         ::Load(in, defined);
@@ -556,10 +556,10 @@ constexpr bool operator>=(const U& value, const TMaybe<T>& maybe) {
     return !(value < maybe);
 }
 
-class TOutputStream;
+class IOutputStream;
 
 template <class T, class TPolicy>
-static inline TOutputStream& operator<<(TOutputStream& out, const TMaybe<T, TPolicy>& maybe) {
+static inline IOutputStream& operator<<(IOutputStream& out, const TMaybe<T, TPolicy>& maybe) {
     if (maybe.Defined()) {
         out << *maybe;
     } else {

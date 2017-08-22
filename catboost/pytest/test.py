@@ -97,10 +97,7 @@ def test_shrink_model():
     return [local_canonical_file(output_eval_path)]
 
 
-LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'MultiClass']
-
-
-REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
+LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
 
 
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
@@ -649,6 +646,9 @@ def test_regularization():
     return [local_canonical_file(output_eval_path)]
 
 
+REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
+
+
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
 def test_reg_targets(loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -665,7 +665,33 @@ def test_reg_targets(loss_function):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '--eval-file', output_eval_path,
+        '--eval-file', output_eval_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+MULTI_LOSS_FUNCTIONS = ['MultiClass', 'MultiClassOneVsAll']
+
+
+@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+def test_multi_targets(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', data_file('cloudness_small', 'train_small'),
+        '-t', data_file('cloudness_small', 'test_small'),
+        '--column-description', data_file('cloudness_small', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path
     )
     yatest.common.execute(cmd)
 
@@ -797,7 +823,7 @@ def test_custom_loss_for_classification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,CrossEntropy,Accuracy,Precision,Recall',
+        '--custom-loss', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -823,7 +849,7 @@ def test_custom_loss_for_multiclassification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,Accuracy,Precision,Recall',
+        '--custom-loss', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -939,7 +965,7 @@ def test_classification_progress_restore():
     # assert filecmp.cmp(canon_model_path, model_path)
 
 
-CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass']
+CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass', 'MultiClassOneVsAll']
 PREDICTION_TYPES = ['RawFormulaVal', 'Class', 'Probability']
 
 
@@ -1128,6 +1154,52 @@ def test_feature_id_fstr():
     yatest.common.execute(fstr_cmd)
 
     return local_canonical_file(output_fstr_path)
+
+
+def test_class_names_logloss():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--class-names', '1,0'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_class_names_multiclass():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '-f', data_file('precipitation_small', 'train_small'),
+        '-t', data_file('precipitation_small', 'test_small'),
+        '--column-description', data_file('precipitation_small', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--class-names', '0.,0.5,1.,0.25,0.75'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
 
 
 def test_class_weight_logloss():

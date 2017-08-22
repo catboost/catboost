@@ -382,7 +382,7 @@ const TPathSplit& TFsPath::PathSplit() const {
 }
 
 template <>
-void Out<TFsPath>(TOutputStream& os, const TFsPath& f) {
+void Out<TFsPath>(IOutputStream& os, const TFsPath& f) {
     os << f.GetPath();
 }
 

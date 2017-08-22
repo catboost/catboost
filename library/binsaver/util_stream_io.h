@@ -8,7 +8,7 @@
 
 class TYaStreamInput : public IBinaryStream
 {
-    TInputStream &Stream;
+    IInputStream &Stream;
 
     int WriteImpl(const void*, int) override
     {
@@ -22,13 +22,13 @@ class TYaStreamInput : public IBinaryStream
     bool IsValid() const override { return true; }
     bool IsFailed() const override { return false; }
 public:
-    TYaStreamInput(TInputStream &stream)
+    TYaStreamInput(IInputStream &stream)
         : Stream(stream) {
     }
 };
 
 template<class T>
-inline void SerializeFromStream(TInputStream &stream, T &c)
+inline void SerializeFromStream(IInputStream &stream, T &c)
 {
     TYaStreamInput f(stream);
     {
@@ -47,7 +47,7 @@ inline void SerializeFromFile(const TString &fileName, T &c)
 
 class TYaStreamOutput : public IBinaryStream
 {
-    TOutputStream &Stream;
+    IOutputStream &Stream;
 
     int WriteImpl(const void* what, int size) override
     {
@@ -62,13 +62,13 @@ class TYaStreamOutput : public IBinaryStream
     bool IsValid() const override { return true; }
     bool IsFailed() const override { return false; }
 public:
-    TYaStreamOutput(TOutputStream &stream)
+    TYaStreamOutput(IOutputStream &stream)
         : Stream(stream) {
     }
 };
 
 template<class T>
-inline void SerializeToStream(TOutputStream &stream, T &c)
+inline void SerializeToStream(IOutputStream &stream, T &c)
 {
     TYaStreamOutput f(stream);
     {

@@ -110,7 +110,7 @@ public:
      *
      * @return self
      */
-    inline TShellCommandOptions& SetInputStream(TInputStream* stream) {
+    inline TShellCommandOptions& SetInputStream(IInputStream* stream) {
         InputStream = stream;
         return *this;
     }
@@ -124,7 +124,7 @@ public:
      *
      * @return self
      */
-    inline TShellCommandOptions& SetOutputStream(TOutputStream* stream) {
+    inline TShellCommandOptions& SetOutputStream(IOutputStream* stream) {
         OutputStream = stream;
         return *this;
     }
@@ -138,7 +138,7 @@ public:
      *
      * @return self
      */
-    inline TShellCommandOptions& SetErrorStream(TOutputStream* stream) {
+    inline TShellCommandOptions& SetErrorStream(IOutputStream* stream) {
         ErrorStream = stream;
         return *this;
     }
@@ -226,10 +226,10 @@ public:
     // bool SearchPath // search exe name in $PATH
     // bool UnicodeConsole
     // bool EmulateConsole // provide isatty == true
-    /// @todo command's stdin should be exposet as TOutputStream to support dialogue
-    TInputStream* InputStream;
-    TOutputStream* OutputStream;
-    TOutputStream* ErrorStream;
+    /// @todo command's stdin should be exposet as IOutputStream to support dialogue
+    IInputStream* InputStream;
+    IOutputStream* OutputStream;
+    IOutputStream* ErrorStream;
     TUserOptions User;
     yhash<TString, TString> Environment;
     int Nice;

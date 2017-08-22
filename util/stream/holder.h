@@ -5,18 +5,18 @@
 #include <utility>
 #include <type_traits>
 
-class TInputStream;
-class TOutputStream;
+class IInputStream;
+class IOutputStream;
 
 namespace NPrivate {
-    template <class Stream, bool isInput = std::is_base_of<TInputStream, Stream>::value>
+    template <class Stream, bool isInput = std::is_base_of<IInputStream, Stream>::value>
     struct TStreamBase {
-        using TType = TInputStream;
+        using TType = IInputStream;
     };
 
     template <class Stream>
     struct TStreamBase<Stream, false> {
-        using TType = TOutputStream;
+        using TType = IOutputStream;
     };
 
 } // namespace NPrivate

@@ -2,6 +2,7 @@
 
 #include "fold.h"
 #include "learn_context.h"
+#include "split.h"
 #include <catboost/libs/model/tensor_struct.h>
 #include <catboost/libs/model/model.h>
 
@@ -16,10 +17,10 @@ void SetPermutedIndices(const TSplit& split,
 
 int GetRedundantSplitIdx(int curDepth, const yvector<TIndexType>& indices);
 
-void DeleteSplit(int curDepth, int redundantIdx, TTensorStructure3* tree, yvector<TIndexType>* indices);
+void DeleteSplit(int curDepth, int redundantIdx, yvector<TSplit>* tree, TTensorStructure3* tensorStructure3, yvector<TIndexType>* indices);
 
 yvector<TIndexType> BuildIndices(const TFold& fold,
-                          const TTensorStructure3& tree,
+                          const yvector<TSplit>& tree,
                           const TTrainData& data,
                           NPar::TLocalExecutor* localExecutor);
 

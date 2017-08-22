@@ -13,7 +13,7 @@
 #include <cstdlib>
 
 namespace {
-    struct TMd5Stream: public TOutputStream {
+    struct TMd5Stream: public IOutputStream {
         inline TMd5Stream(MD5* md5)
             : M_(md5)
         {
@@ -49,11 +49,11 @@ char* MD5::Data(const void* data, size_t len, char* buf) {
     return md5.End(buf);
 }
 
-char* MD5::Stream(TInputStream* in, char* buf) {
+char* MD5::Stream(IInputStream* in, char* buf) {
     return MD5().Update(in).End(buf);
 }
 
-MD5& MD5::Update(TInputStream* in) {
+MD5& MD5::Update(IInputStream* in) {
     TMd5Stream md5(this);
 
     TransferData(in, &md5);

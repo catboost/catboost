@@ -7,7 +7,7 @@
 
 class TBufferedInput::TImpl: public TAdditionalStorage<TImpl> {
 public:
-    inline TImpl(TInputStream* slave)
+    inline TImpl(IInputStream* slave)
         : Slave_(slave)
         , MemInput_(nullptr, 0)
     {
@@ -102,7 +102,7 @@ public:
         return ret;
     }
 
-    inline void Reset(TInputStream* slave) {
+    inline void Reset(IInputStream* slave) {
         Slave_ = slave;
     }
 
@@ -116,11 +116,11 @@ private:
     }
 
 private:
-    TInputStream* Slave_;
+    IInputStream* Slave_;
     TMemoryInput MemInput_;
 };
 
-TBufferedInput::TBufferedInput(TInputStream* slave, size_t buflen)
+TBufferedInput::TBufferedInput(IInputStream* slave, size_t buflen)
     : Impl_(new (buflen) TImpl(slave))
 {
 }
@@ -143,13 +143,13 @@ size_t TBufferedInput::DoReadTo(TString& st, char ch) {
     return Impl_->ReadTo(st, ch);
 }
 
-void TBufferedInput::Reset(TInputStream* slave) {
+void TBufferedInput::Reset(IInputStream* slave) {
     Impl_->Reset(slave);
 }
 
 class TBufferedOutputBase::TImpl {
 public:
-    inline TImpl(TOutputStream* slave)
+    inline TImpl(IOutputStream* slave)
         : Slave_(slave)
         , MemOut_(nullptr, 0)
         , PropagateFlush_(false)
@@ -176,7 +176,7 @@ public:
             const size_t good_len = DownToBufferGranularity(full_len);
             const size_t write_from_buf = good_len - stored;
 
-            using TPart = TOutputStream::TPart;
+            using TPart = IOutputStream::TPart;
 
             alignas(TPart) char data[2 * sizeof(TPart)];
             TPart* parts = reinterpret_cast<TPart*>(data);
@@ -256,7 +256,7 @@ private:
     virtual size_t Len() const noexcept = 0;
 
 private:
-    TOutputStream* Slave_;
+    IOutputStream* Slave_;
     TMemoryOutput MemOut_;
     bool PropagateFlush_;
     bool PropagateFinish_;
@@ -264,7 +264,7 @@ private:
 
 namespace {
     struct TSimpleImpl: public TBufferedOutputBase::TImpl, public TAdditionalStorage<TSimpleImpl> {
-        inline TSimpleImpl(TOutputStream* slave)
+        inline TSimpleImpl(IOutputStream* slave)
             : TBufferedOutputBase::TImpl(slave)
         {
             Reset();
@@ -289,7 +289,7 @@ namespace {
             Step = 4096
         };
 
-        inline TAdaptiveImpl(TOutputStream* slave)
+        inline TAdaptiveImpl(IOutputStream* slave)
             : TBufferedOutputBase::TImpl(slave)
             , N_(0)
         {
@@ -320,12 +320,12 @@ namespace {
     };
 }
 
-TBufferedOutputBase::TBufferedOutputBase(TOutputStream* slave)
+TBufferedOutputBase::TBufferedOutputBase(IOutputStream* slave)
     : Impl_(new TAdaptiveImpl(slave))
 {
 }
 
-TBufferedOutputBase::TBufferedOutputBase(TOutputStream* slave, size_t buflen)
+TBufferedOutputBase::TBufferedOutputBase(IOutputStream* slave, size_t buflen)
     : Impl_(new (buflen) TSimpleImpl(slave))
 {
 }
@@ -371,14 +371,14 @@ void TBufferedOutputBase::SetFinishPropagateMode(bool propagate) noexcept {
     }
 }
 
-TBufferedOutput::TBufferedOutput(TOutputStream* slave, size_t buflen)
+TBufferedOutput::TBufferedOutput(IOutputStream* slave, size_t buflen)
     : TBufferedOutputBase(slave, buflen)
 {
 }
 
 TBufferedOutput::~TBufferedOutput() = default;
 
-TAdaptiveBufferedOutput::TAdaptiveBufferedOutput(TOutputStream* slave)
+TAdaptiveBufferedOutput::TAdaptiveBufferedOutput(IOutputStream* slave)
     : TBufferedOutputBase(slave)
 {
 }

@@ -88,7 +88,7 @@ namespace NDiff {
     }
 
     template <typename TFormatter, typename T>
-    void PrintChunks(TOutputStream& out, const TFormatter& fmt, const yvector<TChunk<T>>& chunks) {
+    void PrintChunks(IOutputStream& out, const TFormatter& fmt, const yvector<TChunk<T>>& chunks) {
         for (typename yvector<TChunk<T>>::const_iterator chunk = chunks.begin(); chunk != chunks.end(); ++chunk) {
             if (!chunk->Left.empty() || !chunk->Right.empty()) {
                 out << fmt.Special("(");

@@ -3,7 +3,7 @@
 #include <util/stream/format.h>
 #include <util/system/yassert.h>
 
-void ::NPrivate::PrintFlags(TOutputStream& stream, ui64 value, size_t size) {
+void ::NPrivate::PrintFlags(IOutputStream& stream, ui64 value, size_t size) {
     /* Note that this function is in cpp because we need to break circular
      * dependency between TFlags and ENumberFormat. */
     stream << "TFlags(";

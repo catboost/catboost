@@ -1059,7 +1059,7 @@ bool GetArrayPointer(const TJsonValue &jv, const TStringBuf key, const TJsonValu
 }
 
 template <>
-void Out<NJson::TJsonValue>(TOutputStream& out, const NJson::TJsonValue& v) {
+void Out<NJson::TJsonValue>(IOutputStream& out, const NJson::TJsonValue& v) {
     NJsonWriter::TBuf buf(NJsonWriter::HEM_DONT_ESCAPE_HTML, &out);
     buf.WriteJsonValue(&v);
 }

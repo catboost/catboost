@@ -83,7 +83,7 @@ TString FormatCycles(ui64 cycles) {
     return result;
 }
 
-TFormattedPrecisionTimer::TFormattedPrecisionTimer(const char* message, TOutputStream* out)
+TFormattedPrecisionTimer::TFormattedPrecisionTimer(const char* message, IOutputStream* out)
     : Message(message)
     , Out(out)
 {

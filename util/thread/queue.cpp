@@ -34,7 +34,7 @@ class TMtpQueue::TImpl: public TIntrusiveListItem<TImpl>, public IThreadPool::IT
     using TThreadRef = TAutoPtr<IThreadPool::IThread>;
 
 public:
-    inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, bool blocking, ECatching catching)
+    inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, EBlocking blocking, ECatching catching)
         : Parent_(parent)
         , Blocking(blocking)
         , Catching(catching)
@@ -201,7 +201,7 @@ private:
 
 private:
     TMtpQueue* Parent_;
-    const bool Blocking;
+    const EBlocking Blocking;
     const ECatching Catching;
     mutable TMutex QueueMutex;
     mutable TMutex StopMutex;
@@ -261,13 +261,13 @@ private:
     };
 };
 
-TMtpQueue::TMtpQueue(bool blocking, ECatching catching)
+TMtpQueue::TMtpQueue(EBlocking blocking, ECatching catching)
     : Blocking(blocking)
     , Catching(catching)
 {
 }
 
-TMtpQueue::TMtpQueue(IThreadPool* pool, bool blocking, ECatching catching)
+TMtpQueue::TMtpQueue(IThreadPool* pool, EBlocking blocking, ECatching catching)
     : TThreadPoolHolder(pool)
     , Blocking(blocking)
     , Catching(catching)

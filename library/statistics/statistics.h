@@ -434,4 +434,44 @@ namespace NStatistics {
         return TTest(xMeanAndStd.Mean - yMeanAndStd.Mean, precision, isTailed, isLeftTailed);
     }
 
+    //! Kullback–Leibler divergence
+    /*! More details on https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence */
+    template <typename InputIterator1, typename InputIterator2>
+    double KLDivergence(InputIterator1 pBegin, InputIterator1 pEnd, InputIterator2 qBegin, InputIterator2 qEnd) {
+        using ValueType = typename std::iterator_traits<InputIterator1>::value_type;
+        using AnotherValueType = typename std::iterator_traits<InputIterator2>::value_type;
+        static_assert(std::is_convertible<ValueType, double>::value, "P data should be convertible to double");
+        static_assert(std::is_convertible<AnotherValueType, double>::value, "Q data should be convertible to double");
+
+        if (pBegin == pEnd || qBegin == qEnd) {
+            ythrow yexception() << "Arrays should be non empty";
+        }
+        auto pIt = pBegin;
+        auto qIt = qBegin;
+        // formula for non-normalized data: 1/P\sum_{\forall i} p_i * ln(p_i/q_i) + ln(P/Q)
+        double pDenominator = 0, qDenominator = 0;
+        double divergence = 0;
+        for (; pIt != pEnd && qIt != qEnd; ++pIt, ++qIt) {
+            NDetail::NonNegativeAdd(pDenominator, *pIt, "Invalid data: p < 0");
+            NDetail::NonNegativeAdd(qDenominator, *qIt, "Invalid data: q < 0");
+            if (*qIt < std::numeric_limits<double>::epsilon() && *pIt > 0) {
+                ythrow yexception() << "Invalid data: q = 0, but p > 0";
+            }
+            if (*pIt > 0) {
+                divergence += *pIt * log(double(*pIt) / *qIt);
+            }
+        }
+        if (pIt != pEnd || qIt != qEnd) {
+            ythrow yexception() << "Diffeftent sizes of input data";
+        }
+        if (pDenominator < std::numeric_limits<double>::epsilon()) {
+            ythrow yexception() << "Invalid P denominator";
+        }
+        if (qDenominator < std::numeric_limits<double>::epsilon()) {
+            ythrow yexception() << "Invalid Q denominator";
+        }
+        divergence /= pDenominator;
+        divergence += log(qDenominator / pDenominator);
+        return divergence;
+    }
 }  // namespace NStatistics

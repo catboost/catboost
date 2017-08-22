@@ -6,7 +6,7 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/index_calcer.h>
 
-static bool SplitHasFeature(const int feature, const TSplit& split, const TFeaturesLayout& layout) {
+static bool SplitHasFeature(const int feature, const TModelSplit& split, const TFeaturesLayout& layout) {
     const EFeatureType featureType = layout.GetFeatureType(feature);
     const int internalIdx = layout.GetInternalFeatureIdx(feature);
     if (split.Type == ESplitType::FloatFeature) {
@@ -108,7 +108,7 @@ yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
     CB_ENSURE(!model.TreeStruct.empty(), "Model is empty. Did you fit the model?");
     int featureCount = pool.Docs[0].Factors.ysize();
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ParamsJson);
+    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams.InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 

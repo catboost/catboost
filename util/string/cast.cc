@@ -635,14 +635,6 @@ DEF_FLT_SPEC(long double)
 
 #undef DEF_FLT_SPEC
 
-ui32 strtoui32(const char* s) noexcept {
-    return strtonum_u<ui32>(s);
-}
-
-int yatoi(const char* s) noexcept {
-    return (int)strtonum_u<long>(s);
-}
-
 // Using StrToD for float and double because it is faster than sscanf.
 // Exception-free, specialized for float types
 template <>

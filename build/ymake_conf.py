@@ -1886,6 +1886,7 @@ when ($NO_WSHADOW == "yes") {{
 
         emit("SFDL_FLAG", flags_sfdl)
         emit('WERROR_FLAG', flags_werror)
+        emit("WERROR_MODE", self._tc.werror_mode or "compiler_specific")
 
         if self.fix_msvc_output:
             emit('CL_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'cl')

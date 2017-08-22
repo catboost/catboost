@@ -24,7 +24,7 @@ static void CallbackFun(int i) {
     throw i;
 }
 
-static TOutputStream* OUTS = nullptr;
+static IOutputStream* OUTS = nullptr;
 
 class TExceptionTest: public TTestBase {
     UNIT_TEST_SUITE(TExceptionTest);

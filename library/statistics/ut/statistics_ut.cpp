@@ -403,6 +403,27 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Probit<double>(0.975), 1.95996, 1e-5);
     }
 
+    SIMPLE_UNIT_TEST(KLDivergenceTest) {
+        yvector <double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
+        yvector <double> pNormal = {1                , 9               , 54             , 230           , 402           , 247           , 48             , 9               , 0                };
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pNormal.begin(), pNormal.end(), qNormal.begin(), qNormal.end()), 0.0048574438, 1e-5);
+        yvector <int> qSimple = {1, 1, 0};
+        yvector <int> pSimple = {0, 2, 0};
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pSimple.begin(), pSimple.end(), qSimple.begin(), qSimple.end()), 0.69314781, 1e-5);
+        yvector <int> pBinomial = {2, 8};
+        yvector <double> qBinomial = {8, 2};
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pBinomial.begin(), pBinomial.end(), qBinomial.begin(), qBinomial.end()), 0.8317766167, 1e-5);
+        yvector <int> qBadDataBinomial = {0, 1};
+        yvector <int> pBadDataBinomial = {1, 1};
+        bool exceptionCaught = false;
+        try {
+            NStatistics::KLDivergence(pBadDataBinomial.begin(), pBadDataBinomial.end(), qBadDataBinomial.begin(), qBadDataBinomial.end());
+        } catch (const yexception& ) {
+            exceptionCaught = true;
+        }
+        UNIT_ASSERT(exceptionCaught);
+    }
+
     NStatistics::TStatisticsCalculator<double> QuadStatistics(size_t start, size_t end) {
         NStatistics::TStatisticsCalculator<double> result;
         for (; start != end; ++start) {

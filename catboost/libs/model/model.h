@@ -1,22 +1,15 @@
 #pragma once
 
+#include "target_classifier.h"
+
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/model/tensor_struct.h>
 
 #include <library/json/json_reader.h>
-#include <library/containers/dense_hash/dense_hash.h>
-#include <util/ysaveload.h>
 
 #include <util/generic/vector.h>
 #include <util/system/mutex.h>
 #include <util/stream/file.h>
-
-struct TCtrHash {
-    inline size_t operator()(const TCtr& ctr) const {
-        TProjHash projHash;
-        return MultiHash(projHash(ctr.Projection), ctr.PriorIdx);
-    }
-};
 
 struct TCtrValueTable {
     TDenseHash<ui64, ui32> Hash;
@@ -24,7 +17,7 @@ struct TCtrValueTable {
     yvector<yvector<int>> Ctr;
     yvector<TCtrMeanHistory> CtrMean;
     yvector<int> CtrTotal;
-    int CounterDenominator;
+    int CounterDenominator = 0;
 
     bool operator==(const TCtrValueTable& other) const {
         return std::tie(Hash, Ctr, CtrMean, CtrTotal, CounterDenominator) ==
@@ -42,53 +35,31 @@ struct TCtrValueTable {
     Y_SAVELOAD_DEFINE(Hash, Ctr, CtrMean, CtrTotal, CounterDenominator)
 };
 
-struct TCoreModel {
-    yvector<yvector<float>> Borders;
-    yvector<TTensorStructure3> TreeStruct;
-    yvector<yvector<yvector<double>>> LeafValues; // [numTree][dim][bucketId]
-    TString ParamsJson;
-    yvector<int> CatFeatures;
-    yvector<TString> FeatureIds;
-    int FeatureCount;
-
-    bool operator==(const TCoreModel& other) const {
-        return std::tie(Borders, TreeStruct, LeafValues, ParamsJson, CatFeatures, FeatureIds, FeatureCount) == std::tie(other.Borders, other.TreeStruct, other.LeafValues, other.ParamsJson, other.CatFeatures, other.FeatureIds, other.FeatureCount);
-    }
-
-    void Swap(TCoreModel& other) {
-        DoSwap(Borders, other.Borders);
-        DoSwap(TreeStruct, other.TreeStruct);
-        DoSwap(LeafValues, other.LeafValues);
-        DoSwap(ParamsJson, other.ParamsJson);
-        DoSwap(CatFeatures, other.CatFeatures);
-        DoSwap(FeatureIds, other.FeatureIds);
-        DoSwap(FeatureCount, other.FeatureCount);
-    }
-
-    Y_SAVELOAD_DEFINE(TreeStruct, LeafValues, Borders, ParamsJson, CatFeatures, FeatureIds, FeatureCount)
-};
-
 struct TCtrData {
-    using TLearnCtrHash = yhash<TCtr, TCtrValueTable, TCtrHash>;
+    using TLearnCtrHash = yhash<TModelCtr, TCtrValueTable>;
     TLearnCtrHash LearnCtrs;
 
     bool operator==(const TCtrData& other) const {
         return LearnCtrs == other.LearnCtrs;
     }
 
-    inline void Save(TOutputStream* s) const {
+    bool operator!=(const TCtrData& other) const {
+        return !(*this == other);
+    }
+
+    inline void Save(IOutputStream* s) const {
         // all this looks like yserializer for hash copypaste implementation
         // but we have to do this to allow partially streamed serialization of big models
         ::SaveSize(s, LearnCtrs.size());
         ::SaveRange(s, LearnCtrs.begin(), LearnCtrs.end());
     }
 
-    inline void Load(TInputStream* s) {
+    inline void Load(IInputStream* s) {
         const size_t cnt = ::LoadSize(s);
         LearnCtrs.reserve(cnt);
 
         for (size_t i = 0; i != cnt; ++i) {
-            std::pair<TCtr, TCtrValueTable> kv;
+            std::pair<TModelCtr, TCtrValueTable> kv;
             ::Load(s, kv);
             LearnCtrs.emplace(std::move(kv));
         }
@@ -97,7 +68,46 @@ struct TCtrData {
 
 struct TOneHotFeaturesInfo {
     yhash<int, TString> FeatureHashToOrigString;
+    bool operator==(const TOneHotFeaturesInfo& other) const {
+        return FeatureHashToOrigString == other.FeatureHashToOrigString;
+    }
+
+    bool operator!=(const TOneHotFeaturesInfo& other) const {
+        return !(*this == other);
+    }
     Y_SAVELOAD_DEFINE(FeatureHashToOrigString);
+};
+
+struct TCoreModel {
+    yvector<yvector<float>> Borders;
+    yvector<TTensorStructure3> TreeStruct;
+    yvector<yvector<yvector<double>>> LeafValues; // [numTree][dim][bucketId]
+    yvector<int> CatFeatures;
+    yvector<TString> FeatureIds;
+    int FeatureCount = 0;
+    yvector<TTargetClassifier> TargetClassifiers;
+    yhash<TString, TString> ModelInfo;
+
+    bool operator==(const TCoreModel& other) const {
+        return std::tie(Borders, TreeStruct, LeafValues, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo) == std::tie(other.Borders, other.TreeStruct, other.LeafValues, other.CatFeatures, other.FeatureIds, other.FeatureCount, other.TargetClassifiers, other.ModelInfo);
+    }
+
+    bool operator!=(const TCoreModel& other) const {
+        return !(*this == other);
+    }
+
+    void Swap(TCoreModel& other) {
+        DoSwap(Borders, other.Borders);
+        DoSwap(TreeStruct, other.TreeStruct);
+        DoSwap(LeafValues, other.LeafValues);
+        DoSwap(CatFeatures, other.CatFeatures);
+        DoSwap(FeatureIds, other.FeatureIds);
+        DoSwap(FeatureCount, other.FeatureCount);
+        DoSwap(TargetClassifiers, other.TargetClassifiers);
+        DoSwap(ModelInfo, other.ModelInfo);
+    }
+
+    Y_SAVELOAD_DEFINE(TreeStruct, LeafValues, Borders, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo)
 };
 
 struct TFullModel: public TCoreModel {
@@ -113,12 +123,12 @@ struct TFullModel: public TCoreModel {
         return TCoreModel::operator==(other) && CtrCalcerData == other.CtrCalcerData;
     }
 
-    void Save(TOutputStream* s) const {
+    void Save(IOutputStream* s) const {
         TCoreModel::Save(s);
         ::Save(s, OneHotFeaturesInfo);
         ::Save(s, CtrCalcerData);
     }
-    void Load(TInputStream* s) {
+    void Load(IInputStream* s) {
         TCoreModel::Load(s);
         ::Load(s, OneHotFeaturesInfo);
         ::Load(s, CtrCalcerData);
@@ -154,7 +164,7 @@ public:
         ::SaveSize(&Stream, ExpectedWritesCount);
     }
 
-    void SaveOneCtr(const TCtr& ctr, const TCtrValueTable& valTable) {
+    void SaveOneCtr(const TModelCtr& ctr, const TCtrValueTable& valTable) {
         with_lock (StreamLock) {
             ++WritesCount;
             ::SaveMany(&Stream, ctr, valTable);

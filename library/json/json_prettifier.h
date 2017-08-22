@@ -2,6 +2,8 @@
 
 #include "json_reader.h"
 
+#include <util/generic/ylimits.h>
+
 namespace NJson {
 
 struct TJsonPrettifier {
@@ -11,6 +13,7 @@ struct TJsonPrettifier {
     bool Compactify = false;
     bool Strict = false;
     bool NewUnquote = false; // use new unquote, may break old tests
+    ui32 MaxPaddingLevel = Max<ui32>();
 
     static TJsonPrettifier Prettifier(bool unquote = false, ui8 padding = 4, bool singlequotes = false) {
         TJsonPrettifier p;
@@ -29,7 +32,7 @@ struct TJsonPrettifier {
         return p;
     }
 
-    bool Prettify(TStringBuf in, TOutputStream& out) const;
+    bool Prettify(TStringBuf in, IOutputStream& out) const;
 
     TString Prettify(TStringBuf in) const;
 
@@ -41,11 +44,11 @@ inline TString PrettifyJson(TStringBuf in, bool unquote = false, ui8 padding = 4
     return TJsonPrettifier::Prettifier(unquote, padding, sq).Prettify(in);
 }
 
-inline bool PrettifyJson(TStringBuf in, TOutputStream& out, bool unquote = false, ui8 padding = 4, bool sq = false) {
+inline bool PrettifyJson(TStringBuf in, IOutputStream& out, bool unquote = false, ui8 padding = 4, bool sq = false) {
     return TJsonPrettifier::Prettifier(unquote, padding, sq).Prettify(in, out);
 }
 
-inline bool CompactifyJson(TStringBuf in, TOutputStream& out, bool unquote = false, bool sq = false) {
+inline bool CompactifyJson(TStringBuf in, IOutputStream& out, bool unquote = false, bool sq = false) {
     return TJsonPrettifier::Compactifier(unquote, sq).Prettify(in, out);
 }
 

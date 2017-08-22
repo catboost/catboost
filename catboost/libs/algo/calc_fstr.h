@@ -1,11 +1,15 @@
 #pragma once
 
-#include "params.h"
-#include <catboost/libs/data/pool.h>
 #include "features_layout.h"
+#include "params.h"
+#include "split.h"
+#include "tree_print.h"
+
+#include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/split.h>
+
 #include <util/digest/multi.h>
+#include <util/string/builder.h>
 
 struct TRegularFeature {
     EFeatureType Type;
@@ -39,7 +43,38 @@ struct TFeatureInteraction {
         , SecondFeature{secondFeatureType, secondFeatureIndex} {}
 };
 
-using TFeature = TSplitCandidate;
+struct TFeature {
+    ESplitType Type;
+    int FeatureIdx;
+    TModelCtr Ctr;
+    const size_t FloatFeatureBaseHash = 12321;
+    const size_t CtrBaseHash = 89321;
+    const size_t OneHotFeatureBaseHash = 517931;
+    bool operator==(const TFeature& other) const {
+        if (Type != other.Type) {
+            return false;
+        }
+        if (Type == ESplitType::OnlineCtr) {
+            return Ctr == other.Ctr;
+        } else {
+            return FeatureIdx == other.FeatureIdx;
+        }
+    }
+    bool operator!=(const TFeature& other) const {
+        return !(*this == other);
+    }
+    size_t GetHash() const {
+        if (Type == ESplitType::FloatFeature) {
+            return MultiHash(FloatFeatureBaseHash, FeatureIdx);
+        } else if (Type == ESplitType::OnlineCtr) {
+            return MultiHash(CtrBaseHash, Ctr.GetHash());
+        } else {
+            Y_ASSERT(Type == ESplitType::OneHotFeature);
+            return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
+        }
+    }
+    TString BuildDescription(const TFeaturesLayout& layout) const;
+};
 
 struct TInternalFeatureInteraction {
     double Score = 0;

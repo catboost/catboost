@@ -10,12 +10,12 @@
 namespace NJson {
 
 struct TRewritableOut {
-    TOutputStream& Slave;
+    IOutputStream& Slave;
 
     char Last = 0;
     bool Dirty = false;
 
-    TRewritableOut(TOutputStream& sl)
+    TRewritableOut(IOutputStream& sl)
         : Slave(sl)
     {}
 
@@ -91,6 +91,7 @@ class TPrettifier : public TJsonCallbacks {
     TStringBuf Safe;
 
     ui32 Level = 0;
+    ui32 MaxPaddingLevel;
 
     bool Unquote = false;
     bool Compactify = false;
@@ -98,8 +99,9 @@ class TPrettifier : public TJsonCallbacks {
 
 public:
 
-    TPrettifier(TOutputStream& out, const TJsonPrettifier& p)
+    TPrettifier(IOutputStream& out, const TJsonPrettifier& p)
         : Out(out)
+        , MaxPaddingLevel(p.MaxPaddingLevel)
         , Unquote(p.Unquote)
         , Compactify(p.Compactify)
         , NewUnquote(p.NewUnquote)
@@ -120,11 +122,13 @@ public:
             Out.Flush();
             return;
         }
-
+        if (Level > MaxPaddingLevel || (Level == MaxPaddingLevel && close)) {
+            Out.Write(" ");
+            return;
+        }
         if (Level || close) {
             Out.Write(Spaces ? "\n" : " ");
         }
-
         for (ui32 i = 0; i < Level; ++i) {
             Out.Write(Spaces);
         }
@@ -256,7 +260,7 @@ public:
     }
 };
 
-bool TJsonPrettifier::Prettify(TStringBuf in, TOutputStream& out) const {
+bool TJsonPrettifier::Prettify(TStringBuf in, IOutputStream& out) const {
     TPrettifier p(out, *this);
     if (Strict) {
         TMemoryInput mIn(~in, +in);

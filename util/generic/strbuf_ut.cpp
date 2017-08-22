@@ -173,6 +173,10 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), STRINGBUF("b"));
         UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), STRINGBUF("a"));
         UNIT_ASSERT_EQUAL(buf2, TStringBuf());
+
+        TStringBuf buf3("a@@b@@c");
+        UNIT_ASSERT_EQUAL(buf3.RNextTok("@@@"), STRINGBUF("a@@b@@c"));
+        UNIT_ASSERT_EQUAL(buf3, TStringBuf());
     }
 
     SIMPLE_UNIT_TEST(TestReadLine) {

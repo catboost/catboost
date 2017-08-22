@@ -214,7 +214,7 @@ namespace NDatetime {
 }
 
 template <>
-void In<TMonth>(TInputStream& in, TMonth& t) {
+void In<TMonth>(IInputStream& in, TMonth& t) {
     char buf[4];
     LoadPodArray(&in, buf, 4);
     t.Year = FromString<ui16>(buf, 4);
@@ -223,7 +223,7 @@ void In<TMonth>(TInputStream& in, TMonth& t) {
 }
 
 template <>
-void Out<TMonth>(TOutputStream& o, const TMonth& t) {
+void Out<TMonth>(IOutputStream& o, const TMonth& t) {
     o << t.Year << Sprintf("%.2hu", (ui16)(t.Month + 1));
 }
 

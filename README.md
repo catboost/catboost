@@ -33,6 +33,11 @@ in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTI
 * Instructions for contributors can be found [here](https://tech.yandex.com/catboost/doc/dg/concepts/development-and-contributions-docpage/).
 
 
+News
+--------------
+* News will be published on [twitter](https://twitter.com/catboostml).
+
+
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.

@@ -32,7 +32,7 @@ TTargetClassifier BuildTargetClassifier(const yvector<float>& target,
                                         int targetBorderCount,
                                         EBorderSelectionType targetBorderType) {
     if (targetBorderCount == 0) {
-        return TTargetClassifier({});
+        return TTargetClassifier();
     }
 
     CB_ENSURE(learnSampleCount > 0, "train should not be empty");
@@ -59,6 +59,7 @@ TTargetClassifier BuildTargetClassifier(const yvector<float>& target,
             return TTargetClassifier({0.5});
 
         case ELossFunction::MultiClass:
+        case ELossFunction::MultiClassOneVsAll:
             return TTargetClassifier(GetMultiClassBorders(targetBorderCount));
 
         case ELossFunction::Custom: {

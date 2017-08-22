@@ -221,6 +221,13 @@ namespace NStatistics {
         }
         // Wilcoxon(...) implementation details END
 
+        //! Save addition function for Kullback–Leibler divergence
+        inline void NonNegativeAdd(double& res, double value, const TStringBuf errorMessage) {
+            if (value < 0) {
+                ythrow yexception() << errorMessage;
+            }
+            res += value;
+        }
     }  // namespace NDetail
 
 }  // namespace NStatistics

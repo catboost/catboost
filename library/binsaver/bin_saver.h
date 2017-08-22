@@ -250,8 +250,8 @@ private:
     }
 
     // storing/loading pointers to objects
-    void StoreObject(TObjectBase *pObject);
-    TObjectBase* LoadObject();
+    void StoreObject(IObjectBase *pObject);
+    IObjectBase* LoadObject();
 
     bool bRead;
     TBufferedStream<> File;
@@ -262,10 +262,10 @@ private:
     typedef yhash<void*, ui32, TPtrHash> PtrIdHash;
     TAutoPtr<PtrIdHash> PtrIds;
 
-    typedef yhash<ui64, TPtr<TObjectBase> > CObjectsHash;
+    typedef yhash<ui64, TPtr<IObjectBase> > CObjectsHash;
     TAutoPtr<CObjectsHash> Objects;
 
-    yvector<TObjectBase*> ObjectQueue;
+    yvector<IObjectBase*> ObjectQueue;
 public:
     bool IsReading() { return bRead; }
     void AddRawData(const chunk_id, void *pData, i64 nSize) { DataChunk(pData, nSize); }
@@ -451,7 +451,7 @@ public:
         return 0;
     }
 
-    void AddPolymorphicBase(chunk_id, TObjectBase *pObject) {
+    void AddPolymorphicBase(chunk_id, IObjectBase *pObject) {
         (*pObject) & (*this);
     }
 
@@ -522,7 +522,7 @@ int TPtrBase<TUserObj,TRef>::operator&(IBinSaver &f) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern TClassFactory<TObjectBase> *pSaverClasses;
+extern TClassFactory<IObjectBase> *pSaverClasses;
 void StartRegisterSaveload();
 
 template<class TReg>

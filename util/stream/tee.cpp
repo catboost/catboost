@@ -1,6 +1,6 @@
 #include "tee.h"
 
-TTeeOutput::TTeeOutput(TOutputStream* l, TOutputStream* r) noexcept
+TTeeOutput::TTeeOutput(IOutputStream* l, IOutputStream* r) noexcept
     : L_(l)
     , R_(r)
 {

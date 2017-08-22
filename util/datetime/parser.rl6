@@ -370,7 +370,7 @@ template<class TParser, class TResult, bool ThrowExceptionOnFailure = true>
 static inline TResult ParseUnsafe(const char* input, size_t len) {
     TResult r = Parse<TParser, TResult>(input, len, TResult::Max());
     if (ThrowExceptionOnFailure && r == TResult::Max())
-        ythrow TDateTimeParseException() << "error in datetime parsing";
+        ythrow TDateTimeParseException() << "error in datetime parsing. Input data: " << TStringBuf(input, len);
     return r;
 }
 

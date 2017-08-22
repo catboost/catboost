@@ -4,6 +4,7 @@ RECURSE(
     logging
     metrics
     model
+    model/ut
     model_interface
     overfitting_detector
     algo/ut

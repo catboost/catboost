@@ -313,8 +313,8 @@ namespace {
     }
 }
 
-TSimpleThread::TSimpleThread(size_t stackSize)
-    : TThread(TParams(ThreadProcWrapper<TSimpleThread>, reinterpret_cast<void*>(this), stackSize))
+ISimpleThread::ISimpleThread(size_t stackSize)
+    : TThread(TParams(ThreadProcWrapper<ISimpleThread>, reinterpret_cast<void*>(this), stackSize))
 {
 }
 

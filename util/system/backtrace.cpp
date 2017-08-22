@@ -259,7 +259,7 @@ TResolvedSymbol ResolveSymbol(void* sym, char*, size_t) {
 }
 #endif
 
-void FormatBackTrace(TOutputStream* out, void* const* backtrace, size_t backtraceSize) {
+void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtraceSize) {
     char tmpBuf[1024];
 
     for (size_t i = 0; i < backtraceSize; ++i) {
@@ -269,7 +269,7 @@ void FormatBackTrace(TOutputStream* out, void* const* backtrace, size_t backtrac
     }
 }
 
-void FormatBackTraceImpl(TOutputStream* out) {
+void FormatBackTraceImpl(IOutputStream* out) {
     void* array[300];
     const size_t s = BackTrace(array, Y_ARRAY_SIZE(array));
     FormatBackTrace(out, array, s);
@@ -277,7 +277,7 @@ void FormatBackTraceImpl(TOutputStream* out) {
 
 TFormatBackTraceFn FormatBackTraceFn = FormatBackTraceImpl;
 
-void FormatBackTrace(TOutputStream* out) {
+void FormatBackTrace(IOutputStream* out) {
     FormatBackTraceFn(out);
 }
 
@@ -300,7 +300,7 @@ void TBackTrace::Capture() {
     Size = BackTrace(Data, CAPACITY);
 }
 
-void TBackTrace::PrintTo(TOutputStream& out) const {
+void TBackTrace::PrintTo(IOutputStream& out) const {
     FormatBackTrace(&out, Data, Size);
 }
 

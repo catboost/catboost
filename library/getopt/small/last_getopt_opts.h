@@ -388,7 +388,7 @@ public:
     * @param os           destination stream
     * @param colors       colorizer
     */
-    void PrintUsage(const TStringBuf& program, TOutputStream& os, const NColorizer::TColors& colors) const;
+    void PrintUsage(const TStringBuf& program, IOutputStream& os, const NColorizer::TColors& colors) const;
 
     /**
     * Print usage string
@@ -396,7 +396,7 @@ public:
     * @param program      prefix of result (path to the program)
     * @param os           destination stream
     */
-    void PrintUsage(const TStringBuf& program, TOutputStream& os = Cerr) const;
+    void PrintUsage(const TStringBuf& program, IOutputStream& os = Cerr) const;
 private:
     /**
     * @return argument title of a free argument
@@ -419,7 +419,7 @@ private:
     * @param os         destination stream
     * @param colors     colorizer
     */
-    void PrintCmdLine(const TStringBuf& program, TOutputStream& os, const NColorizer::TColors& colors) const;
+    void PrintCmdLine(const TStringBuf& program, IOutputStream& os, const NColorizer::TColors& colors) const;
 
     /**
     * Print usage helper
@@ -427,7 +427,7 @@ private:
     * @param os         destination stream
     * @param colors     colorizer
     */
-    void PrintFreeArgsDesc(TOutputStream& os, const NColorizer::TColors& colors) const;
+    void PrintFreeArgsDesc(IOutputStream& os, const NColorizer::TColors& colors) const;
 };
 
 } // NLastGetopt

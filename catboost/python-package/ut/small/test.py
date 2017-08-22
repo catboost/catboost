@@ -7,7 +7,7 @@ from pandas import read_table, DataFrame, Series
 from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv
 
 from catboost_pytest_lib import data_file, local_canonical_file
-
+import yatest.common
 EPS = 1e-5
 
 TRAIN_FILE = data_file('adult', 'train_small')
@@ -20,8 +20,16 @@ CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 
 OUTPUT_MODEL_PATH = 'model.bin'
 PREDS_PATH = 'predictions.npy'
+FIMP_PATH = 'feature_importance.npy'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
+
+
+model_diff_tool = yatest.common.binary_path("catboost/tools/model_comparator/model_comparator")
+
+
+def compare_canonical_models(*args, **kwargs):
+    return local_canonical_file(*args, diff_tool=model_diff_tool, **kwargs)
 
 
 def map_cat_features(data, cat_features):
@@ -118,7 +126,7 @@ def test_predict_regress():
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_predict_sklearn_regress():
@@ -126,7 +134,7 @@ def test_predict_sklearn_regress():
     model = CatBoostRegressor(iterations=2, random_seed=0)
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_predict_sklearn_class():
@@ -134,7 +142,7 @@ def test_predict_sklearn_class():
     model = CatBoostClassifier(iterations=2, random_seed=0)
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_predict_class_raw():
@@ -201,41 +209,43 @@ def test_multiclass():
 def test_zero_baseline():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     baseline = np.zeros((pool.num_row(), 2))
-    pool = Pool(pool.get_features(), pool.get_label(), baseline=baseline)
+    pool.set_baseline(baseline)
     model = CatBoostClassifier(iterations=2, random_seed=0)
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_non_zero_bazeline():
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     base_model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
     base_model.fit(pool)
-    baseline = np.array(base_model.predict(pool))
-    pool2 = Pool(pool.get_features(), pool.get_label(), baseline=baseline)
+    baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
+    pool.set_baseline(baseline)
     model = CatBoostClassifier(iterations=2, random_seed=0)
-    model.fit(pool2)
+    model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    pool2 = Pool(pool.get_features(), pool.get_label(), weight=np.ones(pool.num_row()))
+    weight = np.ones(pool.num_row())
+    pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, random_seed=0)
-    model.fit(pool2)
+    model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_non_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    pool2 = Pool(pool.get_features(), pool.get_label(), weight=np.arange(1, pool.num_row()+1))
+    weight = np.arange(1, pool.num_row()+1)
+    pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, random_seed=0)
-    model.fit(pool2)
+    model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_fit_data():
@@ -245,12 +255,12 @@ def test_fit_data():
     base_model.fit(pool)
     baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
     eval_baseline = np.array(base_model.predict(eval_pool, prediction_type='RawFormulaVal'))
-    eval_pool._set_baseline(eval_baseline)
+    eval_pool.set_baseline(eval_baseline)
     model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
     model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row()+1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_ntree_limit():
@@ -275,10 +285,24 @@ def test_staged_predict():
     return local_canonical_file(PREDS_PATH)
 
 
-def test_invalid_loss():
+def test_invalid_loss_base():
     with pytest.raises(CatboostError):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
         model = CatBoost({"loss_function": "abcdef"})
+        model.fit(pool)
+
+
+def test_invalid_loss_classifier():
+    with pytest.raises(CatboostError):
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        model = CatBoostClassifier(loss_function="abcdef")
+        model.fit(pool)
+
+
+def test_invalid_loss_regressor():
+    with pytest.raises(CatboostError):
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        model = CatBoostRegressor(loss_function="fee")
         model.fit(pool)
 
 
@@ -324,6 +348,34 @@ def test_wrong_feature_count():
         model = CatBoostClassifier()
         model.fit(data, label)
         model.predict(data[:, :-1])
+
+
+def test_feature_importance_off():
+    with pytest.raises(CatboostError):
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        model = CatBoostClassifier(iterations=5, random_seed=0, calc_feature_importance=False)
+        model.fit(pool)
+        model.feature_importance_
+
+
+def test_wrong_params_classifier():
+    with pytest.raises(CatboostError):
+        CatBoostClassifier(wrong_param=1)
+
+
+def test_wrong_params_base():
+    with pytest.raises(CatboostError):
+        CatBoost({'wrong_param': 1})
+
+
+def test_wrong_params_regressor():
+    with pytest.raises(CatboostError):
+        CatBoostRegressor(wrong_param=1)
+
+
+def test_wrong_kwargs_base():
+    with pytest.raises(CatboostError):
+        CatBoost({'kwargs': {'wrong_param': 1}})
 
 
 def test_custom_eval():
@@ -423,7 +475,7 @@ def test_priors():
     model = CatBoostClassifier(iterations=5, random_seed=0, has_time=True, priors=[0, 0.6, 1, 5])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_ignored_features():
@@ -437,7 +489,7 @@ def test_ignored_features():
     predictions2 = model2.predict(test_pool)
     assert not _check_data(predictions1, predictions2)
     model1.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_class_weights():
@@ -445,7 +497,7 @@ def test_class_weights():
     model = CatBoostClassifier(iterations=5, random_seed=0, class_weights=[1, 2])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_classification_ctr():
@@ -453,7 +505,7 @@ def test_classification_ctr():
     model = CatBoostClassifier(iterations=5, random_seed=0, ctr_description=['Borders', 'Counter'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_regression_ctr():
@@ -461,7 +513,7 @@ def test_regression_ctr():
     model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:5:Uniform', 'Counter:10:MinEntropy'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_copy_model():
@@ -473,7 +525,7 @@ def test_copy_model():
     predictions2 = model2.predict(pool)
     assert _check_data(predictions1, predictions2)
     model2.save_model(OUTPUT_MODEL_PATH)
-    return local_canonical_file(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
 def test_cv():
@@ -486,3 +538,20 @@ def test_cv():
     for value in results["Logloss_train_avg"][1:]:
         assert value < prev_value
         prev_value = value
+
+
+def test_feature_importance():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_PATH, np.array(model.feature_importance_))
+    return local_canonical_file(FIMP_PATH)
+
+
+def test_od():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(od_type='Iter', od_wait=20, random_seed=42)
+    model.fit(train_pool, eval_set=test_pool)
+    model.save_model(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)

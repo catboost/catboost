@@ -48,6 +48,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\ut\catboost_ut.vcxproj">
       <Project>75278F3A-FB82-407F-59BD-A84754B31B69</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
+      <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
+      <Project>5030F53C-99A3-E919-89CF-5D8DD5FD3717</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
     </ProjectReference>
@@ -69,6 +75,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
+      <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\catboostmodel.vcxproj">
       <Project>4D7E3A2D-8534-FF5D-5F6B-AFAF877D2578</Project>
     </ProjectReference>
@@ -89,6 +98,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\small\catboost-python-package-ut-small.vcxproj">
       <Project>7E2F460F-53B0-2475-C4AD-56F8073FE005</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
+      <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
@@ -278,6 +290,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
+      <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>439BAFF9-1167-D24B-92A2-3A00BEE420B1</Project>

@@ -21,7 +21,7 @@ public:
 
     template <class T>
     inline TLogElement& operator<<(const T& t) {
-        static_cast<TOutputStream&>(*this) << t;
+        static_cast<IOutputStream&>(*this) << t;
 
         return *this;
     }

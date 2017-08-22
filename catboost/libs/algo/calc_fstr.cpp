@@ -10,11 +10,20 @@
 #include <util/generic/maybe.h>
 
 
-static TFeature GetFeature(const TSplit& split) {
+static TFeature GetFeature(const TModelSplit& split) {
     TFeature result;
     result.Type = split.Type;
-    result.FeatureIdx = split.BinFeature.FloatFeature;
-    result.Ctr = split.OnlineCtr.Ctr;
+    switch(result.Type) {
+        case ESplitType::FloatFeature:
+            result.FeatureIdx = split.BinFeature.FloatFeature;
+            break;
+        case ESplitType::OneHotFeature:
+            result.FeatureIdx = split.OneHotFeature.CatFeatureIdx;
+            break;
+        case ESplitType::OnlineCtr:
+            result.Ctr = split.OnlineCtr.Ctr;
+            break;
+    }
     return result;
 }
 
@@ -85,7 +94,7 @@ yvector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, 
         return yvector<std::pair<double, TFeature>>();
     }
     int featureCount = pool.Docs[0].Factors.ysize();
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ParamsJson);
+    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams.InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
@@ -274,4 +283,21 @@ yvector<TFeatureInteraction> CalcFeatureInteraction(const yvector<TInternalFeatu
         return left.Score < right.Score;
     });
     return regularFeatureEffect;
+}
+
+TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
+    TStringBuilder result;
+    if (Type == ESplitType::OnlineCtr) {
+        result << ::BuildDescription(layout, Ctr.Projection);
+        result << " prior_num=" << Ctr.PriorNum;
+        result << " prior_denom=" << Ctr.PriorDenom;
+        result << " targetborder=" << Ctr.TargetBorderIdx;
+        result << " type=" << Ctr.CtrType;
+    } else if (Type == ESplitType::FloatFeature) {
+        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Float);
+    } else {
+        Y_ASSERT(Type == ESplitType::OneHotFeature);
+        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Categorical);
+    }
+    return result;
 }

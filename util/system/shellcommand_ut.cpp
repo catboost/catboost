@@ -24,7 +24,7 @@ const char catCommand[] = "/bin/cat";
 const size_t textSize = 20000;
 #endif
 
-class TGuardedStringStream: public TInputStream, public TOutputStream {
+class TGuardedStringStream: public IInputStream, public IOutputStream {
 public:
     TGuardedStringStream() {
         Stream.Reserve(100);
@@ -243,7 +243,7 @@ SIMPLE_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
     }
     SIMPLE_UNIT_TEST(TestStreamClose) {
-        struct TStream: public TOutputStream {
+        struct TStream: public IOutputStream {
             size_t NumCloses = 0;
             void DoWrite(const void* buf, size_t len) override {
                 Y_UNUSED(buf);

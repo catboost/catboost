@@ -25,5 +25,9 @@ DATA(
     arcadia/catboost/pytest/data
 )
 
+DEPENDS(
+    catboost/tools/model_comparator
+)
+
 END()
 

@@ -96,7 +96,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
 
     SIMPLE_UNIT_TEST(TestTMtpQueueBlocking) {
         TMtpQueueTest t;
-        TMtpQueue q(true);
+        TMtpQueue q(TMtpQueue::BlockingMode);
         t.TestAnyQueue(&q, 100);
     }
 

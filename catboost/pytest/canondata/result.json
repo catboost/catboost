@@ -29,6 +29,12 @@
             "uri": "file://test.test_all_targets_MAPE_/test.eval"
         }
     ],
+    "test.test_all_targets[MultiClassOneVsAll]": [
+        {
+            "checksum": "fa1f0360f728fbe67f35ea4e5585642d",
+            "uri": "file://test.test_all_targets_MultiClassOneVsAll_/test.eval"
+        }
+    ],
     "test.test_all_targets[MultiClass]": [
         {
             "checksum": "715722f018670b3e7993dc2171f998ad",
@@ -67,6 +73,18 @@
         "checksum": "df60b105f6745a083f063da151169d9d",
         "uri": "file://test.test_calc_prediction_type/test.eval"
     },
+    "test.test_class_names_logloss": [
+        {
+            "checksum": "3bf62b4452b61da069507c13504f20bf",
+            "uri": "file://test.test_class_names_logloss/test.eval"
+        }
+    ],
+    "test.test_class_names_multiclass": [
+        {
+            "checksum": "fac9f612e28adf32ca2d160e1ec76de2",
+            "uri": "file://test.test_class_names_multiclass/test.eval"
+        }
+    ],
     "test.test_class_weight_logloss": [
         {
             "checksum": "6293081989c126b9ee6fd5e553605e84",
@@ -173,21 +191,21 @@
     ],
     "test.test_custom_loss_for_classification": [
         {
-            "checksum": "65bf4c4de170c5392a3d0e708c9373ee",
+            "checksum": "061d2d663b127e57f060fbf9c8ef2af3",
             "uri": "file://test.test_custom_loss_for_classification/learn_error.tsv"
         },
         {
-            "checksum": "51cf66e07dd881b41c511e23e5b92b8a",
+            "checksum": "e6d968188d4de5335f0ffd5c332706f3",
             "uri": "file://test.test_custom_loss_for_classification/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification": [
         {
-            "checksum": "fcabaac091d60ef64df0194b5b3efff6",
+            "checksum": "6a6ef2cd0aa1baf3639df680ff90419d",
             "uri": "file://test.test_custom_loss_for_multiclassification/learn_error.tsv"
         },
         {
-            "checksum": "9462a50b42ac0052ed2694da717cdb0e",
+            "checksum": "2d0e5fbfdc217b2aec7250fd9660fa34",
             "uri": "file://test.test_custom_loss_for_multiclassification/test_error.tsv"
         }
     ],
@@ -296,11 +314,11 @@
         "uri": "file://test.test_fstr_Interaction_/fstr.tsv"
     },
     "test.test_fstr[InternalFeatureImportance]": {
-        "checksum": "3de593973f5b16c1ce5b0b4701bf80d3",
+        "checksum": "47927e35fbcbd56ecd6c0b21196e40e0",
         "uri": "file://test.test_fstr_InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[InternalInteraction]": {
-        "checksum": "6882b851caf05b3529b159ea3bbbaf89",
+        "checksum": "2355ddd05a3e7ed0d63fc6e6143e498c",
         "uri": "file://test.test_fstr_InternalInteraction_/fstr.tsv"
     },
     "test.test_gradient": [
@@ -343,6 +361,18 @@
         {
             "checksum": "04f8bbd23561c70791da2ff12e1b0d65",
             "uri": "file://test.test_multi_leaf_estimation_method_Newton_/test.eval"
+        }
+    ],
+    "test.test_multi_targets[MultiClassOneVsAll]": [
+        {
+            "checksum": "577b8d67aa38fba77e6d757d11638521",
+            "uri": "file://test.test_multi_targets_MultiClassOneVsAll_/test.eval"
+        }
+    ],
+    "test.test_multi_targets[MultiClass]": [
+        {
+            "checksum": "2ff6509220798c05c9dcb9db2471b0ef",
+            "uri": "file://test.test_multi_targets_MultiClass_/test.eval"
         }
     ],
     "test.test_newton": [
@@ -399,6 +429,12 @@
             "uri": "file://test.test_prediction_type_Class-Logloss_/test.eval"
         }
     ],
+    "test.test_prediction_type[Class-MultiClassOneVsAll]": [
+        {
+            "checksum": "932f2cc3a185c312d5c47b38eec45c05",
+            "uri": "file://test.test_prediction_type_Class-MultiClassOneVsAll_/test.eval"
+        }
+    ],
     "test.test_prediction_type[Class-MultiClass]": [
         {
             "checksum": "4f81d8387fcecb242153f860f22e7890",
@@ -417,6 +453,12 @@
             "uri": "file://test.test_prediction_type_Probability-Logloss_/test.eval"
         }
     ],
+    "test.test_prediction_type[Probability-MultiClassOneVsAll]": [
+        {
+            "checksum": "dcbd85346c23a37026608a40805fcb2d",
+            "uri": "file://test.test_prediction_type_Probability-MultiClassOneVsAll_/test.eval"
+        }
+    ],
     "test.test_prediction_type[Probability-MultiClass]": [
         {
             "checksum": "62a51abca3e4d2ca4484f2ffe4fc17a7",
@@ -433,6 +475,12 @@
         {
             "checksum": "075b0169f3b6eb3e5d9b2ab078906604",
             "uri": "file://test.test_prediction_type_RawFormulaVal-Logloss_/test.eval"
+        }
+    ],
+    "test.test_prediction_type[RawFormulaVal-MultiClassOneVsAll]": [
+        {
+            "checksum": "fa1f0360f728fbe67f35ea4e5585642d",
+            "uri": "file://test.test_prediction_type_RawFormulaVal-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_prediction_type[RawFormulaVal-MultiClass]": [

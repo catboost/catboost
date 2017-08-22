@@ -245,6 +245,7 @@ public:
                 (*der2)[dimY][dimY] -= softmax[dimY];
             }
         }
+
         if (weight != 1) {
             for (int dim = 0; dim < approxDimension; ++dim) {
                 (*der)[dim] *= weight;
@@ -255,6 +256,46 @@ public:
                         (*der2)[dimY][dimX] *= weight;
                     }
                 }
+            }
+        }
+    }
+};
+
+class TMultiClassOneVsAllError : public IDerCalcer<TMultiClassError> {
+public:
+    double CalcDer(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for MultiClassOneVsAll error.");
+    }
+
+    double CalcDer2(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for MultiClassOneVsAll error.");
+    }
+
+    void CalcDersMulti(const yvector<double>& approx, float target, float weight, yvector<double>* der, TArray2D<double>* der2) const {
+        int approxDimension = approx.ysize();
+
+        yvector<double> prob(approxDimension);
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            double expApprox = exp(approx[dim]);
+            prob[dim] = expApprox / (1 + expApprox);
+            (*der)[dim] = -prob[dim];
+        }
+        int targetClass = static_cast<int>(target);
+        (*der)[targetClass] += 1;
+
+        if (der2 != nullptr) {
+            for (int dimY = 0; dimY < approxDimension; ++dimY) {
+                for (int dimX = 0; dimX < approxDimension; ++dimX) {
+                    (*der2)[dimY][dimX] = 0;
+                }
+                (*der2)[dimY][dimY] = -prob[dimY] * (1 - prob[dimY]);
+            }
+        }
+
+        if (weight != 1) {
+            for (int dim = 0; dim < approxDimension; ++dim) {
+                (*der)[dim] *= weight;
+                (*der2)[dim][dim] *= weight;
             }
         }
     }

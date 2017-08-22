@@ -22,7 +22,7 @@
         }                                                                    \
     }                                                                        \
                                                                              \
-    static inline TOutputStream& operator<<(TOutputStream& os, type value) { \
+    static inline IOutputStream& operator<<(IOutputStream& os, type value) { \
         switch (value) {                                                     \
             MAP(ENUM_LTLT_IMPL_ITEM)                                         \
             default:                                                         \

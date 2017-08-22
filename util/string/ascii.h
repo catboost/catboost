@@ -23,6 +23,7 @@ namespace NPrivate {
     };
 
     extern const unsigned char ASCII_CLASS[256];
+    extern const unsigned char ASCII_LOWER[256];
 
     template <class T>
     struct TDereference {
@@ -41,8 +42,9 @@ namespace NPrivate {
     bool RangeOk(T c) noexcept {
         static_assert(std::is_integral<T>::value, "Integral type character expected");
 
-        if (sizeof(T) == 1)
+        if (sizeof(T) == 1) {
             return true;
+        }
 
         return c >= static_cast<T>(0) && c <= static_cast<T>(127);
     }
@@ -123,14 +125,21 @@ inline bool IsAsciiHex(T c) {
 }
 
 // some extra helpers
+inline ui8 AsciiToLower(ui8 c) noexcept {
+    return ::NPrivate::ASCII_LOWER[c];
+}
 
-template <class T>
-inline NPrivate::TDereferenced<T> AsciiToLower(T c) {
-    return IsAsciiUpper(c) ? (c + ('a' - 'A')) : c;
+inline char AsciiToLower(char c) noexcept {
+    return (char)AsciiToLower((ui8)c);
 }
 
 template <class T>
-inline NPrivate::TDereferenced<T> AsciiToUpper(T c) {
+inline ::NPrivate::TDereferenced<T> AsciiToLower(T c) noexcept {
+    return (c >= 0 && c <= 127) ? (::NPrivate::TDereferenced<T>)AsciiToLower((ui8)c) : c;
+}
+
+template <class T>
+inline ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
     return IsAsciiLower(c) ? (c + ('A' - 'a')) : c;
 }
 

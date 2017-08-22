@@ -2,7 +2,7 @@
 
 #include <util/system/defaults.h>
 
-class TInputStream;
+class IInputStream;
 
 namespace NPrivate {
     class TMersenne32 {
@@ -21,7 +21,7 @@ namespace NPrivate {
             InitByArray(init_key, key_length);
         }
 
-        TMersenne32(TInputStream& input);
+        TMersenne32(IInputStream& input);
 
         inline ui32 GenRand() noexcept {
             if (mti >= N) {

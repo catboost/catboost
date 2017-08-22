@@ -17,3 +17,9 @@ template <>
 TNullLog* CreateDefaultLogger<TNullLog>() {
     return new TNullLog("null");
 }
+
+NPrivateGlobalLogger::TVerifyEvent::~TVerifyEvent() {
+    const TString info = Str();
+    FATAL_LOG << info << Endl;
+    Y_FAIL("%s", ~info);
+}

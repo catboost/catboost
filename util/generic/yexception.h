@@ -16,12 +16,6 @@
 
 #include <cstdio>
 
-#if defined(_MSC_VER)
-// it's the known bug in Visual Studio 2008
-// if we ignore the warning the exception is caught just fine
-#pragma warning(disable : 4673) /*throwing 'exception class name' the following types will not be considered at the catch site*/
-#endif
-
 class TBackTrace;
 
 namespace NPrivateException {
@@ -33,7 +27,7 @@ namespace NPrivateException {
         template <class T>
         inline void Append(const T& t) {
             TTempBufWrapperOutput tempBuf(Buf_);
-            static_cast<TOutputStream&>(tempBuf) << t;
+            static_cast<IOutputStream&>(tempBuf) << t;
         }
 
         TStringBuf AsStrBuf() const {
@@ -130,7 +124,7 @@ void ThrowRangeError(const char* descr);
         if (Y_UNLIKELY(!(CONDITION))) {          \
             ythrow THROW_EXPRESSION;             \
         }                                        \
-    } while (0)
+    } while (false)
 
 #define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX(CONDITION, yexception() << STRINGBUF("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)

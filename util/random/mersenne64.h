@@ -2,7 +2,7 @@
 
 #include <util/system/defaults.h>
 
-class TInputStream;
+class IInputStream;
 
 namespace NPrivate {
     class TMersenne64 {
@@ -21,7 +21,7 @@ namespace NPrivate {
             InitByArray(keys, len);
         }
 
-        TMersenne64(TInputStream& input);
+        TMersenne64(IInputStream& input);
 
         inline ui64 GenRand() noexcept {
             if (mti >= NN) {

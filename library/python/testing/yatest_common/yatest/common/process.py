@@ -341,6 +341,12 @@ def execute(
     """
     if env is None:
         env = os.environ.copy()
+    else:
+        mandatory_system_vars = ["TMPDIR"]
+        for var in mandatory_system_vars:
+            if var not in env and var in os.environ:
+                env[var] = os.environ[var]
+
     if not wait and timeout is not None:
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
 
@@ -563,3 +569,24 @@ def _nix_kill_process_tree(pid, target_pid_signal=None):
 
 def _win_kill_process_tree(pid):
     subprocess.call(['taskkill', '/F', '/T', '/PID', str(pid)])
+
+
+def _run_readelf(binary_path):
+    return subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)])
+
+
+def check_glibc_version(binary_path):
+    for l in _run_readelf(binary_path).split('\n'):
+        if 'GLIBC_' in l:
+            if '_2.2.5' in l:
+                pass
+            elif '_2.3' in l:
+                pass
+            elif '_2.4' in l:
+                pass
+            elif '_2.7' in l:
+                pass
+            elif '_2.9' in l:
+                pass
+            else:
+                assert not l

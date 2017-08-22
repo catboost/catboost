@@ -4,7 +4,7 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 
-class TInputStream;
+class IInputStream;
 
 class MD5 {
 public:
@@ -41,13 +41,13 @@ public:
     // buf must be char[25];
     char* End_b64(char* buf);
 
-    MD5& Update(TInputStream* in);
+    MD5& Update(IInputStream* in);
 
     // return hex-encoded data
     static char* File(const char* filename, char* buf);
     static TString File(const TString& filename);
     static char* Data(const void* data, size_t len, char* buf);
-    static char* Stream(TInputStream* in, char* buf);
+    static char* Stream(IInputStream* in, char* buf);
 
     static TString Calc(const TStringBuf& data);    // 32-byte hex-encoded
     static TString CalcRaw(const TStringBuf& data); // 16-byte raw

@@ -32,19 +32,9 @@
 #include <util/string/iterator.h>
 #include <util/stream/file.h>
 
-void CalcFinalCtrs(const TCtr& ctr,
-                   const TTrainData& data,
-                   const yvector<int>& learnPermutation,
-                   const yvector<int>& permutedTargetClass,
-                   int targetClassesCount,
-                   TLearnContext* ctx,
-                   TCtrValueTable* result);
-
 void ShrinkModel(int itCount, TCoreModel* model);
 
-yvector<int> CountSplits(
-    const yhash_set<int>& categFeatures,
-    const yvector<yvector<float>>& borders);
+yvector<int> CountSplits(const yvector<yvector<float>>& borders);
 
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx);
 
@@ -151,7 +141,7 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                                   int iteration,
                                   yvector<yvector<double>>* learnErrorsHistory,
                                   NPar::TLocalExecutor* localExecutor,
-                                  TOutputStream* learnErrLog) {
+                                  IOutputStream* learnErrLog) {
     learnErrorsHistory->emplace_back();
     *learnErrLog << iteration;
     for (int i = 0; i < errors.ysize(); ++i) {
@@ -176,7 +166,7 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
                                  TErrorTracker& errorTracker,
                                  yvector<yvector<double>>* testErrorsHistory,
                                  NPar::TLocalExecutor* localExecutor,
-                                 TOutputStream* testErrLog) {
+                                 IOutputStream* testErrLog) {
     yvector<double> valuesToLog;
 
     testErrorsHistory->emplace_back();
@@ -211,7 +201,7 @@ void TrainOneIter(const TTrainData& data,
     yvector<yvector<yvector<yvector<double>>>> approxDelta;
     yvector<yvector<double>> approxDeltaAvrg;
 
-    auto splitCounts = CountSplits(ctx->CatFeatures, ctx->LearnProgress.Model.Borders);
+    auto splitCounts = CountSplits(ctx->LearnProgress.Model.Borders);
 
     float l2LeafRegularizer = ctx->Params.L2LeafRegularizer;
     if (l2LeafRegularizer == 0) {
@@ -228,16 +218,17 @@ void TrainOneIter(const TTrainData& data,
 
     double modelLength = currentIteration * ctx->Params.LearningRate;
 
+    yvector<TSplit> bestSplitTree;
     TTensorStructure3 bestTree;
     {
         TFold* takenFold = &ctx->LearnProgress.Folds[ctx->Rand.GenRand() % foldCount];
 
-        ctx->LocalExecutor.ExecRange([&](int mixTailId) {
-            TFold::TMixTail& mt = takenFold->MixTailArr[mixTailId];
-            CalcWeightedDerivatives(mt.Approx, takenFold->LearnTarget, takenFold->LearnWeights, error,
-                                    mt.TailFinish, ctx, &mt.Derivatives);
+        ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
+            TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailId];
+            CalcWeightedDerivatives(bt.Approx, takenFold->LearnTarget, takenFold->LearnWeights, error,
+                                    bt.TailFinish, ctx, &bt.Derivatives);
         },
-                                     0, takenFold->MixTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+                                     0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         profile.AddOperation("Calc derivatives");
 
         GreedyTensorSearch(
@@ -249,7 +240,8 @@ void TrainOneIter(const TTrainData& data,
             profile,
             takenFold,
             ctx,
-            &bestTree);
+            &bestTree,
+            &bestSplitTree);
     }
     CheckInterrupted(); // check after long-lasting operation
     {
@@ -287,7 +279,7 @@ void TrainOneIter(const TTrainData& data,
             error,
             ctx->Params.GradientIterations,
             trainFolds,
-            bestTree,
+            bestSplitTree,
             ctx->Params.LeafEstimationMethod,
             l2LeafRegularizer,
             ctx,
@@ -301,7 +293,7 @@ void TrainOneIter(const TTrainData& data,
             error,
             ctx->Params.GradientIterations,
             {&ctx->LearnProgress.AveragingFold},
-            bestTree,
+            bestSplitTree,
             ctx->Params.LeafEstimationMethod,
             l2LeafRegularizer,
             ctx,
@@ -322,28 +314,28 @@ void TrainOneIter(const TTrainData& data,
         for (int foldId = 0; foldId < foldCount; ++foldId) {
             TFold& ff = ctx->LearnProgress.Folds[foldId];
 
-            for (int mixTailId = 0; mixTailId < ff.MixTailArr.ysize(); ++mixTailId) {
-                TFold::TMixTail& mt = ff.MixTailArr[mixTailId];
+            for (int bodyTailId = 0; bodyTailId < ff.BodyTailArr.ysize(); ++bodyTailId) {
+                TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
                 for (int dim = 0; dim < approxDimension; ++dim) {
-                    const double* approxDeltaData = approxDelta[foldId][mixTailId][dim].data();
+                    const double* approxDeltaData = approxDelta[foldId][bodyTailId][dim].data();
                     const double learningRate = ctx->Params.LearningRate;
-                    double* approxData = mt.Approx[dim].data();
+                    double* approxData = bt.Approx[dim].data();
                     ctx->LocalExecutor.ExecRange([&](int z) {
                         approxData[z] += approxDeltaData[z] * learningRate;
                     },
-                                                 NPar::TLocalExecutor::TBlockParams(0, mt.TailFinish).SetBlockSize(10000).WaitCompletion());
+                                                 NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000).WaitCompletion());
                 }
             }
         }
         profile.AddOperation("Update tree structure approx");
         CheckInterrupted(); // check after long-lasting operation
 
-        Y_ASSERT(ctx->LearnProgress.AveragingFold.MixTailArr.ysize() == 1);
-        TFold::TMixTail& mt = ctx->LearnProgress.AveragingFold.MixTailArr[0];
+        Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
+        TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
 
         for (int dim = 0; dim < approxDimension; ++dim) {
-            for (int z = 0; z < mt.TailFinish; ++z) {
-                mt.Approx[dim][z] += approxDeltaAvrg[dim][z] * ctx->Params.LearningRate;
+            for (int z = 0; z < bt.TailFinish; ++z) {
+                bt.Approx[dim][z] += approxDeltaAvrg[dim][z] * ctx->Params.LearningRate;
             }
             const int* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
             double* avrgApproxData = ctx->LearnProgress.AvrgApprox[dim].data();
@@ -442,7 +434,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
             }
         }
 
-        profile.PrintState();
+        profile.FinishIteration();
         ctx->SaveProgress();
 
         if (errorTracker.GetIsNeedStop()) {

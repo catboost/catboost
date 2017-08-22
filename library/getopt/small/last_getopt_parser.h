@@ -128,8 +128,8 @@ public:
         return ProgramName_;
     }
 
-    void PrintUsage(TOutputStream& os = Cerr) const;
+    void PrintUsage(IOutputStream& os = Cerr) const;
 
-    void PrintUsage(TOutputStream& os, const NColorizer::TColors& colors) const;
+    void PrintUsage(IOutputStream& os, const NColorizer::TColors& colors) const;
 };
 }//namespace NLastGetopt

@@ -20,9 +20,9 @@
  * Note that it does not claim ownership of the underlying stream, so it's up
  * to the user to free it.
  */
-class TBufferedInput: public TZeroCopyInput {
+class TBufferedInput: public IZeroCopyInput {
 public:
-    TBufferedInput(TInputStream* slave, size_t buflen = 8192);
+    TBufferedInput(IInputStream* slave, size_t buflen = 8192);
     ~TBufferedInput() override;
 
     /**
@@ -31,7 +31,7 @@ public:
      *
      * @param slave                     New underlying stream.
      */
-    void Reset(TInputStream* slave);
+    void Reset(IInputStream* slave);
 
 protected:
     size_t DoRead(void* buf, size_t len) override;
@@ -55,7 +55,7 @@ private:
  * Also note that this stream does not claim ownership of the underlying stream,
  * so it's up to the user to free it.
  */
-class TBufferedOutputBase: public TOutputStream {
+class TBufferedOutputBase: public IOutputStream {
 public:
     /**
      * Constructs a buffered stream that dynamically adjusts the size of the
@@ -65,7 +65,7 @@ public:
      *
      * @param slave                     Underlying stream.
      */
-    TBufferedOutputBase(TOutputStream* slave);
+    TBufferedOutputBase(IOutputStream* slave);
 
     /**
      * Constructs a buffered stream with the given size of the buffer.
@@ -73,7 +73,7 @@ public:
      * @param slave                     Underlying stream.
      * @param buflen                    Size of the buffer.
      */
-    TBufferedOutputBase(TOutputStream* slave, size_t buflen);
+    TBufferedOutputBase(IOutputStream* slave, size_t buflen);
 
     TBufferedOutputBase(TBufferedOutputBase&&) noexcept = default;
     TBufferedOutputBase& operator=(TBufferedOutputBase&&) noexcept = default;
@@ -122,7 +122,7 @@ private:
  */
 class TBufferedOutput: public TBufferedOutputBase {
 public:
-    TBufferedOutput(TOutputStream* slave, size_t buflen = 8192);
+    TBufferedOutput(IOutputStream* slave, size_t buflen = 8192);
     ~TBufferedOutput() override;
 
     TBufferedOutput(TBufferedOutput&&) noexcept = default;
@@ -137,7 +137,7 @@ public:
  */
 class TAdaptiveBufferedOutput: public TBufferedOutputBase {
 public:
-    TAdaptiveBufferedOutput(TOutputStream* slave);
+    TAdaptiveBufferedOutput(IOutputStream* slave);
     ~TAdaptiveBufferedOutput() override;
 
     TAdaptiveBufferedOutput(TAdaptiveBufferedOutput&&) noexcept = default;
@@ -146,7 +146,7 @@ public:
 
 namespace NPrivate {
     struct TMyBufferedOutput: public TBufferedOutput {
-        inline TMyBufferedOutput(TOutputStream* slave, size_t buflen)
+        inline TMyBufferedOutput(IOutputStream* slave, size_t buflen)
             : TBufferedOutput(slave, buflen)
         {
             SetFinishPropagateMode(true);
@@ -155,7 +155,7 @@ namespace NPrivate {
 
     template <class T>
     struct TBufferedStreamFor {
-        using TResult = std::conditional_t<std::is_base_of<TInputStream, T>::value, TBufferedInput, TMyBufferedOutput>;
+        using TResult = std::conditional_t<std::is_base_of<IInputStream, T>::value, TBufferedInput, TMyBufferedOutput>;
     };
 }
 

@@ -19,8 +19,14 @@ static yvector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     return result;
 }
 
-static NJson::TJsonValue ParsePriors(TStringBuf& priorsLine) {
+static NJson::TJsonValue ParsePriors(int indexCount, TStringBuf& priorsLine) {
     NJson::TJsonValue priors;
+    while (indexCount--)
+    {
+        int index;
+        GetNext<int>(priorsLine, ':', index);
+        priors.AppendValue(index);
+    }
     TMaybe<float> prior;
     GetNext<float>(priorsLine, ':', prior);
     while (prior.Defined()) {
@@ -43,13 +49,13 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("verbose", true);
         });
 
-    parser.AddLongOption("loss-function", "Should be one of: RMSE, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass. A loss might have params, then params should be written in format Loss:paramName=value.")
+    parser.AddLongOption("loss-function", "Should be one of: RMSE, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll. A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
         .Handler1T<TString>([&trainJson](const TString& target) {
             trainJson->InsertValue("loss_function", target);
         });
 
-    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, AUC")
+    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1")
         .RequiredArgument("comma separated list of loss functions")
         .Handler1T<TString>([&trainJson](const TString& lossFunctionsLine) {
             for (const auto& t : StringSplitter(lossFunctionsLine).Split(',')) {
@@ -81,6 +87,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("has-header", "Read first line as header")
         .NoArgument()
         .StoreValue(&params->HasHeaders, true);
+
     parser.AddLongOption('m', "model-file", "model file name")
         .RequiredArgument("PATH")
         .DefaultValue("model.bin")
@@ -130,12 +137,14 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddCharOption('T', "worker thread count, default - min(core count, 8)")
+        .AddLongName("thread-count")
         .RequiredArgument("count")
         .Handler1T<int>([&trainJson](int count) {
             trainJson->InsertValue("thread_count", count);
         });
 
     parser.AddCharOption('r', "random seed")
+        .AddLongName("random-seed")
         .RequiredArgument("count")
         .Handler1T<int>([&trainJson](int seed) {
             trainJson->InsertValue("random_seed", seed);
@@ -168,7 +177,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("border_count", cnt);
         });
 
-    parser.AddLongOption("auto-stop-pval", "set threshold for overfitting detector and stop matrixnet autom  aticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
+    parser.AddLongOption("auto-stop-pval", "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
         .AddLongName("od-pval")
         .RequiredArgument("float")
         .Handler1T<float>([&trainJson](float pval) {
@@ -186,8 +195,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongName("od-type")
         .RequiredArgument("detector-type")
         .Handler1T<TString>([&trainJson](const TString& type) {
-        trainJson->InsertValue("od_type", type);
-    });
+            trainJson->InsertValue("od_type", type);
+        });
 
     parser.AddLongOption("use-best-model", "save all trees until best iteration on test")
         .NoArgument()
@@ -289,17 +298,35 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("priorsLine")
         .Handler1T<TString>([&trainJson](const TString& priorsLine) {
             TStringBuf priorsLineBuf(priorsLine);
-            (*trainJson)["priors"] = ParsePriors(priorsLineBuf);
+            (*trainJson)["priors"] = ParsePriors(0, priorsLineBuf);
         });
 
-    // TODO(annaveronika): Save properly in json.
+    parser.AddLongOption("ctr-priors")
+        .RequiredArgument("priors-line")
+        .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
+        for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
+            TStringBuf priorsLineBuf(t.Token());
+            (*trainJson)["ctr_priors"].AppendValue(ParsePriors(1, priorsLineBuf));
+        } })
+        .Help("You might provide custom priors for some ctr. They will be used instead of default ones. Format is: c1Idx:prior1:prior2:prior3,c2Idx:prior1");
+
     parser.AddLongOption("feature-priors")
         .RequiredArgument("priors-line")
         .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
             for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
-                (*trainJson)["feature_priors"].AppendValue(t.Token());
+                TStringBuf priorsLineBuf(t.Token());
+                (*trainJson)["feature_priors"].AppendValue(ParsePriors(1, priorsLineBuf));
         } })
-        .Help("You might provide custom per feature priors. They will be used instead of default ones. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1.");
+        .Help("You might provide custom priors for some features. They will be used instead of default ones or ones given by ctr-priors. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1");
+
+    parser.AddLongOption("feature-ctr-priors")
+        .RequiredArgument("priors-line")
+        .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
+            for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
+                TStringBuf priorsLineBuf(t.Token());
+                (*trainJson)["feature_ctr_priors"].AppendValue(ParsePriors(2, priorsLineBuf));
+            } })
+        .Help("You might provide custom priors for some pairs of feature and ctr. They will be used instead of default ones or given by ctr-priors or feature-priors. Format is: f1Idx:c1Idx:prior1:prior2:prior3,f2Idx:c2Idx:prior1");
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
         .RequiredArgument("name")
@@ -312,17 +339,20 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([&trainJson](const TString& path) {
             trainJson->InsertValue("train_dir", path);
         });
+
     parser.AddLongOption("snapshot-file", "use progress file for restoring progress after crashes")
         .RequiredArgument("PATH")
         .Handler1T<TString>([&trainJson](const TString& path) {
             trainJson->InsertValue("save_snapshot", true);
             trainJson->InsertValue("snapshot_file", path);
         });
+
     parser.AddLongOption("fold-len-multiplier", "Fold length multiplier. Should be greater than 1")
         .RequiredArgument("float")
         .Handler1T<float>([&trainJson](float multiplier) {
             trainJson->InsertValue("fold_len_multiplier", multiplier);
         });
+
     parser.AddLongOption("ctr-leaf-count-limit",
                          "Limit maximum ctr leaf count. If there are more leafs than limit, it'll select top values by frequency and put the rest into trashbucket. This option reduces resulting model size and amount of memory used during training. But it might affect the resulting quality.")
         .RequiredArgument("maxLeafCount")
@@ -350,14 +380,6 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("prediction_type", predictionType);
         });
 
-    parser.AddLongOption("class-weights", "Weights for classes.")
-        .RequiredArgument("comma separated list of weights")
-        .Handler1T<TString>([&trainJson](const TString& weightsLine) {
-            for (const auto& t : StringSplitter(weightsLine).Split(',')) {
-                (*trainJson)["class_weights"].AppendValue(FromString<float>(t.Token()));
-            }
-        });
-
     parser.AddLongOption("params-file", "Path to JSON file with params.")
         .RequiredArgument("PATH")
         .StoreResult(paramsPath)
@@ -368,7 +390,25 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<int>([&trainJson](const int classesCount) {
             trainJson->InsertValue("classes_count", classesCount);
         })
-        .Help("Takes effect only with MutliClass loss function. If classes-count is given, then each class label should me less than that number.");
+        .Help("Takes effect only with MutliClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
+
+    parser.AddLongOption("class-names", "names for classes.")
+        .RequiredArgument("comma separated list of names")
+        .Handler1T<TString>([&trainJson](const TString& namesLine) {
+            for (const auto& t : StringSplitter(namesLine).Split(',')) {
+                (*trainJson)["class_names"].AppendValue(t.Token());
+            }
+        })
+        .Help("Takes effect only with MutliClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+
+    parser.AddLongOption("class-weights", "Weights for classes.")
+        .RequiredArgument("comma separated list of weights")
+        .Handler1T<TString>([&trainJson](const TString& weightsLine) {
+            for (const auto& t : StringSplitter(weightsLine).Split(',')) {
+                (*trainJson)["class_weights"].AppendValue(FromString<float>(t.Token()));
+            }
+        })
+        .Help("Takes effect only with MutliClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
     parser.AddLongOption("one-hot-max-size")
         .RequiredArgument("size_t")
@@ -383,6 +423,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("random_strength", randomStrength);
         })
         .Help("score stdandart deviation multiplier");
+
     parser.AddLongOption("used-ram-limit", "Try to limit used memory. WARNING: This option affects CTR memory usage only.\nAllowed suffixes: GB, MB, KB in different cases")
         .RequiredArgument("TARGET_RSS")
         .Handler1T<TString>([&trainJson](const TString& param) {
@@ -411,6 +452,7 @@ void ParseCommandLine(int argc, const char* argv[],
             ui64 ramLimit = sizeMultiplier * FromString<ui64>(sizeLine);
             trainJson->InsertValue("used_ram_limit", ramLimit);
         });
+
     parser.AddLongOption("print-trees")
         .NoArgument()
         .Handler0([&trainJson]() {
@@ -435,10 +477,10 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default).");
 
-    parser.AddLongOption("reduced-history-approx")
+    parser.AddLongOption("approx-on-partial-history")
         .NoArgument()
         .Handler0([&trainJson]() {
-            trainJson->InsertValue("approx_on_all_history", false);
+            trainJson->InsertValue("approx_on_partial_history", true);
         })
         .Help("Reduce history to calculate approxes.");
 

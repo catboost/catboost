@@ -128,14 +128,14 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
     }
 
     class TFakeError {};
-    class TFakeOutput: public TOutputStream {
+    class TFakeOutput: public IOutputStream {
     private:
         void DoWrite(const void* , size_t ) {
             throw TFakeError();
         }
     };
 
-    class TFakeInput: public TInputStream {
+    class TFakeInput: public IInputStream {
     private:
         size_t DoRead(void* , size_t) {
             throw TFakeError();

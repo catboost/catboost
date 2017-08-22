@@ -294,8 +294,6 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TOnlineCTR* dst) {
-    const yvector<float>& priors = ctx->Priors.GetPriors(proj);
-
     dst->Feature.resize(ctx->Params.CtrParams.Ctrs.size());
     using THashArr = yvector<ui64>;
     using TRehashHash = TDenseHash<ui64, ui32>;
@@ -316,11 +314,11 @@ void ComputeOnlineCTRs(const TTrainData& data,
         rehashHashTlsVal.GetPtr());
 
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
+        const yvector<float>& priors = ctx->Priors.GetPriors(proj, ctrIdx);
         int targetClassesCount = fold.TargetClassesCount[ctrIdx];
         ECtrType ctrType = ctx->Params.CtrParams.Ctrs[ctrIdx].CtrType;
         auto borderCount = GetCtrBorderCount(targetClassesCount, ctrType);
-        dst->Feature[ctrIdx].SetSizes(priors.size(),
-                                      borderCount);
+        dst->Feature[ctrIdx].SetSizes(priors.size(), borderCount);
         for (int border = 0; border < borderCount; ++border) {
             for (int prior = 0; prior < priors.ysize(); ++prior) {
                 Clear(&dst->Feature[ctrIdx][border][prior], data.GetSampleCount());
@@ -395,4 +393,59 @@ void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const T
                           tasks[i].Ctr);
     };
     ctx->LocalExecutor.ExecRange(calcer, 0, tasks.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+void CalcFinalCtrs(const TModelCtr& ctr,
+                   const TTrainData& data,
+                   const yvector<int>& learnPermutation,
+                   const yvector<int>& permutedTargetClass,
+                   int targetClassesCount,
+                   ui64 ctrLeafCountLimit,
+                   bool storeAllSimpleCtr,
+                   TCtrValueTable* result) {
+    const ECtrType ctrType = ctr.CtrType;
+    yvector<ui64> hashArr;
+    CalcHashes(ctr.Projection, data.AllFeatures, data.LearnSampleCount, learnPermutation, &hashArr);
+
+    ui64 topSize = ctrLeafCountLimit;
+    if (ctr.Projection.IsSingleCatFeature() && storeAllSimpleCtr) {
+        topSize = Max<ui64>();
+    }
+
+    auto leafCount = ReindexHash(
+        data.LearnSampleCount,
+        topSize,
+        &hashArr,
+        &result->Hash).first;
+
+    if (ctrType == ECtrType::MeanValue) {
+        result->CtrMean.resize(leafCount);
+    } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+        result->CtrTotal.resize(leafCount);
+        result->CounterDenominator = 0;
+    } else {
+        result->Ctr.resize(leafCount, yvector<int>(targetClassesCount));
+    }
+
+    Y_ASSERT(hashArr.ysize() == data.LearnSampleCount);
+    int targetBorderCount = targetClassesCount - 1;
+    for (int z = 0; z < data.LearnSampleCount; ++z) {
+        const ui64 elemId = hashArr[z];
+        if (ctrType == ECtrType::MeanValue) {
+            TCtrMeanHistory& elem = result->CtrMean[elemId];
+            elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
+        } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+            ++result->CtrTotal[elemId];
+        } else {
+            yvector<int>& elem = result->Ctr[elemId];
+            ++elem[permutedTargetClass[z]];
+        }
+    }
+
+    if (ctrType == ECtrType::Counter) {
+        result->CounterDenominator = *MaxElement(result->CtrTotal.begin(), result->CtrTotal.end());
+    }
+    if (ctrType == ECtrType::FeatureFreq) {
+        result->CounterDenominator = data.LearnSampleCount;
+    }
 }

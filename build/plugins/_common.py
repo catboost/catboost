@@ -1,5 +1,6 @@
 import sys
 import hashlib
+import base64
 
 
 class Result(object):
@@ -21,7 +22,7 @@ def lazy(func):
 
 
 def pathid(path):
-    return hashlib.md5(path).hexdigest()
+    return base64.b32encode(hashlib.md5(path).digest()).lower().strip('=')
 
 
 def listid(l):

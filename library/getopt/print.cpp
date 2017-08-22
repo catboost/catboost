@@ -6,29 +6,17 @@
 #include "posix_getopt.h"
 #include "ygetopt.h"
 
-#if defined(YMAKE)
 #include <library/svnversion/svnversion.h>
-#else
-#include <util/string/builder.h>
-#endif
+#include <library/build_info/build_info.h>
 
 
 namespace NLastGetoptPrivate {
 
     TString InitVersionString() {
-#ifdef YMAKE
-       return GetProgramSvnVersion();
-#else
-       TStringBuilder builder;
-#if defined(PROGRAM_VERSION)
-        builder << PROGRAM_VERSION << Endl;
-#elif defined(SVN_REVISION)
-        builder << "revision: " << SVN_REVISION << " from " << SVN_ARCROOT << " at " << SVN_TIME << Endl;
-#else
-        builder << "program version: not implemented" << Endl;
-#endif
-        return builder;
-#endif
+       TString ts = GetProgramSvnVersion();
+       ts += "\n";
+       ts += GetBuildInfo();
+       return ts;
     }
 
     TString& VersionString();

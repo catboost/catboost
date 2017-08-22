@@ -56,7 +56,7 @@ struct TDumper<TCopyPtr<T, C, D>> {
 };
 
 //small ints
-// Default dumper prints them via TOutputStream << (value), which results in raw
+// Default dumper prints them via IOutputStream << (value), which results in raw
 // chars, not integer values. Cast to a bigger int type to force printing as
 // integers.
 // NB: i8 = signed char != char != unsigned char = ui8

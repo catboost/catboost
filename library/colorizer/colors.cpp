@@ -186,7 +186,7 @@ namespace {
     };
 } // anonymous namespace
 
-TColors& NColorizer::AutoColors(TOutputStream& os) {
+TColors& NColorizer::AutoColors(IOutputStream& os) {
     if (&os == &Cerr) {
         return StdErr();
     }

@@ -65,7 +65,7 @@ namespace {
     };
 
     //not thread-safe
-    class TMersenneInput: public TInputStream {
+    class TMersenneInput: public IInputStream {
         using TKey = ui64;
         using TRnd = TMersenne<TKey>;
 
@@ -97,7 +97,7 @@ namespace {
         TRnd Rnd_;
     };
 
-    class TEntropyPoolStream: public TInputStream {
+    class TEntropyPoolStream: public IInputStream {
     public:
         inline TEntropyPoolStream(const TBuffer& buffer)
             : Mi_(buffer)
@@ -117,7 +117,7 @@ namespace {
         TBufferedInput Bi_;
     };
 
-    struct TSeedStream: public TInputStream {
+    struct TSeedStream: public IInputStream {
         size_t DoRead(void* inbuf, size_t len) override {
             char* buf = (char*)inbuf;
 
@@ -153,11 +153,11 @@ namespace {
             return HE;
         }
 
-        inline TInputStream& EntropyPool() noexcept {
+        inline IInputStream& EntropyPool() noexcept {
             return EP;
         }
 
-        inline TInputStream& Seed() noexcept {
+        inline IInputStream& Seed() noexcept {
             return SS;
         }
 
@@ -169,11 +169,11 @@ namespace {
     using TRandomTraits = TDefaultTraits;
 }
 
-TInputStream& EntropyPool() {
+IInputStream& EntropyPool() {
     return TRandomTraits::Instance().EntropyPool();
 }
 
-TInputStream& Seed() {
+IInputStream& Seed() {
     return TRandomTraits::Instance().Seed();
 }
 

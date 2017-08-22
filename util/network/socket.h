@@ -256,7 +256,7 @@ private:
 
 class TSocket {
 public:
-    using TPart = TOutputStream::TPart;
+    using TPart = IOutputStream::TPart;
 
     class TOps {
     public:
@@ -346,7 +346,7 @@ private:
     TSimpleIntrusivePtr<TImpl> Impl_;
 };
 
-class TSocketInput: public TInputStream {
+class TSocketInput: public IInputStream {
 public:
     TSocketInput(const TSocket& s) noexcept;
     ~TSocketInput() override;
@@ -365,7 +365,7 @@ private:
     TSocket S_;
 };
 
-class TSocketOutput: public TOutputStream {
+class TSocketOutput: public IOutputStream {
 public:
     TSocketOutput(const TSocket& s) noexcept;
     ~TSocketOutput() override;

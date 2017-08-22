@@ -13,7 +13,7 @@
 /**
  * Input stream that reads data from a memory block.
  */
-class TMemoryInput: public TZeroCopyInputFastReadTo {
+class TMemoryInput: public IZeroCopyInputFastReadTo {
 public:
     TMemoryInput() noexcept;
 
@@ -30,7 +30,7 @@ public:
     ~TMemoryInput() override;
 
     TMemoryInput(const TMemoryInput& other) noexcept
-        : TZeroCopyInputFastReadTo()
+        : IZeroCopyInputFastReadTo()
         , Buf_(other.Buf_)
         , Len_(other.Len_)
     {
@@ -89,7 +89,7 @@ public:
      *
      * @param stream                    Zero copy stream to initialize from.
      */
-    void Fill(TZeroCopyInput* stream) {
+    void Fill(IZeroCopyInput* stream) {
         Len_ = stream->Next(&Buf_);
         if (!Len_) {
             Reset(nullptr, 0);
@@ -108,7 +108,7 @@ private:
 /**
  * Output stream that writes data to a memory block.
  */
-class TMemoryOutput: public TOutputStream {
+class TMemoryOutput: public IOutputStream {
 public:
     /**
      * Constructs a stream that writes to the provided memory block. It's up

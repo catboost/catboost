@@ -125,8 +125,8 @@
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 #define GOOGLE_PROTOBUF_HAS_ARENAS
 
-class TInputStream;
-class TOutputStream;
+class IInputStream;
+class IOutputStream;
 
 namespace google {
 namespace protobuf {
@@ -294,20 +294,20 @@ class /* LIBPROTOBUF_EXPORT */ Message : public MessageLite {
   // Yandex-specific
 
   // new functions overloaded for yandex-streams
-  bool ParseFromIstream(TInputStream* input);
-  bool ParsePartialFromIstream(TInputStream* input);
+  bool ParseFromIstream(IInputStream* input);
+  bool ParsePartialFromIstream(IInputStream* input);
   // old functions for backward compatibility
-  bool ParseFromStream(TInputStream* input);
-  bool ParsePartialFromStream(TInputStream* input);
+  bool ParseFromStream(IInputStream* input);
+  bool ParsePartialFromStream(IInputStream* input);
 
   // new functions overloaded for yandex-streams
-  bool SerializeToOstream(TOutputStream* output) const;
-  bool SerializePartialToOstream(TOutputStream* output) const;
+  bool SerializeToOstream(IOutputStream* output) const;
+  bool SerializePartialToOstream(IOutputStream* output) const;
   // old functions for backward compatibility
-  bool SerializeToStream(TOutputStream* output) const;
-  bool SerializePartialToStream(TOutputStream* output) const;
+  bool SerializeToStream(IOutputStream* output) const;
+  bool SerializePartialToStream(IOutputStream* output) const;
 
-  virtual void PrintJSON(TOutputStream&) const;
+  virtual void PrintJSON(IOutputStream&) const;
 
   io::TAsJSON<Message> AsJSON() const {
     return io::TAsJSON<Message>(*this);

@@ -15,7 +15,7 @@ class TBuffer;
 /**
  * Output stream that writes into a `TBuffer`.
  */
-class TBufferOutput: public TOutputStream {
+class TBufferOutput: public IOutputStream {
 public:
     class TImpl;
 
@@ -55,7 +55,7 @@ private:
 /**
  * Input stream that reads from an external `TBuffer`.
  */
-class TBufferInput: public TZeroCopyInputFastReadTo {
+class TBufferInput: public IZeroCopyInputFastReadTo {
 public:
     /**
      * Constructs a stream that reads from an external buffer. It's up to the

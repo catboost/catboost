@@ -17,6 +17,8 @@
 #include "kmp_wrapper_malloc.h"
 #include "kmp_io.h"
 
+#include <util/system/sanitizers.h>
+
 // Disable bget when it is not used
 #if KMP_USE_BGET
 
@@ -1607,6 +1609,9 @@ ___kmp_allocate_align( size_t size, size_t alignment KMP_SRC_LOC_DECL )
     #else
     descr.ptr_allocated = malloc_src_loc( descr.size_allocated KMP_SRC_LOC_PARM );
     #endif
+
+    NSan::MarkAsIntentionallyLeaked(descr.ptr_allocated); // espetrov@yandex-team.ru: asan considers descr.ptr_allocated leaked because of address alignment arithmetics
+
     KE_TRACE( 10, (
         "   malloc( %d ) returned %p\n",
         (int) descr.size_allocated,

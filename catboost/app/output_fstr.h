@@ -11,7 +11,7 @@ inline void OutputFstr(const TFeaturesLayout& layout,
                        const TString& path) {
     TAdaptiveFileOutput out(path);
     for (const auto& effectWithSplit : effect) {
-        out << effectWithSplit.first << "\t" << BuildDescription(layout, effectWithSplit.second) << Endl;
+        out << effectWithSplit.first << "\t" << effectWithSplit.second.BuildDescription(layout) << Endl;
     }
 }
 
@@ -32,8 +32,8 @@ inline void OutputInteraction(const TFeaturesLayout& layout,
                        const TString& path) {
     TAdaptiveFileOutput out(path);
     for (const auto& interaction : interactionValues) {
-        out << interaction.Score << "\t" << BuildDescription(layout, interaction.FirstFeature) <<
-            "\t" << BuildDescription(layout, interaction.SecondFeature) << Endl;
+        out << interaction.Score << "\t" << interaction.FirstFeature.BuildDescription(layout) <<
+            "\t" << interaction.SecondFeature.BuildDescription(layout) << Endl;
     }
 }
 

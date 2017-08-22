@@ -23,4 +23,4 @@ def test_cmd_install(links):
 
 
 def test_cmd_check(links):
-    links.set('R CMD check', _run_cmd(['R', 'CMD', 'check', '.', '--no-manual'], yatest.common.output_path('r_cmd_check.out')))
+    links.set('R CMD check', _run_cmd(['R', 'CMD', 'check', '.', '--no-manual', '--no-examples'], yatest.common.output_path('r_cmd_check.out')))

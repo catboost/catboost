@@ -4,7 +4,7 @@ namespace google {
 namespace protobuf {
 namespace io {
 
-void PrintJSONString(TOutputStream& stream, const TProtoStringType& string) {
+void PrintJSONString(IOutputStream& stream, const TProtoStringType& string) {
     stream << '"';
     for (const char c: string) {
         switch(c) {

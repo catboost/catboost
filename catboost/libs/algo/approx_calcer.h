@@ -13,8 +13,8 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 
-inline int GetLeafCount(const TTensorStructure3& tree) {
-    return 1 << tree.SelectedSplits.ysize();
+inline int GetLeafCount(const yvector<TSplit>& tree) {
+    return 1 << tree.ysize();
 }
 
 template <int vectorWidth>
@@ -198,7 +198,7 @@ template <ELeafEstimation type, typename TError>
 void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
                               const yvector<float>& target,
                               const yvector<float>& weight,
-                              const TFold::TMixTail& mt,
+                              const TFold::TBodyTail& bt,
                               const TError& error,
                               int iteration,
                               float l2Regularizer,
@@ -209,7 +209,7 @@ void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
                               yvector<double>* scratchApprox) {
     int leafCount = buckets->ysize();
 
-    CalcApproxDeltaRange<type, TError>(indices.data(), target.data(), weight.data(), mt.Approx[0].data(), mt.MixCount, error, iteration,
+    CalcApproxDeltaRange<type, TError>(indices.data(), target.data(), weight.data(), bt.Approx[0].data(), bt.BodyFinish, error, iteration,
         ctx, buckets, resArr->data(), scratchDers->data(), scratchApprox->data());
 
     // compute mixed model
@@ -219,24 +219,24 @@ void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
     }
 
     // compute tail
-    if (ctx->Params.ApproxOnAllHistory) {
-        UpdateApproxDeltas(curLeafValues, indices, mt.TailFinish, ctx, resArr);
-    } else {
-        UpdateApproxDeltas(curLeafValues, indices, mt.MixCount, ctx, resArr);
+    if (ctx->Params.ApproxOnPartialHistory) {
+        UpdateApproxDeltas(curLeafValues, indices, bt.BodyFinish, ctx, resArr);
 
-        CalcShiftedApproxDers(mt.MixCount, mt.TailFinish, mt.Approx[0], *resArr, target, weight, error, scratchDers, scratchApprox, ctx);
+        CalcShiftedApproxDers(bt.BodyFinish, bt.TailFinish, bt.Approx[0], *resArr, target, weight, error, scratchDers, scratchApprox, ctx);
         TSum* bucketsData = buckets->data();
         const TIndexType* indicesData = indices.data();
         const float* weightData = weight.empty() ? nullptr : weight.data();
         const TDer1Der2* scratchDersData = scratchDers->data();
         double* resArrData = resArr->data();
-        for (int z = mt.MixCount; z < mt.TailFinish; ++z) {
+        for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
             TSum& bucket = bucketsData[indicesData[z]];
             double w = weightData == nullptr ? 1 : weightData[z];
-            UpdateBucket<type>(scratchDersData[z - mt.MixCount], w, iteration, &bucket);
+            UpdateBucket<type>(scratchDersData[z - bt.BodyFinish], w, iteration, &bucket);
             double avrg = CalcModel<type>(bucket, iteration, l2Regularizer);
             resArrData[z] += avrg;
         }
+    } else {
+        UpdateApproxDeltas(curLeafValues, indices, bt.TailFinish, ctx, resArr);
     }
 }
 
@@ -264,7 +264,7 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
                                    const yvector<TIndexType>& indices,
                                    const yvector<float>& target,
                                    const yvector<float>& weight,
-                                   const TFold::TMixTail& mt,
+                                   const TFold::TBodyTail& bt,
                                    const TError& error,
                                    int iteration,
                                    float l2Regularizer,
@@ -274,9 +274,9 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
     int leafCount = buckets->ysize();
 
     yvector<double> curApprox(approxDimension);
-    for (int z = 0; z < mt.MixCount; ++z) {
+    for (int z = 0; z < bt.BodyFinish; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = mt.Approx[dim][z] + (*resArr)[dim][z];
+            curApprox[dim] = bt.Approx[dim][z] + (*resArr)[dim][z];
         }
         TSumMulti& bucket = (*buckets)[indices[z]];
         AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
@@ -292,12 +292,12 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
         }
     }
 
-    UpdateApproxDeltasMulti(curLeafValues, indices, mt.MixCount, resArr);
+    UpdateApproxDeltasMulti(curLeafValues, indices, bt.BodyFinish, resArr);
 
     // compute tail
-    for (int z = mt.MixCount; z < mt.TailFinish; ++z) {
+    for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = mt.Approx[dim][z] + (*resArr)[dim][z];
+            curApprox[dim] = bt.Approx[dim][z] + (*resArr)[dim][z];
         }
 
         TSumMulti& bucket = (*buckets)[indices[z]];
@@ -312,7 +312,7 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
 
 template <typename TError>
 void CalcApproxDelta(const TFold& ff,
-                     const TTensorStructure3& ts,
+                     const yvector<TSplit>& tree,
                      const TError& error,
                      int gradientIterations,
                      ELeafEstimation estimationMethod,
@@ -321,24 +321,24 @@ void CalcApproxDelta(const TFold& ff,
                      yvector<yvector<yvector<double>>>* approxDelta,
                      yvector<TIndexType>* ind) {
     auto& indices = *ind;
-    approxDelta->resize(ff.MixTailArr.ysize());
+    approxDelta->resize(ff.BodyTailArr.ysize());
     const int approxDimension = ff.GetApproxDimension();
-    ctx->LocalExecutor.ExecRange([&](int mixTailId) {
-        const TFold::TMixTail& mt = ff.MixTailArr[mixTailId];
+    ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
+        const TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
 
-        yvector<yvector<double>>& resArr = (*approxDelta)[mixTailId];
+        yvector<yvector<double>>& resArr = (*approxDelta)[bodyTailId];
         if (resArr.empty()) {
-            resArr.assign(approxDimension, yvector<double>(mt.TailFinish));
+            resArr.assign(approxDimension, yvector<double>(bt.TailFinish));
         } else {
             for (auto& arr : resArr) {
-                Clear(&arr, mt.TailFinish);
+                Clear(&arr, bt.TailFinish);
             }
         }
 
-        const int leafCount = GetLeafCount(ts);
+        const int leafCount = GetLeafCount(tree);
 
         if (approxDimension == 1) {
-            const int scratchSize = Max(ctx->Params.ApproxOnAllHistory ? 0 : mt.TailFinish - mt.MixCount, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
+            const int scratchSize = Max(ctx->Params.ApproxOnPartialHistory ? bt.TailFinish - bt.BodyFinish : 0, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
             yvector<TDer1Der2> scratchDers;
             scratchDers.yresize(scratchSize);
             yvector<double> scratchApprox;
@@ -347,11 +347,11 @@ void CalcApproxDelta(const TFold& ff,
 
             for (int it = 0; it < gradientIterations; ++it) {
                 if (estimationMethod == ELeafEstimation::Newton) {
-                    CalcApproxDeltaIteration<ELeafEstimation::Newton, TError>(indices, ff.LearnTarget, ff.LearnWeights, mt, error, it, l2Regularizer, ctx,
+                    CalcApproxDeltaIteration<ELeafEstimation::Newton, TError>(indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer, ctx,
                                              &buckets, &resArr[0], &scratchDers, &scratchApprox);
                 } else {
                     CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
-                    CalcApproxDeltaIteration<ELeafEstimation::Gradient, TError>(indices, ff.LearnTarget, ff.LearnWeights, mt, error, it, l2Regularizer, ctx,
+                    CalcApproxDeltaIteration<ELeafEstimation::Gradient, TError>(indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer, ctx,
                                              &buckets, &resArr[0], &scratchDers, &scratchApprox);
                 }
             }
@@ -360,18 +360,18 @@ void CalcApproxDelta(const TFold& ff,
             for (int it = 0; it < gradientIterations; ++it) {
                 if (estimationMethod == ELeafEstimation::Newton) {
                     CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
-                                                  indices, ff.LearnTarget, ff.LearnWeights, mt, error, it, l2Regularizer,
+                                                  indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                                   &buckets, &resArr);
                 }
                 else {
                     CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
                     CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
-                                                  indices, ff.LearnTarget, ff.LearnWeights, mt, error, it, l2Regularizer,
+                                                  indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                                   &buckets, &resArr);
                 }
             }
         }
-    }, 0, ff.MixTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, 0, ff.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 template <ELeafEstimation type, typename TError>
@@ -440,7 +440,7 @@ void CalcLeafValuesIterationMulti(TCalcModel CalcModel,
 template <typename TError>
 void CalcLeafValues(const TTrainData& data,
                     const TFold& ff,
-                    const TTensorStructure3& ts,
+                    const yvector<TSplit>& tree,
                     const TError& error,
                     int gradientIterations,
                     ELeafEstimation estimationMethod,
@@ -449,15 +449,15 @@ void CalcLeafValues(const TTrainData& data,
                     yvector<yvector<double>>* leafValues,
                     yvector<TIndexType>* ind) {
     auto& indices = *ind;
-    indices = BuildIndices(ff, ts, data, &ctx->LocalExecutor);
+    indices = BuildIndices(ff, tree, data, &ctx->LocalExecutor);
 
-    const TFold::TMixTail& mt = ff.MixTailArr[0];
+    const TFold::TBodyTail& bt = ff.BodyTailArr[0];
     const int approxDimension = ff.GetApproxDimension();
-    const int leafCount = GetLeafCount(ts);
+    const int leafCount = GetLeafCount(tree);
 
     yvector<yvector<double>> approx(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
-        approx[dim].assign(mt.Approx[dim].begin(), mt.Approx[dim].begin() + data.LearnSampleCount);
+        approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + data.LearnSampleCount);
     }
 
     if (approxDimension == 1) {
@@ -521,20 +521,20 @@ void CalcApproxForLeafStruct(const TTrainData& data,
                              const TError& error,
                              int gradientIterations,
                              const yvector<TFold*>& folds,
-                             const TTensorStructure3& ts,
+                             const yvector<TSplit>& tree,
                              ELeafEstimation estimationMethod,
                              float l2Regularizer,
                              TLearnContext* ctx,
-                             yvector<yvector<yvector<yvector<double>>>>* approxDelta) { // [foldId][mixTailId][approxDim][docIdxInPermuted]
+                             yvector<yvector<yvector<yvector<double>>>>* approxDelta) { // [foldId][bodyTailId][approxDim][docIdxInPermuted]
     int foldCount = folds.ysize();
     approxDelta->resize(foldCount);
     yvector<yvector<TIndexType>> indices(foldCount);
     ctx->LocalExecutor.ExecRange([&](int foldId) {
-        indices[foldId] = BuildIndices(*folds[foldId], ts, data, &ctx->LocalExecutor);
+        indices[foldId] = BuildIndices(*folds[foldId], tree, data, &ctx->LocalExecutor);
     }, 0, folds.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     ctx->LocalExecutor.ExecRange([&](int foldId) {
         CalcApproxDelta(*folds[foldId],
-                        ts,
+                        tree,
                         error,
                         gradientIterations,
                         estimationMethod,
@@ -551,7 +551,7 @@ void CalcApprox(const TTrainData& data,
                 const TError& error,
                 int gradientIterations,
                 TFold* fold,
-                const TTensorStructure3& ts,
+                const yvector<TSplit>& tree,
                 ELeafEstimation estimationMethod,
                 float l2Regularizer,
                 TLearnContext* ctx,
@@ -560,7 +560,7 @@ void CalcApprox(const TTrainData& data,
     yvector<TIndexType> indices;
     CalcLeafValues(data,
                    *fold,
-                   ts,
+                   tree,
                    error,
                    gradientIterations,
                    estimationMethod,

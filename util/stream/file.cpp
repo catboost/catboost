@@ -30,7 +30,7 @@ size_t TFileInput::DoSkip(size_t len) {
          * actually doing one read is cheaper. Experiments show that the
          * border that separates two implementations performance-wise lies
          * in the range of 384-512 bytes (assuming that the file is in OS cache). */
-        return TInputStream::DoSkip(len);
+        return IInputStream::DoSkip(len);
     }
 
     /* TFile::Seek can seek beyond the end of file, so we need to do

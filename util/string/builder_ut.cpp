@@ -17,7 +17,7 @@ struct TClassWithStreamOperator {
     }
 };
 
-TOutputStream& operator<<(TOutputStream& out, const TClassWithStreamOperator& value) {
+IOutputStream& operator<<(IOutputStream& out, const TClassWithStreamOperator& value) {
     return out << value.Id << " " << value.Name;
 }
 

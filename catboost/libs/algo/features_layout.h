@@ -34,6 +34,9 @@ public:
     bool IsCorrectFeatureIdx(int feature) const {
         return feature >= 0 && feature < FeatureType.ysize();
     }
+    int GetCatFeatureCount() const {
+        return CatFeatureExternalId.ysize();
+    }
 
 private:
     yvector<EFeatureType> FeatureType;

@@ -46,7 +46,6 @@ static void MoveFiles(const TString& trainDir, TCmdLineParams* params) {
     }
 }
 
-
 static void AddParamsFromFile(const TString& paramsPath, NJson::TJsonValue* trainJson) {
     TIFStream reader(paramsPath);
     NJson::TJsonValue fileJson;
@@ -59,13 +58,13 @@ static void AddParamsFromFile(const TString& paramsPath, NJson::TJsonValue* trai
     }
 }
 
-
 static void LoadParams(int argc, const char* argv[],
                        NJson::TJsonValue* trainJson,
                        TCmdLineParams* params,
                        int* threadCount,
                        TString* dataDir,
-                       bool* verbose) {
+                       bool* verbose,
+                       yvector<TString>* classNames) {
     TString paramsPath;
     ParseCommandLine(argc, argv, trainJson, params, &paramsPath);
     if (!paramsPath.empty()) {
@@ -80,10 +79,19 @@ static void LoadParams(int argc, const char* argv[],
     if (trainJson->Has("thread_count")) {
         *threadCount = (*trainJson)["thread_count"].GetIntegerSafe();
     }
+    if (trainJson->Has("class_names")) {
+        classNames->clear();
+        if ((*trainJson)["class_names"].IsArray()) {
+            for (const auto& value : (*trainJson)["class_names"].GetArraySafe()) {
+                classNames->push_back(value.GetStringSafe());
+            }
+        } else {
+            classNames->push_back((*trainJson)["class_names"].GetStringSafe());
+        }
+    }
 }
 
 int mode_fit(int argc, const char* argv[]) {
-
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
     if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
         MATRIXNET_WARNING_LOG << "link me with lfalloc please" << Endl;
@@ -97,19 +105,20 @@ int mode_fit(int argc, const char* argv[]) {
     int threadCount = Min(8, (int)NSystemInfo::CachedNumberOfCpus());
     TString dataDir;
     bool verbose = true;
-    LoadParams(argc, argv, &trainJson, &params, &threadCount, &dataDir, &verbose);
+    yvector<TString> classNames;
+    LoadParams(argc, argv, &trainJson, &params, &threadCount, &dataDir, &verbose, &classNames);
 
     TProfileInfo profile(true);
 
     TPool learnPool;
     if (!params.LearnFile.empty()) {
-        ReadPool(params.CdFile, params.LearnFile, threadCount, verbose, &learnPool, params.Delimiter, params.HasHeaders);
+        ReadPool(params.CdFile, params.LearnFile, threadCount, verbose, params.Delimiter, params.HasHeaders, classNames, &learnPool);
         profile.AddOperation("Build learn pool");
     }
 
     TPool testPool;
     if (!params.TestFile.empty()) {
-        ReadPool(params.CdFile, params.TestFile, threadCount, verbose, &testPool, params.Delimiter, params.HasHeaders);
+        ReadPool(params.CdFile, params.TestFile, threadCount, verbose, params.Delimiter, params.HasHeaders, classNames, &testPool);
         profile.AddOperation("Build test pool");
     }
 
@@ -127,7 +136,7 @@ int mode_fit(int argc, const char* argv[]) {
     MoveFiles(dataDir, &params);
 
     yvector<yvector<double>> testApprox;
-    TrainModel(trainJson, Nothing(), Nothing(), learnPool, testPool, params.ModelFileName, nullptr, &testApprox);
+    TrainModelBody(trainJson, Nothing(), Nothing(), learnPool, testPool, params.ModelFileName, /*clearLearnPool*/ params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty(), nullptr, &testApprox);
 
     SetVerboseLogingMode();
     if (params.EvalFileName) {
@@ -142,7 +151,7 @@ int mode_fit(int argc, const char* argv[]) {
         profile.PrintState();
     }
 
-    if (!params.FstrRegularFileName.empty() || !params.FstrInternalFileName.empty()){
+    if (!params.FstrRegularFileName.empty() || !params.FstrInternalFileName.empty()) {
         TFullModel model = ReadModel(params.ModelFileName);
         CalcAndOutputFstr(model, learnPool, &params.FstrRegularFileName, &params.FstrInternalFileName, threadCount);
     }

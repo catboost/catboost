@@ -10,7 +10,7 @@
 
 namespace NJsonWriter {
 
-TBuf::TBuf(EHtmlEscapeMode mode, TOutputStream* stream)
+TBuf::TBuf(EHtmlEscapeMode mode, IOutputStream* stream)
     : Stream(stream)
     , NeedComma(false)
     , NeedNewline(false)
@@ -439,7 +439,7 @@ const TString& TBuf::Str() const {
     return StringStream->Str();
 }
 
-void TBuf::FlushTo(TOutputStream* stream) {
+void TBuf::FlushTo(IOutputStream* stream) {
     if (!StringStream) {
         ythrow TError() << "JSON writer: FlushTo() called "
             "but writing to an external stream";

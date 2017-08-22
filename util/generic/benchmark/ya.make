@@ -9,4 +9,5 @@ RECURSE(
     rotate_bits/metrics
     smart_pointers
     singleton
+    sort
 )

@@ -32,16 +32,16 @@ bool ReadJsonTree(TStringBuf in, TJsonValue *out, bool throwOnError = false);
 bool ReadJsonTree(TStringBuf in, bool allowComments, TJsonValue *out, bool throwOnError = false);
 bool ReadJsonTree(TStringBuf in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError = false);
 
-bool ReadJsonTree(TInputStream *in, TJsonValue *out, bool throwOnError = false);
-bool ReadJsonTree(TInputStream *in, bool allowComments, TJsonValue *out, bool throwOnError = false);
-bool ReadJsonTree(TInputStream *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError = false);
+bool ReadJsonTree(IInputStream *in, TJsonValue *out, bool throwOnError = false);
+bool ReadJsonTree(IInputStream *in, bool allowComments, TJsonValue *out, bool throwOnError = false);
+bool ReadJsonTree(IInputStream *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError = false);
 
-bool ReadJson(TInputStream *in, TJsonCallbacks *callbacks);
-bool ReadJson(TInputStream *in, bool allowComments, TJsonCallbacks *callbacks);
-bool ReadJson(TInputStream *in, const TJsonReaderConfig *config, TJsonCallbacks *callbacks);
+bool ReadJson(IInputStream *in, TJsonCallbacks *callbacks);
+bool ReadJson(IInputStream *in, bool allowComments, TJsonCallbacks *callbacks);
+bool ReadJson(IInputStream *in, const TJsonReaderConfig *config, TJsonCallbacks *callbacks);
 
 
-inline bool ValidateJson(TInputStream* in, const TJsonReaderConfig* config, bool throwOnError = false) {
+inline bool ValidateJson(IInputStream* in, const TJsonReaderConfig* config, bool throwOnError = false) {
     TJsonCallbacks c(throwOnError);
     return ReadJson(in, config, &c);
 }
@@ -51,7 +51,7 @@ inline bool ValidateJson(TStringBuf in, const TJsonReaderConfig& config = TJsonR
     return ValidateJson(&min, &config, throwOnError);
 }
 
-inline bool ValidateJsonThrow(TInputStream* in, const TJsonReaderConfig* config) {
+inline bool ValidateJsonThrow(IInputStream* in, const TJsonReaderConfig* config) {
     return ValidateJson(in, config, true);
 }
 

@@ -87,7 +87,7 @@ void Message::CopyFrom(const Message& from) {
   ReflectionOps::Copy(from, this);
 }
 
-void Message::PrintJSON(TOutputStream& out) const {
+void Message::PrintJSON(IOutputStream& out) const {
   out << "(Something went wrong: no PrintJSON() override provided - are you using a non-styleguided .pb.h?)";
 }
 
@@ -192,7 +192,7 @@ bool Message::SerializePartialToOstream(std::ostream* output) const {
   return SerializePartialToZeroCopyStream(&zero_copy_output);
 }
  
-bool Message::ParseFromStream(TInputStream* input) {
+bool Message::ParseFromStream(IInputStream* input) {
   bool res = false;
   io::TInputStreamProxy proxy(input);
   {
@@ -202,7 +202,7 @@ bool Message::ParseFromStream(TInputStream* input) {
   return res && !proxy.HasError();
 }
  
-bool Message::ParsePartialFromStream(TInputStream* input) {
+bool Message::ParsePartialFromStream(IInputStream* input) {
   bool res = false;
   io::TInputStreamProxy proxy(input);
   {
@@ -212,15 +212,15 @@ bool Message::ParsePartialFromStream(TInputStream* input) {
   return res && !proxy.HasError();
 }
  
-bool Message::ParseFromIstream(TInputStream* input) {
+bool Message::ParseFromIstream(IInputStream* input) {
   return ParseFromStream(input);
 }
  
-bool Message::ParsePartialFromIstream(TInputStream* input) {
+bool Message::ParsePartialFromIstream(IInputStream* input) {
   return ParsePartialFromStream(input);
 }
  
-bool Message::SerializeToStream(TOutputStream* output) const {
+bool Message::SerializeToStream(IOutputStream* output) const {
   bool res = false;
   io::TOutputStreamProxy proxy(output);
   {
@@ -230,7 +230,7 @@ bool Message::SerializeToStream(TOutputStream* output) const {
   return res && !proxy.HasError();
 }
  
-bool Message::SerializePartialToStream(TOutputStream* output) const {
+bool Message::SerializePartialToStream(IOutputStream* output) const {
   bool res = false;
   io::TOutputStreamProxy proxy(output);
   {
@@ -240,11 +240,11 @@ bool Message::SerializePartialToStream(TOutputStream* output) const {
   return res && !proxy.HasError();
 }
  
-bool Message::SerializeToOstream(TOutputStream* output) const {
+bool Message::SerializeToOstream(IOutputStream* output) const {
   return SerializeToStream(output);
 }
  
-bool Message::SerializePartialToOstream(TOutputStream* output) const {
+bool Message::SerializePartialToOstream(IOutputStream* output) const {
   return SerializePartialToStream(output);
 }
 

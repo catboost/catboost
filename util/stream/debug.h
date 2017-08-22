@@ -10,7 +10,7 @@
 /**
  * Debug output stream. Writes into `stderr`.
  */
-class TDebugOutput: public TOutputStream {
+class TDebugOutput: public IOutputStream {
 public:
     inline TDebugOutput() noexcept = default;
     ~TDebugOutput() override = default;
@@ -26,7 +26,7 @@ private:
  * @returns                             Standard debug stream.
  * @see Cdbg
  */
-TOutputStream& StdDbgStream() noexcept;
+IOutputStream& StdDbgStream() noexcept;
 
 /**
  * This function returns the current debug level as set via `DBGOUT` environment

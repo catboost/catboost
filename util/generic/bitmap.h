@@ -956,13 +956,13 @@ public:
         return count;
     }
 
-    void Save(TOutputStream* out) const {
+    void Save(IOutputStream* out) const {
         ::Save(out, ui8(sizeof(TChunk)));
         ::Save(out, ui64(Size()));
         ::SavePodArray(out, Mask.Data, Mask.GetChunkCapacity());
     }
 
-    void Load(TInputStream* inp) {
+    void Load(IInputStream* inp) {
         ui8 chunkSize = 0;
         ::Load(inp, chunkSize);
         Y_VERIFY(size_t(chunkSize) == sizeof(TChunk), "Chunk size is not the same");

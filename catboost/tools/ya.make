@@ -1,0 +1,3 @@
+RECURSE(
+    model_comparator
+)

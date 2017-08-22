@@ -10,7 +10,7 @@
 
 using namespace NResource;
 
-static inline void GenOne(const TString& data, const TString& key, TOutputStream& out) {
+static inline void GenOne(const TString& data, const TString& key, IOutputStream& out) {
     const TString name = "name" + ToString(CityHash64(~key, +key));
 
     out << "static const unsigned char " << name << "[] = {";

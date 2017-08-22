@@ -398,7 +398,7 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic push")
 #elif defined(_MSC_VER)
 #define Y_PRAGMA_DIAGNOSTIC_PUSH \
-    Y_PRAGMA("warning(push)")
+    Y_PRAGMA(warning(push))
 #else
 #define Y_PRAGMA_DIAGNOSTIC_PUSH
 #endif
@@ -422,7 +422,7 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic pop")
 #elif defined(_MSC_VER)
 #define Y_PRAGMA_DIAGNOSTIC_POP \
-    Y_PRAGMA("warning(pop)")
+    Y_PRAGMA(warning(pop))
 #else
 #define Y_PRAGMA_DIAGNOSTIC_POP
 #endif
@@ -490,4 +490,20 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic ignored \"-Wunused-function\"")
 #else
 #define Y_PRAGMA_NO_UNUSED_FUNCTION
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#define Y_CONST_FUNCTION __attribute__((const))
+#endif
+
+#if !defined(Y_CONST_FUNCTION)
+#define Y_CONST_FUNCTION
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#define Y_PURE_FUNCTION __attribute__((pure))
+#endif
+
+#if !defined(Y_PURE_FUNCTION)
+#define Y_PURE_FUNCTION
 #endif

@@ -4,7 +4,7 @@ LIBRARY()
 
 USE_PYTHON()
 
-NO_WERROR()
+NO_COMPILER_WARNINGS()
 
 PEERDIR(
     contrib/python/numpy-1.11.1

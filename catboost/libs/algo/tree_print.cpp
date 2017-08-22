@@ -21,21 +21,6 @@ TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int
     return externalFeatureDescription;
 }
 
-TString BuildDescription(const TFeaturesLayout& featuresLayout, const TSplit& split) {
-    TStringBuilder result;
-    TFeature feature;
-    int splitIdxOrValue;
-    split.BuildTFeatureFormat(&feature, &splitIdxOrValue);
-
-    if (feature.Type == ESplitType::OnlineCtr || feature.Type == ESplitType::FloatFeature) {
-        result << "(" << BuildDescription(featuresLayout, feature) << ", split" << splitIdxOrValue << ")";
-    } else {
-        result << "(" << BuildDescription(featuresLayout, feature) << ", value = " << splitIdxOrValue << ")";
-    }
-
-    return TString(result);
-}
-
 TString BuildDescription(const TFeaturesLayout& featuresLayout, const TProjection& proj) {
     TStringBuilder result;
     result << "{";
@@ -64,7 +49,7 @@ TString BuildDescription(const TFeaturesLayout& featuresLayout, const TProjectio
         result << featureDescription << " val = " << feature.Value;
     }
     result << "}";
-    return TString(result);
+    return result;
 }
 
 TString BuildDescription(const TFeaturesLayout& featuresLayout, const TTensorStructure3& ts) {
@@ -72,21 +57,40 @@ TString BuildDescription(const TFeaturesLayout& featuresLayout, const TTensorStr
     for (const auto& split : ts.SelectedSplits) {
         result << BuildDescription(featuresLayout, split);
     }
-    return TString(result);
+    return result;
 }
 
-TString BuildDescription(const TFeaturesLayout& layout, const TFeature& feature) {
+TString BuildDescription(const TFeaturesLayout& layout, const TSplitCandidate& feature) {
     TStringBuilder result;
     if (feature.Type == ESplitType::OnlineCtr) {
         result << BuildDescription(layout, feature.Ctr.Projection);
         result << " pr" << (int)feature.Ctr.PriorIdx;
         result << " tb" << (int)feature.Ctr.TargetBorderIdx;
-        result << " type" << (int)feature.Ctr.CtrTypeIdx;
+        result << " type" << (int)feature.Ctr.CtrIdx;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Float);
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Categorical);
     }
-    return TString(result);
+    return result;
+}
+
+TString BuildDescription(const TFeaturesLayout& layout, const TModelSplit& split) {
+    TStringBuilder result;
+    if (split.Type == ESplitType::OnlineCtr) {
+        result << "(" << BuildDescription(layout, split.OnlineCtr.Ctr.Projection);
+        result << " prior_num=" << split.OnlineCtr.Ctr.PriorNum;
+        result << " prior_denom=" << split.OnlineCtr.Ctr.PriorDenom;
+        result << " targetborder=" << split.OnlineCtr.Ctr.TargetBorderIdx;
+        result << " type=" << split.OnlineCtr.Ctr.CtrType << ", border= " << split.OnlineCtr.Border << ")";
+    } else if (split.Type == ESplitType::FloatFeature) {
+        result << "(" << BuildFeatureDescription(layout, split.BinFeature.FloatFeature, EFeatureType::Float);
+        result << ", split= " << split.BinFeature.SplitIdx << ")";
+    } else {
+        Y_ASSERT(split.Type == ESplitType::OneHotFeature);
+        result << "(" << BuildFeatureDescription(layout, split.OneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+        result << ", value=" << split.OneHotFeature.Value << ")";
+    }
+    return result;
 }

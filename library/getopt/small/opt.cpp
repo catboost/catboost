@@ -89,7 +89,7 @@ int Opt::Get(int* longOptionIndex) {
     }
 }
 
-void Opt::DummyHelp(TOutputStream& os) {
+void Opt::DummyHelp(IOutputStream& os) {
     Opts_->PrintUsage(GetProgramName(), os);
 }
 

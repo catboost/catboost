@@ -26,6 +26,18 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
                 const TString& outputModelPath,
                 TFullModel* modelPtr,
                 yvector<yvector<double>>* testApprox) {
+    TrainModelBody(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, testPool, outputModelPath, /*clearLearnPool*/ false, modelPtr,testApprox);
+}
+
+void TrainModelBody(const NJson::TJsonValue& jsonParams,
+                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                TPool& learnPool,
+                const TPool& testPool,
+                const TString& outputModelPath,
+                bool clearLearnPool,
+                TFullModel* modelPtr,
+                yvector<yvector<double>>* testApprox) {
     CB_ENSURE(!learnPool.Docs.empty(), "Train dataset is empty");
 
     if (!testPool.Docs.empty()) {
@@ -111,7 +123,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     }
 
     int approxDimension = 1;
-    if (ctx.Params.LossFunction == ELossFunction::MultiClass) {
+    if (IsMultiClassError(ctx.Params.LossFunction)) {
         CB_ENSURE(AllOf(trainData.Target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
         approxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
         CB_ENSURE(approxDimension > 1, "All targets are equal");
@@ -129,12 +141,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
 
     ctx.InitData(trainData, approxDimension);
 
-    ctx.LearnProgress.Model.Borders = GenerateBorders(
-        learnPool.Docs,
-        ctx.CatFeatures,
-        ctx.LocalExecutor,
-        ctx.Params.BorderCount,
-        ctx.Params.FeatureBorderType);
+    ctx.LearnProgress.Model.Borders = GenerateBorders(learnPool.Docs, &ctx);
 
     learnPool.Docs.insert(learnPool.Docs.end(), testPool.Docs.begin(), testPool.Docs.end());
 
@@ -152,6 +159,11 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
         ctx.Params.OneHotMaxSize,
         ctx.LocalExecutor,
         &trainData.AllFeatures);
+
+    if (clearLearnPool) {
+        learnPool.Docs.clear();
+        learnPool.Docs.shrink_to_fit();
+    }
 
     float minWeight = *MinElement(trainData.Weights.begin(), trainData.Weights.begin() + trainData.LearnSampleCount);
     float maxWeight = *MaxElement(trainData.Weights.begin(), trainData.Weights.begin() + trainData.LearnSampleCount);
@@ -196,6 +208,9 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
         case ELossFunction::MultiClass:
             trainFunc = Train<TMultiClassError>;
             break;
+        case ELossFunction::MultiClassOneVsAll:
+            trainFunc = Train<TMultiClassOneVsAllError>;
+            break;
         case ELossFunction::Custom:
             trainFunc = Train<TCustomError>;
             break;
@@ -207,7 +222,6 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
 
     *testApprox = PrepareEval(ctx.Params.PredictionType, *testApprox, &ctx.LocalExecutor);
 
-    ctx.LearnProgress.Model.FeatureCount = featureCount;
     TOneHotFeaturesInfo oneHotFeaturesInfo;
     for (const auto& bestTree : ctx.LearnProgress.Model.TreeStruct) {
         for (const auto& split : bestTree.SelectedSplits) {
@@ -220,13 +234,13 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     if (modelPtr) {
         *modelPtr = std::move(ctx.LearnProgress.Model);
         modelPtr->OneHotFeaturesInfo = std::move(oneHotFeaturesInfo);
-        yvector<TCtr> ctrsForModelCalcTasks;
+        yvector<TModelCtr> ctrsForModelCalcTasks;
         for (const auto& bestTree : modelPtr->TreeStruct) {
             for (const auto& split : bestTree.SelectedSplits) {
                 if (split.Type != ESplitType::OnlineCtr) {
                     continue;
                 }
-                const TCtr& ctr = split.OnlineCtr.Ctr;
+                const auto& ctr = split.OnlineCtr.Ctr;
                 if (modelPtr->CtrCalcerData.LearnCtrs.has(ctr)) {
                     continue;
                 }
@@ -236,20 +250,21 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
         }
 
         ctx.LocalExecutor.ExecRange([&](int i) {
-            TCtr& ctr = ctrsForModelCalcTasks[i];
+            auto& ctr = ctrsForModelCalcTasks[i];
             TCtrValueTable* resTable = &modelPtr->CtrCalcerData.LearnCtrs.at(ctr);
             CalcFinalCtrs(ctr,
                 trainData,
                 ctx.LearnProgress.AveragingFold.LearnPermutation,
-                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.CtrTypeIdx],
-                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.CtrTypeIdx],
-                &ctx,
+                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
+                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
+                ctx.Params.CtrLeafCountLimit,
+                ctx.Params.StoreAllSimpleCtr,
                 resTable);
         }, 0, ctrsForModelCalcTasks.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
-        yvector<TCtr> usedCtrs;
+        yvector<TModelCtr> usedCtrs;
         {
-            yhash_set<TCtr, TCtrHash> ctrsSet;
+            yhash_set<TModelCtr> ctrsSet;
             for (const auto& bestTree : ctx.LearnProgress.Model.TreeStruct) {
                 for (const auto& split : bestTree.SelectedSplits) {
                     if (split.Type != ESplitType::OnlineCtr) {
@@ -262,14 +277,15 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
         }
         TStreamedFullModelSaver saver(outputModelPath, usedCtrs.size(), ctx.LearnProgress.Model, oneHotFeaturesInfo);
         ctx.LocalExecutor.ExecRange([&](int i) {
-            TCtr& ctr = usedCtrs[i];
+            auto& ctr = usedCtrs[i];
             TCtrValueTable resTable;
             CalcFinalCtrs(ctr,
                 trainData,
                 ctx.LearnProgress.AveragingFold.LearnPermutation,
-                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.CtrTypeIdx],
-                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.CtrTypeIdx],
-                &ctx,
+                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
+                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
+                ctx.Params.CtrLeafCountLimit,
+                ctx.Params.StoreAllSimpleCtr,
                 &resTable);
             saver.SaveOneCtr(ctr, resTable);
         }, 0, usedCtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -312,6 +328,9 @@ void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx)
             break;
         case ELossFunction::MultiClass:
             trainFunc = TrainOneIter<TMultiClassError>;
+            break;
+        case ELossFunction::MultiClassOneVsAll:
+            trainFunc = TrainOneIter<TMultiClassOneVsAllError>;
             break;
         case ELossFunction::Custom:
             trainFunc = TrainOneIter<TCustomError>;

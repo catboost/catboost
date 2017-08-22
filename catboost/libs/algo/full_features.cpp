@@ -1,7 +1,7 @@
 #include "full_features.h"
+#include "split.h"
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/model/split.h>
 #include <library/threading/local_executor/local_executor.h>
 
 static void AddReason(yvector<ui8>* hist,
@@ -121,8 +121,9 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                     }
                 }
             } else {
-                yvector<ui8>& dst = hist->at(reasonTargetIdx[featureIdx]);
-                if (ignoredFeaturesSet.has(featureIdx) || allBorders[featureIdx].empty()) {
+                const auto reasonIdx = reasonTargetIdx[featureIdx];
+                yvector<ui8>& dst = hist->at(reasonIdx);
+                if (ignoredFeaturesSet.has(featureIdx) || allBorders[reasonIdx].empty()) {
                     dst.clear();
                     dst.shrink_to_fit();
                 } else {
@@ -131,7 +132,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                         docInfos,
                         docIndices,
                         featureIdx,
-                        allBorders[featureIdx],
+                        allBorders[reasonIdx],
                         &localExecutor);
                 }
             }

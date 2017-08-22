@@ -76,7 +76,7 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
 
     const int featureCount = pool.Docs[0].Factors.ysize();
     CB_ENSURE(featureCount == model.FeatureCount, "train and test datasets should have the same feature count");
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ParamsJson);
+    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams.InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 

@@ -5,12 +5,19 @@
 #include "bin_tracker.h"
 
 #include <catboost/libs/model/online_ctr.h>
+#include <catboost/libs/model/model.h>
 
 
 struct TFold;
 
 const int SIMPLE_CLASSES_COUNT = 2;
 
+
+struct TOnlineCTR {
+    yvector<TArray2D<yvector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
+};
+
+using TOnlineCTRHash = yhash<TProjection, TOnlineCTR>;
 
 inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift, float norm, int borderCount) {
     float ctr = (countInClass + prior) / (totalCount + 1);
@@ -41,3 +48,12 @@ struct TCalcOnlineCTRsBatchTask {
 };
 
 void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
+
+void CalcFinalCtrs(const TModelCtr& ctr,
+                   const TTrainData& data,
+                   const yvector<int>& learnPermutation,
+                   const yvector<int>& permutedTargetClass,
+                   int targetClassesCount,
+                   ui64 ctrLeafCountLimit,
+                   bool storeAllSimpleCtr,
+                   TCtrValueTable* result);

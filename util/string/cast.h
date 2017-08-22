@@ -332,33 +332,3 @@ template <class TInt, int base, class Troka>
 inline TInt IntFromString(const Troka& str) {
     return IntFromString<TInt, base>(~str, +str);
 }
-
-/* Lite functions with no error check */
-template <class T>
-inline T strtonum_u(const char* s) noexcept { // lite 10-based unguarded
-    char cs;
-    do {
-        cs = *s++;
-    } while (cs && (ui8)cs <= 32);
-    bool neg;
-    if ((neg = (cs == '-')) || cs == '+')
-        cs = *s++;
-    int c = (int)(ui8)cs - '0';
-    T acc = 0;
-    for (; c >= 0 && c <= 9; c = (int)(ui8)*s++ - '0')
-        acc = acc * 10 + c;
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4146) //unary minus operator applied to unsigned type, result still unsigned
-#endif
-    if (neg)
-        acc = -acc;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-    return acc;
-}
-
-ui32 strtoui32(const char* s) noexcept; // strtonum_u<ui32>
-int yatoi(const char* s) noexcept;      // strtonum_u<long>

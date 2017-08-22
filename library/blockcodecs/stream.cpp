@@ -61,7 +61,7 @@ namespace {
     }
 }
 
-TCodedOutput::TCodedOutput(TOutputStream* out, const ICodec* c, size_t bufLen)
+TCodedOutput::TCodedOutput(IOutputStream* out, const ICodec* c, size_t bufLen)
     : C_(c)
     , D_(bufLen)
     , S_(out)
@@ -144,7 +144,7 @@ void TCodedOutput::DoFinish() {
     }
 }
 
-TDecodedInput::TDecodedInput(TInputStream* in)
+TDecodedInput::TDecodedInput(IInputStream* in)
     : S_(in)
 {
 }

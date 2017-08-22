@@ -6,9 +6,9 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/fwd.h>
 
-class TOutputStream;
+class IOutputStream;
 namespace NPrivate {
-    void PrintFlags(TOutputStream& stream, ui64 value, size_t size);
+    void PrintFlags(IOutputStream& stream, ui64 value, size_t size);
 }
 
 /**
@@ -59,6 +59,10 @@ public:
 
     constexpr TInt ToBaseType() const {
         return Value_;
+    }
+
+    constexpr static TFlags FromBaseType(TInt value) {
+        return TFlags(TFlag(value));
     }
 
     constexpr friend TFlags operator|(TFlags l, TFlags r) {
@@ -175,7 +179,7 @@ public:
         return *this;
     }
 
-    friend TOutputStream& operator<<(TOutputStream& stream, const TFlags& flags) {
+    friend IOutputStream& operator<<(IOutputStream& stream, const TFlags& flags) {
         ::NPrivate::PrintFlags(stream, static_cast<ui64>(flags.Value_), sizeof(TInt));
         return stream;
     }

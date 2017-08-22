@@ -8,7 +8,7 @@
 #include "rand_score.h"
 #include "error_functions.h"
 #include "index_hash_calcer.h"
-#include <catboost/libs/model/split.h>
+#include "split.h"
 #include <catboost/libs/model/tensor_struct.h>
 
 #include <library/threading/local_executor/local_executor.h>

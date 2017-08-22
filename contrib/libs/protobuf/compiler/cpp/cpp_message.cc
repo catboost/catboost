@@ -1089,6 +1089,25 @@ GenerateClassDefinition(io::Printer* printer) {
     }
   }
 
+  // Generate move constructor and move assignment operator for types other than
+  // Any.
+  if (!IsAnyMessage(descriptor_)) {
+    printer->Print(vars,
+      "$classname$($classname$&& from)\n"
+      "  : $classname$() {\n"
+      "  *this = ::std::move(from);\n"
+      "}\n"
+      "\n"
+      "inline $classname$& operator=($classname$&& from) {\n"
+      "  if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {\n"
+      "    InternalSwap(&from);\n"
+      "  } else {\n"
+      "    CopyFrom(from);\n"
+      "  }\n"
+      "  return *this;\n"
+      "}\n");
+  }
+
   // Check all FieldDescriptors including those in oneofs to estimate
   // whether TProtoStringType is likely to be used, and depending on that
   // estimate, set uses_string_ to true or false.  That contols

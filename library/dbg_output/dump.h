@@ -71,7 +71,7 @@ namespace NPrivate {
         {
         }
 
-        inline void DumpTo(TOutputStream& out) const {
+        inline void DumpTo(IOutputStream& out) const {
             typename TTraits::TDump d(out, Indent);
 
             d << *T_;
@@ -88,7 +88,7 @@ namespace NPrivate {
     };
 
     template <class T, class TTraits>
-    static inline TOutputStream& operator<<(TOutputStream& out, const TDbgDump<T, TTraits>& d) {
+    static inline IOutputStream& operator<<(IOutputStream& out, const TDbgDump<T, TTraits>& d) {
         d.DumpTo(out);
 
         return out;

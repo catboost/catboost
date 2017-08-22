@@ -4,7 +4,7 @@
 
 #include <util/memory/tempbuf.h>
 
-class TTempBufOutput: public TOutputStream, public TTempBuf {
+class TTempBufOutput: public IOutputStream, public TTempBuf {
 public:
     TTempBufOutput() = default;
 
@@ -16,7 +16,7 @@ public:
     void DoWrite(const void* data, size_t len) override;
 };
 
-class TTempBufWrapperOutput: public TOutputStream {
+class TTempBufWrapperOutput: public IOutputStream {
 public:
     TTempBufWrapperOutput(TTempBuf& tempbuf)
         : TempBuf_(tempbuf)
@@ -31,7 +31,7 @@ private:
     TTempBuf& TempBuf_;
 };
 
-class TGrowingTempBufOutput: public TOutputStream, public TTempBuf {
+class TGrowingTempBufOutput: public IOutputStream, public TTempBuf {
 public:
     inline TGrowingTempBufOutput() = default;
 

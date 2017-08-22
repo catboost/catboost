@@ -32,7 +32,7 @@ namespace NJson {
 
         friend class TRewriteJsonImpl;
 
-        void ConvertToTabDelimited(TInputStream &in, TOutputStream &out) const;
+        void ConvertToTabDelimited(IInputStream &in, IOutputStream &out) const;
     public:
         void SetPrefix(const TString &prefix) {
             Prefix = prefix;

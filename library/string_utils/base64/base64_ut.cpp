@@ -136,7 +136,7 @@ namespace NB64Etalon {
 }
 
 template <>
-void Out<NB64Etalon::TImpls::EImpl>(TOutputStream& o, typename TTypeTraits<NB64Etalon::TImpls::EImpl>::TFuncParam v) {
+void Out<NB64Etalon::TImpls::EImpl>(IOutputStream& o, typename TTypeTraits<NB64Etalon::TImpls::EImpl>::TFuncParam v) {
     switch (v) {
         case NB64Etalon::TImpls::PLAIN32_IMPL:
             o << TStringBuf{"PLAIN32"};

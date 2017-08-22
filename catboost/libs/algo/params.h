@@ -5,7 +5,7 @@
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
-#include <catboost/libs/model/projection.h>
+#include <catboost/libs/model/split.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/grid_creator/binarization.h>
@@ -26,10 +26,13 @@ enum class ELossFunction {
     Poisson,
     MAPE,
     MultiClass,
+    MultiClassOneVsAll,
     AUC,
     Accuracy,
     Precision,
     Recall,
+    F1,
+    TotalF1,
     R2,
     Custom
 };
@@ -44,19 +47,11 @@ enum class EFeatureType {
     Categorical
 };
 
-enum class ECtrType {
-    Borders,
-    Buckets,
-    MeanValue,
-    Counter
-};
-
 enum class ECounterCalc {
     Universal,
     Static,
     Basic
 };
-
 
 constexpr int CB_THREAD_LIMIT = 32;
 
@@ -68,7 +63,8 @@ struct TCtrDescription {
     TCtrDescription() = default;
 
     explicit TCtrDescription(const ECtrType& ctrType)
-        : CtrType(ctrType) {
+        : CtrType(ctrType)
+    {
     }
 };
 
@@ -76,7 +72,9 @@ struct TCtrParams {
     int CtrBorderCount = 16;
     int MaxCtrComplexity = 4;
     yvector<float> DefaultPriors = {0, 0.5, 1};
+    yvector<std::pair<int, yvector<float>>> PerCtrPriors;
     yvector<std::pair<int, yvector<float>>> PerFeaturePriors;
+    yvector<std::pair<std::pair<int, int>, yvector<float>>> PerFeatureCtrPriors;
     yvector<TCtrDescription> Ctrs = {TCtrDescription(), TCtrDescription(ECtrType::Counter)};
 };
 
@@ -154,8 +152,9 @@ public:
     ELeafEstimation LeafEstimationMethod = ELeafEstimation::Gradient;
     yvector<int> IgnoredFeatures;
     TString TimeLeftLog = "time_left.tsv";
-    yvector<float> ClassWeights;
     int ClassesCount = 0;
+    yvector<float> ClassWeights;
+    yvector<TString> ClassNames;
     size_t OneHotMaxSize = 0;
     float RandomStrength = 1;
     float BaggingTemperature = 1.0f;
@@ -181,7 +180,7 @@ public:
     bool StoreAllSimpleCtr = false;
     bool PrintTrees = false;
     bool DeveloperMode = false;
-    bool ApproxOnAllHistory = true;
+    bool ApproxOnPartialHistory = false;
 
     TFitParams() = default;
 
@@ -190,12 +189,14 @@ public:
                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                         NJson::TJsonValue* resultingParams = nullptr)
         : ObjectiveDescriptor(objectiveDescriptor)
-        , EvalMetricDescriptor(evalMetricDescriptor) {
+        , EvalMetricDescriptor(evalMetricDescriptor)
+    {
         InitFromJson(tree, resultingParams);
     }
 
 private:
     void InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* resultingParams = nullptr);
+    void ParseCtrDescription(const NJson::TJsonValue& tree, yset<TString>* validKeys);
 };
 
 struct TCrossValidationParams {
@@ -224,22 +225,36 @@ struct TCmdLineParams {
     TString ModelFileName = "model.bin";
     TString FstrRegularFileName;
     TString FstrInternalFileName;
-    bool CalcFstr = false;
     bool HasHeaders = false;
     char Delimiter = '\t';
 };
 
 NJson::TJsonValue ReadTJsonValue(const TString& paramsJson);
+void CheckFitParams(const NJson::TJsonValue& tree,
+                     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 
-inline bool IsClassificationLoss(const ELossFunction lossFunction) {
+inline bool IsClassificationLoss(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::Logloss ||
             lossFunction == ELossFunction::CrossEntropy ||
             lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::AUC ||
             lossFunction == ELossFunction::Accuracy ||
             lossFunction == ELossFunction::Precision ||
-            lossFunction == ELossFunction::Recall);
+            lossFunction == ELossFunction::Recall ||
+            lossFunction == ELossFunction::F1 ||
+            lossFunction == ELossFunction::TotalF1);
+}
+
+inline bool IsMultiClassError(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll);
 }
 
 ELossFunction GetLossType(const TString& lossDescription);
 yhash<TString, float> GetLossParams(const TString& lossDescription);
+
+inline bool IsClassificationLoss(const TString& lossFunction) {
+    return IsClassificationLoss(GetLossType(lossFunction));
+}

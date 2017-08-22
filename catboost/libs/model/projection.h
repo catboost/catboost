@@ -48,7 +48,6 @@ struct TBinFeature {
     Y_SAVELOAD_DEFINE(FloatFeature, SplitIdx);
 };
 
-
 struct TOneHotFeature {
     int CatFeatureIdx = 0;
     int Value = 0;
@@ -72,7 +71,6 @@ struct TOneHotFeature {
     ui64 GetHash() const {
         return MultiHash(CatFeatureIdx, Value);
     }
-
     Y_SAVELOAD_DEFINE(CatFeatureIdx, Value);
 };
 
@@ -135,14 +133,32 @@ struct TProjection {
                OneHotFeatures == other.OneHotFeatures;
     }
 
+    bool operator!=(const TProjection& other) const {
+        return !(*this == other);
+    }
+
     bool operator<(const TProjection& other) const {
         return std::tie(CatFeatures, BinFeatures, OneHotFeatures) <
                std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
     }
 };
 
-struct TProjHash {
+template <>
+struct THash<TProjection> {
     inline size_t operator()(const TProjection& projection) const {
         return projection.GetHash();
     }
 };
+
+template <>
+inline void Out<TProjection>(IOutputStream& out, const TProjection& proj) {
+    for (auto cf : proj.CatFeatures) {
+        out << "c" << cf;
+    }
+    for (auto bf : proj.BinFeatures) {
+        out << "(f" << bf.FloatFeature << ";b" << bf.SplitIdx << ")";
+    }
+    for (auto ohef : proj.OneHotFeatures) {
+        out << "(c" << ohef.CatFeatureIdx << ";v" << ohef.Value << ")";
+    }
+}

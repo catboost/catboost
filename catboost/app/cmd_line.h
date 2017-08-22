@@ -17,6 +17,7 @@ struct TAnalyticalModeCommonParams {
     TString CdFile;
     EPredictionType PredictionType = EPredictionType::RawFormulaVal;
     EFstrType FstrType = EFstrType::FeatureImportance;
+    yvector<TString> ClassNames;
     int ThreadCount = 1;
 
     void BindParserOpts(NLastGetopt::TOpts& parser);

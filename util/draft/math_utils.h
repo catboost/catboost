@@ -47,7 +47,7 @@ public:
             yvector<T>::resize(nMax);
     }
 
-    void Print(TOutputStream& out,
+    void Print(IOutputStream& out,
                bool vertical = true, bool printArgs = true, bool printEmpty = true) const {
         size_t nParts = yvector<T>::size();
         if (nParts == 0)

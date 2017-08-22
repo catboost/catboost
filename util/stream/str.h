@@ -15,7 +15,7 @@
 /**
  * Input stream for reading data from a string.
  */
-class TStringInput: public TZeroCopyInputFastReadTo {
+class TStringInput: public IZeroCopyInputFastReadTo {
 public:
     /**
      * Constructs a string input stream that reads character data from the
@@ -56,7 +56,7 @@ private:
 /**
  * Stream for writing data into a string.
  */
-class TStringOutput: public TOutputStream {
+class TStringOutput: public IOutputStream {
 public:
     /**
      * Constructs a string output stream that appends character data to the

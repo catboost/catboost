@@ -50,12 +50,13 @@ cdef extern from "catboost/libs/data/pool.h":
 
 cdef extern from "catboost/libs/data/load_data.h":
     cdef void ReadPool(const TString& fdFile,
-                        const TString& poolFile,
-                        int threadCount,
-                        bool_t verbose,
-                        TPool* pool,
-                        const char fieldDelimiter,
-                        bool_t has_header) nogil except +ProcessException
+                       const TString& poolFile,
+                       int threadCount,
+                       bool_t verbose,
+                       const char fieldDelimiter,
+                       bool_t has_header,
+                       const yvector[TString]& classNames,
+                       TPool* pool) nogil except +ProcessException
     cdef int CalcCatFeatureHash(const TStringBuf& feature) except +ProcessException
     cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
 
@@ -66,9 +67,9 @@ cdef extern from "catboost/libs/model/tensor_struct.h":
 cdef extern from "catboost/libs/model/model.h":
 
     cdef cppclass TFullModel:
-        TString ParamsJson
         yvector[int] CatFeatures
         yvector[TTensorStructure3] TreeStruct
+        yhash[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
 
     cdef cppclass EModelExportType:
@@ -104,6 +105,8 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
 
 cdef extern from "catboost/libs/algo/params.h":
     cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
+    cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
+
     cdef cppclass EPredictionType:
         pass
 
@@ -135,6 +138,10 @@ cdef extern from "catboost/libs/algo/params.h":
         bool_t Shuffle
         int EvalPeriod
         bool_t EnableEarlyStopping
+
+    cdef void CheckFitParams(const TJsonValue& tree,
+                     const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+                     const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/train_model.h":
     cdef void TrainModel(const TJsonValue& params,
@@ -326,6 +333,46 @@ cdef class PyExportType:
         else:
             self.exportType = EModelExportType_Catboost
 
+cdef class _PreprocessParams:
+    cdef TJsonValue tree
+    cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
+    cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
+    def __init__(self, dict params):
+        eval_metric = params.get("eval_metric")
+        objective = params.get("loss_function")
+
+        is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
+        is_custom_objective = objective is not None and not isinstance(objective, string_types)
+
+        params_to_json = params
+
+        if is_custom_objective or is_custom_eval_metric:
+            keys_to_replace = set()
+            if is_custom_objective:
+                keys_to_replace.add("loss_function")
+            if is_custom_eval_metric:
+                keys_to_replace.add("eval_metric")
+
+            params_to_json = {}
+
+            for k, v in params.iteritems():
+                if k in keys_to_replace:
+                    continue
+                params_to_json[k] = deepcopy(v)
+
+            for k in keys_to_replace:
+                params_to_json[k] = "Custom"
+
+        dumps_params = dumps(params_to_json)
+
+        if params_to_json.get("loss_function") == "Custom":
+            self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
+        if params_to_json.get("eval_metric") == "Custom":
+            self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
+
+        dumps_params = to_binary_str(dumps_params)
+        self.tree = ReadTJsonValue(TString(<const char*>dumps_params))
+
 cdef to_binary_str(string):
     if PY3:
         return string.encode()
@@ -355,13 +402,15 @@ cdef class _PoolBase:
     cpdef _read_pool(self, pool_file, cd_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
         cd_file = to_binary_str(cd_file)
+        cdef yvector[TString] emptyVec
         ReadPool(TString(<char*>cd_file),
-                TString(<char*>pool_file),
-                thread_count,
-                False,
-                self.__pool,
-                ord(delimiter),
-                has_header)
+                 TString(<char*>pool_file),
+                 thread_count,
+                 False,
+                 ord(delimiter),
+                 has_header,
+                 emptyVec,
+                 self.__pool)
         if len(set([doc.Target for doc in self.__pool.Docs])) > 1:
             self.has_label_ = True
 
@@ -556,33 +605,6 @@ cdef class _PoolBase:
         """
         return self.__pool.Docs.empty()
 
-cdef dict _PreprocessParams(dict params):
-    eval_metric = params.get("eval_metric")
-    objective = params.get("loss_function")
-
-    is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
-    is_custom_objective = objective is not None and not isinstance(objective, string_types)
-
-    params_to_json = params
-
-    if is_custom_objective or is_custom_eval_metric:
-        keys_to_replace = set()
-        if is_custom_objective:
-            keys_to_replace.add("loss_function")
-        if is_custom_eval_metric:
-            keys_to_replace.add("eval_metric")
-
-        params_to_json = {}
-
-        for k, v in params.iteritems():
-            if k in keys_to_replace:
-                continue
-            params_to_json[k] = deepcopy(v)
-
-        for k in keys_to_replace:
-            params_to_json[k] = "Custom"
-
-    return params_to_json
 
 cdef class _CatBoost:
     cdef TFullModel* __model
@@ -597,26 +619,13 @@ cdef class _CatBoost:
         del self.__test_eval
 
     cpdef _train(self, _PoolBase train_pool, _PoolBase test_pool, dict params):
-        params_to_json = _PreprocessParams(params)
-        dumps_params = dumps(params_to_json)
-
-        cdef TJsonValue tree
-        cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
-        cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
-
-        if params_to_json.get("loss_function") == "Custom":
-            customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-        if params_to_json.get("eval_metric") == "Custom":
-            customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-
-        dumps_params = to_binary_str(dumps_params)
-        tree = ReadTJsonValue(TString(<const char*>dumps_params))
+        prep_params = _PreprocessParams(params)
         with nogil:
             SetPythonInterruptHandler()
             try:
-                TrainModel(tree,
-                       customObjectiveDescriptor,
-                       customMetricDescriptor,
+                TrainModel(prep_params.tree,
+                       prep_params.customObjectiveDescriptor,
+                       prep_params.customMetricDescriptor,
                        dereference(train_pool.__pool),
                        dereference(test_pool.__pool),
                        TString(<const char*>""),
@@ -691,7 +700,7 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
-        cdef const char* c_params_json = self.__model.ParamsJson.c_str()
+        cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
         params = {}
@@ -708,6 +717,7 @@ class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params
         self._object = _CatBoost()
+        self._check_train_params(self._get_init_train_params())
 
     def __getstate__(self):
         params = self.get_init_params()
@@ -748,6 +758,12 @@ class _CatBoostBase(object):
         model = self.__class__()
         model.__setstate__(state)
         return model
+
+    def _check_train_params(self, dict params):
+        prep_params = _PreprocessParams(params)
+        CheckFitParams(prep_params.tree,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor)
 
     def copy(self):
         return self.__copy__()
@@ -816,6 +832,9 @@ class _CatBoostBase(object):
     def _set_param(self, key, value):
         self._init_params[key] = value
 
+    def _is_classification_loss(self, loss_function):
+        return IsClassificationLoss(loss_function)
+
     @property
     def tree_count_(self):
         return self._object._get_tree_count()
@@ -826,22 +845,10 @@ class _CatBoostBase(object):
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int random_seed,
           bool_t shuffle, bool_t enable_early_stopping, int eval_period):
-    params_to_json = _PreprocessParams(params)
-    dumps_params = dumps(params_to_json)
-
-    cdef TJsonValue tree
+    prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
-    cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
-    cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
     cdef yvector[TCVResult] results
 
-    if params_to_json.get("loss_function") == "Custom":
-        customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-    if params_to_json.get("eval_metric") == "Custom":
-        customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-
-    dumps_params = to_binary_str(dumps_params)
-    tree = ReadTJsonValue(TString(<const char*>dumps_params))
     cvParams.FoldCount = fold_count
     cvParams.RandSeed = random_seed
     cvParams.Shuffle = shuffle
@@ -853,9 +860,9 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int rand
         SetPythonInterruptHandler()
         try:
             CrossValidate(
-                tree,
-                customObjectiveDescriptor,
-                customMetricDescriptor,
+                prep_params.tree,
+                prep_params.customObjectiveDescriptor,
+                prep_params.customMetricDescriptor,
                 dereference(pool.__pool),
                 cvParams,
                 &results)

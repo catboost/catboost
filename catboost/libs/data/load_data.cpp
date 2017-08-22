@@ -18,11 +18,11 @@
 #include <util/stream/file.h>
 #include <util/system/spinlock.h>
 
-
-class TPoolBuilder : public IPoolBuilder {
+class TPoolBuilder: public IPoolBuilder {
 public:
     explicit TPoolBuilder(TPool* pool)
-            : Pool(pool) {
+        : Pool(pool)
+    {
     }
 
     void Start(const TPoolColumnsMetaInfo& poolMetaInfo) override {
@@ -38,7 +38,7 @@ public:
     }
 
     void StartNextBlock(ui32 blockSize) override {
-        Cursor = (ui32) Pool->Docs.size();
+        Cursor = (ui32)Pool->Docs.size();
         Pool->Docs.resize(Pool->Docs.size() + blockSize);
         for (ui32 i = Cursor; i < Pool->Docs.size(); ++i) {
             Pool->Docs[i].Factors.resize(FactorCount);
@@ -49,7 +49,7 @@ public:
     void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) override {
         int hashVal = CalcCatFeatureHash(feature);
         auto& curPart = LockedHashMapParts[hashVal & 0xff];
-        with_lock(curPart.Lock){
+        with_lock (curPart.Lock) {
             if (!curPart.CatFeatureHashes.has(hashVal)) {
                 curPart.CatFeatureHashes[hashVal] = feature;
             }
@@ -92,7 +92,7 @@ public:
             for (const auto& part : LockedHashMapParts) {
                 Pool->CatFeaturesHashToString.insert(part.CatFeatureHashes.begin(), part.CatFeatureHashes.end());
             }
-            MATRIXNET_INFO_LOG << "Doc info sizes: " <<  Pool->Docs.size() << " " << FactorCount << Endl;
+            MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.size() << " " << FactorCount << Endl;
         } else {
             MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
         }
@@ -113,6 +113,33 @@ private:
     std::array<TLockedHashPart, 256> LockedHashMapParts;
 };
 
+class TTargetConverter {
+public:
+    static constexpr float UNDEFINED_CLASS = -1;
+
+    explicit TTargetConverter(const yvector<TString>& classNames)
+        : ClassNames(classNames)
+    {
+    }
+
+    float operator()(const TString& word) const {
+        if (ClassNames.empty()) {
+            return FromString<float>(word);
+        }
+
+        for (int classIndex = 0; classIndex < ClassNames.ysize(); ++classIndex) {
+            if (ClassNames[classIndex] == word) {
+                return classIndex;
+            }
+        }
+
+        CB_ENSURE(false, "Unknown class name: " + word);
+        return UNDEFINED_CLASS;
+    }
+
+private:
+    yvector<TString> ClassNames;
+};
 
 static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
     Y_ASSERT(!columns.empty());
@@ -141,36 +168,26 @@ static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
     return categFeatures;
 }
 
-int CalcCatFeatureHash(const TStringBuf& feature) {
-    return CityHash64(feature) & 0xffffffff;
-}
-
-float ConvertCatFeatureHashToFloat(int hashVal) {
-    return *reinterpret_cast<const float*>(&hashVal);
-}
-
-int ConvertFloatCatFeatureToIntHash(float feature) {
-    return *reinterpret_cast<const int*>(&feature);
-}
-
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               int threadCount,
               bool verbose,
-              TPool* pool,
               char fieldDelimiter,
-              bool hasHeader) {
+              bool hasHeader,
+              const yvector<TString>& classNames,
+              TPool* pool) {
     TPoolBuilder builder(pool);
-    ReadPool(cdFile, poolFile, threadCount, verbose, builder, fieldDelimiter, hasHeader);
+    ReadPool(cdFile, poolFile, threadCount, verbose, fieldDelimiter, hasHeader, TTargetConverter(classNames), &builder);
 }
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               int threadCount,
               bool verbose,
-              IPoolBuilder& poolBuilder,
               char fieldDelimiter,
-              bool hasHeader) {
+              bool hasHeader,
+              const TTargetConverter& convertTarget,
+              IPoolBuilder* poolBuilder) {
     if (verbose) {
         SetVerboseLogingMode();
     } else {
@@ -192,35 +209,34 @@ void ReadPool(const TString& cdFile,
 
     TPoolColumnsMetaInfo poolMetaInfo;
 
-    const int weightColumns = (const int) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool  {
-            return x.Type == EColumn::Weight;
-        });
+    const int weightColumns = (const int)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
+        return x.Type == EColumn::Weight;
+    });
     CB_ENSURE(weightColumns <= 1, "Too many weight columns");
-    poolMetaInfo.HasWeights = (bool) weightColumns;
+    poolMetaInfo.HasWeights = (bool)weightColumns;
 
-    poolMetaInfo.BaselineCount = (ui32) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
-                return x.Type == EColumn::Baseline;
+    poolMetaInfo.BaselineCount = (ui32)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
+        return x.Type == EColumn::Baseline;
     });
 
-    const int targetColumns = (const int) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
-            return x.Type == EColumn::Target;
-        });
+    const int targetColumns = (const int)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
+        return x.Type == EColumn::Target;
+    });
     CB_ENSURE(targetColumns <= 1, "Too many target columns");
 
-
-    const int docIdColumns = (const int) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
-            return x.Type == EColumn::DocId;
-        });
+    const int docIdColumns = (const int)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
+        return x.Type == EColumn::DocId;
+    });
     CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
-    poolMetaInfo.HasDocIds = (bool) docIdColumns;
+    poolMetaInfo.HasDocIds = (bool)docIdColumns;
 
-    const int queryIdColumns = (const int) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
+    const int queryIdColumns = (const int)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
         return x.Type == EColumn::QueryId;
     });
     CB_ENSURE(queryIdColumns <= 1, "Too many queryId columns");
-    poolMetaInfo.HasQueryIds = (bool) queryIdColumns;
+    poolMetaInfo.HasQueryIds = (bool)queryIdColumns;
 
-    poolMetaInfo.FactorCount = (const ui32) CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool{
+    poolMetaInfo.FactorCount = (const ui32)CountIf(columnsDescription.begin(), columnsDescription.end(), [](const auto x) -> bool {
         return IsFactorColumn(x.Type);
     });
     CB_ENSURE(poolMetaInfo.FactorCount > 0, "Pool should have at least one factor");
@@ -229,7 +245,7 @@ void ReadPool(const TString& cdFile,
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     TIFStream reader(poolFile.c_str());
-    poolBuilder.Start(poolMetaInfo);
+    poolBuilder->Start(poolMetaInfo);
 
     if (hasHeader) {
         TString line;
@@ -247,7 +263,7 @@ void ReadPool(const TString& cdFile,
                 featureIds.push_back(Id);
             }
         }
-        poolBuilder.SetFeatureIds(featureIds);
+        poolBuilder->SetFeatureIds(featureIds);
     }
 
     TAutoEvent blockReadCompletedEvent;
@@ -274,7 +290,7 @@ void ReadPool(const TString& cdFile,
         } else {
             readLineBufferLambda(0);
         }
-        poolBuilder.StartNextBlock((ui32) parseBuffer.size());
+        poolBuilder->StartNextBlock((ui32)parseBuffer.size());
 
         auto parseFeaturesInBlock = [&](int lineIdx) {
             yvector<TStringBuf> words;
@@ -287,7 +303,7 @@ void ReadPool(const TString& cdFile,
             for (int i = 0; i < words.ysize(); ++i) {
                 switch (columnsDescription[i].Type) {
                     case EColumn::Categ: {
-                        poolBuilder.AddCatFeature(lineIdx, featureId, words[i]);
+                        poolBuilder->AddCatFeature(lineIdx, featureId, words[i]);
                         ++featureId;
                         break;
                     }
@@ -297,36 +313,36 @@ void ReadPool(const TString& cdFile,
                         CB_ENSURE(words[i] != "", "empty values not supported");
                         CB_ENSURE(TryFromString<float>(words[i], val),
                                   "Factor in column " << i << " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
-                        poolBuilder.AddFloatFeature(lineIdx, featureId, val);
+                        poolBuilder->AddFloatFeature(lineIdx, featureId, val);
                         ++featureId;
                         break;
                     }
                     case EColumn::Target: {
                         CB_ENSURE(words[i] != "", "empty values not supported for target. Target should be float.");
-                        poolBuilder.AddTarget(lineIdx, FromString<float>(words[i]));
+                        poolBuilder->AddTarget(lineIdx, convertTarget(FromString<TString>(words[i])));
                         break;
                     }
                     case EColumn::Weight: {
                         CB_ENSURE(words[i] != "", "empty values not supported for weight");
-                        poolBuilder.AddWeight(lineIdx, FromString<float>(words[i]));
+                        poolBuilder->AddWeight(lineIdx, FromString<float>(words[i]));
                         break;
                     }
                     case EColumn::Auxiliary: {
                         break;
                     }
                     case EColumn::QueryId: {
-                        poolBuilder.AddQueryId(lineIdx, words[i]);
+                        poolBuilder->AddQueryId(lineIdx, words[i]);
                         break;
                     }
                     case EColumn::Baseline: {
                         CB_ENSURE(words[i] != "", "empty values not supported for baseline");
-                        poolBuilder.AddBaseline(lineIdx, baselineIdx, FromString<double>(words[i]));
+                        poolBuilder->AddBaseline(lineIdx, baselineIdx, FromString<double>(words[i]));
                         ++baselineIdx;
                         break;
                     }
                     case EColumn::DocId: {
                         CB_ENSURE(words[i] != "", "empty values not supported for doc id");
-                        poolBuilder.AddDocId(lineIdx, words[i]);
+                        poolBuilder->AddDocId(lineIdx, words[i]);
                         break;
                     }
                     default: {
@@ -341,17 +357,37 @@ void ReadPool(const TString& cdFile,
 
     DumpMemUsage("After data read");
     if (!AllOf(columnsDescription.begin(), columnsDescription.end(), [](const TColumn& column) {
-        return column.Id.empty();
-    })) {
+            return column.Id.empty();
+        })) {
         yvector<TString> featureIds;
         for (auto column : columnsDescription) {
             if (column.Type == EColumn::Categ || column.Type == EColumn::Num) {
                 featureIds.push_back(column.Id);
             }
         }
-        poolBuilder.SetFeatureIds(featureIds);
+        poolBuilder->SetFeatureIds(featureIds);
     }
-    poolBuilder.Finish();
+    poolBuilder->Finish();
 
     SetVerboseLogingMode();
 }
+
+
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
+              int threadCount,
+              bool verbose,
+              IPoolBuilder& poolBuilder) {
+
+    yvector<TString> noNames;
+    TTargetConverter converter(noNames);
+    ReadPool(cdFile,
+             poolFile,
+             threadCount,
+             verbose,
+             '\t',
+             false,
+             converter,
+             &poolBuilder);
+}
+

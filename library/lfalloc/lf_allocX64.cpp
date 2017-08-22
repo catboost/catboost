@@ -21,6 +21,7 @@
 #pragma intrinsic(_InterlockedExchangeAdd)
 
 #include <new>
+#include <assert.h>
 #include <errno.h>
 
 #define PERTHREAD __declspec(thread)
@@ -38,7 +39,6 @@ static inline long AtomicSub(TAtomic& a, long b) {
 }
 
 #ifndef NDEBUG
-#include <assert.h>
 #define Y_ASSERT_NOBT(x) { if (IsDebuggerPresent()) { if(!(x)) __debugbreak(); } else assert(x); }
 #else
 #define Y_ASSERT_NOBT(x) ((void)0)
@@ -509,15 +509,17 @@ static void SystemFree(void *p)
 //////////////////////////////////////////////////////////////////////////
 static int * volatile nLock = nullptr;
 static int nLockVar;
-inline void RealEnterCritical(int * volatile * lockPtr)
+inline void RealEnterCriticalDefault(int * volatile * lockPtr)
 {
     while (DoCas(lockPtr, &nLockVar, (int*)nullptr) != nullptr)
         ;//pthread_yield();
 }
-inline void RealLeaveCritical(int * volatile * lockPtr)
+inline void RealLeaveCriticalDefault(int * volatile * lockPtr)
 {
     *lockPtr = nullptr;
 }
+static void (*RealEnterCritical)(int * volatile * lockPtr) = RealEnterCriticalDefault;
+static void (*RealLeaveCritical)(int * volatile * lockPtr) = RealLeaveCriticalDefault;
 static void (*BeforeLFAllocGlobalLockAcquired)() = nullptr;
 static void (*AfterLFAllocGlobalLockReleased)() = nullptr;
 class CCriticalSectionLockMMgr {
@@ -1756,6 +1758,16 @@ static bool LFAlloc_SetParam(const char* param, const char* value) {
     }
     if (!strcmp(param, "AfterLFAllocGlobalLockReleased")) {
         AfterLFAllocGlobalLockReleased = (decltype(AfterLFAllocGlobalLockReleased))(value);
+        return true;
+    }
+    if (!strcmp(param, "EnterCritical")) {
+        assert(value);
+        RealEnterCritical = (decltype(RealEnterCritical))(value);
+        return true;
+    }
+    if (!strcmp(param, "LeaveCritical")) {
+        assert(value);
+        RealLeaveCritical = (decltype(RealLeaveCritical))(value);
         return true;
     }
     if (!strcmp(param, "TransparentHugePages")) {

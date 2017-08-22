@@ -18,7 +18,7 @@ size_t TAlignedInput::DoReadTo(TString& st, char ch) {
     return ret;
 }
 
-ui64 TAlignedInput::DoReadAll(TOutputStream& out) {
+ui64 TAlignedInput::DoReadAll(IOutputStream& out) {
     ui64 ret = Stream_->ReadAll(out);
     Position_ += ret;
     return ret;

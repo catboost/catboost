@@ -66,8 +66,8 @@ template <class T>
 void TClassFactory<T>::RegisterTypeBase( int nTypeID, newFunc func, VFT vft )
 {
     if (typeInfo.find(nTypeID) != typeInfo.end() ) {
-        TObj<TObjectBase> o1 = typeInfo[nTypeID]();
-        TObj<TObjectBase> o2 = func();
+        TObj<IObjectBase> o1 = typeInfo[nTypeID]();
+        TObj<IObjectBase> o2 = func();
 
         // stupid clang warning
         auto& o1v = *o1;

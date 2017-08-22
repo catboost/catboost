@@ -77,6 +77,9 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
              CHAR(asChar(poolFileParam)),
              asInteger(threadCountParam),
              asLogical(verboseParam),
+             '\t',
+             false,
+             yvector<TString>(),
              poolPtr.get());
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
@@ -266,7 +269,7 @@ SEXP CatBoostGetModelParams_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    result = PROTECT(mkString(model->ParamsJson.c_str()));
+    result = PROTECT(mkString(model->ModelInfo.at("params").c_str()));
     R_API_END();
     UNPROTECT(1);
     return result;

@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(TestLengthIO) {
         UNIT_ASSERT_VALUES_EQUAL(l1.Counter(), 5);
 
         TString buf("aaa");
-        TOutputStream::TPart parts[] = {{~buf, +buf}, {~buf, +buf}, {~buf, +buf}};
+        IOutputStream::TPart parts[] = {{~buf, +buf}, {~buf, +buf}, {~buf, +buf}};
         l1.Write(parts, 3);
         UNIT_ASSERT_VALUES_EQUAL(l1.Counter(), 14);
     }

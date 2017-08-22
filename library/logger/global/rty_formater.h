@@ -25,7 +25,7 @@ namespace NLoggingImpl {
         TInstant Instant;
     };
 
-    TOutputStream& operator<<(TOutputStream& out, TLocalTimeS localTimeS);
+    IOutputStream& operator<<(IOutputStream& out, TLocalTimeS localTimeS);
 
     inline TLocalTimeS GetLocalTimeS() {
         return TLocalTimeS();

@@ -9,9 +9,9 @@
 namespace NBlockCodecs {
     struct ICodec;
 
-    class TCodedOutput: public TOutputStream {
+    class TCodedOutput: public IOutputStream {
     public:
-        TCodedOutput(TOutputStream* out, const ICodec* c, size_t bufLen);
+        TCodedOutput(IOutputStream* out, const ICodec* c, size_t bufLen);
         ~TCodedOutput() override;
 
     private:
@@ -25,12 +25,12 @@ namespace NBlockCodecs {
         const ICodec* C_;
         TBuffer D_;
         TBuffer O_;
-        TOutputStream* S_;
+        IOutputStream* S_;
     };
 
-    class TDecodedInput: public TWalkInput {
+    class TDecodedInput: public IWalkInput {
     public:
-        TDecodedInput(TInputStream* in);
+        TDecodedInput(IInputStream* in);
         ~TDecodedInput() override;
 
     private:
@@ -38,6 +38,6 @@ namespace NBlockCodecs {
 
     private:
         TBuffer D_;
-        TInputStream* S_;
+        IInputStream* S_;
     };
 }

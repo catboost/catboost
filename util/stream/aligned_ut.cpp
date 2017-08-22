@@ -2,7 +2,7 @@
 
 #include <library/unittest/registar.h>
 
-class TNastyInputStream: public TInputStream {
+class TNastyInputStream: public IInputStream {
 public:
     TNastyInputStream()
         : Pos_(0)

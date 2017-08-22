@@ -3,6 +3,7 @@ RECURSE(
     binsaver/ut
     blockcodecs
     blockcodecs/ut
+    build_info
     colorizer
     colorizer/ut
     containers

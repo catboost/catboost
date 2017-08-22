@@ -7,9 +7,9 @@
  *
  * Derived classes must implement `DoUnboundedNext` method.
  */
-class TWalkInput: public TZeroCopyInputFastReadTo {
+class IWalkInput: public IZeroCopyInputFastReadTo {
 public:
-    TWalkInput()
+    IWalkInput()
         : Buf_(nullptr)
         , Len_(0)
     {

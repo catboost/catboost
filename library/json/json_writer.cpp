@@ -7,7 +7,7 @@
 
 namespace NJson {
 
-TJsonWriter::TJsonWriter(TOutputStream *out, bool formatOutput, bool sortkeys, bool validateUtf8)
+TJsonWriter::TJsonWriter(IOutputStream *out, bool formatOutput, bool sortkeys, bool validateUtf8)
     : Out(out)
     , Buf(NJsonWriter::HEM_UNSAFE)
     , SortKeys(sortkeys)
@@ -18,7 +18,7 @@ TJsonWriter::TJsonWriter(TOutputStream *out, bool formatOutput, bool sortkeys, b
     Buf.SetIndentSpaces(formatOutput ? 2 : 0);
 }
 
-TJsonWriter::TJsonWriter(TOutputStream *out, const TJsonWriterConfig& config, bool DFID)
+TJsonWriter::TJsonWriter(IOutputStream *out, const TJsonWriterConfig& config, bool DFID)
     : Out(config.Unbuffered ? nullptr : out)
     , Buf(NJsonWriter::HEM_UNSAFE, config.Unbuffered ? out : nullptr)
     , SortKeys(config.SortKeys)
@@ -125,13 +125,13 @@ TString WriteJson(const TJsonValue& value, bool formatOutput, bool sortkeys, boo
     return ss.Str();
 }
 
-void WriteJson(TOutputStream* out, const TJsonValue* val, bool formatOutput, bool sortkeys, bool validateUtf8) {
+void WriteJson(IOutputStream* out, const TJsonValue* val, bool formatOutput, bool sortkeys, bool validateUtf8) {
     TJsonWriter w(out, formatOutput, sortkeys, validateUtf8);
     w.Write(val);
     w.Flush();
 }
 
-void WriteJson(TOutputStream* out, const TJsonValue* val, const TJsonWriterConfig& config) {
+void WriteJson(IOutputStream* out, const TJsonValue* val, const TJsonWriterConfig& config) {
     TJsonWriter w(out, config, true);
     w.Write(val);
     w.Flush();

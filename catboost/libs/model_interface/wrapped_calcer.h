@@ -4,25 +4,27 @@
 #include <array>
 #include <vector>
 #include <functional>
+#include <memory>
 
 class ModelCalcerWrapper {
 public:
-    ModelCalcerWrapper() {}
+    ModelCalcerWrapper() {
+    }
 
     ModelCalcerWrapper(const std::string& filename) {
-        CalcerHolder = CalcerHolderType(LoadModelCalcerFromFile(filename.c_str()), ModelCalcerDelete);
+        CalcerHolder = CalcerHolderType(ModelCalcerCreate(), ModelCalcerDelete);
+        LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
     }
 
-    template <int N_CLASSES>
-    std::array<float, N_CLASSES> predict_scores_single_example(const std::vector<float>& example) const {
-        std::array<float, N_CLASSES> result;
-        PredictMultiFloatValue(CalcerHolder.get(), &example[0], &result[0], N_CLASSES);
+    double Calc(const std::vector<float>& features) {
+        double result;
+        const float* ptr = &features[0];
+        CalcModelPredition(CalcerHolder.get(), 1, &ptr, 1, &result, 1);
+        return result;
     }
-    float prdict_score_for_class_single_example(const unsigned int class_, const std::vector<float>& example) const {
-        return PredictFloatValue(CalcerHolder.get(), &example[0], class_);
-    }
-    void init_from_file(const std::string&) {
-        CalcerHolder = CalcerHolderType(LoadModelCalcerFromJsonFile(filename.c_str()), ModelCalcerDelete);
+
+    bool init_from_file(const std::string& filename) {
+        return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
     }
 
 private:

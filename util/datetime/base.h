@@ -234,7 +234,7 @@ public:
 
     static bool TryParse(const TStringBuf input, TDuration& result);
 
-    // note global Out method is defined for TDuration, so it could be written to TOutputStream as text
+    // note global Out method is defined for TDuration, so it could be written to IOutputStream as text
 
     template <class T>
     inline TDuration& operator+=(const T& t) noexcept {
@@ -355,7 +355,7 @@ public:
      * Formats the instant using the UTC time zone, with microsecond precision.
      *
      * @returns An ISO 8601 formatted string, e.g. '2015-11-21T23:30:27.991669Z'.
-     * @note Global Out method is defined to TInstant, so it can be written as text to TOutputStream.
+     * @note Global Out method is defined to TInstant, so it can be written as text to IOutputStream.
      */
     TString ToString() const;
 
@@ -415,9 +415,9 @@ namespace NPrivate {
     };
 }
 
-/** @name Helpers for printing local times to `TOutputStream`s.
+/** @name Helpers for printing local times to `IOutputStream`s.
  *        The FormatLocal* functions create an opaque object that, when written to
- *        a `TOutputStream`, outputs this instant as an ISO 8601 formatted string
+ *        a `IOutputStream`, outputs this instant as an ISO 8601 formatted string
  *        using the system time zone.
  *
  *  @note The only reason behind this set of functions is to avoid excessive

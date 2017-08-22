@@ -65,14 +65,14 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
     for (const auto& ctr : Params.CtrParams.Ctrs) {
         int targetBorderCount = 0;
         if (ctr.CtrType != ECtrType::Counter) {
-            if (Params.LossFunction == ELossFunction::MultiClass) {
+            if (IsMultiClassError(Params.LossFunction)) {
                 targetBorderCount = approxDimension - 1;
             } else {
                 targetBorderCount = ctr.TargetBorderCount;
             }
         }
 
-        TargetClassifiers.emplace_back(
+        LearnProgress.Model.TargetClassifiers.emplace_back(
             BuildTargetClassifier(
                 data.Target,
                 data.LearnSampleCount,
@@ -95,7 +95,7 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
         LearnProgress.Folds.emplace_back(
             BuildLearnFold(
                 data,
-                TargetClassifiers,
+                LearnProgress.Model.TargetClassifiers,
                 foldIdx != 0,
                 foldPermutationBlockSize,
                 approxDimension,
@@ -104,7 +104,7 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
     }
 
     LearnProgress.AveragingFold = BuildAveragingFold(data,
-                                                     TargetClassifiers,
+                                                     LearnProgress.Model.TargetClassifiers,
                                                      !Params.HasTime,
                                                      approxDimension,
                                                      Rand);
@@ -120,9 +120,9 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
 }
 
 namespace {
-    class TMD5Output : public TOutputStream {
+    class TMD5Output : public IOutputStream {
     public:
-        explicit inline TMD5Output(TOutputStream* slave) noexcept
+        explicit inline TMD5Output(IOutputStream* slave) noexcept
             : Slave_(slave) {
         }
 
@@ -140,7 +140,7 @@ namespace {
          * it's implemented in terms of DoRead. */
 
     private:
-        TOutputStream* Slave_;
+        IOutputStream* Slave_;
         MD5 MD5Sum_;
     };
 } // namespace
@@ -178,14 +178,14 @@ void TLearnContext::LoadProgress() {
         TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
         ::LoadMany(&in, Rand, LearnProgressRestored); // fail here does nothing with real LearnProgress
         LearnProgress = std::move(LearnProgressRestored);
-        LearnProgress.Model.ParamsJson = ToString(ResultingParams); // substitute real
+        LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams); // substitute real
         Profile.SetInitIterations(LearnProgress.Model.TreeStruct.ysize());
     } catch (...) {
         MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: " << CurrentExceptionMessage() << Endl;
     }
 }
 
-void TLearnProgress::Save(TOutputStream* s) const {
+void TLearnProgress::Save(IOutputStream* s) const {
     ui64 foldCount = Folds.size();
     ::Save(s, foldCount);
     for (ui64 i = 0; i < foldCount; ++i) {
@@ -195,7 +195,7 @@ void TLearnProgress::Save(TOutputStream* s) const {
     ::SaveMany(s, AvrgApprox, Model, LearnErrorsHistory, TestErrorsHistory);
 }
 
-void TLearnProgress::Load(TInputStream* s) {
+void TLearnProgress::Load(IInputStream* s) {
     ui64 foldCount;
     ::Load(s, foldCount);
     CB_ENSURE(foldCount == Folds.size());

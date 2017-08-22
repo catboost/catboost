@@ -39,7 +39,7 @@ private:
     TFileHandle StdInCopy;
 };
 
-class TNoInput: public TInputStream {
+class TNoInput: public IInputStream {
 public:
     TNoInput(ui64 size)
         : Size_(size)
@@ -57,7 +57,7 @@ private:
     ui64 Size_;
 };
 
-class TNoOutput: public TOutputStream {
+class TNoOutput: public IOutputStream {
 public:
     TNoOutput() = default;
 
@@ -66,7 +66,7 @@ protected:
     }
 };
 
-class TSimpleStringInput: public TInputStream {
+class TSimpleStringInput: public IInputStream {
 public:
     TSimpleStringInput(const TString& string)
         : String_(string)

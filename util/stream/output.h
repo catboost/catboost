@@ -15,7 +15,7 @@
 /**
  * Abstract output stream.
  */
-class TOutputStream: public TNonCopyable {
+class IOutputStream: public TNonCopyable {
 public:
     /**
      * Data block for output.
@@ -49,13 +49,13 @@ public:
         size_t len;
     };
 
-    TOutputStream() noexcept;
-    virtual ~TOutputStream();
+    IOutputStream() noexcept;
+    virtual ~IOutputStream();
 
-    TOutputStream(TOutputStream&&) noexcept {
+    IOutputStream(IOutputStream&&) noexcept {
     }
 
-    TOutputStream& operator=(TOutputStream&&) noexcept {
+    IOutputStream& operator=(IOutputStream&&) noexcept {
         return *this;
     };
 
@@ -161,7 +161,7 @@ protected:
 };
 
 /**
- * `operator<<` for `TOutputStream` by default delegates to this function.
+ * `operator<<` for `IOutputStream` by default delegates to this function.
  *
  * Note that while `operator<<` uses overloading (and thus argument-dependent
  * lookup), `Out` uses template specializations. This makes it possible to
@@ -176,14 +176,14 @@ protected:
  * @param value                         Value to write.
  */
 template <class T>
-void Out(TOutputStream& out, typename TTypeTraits<T>::TFuncParam value);
+void Out(IOutputStream& out, typename TTypeTraits<T>::TFuncParam value);
 
 #define Y_DECLARE_OUT_SPEC(MODIF, T, stream, value) \
     template <>                                     \
-    MODIF void Out<T>(TOutputStream & stream, TTypeTraits<T>::TFuncParam value)
+    MODIF void Out<T>(IOutputStream & stream, TTypeTraits<T>::TFuncParam value)
 
 template <>
-inline void Out<const char*>(TOutputStream& o, const char* t) {
+inline void Out<const char*>(IOutputStream& o, const char* t) {
     if (t) {
         o.Write(t);
     } else {
@@ -192,48 +192,48 @@ inline void Out<const char*>(TOutputStream& o, const char* t) {
 }
 
 template <>
-void Out<const wchar16*>(TOutputStream& o, const wchar16* w);
+void Out<const wchar16*>(IOutputStream& o, const wchar16* w);
 
-using TStreamManipulator = void (*)(TOutputStream&);
+using TStreamManipulator = void (*)(IOutputStream&);
 
-static inline TOutputStream& operator<<(TOutputStream& o, TStreamManipulator m) {
+static inline IOutputStream& operator<<(IOutputStream& o, TStreamManipulator m) {
     m(o);
 
     return o;
 }
 
-static inline TOutputStream& operator<<(TOutputStream& o, const char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o, const char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
-static inline TOutputStream& operator<<(TOutputStream& o, char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o, char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
 template <class T>
-static inline TOutputStream& operator<<(TOutputStream& o, const T& t) {
+static inline IOutputStream& operator<<(IOutputStream& o, const T& t) {
     Out<T>(o, t);
 
     return o;
 }
 
-static inline TOutputStream& operator<<(TOutputStream& o, const wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o, const wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
-static inline TOutputStream& operator<<(TOutputStream& o, wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o, wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
 namespace NPrivate {
-    TOutputStream& StdOutStream() noexcept;
-    TOutputStream& StdErrStream() noexcept;
+    IOutputStream& StdOutStream() noexcept;
+    IOutputStream& StdErrStream() noexcept;
 }
 
 /**
@@ -254,14 +254,14 @@ namespace NPrivate {
 /**
  * End-of-line output manipulator, basically the same as `std::endl`.
  */
-static inline void Endl(TOutputStream& o) {
+static inline void Endl(IOutputStream& o) {
     (o << '\n').Flush();
 }
 
 /**
  * Flushing stream manipulator, basically the same as `std::flush`.
  */
-static inline void Flush(TOutputStream& o) {
+static inline void Flush(IOutputStream& o) {
     o.Flush();
 }
 

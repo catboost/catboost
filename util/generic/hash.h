@@ -846,7 +846,7 @@ public:
 
     // implemented in save_stl.h
     template <class KeySaver>
-    int save_for_st(TOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const;
+    int save_for_st(IOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const;
 
     void clear(size_type downsize) {
         basic_clear();
@@ -1704,7 +1704,7 @@ public:
 
     // if (stHash != NULL) bucket_count() must be equal to stHash->bucket_count()
     template <class KeySaver>
-    int save_for_st(TOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const {
+    int save_for_st(IOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const {
         return rep.template save_for_st<KeySaver>(stream, ks, stHash);
     }
 
@@ -1972,7 +1972,7 @@ public:
 
     // if (stHash != NULL) bucket_count() must be equal to stHash->bucket_count()
     template <class KeySaver>
-    int save_for_st(TOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const {
+    int save_for_st(IOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const {
         return rep.template save_for_st<KeySaver>(stream, ks, stHash);
     }
 

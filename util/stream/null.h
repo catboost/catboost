@@ -11,7 +11,7 @@
 /**
  * Null input stream. Does nothing, contains no data.
  */
-class TNullInput: public TZeroCopyInput {
+class TNullInput: public IZeroCopyInput {
 public:
     TNullInput() noexcept;
     ~TNullInput() override;
@@ -25,7 +25,7 @@ private:
 /**
  * Null output stream. Just ignores whatever is written into it.
  */
-class TNullOutput: public TOutputStream {
+class TNullOutput: public IOutputStream {
 public:
     TNullOutput() noexcept;
     ~TNullOutput() override;

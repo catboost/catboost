@@ -149,7 +149,7 @@ def gen_info_global(cmd, cov_info, probe_path, update_stat, lcov_args):
         lcov_args.append(cov_info)
 
 
-def init_all_coverage_files(gcno_archive, fname2gcno, fname2info, geninfo_executable, gcov_tool, gen_info):
+def init_all_coverage_files(gcno_archive, fname2gcno, fname2info, geninfo_executable, gcov_tool, gen_info, prefix_filter, exclude_files):
     with tarfile.open(gcno_archive) as gcno_tf:
         for gcno_item in gcno_tf:
             if gcno_item.isfile() and gcno_item.name.endswith(GCNO_EXT):
@@ -157,6 +157,13 @@ def init_all_coverage_files(gcno_archive, fname2gcno, fname2info, geninfo_execut
 
                 gcno_name = gcno_item.name
                 source_fname = gcno_name[:-len(GCNO_EXT)]
+                if prefix_filter and not source_fname.startswith(prefix_filter):
+                    sys.stderr.write("Skipping {} (doesn't match prefix '{}')\n".format(source_fname, prefix_filter))
+                    continue
+                if exclude_files and exclude_files.search(source_fname):
+                    sys.stderr.write("Skipping {} (matched exclude pattern '{}')\n".format(source_fname, exclude_files.pattern))
+                    continue
+
                 fname2gcno[source_fname] = gcno_name
 
                 if os.path.getsize(gcno_name) > 0:
@@ -214,7 +221,7 @@ def main(source_root, output, gcno_archive, gcda_archive, gcov_tool, prefix_filt
     def gen_info(cmd, cov_info):
         gen_info_global(cmd, cov_info, probe_path, update_stat, lcov_args)
 
-    init_all_coverage_files(gcno_archive, fname2gcno, fname2info, geninfo_executable, gcov_tool, gen_info)
+    init_all_coverage_files(gcno_archive, fname2gcno, fname2info, geninfo_executable, gcov_tool, gen_info, prefix_filter, exclude_files)
     process_all_coverage_files(gcda_archive, fname2gcno, fname2info, geninfo_executable, gcov_tool, gen_info)
 
     if coverage_report_path:

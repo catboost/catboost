@@ -2,7 +2,7 @@
 
 #include <util/system/types.h>
 
-class TOutputStream;
+class IOutputStream;
 
-void HexEncode(const void* in, size_t len, TOutputStream& out);
-void HexDecode(const void* in, size_t len, TOutputStream& out);
+void HexEncode(const void* in, size_t len, IOutputStream& out);
+void HexDecode(const void* in, size_t len, IOutputStream& out);

@@ -291,7 +291,7 @@ static TString FormatOption(const TOpt* option, const NColorizer::TColors& color
     return result.Str();
 }
 
-void TOpts::PrintCmdLine(const TStringBuf& program, TOutputStream& os, const NColorizer::TColors& colors) const {
+void TOpts::PrintCmdLine(const TStringBuf& program, IOutputStream& os, const NColorizer::TColors& colors) const {
     os << colors.BoldColor() << "Usage" << colors.OldColor() << ": " << program << " ";
     if (CustomCmdLineDescr) {
         os << CustomCmdLineDescr << Endl;
@@ -317,7 +317,7 @@ void TOpts::PrintCmdLine(const TStringBuf& program, TOutputStream& os, const NCo
     os << Endl;
 }
 
-void TOpts::PrintUsage(const TStringBuf& program, TOutputStream& osIn, const NColorizer::TColors& colors) const {
+void TOpts::PrintUsage(const TStringBuf& program, IOutputStream& osIn, const NColorizer::TColors& colors) const {
     TStringStream os;
 
     if (!Title.empty())
@@ -412,11 +412,11 @@ void TOpts::PrintUsage(const TStringBuf& program, TOutputStream& osIn, const NCo
     osIn << os.Str();
 }
 
-void TOpts::PrintUsage(const TStringBuf& program, TOutputStream& os) const {
+void TOpts::PrintUsage(const TStringBuf& program, IOutputStream& os) const {
     PrintUsage(program, os, NColorizer::AutoColors(os));
 }
 
-void TOpts::PrintFreeArgsDesc(TOutputStream& os, const NColorizer::TColors& colors) const {
+void TOpts::PrintFreeArgsDesc(IOutputStream& os, const NColorizer::TColors& colors) const {
     if (0 == FreeArgsMax_)
         return;
 

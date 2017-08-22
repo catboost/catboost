@@ -31,12 +31,12 @@ namespace {
             }
         }
 
-        TOutputStream* Out;
+        IOutputStream* Out;
         int Level;
     };
 }
 
-TOutputStream& StdDbgStream() noexcept {
+IOutputStream& StdDbgStream() noexcept {
     return *(Singleton<TDbgSelector>()->Out);
 }
 

@@ -79,7 +79,7 @@ bool TOutputStreamProxy::Write(const void* buffer, int size) {
 }
 
 
-void TProtoSerializer::Save(TOutputStream* out, const Message& msg) {
+void TProtoSerializer::Save(IOutputStream* out, const Message& msg) {
     int size = msg.ByteSize();
     if (size > MaxSizeBytes) {
         ythrow yexception() << "Message size " << size << " exceeds " << MaxSizeBytes;
@@ -91,11 +91,11 @@ void TProtoSerializer::Save(TOutputStream* out, const Message& msg) {
         ythrow yexception() << "Cannot write protobuf::Message to output stream";
 }
 
-// Reading varint32 directly from TInputStream (might be slow if input requires buffering).
+// Reading varint32 directly from IInputStream (might be slow if input requires buffering).
 // Copy-pasted with small modifications from protobuf/io/coded_stream (ReadVarint32FromArray)
 
 // Returns true if succeeded, false if stream has ended, throws exception if data is corrupted
-static bool ReadVarint32(TInputStream* input, ui32& size) {
+static bool ReadVarint32(IInputStream* input, ui32& size) {
     size_t res;
     ui8 b;
 
@@ -144,7 +144,7 @@ private:
     ui8* Buffer;
 };
 
-void TProtoSerializer::Load(TInputStream* input, Message& msg) {
+void TProtoSerializer::Load(IInputStream* input, Message& msg) {
     ui32 size;
     if (!ReadVarint32(input, size))
         ythrow yexception() << "Stream is exhausted";
@@ -158,7 +158,7 @@ void TProtoSerializer::Load(TInputStream* input, Message& msg) {
 
 }
 
-TProtoReader::TProtoReader(TInputStream* input, const size_t bufferSize)
+TProtoReader::TProtoReader(IInputStream* input, const size_t bufferSize)
     : IStream(input)
     , Buffer(bufferSize)
 {

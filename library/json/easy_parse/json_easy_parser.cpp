@@ -192,7 +192,7 @@ public:
         return true;
     }
 
-    void WriteTo(TOutputStream &out) const {
+    void WriteTo(IOutputStream &out) const {
         for (size_t n = 0; n < +FieldValues; ++n)
             out << "\t" << FieldValues[n];
     }
@@ -202,7 +202,7 @@ public:
     }
 };
 
-void TJsonParser::ConvertToTabDelimited(TInputStream &in, TOutputStream &out) const {
+void TJsonParser::ConvertToTabDelimited(IInputStream &in, IOutputStream &out) const {
     TRewriteJsonImpl impl(*this);
     ReadJson(&in, &impl);
     if (impl.IsOK()) {

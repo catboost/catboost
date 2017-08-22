@@ -75,5 +75,5 @@ namespace NColorizer {
     TColors& StdOut();
 
     // choose TColors if os is Cerr or Cout
-    TColors& AutoColors(TOutputStream& os);
+    TColors& AutoColors(IOutputStream& os);
 }

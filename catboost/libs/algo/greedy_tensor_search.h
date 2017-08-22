@@ -22,4 +22,5 @@ void GreedyTensorSearch(const TTrainData& data,
                         TProfileInfo& profile,
                         TFold* fold,
                         TLearnContext* ctx,
-                        TTensorStructure3* resTree);
+                        TTensorStructure3* resTree,
+                        yvector<TSplit>* resSplitTree);

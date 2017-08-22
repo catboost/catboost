@@ -6,7 +6,7 @@ namespace google {
 namespace protobuf {
 namespace io {
 
-void PrintJSONString(TOutputStream& stream, const TProtoStringType& string);
+void PrintJSONString(IOutputStream& stream, const TProtoStringType& string);
 
 template<class T>
 struct TAsJSON {
@@ -20,7 +20,7 @@ public:
 };
 
 template<class T>
-inline TOutputStream& operator <<(TOutputStream& stream, const TAsJSON<T>& protoAsJSON) {
+inline IOutputStream& operator <<(IOutputStream& stream, const TAsJSON<T>& protoAsJSON) {
     protoAsJSON.T_.PrintJSON(stream);
     return stream;
 };

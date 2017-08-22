@@ -57,10 +57,6 @@ def _cast_to_base_types(value):
     return value
 
 
-def _is_classification_objective(loss_function):
-    return loss_function in ('Logloss', 'CrossEntropy', 'MultiClass')
-
-
 class Pool(_PoolBase):
     """
     Pool used in CatBoost as data structure to train model from.
@@ -276,6 +272,12 @@ class Pool(_PoolBase):
         self._set_baseline(baseline)
         return self
 
+    def set_weight(self, weight):
+        self._check_weight_type(weight)
+        self._check_weight_shape(weight, self.num_row())
+        self._set_weight(weight)
+        return self
+
     def _read(self, pool_file, column_description, delimiter, has_header, thread_count):
         """
         Read Pool from file.
@@ -379,6 +381,11 @@ class CatBoost(_CatBoostBase):
                 params['custom_loss'] = [params['custom_loss']]
             if not isinstance(params['custom_loss'], Sequence):
                 raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
+        if 'kwargs' in params:
+            allowed_kwargs = ['calc_feature_importance']
+            for param in params['kwargs'].keys():
+                if param not in allowed_kwargs:
+                    raise CatboostError("Invalid param `{}`.".format(param))
 
     def _fit(self, X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot):
         params = self._get_init_train_params()
@@ -738,7 +745,7 @@ class CatBoostClassifier(CatBoost):
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
         range: [1,+inf]
-    od_pval : float, [default=0]
+    od_pval : float, [default=None]
         Use overfitting detector to stop training when reaching a specified threshold.
         Can be used only with eval_set.
         range: [0,1]
@@ -841,6 +848,7 @@ class CatBoostClassifier(CatBoost):
         Classes are indexed from 0 to classes count - 1.
         For example, in case of binary classification the classes are indexed 0 and 1.
         If None, all classes are supposed to have weight one.
+        Number of classes indicated by classes_count and class_weights should be the same.
     one_hot_max_size : int, [default=None]
         Convert the feature to float
         if the number of different values that it takes exceeds the specified value.
@@ -857,9 +865,6 @@ class CatBoostClassifier(CatBoost):
         To use your own error function.
     eval_metric : string or object, [default=None]
         To optimize your custom metric in loss.
-    class_weights : dict, [default=None]
-        Weights associated with classes in the form {class_label: weight}.
-        If None, all classes are supposed to have weight one.
     bagging_temperature : float, [default=None]
         Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
         Typical values are in range [0, 1] (0 - no bagging, 1 - default).
@@ -888,7 +893,7 @@ class CatBoostClassifier(CatBoost):
         border_count=None,
         feature_border_type='MinEntropy',
         fold_permutation_block_size=None,
-        od_pval=0,
+        od_pval=None,
         od_wait=None,
         od_type=None,
         counter_calc_method=None,
@@ -922,9 +927,9 @@ class CatBoostClassifier(CatBoost):
         feature_priors=None,
         **kwargs
     ):
-        if isinstance(loss_function, str) and not _is_classification_objective(loss_function):
-            raise CatboostError("Invalid loss_fanction='{}': for classifier use "
-                                "Logloss, CrossEntropy, MultiClass or custom objective object".format(loss_function))
+        if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
+            raise CatboostError("Invalid loss_function='{}': for classifier use "
+                                "Logloss, CrossEntropy, MultiClass, AUC, Accuracy, Precision, Recall, F1 or custom objective object".format(loss_function))
         params = {}
         params["kwargs"] = kwargs
         not_params = ["not_params", "self", "params", "kwargs", "__class__"]
@@ -1141,7 +1146,7 @@ class CatBoostRegressor(CatBoost):
         border_count=None,
         feature_border_type='MinEntropy',
         fold_permutation_block_size=None,
-        od_pval=0,
+        od_pval=None,
         od_wait=None,
         od_type=None,
         counter_calc_method=None,
@@ -1154,8 +1159,8 @@ class CatBoostRegressor(CatBoost):
         ctr_description=None,
         ctr_border_count=None,
         ctr_leaf_count_limit=None,
-        max_ctr_complexity=None,
         store_all_simple_ctr=False,
+        max_ctr_complexity=None,
         priors=None,
         has_time=False,
         classes_count=None,
@@ -1175,8 +1180,8 @@ class CatBoostRegressor(CatBoost):
         feature_priors=None,
         **kwargs
     ):
-        if _is_classification_objective(loss_function):
-            raise CatboostError("Invalid loss_fanction={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE.".format(loss_function))
+        if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
+            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
         params = {}
         params["kwargs"] = kwargs
         not_params = ["not_params", "self", "params", "kwargs", "__class__"]

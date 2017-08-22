@@ -3,7 +3,7 @@
 
 #include <util/stream/output.h>
 
-TStreamLogBackend::TStreamLogBackend(TOutputStream* slave)
+TStreamLogBackend::TStreamLogBackend(IOutputStream* slave)
     : Slave_(slave)
 {
 }

@@ -20,7 +20,7 @@ devtools::install()
 # load data to R
 pool_path = 'train_full3'
 column_description_path = 'train_full3.cd'
-pool <- catboost.load(pool_path, column_description_path)
+pool <- catboost.load_pool(pool_path, column_description_path)
 
 # fit model
 fit_params <- list(iterations=100, thread_count=10, loss_function='Logloss')
@@ -34,7 +34,7 @@ head(prediction)
 
 ### Make catboost pool
 
-#### `catboost.load`
+#### `catboost.load_pool`
 
 Two files are needed to create catboost pool in R:
 
@@ -69,12 +69,12 @@ Indices and description of numeric columns can be omitted.
 # load pool from path
 pool_path = 'train_full3'
 column_description_path = 'train_full3.cd'
-pool <- catboost.load(pool_path, column_description_path)
+pool <- catboost.load_pool(pool_path, column_description_path)
 
 # load pool from package
 pool_path = system.file("extdata", "adult_train.1000", package="catboost")
 column_description_path = system.file("extdata", "adult.cd", package="catboost")
-pool <- catboost.load(pool_path, column_description_path)
+pool <- catboost.load_pool(pool_path, column_description_path)
 ```
 
 

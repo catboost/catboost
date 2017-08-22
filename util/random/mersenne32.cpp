@@ -83,7 +83,7 @@ void TMersenne32::InitNext() noexcept {
     mti = 0;
 }
 
-TMersenne32::TMersenne32(TInputStream& input)
+TMersenne32::TMersenne32(IInputStream& input)
     : mti(N + 1)
 {
     ui32 buf[128];

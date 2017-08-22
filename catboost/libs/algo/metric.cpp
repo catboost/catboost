@@ -183,7 +183,7 @@ TErrorHolder TQuantileMetric::Eval(const yvector<yvector<double>>& approx,
         error.Error += (multiplier * val) * w;
         error.Weight += w;
     }
-    if(LossFunction == ELossFunction::MAE) {
+    if (LossFunction == ELossFunction::MAE) {
         error.Error *= 2;
     }
     return error;
@@ -306,7 +306,7 @@ bool TMAPEMetric::IsMaxOptimal() const {
     return false;
 }
 
-/* ROC-AUC */
+/* Classification helpers */
 
 static int GetApproxClass(const yvector<yvector<double>>& approx, int docIdx) {
     if (approx.ysize() == 1) {
@@ -324,6 +324,60 @@ static int GetApproxClass(const yvector<yvector<double>>& approx, int docIdx) {
         return maxApproxIndex;
     }
 }
+
+static void GetPositiveStats(const yvector<yvector<double>>& approx,
+                             const yvector<float>& target,
+                             const yvector<float>& weight,
+                             int begin, int end,
+                             int positiveClass,
+                             double* truePositive,
+                             double* targetPositive,
+                             double* approxPositive) {
+    *truePositive = 0;
+    *targetPositive = 0;
+    *approxPositive = 0;
+    for (int i = begin; i < end; ++i) {
+        int approxClass = GetApproxClass(approx, i);
+        int targetClass = static_cast<int>(target[i]);
+        float w = weight.empty() ? 1 : weight[i];
+
+        if (targetClass == positiveClass) {
+            *targetPositive += w;
+            if (approxClass == positiveClass) {
+                *truePositive += w;
+            }
+        }
+        if (approxClass == positiveClass) {
+            *approxPositive += w;
+        }
+    }
+}
+
+static void GetTotalPositiveStats(const yvector<yvector<double>>& approx,
+                                  const yvector<float>& target,
+                                  const yvector<float>& weight,
+                                  int begin, int end,
+                                  yvector<double>* truePositive,
+                                  yvector<double>* targetPositive,
+                                  yvector<double>* approxPositive) {
+    int classesCount = approx.ysize() == 1 ? 2 : approx.ysize();
+    truePositive->assign(classesCount, 0);
+    targetPositive->assign(classesCount, 0);
+    approxPositive->assign(classesCount, 0);
+    for (int i = begin; i < end; ++i) {
+        int approxClass = GetApproxClass(approx, i);
+        int targetClass = static_cast<int>(target[i]);
+        float w = weight.empty() ? 1 : weight[i];
+
+        if (approxClass == targetClass) {
+            truePositive->at(targetClass) += w;
+        }
+        targetPositive->at(targetClass) += w;
+        approxPositive->at(approxClass) += w;
+    }
+}
+
+/* ROC-AUC */
 
 TRocAUCMetric::TRocAUCMetric(int positiveClass)
     : PositiveClass(positiveClass)
@@ -391,21 +445,14 @@ TErrorHolder TRecallMetric::Eval(const yvector<yvector<double>>& approx,
                                  const yvector<float>& weight, int begin, int end,
                                  NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    double targetPositive = 0;
-    double truePositive = 0;
-    TErrorHolder error;
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i);
-        int targetClass = static_cast<int>(target[i]);
 
-        float w = weight.empty() ? 1 : weight[i];
-        if (targetClass == PositiveClass) {
-            targetPositive += w;
-            if (approxClass == PositiveClass) {
-                truePositive += w;
-            }
-        }
-    }
+    double truePositive;
+    double targetPositive;
+    double approxPositive;
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+                     &truePositive, &targetPositive, &approxPositive);
+
+    TErrorHolder error;
     error.Error = targetPositive > 0 ? truePositive / targetPositive : 0;
     error.Weight = 1;
     return error;
@@ -435,21 +482,14 @@ TErrorHolder TPrecisionMetric::Eval(const yvector<yvector<double>>& approx,
                                     const yvector<float>& weight, int begin, int end,
                                     NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    double approxPositive = 0;
-    double truePositive = 0;
-    TErrorHolder error;
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i);
-        int targetClass = static_cast<int>(target[i]);
 
-        float w = weight.empty() ? 1.0f : weight[i];
-        if (approxClass == PositiveClass) {
-            approxPositive += w;
-            if (targetClass == PositiveClass) {
-                truePositive += w;
-            }
-        }
-    }
+    double truePositive;
+    double targetPositive;
+    double approxPositive;
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+                     &truePositive, &targetPositive, &approxPositive);
+
+    TErrorHolder error;
     error.Error = approxPositive > 0 ? truePositive / approxPositive : 0;
     error.Weight = 1;
     return error;
@@ -465,6 +505,76 @@ bool TPrecisionMetric::IsMaxOptimal() const {
     return true;
 }
 
+/* F1 */
+
+TF1Metric::TF1Metric(int positiveClass)
+    : PositiveClass(positiveClass)
+    , IsMultiClass(true)
+{
+    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+}
+
+TErrorHolder TF1Metric::Eval(const yvector<yvector<double>>& approx,
+                             const yvector<float>& target,
+                             const yvector<float>& weight, int begin, int end,
+                             NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+
+    double truePositive;
+    double targetPositive;
+    double approxPositive;
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+                     &truePositive, &targetPositive, &approxPositive);
+
+    TErrorHolder error;
+    double denominator = targetPositive + approxPositive;
+    error.Error = denominator > 0 ? 2 * truePositive / denominator : 0;
+    error.Weight = 1;
+    return error;
+}
+TString TF1Metric::GetDescription() const {
+    if (IsMultiClass) {
+        return Sprintf("%s:class=%d", ToString(ELossFunction::F1).c_str(), PositiveClass);
+    } else {
+        return ToString(ELossFunction::F1);
+    }
+}
+
+bool TF1Metric::IsMaxOptimal() const {
+    return true;
+}
+
+/* TotalF1 */
+
+TErrorHolder TTotalF1Metric::Eval(const yvector<yvector<double>>& approx,
+                                  const yvector<float>& target,
+                                  const yvector<float>& weight,
+                                  int begin, int end,
+                                  NPar::TLocalExecutor& /* executor */) const {
+    yvector<double> truePositive;
+    yvector<double> targetPositive;
+    yvector<double> approxPositive;
+    GetTotalPositiveStats(approx, target, weight, begin, end,
+                          &truePositive, &targetPositive, &approxPositive);
+
+    int classesCount = truePositive.ysize();
+    TErrorHolder error;
+    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
+        double denominator = targetPositive[classIdx] + approxPositive[classIdx];
+        error.Error += denominator > 0 ? 2 * truePositive[classIdx] / denominator * targetPositive[classIdx] : 0;
+        error.Weight += targetPositive[classIdx];
+    }
+    return error;
+}
+
+TString TTotalF1Metric::GetDescription() const {
+    return ToString(ELossFunction::TotalF1);
+}
+
+bool TTotalF1Metric::IsMaxOptimal() const {
+    return true;
+}
+
 /* Accuracy */
 
 TErrorHolder TAccuracyMetric::Eval(const yvector<yvector<double>>& approx,
@@ -473,36 +583,15 @@ TErrorHolder TAccuracyMetric::Eval(const yvector<yvector<double>>& approx,
                                    int begin, int end,
                                    NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
-    int approxDimension = approx.ysize();
 
     TErrorHolder error;
-    if (approxDimension > 1) {
-        for (int k = begin; k < end; ++k) {
-            double maxApprox = approx[0][k];
-            int maxApproxIndex = 0;
+    for (int k = begin; k < end; ++k) {
+        int approxClass = GetApproxClass(approx, k);
+        int targetClass = static_cast<int>(target[k]);
 
-            for (int dim = 1; dim < approxDimension; ++dim) {
-                if (approx[dim][k] > maxApprox) {
-                    maxApprox = approx[dim][k];
-                    maxApproxIndex = dim;
-                }
-            }
-
-            int targetClass = static_cast<int>(target[k]);
-
-            float w = weight.empty() ? 1 : weight[k];
-            error.Error += maxApproxIndex == targetClass ? w : 0.0;
-            error.Weight += w;
-        }
-    } else {
-        for (int k = begin; k < end; ++k) {
-            int approxClass = approx[0][k] > 0.0;
-            int targetClass = static_cast<int>(target[k]);
-
-            float w = weight.empty() ? 1 : weight[k];
-            error.Error += approxClass == targetClass ? w : 0.0;
-            error.Weight += w;
-        }
+        float w = weight.empty() ? 1 : weight[k];
+        error.Error += approxClass == targetClass ? w : 0.0;
+        error.Weight += w;
     }
     return error;
 }
@@ -558,6 +647,42 @@ TString TMulticlassLoglossMetric::GetDescription() const {
 }
 
 bool TMulticlassLoglossMetric::IsMaxOptimal() const {
+    return true;
+}
+
+/* MulticlassOneVsAll */
+
+TErrorHolder TMulticlassOneVsAllLoglossMetric::Eval(const yvector<yvector<double>>& approx,
+                                                    const yvector<float>& target,
+                                                    const yvector<float>& weight,
+                                                    int begin, int end,
+                                                    NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+    int approxDimension = approx.ysize();
+
+    TErrorHolder error;
+    for (int k = begin; k < end; ++k) {
+        double sumDimErrors = 0;
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            double expApprox = exp(approx[dim][k]);
+            sumDimErrors += -log(1 + expApprox);
+        }
+
+        int targetClass = static_cast<int>(target[k]);
+        sumDimErrors += approx[targetClass][k];
+
+        float w = weight.empty() ? 1 : weight[k];
+        error.Error += sumDimErrors / approxDimension * w;
+        error.Weight += w;
+    }
+    return error;
+}
+
+TString TMulticlassOneVsAllLoglossMetric::GetDescription() const {
+    return ToString(ELossFunction::MultiClassOneVsAll);
+}
+
+bool TMulticlassOneVsAllLoglossMetric::IsMaxOptimal() const {
     return true;
 }
 
@@ -643,6 +768,9 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
         case ELossFunction::MultiClass:
             result.emplace_back(new TMulticlassLoglossMetric());
             return result;
+        case ELossFunction::MultiClassOneVsAll:
+            result.emplace_back(new TMulticlassOneVsAllLoglossMetric());
+            return result;
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
                 result.emplace_back(new TRocAUCMetric());
@@ -673,6 +801,19 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
             }
             return result;
         }
+        case ELossFunction::F1: {
+            if (approxDimension == 1) {
+                result.emplace_back(new TF1Metric());
+            } else {
+                for (int i = 0; i < approxDimension; ++i) {
+                    result.emplace_back(new TF1Metric(i));
+                }
+            }
+            return result;
+        }
+        case ELossFunction::TotalF1:
+            result.emplace_back(new TTotalF1Metric());
+            return result;
         default:
             Y_ASSERT(false);
             return yvector<THolder<IMetric>>();

@@ -1075,7 +1075,7 @@ struct THash<TFoo> {
 };
 
 template <>
-void Out<TFoo>(TOutputStream& o, const TFoo& v) {
+void Out<TFoo>(IOutputStream& o, const TFoo& v) {
     o << '{' << v.A << ';' << v.B << '}';
 }
 

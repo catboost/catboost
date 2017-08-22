@@ -150,6 +150,31 @@ private:
     bool IsMultiClass = false;
 };
 
+struct TF1Metric: public TMetric {
+    TF1Metric() = default;
+    explicit TF1Metric(int positiveClass);
+    virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight, int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+
+private:
+    int PositiveClass = 1;
+    bool IsMultiClass = false;
+};
+
+struct TTotalF1Metric : public TMetric {
+    virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+};
+
 struct TAccuracyMetric: public TMetric {
     virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
                               const yvector<float>& target,
@@ -162,7 +187,18 @@ struct TAccuracyMetric: public TMetric {
 struct TMulticlassLoglossMetric: public TMetric {
     virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
                               const yvector<float>& target,
-                              const yvector<float>& weight, int begin, int end,
+                              const yvector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+};
+
+struct TMulticlassOneVsAllLoglossMetric : public TMetric {
+    virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight,
+                              int begin, int end,
                               NPar::TLocalExecutor& executor) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;

@@ -2,7 +2,7 @@
 
 #include <library/unittest/registar.h>
 
-class TStringListInput: public TWalkInput {
+class TStringListInput: public IWalkInput {
 public:
     TStringListInput(const yvector<TString>& data)
         : Data_(data)

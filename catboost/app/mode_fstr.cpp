@@ -9,6 +9,7 @@
 #include <library/getopt/small/last_getopt.h>
 
 #include <util/system/fs.h>
+#include <util/string/iterator.h>
 
 int mode_fstr(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
@@ -16,10 +17,17 @@ int mode_fstr(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParserOpts(parser);
-    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction")
+    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, Doc")
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
+        });
+    parser.AddLongOption("class-names", "names for classes.")
+        .RequiredArgument("comma separated list of names")
+        .Handler1T<TString>([&params](const TString& namesLine) {
+            for (const auto& t : StringSplitter(namesLine).Split(',')) {
+                params.ClassNames.push_back(FromString<TString>(t.Token()));
+            }
         });
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
@@ -29,7 +37,7 @@ int mode_fstr(int argc, const char* argv[]) {
     CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "specify column_description file for fstr mode");
 
     TPool pool;
-    ReadPool(params.CdFile, params.InputPath, params.ThreadCount, false, &pool);
+    ReadPool(params.CdFile, params.InputPath, params.ThreadCount, false, '\t', false, params.ClassNames, &pool);
 
     switch (params.FstrType) {
         case EFstrType::FeatureImportance:

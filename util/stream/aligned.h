@@ -15,9 +15,9 @@
  * Proxy input stream that provides additional functions that make reading
  * aligned data easier.
  */
-class TAlignedInput: public TInputStream {
+class TAlignedInput: public IInputStream {
 public:
-    TAlignedInput(TInputStream* s)
+    TAlignedInput(IInputStream* s)
         : Stream_(s)
         , Position_(0)
     {
@@ -45,10 +45,10 @@ private:
     size_t DoRead(void* ptr, size_t len) override;
     size_t DoSkip(size_t len) override;
     size_t DoReadTo(TString& st, char ch) override;
-    ui64 DoReadAll(TOutputStream& out) override;
+    ui64 DoReadAll(IOutputStream& out) override;
 
 private:
-    TInputStream* Stream_;
+    IInputStream* Stream_;
     ui64 Position_;
 };
 
@@ -56,9 +56,9 @@ private:
  * Proxy output stream that provides additional functions that make writing
  * aligned data easier.
  */
-class TAlignedOutput: public TOutputStream {
+class TAlignedOutput: public IOutputStream {
 public:
-    TAlignedOutput(TOutputStream* s)
+    TAlignedOutput(IOutputStream* s)
         : Stream_(s)
         , Position_(0)
     {
@@ -92,7 +92,7 @@ private:
     void DoWrite(const void* ptr, size_t len) override;
 
 private:
-    TOutputStream* Stream_;
+    IOutputStream* Stream_;
     ui64 Position_;
 };
 

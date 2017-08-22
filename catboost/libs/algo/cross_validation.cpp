@@ -150,9 +150,9 @@ void CrossValidate(
     CB_ENSURE(minTarget != maxTarget, "All targets are equal");
 
     int approxDimension = 1;
-    if (ctx->Params.LossFunction == ELossFunction::MultiClass) {
+    if (IsMultiClassError(ctx->Params.LossFunction)) {
         CB_ENSURE(AllOf(pool.Docs, [] (const TDocInfo& doc) { return floor(doc.Target) == doc.Target && doc.Target >= 0; }),
-                  "Each target label should be non-negative integer for Multiclass loss function");
+                  "Each target label should be non-negative integer for Multiclass/MultiClassOneVsAll loss function");
         approxDimension = GetClassesCount(targets, ctx->Params.ClassesCount);
         CB_ENSURE(approxDimension > 1, "All targets are equal");
     }
@@ -168,12 +168,7 @@ void CrossValidate(
     ApplyPermutation(InvertPermutation(indices), &pool);
     auto permutationGuard = Finally([&] { ApplyPermutation(indices, &pool); });
 
-    auto borders = GenerateBorders(
-        pool.Docs,
-        ctx->CatFeatures,
-        ctx->LocalExecutor,
-        ctx->Params.BorderCount,
-        ctx->Params.FeatureBorderType);
+    auto borders = GenerateBorders(pool.Docs, ctx.Get());
 
     for (size_t i = 0; i < cvParams.FoldCount; ++i) {
         contexts[i]->LearnProgress.Model.Borders = borders;

@@ -6,32 +6,12 @@
 
 using namespace NCatBoost;
 
-
-#if defined(_win_)
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
-
-#define CALCER(x) ((TFullModelCalcer*)(x))
+#define CALCER(x) ((TModelCalcer*)(x))
 
 extern "C" {
-
 EXPORT ModelCalcerHandle* ModelCalcerCreate() {
     try {
-        return new TFullModelCalcer;
-    } catch (...) {
-    }
-
-    return nullptr;
-}
-
-EXPORT ModelCalcerHandle* LoadModelCalcerFromFile(const char* filename) {
-    try {
-        THolder<TFullModelCalcer> modelHolder;
-        TIFStream inputf(filename);
-        modelHolder->Load(&inputf);
-        return modelHolder.Release();
+        return new TModelCalcer;
     } catch (...) {
     }
 
@@ -44,18 +24,24 @@ EXPORT void ModelCalcerDelete(ModelCalcerHandle* calcer) {
     }
 }
 
-EXPORT float PredictFloatValue(ModelCalcerHandle* calcer, const float* features, int resultId) {
-    return CALCER(calcer)->CalcOneResult<float>(features, resultId);
-}
-EXPORT double PredictDoubleValue(ModelCalcerHandle* calcer, const float* features, int resultId) {
-    return CALCER(calcer)->CalcOneResult<double>(features, resultId);
+EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* calcer, const char* filename) {
+    try {
+        TFullModel fullModel;
+        TIFStream inputf(filename);
+        fullModel.Load(&inputf);
+        CALCER(calcer)->InitFromFullModel(std::move(fullModel));
+    } catch (...) {
+        return false;
+    }
+
+    return true;
 }
 
-EXPORT void PredictMultiFloatValue(ModelCalcerHandle* calcer, const float* features, float* results, int resultsSize) {
-    return CALCER(calcer)->CalcMulti<float>(features, results, resultsSize);
+EXPORT void CalcModelPredition(ModelCalcerHandle* calcer, size_t docCount, const float** features, size_t featuresSize, double* result, size_t resultSize) {
+    yvector<NArrayRef::TConstArrayRef<float>> featuresVec(docCount);
+    for (size_t i = 0; i < docCount; ++i) {
+        featuresVec[i] = NArrayRef::TConstArrayRef<float>(features[i], featuresSize);
+    }
+    CALCER(calcer)->CalcFlat(featuresVec, NArrayRef::TArrayRef<double>(result, resultSize));
 }
-EXPORT void PredictMultiDoubleValue(ModelCalcerHandle* calcer, const float* features, double* results, int resultsSize) {
-    return CALCER(calcer)->CalcMulti<double>(features, results, resultsSize);
-}
-
 }

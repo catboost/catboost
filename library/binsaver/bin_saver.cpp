@@ -1,16 +1,16 @@
 #include "bin_saver.h"
 
-TClassFactory<TObjectBase> *pSaverClasses;
+TClassFactory<IObjectBase> *pSaverClasses;
 void StartRegisterSaveload() {
     if ( !pSaverClasses )
-        pSaverClasses = new TClassFactory<TObjectBase>;
+        pSaverClasses = new TClassFactory<IObjectBase>;
 }
 struct SBasicChunkInit {
     ~SBasicChunkInit() { if ( pSaverClasses ) delete pSaverClasses; }
 } initSaver;
 
 //////////////////////////////////////////////////////////////////////////
-void IBinSaver::StoreObject(TObjectBase *pObject)
+void IBinSaver::StoreObject(IObjectBase *pObject)
 {
     if (pObject) {
         Y_ASSERT(pSaverClasses->GetObjectTypeID(pObject) != -1 && "trying to save unregistered object");
@@ -48,7 +48,7 @@ void IBinSaver::StoreObject(TObjectBase *pObject)
     }
 }
 
-TObjectBase* IBinSaver::LoadObject()
+IObjectBase* IBinSaver::LoadObject()
 {
     ui64 ptrId = 0;
     DataChunk(&ptrId, sizeof(ptrId));
@@ -60,7 +60,7 @@ TObjectBase* IBinSaver::LoadObject()
             return pFound->second;
         int typeId;
         DataChunk(&typeId, sizeof(typeId));
-        TObjectBase *pObj = pSaverClasses->CreateObject(typeId);
+        IObjectBase *pObj = pSaverClasses->CreateObject(typeId);
         Y_ASSERT(pObj != nullptr);
         if (pObj == nullptr) {
             fprintf(stderr, "IBinSaver: trying to load unregistered object\n");

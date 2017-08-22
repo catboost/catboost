@@ -525,7 +525,7 @@ const char* const TColoredProcessor::ForkCorrectExitMsg = "--END--";
 
 class TEnumeratingProcessor: public ITestSuiteProcessor {
 public:
-    TEnumeratingProcessor(bool verbose, TOutputStream& stream) noexcept
+    TEnumeratingProcessor(bool verbose, IOutputStream& stream) noexcept
         : Verbose_(verbose)
         , Stream_(stream)
     {
@@ -550,7 +550,7 @@ public:
 
 private:
     bool Verbose_;
-    TOutputStream& Stream_;
+    IOutputStream& Stream_;
 };
 
 #ifdef _win_
@@ -578,7 +578,7 @@ private:
 static const TWinEnvironment Instance;
 #endif // _win_
 
-static int DoList(bool verbose, TOutputStream& stream) {
+static int DoList(bool verbose, IOutputStream& stream) {
     TEnumeratingProcessor eproc(verbose, stream);
     TTestFactory::Instance().SetProcessor(&eproc);
     TTestFactory::Instance().Execute();
@@ -620,8 +620,8 @@ int UTMAIN(int argc, char** argv) {
         NPlugin::OnStartMain(argc, argv);
 
         TColoredProcessor processor(GetExecPath());
-        TOutputStream* listStream = &Cout;
-        THolder<TOutputStream> listFile;
+        IOutputStream* listStream = &Cout;
+        THolder<IOutputStream> listFile;
 
         enum EListType {
             DONT_LIST,

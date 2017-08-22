@@ -2,10 +2,10 @@
 
 #ifdef CHECK_YPTR2
 Y_POD_THREAD(bool)
-TObjectBase::DisableThreadCheck;
+IObjectBase::DisableThreadCheck;
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TObjectBase::ReleaseObjComplete(int nMask) {
+void IObjectBase::ReleaseObjComplete(int nMask) {
     if ((ObjData & 0x3fffffff) == 0 && RefData == 0) {
         assert((ObjData & 0x40000000) == 0); // object not being invalidated
         delete this;
@@ -24,7 +24,7 @@ void TObjectBase::ReleaseObjComplete(int nMask) {
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TObjectBase::ReleaseRefComplete() {
+void IObjectBase::ReleaseRefComplete() {
     assert(RefData == 0);
     if ((ObjData & 0x3fffffff) == 0) {
         assert((ObjData & 0x40000000) == 0); // object not being invalidated

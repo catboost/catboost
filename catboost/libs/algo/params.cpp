@@ -16,7 +16,14 @@ NJson::TJsonValue ReadTJsonValue(const TString& paramsJson) {
     NJson::TJsonValue tree;
     NJson::ReadJsonTree(&is, &tree);
     return tree;
-};
+}
+
+void CheckFitParams(const NJson::TJsonValue& tree,
+                     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+    NJson::TJsonValue* resultingParams = nullptr;
+    TFitParams params(tree, objectiveDescriptor, evalMetricDescriptor, resultingParams);
+}
 
 ELossFunction GetLossType(const TString& lossDescription) {
     yvector<TString> tokens = StringSplitter(lossDescription).SplitLimited(':', 2).ToList<TString>();
@@ -47,18 +54,6 @@ yhash<TString, float> GetLossParams(const TString& lossDescription) {
     return params;
 }
 
-// TODO(annaveronika): this code will be removed when we save priors properly.
-static yvector<float> ParsePriors(TStringBuf& priorsLine) {
-    yvector<float> result;
-    TMaybe<float> prior;
-    GetNext<float>(priorsLine, ':', prior);
-    while (prior.Defined()) {
-        result.push_back(*prior.Get());
-        GetNext<float>(priorsLine, ':', prior);
-    }
-    return result;
-}
-
 void CheckValues(const TFitParams& params) {
     CB_ENSURE(0 < params.BorderCount && params.BorderCount <= Max<ui8>(), "Invalid border count");
     CB_ENSURE(0 < params.CtrParams.CtrBorderCount && params.CtrParams.CtrBorderCount <= Max<ui8>(), "Invalid border count");
@@ -79,11 +74,23 @@ void CheckValues(const TFitParams& params) {
     CB_ENSURE(params.ThreadCount > 0, "thread count should be positive");
     CB_ENSURE(params.ThreadCount <= CB_THREAD_LIMIT, "at most " << CB_THREAD_LIMIT << " thread(s) are supported; adjust CB_THREAD_LIMIT in params.h and rebuild");
     CB_ENSURE(AllOf(params.IgnoredFeatures, [](const int x) { return x >= 0; }), "ignored feature should not be negative");
+
     if (!params.ClassWeights.empty()) {
-        CB_ENSURE(params.LossFunction == ELossFunction::Logloss || params.LossFunction == ELossFunction::MultiClass,
-                  "class weights takes effect only with Logloss and MultiClass loss functions");
-        CB_ENSURE(params.LossFunction == ELossFunction::MultiClass || (params.ClassWeights.ysize() == 2), "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
-        CB_ENSURE(params.ClassesCount == 0 || params.ClassesCount == params.ClassWeights.ysize(), "class weights should be specified for each class in range 0,..,classes_count-1");
+        CB_ENSURE(params.LossFunction == ELossFunction::Logloss || IsMultiClassError(params.LossFunction),
+                  "class weights takes effect only with Logloss, MultiClass and MultiClassOneVsAll loss functions");
+        CB_ENSURE(IsMultiClassError(params.LossFunction) || (params.ClassWeights.ysize() == 2),
+                  "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
+        CB_ENSURE(params.ClassesCount == 0 || params.ClassesCount == params.ClassWeights.ysize(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
+    }
+    if (!params.ClassNames.empty()) {
+        CB_ENSURE(params.LossFunction == ELossFunction::Logloss || IsMultiClassError(params.LossFunction),
+                  "class names takes effect only with Logloss, MultiClass and MultiClassOneVsAll loss functions");
+        CB_ENSURE(IsMultiClassError(params.LossFunction) || (params.ClassNames.ysize() == 2),
+                  "if loss-function is Logloss, then class names should be given for 0 and 1 classes");
+        CB_ENSURE(params.ClassesCount == 0 || params.ClassesCount == params.ClassNames.ysize(), "class names should be specified for each class in range 0, ... , classes_count - 1");
+        if (!params.ClassWeights.empty()) {
+            CB_ENSURE(params.ClassWeights.ysize() == params.ClassNames.ysize(), "classNames and classWeights should be the same size");
+        }
     }
 
     for (auto& ctr : params.CtrParams.Ctrs) {
@@ -113,15 +120,79 @@ void CheckValues(const TFitParams& params) {
     }
 }
 
+template <class TInputIterator>
+static yvector<float> ParsePriors(TInputIterator begin, TInputIterator end) {
+    yvector<float> priors;
+    for (auto middle = begin; middle != end; ++middle) {
+        priors.push_back(middle->GetDoubleSafe());
+    }
+    return priors;
+}
+
+yvector<std::pair<int, yvector<float>>> GetPriors(const yvector<NJson::TJsonValue::TArray>& priors) {
+    yvector<std::pair<int, yvector<float>>> result;
+    for (const auto& jsonArray : priors) {
+        Y_ASSERT(jsonArray.ysize() > 1);
+        int index = jsonArray[0].GetIntegerSafe();
+        result.emplace_back(index, ParsePriors(begin(jsonArray) + 1, end(jsonArray)));
+    }
+    return result;
+}
+
+yvector<std::pair<std::pair<int, int>, yvector<float>>> GetFeatureCtrPriors(const yvector<NJson::TJsonValue::TArray>& priors) {
+    yvector<std::pair<std::pair<int, int>, yvector<float>>> result;
+    for (const auto& jsonArray : priors) {
+        Y_ASSERT(jsonArray.ysize() > 2);
+        int feature = jsonArray[0].GetIntegerSafe();
+        int ctr = jsonArray[1].GetIntegerSafe();
+        result.emplace_back(std::make_pair(feature, ctr), ParsePriors(begin(jsonArray) + 2, end(jsonArray)));
+    }
+    return result;
+}
+
+void TFitParams::ParseCtrDescription(const NJson::TJsonValue& tree, yset<TString>* validKeys) {
+    TString ctrDescriptionKey = "ctr_description";
+    validKeys->insert(ctrDescriptionKey);
+    if (tree.Has(ctrDescriptionKey)) {
+        CtrParams.Ctrs.clear();
+        auto ctrDescriptionParserFunc = [&](TStringBuf ctrStringDescription) {
+            TCtrDescription ctr;
+            GetNext<ECtrType>(ctrStringDescription, ':', ctr.CtrType);
+
+            TMaybe<int> targetBorderCount;
+            GetNext<int>(ctrStringDescription, ':', targetBorderCount);
+            if (targetBorderCount.Defined()) {
+                ctr.TargetBorderCount = *targetBorderCount.Get();
+            }
+
+            TMaybe<EBorderSelectionType> targetBorderType;
+            GetNext<EBorderSelectionType>(ctrStringDescription, ':', targetBorderType);
+            if (targetBorderType.Defined()) {
+                ctr.TargetBorderType = *targetBorderType.Get();
+            }
+
+            CtrParams.Ctrs.emplace_back(ctr);
+        };
+        if (tree[ctrDescriptionKey].IsArray()) {
+            for (const auto& treeElem : tree[ctrDescriptionKey].GetArraySafe()) {
+                ctrDescriptionParserFunc(treeElem.GetStringSafe());
+            }
+        }
+        else {
+            ctrDescriptionParserFunc(tree[ctrDescriptionKey].GetStringSafe());
+        }
+    }
+}
+
 void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* resultingParams) {
     if (resultingParams) {
         *resultingParams = tree;
     }
     yset<TString> validKeys;
-#define GET_FIELD(json_name, target_name, type)                 \
-    validKeys.insert(#json_name);                               \
-    if (tree.Has(#json_name)) {                                 \
-        this->target_name = tree[#json_name].Get##type##Safe(); \
+#define GET_FIELD(json_name, target_name, type)           \
+    validKeys.insert(#json_name);                         \
+    if (tree.Has(#json_name)) {                           \
+        target_name = tree[#json_name].Get##type##Safe(); \
     }
     GET_FIELD(iterations, Iterations, Integer)
     GET_FIELD(thread_count, ThreadCount, Integer)
@@ -162,13 +233,13 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(print_trees, PrintTrees, Boolean)
     GET_FIELD(developer_mode, DeveloperMode, Boolean)
     GET_FIELD(used_ram_limit, UsedRAMLimit, UInteger)
-    GET_FIELD(approx_on_all_history, ApproxOnAllHistory, Boolean)
+    GET_FIELD(approx_on_partial_history, ApproxOnPartialHistory, Boolean)
 #undef GET_FIELD
 
-#define GET_ENUM_FIELD(json_name, target_name, type)                            \
-    validKeys.insert(#json_name);                                               \
-    if (tree.Has(#json_name)) {                                                 \
-        this->target_name = FromString<type>(tree[#json_name].GetStringSafe()); \
+#define GET_ENUM_FIELD(json_name, target_name, type)                      \
+    validKeys.insert(#json_name);                                         \
+    if (tree.Has(#json_name)) {                                           \
+        target_name = FromString<type>(tree[#json_name].GetStringSafe()); \
     }
     GET_ENUM_FIELD(od_type, OverfittingDetectorType, EOverfittingDetectorType)
     GET_ENUM_FIELD(leaf_estimation_method, LeafEstimationMethod, ELeafEstimation)
@@ -180,74 +251,34 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
 #define GET_VECTOR_FIELD(json_name, target_name, type)                  \
     validKeys.insert(#json_name);                                       \
     if (tree.Has(#json_name)) {                                         \
-        this->target_name.clear();                                      \
+        target_name.clear();                                            \
         if (tree[#json_name].IsArray()) {                               \
             for (const auto& value : tree[#json_name].GetArraySafe()) { \
-                this->target_name.push_back(value.Get##type##Safe());   \
+                target_name.push_back(value.Get##type##Safe());         \
             }                                                           \
         } else {                                                        \
-            this->target_name.push_back(                                \
-                             tree[#json_name].Get##type##Safe());       \
+            target_name.push_back(                                      \
+                tree[#json_name].Get##type##Safe());                    \
         }                                                               \
     }
-    GET_VECTOR_FIELD(ignored_features, IgnoredFeatures, Integer);
-    GET_VECTOR_FIELD(priors, CtrParams.DefaultPriors, Double);
-    GET_VECTOR_FIELD(custom_loss, CustomLoss, String);
-    GET_VECTOR_FIELD(class_weights, ClassWeights, Double);
+    yvector<NJson::TJsonValue::TArray> ctrPriors, featurePriors, featureCtrPriors;
+    GET_VECTOR_FIELD(ignored_features, IgnoredFeatures, Integer)
+    GET_VECTOR_FIELD(priors, CtrParams.DefaultPriors, Double)
+    GET_VECTOR_FIELD(custom_loss, CustomLoss, String)
+    GET_VECTOR_FIELD(class_weights, ClassWeights, Double)
+    GET_VECTOR_FIELD(class_names, ClassNames, String)
+    GET_VECTOR_FIELD(ctr_priors, ctrPriors, Array)
+    GET_VECTOR_FIELD(feature_priors, featurePriors, Array)
+    GET_VECTOR_FIELD(feature_ctr_priors, featureCtrPriors, Array)
+
 #undef GET_VECTOR_FIELD
 
     LossFunction = GetLossType(Objective);
+    CtrParams.PerCtrPriors = GetPriors(ctrPriors);
+    CtrParams.PerFeaturePriors = GetPriors(featurePriors);
+    CtrParams.PerFeatureCtrPriors = GetFeatureCtrPriors(featureCtrPriors);
+    ParseCtrDescription(tree, &validKeys);
 
-    TString featurePriorsKey = "feature_priors";
-    validKeys.insert(featurePriorsKey);
-    if (tree.Has(featurePriorsKey)) {
-        CtrParams.PerFeaturePriors.clear();
-        auto processFeaturePrior = [&] (TStringBuf featurePriors) {
-            int featureIdx;
-            GetNext<int>(featurePriors, ':', featureIdx);
-
-            yvector<float> priorValues = ParsePriors(featurePriors);
-            CtrParams.PerFeaturePriors.emplace_back(featureIdx, priorValues);
-        };
-        if (tree[featurePriorsKey].IsArray()) {
-            for (const auto& treeElem : tree[featurePriorsKey].GetArraySafe()) {
-                processFeaturePrior(treeElem.GetStringSafe());
-            }
-        } else {
-            processFeaturePrior(tree[featurePriorsKey].GetStringSafe());
-        }
-    }
-
-    TString ctrDescriptionKey = "ctr_description";
-    validKeys.insert(ctrDescriptionKey);
-    if (tree.Has(ctrDescriptionKey)) {
-        CtrParams.Ctrs.clear();
-        auto ctrDescriptionParserFunc = [&] (TStringBuf ctrStringDescription) {
-            TCtrDescription ctr;
-            GetNext<ECtrType>(ctrStringDescription, ':', ctr.CtrType);
-
-            TMaybe<int> targetBorderCount;
-            GetNext<int>(ctrStringDescription, ':', targetBorderCount);
-            if (targetBorderCount.Defined()) {
-                ctr.TargetBorderCount = *targetBorderCount.Get();
-            }
-
-            TMaybe<EBorderSelectionType> targetBorderType;
-            GetNext<EBorderSelectionType>(ctrStringDescription, ':', targetBorderType);
-            if (targetBorderType.Defined()) {
-                ctr.TargetBorderType = *targetBorderType.Get();
-            }
-
-            CtrParams.Ctrs.emplace_back(ctr);
-        };
-        if (tree[ctrDescriptionKey].IsArray()) {
-            for (const auto& treeElem : tree[ctrDescriptionKey].GetArraySafe()) {
-                ctrDescriptionParserFunc(treeElem.GetStringSafe());
-            }
-        } else {
-            ctrDescriptionParserFunc(tree[ctrDescriptionKey].GetStringSafe());
-        }
-    }
 
     TString threadCountKey = "thread_count";
     if (!tree.Has(threadCountKey)) {
@@ -270,7 +301,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
                 LeafEstimationMethod == ELeafEstimation::Newton ? 10 : 100;
         }
     }
-    if (LossFunction == ELossFunction::MultiClass) {
+    if (IsMultiClassError(LossFunction)) {
         bool leafEstimationMethodSet = tree.Has(leafEstimationMethodKey);
         if (!leafEstimationMethodSet) {
             LeafEstimationMethod = ELeafEstimation::Newton;
@@ -305,11 +336,11 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     }
 
     if (tree.Has("classes_count")) {
-        CB_ENSURE(LossFunction == ELossFunction::MultiClass, "classes_count parameter takes effect only with MultiClass loss function");
+        CB_ENSURE(IsMultiClassError(LossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
         CB_ENSURE(ClassesCount > 1, "classes-count should be at least 2");
     }
     if (tree.Has("od_pval")) {
-        CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Iter, "Auto-stop-lval is not supported with iterational overfitting detector");
+        CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Iter, "od_pval is not supported with iterational overfitting detector");
     }
 
     CheckValues(*this);

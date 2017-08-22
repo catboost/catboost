@@ -12,14 +12,14 @@ namespace NFormatPrivate {
         return (value - res1 < res2 - value) ? (i64)res1 : (i64)res2;
     }
 
-    static inline TOutputStream& PrintDoubleShortly(TOutputStream& os, const double& d) {
+    static inline IOutputStream& PrintDoubleShortly(IOutputStream& os, const double& d) {
         os << Prec(d, 3);
         return os;
     }
 } //NFormatPrivate
 
 template <>
-void Out<NFormatPrivate::THumanReadableSize>(TOutputStream& stream, const NFormatPrivate::THumanReadableSize& value) {
+void Out<NFormatPrivate::THumanReadableSize>(IOutputStream& stream, const NFormatPrivate::THumanReadableSize& value) {
     ui64 base = value.Format == SF_BYTES ? 1024 : 1000;
     ui64 base2 = base * base;
     ui64 base3 = base * base2;
@@ -53,7 +53,7 @@ void Out<NFormatPrivate::THumanReadableSize>(TOutputStream& stream, const NForma
 }
 
 template <>
-void Out<NFormatPrivate::THumanReadableDuration>(TOutputStream& os, const NFormatPrivate::THumanReadableDuration& hr) {
+void Out<NFormatPrivate::THumanReadableDuration>(IOutputStream& os, const NFormatPrivate::THumanReadableDuration& hr) {
     TTempBuf buf;
     TMemoryOutput ss(buf.Data(), buf.Size());
 
@@ -103,11 +103,11 @@ void Out<NFormatPrivate::THumanReadableDuration>(TOutputStream& os, const NForma
     os.Write(buf.Data(), written);
 }
 
-void Time(TOutputStream& l) {
+void Time(IOutputStream& l) {
     l << millisec();
 }
 
-void TimeHumanReadable(TOutputStream& l) {
+void TimeHumanReadable(IOutputStream& l) {
     char timeStr[30];
     const time_t t = time(nullptr);
 

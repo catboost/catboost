@@ -19,8 +19,8 @@
 constexpr ui16 DEF_LOCAL_SOCK_MODE = 00644;
 
 // Base abstract class for socket address
-struct TSockAddr {
-    virtual ~TSockAddr() = default;
+struct ISockAddr {
+    virtual ~ISockAddr() = default;
     // Max size of the address that we can store (arg of recvfrom)
     virtual socklen_t Size() const = 0;
     // Real length of the address (arg of sendto)
@@ -46,7 +46,7 @@ protected:
 
 #if defined(_win_) || defined(_cygwin_)
 #define YAF_LOCAL AF_INET
-struct TSockAddrLocal: public TSockAddr {
+struct TSockAddrLocal: public ISockAddr {
     TSockAddrLocal() {
         Clear();
     }
@@ -138,7 +138,7 @@ struct TSockAddrLocal: public TSockAddr {
 };
 #else
 #define YAF_LOCAL AF_LOCAL
-struct TSockAddrLocal: public sockaddr_un, public TSockAddr {
+struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
     TSockAddrLocal() {
         Clear();
     }
@@ -192,7 +192,7 @@ struct TSockAddrLocal: public sockaddr_un, public TSockAddr {
 };
 #endif // _win_
 
-struct TSockAddrInet: public sockaddr_in, public TSockAddr {
+struct TSockAddrInet: public sockaddr_in, public ISockAddr {
     TSockAddrInet() {
         Clear();
     }
@@ -258,7 +258,7 @@ struct TSockAddrInet: public sockaddr_in, public TSockAddr {
     }
 };
 
-struct TSockAddrInet6: public sockaddr_in6, public TSockAddr {
+struct TSockAddrInet6: public sockaddr_in6, public ISockAddr {
     TSockAddrInet6() {
         Clear();
     }
@@ -337,7 +337,7 @@ protected:
     }
 
 public:
-    int Bind(const TSockAddr* addr, ui16 mode = DEF_LOCAL_SOCK_MODE) {
+    int Bind(const ISockAddr* addr, ui16 mode = DEF_LOCAL_SOCK_MODE) {
         return addr->Bind((SOCKET) * this, mode);
     }
 
@@ -361,7 +361,7 @@ protected:
     }
 
 public:
-    ssize_t SendTo(const void* msg, size_t len, const TSockAddr* toAddr) {
+    ssize_t SendTo(const void* msg, size_t len, const ISockAddr* toAddr) {
         ssize_t ret = toAddr->ResolveAddr();
         if (ret < 0)
             return -errno;
@@ -373,7 +373,7 @@ public:
         return ret;
     }
 
-    ssize_t RecvFrom(void* buf, size_t len, TSockAddr* fromAddr) {
+    ssize_t RecvFrom(void* buf, size_t len, ISockAddr* fromAddr) {
         socklen_t fromSize = fromAddr->Size();
         const ssize_t ret = recvfrom((SOCKET) * this, (char*)buf, (int)len, 0, fromAddr->SockAddr(), &fromSize);
         if (ret < 0) {
@@ -408,7 +408,7 @@ public:
         return ret;
     }
 
-    int Connect(const TSockAddr* addr) {
+    int Connect(const ISockAddr* addr) {
         int ret = addr->ResolveAddr();
         if (ret < 0)
             return -errno;
@@ -428,7 +428,7 @@ public:
         return ret;
     }
 
-    int Accept(TStreamSocket* acceptedSock, TSockAddr* acceptedAddr) {
+    int Accept(TStreamSocket* acceptedSock, ISockAddr* acceptedAddr) {
         socklen_t acceptedSize = acceptedAddr->Size();
         SOCKET s = accept((SOCKET) * this, acceptedAddr->SockAddr(), &acceptedSize);
         if (s == INVALID_SOCKET)
@@ -518,7 +518,7 @@ public:
     }
 };
 
-class TStreamSocketInput: public TInputStream {
+class TStreamSocketInput: public IInputStream {
 public:
     TStreamSocketInput(TStreamSocket* socket)
         : Socket(socket)
@@ -543,7 +543,7 @@ protected:
     }
 };
 
-class TStreamSocketOutput: public TOutputStream {
+class TStreamSocketOutput: public IOutputStream {
 public:
     TStreamSocketOutput(TStreamSocket* socket)
         : Socket(socket)

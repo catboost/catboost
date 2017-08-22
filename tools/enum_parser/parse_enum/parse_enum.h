@@ -60,7 +60,7 @@ public:
     TEnumParser(const char* data, size_t length);
 
     /// Parse enums from input stream
-    TEnumParser(TInputStream& in);
+    TEnumParser(IInputStream& in);
 
     static TString ScopeStr(const TScope& scope) {
         TString result;

@@ -122,7 +122,7 @@ TStringBuf TPathSplitStore::Extension() const {
 }
 
 template <>
-void Out<TPathSplit>(TOutputStream& o, const TPathSplit& ps) {
+void Out<TPathSplit>(IOutputStream& o, const TPathSplit& ps) {
     o << ps.Reconstruct();
 }
 

@@ -776,7 +776,7 @@ namespace NPlugins {
                 if (!IsLiteRuntimeMessage(Descriptor_)) {
                     printer.Print("TProtoStringType ShortUtf8DebugString() const;\n");
                 }
-                printer.Print("void PrintJSON(TOutputStream&) const;\n");
+                printer.Print("void PrintJSON(IOutputStream&) const;\n");
                 printer.Print(vars, "::google::protobuf::io::TAsJSON<$class$> AsJSON() const {\n");
                 printer.Print(vars, "    return ::google::protobuf::io::TAsJSON<$class$>(*this);\n");
                 printer.Print("}\n");
@@ -810,7 +810,7 @@ namespace NPlugins {
                 printer.Print("// Yandex JSON extension\n");
                 TVariables vars;
                 vars["class"] = ClassName(Descriptor_, true);
-                printer.Print(vars, "inline void $class$::PrintJSON(TOutputStream& out) const {\n");
+                printer.Print(vars, "inline void $class$::PrintJSON(IOutputStream& out) const {\n");
 
                 printer.Indent();
                 printer.Print("out << '{';\n");
@@ -861,7 +861,7 @@ namespace NPlugins {
                     TVariables vars;
                     vars["class"] = ClassName(Descriptor_, true);
                     printer.Print("template<>\n");
-                    printer.Print(vars, "void Out< $class$>(TOutputStream& out, const $class$& msg) {\n");
+                    printer.Print(vars, "void Out< $class$>(IOutputStream& out, const $class$& msg) {\n");
                     printer.Print("    out << \"{ \" << msg.ShortUtf8DebugString() << \" }\";\n");
                     printer.Print("}\n");
                     printer.Print("// End of Yandex debug output extension\n");

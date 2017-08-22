@@ -1,7 +1,7 @@
 #pragma once
 
 
-class TOutputStream;
+class IOutputStream;
 
 namespace google {
     namespace protobuf {
@@ -12,11 +12,11 @@ namespace google {
 namespace NProtoBufInternal {
   struct TAsBinary {
     const google::protobuf::Message& Message_;
-    friend TOutputStream& operator <<(TOutputStream& output, const TAsBinary& wrappedMessage);
+    friend IOutputStream& operator <<(IOutputStream& output, const TAsBinary& wrappedMessage);
   };
 
   struct TAsStreamSeq {
     const google::protobuf::Message& Message_;
-    friend TOutputStream& operator <<(TOutputStream& output, const TAsStreamSeq& wrappedMessage);
+    friend IOutputStream& operator <<(IOutputStream& output, const TAsStreamSeq& wrappedMessage);
   };
 }

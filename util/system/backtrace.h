@@ -2,7 +2,7 @@
 
 #include "defaults.h"
 
-class TOutputStream;
+class IOutputStream;
 class TString;
 
 size_t BackTrace(void** p, size_t len);
@@ -14,11 +14,11 @@ struct TResolvedSymbol {
 
 TResolvedSymbol ResolveSymbol(void* sym, char* buf, size_t len);
 
-void FormatBackTrace(TOutputStream* out, void* const* backtrace, size_t backtraceSize);
-void FormatBackTrace(TOutputStream* out);
+void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtraceSize);
+void FormatBackTrace(IOutputStream* out);
 void PrintBackTrace();
 
-using TFormatBackTraceFn = void (*)(TOutputStream*);
+using TFormatBackTraceFn = void (*)(IOutputStream*);
 
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f);
 
@@ -31,6 +31,6 @@ private:
 public:
     TBackTrace();
     void Capture();
-    void PrintTo(TOutputStream&) const;
+    void PrintTo(IOutputStream&) const;
     TString PrintToString() const;
 };

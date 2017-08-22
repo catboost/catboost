@@ -19,7 +19,7 @@
  * Note that the input is not buffered, which means that `ReadLine` calls will
  * be _very_ slow.
  */
-class TFileInput: public TInputStream {
+class TFileInput: public IInputStream {
 public:
     TFileInput(const TFile& file);
     TFileInput(const TString& path);
@@ -52,7 +52,7 @@ private:
  * Note that the output is unbuffered, thus writing in many small chunks is
  * likely to be quite slow.
  */
-class TFileOutput: public TOutputStream {
+class TFileOutput: public IOutputStream {
 public:
     TFileOutput(const TString& path);
     TFileOutput(const TFile& file);

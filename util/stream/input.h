@@ -5,7 +5,7 @@
 
 class TString;
 class TUtf16String;
-class TOutputStream;
+class IOutputStream;
 
 /**
  * @addtogroup Streams_Base
@@ -15,15 +15,15 @@ class TOutputStream;
 /**
  * Abstract input stream.
  */
-class TInputStream: public TNonCopyable {
+class IInputStream: public TNonCopyable {
 public:
-    TInputStream() noexcept;
-    virtual ~TInputStream();
+    IInputStream() noexcept;
+    virtual ~IInputStream();
 
-    TInputStream(TInputStream&&) noexcept {
+    IInputStream(IInputStream&&) noexcept {
     }
 
-    TInputStream& operator=(TInputStream&&) noexcept {
+    IInputStream& operator=(IInputStream&&) noexcept {
         return *this;
     }
 
@@ -108,7 +108,7 @@ public:
      * @param out                       Output stream to use.
      * @returns                         Total number of characters read from the stream.
      */
-    ui64 ReadAll(TOutputStream& out);
+    ui64 ReadAll(IOutputStream& out);
 
     /**
      * Reads all data from the stream until the first occurrence of '\n'. Also
@@ -216,7 +216,7 @@ protected:
      *                                  this stream.
      * @throws yexception               If IO error occurs.
      */
-    virtual ui64 DoReadAll(TOutputStream& out);
+    virtual ui64 DoReadAll(IOutputStream& out);
 };
 
 /**
@@ -225,10 +225,10 @@ protected:
  * @param in                            Input stream.
  * @param out                           Output stream.
  */
-ui64 TransferData(TInputStream* in, TOutputStream* out);
+ui64 TransferData(IInputStream* in, IOutputStream* out);
 
 /**
- * `operator>>` for `TInputStream` by default delegates to this function.
+ * `operator>>` for `IInputStream` by default delegates to this function.
  *
  * Note that while `operator>>` uses overloading (and thus argument-dependent
  * lookup), `In` uses template specializations. This makes it possible to
@@ -242,10 +242,10 @@ ui64 TransferData(TInputStream* in, TOutputStream* out);
  * @param in                            Input stream to read from.
  * @param[out] value                    Value to read.
  * @throws                              `yexception` on invalid input or end of stream.
- * @see Out(TOutputStream&, T&)
+ * @see Out(IOutputStream&, T&)
  */
 template <typename T>
-void In(TInputStream& in, T& value);
+void In(IInputStream& in, T& value);
 
 /**
  * Reads a value from the stream.
@@ -254,16 +254,16 @@ void In(TInputStream& in, T& value);
  * @param[out] value                    Value to read.
  * @returns                             Input stream.
  * @throws                              `yexception` on invalid input or end of stream.
- * @see operator<<(TOutputStream&, T&)
+ * @see operator<<(IOutputStream&, T&)
  */
 template <typename T>
-inline TInputStream& operator>>(TInputStream& in, T& value) {
+inline IInputStream& operator>>(IInputStream& in, T& value) {
     In<T>(in, value);
     return in;
 }
 
 namespace NPrivate {
-    TInputStream& StdInStream() noexcept;
+    IInputStream& StdInStream() noexcept;
 }
 
 /**

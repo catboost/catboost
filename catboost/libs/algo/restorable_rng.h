@@ -12,7 +12,7 @@ struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
     {
     }
 
-    inline void Save(TOutputStream* s) const {
+    inline void Save(IOutputStream* s) const {
         ::SaveMany(
             s,
             SeedArgs.Seed1,
@@ -21,7 +21,7 @@ struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
             SeedArgs.Seq2,
             CallCount);
     }
-    inline void Load(TInputStream* s) {
+    inline void Load(IInputStream* s) {
         ::LoadMany(
             s,
             SeedArgs.Seed1,

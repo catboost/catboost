@@ -28,7 +28,7 @@ namespace {
 }
 
 namespace NLoggingImpl {
-    TOutputStream& operator<<(TOutputStream& out, TLocalTimeS localTimeS)  {
+    IOutputStream& operator<<(IOutputStream& out, TLocalTimeS localTimeS)  {
         char buffer[LocalTimeSBufferSize];
         size_t len = PrintLocalTimeS(localTimeS.GetInstant(), buffer, buffer + sizeof(buffer));
         out.Write(buffer, len);

@@ -2,7 +2,7 @@
 
 #include <util/system/compat.h>
 
-class TOutputStream;
+class IOutputStream;
 
 /**
  * Stream-based `printf` function. Prints formatted data into the provided stream.
@@ -12,7 +12,7 @@ class TOutputStream;
  * @param fmt                           Format string.
  * @param ...                           Additional arguments.
  */
-size_t Y_PRINTF_FORMAT(2, 3) Printf(TOutputStream& out, const char* fmt, ...);
+size_t Y_PRINTF_FORMAT(2, 3) Printf(IOutputStream& out, const char* fmt, ...);
 
 /**
  * Stream-based `vprintf` function. Prints formatted data from variable argument
@@ -22,4 +22,4 @@ size_t Y_PRINTF_FORMAT(2, 3) Printf(TOutputStream& out, const char* fmt, ...);
  * @param fmt                           Format string.
  * @param params                        Additional arguments as a variable argument list.
  */
-size_t Y_PRINTF_FORMAT(2, 0) Printf(TOutputStream& out, const char* fmt, va_list params);
+size_t Y_PRINTF_FORMAT(2, 0) Printf(IOutputStream& out, const char* fmt, va_list params);

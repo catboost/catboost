@@ -1,6 +1,6 @@
 #include "score_calcer.h"
 #include "index_calcer.h"
-#include <catboost/libs/model/split.h>
+#include "split.h"
 
 struct TBucketStats {
     double SumWeightedDelta = 0;
@@ -68,8 +68,8 @@ yvector<double> CalcScoreImpl(const TAllFeatures& af,
                               int depth,
                               int ctrBorderCount,
                               float l2Regularizer) {
-    const int partCount = fold.MixTailArr.ysize();
-    const int docCount = fold.MixTailArr[partCount - 1].TailFinish;
+    const int partCount = fold.BodyTailArr.ysize();
+    const int docCount = fold.BodyTailArr[partCount - 1].TailFinish;
 
     yvector<TFullIndexType> singleIdx;
     singleIdx.yresize(docCount);
@@ -77,7 +77,7 @@ yvector<double> CalcScoreImpl(const TAllFeatures& af,
     const int splitCount = GetSplitCount(splitsCount, af.OneHotValues, split, ctrBorderCount);
     const int bucketCount = splitCount + 1;
     if (split.Type == ESplitType::OnlineCtr) {
-        const ui8* ctrs = fold.GetCtr(split.Ctr.Projection).Feature[split.Ctr.CtrTypeIdx]
+        const ui8* ctrs = fold.GetCtr(split.Ctr.Projection).Feature[split.Ctr.CtrIdx]
                                                                    [split.Ctr.TargetBorderIdx]
                                                                    [split.Ctr.PriorIdx].data();
         for (int doc = 0; doc < docCount; ++doc) {
@@ -102,28 +102,27 @@ yvector<double> CalcScoreImpl(const TAllFeatures& af,
 
     const int approxDimension = fold.GetApproxDimension();
     const int leafCount = 1 << depth;
-    for (int mixTailId = 0; mixTailId < partCount; ++mixTailId) {
+    for (const TFold::TBodyTail& bt : fold.BodyTailArr) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             yvector<TBucketStats> stats(leafCount * bucketCount);
-            const TFold::TMixTail& mt = fold.MixTailArr[mixTailId];
 
             if (fold.LearnWeights.empty()) {
-                for (int doc = 0; doc < mt.MixCount; ++doc) {
+                for (int doc = 0; doc < bt.BodyFinish; ++doc) {
                     TBucketStats& leafStats = stats[singleIdx[doc]];
-                    leafStats.SumDelta += mt.Derivatives[dim][doc];
+                    leafStats.SumDelta += bt.Derivatives[dim][doc];
                     leafStats.Count += 1;
                 }
             } else {
-                for (int doc = 0; doc < mt.MixCount; ++doc) {
+                for (int doc = 0; doc < bt.BodyFinish; ++doc) {
                     TBucketStats& leafStats = stats[singleIdx[doc]];
-                    leafStats.SumDelta += mt.Derivatives[dim][doc];
+                    leafStats.SumDelta += bt.Derivatives[dim][doc];
                     leafStats.Count += fold.LearnWeights[doc];
                 }
             }
 
-            for (int doc = mt.MixCount; doc < mt.TailFinish; ++doc) {
+            for (int doc = bt.BodyFinish; doc < bt.TailFinish; ++doc) {
                 TBucketStats& leafStats = stats[singleIdx[doc]];
-                leafStats.SumWeightedDelta += mt.WeightedDer[dim][doc];
+                leafStats.SumWeightedDelta += bt.WeightedDer[dim][doc];
                 leafStats.SumWeight += fold.SampleWeights[doc];
             }
 

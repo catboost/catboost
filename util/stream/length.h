@@ -12,9 +12,9 @@
  * This can be useful for breaking up the slave stream into small chunks and
  * treat these as separate streams.
  */
-class TLengthLimitedInput: public TInputStream {
+class TLengthLimitedInput: public IInputStream {
 public:
-    inline TLengthLimitedInput(TInputStream* slave, ui64 length) noexcept
+    inline TLengthLimitedInput(IInputStream* slave, ui64 length) noexcept
         : Slave_(slave)
         , Length_(length)
     {
@@ -31,16 +31,16 @@ private:
     size_t DoSkip(size_t len) override;
 
 private:
-    TInputStream* Slave_;
+    IInputStream* Slave_;
     ui64 Length_;
 };
 
 /**
  * Proxy input stream that counts the number of characters read.
  */
-class TCountingInput: public TInputStream {
+class TCountingInput: public IInputStream {
 public:
-    inline TCountingInput(TInputStream* slave) noexcept
+    inline TCountingInput(IInputStream* slave) noexcept
         : Slave_(slave)
         , Count_()
     {
@@ -60,19 +60,19 @@ private:
     size_t DoRead(void* buf, size_t len) override;
     size_t DoSkip(size_t len) override;
     size_t DoReadTo(TString& st, char ch) override;
-    ui64 DoReadAll(TOutputStream& out) override;
+    ui64 DoReadAll(IOutputStream& out) override;
 
 private:
-    TInputStream* Slave_;
+    IInputStream* Slave_;
     ui64 Count_;
 };
 
 /**
  * Proxy output stream that counts the number of characters written.
  */
-class TCountingOutput: public TOutputStream {
+class TCountingOutput: public IOutputStream {
 public:
-    inline TCountingOutput(TOutputStream* slave) noexcept
+    inline TCountingOutput(IOutputStream* slave) noexcept
         : Slave_(slave)
         , Count_()
     {
@@ -95,6 +95,6 @@ private:
     void DoWrite(const void* buf, size_t len) override;
 
 private:
-    TOutputStream* Slave_;
+    IOutputStream* Slave_;
     ui64 Count_;
 };

@@ -85,7 +85,7 @@ void TMersenne64::InitNext() noexcept {
     mti = 0;
 }
 
-TMersenne64::TMersenne64(TInputStream& input)
+TMersenne64::TMersenne64(IInputStream& input)
     : mti(NN + 1)
 {
     ui64 buf[128];

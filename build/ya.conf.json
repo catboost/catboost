@@ -1722,6 +1722,22 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "kythe": {
+            "tools": {
+                "kythe": { "bottle": "kythe" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
+        "kythe_to_proto": {
+            "tools": {
+                "kythe_to_proto": { "bottle": "kythe_to_proto" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
         "kiwi_protos": {
             "tools": {
                 "kiwi_protos": { "bottle": "kiwi_protos" }
@@ -1823,7 +1839,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 129235399,
+                "sandbox_id": 138760380,
                 "match": "YMake"
             },
             "executable": {
@@ -1841,7 +1857,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 133697471,
+                "sandbox_id": 139898401,
                 "match": "test_tool"
             },
             "executable": {
@@ -1859,7 +1875,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [126847288, 126847830, 74450064],
+                "sandbox_id": [134128985, 134133253, 74450064],
                 "match": "Hg"
             },
             "executable": {
@@ -2035,6 +2051,18 @@
                 "match": "JSTYLERUNNER"
             }
         },
+        "kythe": {
+            "formula": {
+                "sandbox_id": [139901740],
+                "match": "KYTHE"
+            }
+        },
+        "kythe_to_proto": {
+            "formula": {
+                "sandbox_id": [140057691],
+                "match": "KYTHETOPROTO"
+            }
+        },
         "wine": {
             "formula": {
                 "sandbox_id": 42480153,
@@ -2046,7 +2074,7 @@
         },
         "deploy": {
             "formula": {
-                "sandbox_id": 132426558,
+                "sandbox_id": 137135888,
                 "match": "DEPLOY"
             },
             "executable": {
@@ -2055,7 +2083,7 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 104069539,
+                "sandbox_id": 135978941,
                 "match": "YT"
             },
             "executable": {
@@ -2064,7 +2092,7 @@
         },
         "yndexer": {
             "formula": {
-                "sandbox_id": 129061120,
+                "sandbox_id": 141232261,
                 "match": "YNDEXER"
             },
             "executable": {
@@ -2073,7 +2101,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 131259617,
+                "sandbox_id": 137146838,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -2082,7 +2110,7 @@
         },
         "transfer-manager": {
             "formula": {
-                "sandbox_id": 104070121,
+                "sandbox_id": 135979123,
                 "match": "transfer-manager"
             },
             "executable": {

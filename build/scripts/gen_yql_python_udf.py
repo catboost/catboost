@@ -1,9 +1,9 @@
 import sys
 
 TEMPLATE="""
-#include <kikimr/yql/udfs/common/python/python_udf/python_udf.h>
+#include <yql/udfs/common/python/python_udf/python_udf.h>
 
-#include <kikimr/yql/library/udf/udf_registrator.h>
+#include <yql/library/udf/udf_registrator.h>
 
 using namespace NKikimr::NUdf;
 

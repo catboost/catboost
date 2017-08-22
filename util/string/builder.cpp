@@ -3,6 +3,6 @@
 #include <util/stream/output.h>
 
 template <>
-void Out<TStringBuilder>(TOutputStream& os, const TStringBuilder& sb) {
+void Out<TStringBuilder>(IOutputStream& os, const TStringBuilder& sb) {
     os << static_cast<const TString&>(sb);
 }

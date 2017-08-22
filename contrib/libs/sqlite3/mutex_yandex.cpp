@@ -128,7 +128,7 @@ static void YandexMutexLeave(sqlite3_mutex* p) {
 
 extern "C" {
 
-sqlite3_mutex_methods* sqlite3DefaultMutex() {
+sqlite3_mutex_methods* sqlite3YandexMutex() {
     static sqlite3_mutex_methods MutexMethods = {
         YandexMutexInit,
         YandexMutexEnd,

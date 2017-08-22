@@ -117,7 +117,6 @@ inline bool DetectOverfitting(double testError,
     detector->AddError(testError);
     double pValue = detector->GetCurrentPValue();
     valuesToLog->push_back(pValue);
-    MATRIXNET_INFO_LOG << "overfitting detector p-value: " << pValue << Endl;
     return detector->IsNeedStop();
 }
 

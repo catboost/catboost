@@ -4,7 +4,7 @@
 #include <util/memory/tempbuf.h>
 #include <util/generic/yexception.h>
 
-size_t Printf(TOutputStream& out, const char* fmt, ...) {
+size_t Printf(IOutputStream& out, const char* fmt, ...) {
     va_list lst;
     va_start(lst, fmt);
     size_t ret;
@@ -22,7 +22,7 @@ size_t Printf(TOutputStream& out, const char* fmt, ...) {
     return ret;
 }
 
-static inline size_t TryPrintf(void* ptr, size_t len, TOutputStream& out, const char* fmt, va_list params) {
+static inline size_t TryPrintf(void* ptr, size_t len, IOutputStream& out, const char* fmt, va_list params) {
     va_list lst;
     va_copy(lst, params);
     const int ret = vsnprintf((char*)ptr, len, fmt, lst);
@@ -39,7 +39,7 @@ static inline size_t TryPrintf(void* ptr, size_t len, TOutputStream& out, const 
     return (size_t)ret;
 }
 
-size_t Printf(TOutputStream& out, const char* fmt, va_list params) {
+size_t Printf(IOutputStream& out, const char* fmt, va_list params) {
     size_t guess = 0;
 
     while (true) {

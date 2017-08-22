@@ -43,17 +43,17 @@ namespace ZLib {
  * benchmark). For fast buffered ZLib stream reading use `TBufferedZLibDecompress`
  * aka `TZDecompress`.
  */
-class TZLibDecompress: public TInputStream {
+class TZLibDecompress: public IInputStream {
 public:
-    TZLibDecompress(TZeroCopyInput* input, ZLib::StreamType type = ZLib::Auto);
-    TZLibDecompress(TInputStream* input, ZLib::StreamType type = ZLib::Auto, size_t buflen = ZLib::ZLIB_BUF_LEN);
+    TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type = ZLib::Auto);
+    TZLibDecompress(IInputStream* input, ZLib::StreamType type = ZLib::Auto, size_t buflen = ZLib::ZLIB_BUF_LEN);
 
     /**
      * Allows/disallows multiple sequential compressed streams. Allowed by default.
      *
      * If multiple streams are allowed, their decompressed content will be concatenated.
      * If multiple streams are disabled, then only first stream is decompressed. After that end
-     * of TInputStream will have happen, i.e. method Read() will return 0.
+     * of IInputStream will have happen, i.e. method Read() will return 0.
      *
      * @param allowMultipleStreams - flag to allow (true) or disable (false) multiple streams.
      */
@@ -72,10 +72,10 @@ public:
 /**
  * Non-buffered ZLib compressing stream.
  */
-class TZLibCompress: public TOutputStream {
+class TZLibCompress: public IOutputStream {
 public:
     struct TParams {
-        inline TParams(TOutputStream* out)
+        inline TParams(IOutputStream* out)
             : Out(out)
             , Type(ZLib::ZLib)
             , CompressionLevel(6)
@@ -107,7 +107,7 @@ public:
             return *this;
         }
 
-        TOutputStream* Out;
+        IOutputStream* Out;
         ZLib::StreamType Type;
         size_t CompressionLevel;
         size_t BufLen;
@@ -118,15 +118,15 @@ public:
         Init(params);
     }
 
-    inline TZLibCompress(TOutputStream* out, ZLib::StreamType type) {
+    inline TZLibCompress(IOutputStream* out, ZLib::StreamType type) {
         Init(TParams(out).SetType(type));
     }
 
-    inline TZLibCompress(TOutputStream* out, ZLib::StreamType type, size_t compression_level) {
+    inline TZLibCompress(IOutputStream* out, ZLib::StreamType type, size_t compression_level) {
         Init(TParams(out).SetType(type).SetCompressionLevel(compression_level));
     }
 
-    inline TZLibCompress(TOutputStream* out, ZLib::StreamType type, size_t compression_level, size_t buflen) {
+    inline TZLibCompress(IOutputStream* out, ZLib::StreamType type, size_t compression_level, size_t buflen) {
         Init(TParams(out).SetType(type).SetCompressionLevel(compression_level).SetBufLen(buflen));
     }
 

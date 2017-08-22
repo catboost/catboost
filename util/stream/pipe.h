@@ -38,7 +38,7 @@ protected:
  * Note that if the process ends with non-zero exit status, `Read` function will
  * throw an exception.
  */
-class TPipeInput: protected  TPipeBase, public TInputStream {
+class TPipeInput: protected  TPipeBase, public IInputStream {
 public:
     /**
      * Starts a new process and opens a pipe.
@@ -57,7 +57,7 @@ private:
  * Note that if the process ends with non-zero exit status, `Close` function will
  * throw an exception.
  */
-class TPipeOutput: protected  TPipeBase, public TOutputStream {
+class TPipeOutput: protected  TPipeBase, public IOutputStream {
 public:
     /**
      * Starts a new process and opens a pipe.
@@ -88,7 +88,7 @@ protected:
 /**
  * Input stream that binds to a standard output stream of an existing process.
  */
-class TPipedInput: public TPipedBase, public TInputStream {
+class TPipedInput: public TPipedBase, public IInputStream {
 public:
     TPipedInput(PIPEHANDLE fd);
     ~TPipedInput() override;
@@ -100,7 +100,7 @@ private:
 /**
  * Output stream that binds to a standard input stream of an existing process.
  */
-class TPipedOutput: public TPipedBase, public TOutputStream {
+class TPipedOutput: public TPipedBase, public IOutputStream {
 public:
     TPipedOutput(PIPEHANDLE fd);
     ~TPipedOutput() override;

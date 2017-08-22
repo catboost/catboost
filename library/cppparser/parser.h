@@ -4,7 +4,7 @@
 #include <util/generic/string.h>
 #include <util/stream/output.h>
 
-class TCppSaxParser: public TOutputStream {
+class TCppSaxParser: public IOutputStream {
 public:
     struct TText {
         TText();

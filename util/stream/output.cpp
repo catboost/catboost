@@ -20,21 +20,21 @@
 #include <io.h>
 #endif
 
-TOutputStream::TOutputStream() noexcept = default;
+IOutputStream::IOutputStream() noexcept = default;
 
-TOutputStream::~TOutputStream() = default;
+IOutputStream::~IOutputStream() = default;
 
-void TOutputStream::DoFlush() {
+void IOutputStream::DoFlush() {
     /*
      * do nothing
      */
 }
 
-void TOutputStream::DoFinish() {
+void IOutputStream::DoFinish() {
     Flush();
 }
 
-void TOutputStream::DoWriteV(const TPart* parts, size_t count) {
+void IOutputStream::DoWriteV(const TPart* parts, size_t count) {
     for (size_t i = 0; i < count; ++i) {
         const TPart& part = parts[i];
 
@@ -42,7 +42,7 @@ void TOutputStream::DoWriteV(const TPart* parts, size_t count) {
     }
 }
 
-static void WriteString(TOutputStream& o, const wchar16* w, size_t n) {
+static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
     const size_t buflen = (n * 4); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
     char* const data = buffer.Data();
@@ -53,27 +53,27 @@ static void WriteString(TOutputStream& o, const wchar16* w, size_t n) {
 }
 
 template <>
-void Out<TString>(TOutputStream& o, const TString& p) {
+void Out<TString>(IOutputStream& o, const TString& p) {
     o.Write(~p, +p);
 }
 
 template <>
-void Out<std::string>(TOutputStream& o, const std::string& p) {
+void Out<std::string>(IOutputStream& o, const std::string& p) {
     o.Write(p.data(), p.length());
 }
 
 template <>
-void Out<TFixedString<char>>(TOutputStream& o, const TFixedString<char>& p) {
+void Out<TFixedString<char>>(IOutputStream& o, const TFixedString<char>& p) {
     o.Write(p.Start, p.Length);
 }
 
 template <>
-void Out<TFixedString<wchar16>>(TOutputStream& o, const TFixedString<wchar16>& p) {
+void Out<TFixedString<wchar16>>(IOutputStream& o, const TFixedString<wchar16>& p) {
     WriteString(o, p.Start, p.Length);
 }
 
 template <>
-void Out<const wchar16*>(TOutputStream& o, const wchar16* w) {
+void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
     if (w) {
         WriteString(o, w, TCharTraits<wchar16>::GetLength(w));
     } else {
@@ -82,31 +82,31 @@ void Out<const wchar16*>(TOutputStream& o, const wchar16* w) {
 }
 
 template <>
-void Out<TUtf16String>(TOutputStream& o, const TUtf16String& w) {
+void Out<TUtf16String>(IOutputStream& o, const TUtf16String& w) {
     WriteString(o, w.c_str(), w.size());
 }
 
 #define DEF_CONV_DEFAULT(type)                  \
     template <>                                 \
-    void Out<type>(TOutputStream & o, type p) { \
+    void Out<type>(IOutputStream & o, type p) { \
         o << ToString(p);                       \
     }
 
 #define DEF_CONV_CHR(type)                      \
     template <>                                 \
-    void Out<type>(TOutputStream & o, type p) { \
+    void Out<type>(IOutputStream & o, type p) { \
         o.Write((const char*)&p, 1);            \
     }
 
 #define DEF_CONV_NUM(type, len)                                   \
     template <>                                                   \
-    void Out<type>(TOutputStream & o, type p) {                   \
+    void Out<type>(IOutputStream & o, type p) {                   \
         char buf[len];                                            \
         o.Write(buf, ToString(p, buf, sizeof(buf)));              \
     }                                                             \
                                                                   \
     template <>                                                   \
-    void Out<volatile type>(TOutputStream & o, volatile type p) { \
+    void Out<volatile type>(IOutputStream & o, volatile type p) { \
         Out<type>(o, p);                                          \
     }
 
@@ -131,29 +131,29 @@ DEF_CONV_NUM(double, 512)
 DEF_CONV_NUM(long double, 512)
 
 template <>
-void Out<TBasicCharRef<TString>>(TOutputStream& o, const TBasicCharRef<TString>& c) {
+void Out<TBasicCharRef<TString>>(IOutputStream& o, const TBasicCharRef<TString>& c) {
     o << static_cast<char>(c);
 }
 
 template <>
-void Out<TBasicCharRef<TUtf16String>>(TOutputStream& o, const TBasicCharRef<TUtf16String>& c) {
+void Out<TBasicCharRef<TUtf16String>>(IOutputStream& o, const TBasicCharRef<TUtf16String>& c) {
     o << static_cast<wchar16>(c);
 }
 
 template <>
-void Out<const void*>(TOutputStream& o, const void* t) {
+void Out<const void*>(IOutputStream& o, const void* t) {
     o << Hex(size_t(t));
 }
 
 template <>
-void Out<void*>(TOutputStream& o, void* t) {
+void Out<void*>(IOutputStream& o, void* t) {
     Out<const void*>(o, t);
 }
 
 using TNullPtr = decltype(nullptr);
 
 template <>
-void Out<TNullPtr>(TOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
+void Out<TNullPtr>(IOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
     o << STRINGBUF("nullptr");
 }
 
@@ -172,7 +172,7 @@ namespace {
     public:
         using TLogFuncPtr = void (*)(int, const char*, const char*);
 
-        class TAndroidStdOutput: public TOutputStream {
+        class TAndroidStdOutput: public IOutputStream {
         public:
             inline TAndroidStdOutput(TLogFuncPtr logFuncPtr) noexcept
                 : Buffer()
@@ -248,7 +248,7 @@ namespace {
 #endif // _android_
 
 namespace {
-    class TStdOutput: public TOutputStream {
+    class TStdOutput: public IOutputStream {
     public:
         inline TStdOutput(FILE* f) noexcept
             : F_(f)
@@ -310,7 +310,7 @@ namespace {
     };
 }
 
-TOutputStream& NPrivate::StdErrStream() noexcept {
+IOutputStream& NPrivate::StdErrStream() noexcept {
 #if defined(_android_)
     if (TAndroidStdIOStreams::Enabled) {
         return TAndroidStdIOStreams::Instance().Err;
@@ -319,7 +319,7 @@ TOutputStream& NPrivate::StdErrStream() noexcept {
     return TStdIOStreams::Instance().Err;
 }
 
-TOutputStream& NPrivate::StdOutStream() noexcept {
+IOutputStream& NPrivate::StdOutStream() noexcept {
 #if defined(_android_)
     if (TAndroidStdIOStreams::Enabled) {
         return TAndroidStdIOStreams::Instance().Out;

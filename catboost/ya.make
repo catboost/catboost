@@ -6,4 +6,5 @@ RECURSE(
     pytest
     python-package
     R-package
+    tools
 )

@@ -38,7 +38,7 @@ private:
         struct S: public TAtomicRefCount<S> {
         };
 
-        struct TLocalThread: public TSimpleThread {
+        struct TLocalThread: public ISimpleThread {
             virtual void* ThreadProc() override {
                 TSimpleIntrusivePtr<S> ptr;
                 return nullptr;

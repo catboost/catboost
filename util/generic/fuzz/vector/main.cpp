@@ -2,7 +2,7 @@
 #include <util/stream/mem.h>
 
 template <class T>
-static inline T Read(TInputStream& in) {
+static inline T Read(IInputStream& in) {
     T t;
 
     in.LoadOrFail(&t, sizeof(t));

@@ -5,7 +5,7 @@
 #include <algorithm>
 
 template <>
-void Out<TSourceLocation>(TOutputStream& o, const TSourceLocation& t) {
+void Out<TSourceLocation>(IOutputStream& o, const TSourceLocation& t) {
 #if defined(_win_)
     TString file(t.File);
     std::replace(file.begin(), file.vend(), '\\', '/');

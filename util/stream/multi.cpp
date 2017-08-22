@@ -1,7 +1,7 @@
 #include "null.h"
 #include "multi.h"
 
-TMultiInput::TMultiInput(TInputStream* f, TInputStream* s) noexcept
+TMultiInput::TMultiInput(IInputStream* f, IInputStream* s) noexcept
     : C_(f)
     , N_(s)
 {

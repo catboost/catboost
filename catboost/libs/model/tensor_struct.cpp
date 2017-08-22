@@ -20,8 +20,8 @@ yvector<TOneHotFeature> GetOneHotFeatures(const TTensorStructure3& tree) {
     return result;
 }
 
-yvector<TCtrSplit> GetCtrSplits(const TTensorStructure3& tree) {
-    yvector<TCtrSplit> result;
+yvector<TModelCtrSplit> GetCtrSplits(const TTensorStructure3& tree) {
+    yvector<TModelCtrSplit> result;
     for (const auto& split : tree.SelectedSplits) {
         if (split.Type == ESplitType::OnlineCtr) {
             result.push_back(split.OnlineCtr);

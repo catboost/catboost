@@ -88,11 +88,11 @@ private:
     THolder<TImpl> Impl_;
 };
 
-class TSimpleThread: public TThread {
+class ISimpleThread: public TThread {
 public:
-    TSimpleThread(size_t stackSize = 0);
+    ISimpleThread(size_t stackSize = 0);
 
-    virtual ~TSimpleThread() = default;
+    virtual ~ISimpleThread() = default;
 
     virtual void* ThreadProc() = 0;
 };

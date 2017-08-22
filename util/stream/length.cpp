@@ -34,7 +34,7 @@ size_t TCountingInput::DoReadTo(TString& st, char ch) {
     return ret;
 }
 
-ui64 TCountingInput::DoReadAll(TOutputStream& out) {
+ui64 TCountingInput::DoReadAll(IOutputStream& out) {
     const ui64 ret = Slave_->ReadAll(out);
     Count_ += ret;
     return ret;

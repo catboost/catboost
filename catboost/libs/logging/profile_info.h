@@ -12,18 +12,22 @@ public:
     TProfileInfo(bool detailedProfile, int iterations, TOFStream* timeLeftLog)
         : PassedIterations(0)
         , InitIterations(0)
+        , BadIterations(0)
         , DetailedProfile(detailedProfile)
         , Iterations(iterations)
         , PassedTime(0)
+        , CurrentTime(0)
         , TimeLeftLog(timeLeftLog) {
     }
 
     explicit TProfileInfo(bool detailedProfile)
         : PassedIterations(0)
         , InitIterations(0)
+        , BadIterations(0)
         , DetailedProfile(detailedProfile)
         , Iterations(0)
         , PassedTime(0)
+        , CurrentTime(0)
         , TimeLeftLog(nullptr) {
     }
 
@@ -33,40 +37,50 @@ public:
     }
 
     void StartNextIteration() {
-        PassedTime += Timer.PassedReset();
-        PassedIterations++;
+        CurrentTime = 0;
+        Timer.Reset();
         OperationToTime.clear();
     }
 
     void AddOperation(const TString& operation) {
         double passedTime = Timer.PassedReset();
-        PassedTime += passedTime;
+        CurrentTime += passedTime;
         OperationToTime[operation] += passedTime; // operations can be repeated in one iteration
-        OperationToTimeInAllIterations[operation] += passedTime;
+    }
+
+    void FinishIteration() {
+        CurrentTime += Timer.PassedReset();
+        double averageTime = PassedIterations == InitIterations + BadIterations ?
+                             std::numeric_limits<double>::max() :
+                             PassedTime / (PassedIterations - InitIterations - BadIterations);
+        PassedIterations++;
+        if (CurrentTime < 0 || CurrentTime / MAX_TIME_RATIO > averageTime) {
+            MATRIXNET_INFO_LOG << "\nIteration with suspicious time " << FloatToString(CurrentTime, PREC_NDIGITS, 3) << " sec ignored in overall statistics." << Endl;
+            BadIterations++;
+        } else {
+            PassedTime += CurrentTime;
+            for (const auto &it : OperationToTime) {
+                OperationToTimeInAllIterations[it.first] += it.second;
+            }
+            PrintState();
+        }
     }
 
     void PrintState() const {
         TStringStream log;
         if (DetailedProfile) {
             log << "\nProfile:" << Endl;
-        }
-        double time = Timer.Passed();
-        for (const auto& it : OperationToTime) {
-            time += it.second;
-            if (DetailedProfile) {
+            for (const auto& it : OperationToTime) {
                 log << it.first << ": " << FloatToString(it.second, PREC_NDIGITS, 3) << " sec" << Endl;
             }
-        }
-        if (DetailedProfile) {
-            log << "Passed: " << FloatToString(time, PREC_NDIGITS, 3) << " sec";
+            log << "Passed: " << FloatToString(CurrentTime, PREC_NDIGITS, 3) << " sec" << Endl;
         }
         double remainingTime = 0;
-        if (PassedIterations - InitIterations > 0) {
-            remainingTime = PassedTime / (PassedIterations - InitIterations) * (Iterations - PassedIterations);
+        if (PassedIterations != InitIterations + BadIterations) {
+            remainingTime = PassedTime / (PassedIterations - InitIterations - BadIterations) * (Iterations - PassedIterations);
             log << "\ttotal: " << HumanReadable(TDuration::Seconds(PassedTime));
             log << "\tremaining: " << HumanReadable(TDuration::Seconds(remainingTime));
         }
-
         MATRIXNET_INFO_LOG << log.Str() << Endl;
         if (TimeLeftLog) {
             *TimeLeftLog << PassedIterations - 1 << "\t" << TDuration::Seconds(remainingTime).MilliSeconds() << "\t"
@@ -91,13 +105,16 @@ public:
     }
 
 private:
+    static constexpr int MAX_TIME_RATIO = 100;
     ymap<TString, double> OperationToTime;
     ymap<TString, double> OperationToTimeInAllIterations;
     THPTimer Timer;
     int PassedIterations;
     int InitIterations;
+    int BadIterations;
     bool DetailedProfile;
     const int Iterations;
     double PassedTime;
+    double CurrentTime;
     TOFStream* TimeLeftLog;
 };

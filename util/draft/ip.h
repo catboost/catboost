@@ -87,7 +87,7 @@ static inline TString Ip6ToString(const TIp6& ip) {
 }
 
 template <>
-inline void Out<TIp6>(TOutputStream& os, const TIp6& a) {
+inline void Out<TIp6>(IOutputStream& os, const TIp6& a) {
     os << Ip6ToString(a);
 }
 

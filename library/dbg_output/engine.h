@@ -31,14 +31,14 @@ namespace NDumpPrivate {
 }
 
 struct TDumpBase: public ::NDumpPrivate::TADLBase {
-    inline TDumpBase(TOutputStream& out, bool indent) noexcept
+    inline TDumpBase(IOutputStream& out, bool indent) noexcept
         : Out(&out)
         , IndentLevel(0)
         , Indent(indent)
     {
     }
 
-    inline TOutputStream& Stream() const noexcept {
+    inline IOutputStream& Stream() const noexcept {
         return *Out;
     }
 
@@ -50,7 +50,7 @@ struct TDumpBase: public ::NDumpPrivate::TADLBase {
 
     void Raw(const TStringBuf& s);
 
-    TOutputStream* Out;
+    IOutputStream* Out;
     size_t IndentLevel;
     bool Indent;
 };

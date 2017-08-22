@@ -75,14 +75,10 @@ public:
 namespace NPrivateGlobalLogger {
     class TVerifyEvent: public TStringStream {
     public:
-        ~TVerifyEvent() {
-            const TString info = Str();
-            FATAL_LOG << info << Endl;
-            Y_VERIFY(false, "%s", ~info);
-        }
+        ~TVerifyEvent();
         template <class T>
         inline TVerifyEvent& operator<<(const T& t) {
-            static_cast<TOutputStream&>(*this) << t;
+            static_cast<IOutputStream&>(*this) << t;
 
             return *this;
         }
