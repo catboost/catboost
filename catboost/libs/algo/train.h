@@ -143,7 +143,6 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                                   NPar::TLocalExecutor* localExecutor,
                                   IOutputStream* learnErrLog) {
     learnErrorsHistory->emplace_back();
-    *learnErrLog << iteration;
     for (int i = 0; i < errors.ysize(); ++i) {
         double learnErr = errors[i]->GetFinalError(
             errors[i]->Eval(avrgApprox, target, weight, 0, learnSampleCount, *localExecutor));
@@ -151,7 +150,10 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
             MATRIXNET_INFO_LOG << "learn " << learnErr;
         }
         learnErrorsHistory->back().push_back(learnErr);
-        *learnErrLog << "\t" << learnErr;
+    }
+    *learnErrLog << iteration;
+    for (int i = 0; i < errors.ysize(); ++i) {
+        *learnErrLog << "\t" << learnErrorsHistory->back()[i];
     }
     *learnErrLog << Endl;
 }

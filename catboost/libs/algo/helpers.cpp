@@ -13,6 +13,10 @@ yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLear
 
     size_t reasonCount = docInfos[0].Factors.size() - categFeatures.size();
     yvector<yvector<float>> res(reasonCount);
+    if (reasonCount == 0) {
+        return res;
+    }
+
     yvector<int> floatIndexes;
     for (int i = 0; i < docInfos[0].Factors.ysize(); ++i) {
         if (!categFeatures.has(i)) {
@@ -50,7 +54,7 @@ yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLear
         calcOneFeatureBorder(nReason);
     }
 
-    MATRIXNET_INFO_LOG << "Borders generated" << Endl;
+    MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
     return res;
 }
 

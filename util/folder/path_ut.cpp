@@ -317,12 +317,14 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a\\b\\..\\c", "d"), "a\\c\\d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a", "b", "c", "d"), "a\\b\\c\\d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a\\b\\..\\c"), "a\\b\\..\\c");
+        UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a\\b", ""), "a\\b");
 #else
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a/b", "c/d"), "a/b/c/d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a/b", "../c"), "a/b/../c");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a/b/../c", "d"), "a/c/d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a", "b", "c", "d"), "a/b/c/d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a/b/../c"), "a/b/../c");
+        UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a/b", ""), "a/b");
 #endif
     }
 
