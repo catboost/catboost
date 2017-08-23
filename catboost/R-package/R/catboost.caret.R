@@ -80,6 +80,7 @@ catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs,
 #' @param preProc: preprcess data option
 #' @param submodels: only used with the loop element
 catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels = NULL) {
+  
   pool <- catboost.from_data_frame(newdata)
   param <- catboost.get_model_params(modelFit)
   pred_type <- if (modelFit$problemType == 'Regression') 'RawFormulaVal' else 'Class'
@@ -87,6 +88,19 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
   if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
     prediction <- modelFit$lev[prediction + 1]
   }
+  if(!is.null(submodels)) {
+    tmp <- vector(mode = "list", length = nrow(submodels) + 1)
+    tmp[[1]] <- prediction
+    for(j in seq(along = submodels$iterations)) {
+      tmp_pred <- catboost.predict(modelFit, pool, type = pred_type, tree_count_limit = submodels$iterations[j])
+      if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
+        tmp_pred <- modelFit$lev[tmp_pred + 1]
+      }
+      tmp[[j+1]]  <- tmp_pred
+    }
+    prediction <- tmp
+  } 
+  
   return(prediction)
 }
 
@@ -107,6 +121,25 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
     prediction <- cbind(1 - prediction, prediction)
     colnames(prediction) <- modelFit$lev
   }
+  
+  if(!is.null(submodels)) {
+    tmp <- vector(mode = "list", length = nrow(submodels) + 1)
+    tmp[[1]] <- prediction
+    for(j in seq(along = submodels$iterations)) {
+      tmp_pred <- catboost.predict(modelFit, pool, type = "Probability", tree_count_limit = submodels$iterations[j])
+      if (is.matrix(tmp_pred)) {
+        colnames(tmp_pred) <- modelFit$lev
+        tmp_pred <- as.data.frame(tmp_pred)
+      }
+      param <- catboost.get_model_params(modelFit)
+      if (param$loss_function == "Logloss") {
+        tmp_pred <- cbind(1 - tmp_pred, tmp_pred)
+        colnames(tmp_pred) <- modelFit$lev
+      }
+      tmp[[j+1]]  <- tmp_pred
+    }
+    prediction <- tmp
+  } 
   return(prediction)
 }
 
@@ -123,3 +156,28 @@ catboost.caret$varImp <- function(modelFit, x = NULL, y = NULL, ...) {
   colnames(importance) <- "Overall"
   return(importance)
 }
+
+
+#' Create multiple submodel predictions from the same object.
+#' @param grid: the grid of parameters to search over
+catboost.caret$loop <- function(grid) {
+  loop <- plyr::ddply(grid, c("depth",
+                        "learning_rate", 
+                        "l2_leaf_reg",
+                        "rsm",
+                        "border_count"),
+                function(x) c(iterations = max(x$iterations)))
+  submodels <- vector(mode = "list", length = nrow(loop))
+  for(i in seq(along = loop$iterations)) {
+    index <- which(  grid$depth == loop$depth[i] &
+                       grid$learning_rate == loop$learning_rate[i] &
+                       grid$l2_leaf_reg == loop$l2_leaf_reg[i] &
+                       grid$rsm == loop$rsm[i] &
+                       grid$border_count == loop$border_count[i])
+    trees <- grid[index, "iterations"]
+    submodels[[i]] <- data.frame(iterations = trees[trees != loop$iterations[i]])
+  }
+  return( list(loop = loop, submodels = submodels) )
+}
+
+
