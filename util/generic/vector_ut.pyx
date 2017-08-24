@@ -1,7 +1,12 @@
 from util.generic.vector cimport yvector
+from util.generic.string cimport TString
 
 import pytest
 import unittest
+
+
+def _check_convert(yvector[TString] x):
+    return x
 
 
 class TestVector(unittest.TestCase):
@@ -198,3 +203,11 @@ class TestVector(unittest.TestCase):
 
         tmp.erase(tmp.begin(), tmp.begin() + 2)
         self.assertEqual([i for i in tmp], [4])
+
+    def test_convert(self):
+        src = ['foo', 'bar', 'baz']
+        self.assertEqual(_check_convert(src), src)
+
+        bad_src = ['foo', 42]
+        with self.assertRaises(TypeError):
+            _check_convert(bad_src)

@@ -88,8 +88,8 @@ public:
         : TCommonContext(jsonParams, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
         , Rand(Params.RandomSeed)
         , Files(Params, fileNamesPrefix)
-        , TimeLeftLog(Files.TimeLeftLogFile)
-        , Profile(Params.DetailedProfile, Params.Iterations, &TimeLeftLog) {
+        , TimeLeftLog(Params.AllowWritingFiles ? new TOFStream(Files.TimeLeftLogFile) : nullptr)
+        , Profile(Params.DetailedProfile, Params.Iterations, TimeLeftLog.Get()) {
         LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams);
         LearnProgress.Model.FeatureCount = featureCount;
     }
@@ -103,6 +103,11 @@ public:
     TRestorableFastRng64 Rand;
     TLearnProgress LearnProgress;
     TOutputFiles Files;
-    TOFStream TimeLeftLog;
+
+private:
+    THolder<TOFStream> TimeLeftLog;
+
+public:
     TProfileInfo Profile;
+
 };

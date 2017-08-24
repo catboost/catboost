@@ -151,11 +151,14 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
         }
         learnErrorsHistory->back().push_back(learnErr);
     }
-    *learnErrLog << iteration;
-    for (int i = 0; i < errors.ysize(); ++i) {
-        *learnErrLog << "\t" << learnErrorsHistory->back()[i];
+
+    if (learnErrLog != nullptr) {
+        *learnErrLog << iteration;
+        for (int i = 0; i < errors.ysize(); ++i) {
+            *learnErrLog << "\t" << learnErrorsHistory->back()[i];
+        }
+        *learnErrLog << Endl;
     }
-    *learnErrLog << Endl;
 }
 
 inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
@@ -172,7 +175,6 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
     yvector<double> valuesToLog;
 
     testErrorsHistory->emplace_back();
-    *testErrLog << iteration;
     for (int i = 0; i < errors.ysize(); ++i) {
         double testErr = errors[i]->GetFinalError(
             errors[i]->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor));
@@ -184,9 +186,15 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
             MATRIXNET_INFO_LOG << "\ttest " << testErr << "\tbestTest " << bestErr << "\t";
         }
         testErrorsHistory->back().push_back(testErr);
-        *testErrLog << "\t" << testErr;
     }
-    *testErrLog << Endl;
+
+    if (testErrLog != nullptr) {
+        *testErrLog << iteration;
+        for (int i = 0; i < errors.ysize(); ++i) {
+            *testErrLog << "\t" << testErrorsHistory->back()[i];
+        }
+        *testErrLog << Endl;
+    }
 }
 
 template <typename TError>
@@ -376,9 +384,12 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
 
     THolder<TOFStream> learnErrLog;
     THolder<TOFStream> testErrLog;
-    learnErrLog = InitErrLog(metrics, ctx->LearnProgress.LearnErrorsHistory, ctx->Files.LearnErrorLogFile);
-    if (hasTest) {
-        testErrLog = InitErrLog(metrics, ctx->LearnProgress.TestErrorsHistory, ctx->Files.TestErrorLogFile);
+
+    if (ctx->Params.AllowWritingFiles) {
+        learnErrLog = InitErrLog(metrics, ctx->LearnProgress.LearnErrorsHistory, ctx->Files.LearnErrorLogFile);
+        if (hasTest) {
+            testErrLog = InitErrLog(metrics, ctx->LearnProgress.TestErrorsHistory, ctx->Files.TestErrorLogFile);
+        }
     }
 
     ctx->LoadProgress();

@@ -8,6 +8,10 @@ from libcpp.pair cimport pair
 from cython.operator cimport dereference as deref
 
 
+def _check_convert(yhash[TString, int] x):
+    return x
+
+
 class TestHash(unittest.TestCase):
 
     def test_constructors_and_assignments(self):
@@ -69,3 +73,10 @@ class TestHash(unittest.TestCase):
         self.assertTrue(it != tmp.end())
         self.assertEqual(deref(it).second, 1)
 
+    def test_convert(self):
+        src = {'foo': 1, 'bar': 42}
+        self.assertEqual(_check_convert(src), src)
+
+        bad_src = {'foo': 1, 'bar': 'baz'}
+        with self.assertRaises(TypeError):
+            _check_convert(bad_src)

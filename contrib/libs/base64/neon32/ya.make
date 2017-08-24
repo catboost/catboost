@@ -14,7 +14,7 @@ SRCS(
 )
 
 IF (OS_LINUX OR OS_DARWIN OR OS_ANDROID)
-    CFLAGS(-std=c11)
+    CONLYFLAGS(-std=c11)
 ENDIF()
 
 END()

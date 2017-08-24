@@ -14,7 +14,7 @@ SRCS(
 )
 
 IF (OS_LINUX OR OS_DARWIN)
-    CFLAGS(-std=c11)
+    CONLYFLAGS(-std=c11)
 ENDIF()
 
 END()

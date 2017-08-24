@@ -55,10 +55,15 @@ yhash<TString, float> GetLossParams(const TString& lossDescription) {
 }
 
 void CheckValues(const TFitParams& params) {
+    if (!params.AllowWritingFiles) {
+        CB_ENSURE(!params.SaveSnapshot, "allow_writing_files is set to False, and save_snapshot is set to True.");
+    } else {
+        CB_ENSURE(!params.TimeLeftLog.empty(), "empty time_left filename");
+        CB_ENSURE(!params.LearnErrorLog.empty(), "empty learn_error filename");
+    }
+
     CB_ENSURE(0 < params.BorderCount && params.BorderCount <= Max<ui8>(), "Invalid border count");
     CB_ENSURE(0 < params.CtrParams.CtrBorderCount && params.CtrParams.CtrBorderCount <= Max<ui8>(), "Invalid border count");
-    CB_ENSURE(!params.TimeLeftLog.empty(), "empty time_left filename");
-    CB_ENSURE(!params.LearnErrorLog.empty(), "empty learn_error filename");
     CB_ENSURE(params.L2LeafRegularizer >= 0, "L2LeafRegularizer should be >= 0, current value: " << params.L2LeafRegularizer);
     const int maxModelDepth = Min(sizeof(TIndexType) * 8, size_t(16));
     CB_ENSURE(params.Depth > 0);
@@ -66,7 +71,6 @@ void CheckValues(const TFitParams& params) {
     CB_ENSURE(params.GradientIterations > 0);
     CB_ENSURE(params.Iterations >= 0);
     CB_ENSURE(params.Rsm > 0 && params.Rsm <= 1);
-    CB_ENSURE(params.BorderCount > 0);
     CB_ENSURE(params.OverfittingDetectorIterationsWait >= 0);
     CB_ENSURE(params.BaggingTemperature >= 0);
     CB_ENSURE(params.FoldPermutationBlockSize > 0 || params.FoldPermutationBlockSize == ParameterNotSet);
@@ -215,6 +219,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(test_error_log, TestErrorLog, String)
     GET_FIELD(l2_leaf_reg, L2LeafRegularizer, Double)
     GET_FIELD(verbose, Verbose, Boolean)
+    GET_FIELD(allow_writing_files, AllowWritingFiles, Boolean)
     GET_FIELD(has_time, HasTime, Boolean)
     GET_FIELD(name, Name, String)
     GET_FIELD(meta, MetaFileName, String)

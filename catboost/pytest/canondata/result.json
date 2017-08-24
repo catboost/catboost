@@ -387,6 +387,12 @@
             "uri": "file://test.test_one_hot/test.eval"
         }
     ],
+    "test.test_only_categorical_features": [
+        {
+            "checksum": "1f9159947604667efb0c1f897e3f4171",
+            "uri": "file://test.test_only_categorical_features/test.eval"
+        }
+    ],
     "test.test_overfit_detector_iter": [
         {
             "checksum": "c234d639c524f7df5be1ccd5072a434a",

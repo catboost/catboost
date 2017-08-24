@@ -181,6 +181,7 @@ public:
     bool PrintTrees = false;
     bool DeveloperMode = false;
     bool ApproxOnPartialHistory = false;
+    bool AllowWritingFiles = true;
 
     TFitParams() = default;
 

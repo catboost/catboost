@@ -564,7 +564,7 @@ Min(number of processor cores, 8)
   }
   \item Output settings
   \itemize{
-    \item verbose
+\item verbose
 
 Verbose output to stdout.
 
@@ -594,7 +594,16 @@ Depending on whether the file specified exists in the file system:
 Default value:
 
 File can't be generated or read. If the value is omitted, the file name is experiment.cbsnapshot.
-  }
+
+\item allow_writing_files
+
+If this flag is set to FALSE, no files with different diagnostic info will be created during training.
+With this flag set to FALSE no snapshotting can be done. Plus visualisation will not
+work, because visualisation uses files that are created and updated during training.
+
+Default value:
+TRUE (not used)
+}
 }
 }
 \examples{

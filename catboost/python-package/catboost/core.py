@@ -103,8 +103,10 @@ class Pool(_PoolBase):
         baseline : list or numpy.array, optional (default=None)
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
+
         feature_names : list, optional (default=None)
             Names for each given data_feature.
+
         thread_count : int
             Thread count to read data from file.
             Use only with reading data from file.
@@ -880,6 +882,10 @@ class CatBoostClassifier(CatBoost):
     feature_priors : list of strings, [default=None]
         You might provide custom per feature priors. They will be used instead of default ones.
         Format is: ['f1Idx:prior1:prior2:prior3', 'f2Idx:prior1']
+    allow_writing_files : bool, [default=True]
+        If this flag is set to False, no files with different diagnostic info will be created during training.
+        With this flag no snapshotting can be done. Plus visualisation will not
+        work, because visualisation uses files that are created and updated during training.
     """
     def __init__(
         self,
@@ -925,6 +931,7 @@ class CatBoostClassifier(CatBoost):
         fold_len_multiplier=None,
         used_ram_limit=None,
         feature_priors=None,
+        allow_writing_files=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
@@ -1178,6 +1185,7 @@ class CatBoostRegressor(CatBoost):
         fold_len_multiplier=None,
         used_ram_limit=None,
         feature_priors=None,
+        allow_writing_files=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):

@@ -227,3 +227,116 @@ cdef object {{cname}}(const map[X,Y]& s):
         o[X_to_py(key_value.first)] = Y_to_py(key_value.second)
         cython.operator.preincrement(iter)
     return o
+
+
+#################### arcadia_TMaybe.from_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass TMaybe [T]:
+        TMaybe()
+        TMaybe(T&)
+        TMaybe& operator =(T&)
+
+@cname("{{cname}}")
+cdef TMaybe[X] {{cname}}(object o) except *:
+    cdef TMaybe[X] result
+    if o is not None:
+        result = X_from_py(o)
+    return result
+
+#################### arcadia_TMaybe.to_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass TMaybe [T]:
+        bint Defined()
+        T& GetRef()
+
+@cname("{{cname}}")
+cdef object {{cname}}(const TMaybe[X]& s):
+    if s.Defined():
+        return X_to_py(s.GetRef())
+    return None
+
+
+#################### arcadia_yvector.from_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass yvector [T]:
+        void push_back(T&)
+
+@cname("{{cname}}")
+cdef yvector[X] {{cname}}(object o) except *:
+    cdef yvector[X] v
+    for item in o:
+        v.push_back(X_from_py(item))
+    return v
+
+
+#################### arcadia_yvector.to_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass yvector [T]:
+        size_t size()
+        T& operator[](size_t)
+
+@cname("{{cname}}")
+cdef object {{cname}}(const yvector[X]& v):
+    return [X_to_py(v[i]) for i in range(v.size())]
+
+
+#################### arcadia_yhash.from_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass pair "std::pair" [T, U]:
+        pair(T&, U&)
+    cdef cppclass yhash [T, U]:
+        void insert(pair[T, U]&)
+
+
+@cname("{{cname}}")
+cdef yhash[X,Y] {{cname}}(object o) except *:
+    cdef dict d = o
+    cdef yhash[X,Y] m
+    for key, value in d.iteritems():
+        m.insert(pair[X,Y](X_from_py(key), Y_from_py(value)))
+    return m
+
+
+#################### arcadia_yhash.to_py ####################
+
+cimport cython
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass yhash [T, U]:
+        cppclass value_type:
+            T first
+            U second
+        cppclass const_iterator:
+            value_type& operator*()
+            const_iterator operator++()
+            bint operator!=(const_iterator)
+        const_iterator begin()
+        const_iterator end()
+
+@cname("{{cname}}")
+cdef dict {{cname}}(const yhash[X,Y]& s):
+    cdef dict result = {}
+    cdef const yhash[X,Y].value_type *key_value
+    cdef yhash[X,Y].const_iterator iter = s.begin()
+    while iter != s.end():
+        key_value = &cython.operator.dereference(iter)
+        result[X_to_py(key_value.first)] = Y_to_py(key_value.second)
+        cython.operator.preincrement(iter)
+    return result

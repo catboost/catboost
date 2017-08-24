@@ -3292,6 +3292,12 @@ builtin_cpp_conversions = ("std::pair",
                            "std::set", "std::unordered_set",
                            "std::map", "std::unordered_map")
 
+arcadia_cpp_conversions = (
+    "TMaybe",
+    "yvector",
+    "yhash",
+)
+
 
 class CppClassType(CType):
     #  name          string
@@ -3334,7 +3340,7 @@ class CppClassType(CType):
     def create_from_py_utility_code(self, env):
         if self.from_py_function is not None:
             return True
-        if self.cname in builtin_cpp_conversions or self.cname in cpp_string_conversions:
+        if self.cname in builtin_cpp_conversions or self.cname in cpp_string_conversions or self.cname in arcadia_cpp_conversions:
             X = "XYZABC"
             tags = []
             declarations = ["cdef extern from *:"]
@@ -3378,8 +3384,10 @@ class CppClassType(CType):
             if self.cname in cpp_string_conversions:
                 cls = 'string'
                 tags = type_identifier(self),
-            else:
+            elif self.cname.startswith('std::'):
                 cls = self.cname[5:]
+            else:
+                cls = 'arcadia_' + self.cname
             cname = '__pyx_convert_%s_from_py_%s' % (cls, '__and_'.join(tags))
             context = {
                 'template_type_declarations': '\n'.join(declarations),
@@ -3396,7 +3404,7 @@ class CppClassType(CType):
     def create_to_py_utility_code(self, env):
         if self.to_py_function is not None:
             return True
-        if self.cname in builtin_cpp_conversions or self.cname in cpp_string_conversions:
+        if self.cname in builtin_cpp_conversions or self.cname in cpp_string_conversions or self.cname in arcadia_cpp_conversions:
             X = "XYZABC"
             tags = []
             declarations = ["cdef extern from *:"]
@@ -3414,8 +3422,11 @@ class CppClassType(CType):
                 cls = 'string'
                 prefix = 'PyObject_'  # gets specialised by explicit type casts in CoerceToPyTypeNode
                 tags = type_identifier(self),
-            else:
+            elif self.cname.startswith('std::'):
                 cls = self.cname[5:]
+                prefix = ''
+            else:
+                cls = 'arcadia_' + self.cname
                 prefix = ''
             cname = "__pyx_convert_%s%s_to_py_%s" % (prefix, cls, "____".join(tags))
             context = {

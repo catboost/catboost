@@ -80,6 +80,9 @@ static yvector<yvector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
             features,
             ctx);
 
+        if (indices.empty()) {
+            continue;
+        }
         for (int doc = 0; doc < documentsCount; ++doc) {
             const TIndexType valueIndex = indices[doc];
             ++leavesStatistics[treeIdx][valueIndex];

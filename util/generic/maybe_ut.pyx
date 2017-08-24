@@ -4,6 +4,20 @@ import pytest
 import unittest
 
 
+def _check_from_py(TMaybe[int] x):
+    return x.Defined()
+
+
+def _check_to_py_value():
+    cdef TMaybe[int] tmp = TMaybe[int](42)
+    return tmp
+
+
+def _check_to_py_nothing():
+    cdef TMaybe[int] tmp = Nothing()
+    return tmp
+
+
 class TestMaybe(unittest.TestCase):
 
     def test_ctor1(self):
@@ -158,3 +172,14 @@ class TestMaybe(unittest.TestCase):
         tmp2.Swap(tmp1)
         self.assertFalse(tmp1.Defined())
         self.assertEquals(tmp2.GetRef(), 42)
+
+    def test_from_py(self):
+        self.assertTrue(_check_from_py(42))
+        self.assertFalse(_check_from_py(None))
+
+        with self.assertRaises(TypeError):
+            _check_from_py("ttt")
+
+    def test_to_py(self):
+        self.assertEquals(_check_to_py_value(), 42)
+        self.assertEquals(_check_to_py_nothing(), None)

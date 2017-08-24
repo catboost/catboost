@@ -131,7 +131,8 @@ namespace NHashPrivate {
         THash<TSecond> SecondHash;
 
     public:
-        inline size_t operator()(const std::pair<TFirst, TSecond>& pair) const {
+        template<class T>
+        inline size_t operator()(const T& pair) const {
             return CombineHashes(FirstHash(pair.first), SecondHash(pair.second));
         }
     };
@@ -143,7 +144,8 @@ namespace NHashPrivate {
      */
     template <class TFirst, class TSecond>
     struct TPairHash<TFirst, TSecond, true> {
-        inline size_t operator()(const std::pair<TFirst, TSecond>& pair) const {
+        template<class T>
+        inline size_t operator()(const T& pair) const {
             return CombineHashes(THash<TFirst>()(pair.first), THash<TSecond>()(pair.second));
         }
     };
@@ -178,6 +180,15 @@ struct TEqualTo<TString>: public TEqualTo<TStringBuf> {
 
 template <>
 struct TEqualTo<TUtf16String>: public TEqualTo<TWtringBuf> {
+    using is_transparent = void;
+};
+
+template<class TFirst, class TSecond>
+struct TEqualTo<std::pair<TFirst, TSecond>> {
+    template<class TOther>
+    inline bool operator()(const std::pair<TFirst, TSecond>& a, const TOther& b) const {
+        return TEqualTo<TFirst>()(a.first, b.first) && TEqualTo<TSecond>()(a.second, b.second);
+    }
     using is_transparent = void;
 };
 

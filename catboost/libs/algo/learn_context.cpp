@@ -16,6 +16,15 @@ TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileN
 }
 
 void TOutputFiles::InitializeFiles(const TFitParams& params, const TString& namesPrefix) {
+    if (!params.AllowWritingFiles) {
+        Y_ASSERT(TimeLeftLogFile.empty());
+        Y_ASSERT(LearnErrorLogFile.empty());
+        Y_ASSERT(TestErrorLogFile.empty());
+        Y_ASSERT(MetaFile.empty());
+        Y_ASSERT(SnapshotFile.empty());
+        return;
+    }
+
     TFsPath trainDirPath(params.TrainDir);
     if (!params.TrainDir.empty() && !trainDirPath.Exists()) {
         trainDirPath.MkDir();
@@ -45,6 +54,10 @@ TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
 }
 
 void TLearnContext::OutputMeta(int approxDimension) {
+    if (Files.MetaFile.empty()) {
+        return;
+    }
+
     TOFStream meta(Files.MetaFile);
     meta << "name\t" << Params.Name << Endl;
     meta << "iterCount\t" << Params.Iterations << Endl;
