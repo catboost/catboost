@@ -138,6 +138,14 @@ TPairContext TBuf::BeginObject() {
     return TPairContext(*this);
 }
 
+TAfterColonContext TBuf::UnsafeWriteKey(const TStringBuf& s) {
+    BeginKey();
+    RawWriteChar('"');
+    UnsafeWriteRawBytes(s);
+    UnsafeWriteRawBytes("\":", 2);
+    return TAfterColonContext(*this);
+}
+
 TAfterColonContext TBuf::WriteKey(const TStringBuf& s) {
     // use the default escaping mode for this object
     return WriteKey(s, EscapeMode);

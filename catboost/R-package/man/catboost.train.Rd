@@ -285,6 +285,36 @@ Default value:
 
 The overfitting detection is turned off
 
+    \item od_type
+
+The method used to calculate the values in leaves.
+
+Possible values:
+        \itemize{
+          \item IncToDec
+          \item Iter
+        }
+
+Restriction.
+Do not specify the overfitting detector threshold when using the Iter type.
+
+Default value:
+
+'IncToDec'
+
+    \item od_wait
+
+The number of iterations to continue the training after the iteration with the optimal loss function value.
+The purpose of this parameter differs depending on the selected overfitting detector type:
+        \itemize{
+          \item IncToDec — Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
+          \item Iter — Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
+        }
+
+Default value:
+
+20
+
 \item leaf_estimation_method
 
 The method used to calculate the values in leaves.
@@ -429,6 +459,18 @@ Score standard deviation multiplier.
 Default value:
 
 1
+
+\item bagging_temperature
+
+Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
+
+Typical values are in the range \eqn{[0, 1]} (0 is for no bagging).
+
+Possible values are in the range \eqn{[0, +\infty)}.
+
+Default value:
+
+1
   }
   \item CTR settings
   \itemize{
@@ -504,9 +546,7 @@ This option reduces the resulting model size and the amount of memory required f
 
 Default value:
 
-None
-
-The number of leafs with categorical features is not limited
+None (The number of leafs with categorical features is not limited)
 
 \item store_all_simple_ctr
 
@@ -517,10 +557,8 @@ Use this parameter with ctr-leaf-count-limit only.
 
 Default value:
 
-False
+FALSE (Both simple features and feature combinations are taken in account when limiting the number of leafs with categorical features)
 
-Both simple features and feature combinations are taken in account when limiting the number
-      of leafs with categorical features
   }
   \item Binarization settings
   \itemize{

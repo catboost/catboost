@@ -242,5 +242,15 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
 
             UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"raw_json({"nanvalue":"nan","infvalue":"inf","minus_infvalue":"-inf","l":["nan"]})raw_json");
         }
+
+        {
+            NJsonWriter::TBuf buf;
+            buf.BeginObject()
+                .WriteKey("<>&").WriteString("Ololo")
+                .UnsafeWriteKey("<>&").WriteString("Ololo2")
+            .EndObject();
+
+            UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"({"\u003C\u003E&":"Ololo","<>&":"Ololo2"})");
+        }
     }
 }

@@ -190,32 +190,29 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_data_frame-docpage/}
 catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baseline = NULL) {
-  if (!is.data.frame(data))
-      stop("Unsupported data type, expecting data.frame, got: ", class(data))
-
-  cat_features <- c()
-  preprocessed <- data.frame(row.names = seq(1, nrow(data)))
-  column_names <- colnames(data)
-  for (column_index in c(1:ncol(data))) {
-    if (any(is.na(data[, column_index]) || is.null(data[, column_index]))) {
-      stop("NA and NULL values are not supported: ",  column_names[column_index])
-    }
-    if (is.double(data[, column_index])) {
-      preprocessed[, column_names[column_index]] <- data[, column_index]
-    }
-    else if (is.integer(data[, column_index])) {
-      preprocessed[, column_names[column_index]] <- as.integer(data[, column_index])
-    }
-    else if (is.factor(data[, column_index])) {
-      preprocessed[, column_names[column_index]] <- .Call("CatBoostHashStrings_R", as.character(data[, column_index]))
-      cat_features <- c(cat_features, column_index - 1)
-    }
-    else {
-      stop("Unsupported column type: ", column_names[column_index], typeof(data[, column_index]))
-    }
+  if (!is.data.frame(data)) {
+    stop("Unsupported data type, expecting data.frame, got: ", class(data))
   }
-  preprocessed <- as.matrix(preprocessed)
-  pool <- catboost.from_matrix(preprocessed, target, weight, baseline, cat_features)
+  if (sum(is.na(data)) > 0) {
+    stop("NA and NULL values are not supported!")
+  }
+
+  factor_columns = sapply(data, is.factor)
+  num_columns = sapply(data, is.double) | sapply(data, is.integer)
+  bad_columns = !(factor_columns | num_columns)
+
+  if (sum(bad_columns) > 0) {
+    stop("Unsupported column type: ", paste(c(unique(sapply(data[,bad_columns], class))), collapse = ', '))
+  }
+
+  preprocessed <- data
+  cat_features <- c()
+  for (column_index in which(factor_columns)) {
+    preprocessed[, column_index] = .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
+    cat_features <- c(cat_features, column_index - 1)
+  }
+
+  pool <- catboost.from_matrix(as.matrix(preprocessed), target, weight, baseline, cat_features)
   return(pool)
 }
 
@@ -539,6 +536,36 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       The overfitting detection is turned off
 #'
+#'     \item od_type
+#'
+#'       The method used to calculate the values in leaves.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item IncToDec
+#'         \item Iter
+#'       }
+#'
+#'       Restriction.
+#'       Do not specify the overfitting detector threshold when using the Iter type.
+#'
+#'       Default value:
+#'
+#'       'IncToDec'
+#'
+#'     \item od_wait
+#'
+#'       The number of iterations to continue the training after the iteration with the optimal loss function value.
+#'       The purpose of this parameter differs depending on the selected overfitting detector type:
+#'       \itemize{
+#'         \item IncToDec — Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
+#'         \item Iter — Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
+#'       }
+#'
+#'       Default value:
+#'
+#'       20
+#'
 #'     \item leaf_estimation_method
 #'
 #'       The method used to calculate the values in leaves.
@@ -683,6 +710,18 @@ catboost.head <- function(pool, n = 10) {
 #'        Default value:
 #'
 #'        1
+#'
+#'     \item bagging_temperature
+#'
+#'        Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
+#'
+#'        Typical values are in the range \eqn{[0, 1]} (0 is for no bagging).
+#'
+#'        Possible values are in the range \eqn{[0, +\infty)}.
+#'
+#'        Default value:
+#'
+#'        1
 #'   }
 #'   \item CTR settings
 #'   \itemize{
@@ -759,9 +798,7 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       Default value:
 #'
-#'       None
-#'
-#'       The number of leafs with categorical features is not limited
+#'       None (The number of leafs with categorical features is not limited)
 #'
 #'     \item store_all_simple_ctr
 #'
@@ -772,10 +809,9 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       Default value:
 #'
-#'       False
+#'       FALSE (Both simple features and feature combinations are taken in account when limiting the number of leafs with categorical features)
 #'
-#'       Both simple features and feature combinations are taken in account when limiting the number
-#'       of leafs with categorical features
+#'
 #'   }
 #'   \item Binarization settings
 #'   \itemize{
