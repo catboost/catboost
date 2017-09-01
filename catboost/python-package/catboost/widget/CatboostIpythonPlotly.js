@@ -590,8 +590,8 @@ CatboostIpython.prototype.getChart = function(parent, params) {
             showlegend: false
         },
         options: {
-            scrollZoom: true,
-            modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'toggleSpikelines'],
+            scrollZoom: false,
+            modeBarButtonsToRemove: ['toggleSpikelines'],
             displaylogo: false
         }
     };
