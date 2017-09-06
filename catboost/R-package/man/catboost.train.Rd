@@ -108,6 +108,7 @@ Supported loss functions:
         \item 'Quantile'
         \item 'LogLinQuantile'
         \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
       }
@@ -143,10 +144,14 @@ Supported loss functions:
         \item 'Quantile'
         \item 'LogLinQuantile'
         \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
         \item 'Recall'
         \item 'Precision'
+        \item 'F1'
+        \item 'TotalF1'
+        \item 'MCC'
         \item 'AUC'
         \item 'Accuracy'
         \item 'R2'
@@ -181,10 +186,14 @@ Supported loss functions:
         \item 'Quantile'
         \item 'LogLinQuantile'
         \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
         \item 'Recall'
         \item 'Precision'
+        \item 'F1'
+        \item 'TotalF1'
+        \item 'MCC'
         \item 'AUC'
         \item 'Accuracy'
         \item 'R2'
@@ -271,6 +280,22 @@ The random seed used for training.
 Default value:
 
 A new random value is selected on each run
+
+    \item nan_mode
+
+Way to process nan-values.
+
+Possible values:
+        \itemize{
+          \item \code{'Min'}
+          \item \code{'Max'}
+          \item \code{'Forbidden'}
+        }
+
+Default value:
+
+\code{'Forbidden'}
+
     \item od_pval
 
 Use the Overfitting detector (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/overfitting-detector-docpage/#overfitting-detector})
@@ -474,7 +499,7 @@ Default value:
   }
   \item CTR settings
   \itemize{
-    \item ctr
+    \item ctr_description
 
 Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
 
@@ -489,8 +514,7 @@ Components:
           \item \code{'Borders'}
           \item \code{'Buckets'}
           \item \code{'MeanValue'}
-          \item \code{'CounterTotal'}
-          \item \code{'CounterMax'}
+          \item \code{'Counter'}
         }
         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
@@ -510,6 +534,22 @@ Possible values:
       }
 
 Default value:
+
+\item counter_calc_method
+
+The method for calculating the Counter CTR type for the test dataset.
+
+Possible values:
+        \itemize{
+          \item \code{'Full'}
+          \item \code{'FullTest'}
+          \item \code{'PrefixTest'}
+          \item \code{'SkipTest'}
+        }
+
+Default value:
+
+\code{'PrefixTest'}
 
 \item ctr_border_count
 
@@ -617,6 +657,14 @@ The directory for storing the files generated during training.
 Default value:
 
 None (current catalog)
+
+\item save_snapshot
+
+Enable snapshotting for restoring the training progress after an interruption.
+
+Default value:
+
+None
 
 \item snapshot_file
 

@@ -19,7 +19,7 @@
 #include <io.h>
 #include "dirent_win.h"
 
-// these live in freeBSD_mktemp.cpp
+// these live in mktemp_system.cpp
 extern "C" int mkstemps(char* path, int slen);
 char* mkdtemp(char* path);
 

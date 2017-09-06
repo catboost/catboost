@@ -34,6 +34,7 @@ PY_SRCS(
     pandas/msgpack/_packer.pyx
     pandas/msgpack/_unpacker.pyx
 
+    # pandas.tseries.converter and pandas.tseries.plotting are provided by ./matplotlib
 $(find pandas -name '*.py' | sort | indent)
 )
 

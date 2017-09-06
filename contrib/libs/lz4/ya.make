@@ -2,6 +2,10 @@
 
 LIBRARY(lz4)
 
+LICENSE(
+    BSD
+)
+
 
 
 VERSION(1.7.5)

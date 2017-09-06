@@ -2,6 +2,10 @@
 
 LIBRARY(zstd)
 
+LICENSE(
+    BSD
+)
+
 
 
 VERSION(1.1.2)

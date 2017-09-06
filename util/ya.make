@@ -378,7 +378,7 @@ ELSE()
 
     IF (OS_LINUX OR SUN OR CYGWIN OR OS_WINDOWS)
         SRCS(
-            system/freeBSD_mktemp.cpp
+            system/mktemp_system.cpp
         )
     ENDIF()
 ENDIF()

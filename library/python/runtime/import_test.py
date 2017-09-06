@@ -21,6 +21,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'common.*',  # sandbox.common
 
         'flask.ext.__init__',
+        'future.backports.email.policy',  # email backport is incomplete in v0.16.0.
 
         'gensim.models.lda_worker',
         'gensim.models.lda_dispatcher',

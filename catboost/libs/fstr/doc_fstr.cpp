@@ -71,7 +71,7 @@ static yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                                   const TAllFeatures& features,
                                                                   const yvector<yvector<yvector<double>>>& approx,
                                                                   TCommonContext* ctx) {
-    const int approxDimension = model.LeafValues[0].ysize();
+    const int approxDimension = model.ApproxDimension;
     const int docCount = approx[0][0].ysize();
     const int featureCount = features.CatFeatures.ysize() + features.FloatHistograms.ysize();
 
@@ -113,9 +113,9 @@ yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     TAllFeatures allFeatures;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.LocalExecutor, &allFeatures);
+    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
 
-    const int approxDimension = model.LeafValues[0].ysize();
+    const int approxDimension = model.ApproxDimension;
     const int docCount = pool.Docs.ysize();
 
     int treeCount = model.TreeStruct.ysize();

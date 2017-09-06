@@ -36,18 +36,20 @@ def log_fixup():
 
 
 def _cast_to_base_types(value):
-    if isinstance(value, ARRAY_TYPES):
+    # NOTE: Special case, avoiding new list creation.
+    if isinstance(value, list):
+        for index, element in enumerate(value):
+            value[index] = _cast_to_base_types(element)
+        return value
+    if isinstance(value, ARRAY_TYPES[1:]):
         new_value = []
-        for val in value:
-            val = _cast_to_base_types(val)
-            new_value.append(val)
+        for element in value:
+            new_value.append(_cast_to_base_types(element))
         return new_value
     if isinstance(value, (Mapping, MutableMapping)):
-        new_value = {}
-        for k, v in iteritems(value):
-            v = _cast_to_base_types(v)
-            new_value[k] = v
-        return new_value
+        for key in list(value):
+            value[key] = _cast_to_base_types(value[key])
+        return value
     if isinstance(value, bool):
         return value
     if isinstance(value, INTEGER_TYPES):
@@ -486,7 +488,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
             data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
-        elif not np.all(data.get_cat_feature_indices() == self._get_cat_feature_indices()):
+        elif not np.all(sorted(data.get_cat_feature_indices()) == sorted(self._get_cat_feature_indices())):
             raise CatboostError("data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
             raise CatboostError("data is empty.")
@@ -495,7 +497,7 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function = self.get_param('loss_function')
-        if loss_function is not None and loss_function == 'MultiClass':
+        if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_limit, verbose))
         predictions = np.array(self._base_predict(data, prediction_type, ntree_limit, verbose))
         if prediction_type == 'Probability':
@@ -729,6 +731,7 @@ class CatBoostClassifier(CatBoost):
             - 'Logloss'
             - 'CrossEntropy'
             - 'MultiClass'
+            - 'MultiClassOneVsAll'
     border : float, [default=None]
         Threshold of positive class.
         range: (0,1)
@@ -759,12 +762,22 @@ class CatBoostClassifier(CatBoost):
             - 'IncToDec'
             - 'Iter'
         For 'Iter' type od_pval must not be set.
-    counter_calc_method : string, [default=None]
-        The method used to calculate counters for test dataset with Counter type.
+        If None, then od_type=IncToDec.
+    nan_mode : string, [default=None]
+        Way to process nan-values.
         Possible values:
-            - 'Basic' - only objects up to current in the test dataset are considered
-            - 'Universal' - all objects are considered in the test dataset
-            - 'Static' - Objects from test dataset are not considered
+            - 'Forbidden' - raises an exception if there is nan value in dataset.
+            - 'Min' - each nan float feature will be processed as minimum value from dataset.
+            - 'Max' - each nan float feature will be processed as maximum value from dataset.
+        If None, then nan_mode=Forbidden.
+    counter_calc_method : string, [default=None]
+        The method used to calculate counters for dataset with Counter type.
+        Possible values:
+            - 'PrefixTest' - only objects up to current in the test dataset are considered
+            - 'FullTest' - all objects are considered in the test dataset
+            - 'SkipTest' - Objects from test dataset are not considered
+            - 'Full' - all objects are considered for both learn and test dataset
+        If None, then counter_calc_method=PrefixTest.
     gradient_iterations : int, [default=None]
         The number of steps in the gradient when calculating the values in the leaves.
         If None, then gradient_iterations=1.
@@ -886,6 +899,9 @@ class CatBoostClassifier(CatBoost):
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not
         work, because visualisation uses files that are created and updated during training.
+    approx_on_full_history : bool, [default=False]
+        If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
+        If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
     """
     def __init__(
         self,
@@ -902,6 +918,7 @@ class CatBoostClassifier(CatBoost):
         od_pval=None,
         od_wait=None,
         od_type=None,
+        nan_mode=None,
         counter_calc_method=None,
         gradient_iterations=None,
         leaf_estimation_method=None,
@@ -932,15 +949,16 @@ class CatBoostClassifier(CatBoost):
         used_ram_limit=None,
         feature_priors=None,
         allow_writing_files=None,
+        approx_on_full_history=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
-                                "Logloss, CrossEntropy, MultiClass, AUC, Accuracy, Precision, Recall, F1 or custom objective object".format(loss_function))
+                                "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
         params = {}
         params["kwargs"] = kwargs
         not_params = ["not_params", "self", "params", "kwargs", "__class__"]
-        for key, value in iteritems(locals()):
+        for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
         super(CatBoostClassifier, self).__init__(params)
@@ -1156,6 +1174,7 @@ class CatBoostRegressor(CatBoost):
         od_pval=None,
         od_wait=None,
         od_type=None,
+        nan_mode=None,
         counter_calc_method=None,
         gradient_iterations=None,
         leaf_estimation_method=None,
@@ -1186,6 +1205,7 @@ class CatBoostRegressor(CatBoost):
         used_ram_limit=None,
         feature_priors=None,
         allow_writing_files=None,
+        approx_on_full_history=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
@@ -1193,7 +1213,7 @@ class CatBoostRegressor(CatBoost):
         params = {}
         params["kwargs"] = kwargs
         not_params = ["not_params", "self", "params", "kwargs", "__class__"]
-        for key, value in iteritems(locals()):
+        for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
         super(CatBoostRegressor, self).__init__(params)

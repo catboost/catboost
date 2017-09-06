@@ -232,59 +232,103 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
     CalcNormalization(priors, &shift, &norm);
     Y_ASSERT(docCount >= data.LearnSampleCount);
 
-    int denominator = 0;
-    if (counterCalc == ECounterCalc::Universal) {
-        auto CalcInlineCTR = [&](int firstPos, int lastPos) {
-            for (int docId = firstPos; docId < lastPos; ++docId) {
-                const auto bucketId = enumeratedCatFeatures[docId];
-                ++ctrArrTotal[bucketId];
-                denominator = Max(denominator, ctrArrTotal[bucketId]);
+    enum ECalcMode {
+        Prefix,
+        Skip,
+        Full
+    };
+
+    auto CalcCTRs = [](const yvector<ui64>& enumeratedCatFeatures,
+                       const yvector<float>& priors,
+                       const yvector<float>& shift,
+                       const yvector<float>& norm,
+                       int ctrBorderCount,
+                       int firstId, int lastId, ECalcMode mode,
+                       int* denominator,
+                       int* ctrArrTotal,
+                       TArray2D<yvector<ui8>>* feature) {
+        int currentDenominator = *denominator;
+
+        if (mode == ECalcMode::Full) {
+            for (int docId = firstId; docId < lastId; ++docId) {
+                const auto elemId = enumeratedCatFeatures[docId];
+                ++ctrArrTotal[elemId];
+                currentDenominator = Max(currentDenominator, ctrArrTotal[elemId]);
             }
-            for (int prior = 0; prior < priors.ysize(); ++prior) {
-                const float priorX = priors[prior];
-                const float shiftX = shift[prior];
-                const float normX = norm[prior];
-                ui8* featureData = (*feature)[0][prior].data();
-                for (int docId = firstPos; docId < lastPos; ++docId) {
-                    const auto bucketId = enumeratedCatFeatures[docId];
-                    featureData[docId] = CalcCTR(ctrArrTotal[bucketId], denominator, priorX,
-                                                 shiftX, normX, ctrBorderCount);
-                }
-            }
-        };
-        CalcInlineCTR(0, data.LearnSampleCount);
-        CalcInlineCTR(data.LearnSampleCount, docCount);
-    } else {
-        for (int docId = 0; docId < data.LearnSampleCount; ++docId) {
-            const auto bucketId = enumeratedCatFeatures[docId];
-            ++ctrArrTotal[bucketId];
-            denominator = Max(denominator, ctrArrTotal[bucketId]);
         }
 
         const int blockSize = 1000;
         yvector<int> ctrTotal(blockSize);
         yvector<int> ctrDenominator(blockSize);
-        for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-            const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
-            for (int docId = blockStart; docId < nextBlockStart; ++docId) {
+        for (int blockStart = firstId; blockStart < lastId; blockStart += blockSize) {
+            const int blockEnd = Min(lastId, blockStart + blockSize);
+            for (int docId = blockStart; docId < blockEnd; ++docId) {
                 const auto elemId = enumeratedCatFeatures[docId];
-                if (docId >= data.LearnSampleCount && counterCalc == ECounterCalc::Basic) {
+                if (mode == ECalcMode::Prefix) {
                     ++ctrArrTotal[elemId];
-                    denominator = Max(denominator, ctrArrTotal[elemId]);
+                    currentDenominator = Max(currentDenominator, ctrArrTotal[elemId]);
                 }
                 ctrTotal[docId - blockStart] = ctrArrTotal[elemId];
-                ctrDenominator[docId - blockStart] = denominator;
+                ctrDenominator[docId - blockStart] = currentDenominator;
             }
+
             for (int prior = 0; prior < priors.ysize(); ++prior) {
                 const float priorX = priors[prior];
                 const float shiftX = shift[prior];
                 const float normX = norm[prior];
                 ui8* featureData = (*feature)[0][prior].data();
-                for (int docId = blockStart; docId < nextBlockStart; ++docId) {
-                    featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], ctrDenominator[docId - blockStart], priorX,
-                                                 shiftX, normX, ctrBorderCount);
+                for (int docId = blockStart; docId < blockEnd; ++docId) {
+                    featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], ctrDenominator[docId - blockStart], priorX, shiftX, normX, ctrBorderCount);
                 }
             }
+        }
+
+        *denominator = currentDenominator;
+    };
+
+    int denominator = 0;
+    if (counterCalc == ECounterCalc::Full) {
+        CalcCTRs(enumeratedCatFeatures,
+                 priors, shift, norm,
+                 ctrBorderCount,
+                 0, docCount, ECalcMode::Full,
+                 &denominator,
+                 ctrArrTotal,
+                 feature);
+    } else {
+        CalcCTRs(enumeratedCatFeatures,
+                 priors, shift, norm,
+                 ctrBorderCount,
+                 0, data.LearnSampleCount, ECalcMode::Full,
+                 &denominator,
+                 ctrArrTotal,
+                 feature);
+        if (counterCalc == ECounterCalc::FullTest) {
+            CalcCTRs(enumeratedCatFeatures,
+                     priors, shift, norm,
+                     ctrBorderCount,
+                     data.LearnSampleCount, docCount, ECalcMode::Full,
+                     &denominator,
+                     ctrArrTotal,
+                     feature);
+        } else if (counterCalc == ECounterCalc::PrefixTest) {
+            CalcCTRs(enumeratedCatFeatures,
+                     priors, shift, norm,
+                     ctrBorderCount,
+                     data.LearnSampleCount, docCount, ECalcMode::Prefix,
+                     &denominator,
+                     ctrArrTotal,
+                     feature);
+        } else if (counterCalc == ECounterCalc::SkipTest) {
+            CalcCTRs(enumeratedCatFeatures,
+                     priors, shift, norm,
+                     ctrBorderCount,
+                     data.LearnSampleCount, docCount, ECalcMode::Skip,
+                     &denominator,
+                     ctrArrTotal,
+                     feature);
+        } else {
+            Y_ASSERT(false);
         }
     }
 }

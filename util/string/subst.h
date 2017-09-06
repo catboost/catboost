@@ -7,8 +7,8 @@
 namespace NSubst {
     namespace NPrivate {
         // a bit of template magic (to be fast and unreadable)
-        template <class TStroka, class TTo, bool Main>
-        static Y_FORCE_INLINE void MoveBlock(typename TStroka::value_type* ptr, size_t& srcPos, size_t& dstPos, const size_t off, const TTo& to, const size_t toSize) {
+        template <class TStringType, class TTo, bool Main>
+        static Y_FORCE_INLINE void MoveBlock(typename TStringType::value_type* ptr, size_t& srcPos, size_t& dstPos, const size_t off, const TTo& to, const size_t toSize) {
             const size_t unchangedSize = off - srcPos;
             if (dstPos < srcPos) {
                 for (size_t i = 0; i < unchangedSize; ++i) {
@@ -33,8 +33,8 @@ namespace NSubst {
  * Uses two separate implementations (inplace for shrink and append for grow case)
  * See IGNIETFERRO-394
  **/
-template <class TStroka, class TFrom, class TTo>
-inline size_t SubstGlobalImpl(TStroka& s, const TFrom& from, const TTo& to, size_t fromPos = 0) {
+template <class TStringType, class TFrom, class TTo>
+inline size_t SubstGlobalImpl(TStringType& s, const TFrom& from, const TTo& to, size_t fromPos = 0) {
     if (!from) {
         return 0;
     }
@@ -46,8 +46,8 @@ inline size_t SubstGlobalImpl(TStroka& s, const TFrom& from, const TTo& to, size
 
     if (toSize > fromSize) {
         // string will grow: append to another string
-        TStroka result;
-        for (; (off = s.find(from, off)) != TStroka::npos; off += fromSize) {
+        TStringType result;
+        for (; (off = s.find(from, off)) != TStringType::npos; off += fromSize) {
             if (!replacementsCount) {
                 // first replacement occured, we can prepare result string
                 result.reserve(s.size() + s.size() / 3);
@@ -67,25 +67,25 @@ inline size_t SubstGlobalImpl(TStroka& s, const TFrom& from, const TTo& to, size
 
     // string will not grow: use inplace algo
     size_t dstPos = 0;
-    typename TStroka::value_type* ptr = s.begin();
-    for (; (off = s.find(from, off)) != TStroka::npos; off += fromSize) {
+    typename TStringType::value_type* ptr = s.begin();
+    for (; (off = s.find(from, off)) != TStringType::npos; off += fromSize) {
         Y_ASSERT(dstPos <= srcPos);
-        NSubst::NPrivate::MoveBlock<TStroka, TTo, true>(ptr, srcPos, dstPos, off, to, toSize);
+        NSubst::NPrivate::MoveBlock<TStringType, TTo, true>(ptr, srcPos, dstPos, off, to, toSize);
         srcPos = off + fromSize;
         ++replacementsCount;
     }
 
     if (replacementsCount) {
         // append tail
-        NSubst::NPrivate::MoveBlock<TStroka, TTo, false>(ptr, srcPos, dstPos, s.size(), to, toSize);
+        NSubst::NPrivate::MoveBlock<TStringType, TTo, false>(ptr, srcPos, dstPos, s.size(), to, toSize);
         s.resize(dstPos);
     }
     return replacementsCount;
 }
 
-template <class TStroka, class TFrom, class TTo>
-inline size_t SubstGlobal(TStroka& s, const TFrom& from, const TTo& to, size_t fromPos = 0) {
-    return SubstGlobalImpl(s, typename TToStringBuf<TStroka>::TType(from), typename TToStringBuf<TStroka>::TType(to), fromPos);
+template <class TStringType, class TFrom, class TTo>
+inline size_t SubstGlobal(TStringType& s, const TFrom& from, const TTo& to, size_t fromPos = 0) {
+    return SubstGlobalImpl(s, typename TToStringBuf<TStringType>::TType(from), typename TToStringBuf<TStringType>::TType(to), fromPos);
 }
 
 inline size_t SubstGlobal(TString& s, const TString& from, const TString& to, size_t fromPos = 0) {
@@ -93,8 +93,8 @@ inline size_t SubstGlobal(TString& s, const TString& from, const TString& to, si
 }
 
 /// Replaces all occurences of the 'from' symbol in a string to the 'to' symbol.
-template <class TStroka>
-inline size_t SubstCharGlobalImpl(TStroka& s, typename TStroka::char_type from, typename TStroka::char_type to, size_t fromPos = 0) {
+template <class TStringType>
+inline size_t SubstCharGlobalImpl(TStringType& s, typename TStringType::char_type from, typename TStringType::char_type to, size_t fromPos = 0) {
     if (fromPos >= s.size()) {
         return 0;
     }
@@ -103,7 +103,7 @@ inline size_t SubstCharGlobalImpl(TStroka& s, typename TStroka::char_type from, 
     fromPos = s.find(from, fromPos);
 
     // s.begin() might cause memory copying, so call it only if needed
-    if (fromPos != TStroka::npos) {
+    if (fromPos != TStringType::npos) {
         auto* it = s.begin() + fromPos;
         *it = to;
         ++result;

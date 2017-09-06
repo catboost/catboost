@@ -84,9 +84,9 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
               "This prediction type is supported only for classification: " << ToString<EPredictionType>(predictionType));
 
     TAllFeatures features;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.LocalExecutor, &features);
+    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &features);
 
-    int approxDimension = model.LeafValues[0].ysize();
+    int approxDimension = model.ApproxDimension;
     yvector<yvector<double>> approx = MapFunctionToTrees(model, features, begin, end, CalcApproxForTree, approxDimension, &ctx);
     approx = PrepareEval(predictionType, approx, &ctx.LocalExecutor);
     SetSilentLogingMode();

@@ -14,7 +14,7 @@
 #include <Windows.h>
 #endif
 
-static TString ModeToString(const int mode) {
+static TString ModeToString(const EProtectMemory mode) {
     TString strMode;
     if (mode == PM_NONE)
         return "PM_NONE";
@@ -28,8 +28,8 @@ static TString ModeToString(const int mode) {
     return strMode.substr(0, +strMode - 1);
 }
 
-void ProtectMemory(void* addr, const size_t length, const int mode) {
-    Y_VERIFY(0 == (mode & ~(PM_READ | PM_WRITE | PM_EXEC)), "Invalid memory protection flag combination. ");
+void ProtectMemory(void* addr, const size_t length, const EProtectMemory mode) {
+    Y_VERIFY(!(mode & ~(PM_READ | PM_WRITE | PM_EXEC)), "Invalid memory protection flag combination. ");
 
 #if defined(_unix_) || defined(_darwin_)
     int mpMode = PROT_NONE;
@@ -53,7 +53,7 @@ void ProtectMemory(void* addr, const size_t length, const int mode) {
      * memory protection. As we don't know, what behavior is more correct, we choose
      * one of them. A discussion was here: REVIEW: 39725
      */
-    switch (mode) {
+    switch (mode.ToBaseType()) {
         case PM_READ:
             mpMode = PAGE_READONLY;
             break;

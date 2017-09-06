@@ -220,6 +220,8 @@ void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
 
     // compute tail
     if (ctx->Params.ApproxOnPartialHistory) {
+        UpdateApproxDeltas(curLeafValues, indices, bt.TailFinish, ctx, resArr);
+    } else {
         UpdateApproxDeltas(curLeafValues, indices, bt.BodyFinish, ctx, resArr);
 
         CalcShiftedApproxDers(bt.BodyFinish, bt.TailFinish, bt.Approx[0], *resArr, target, weight, error, scratchDers, scratchApprox, ctx);
@@ -235,8 +237,6 @@ void CalcApproxDeltaIteration(const yvector<TIndexType>& indices,
             double avrg = CalcModel<type>(bucket, iteration, l2Regularizer);
             resArrData[z] += avrg;
         }
-    } else {
-        UpdateApproxDeltas(curLeafValues, indices, bt.TailFinish, ctx, resArr);
     }
 }
 
@@ -338,7 +338,7 @@ void CalcApproxDelta(const TFold& ff,
         const int leafCount = GetLeafCount(tree);
 
         if (approxDimension == 1) {
-            const int scratchSize = Max(ctx->Params.ApproxOnPartialHistory ? bt.TailFinish - bt.BodyFinish : 0, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
+            const int scratchSize = Max(ctx->Params.ApproxOnPartialHistory ? 0 : bt.TailFinish - bt.BodyFinish, APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
             yvector<TDer1Der2> scratchDers;
             scratchDers.yresize(scratchSize);
             yvector<double> scratchApprox;

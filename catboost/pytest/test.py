@@ -9,6 +9,52 @@ from catboost_pytest_lib import data_file, local_canonical_file
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
 
+NAN_MODE = ['Min', 'Max']
+
+
+@pytest.mark.parametrize('nan_mode', NAN_MODE)
+def test_nan_mode(nan_mode):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult_nan', 'train_small'),
+        '-t', data_file('adult_nan', 'test_small'),
+        '--column-description', data_file('adult_nan', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--nan-mode', nan_mode
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_nan_mode_forbidden():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--nan-mode', 'Forbidden'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_overfit_detector_iter():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -19,28 +65,24 @@ def test_overfit_detector_iter():
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
-        '-i', '1000',
+        '-i', '2000',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
         '-n', '8',
-        '-w', '1',
+        '-w', '0.5',
         '--rsm', '1',
         '--overfitting-detector-type', 'Iter',
-        '--overfitting-detector-iterations-wait', '10'
+        '--overfitting-detector-iterations-wait', '1'
     )
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
 
 
-DETECTOR_TYPES = ['Wilcoxon', 'IncToDec']
-
-
-@pytest.mark.parametrize('detector_type', DETECTOR_TYPES)
-def test_overfit_detector_types(detector_type):
+def test_overfit_detector_inc_to_dec():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -51,18 +93,18 @@ def test_overfit_detector_types(detector_type):
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
-        '-i', '1000',
+        '-i', '2000',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
         '-n', '8',
-        '-w', '1',
+        '-w', '0.5',
         '--rsm', '1',
-        '--od-pval', '0.99',
-        '--od-type', detector_type,
-        '--od-wait', '10'
+        '--od-pval', '0.5',
+        '--od-type', 'IncToDec',
+        '--od-wait', '1'
     )
     yatest.common.execute(cmd)
 
@@ -457,13 +499,16 @@ def test_custom_priors():
         'fit',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '--priors', '-2:0:8',
-        '--feature-priors', '0:1,1:2,2:-1:0',
+        '--priors', '-2:0:8:1:-1:3',
+        '--ctr-priors', '0:0.111,1:0.222',
+        '--feature-priors', '4:0.444,6:0.666,8:-0.888:0.888',
+        '--feature-ctr-priors', '4:0:0.4040,8:1:0.8181',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -725,7 +770,7 @@ def test_target_border(border_type):
     return [local_canonical_file(output_eval_path)]
 
 
-COUNTER_METHODS = ['Basic', 'Static', 'Universal']
+COUNTER_METHODS = ['Full', 'FullTest', 'PrefixTest', 'SkipTest']
 
 
 @pytest.mark.parametrize('counter_calc_method', COUNTER_METHODS)
@@ -740,7 +785,7 @@ def test_counter_calc(counter_calc_method):
         '-f', data_file('adult_crossentropy', 'train_proba'),
         '-t', data_file('adult_crossentropy', 'test_proba'),
         '--column-description', data_file('adult_crossentropy', 'train.cd'),
-        '-i', '3',
+        '-i', '60',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
@@ -823,7 +868,7 @@ def test_custom_loss_for_classification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1',
+        '--custom-loss', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -849,7 +894,7 @@ def test_custom_loss_for_multiclassification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll',
+        '--custom-loss', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )

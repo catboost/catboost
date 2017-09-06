@@ -425,6 +425,8 @@ public:
     }
 
     inline TCharType operator[](size_t pos) const noexcept {
+        Y_ASSERT(pos < this->Size());
+
         return at(pos);
     }
 
@@ -730,9 +732,15 @@ protected:
     }
 
 public:
-    using TBase::operator[];
+    inline TCharType operator[](size_t pos) const noexcept {
+        Y_ASSERT(pos <= length());
+
+        return this->at(pos);
+    }
 
     inline TCharRef operator[](size_t pos) noexcept {
+        Y_ASSERT(pos <= length());
+
         if (Y_LIKELY(pos <= length())) {
             return TCharRef(*This(), pos);
         }

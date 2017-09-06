@@ -69,6 +69,7 @@ static void PrepareFolds(
             contexts[testFoldIdx]->Params.IgnoredFeatures,
             fold.LearnSampleCount,
             contexts[testFoldIdx]->Params.OneHotMaxSize,
+            contexts[testFoldIdx]->Params.NanMode,
             contexts[testFoldIdx]->LocalExecutor,
             &fold.AllFeatures);
 
@@ -149,12 +150,11 @@ void CrossValidate(
     float maxTarget = *MaxElement(targets.begin(), targets.end());
     CB_ENSURE(minTarget != maxTarget, "All targets are equal");
 
-    int approxDimension = 1;
     if (IsMultiClassError(ctx->Params.LossFunction)) {
         CB_ENSURE(AllOf(pool.Docs, [] (const TDocInfo& doc) { return floor(doc.Target) == doc.Target && doc.Target >= 0; }),
                   "Each target label should be non-negative integer for Multiclass/MultiClassOneVsAll loss function");
-        approxDimension = GetClassesCount(targets, ctx->Params.ClassesCount);
-        CB_ENSURE(approxDimension > 1, "All targets are equal");
+        ctx->LearnProgress.Model.ApproxDimension = GetClassesCount(targets, ctx->Params.ClassesCount);
+        CB_ENSURE(ctx->LearnProgress.Model.ApproxDimension > 1, "All targets are equal");
     }
 
     TRestorableFastRng64 rand(cvParams.RandSeed);
@@ -178,10 +178,10 @@ void CrossValidate(
     PrepareFolds(pool, contexts, cvParams, &folds);
 
     for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
-        contexts[foldIdx]->InitData(folds[foldIdx], approxDimension);
+        contexts[foldIdx]->InitData(folds[foldIdx]);
     }
 
-    yvector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params, approxDimension);
+    yvector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params, ctx->LearnProgress.Model.ApproxDimension);
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), /* hasTest */ true, ctx.Get());
 
     auto calcFoldError = [&] (size_t foldIndex, int begin, int end, const THolder<IMetric>& metric) {
@@ -237,7 +237,7 @@ void CrossValidate(
 
         if (cvParams.EnableEarlyStopping && errorTracker.GetIsNeedStop()) {
             MATRIXNET_INFO_LOG << "Stopped by overfitting detector with threshold "
-                               << errorTracker.GetOverfittingDetectorThreshold() << Endl;
+                               << errorTracker.GetOverfittingDetectorThreshold() << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
     }

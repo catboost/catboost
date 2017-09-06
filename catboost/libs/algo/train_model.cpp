@@ -40,8 +40,14 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
                 yvector<yvector<double>>* testApprox) {
     CB_ENSURE(!learnPool.Docs.empty(), "Train dataset is empty");
 
+    auto sortedCatFeatures = learnPool.CatFeatures;
+    Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
+
     if (!testPool.Docs.empty()) {
-        CB_ENSURE(learnPool.CatFeatures == testPool.CatFeatures, "Cat features in train and test should be the same.");
+        auto catFeaturesTest = testPool.CatFeatures;
+        Sort(catFeaturesTest.begin(), catFeaturesTest.end());
+
+        CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
     }
     if ((modelPtr == nullptr) == outputModelPath.empty()) {
         if (modelPtr == nullptr) {
@@ -57,7 +63,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         objectiveDescriptor,
         evalMetricDescriptor,
         featureCount,
-        learnPool.CatFeatures,
+        sortedCatFeatures,
         learnPool.FeatureId);
 
     if (ctx.Params.Verbose) {
@@ -122,14 +128,13 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         CB_ENSURE(maxTarget == 1, "All targets are smaller than border");
     }
 
-    int approxDimension = 1;
     if (IsMultiClassError(ctx.Params.LossFunction)) {
         CB_ENSURE(AllOf(trainData.Target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
-        approxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
-        CB_ENSURE(approxDimension > 1, "All targets are equal");
+        ctx.LearnProgress.Model.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
+        CB_ENSURE(ctx.LearnProgress.Model.ApproxDimension > 1, "All targets are equal");
     }
 
-    ctx.OutputMeta(approxDimension);
+    ctx.OutputMeta();
 
     if (!ctx.Params.ClassWeights.empty()) {
         int dataSize = trainData.Target.ysize();
@@ -139,7 +144,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         }
     }
 
-    ctx.InitData(trainData, approxDimension);
+    ctx.InitData(trainData);
 
     ctx.LearnProgress.Model.Borders = GenerateBorders(learnPool.Docs, &ctx);
 
@@ -157,6 +162,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         ctx.Params.IgnoredFeatures,
         trainData.LearnSampleCount,
         ctx.Params.OneHotMaxSize,
+        ctx.Params.NanMode,
         ctx.LocalExecutor,
         &trainData.AllFeatures);
 
@@ -174,12 +180,12 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
     } else { // Learn weight sum should be equal to learn sample count
         CB_ENSURE(minWeight > 0, "weights should be positive");
     }
-    ctx.LearnProgress.Model.CatFeatures = learnPool.CatFeatures;
+    ctx.LearnProgress.Model.CatFeatures = sortedCatFeatures;
     ctx.LearnProgress.Model.FeatureIds = learnPool.FeatureId;
 
     DumpMemUsage("Before start train");
 
-    testApprox->resize(approxDimension);
+    testApprox->resize(ctx.LearnProgress.Model.ApproxDimension);
 
     TTrainFunc trainFunc;
     switch (ctx.Params.LossFunction) {

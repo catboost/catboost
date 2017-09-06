@@ -21,8 +21,8 @@ inline static int Char2Digit(char ch) {
 }
 
 //! Convert a hex string of exactly 2 chars to int
-/*! @example Stroka2Byte("10") => 16 */
-inline static int Stroka2Byte(const char* s) {
+/*! @example String2Byte("10") => 16 */
+inline static int String2Byte(const char* s) {
     return Char2Digit(*s) * 16 + Char2Digit(*(s + 1));
 }
 

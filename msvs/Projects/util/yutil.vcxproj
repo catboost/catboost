@@ -99,8 +99,8 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\random\random.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\string\cast.cc"/>
-    <ClCompile Include="$(SolutionDir)..\util\system\freeBSD_mktemp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\fs_win.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\util\system\mktemp_system.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\strlcpy.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>

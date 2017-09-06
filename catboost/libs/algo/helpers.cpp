@@ -36,14 +36,30 @@ yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLear
         const auto floatFeatureIdx = floatIndexes[idx];
 
         yvector<float> vals;
+
+        bool foundNan = false;
         for (int i = 0; i < docInfos.ysize(); ++i) {
-            vals.push_back(docInfos[i].Factors[floatFeatureIdx]);
+            if (!IsNan(docInfos[i].Factors[floatFeatureIdx])) {
+                vals.push_back(docInfos[i].Factors[floatFeatureIdx]);
+            } else {
+                foundNan = true;
+            }
         }
         Sort(vals.begin(), vals.end());
 
         yhash_set<float> borderSet = BestSplit(vals, borderCount, borderType);
         yvector<float> borders(borderSet.begin(), borderSet.end());
         Sort(borders.begin(), borders.end());
+        if (foundNan) {
+            if (ctx->Params.NanMode == ENanMode::Min) {
+                borders.insert(borders.begin(), std::numeric_limits<float>::lowest());
+            } else if (ctx->Params.NanMode == ENanMode::Max) {
+                borders.push_back(std::numeric_limits<float>::max());
+            } else {
+                Y_ASSERT(ctx->Params.NanMode == ENanMode::Forbidden);
+                CB_ENSURE(false, "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
+            }
+        }
         res[idx].swap(borders);
     };
     size_t nReason = 0;

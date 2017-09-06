@@ -4,6 +4,7 @@
 #include <catboost/libs/algo/train_model.h>
 #include <catboost/libs/algo/calc_fstr.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/logging/logging.h>
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
@@ -12,14 +13,19 @@
 #include <Rinternals.h>
 
 
-#define R_API_BEGIN()                           \
-    try {                                       \
+#define R_API_BEGIN()                                               \
+    SetCustomLoggingFunction([](const char* str, size_t len) {      \
+        TString slicedStr(str, 0, len);                             \
+        Rprintf("%s", slicedStr.c_str());                           \
+    });                                                             \
+    try {                                                           \
 
 
-#define R_API_END()                             \
-    } catch (std::exception& e) {               \
-        error(e.what());                        \
-    }                                           \
+#define R_API_END()                                                 \
+    } catch (std::exception& e) {                                   \
+        error(e.what());                                            \
+    }                                                               \
+    RestoreOriginalLogger();                                        \
 
 
 typedef TPool* TPoolHandle;

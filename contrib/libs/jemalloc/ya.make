@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    BSD2
+)
+
 # Version: 3.6.0
 
 

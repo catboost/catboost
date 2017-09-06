@@ -296,6 +296,9 @@ class _Execution(object):
             raise ExecutionError(self)
 
         # Don't search for sanitize errors if stderr was redirected
+        self.verify_sanitize_errors()
+
+    def verify_sanitize_errors(self):
         if self._std_err and self._check_sanitizer and runtime._get_ya_config().sanitizer_extra_checks:
             build_path = runtime.build_path()
             if self.command[0].startswith(build_path):
@@ -303,6 +306,7 @@ class _Execution(object):
                 if match:
                     yatest_logger.error("%s sanitizer found errors:\n\tstd_err:%s\n", match.group(1), truncate(self.std_err, MAX_OUT_LEN))
                     raise ExecutionError(self)
+                else:
                     yatest_logger.debug("No sanitizer errors found")
             else:
                 yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)

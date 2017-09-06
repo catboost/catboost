@@ -201,7 +201,29 @@ def process_all_coverage_files(gcda_archive, fname2gcno, fname2info, geninfo_exe
                             gen_info(geninfo_cmd, coverage_info)
 
 
-def main(source_root, output, gcno_archive, gcda_archive, gcov_tool, prefix_filter, exclude_regexp, teamcity_stat_output, coverage_report_path):
+def gen_gcov_report(output, gcov_tool, gcovr_script, prefix_filter, exclude_regexp):
+    cmd = [
+        gcovr_script,
+        '-r', os.getcwd(),
+        '--object-directory', os.getcwd(),
+        '-x',
+        '--gcov-executable', gcov_tool,
+        '-b',
+        '--exclude-unreachable-branches',
+    ]
+    if prefix_filter:
+        cmd += ['-f', '.*' + prefix_filter + '.*']
+    else:
+        cmd += ['.*']
+    if exclude_regexp:
+        cmd += ['-e', exclude_regexp]
+    p = subprocess.Popen(cmd, stdout=open(output, 'w'), stderr=subprocess.PIPE)
+    _, err = p.communicate()
+    if p.returncode:
+        raise Exception('gcovr failed with exit code {}\nstderr: {}'.format(p.returncode, err))
+
+
+def main(source_root, output, gcno_archive, gcda_archive, gcov_tool, prefix_filter, exclude_regexp, teamcity_stat_output, coverage_report_path, gcov_report, gcovr_script):
     exclude_files = re.compile(exclude_regexp) if exclude_regexp else None
 
     fname2gcno = {}
@@ -235,6 +257,9 @@ def main(source_root, output, gcno_archive, gcda_archive, gcov_tool, prefix_filt
         teamcity_stat_file = os.path.join(output_dir, 'teamcity.out')
     print_stat(da, fnda, teamcity_stat_file)
 
+    if gcov_report:
+        gen_gcov_report(gcov_report, gcov_tool, gcovr_script, prefix_filter, exclude_regexp)
+
     if lcov_args:
         output_trace = "combined.info"
         combine_info_files(os.path.join(source_root, 'devtools', 'lcov', 'lcov'), lcov_args, output_trace)
@@ -258,6 +283,8 @@ if __name__ == '__main__':
     parser.add_argument('--exclude-regexp', action='store')
     parser.add_argument('--teamcity-stat-output', action='store_const', const=True)
     parser.add_argument('--coverage-report-path', action='store')
+    parser.add_argument('--gcov-report', action='store')
+    parser.add_argument('--gcovr-script', action='store')
 
     args = parser.parse_args()
     main(**vars(args))

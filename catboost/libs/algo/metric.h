@@ -175,6 +175,16 @@ struct TTotalF1Metric : public TMetric {
     virtual bool IsMaxOptimal() const override;
 };
 
+struct TMCCMetric : public TMetric {
+    virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+};
+
 struct TAccuracyMetric: public TMetric {
     virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
                               const yvector<float>& target,

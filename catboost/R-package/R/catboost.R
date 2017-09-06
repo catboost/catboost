@@ -357,6 +357,7 @@ catboost.head <- function(pool, n = 10) {
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
 #'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
 #'       }
@@ -393,10 +394,14 @@ catboost.head <- function(pool, n = 10) {
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
 #'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
 #'         \item 'Recall'
 #'         \item 'Precision'
+#'         \item 'F1'
+#'         \item 'TotalF1'
+#'         \item 'MCC'
 #'         \item 'AUC'
 #'         \item 'Accuracy'
 #'         \item 'R2'
@@ -431,10 +436,14 @@ catboost.head <- function(pool, n = 10) {
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
 #'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
 #'         \item 'Recall'
 #'         \item 'Precision'
+#'         \item 'F1'
+#'         \item 'TotalF1'
+#'         \item 'MCC'
 #'         \item 'AUC'
 #'         \item 'Accuracy'
 #'         \item 'R2'
@@ -522,6 +531,22 @@ catboost.head <- function(pool, n = 10) {
 #'       Default value:
 #'
 #'       A new random value is selected on each run
+#'
+#'    \item nan_mode
+#'
+#'       Way to process nan-values.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item \code{'Min'}
+#'         \item \code{'Max'}
+#'         \item \code{'Forbidden'}
+#'       }
+#'
+#'       Default value:
+#'
+#'       \code{'Forbidden'}
+#'
 #'     \item od_pval
 #'
 #'       Use the Overfitting detector (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/overfitting-detector-docpage/#overfitting-detector})
@@ -725,7 +750,7 @@ catboost.head <- function(pool, n = 10) {
 #'   }
 #'   \item CTR settings
 #'   \itemize{
-#'     \item ctr
+#'     \item ctr_description
 #'
 #'       Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
 #'
@@ -741,8 +766,7 @@ catboost.head <- function(pool, n = 10) {
 #'           \item \code{'Borders'}
 #'           \item \code{'Buckets'}
 #'           \item \code{'MeanValue'}
-#'           \item \code{'CounterTotal'}
-#'           \item \code{'CounterMax'}
+#'           \item \code{'Counter'}
 #'         }
 #'         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
 #'         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
@@ -763,6 +787,19 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       Default value:
 #'
+#'     \item counter_calc_method
+#'
+#'       The method for calculating the Counter CTR type for the test dataset.
+#'
+#'       Possible values:
+#'         \itemize{
+#'           \item \code{'Full'}
+#'           \item \code{'FullTest'}
+#'           \item \code{'PrefixTest'}
+#'           \item \code{'SkipTest'}
+#'         }
+#'
+#'         Default value: \code{'PrefixTest'}
 #'     \item ctr_border_count
 #'
 #'       The number of splits for categorical features.
@@ -871,6 +908,14 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       None (current catalog)
 #'
+#'     \item save_snapshot
+#'
+#'       Enable snapshotting for restoring the training progress after an interruption.
+#'
+#'       Default value:
+#'
+#'       None
+#'
 #'     \item snapshot_file
 #'
 #'       Settings for recovering training after an interruption (see
@@ -895,6 +940,15 @@ catboost.head <- function(pool, n = 10) {
 #'       Default value:
 #'
 #'       TRUE
+#'
+#'   \item approx_on_full_history
+#'
+#'       If this flag is set to TRUE, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
+#'       If this flag is set to FALSE, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
+#'
+#'       Default value:
+#'
+#'       FALSE
 #'   }
 #' }
 #'
@@ -950,6 +1004,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), calc_i
   if (calc_importance) {
     model$var_imp <- catboost.importance(model, learn_pool)
   }
+  model$tree_count <- catboost.ntrees(model)
   return(model)
 }
 
@@ -1041,6 +1096,60 @@ catboost.predict <- function(model, pool,
     prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
   }
   return(prediction)
+}
+
+#' catboost.staged_predict
+#'
+#' Apply the model to the given dataset and calculate the results for each i-th tree of the model taking into consideration only the trees in the range [1;i].
+#'
+#' Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+#' Each line of this matrix contains the predictions for one object of the input dataset.
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The input dataset.
+#'
+#' Default value: Required argument
+#' @param verbose Verbose output to stdout.
+#'
+#' Default value: FALSE (not used)
+#' @param type The format for displaying approximated values in output data
+#' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'Probability'
+#'   \item 'Class'
+#'   \item 'RawFormulaVal'
+#' }
+#'
+#' Default value: 'RawFormulaVal'
+#' @param thread_count The number of threads to use when applying the model.
+#'
+#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
+#'
+#' Default value: 1
+#' @export
+#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
+catboost.staged_predict <- function(model, pool, verbose = FALSE,
+                                    type = 'RawFormulaVal', thread_count = 1) {
+  if (class(model) != "catboost.Model")
+      stop("Expected catboost.Model, got: ", class(model))
+  if (class(pool) != "catboost.Pool")
+      stop("Expected catboost.Pool, got: ", class(pool))
+
+  current_tree_count <- 0
+  preds <- function() {
+      current_tree_count <<- current_tree_count + 1
+      if (current_tree_count > model$tree_count) {
+          stop('StopIteration')
+      }
+      catboost.predict(model, pool, verbose, type, current_tree_count, thread_count)
+  }
+
+  obj <- list(nextElem = preds)
+  class(obj) <- c('catboost.staged_predict', 'abstractiter', 'iter')
+  return(obj)
 }
 
 #' catboost.importance

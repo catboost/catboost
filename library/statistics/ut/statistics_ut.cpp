@@ -424,6 +424,18 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT(exceptionCaught);
     }
 
+    SIMPLE_UNIT_TEST(KolmogorovSmirnovHistogramStatistics) {
+        yvector <double> p;
+        yvector <double> q;
+        p = {1, 2, 1};
+        q = {1, 0, 3};
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KolmogorovSmirnovHistogramStatistics(p.begin(), p.end(), q.begin(), q.end()), 0.5, 1e-5);
+        p = {3, 5, 12, 8, 7};
+        q = {2, 3, 7, 15, 2};
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KolmogorovSmirnovHistogramStatistics(p.begin(), p.end(), q.begin(), q.end()), 0.157635468, 1e-5);
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KolmogorovSmirnovHistogramStatistics(q.begin(), q.end(), p.begin(), p.end()), 0.157635468, 1e-5);
+    }
+
     NStatistics::TStatisticsCalculator<double> QuadStatistics(size_t start, size_t end) {
         NStatistics::TStatisticsCalculator<double> result;
         for (; start != end; ++start) {

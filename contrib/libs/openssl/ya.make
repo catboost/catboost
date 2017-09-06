@@ -7,6 +7,11 @@
 
 LIBRARY()
 
+LICENSE(
+    OpenSSL
+    SSLeay
+)
+
 
 
 NO_COMPILER_WARNINGS()

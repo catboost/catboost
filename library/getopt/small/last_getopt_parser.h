@@ -128,7 +128,7 @@ public:
         return ProgramName_;
     }
 
-    void PrintUsage(IOutputStream& os = Cerr) const;
+    void PrintUsage(IOutputStream& os = Cout) const;
 
     void PrintUsage(IOutputStream& os, const NColorizer::TColors& colors) const;
 };

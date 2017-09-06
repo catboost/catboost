@@ -1,5 +1,10 @@
 LIBRARY()
 
+LICENSE(
+    PD
+)
+
+
 
 NO_UTIL()
 

@@ -66,6 +66,9 @@ public:
     double GetOverfittingDetectorThreshold() const {
         return OverfittingDetector->GetThreshold();
     }
+    int GetOverfittingDetectorIterationsWait() const {
+        return OverfittingDetector->GetIterationsWait();
+    }
     bool IsUsingTracker() const {
         return (NeedOverfittingDetection(OverfittingDetector.Get()) || FindBestIteration);
     }

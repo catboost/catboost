@@ -7,6 +7,7 @@
 
 int main(int argc, const char* argv[]) {
     try {
+        DoInitGlobalLog("cout", LOG_MAX_PRIORITY, false, false);
         TMatrixnetLogSettings::GetRef().OutputExtendedInfo = false;
         SetVerboseLogingMode();
         TModChooser modChooser;

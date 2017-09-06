@@ -10,8 +10,8 @@ bool IsSpace(const char* s, size_t len) noexcept {
     return true;
 }
 
-template <typename TStroka>
-static bool IsNumberT(const TStroka& s) noexcept {
+template <typename TStringType>
+static bool IsNumberT(const TStringType& s) noexcept {
     if (s.empty()) {
         return false;
     }
@@ -32,8 +32,8 @@ bool IsNumber(const TWtringBuf s) noexcept {
     return IsNumberT(s);
 }
 
-template <typename TStroka>
-static bool IsHexNumberT(const TStroka& s) noexcept {
+template <typename TStringType>
+static bool IsHexNumberT(const TStringType& s) noexcept {
     if (s.empty()) {
         return false;
     }

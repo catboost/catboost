@@ -87,6 +87,7 @@ PY_SRCS(
     pandas/msgpack/_packer.pyx
     pandas/msgpack/_unpacker.pyx
 
+    # pandas.tseries.converter and pandas.tseries.plotting are provided by ./matplotlib
     pandas/__init__.py
     pandas/_version.py
     pandas/api/__init__.py

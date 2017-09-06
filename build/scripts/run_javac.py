@@ -10,6 +10,7 @@ def parse_args():
     parser.add_option('--sources-list')
     parser.add_option('--verbose', default=False, action='store_true')
     parser.add_option('--remove-notes', default=False, action='store_true')
+    parser.add_option('--ignore-errors', default=False, action='store_true')
     return parser.parse_args()
 
 
@@ -65,6 +66,9 @@ def main():
         except Exception:
             pass
 
+        if opts.ignore_errors and rc:
+            sys.stderr.write('error: javac actually failed with exit code {}\n'.format(rc))
+            rc = 0
         sys.stderr.write(err)
         sys.exit(rc)
 

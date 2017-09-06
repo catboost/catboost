@@ -85,6 +85,7 @@ struct TCoreModel {
     yvector<int> CatFeatures;
     yvector<TString> FeatureIds;
     int FeatureCount = 0;
+    int ApproxDimension = 1;
     yvector<TTargetClassifier> TargetClassifiers;
     yhash<TString, TString> ModelInfo;
 
@@ -107,7 +108,7 @@ struct TCoreModel {
         DoSwap(ModelInfo, other.ModelInfo);
     }
 
-    Y_SAVELOAD_DEFINE(TreeStruct, LeafValues, Borders, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo)
+    Y_SAVELOAD_DEFINE(TreeStruct, LeafValues, Borders, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo, ApproxDimension)
 };
 
 struct TFullModel: public TCoreModel {

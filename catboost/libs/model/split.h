@@ -5,11 +5,6 @@
 #include <util/digest/multi.h>
 #include <library/binsaver/bin_saver.h>
 
-template <typename T>
-inline bool IsTrueFeature(T value, T border) {
-    return value > border;
-}
-
 inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
     return bucket > splitIdx;
 }

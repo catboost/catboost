@@ -149,3 +149,47 @@ test_that("model: baseline", {
   expect_equal(unique_target[order(unique_target)],
                unique_prediction[order(unique_prediction)])
 })
+
+test_that("model: full_history", {
+  target <- sample(c(0, 1, 2), size = 1000, replace = TRUE)
+  data <- data.frame(f_numeric = target + rnorm(length(target), mean = 0, sd = 1),
+                     f_logical = (target + rnorm(length(target), mean = 0, sd = 1)) > 0,
+                     f_factor = as.factor(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))),
+                     f_character = as.character(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))))
+
+  unique_target = unique(target)
+
+  data$f_logical = as.factor(data$f_logical)
+  data$f_character = as.factor(data$f_character)
+
+  pool <- catboost.from_data_frame(data, target)
+
+  params <- list(iterations = 3,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 approx_on_full_history = TRUE)
+  model <- catboost.train(pool, NULL, params)
+  pred <- catboost.predict(model, pool, type = "RawFormulaVal")
+
+  expect_true(TRUE)
+})
+
+test_that("model: catboost.predict vs catboost.staged_predict", {
+  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
+  column_description_path <- system.file("extdata", "adult.cd", package="catboost")
+
+  pool <- catboost.load_pool(pool_path, column_description_path)
+
+  params <- list(iterations = 2,
+                 loss_function = "Logloss")
+
+  model <- catboost.train(pool, NULL, params)
+  prediction_first <- catboost.predict(model, pool, tree_count_limit = 1)
+  prediction_second <- catboost.predict(model, pool, tree_count_limit = 2)
+
+  staged_preds = catboost.staged_predict(model, pool)
+
+  expect_equal(prediction_first, staged_preds$nextElem())
+  expect_equal(prediction_second, staged_preds$nextElem())
+})
+

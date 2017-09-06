@@ -517,11 +517,6 @@ public:
         UNIT_ASSERT_VALUES_EQUAL(s0[3], '\0');
         UNIT_ASSERT_VALUES_EQUAL(s1[3], '\0');
         UNIT_ASSERT_VALUES_EQUAL(s2[3], '\0');
-
-        /* These ones will be removed later, that's old operator[] compatibility. */
-        UNIT_ASSERT_VALUES_EQUAL(s0[4], '\0');
-        UNIT_ASSERT_VALUES_EQUAL(s1[4], '\0');
-        UNIT_ASSERT_VALUES_EQUAL(s2[4], '\0');
     }
 
     void TestBack() {

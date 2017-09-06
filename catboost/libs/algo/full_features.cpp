@@ -8,18 +8,19 @@ static void AddReason(yvector<ui8>* hist,
                       const yvector<TDocInfo>& docInfos,
                       const yvector<size_t>& docIndices,
                       int idx,
+                      ENanMode nanMode,
                       const yvector<float>& featureBorder,
                       NPar::TLocalExecutor* localExecutor)
 {
     ui8* histData = hist->data();
     const float* featureBorderData = featureBorder.data();
     const yssize_t featureBorderSize = featureBorder.ysize();
-    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, idx, &docInfos, &docIndices] (int i) {
+    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, idx, nanMode, &docInfos, &docIndices] (int i) {
         const auto& featureVal = docInfos[docIndices[i]].Factors[idx];
-        int j = 0;
-        while (j < featureBorderSize && IsTrueFeature(featureVal, featureBorderData[j])) {
-            ++histData[i];
-            ++j;
+        if (IsNan(featureVal)) {
+            histData[i] = nanMode == ENanMode::Min ? 0 : featureBorderSize;
+        } else {
+            histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
         }
     }, NPar::TLocalExecutor::TBlockParams(0, docInfos.ysize()).SetBlockSize(1000).WaitCompletion());
 }
@@ -45,6 +46,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                                     const yvector<int>& ignoredFeatures,
                                     int learnSampleCount,
                                     size_t oneHotMaxSize,
+                                    ENanMode nanMode,
                                     NPar::TLocalExecutor& localExecutor,
                                     yvector<yvector<ui8>>* hist,
                                     yvector<yvector<int>>* catFeatures,
@@ -132,6 +134,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                         docInfos,
                         docIndices,
                         featureIdx,
+                        nanMode,
                         allBorders[reasonIdx],
                         &localExecutor);
                 }
@@ -152,6 +155,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                                         const yvector<int>& ignoredFeatures,
                                         int learnSampleCount,
                                         size_t oneHotMaxSize,
+                                        ENanMode nanMode,
                                         NPar::TLocalExecutor& localExecutor,
                                         TAllFeatures* allFeatures) {
     if (docInfos.empty()) {
@@ -165,6 +169,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                             ignoredFeatures,
                             learnSampleCount,
                             oneHotMaxSize,
+                            nanMode,
                             localExecutor,
                             &allFeatures->FloatHistograms,
                             &allFeatures->CatFeatures,
@@ -183,6 +188,7 @@ void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
                         const yvector<int>& ignoredFeatures,
                         int learnSampleCount,
                         size_t oneHotMaxSize,
+                        ENanMode nanMode,
                         NPar::TLocalExecutor& localExecutor,
                         TAllFeatures* allFeatures)
 {
@@ -197,6 +203,7 @@ void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
         ignoredFeatures,
         learnSampleCount,
         oneHotMaxSize,
+        nanMode,
         localExecutor,
         allFeatures);
 }

@@ -109,22 +109,28 @@
             "uri": "file://test.test_const_feature/test.eval"
         }
     ],
-    "test.test_counter_calc[Basic]": [
+    "test.test_counter_calc[FullTest]": [
         {
-            "checksum": "4fd1e4e61f3f1678b2291e5841ce28f9",
-            "uri": "file://test.test_counter_calc_Basic_/test.eval"
+            "checksum": "3c3604463de5fa64e45d78d9ed19bef3",
+            "uri": "file://test.test_counter_calc_FullTest_/test.eval"
         }
     ],
-    "test.test_counter_calc[Static]": [
+    "test.test_counter_calc[Full]": [
         {
-            "checksum": "e8d61f2e77dcbef5f186071a1bf19857",
-            "uri": "file://test.test_counter_calc_Static_/test.eval"
+            "checksum": "92eb910854b9101fb15e9fc654b1ef38",
+            "uri": "file://test.test_counter_calc_Full_/test.eval"
         }
     ],
-    "test.test_counter_calc[Universal]": [
+    "test.test_counter_calc[PrefixTest]": [
         {
-            "checksum": "e8d61f2e77dcbef5f186071a1bf19857",
-            "uri": "file://test.test_counter_calc_Universal_/test.eval"
+            "checksum": "6d0f894987dbc28c5ae2747c9bb9c953",
+            "uri": "file://test.test_counter_calc_PrefixTest_/test.eval"
+        }
+    ],
+    "test.test_counter_calc[SkipTest]": [
+        {
+            "checksum": "20e0579bae444d9957147e4cdfeb7f24",
+            "uri": "file://test.test_counter_calc_SkipTest_/test.eval"
         }
     ],
     "test.test_crossentropy": [
@@ -191,21 +197,21 @@
     ],
     "test.test_custom_loss_for_classification": [
         {
-            "checksum": "061d2d663b127e57f060fbf9c8ef2af3",
+            "checksum": "36eb060fdcfaaa48c3f4afa45878fea8",
             "uri": "file://test.test_custom_loss_for_classification/learn_error.tsv"
         },
         {
-            "checksum": "e6d968188d4de5335f0ffd5c332706f3",
+            "checksum": "31cfee846e9a61beb50009ec0ce44a13",
             "uri": "file://test.test_custom_loss_for_classification/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification": [
         {
-            "checksum": "6a6ef2cd0aa1baf3639df680ff90419d",
+            "checksum": "37679b33eec10a30a11551e32fb9d053",
             "uri": "file://test.test_custom_loss_for_multiclassification/learn_error.tsv"
         },
         {
-            "checksum": "2d0e5fbfdc217b2aec7250fd9660fa34",
+            "checksum": "5297e313282b4e51f5d15e12fc279fb7",
             "uri": "file://test.test_custom_loss_for_multiclassification/test_error.tsv"
         }
     ],
@@ -221,7 +227,7 @@
     ],
     "test.test_custom_priors": [
         {
-            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+            "checksum": "507db60499e0daa451370174acbee131",
             "uri": "file://test.test_custom_priors/test.eval"
         }
     ],
@@ -375,6 +381,24 @@
             "uri": "file://test.test_multi_targets_MultiClass_/test.eval"
         }
     ],
+    "test.test_nan_mode[Max]": [
+        {
+            "checksum": "b13f2442a5f5f496eb8a6e267c05b399",
+            "uri": "file://test.test_nan_mode_Max_/test.eval"
+        }
+    ],
+    "test.test_nan_mode[Min]": [
+        {
+            "checksum": "a88cd79fcfeda27783af454d8e0bf113",
+            "uri": "file://test.test_nan_mode_Min_/test.eval"
+        }
+    ],
+    "test.test_nan_mode_forbidden": [
+        {
+            "checksum": "2a645bde5a425bf73a6a39c134702ac5",
+            "uri": "file://test.test_nan_mode_forbidden/test.eval"
+        }
+    ],
     "test.test_newton": [
         {
             "checksum": "075b0169f3b6eb3e5d9b2ab078906604",
@@ -393,22 +417,16 @@
             "uri": "file://test.test_only_categorical_features/test.eval"
         }
     ],
+    "test.test_overfit_detector_inc_to_dec": [
+        {
+            "checksum": "6db0da2bc635a33215e9b5a67242e649",
+            "uri": "file://test.test_overfit_detector_inc_to_dec/test.eval"
+        }
+    ],
     "test.test_overfit_detector_iter": [
         {
-            "checksum": "c234d639c524f7df5be1ccd5072a434a",
+            "checksum": "32e13d4f317e3ef1e6d079cc04f28767",
             "uri": "file://test.test_overfit_detector_iter/test.eval"
-        }
-    ],
-    "test.test_overfit_detector_types[IncToDec]": [
-        {
-            "checksum": "c234d639c524f7df5be1ccd5072a434a",
-            "uri": "file://test.test_overfit_detector_types_IncToDec_/test.eval"
-        }
-    ],
-    "test.test_overfit_detector_types[Wilcoxon]": [
-        {
-            "checksum": "c234d639c524f7df5be1ccd5072a434a",
-            "uri": "file://test.test_overfit_detector_types_Wilcoxon_/test.eval"
         }
     ],
     "test.test_params_from_file": [

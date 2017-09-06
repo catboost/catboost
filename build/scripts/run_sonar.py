@@ -5,7 +5,7 @@ import tarfile
 import subprocess as sp
 import optparse
 import shutil
-import cStringIO
+import xml.etree.ElementTree as et
 
 
 def parse_args():
@@ -22,6 +22,8 @@ def parse_args():
     parser.add_option('--java-coverage-merged-tar')
     parser.add_option('--java-binary-path')
     parser.add_option('--log-path')
+    parser.add_option('--gcov-report-path')
+    parser.add_option('--source-root')
     return parser.parse_args()
 
 
@@ -30,12 +32,46 @@ def extract_zip_file(zip_file_path, dest_dir):
         arch.extractall(dest_dir)
 
 
+def get_source_real_path(source_root, path):
+    parts = os.path.normpath(path).split(os.path.sep)
+    for i in xrange(len(parts)):
+        if os.path.exists(os.path.join(source_root, *parts[i:])):
+            return os.path.join(*parts[i:])
+    return None
+
+
+def collect_cpp_sources(report, source_root, destination):
+    sources = set()
+    with open(report) as f:
+        root = et.fromstring(f.read())
+    for f in root.findall('.//class[@filename]'):
+        real_filename = get_source_real_path(source_root, f.attrib['filename'])
+        if real_filename:
+            f.attrib['filename'] = real_filename
+            sources.add(real_filename)
+    with open(report, 'w') as f:
+        pref = '''<?xml version="1.0" ?>
+<!DOCTYPE coverage
+  SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>\n'''
+        f.write(pref + et.tostring(root, encoding='utf-8') + '\n\n')
+    for src in sources:
+        dst = os.path.join(destination, src)
+        src = os.path.join(source_root, src)
+        if os.path.isfile(src):
+            if not os.path.exists(os.path.dirname(dst)):
+                os.makedirs(os.path.dirname(dst))
+            os.link(src, dst)
+
+
 def main(opts, props_args):
     sources_dir = os.path.abspath('src')
-    os.mkdir(sources_dir)
-    extract_zip_file(opts.sources_jar_path, sources_dir)
-
     base_props_args = ['-Dsonar.sources=' + sources_dir]
+    os.mkdir(sources_dir)
+    if opts.sources_jar_path:
+        extract_zip_file(opts.sources_jar_path, sources_dir)
+    if opts.gcov_report_path:
+        collect_cpp_sources(opts.gcov_report_path, opts.source_root, sources_dir)
+        base_props_args += ['-Dsonar.projectBaseDir=' + sources_dir, '-Dsonar.cxx.coverage.reportPath=' + opts.gcov_report_path]
 
     if opts.classes_jar_paths:
         classes_dir = os.path.abspath('cls')

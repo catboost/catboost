@@ -37,7 +37,7 @@ void* HexDecode(const void* in, size_t len, void* ptr) {
     char* out = (char*)ptr;
 
     while (b != e) {
-        *out++ = (char)Stroka2Byte(b);
+        *out++ = (char)String2Byte(b);
         b += 2;
     }
 

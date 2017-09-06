@@ -1,4 +1,5 @@
 #pragma once
+#include "params.h"
 
 #include <catboost/libs/data/pool.h>
 
@@ -6,6 +7,8 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+#include <util/generic/algorithm.h>
+#include <util/generic/ymath.h>
 
 using TIndexType = ui32;
 
@@ -27,6 +30,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                                         const yvector<int>& ignoredFeatures,
                                         int learnSampleCount,
                                         size_t oneHotMaxSize,
+                                        ENanMode NanMode,
                                         NPar::TLocalExecutor& localExecutor,
                                         TAllFeatures* allFeatures);
 
@@ -36,5 +40,6 @@ void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
                         const yvector<int>& ignoredFeatures,
                         int learnSampleCount,
                         size_t oneHotMaxSize,
+                        ENanMode NanMode,
                         NPar::TLocalExecutor& localExecutor,
                         TAllFeatures* allFeatures);

@@ -170,7 +170,7 @@ public:
         , PrintTimes_(false)
         , PrintSummary_(true)
         , PrevTime_(TInstant::Now())
-        , ShowFails(false)
+        , ShowFails(true)
         , Start(0)
         , End(Max<size_t>())
         , AppName(appName)
@@ -344,12 +344,17 @@ private:
                                     ~descr->test->unit->name,
                                     descr->test->name,
                                     ~LightRedColor(), descr->msg, ~OldColor(), ~LightCyanColor(), ~descr->BackTrace, ~OldColor());
+        const TDuration test_duration = SaveTestDuration();
         if (ShowFails) {
-            Fails.push_back(err);
+            if (PrintTimes_) {
+                Fails.push_back(Sprintf("%s %s", ~test_duration.ToString(), ~err));
+            } else {
+                Fails.push_back(err);
+            }
         }
         fprintf(stderr, "%s", ~err);
         NOTE_IN_VALGRIND(descr->test);
-        PrintTimes();
+        PrintTimes(test_duration);
         if (IsForked) {
             fprintf(stderr, "%s", ForkCorrectExitMsg);
         }
@@ -369,21 +374,26 @@ private:
                     ~descr->test->unit->name,
                     descr->test->name);
             NOTE_IN_VALGRIND(descr->test);
-            PrintTimes();
+            PrintTimes(SaveTestDuration());
             if (IsForked) {
                 fprintf(stderr, "%s", ForkCorrectExitMsg);
             }
         }
     }
 
-    inline void PrintTimes() {
+    inline TDuration SaveTestDuration() {
+        const TInstant now = TInstant::Now();
+        TDuration d = now - PrevTime_;
+        PrevTime_ = now;
+        return d;
+    }
+
+    inline void PrintTimes(TDuration d) {
         if (!PrintTimes_) {
             return;
         }
 
-        const TInstant now = TInstant::Now();
-        Cerr << now - PrevTime_ << "\n";
-        PrevTime_ = now;
+        Cerr << d << "\n";
     }
 
     void OnEnd() override {
@@ -594,6 +604,7 @@ static int DoUsage(const char* progname) {
          << "  --print-before-test   print each test name before running it\n"
          << "  --print-before-suite  print each test suite name before running it\n"
          << "  --show-fails          print a list of all failed tests at the end\n"
+         << "  --dont-show-fails     do not print a list of all failed tests at the end\n"
          << "  --continue-on-fail    print a message and continue running test suite instead of break\n"
          << "  --print-times         print wall clock duration of each test\n"
          << "  --fork-tests          run each test in a separate process\n"
@@ -650,6 +661,8 @@ int UTMAIN(int argc, char** argv) {
                     processor.SetPrintBeforeTest(true);
                 } else if (strcmp(name, "--show-fails") == 0) {
                     processor.SetShowFails(true);
+                } else if (strcmp(name, "--dont-show-fails") == 0) {
+                    processor.SetShowFails(false);
                 } else if (strcmp(name, "--continue-on-fail") == 0) {
                     processor.SetContinueOnFail(true);
                 } else if (strcmp(name, "--print-times") == 0) {

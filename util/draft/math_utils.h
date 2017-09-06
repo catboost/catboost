@@ -94,37 +94,3 @@ public:
         }
     }
 };
-
-template <class T>
-class TPeriodHistogram: public TIntHistogram<T> {
-public:
-    float Period;
-    float Start;
-
-public:
-    TPeriodHistogram(float period = 1.0f, float start = 0.0f)
-        : Period(period)
-        , Start(start)
-    {
-    }
-
-    T& operator[](float arg) {
-        if (arg < Start)
-            ythrow yexception() << "Val " << arg << " is outside the histogram";
-
-        size_t i = size_t((arg - Start) / Period);
-        return TIntHistogram<T>::operator[](i);
-    }
-};
-
-template <class T>
-inline void UpdateMin(T& min, const T& v) {
-    if (v < min)
-        min = v;
-}
-
-template <class T>
-inline void UpdateMax(T& max, const T& v) {
-    if (v > max)
-        max = v;
-}

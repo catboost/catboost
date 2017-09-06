@@ -8,6 +8,7 @@ from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, Catb
 
 from catboost_pytest_lib import data_file, local_canonical_file
 import yatest.common
+
 EPS = 1e-5
 
 TRAIN_FILE = data_file('adult', 'train_small')
@@ -552,6 +553,44 @@ def test_od():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(od_type='Iter', od_wait=20, random_seed=42)
+    model.fit(train_pool, eval_set=test_pool)
+    model.save_model(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_MODEL_PATH)
+
+
+def test_clone():
+    estimator = CatBoostClassifier(
+        custom_loss="Accuracy",
+        loss_function="MultiClass",
+        iterations=400)
+
+    # This is important for sklearn.base.clone since
+    # it uses get_params for cloning estimator.
+    params = estimator.get_params()
+    new_estimator = CatBoostClassifier(**params)
+    new_params = new_estimator.get_params()
+
+    for param in params:
+        assert param in new_params
+        assert new_params[param] is params[param]
+
+
+def test_different_cat_features_order():
+    dataset = np.array([[2, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
+    labels = [1.2, 3.4, 9.5, 24.5]
+
+    pool1 = Pool(dataset, labels, cat_features=[0, 1])
+    pool2 = Pool(dataset, labels, cat_features=[1, 0])
+
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 42})
+    model.fit(pool1)
+    assert (model.predict(pool1) == model.predict(pool2)).all()
+
+
+def test_full_history():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(od_type='Iter', od_wait=20, random_seed=42, approx_on_full_history=True)
     model.fit(train_pool, eval_set=test_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)

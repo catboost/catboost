@@ -180,6 +180,10 @@ void ReadPool(const TString& cdFile,
     ReadPool(cdFile, poolFile, threadCount, verbose, fieldDelimiter, hasHeader, TTargetConverter(classNames), &builder);
 }
 
+static bool IsNan(const TStringBuf& s) {
+    return s == "nan" || s == "NaN" || s == "NAN";
+}
+
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               int threadCount,
@@ -283,6 +287,7 @@ void ReadPool(const TString& cdFile,
     readLineBufferLambda(0); // read first block in main thread
     blockReadCompletedEvent.WaitI();
 
+    int linesRead = 0;
     while (!readBuffer.empty()) {
         parseBuffer.swap(readBuffer);
         if (localExecutor.GetThreadCount() > 0) {
@@ -309,10 +314,14 @@ void ReadPool(const TString& cdFile,
                     }
                     case EColumn::Num: {
                         float val;
-                        CB_ENSURE(words[i] != "nan", "nan values not supported");
                         CB_ENSURE(words[i] != "", "empty values not supported");
-                        CB_ENSURE(TryFromString<float>(words[i], val),
-                                  "Factor in column " << i << " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
+                        if (!TryFromString<float>(words[i], val)) {
+                            if (IsNan(words[i])) {
+                                val = std::numeric_limits<float>::quiet_NaN();
+                            } else {
+                                CB_ENSURE(false, "Factor " << words[i] << " in column " << i + 1 << " and row " << linesRead + lineIdx + 1 << " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
+                            }
+                        }
                         poolBuilder->AddFloatFeature(lineIdx, featureId, val);
                         ++featureId;
                         break;
@@ -352,6 +361,7 @@ void ReadPool(const TString& cdFile,
             }
         };
         localExecutor.ExecRange(parseFeaturesInBlock, 0, parseBuffer.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        linesRead += parseBuffer.ysize();
         blockReadCompletedEvent.WaitI();
     }
 
@@ -371,7 +381,6 @@ void ReadPool(const TString& cdFile,
 
     SetVerboseLogingMode();
 }
-
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,

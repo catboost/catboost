@@ -967,13 +967,13 @@ class GNU(object):
 
         blk.add("""
   macro _SRC_cpp(SRC, OPTIONS...) {
-      MACRO_PROP(CMD """ + " ".join(self.cxx_args) + ")" + """
+      .CMD=""" + " ".join(self.cxx_args) +  """
   }
   macro _SRC_c(SRC, OPTIONS...) {
-      MACRO_PROP(CMD """ + " ".join(self.c_args) + ")" + """
+      .CMD=""" + " ".join(self.c_args) + """
   }
   macro _SRC_m(SRC, OPTIONS...) {
-      MACRO_PROP(CMD $SRC_c($SRC $OPTIONS))
+      .CMD=$SRC_c($SRC $OPTIONS)
   }
   macro _SRC_masm(SRC, OPTIONS...) {
   }""")
@@ -1791,6 +1791,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags_release = ['/Ox', '/Ob2', '/Oi'] + self._gen_defines(defines_release)
 
         flags_cxx = []
+        flags_c_only = []
 
         if target.is_arm:
             masm_io = '-o ${output:SRC.obj} ${input;msvs_source:SRC}'
@@ -1871,6 +1872,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 
         append('CFLAGS', flags, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
         append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
+        append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
         print '''\
 when ($NO_OPTIMIZE == "yes") {{
@@ -1901,18 +1903,18 @@ macro MSVC_FLAGS(Flags...) {
 }
 
 macro _SRC_cpp(SRC, OPTIONS...) {
-    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"})
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_c(SRC, OPTIONS...) {
-    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"})
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_m(SRC, OPTIONS...) {
 }
 
 macro _SRC_masm(SRC, OPTIONS...) {
-    MACRO_PROP(CMD ${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} """ + masm_io + """ ${kv;hide:"p AS"} ${kv;hide:"pc yellow"})
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${COMPILER_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} """ + masm_io + """ ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
 }
 """
 

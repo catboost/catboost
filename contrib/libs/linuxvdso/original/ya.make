@@ -1,5 +1,10 @@
 LIBRARY()
 
+LICENSE(
+    BSD3
+)
+
+
 
 NO_UTIL()
 NO_RUNTIME()

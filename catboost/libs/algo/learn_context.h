@@ -94,8 +94,8 @@ public:
         LearnProgress.Model.FeatureCount = featureCount;
     }
 
-    void OutputMeta(int approxDimension);
-    void InitData(const TTrainData& data, int approxDimension);
+    void OutputMeta();
+    void InitData(const TTrainData& data);
     void SaveProgress();
     void LoadProgress();
 

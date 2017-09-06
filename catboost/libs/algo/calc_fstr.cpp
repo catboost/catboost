@@ -102,7 +102,7 @@ yvector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, 
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     TAllFeatures allFeatures;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.LocalExecutor, &allFeatures);
+    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
 
 
     CB_ENSURE(!model.TreeStruct.empty(), "model should not be empty");

@@ -575,6 +575,74 @@ bool TTotalF1Metric::IsMaxOptimal() const {
     return true;
 }
 
+/* Confusion matrix */
+
+static yvector<yvector<double>> GetConfusionMatrix(const yvector<yvector<double>>& approx,
+                                                   const yvector<float>& target,
+                                                   const yvector<float>& weight,
+                                                   int begin, int end) {
+    int classesCount = approx.ysize() == 1 ? 2 : approx.ysize();
+    yvector<yvector<double>> confusionMatrix(classesCount, yvector<double>(classesCount, 0));
+    for (int i = begin; i < end; ++i) {
+        int approxClass = GetApproxClass(approx, i);
+        int targetClass = static_cast<int>(target[i]);
+        float w = weight.empty() ? 1 : weight[i];
+        confusionMatrix[approxClass][targetClass] += w;
+    }
+    return confusionMatrix;
+}
+
+
+/* MCC */
+
+TErrorHolder TMCCMetric::Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& /* executor */) const {
+    yvector<yvector<double>> confusionMatrix = GetConfusionMatrix(approx, target, weight, begin, end);
+    int classesCount = confusionMatrix.ysize();
+
+    yvector<double> rowSum(classesCount, 0);
+    yvector<double> columnSum(classesCount, 0);
+    double totalSum = 0;
+    for (int approxClass = 0; approxClass < classesCount; ++approxClass) {
+        for (int tragetClass = 0; tragetClass < classesCount; ++tragetClass) {
+            rowSum[approxClass] += confusionMatrix[approxClass][tragetClass];
+            columnSum[tragetClass] += confusionMatrix[approxClass][tragetClass];
+            totalSum += confusionMatrix[approxClass][tragetClass];
+        }
+    }
+
+    double numerator = 0;
+    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
+        numerator += confusionMatrix[classIdx][classIdx] * totalSum - rowSum[classIdx] * columnSum[classIdx];
+    }
+
+    double sumSquareRowSums = 0;
+    double sumSquareColumnSums = 0;
+    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
+        sumSquareRowSums += Sqr(rowSum[classIdx]);
+        sumSquareColumnSums += Sqr(columnSum[classIdx]);
+    }
+
+    double denominator = sqrt((Sqr(totalSum) - sumSquareRowSums) * (Sqr(totalSum) - sumSquareColumnSums));
+
+    TErrorHolder error;
+    error.Error = numerator / (denominator + FLT_EPSILON);
+    error.Weight = 1;
+    return error;
+}
+
+TString TMCCMetric::GetDescription() const {
+    return ToString(ELossFunction::MCC);
+}
+
+bool TMCCMetric::IsMaxOptimal() const {
+    return true;
+}
+
+
 /* Accuracy */
 
 TErrorHolder TAccuracyMetric::Eval(const yvector<yvector<double>>& approx,
@@ -813,6 +881,9 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
         }
         case ELossFunction::TotalF1:
             result.emplace_back(new TTotalF1Metric());
+            return result;
+        case ELossFunction::MCC:
+            result.emplace_back(new TMCCMetric());
             return result;
         default:
             Y_ASSERT(false);

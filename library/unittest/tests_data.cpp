@@ -46,27 +46,68 @@ TString GetWorkPath() {
 
 class TPortManager::TPortManagerImpl {
 public:
+    ui16 GetUdpPort(ui16 port) {
+        return GetPort<TInet6DgramSocket>(port);
+    }
+
+    ui16 GetTcpPort(ui16 port) {
+        return GetPort<TInet6StreamSocket>(port);
+    }
+
+    template <class TSocketType>
     ui16 GetPort(ui16 port) {
-        TString env = GetEnv("NO_RANDOM_PORTS");
-        if (env && port) {
+        if (port && NoRandomPorts()) {
             return port;
         }
 
-        sockets.push_back(new TInet6StreamSocket());
-        TInet6StreamSocket* sock = sockets.back().Get();
+        TSocketType* sock = new TSocketType();
+        Sockets.push_back(sock);
 
-        TSockAddrInet6 addr("::", 0);
         SetSockOpt(*sock, SOL_SOCKET, SO_REUSEADDR, 1);
 
-        int ret = sock->Bind(&addr);
+        TSockAddrInet6 addr("::", 0);
+        const int ret = sock->Bind(&addr);
         if (ret < 0) {
             ythrow yexception() << "can't bind: " << LastSystemErrorText(-ret);
         }
         return addr.GetPort();
     }
 
+    ui16 GetTcpAndUdpPort(ui16 port) {
+        if (port && NoRandomPorts()) {
+            return port;
+        }
+
+        size_t retries = 20;
+        while (retries--) {
+            // 1. Get random free TCP port. Ports are guaranteed to be different with
+            //    ports given by get_tcp_port() and other get_tcp_and_udp_port() methods.
+            // 2. Bind the same UDP port without SO_REUSEADDR to avoid race with get_udp_port() method:
+            //    if get_udp_port() from other thread/process gets this port, bind() fails; if bind()
+            //    succeeds, then get_udp_port() from other thread/process gives other port.
+            // 3. Set SO_REUSEADDR option to let use this UDP port from test.
+            const ui16 resultPort = GetTcpPort(0);
+            THolder<TInet6DgramSocket> sock = new TInet6DgramSocket();
+            TSockAddrInet6 addr("::", resultPort);
+            const int ret = sock->Bind(&addr);
+            if (ret < 0) {
+                Sockets.pop_back();
+                continue;
+            }
+            SetSockOpt(*sock, SOL_SOCKET, SO_REUSEADDR, 1);
+            Sockets.push_back(std::move(sock));
+            return resultPort;
+        }
+        ythrow yexception() << "Failed to find port";
+    }
+
 private:
-    yvector<THolder<TInet6StreamSocket>> sockets;
+    static bool NoRandomPorts() {
+        return !GetEnv("NO_RANDOM_PORTS").empty();
+    }
+
+private:
+    yvector<THolder<TBaseSocket>> Sockets;
 };
 
 TPortManager::TPortManager()
@@ -78,5 +119,17 @@ TPortManager::~TPortManager() {
 }
 
 ui16 TPortManager::GetPort(ui16 port) {
-    return Impl_->GetPort(port);
+    return Impl_->GetTcpPort(port);
+}
+
+ui16 TPortManager::GetTcpPort(ui16 port) {
+    return Impl_->GetTcpPort(port);
+}
+
+ui16 TPortManager::GetUdpPort(ui16 port) {
+    return Impl_->GetUdpPort(port);
+}
+
+ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
+    return Impl_->GetTcpAndUdpPort(port);
 }

@@ -55,7 +55,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("loss_function", target);
         });
 
-    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1")
+    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC")
         .RequiredArgument("comma separated list of loss functions")
         .Handler1T<TString>([&trainJson](const TString& lossFunctionsLine) {
             for (const auto& t : StringSplitter(lossFunctionsLine).Split(',')) {
@@ -191,7 +191,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("od_wait", iters);
         });
 
-    parser.AddLongOption("overfitting-detector-type", "Should be one of {Wilcoxon, IncToDec, Iter}")
+    parser.AddLongOption("overfitting-detector-type", "Should be one of {IncToDec, Iter}")
         .AddLongName("od-type")
         .RequiredArgument("detector-type")
         .Handler1T<TString>([&trainJson](const TString& type) {
@@ -230,7 +230,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("leaf_estimation_method", method);
         });
 
-    parser.AddLongOption("counter-calc-method", "Should be one of {Universal, Static, Basic}")
+    parser.AddLongOption("counter-calc-method", "Should be one of {Full, FullTest, PrefixTest, SkipTest}")
         .RequiredArgument("method-name")
         .Handler1T<TString>([&trainJson](const TString& method) {
             trainJson->InsertValue("counter_calc_method", method);
@@ -317,7 +317,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 TStringBuf priorsLineBuf(t.Token());
                 (*trainJson)["feature_priors"].AppendValue(ParsePriors(1, priorsLineBuf));
         } })
-        .Help("You might provide custom priors for some features. They will be used instead of default ones or ones given by ctr-priors. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1");
+        .Help("You might provide custom priors for some features. They will be used instead of default ones or ones given in ctr-priors. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1");
 
     parser.AddLongOption("feature-ctr-priors")
         .RequiredArgument("priors-line")
@@ -326,7 +326,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 TStringBuf priorsLineBuf(t.Token());
                 (*trainJson)["feature_ctr_priors"].AppendValue(ParsePriors(2, priorsLineBuf));
             } })
-        .Help("You might provide custom priors for some pairs of feature and ctr. They will be used instead of default ones or given by ctr-priors or feature-priors. Format is: f1Idx:c1Idx:prior1:prior2:prior3,f2Idx:c2Idx:prior1");
+        .Help("You might provide custom priors for some pairs of feature and ctr. They will be used instead of default ones or given in ctr-priors or feature-priors. Format is: f1Idx:c1Idx:prior1:prior2:prior3,f2Idx:c2Idx:prior1");
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
         .RequiredArgument("name")
@@ -379,6 +379,12 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([&trainJson](const TString& predictionType) {
             trainJson->InsertValue("prediction_type", predictionType);
         });
+
+    parser.AddLongOption("nan-mode", "Should be one of: {Min, Max, Forbidden}")
+        .RequiredArgument("nan-mode")
+        .Handler1T<TString>([&trainJson](const TString& nanMode) {
+            trainJson->InsertValue("nan_mode", nanMode);
+    });
 
     parser.AddLongOption("params-file", "Path to JSON file with params.")
         .RequiredArgument("PATH")
@@ -477,12 +483,12 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default).");
 
-    parser.AddLongOption("approx-on-partial-history")
+    parser.AddLongOption("approx-on-full-history")
         .NoArgument()
         .Handler0([&trainJson]() {
-            trainJson->InsertValue("approx_on_partial_history", true);
+            trainJson->InsertValue("approx_on_full_history", false);
         })
-        .Help("Reduce history to calculate approxes.");
+        .Help("Use full history to calculate approxes.");
 
     parser.SetFreeArgsNum(0);
 

@@ -474,4 +474,34 @@ namespace NStatistics {
         divergence += log(qDenominator / pDenominator);
         return divergence;
     }
+
+    //! Two-sample Kolmogorov–Smirnov statistics for histograms
+    /*! More details on https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test#Two-sample_Kolmogorov.E2.80.93Smirnov_test */
+    template <typename InputIterator1, typename InputIterator2>
+    double KolmogorovSmirnovHistogramStatistics(InputIterator1 pBegin, InputIterator1 pEnd, InputIterator2 qBegin, InputIterator2 qEnd) {
+        using ValueType = typename std::iterator_traits<InputIterator1>::value_type;
+        using AnotherValueType = typename std::iterator_traits<InputIterator2>::value_type;
+        static_assert(std::is_convertible<ValueType, double>::value, "P data should be convertible to double");
+        static_assert(std::is_convertible<AnotherValueType, double>::value, "Q data should be convertible to double");
+
+        Y_ENSURE(pBegin != pEnd && qBegin != qEnd, "Arrays should be non empty");
+        auto pIt = pBegin;
+        auto qIt = qBegin;
+        double pDenominator = 0, qDenominator = 0;
+        for (; pIt != pEnd && qIt != qEnd; ++pIt, ++qIt) {
+            NDetail::NonNegativeAdd(pDenominator, *pIt, "Invalid data: p < 0");
+            NDetail::NonNegativeAdd(qDenominator, *qIt, "Invalid data: q < 0");
+        }
+        Y_ENSURE(pIt == pEnd && qIt == qEnd, "Different sizes of input data");
+        Y_ENSURE(pDenominator > 0, "Invalid P denominator");
+        Y_ENSURE(qDenominator > 0, "Invalid Q denominator");
+        double delta = 0;
+        double res = 0;
+        for (pIt = pBegin, qIt = qBegin; pIt != pEnd; ++pIt, ++qIt) {
+            delta += *pIt / pDenominator - *qIt / qDenominator;
+            res = std::max(res, abs(delta));
+        }
+        return res;
+    }
+
 }  // namespace NStatistics

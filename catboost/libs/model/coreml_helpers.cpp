@@ -3,7 +3,7 @@
 using namespace CoreML::Specification;
 
 void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsembleParameters* ensemble) {
-    const auto classesCount = model.LeafValues[0].size();
+    const auto classesCount = static_cast<size_t>(model.ApproxDimension);
 
     for (size_t treeIdx = 0; treeIdx < model.TreeStruct.size(); ++treeIdx) {
         const auto& tree = model.TreeStruct[treeIdx];
@@ -80,7 +80,7 @@ void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJson
         feature->set_allocated_type(featureType);
     }
 
-    const auto classesCount = model.LeafValues[0].size();
+    const auto classesCount = static_cast<size_t>(model.ApproxDimension);
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
     for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
         regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);

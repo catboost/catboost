@@ -147,6 +147,7 @@ namespace NCatBoost {
         } else {
             blockSize = 4096;
         }
+        blockSize = Min(blockSize, features.size());
         CB_ENSURE(results.size() == features.size() * ModelClassCount);
         std::fill(results.begin(), results.end(), 0.0);
         yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
@@ -175,6 +176,7 @@ namespace NCatBoost {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
         auto docCount = Max(catFeatures.size(), floatFeatures.size());
+        blockSize = Min(blockSize, docCount);
         CB_ENSURE(results.size() == docCount * ModelClassCount);
         std::fill(results.begin(), results.end(), 0.0);
         yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
@@ -202,6 +204,7 @@ namespace NCatBoost {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
         auto docCount = Max(catFeatures.size(), floatFeatures.size());
+        blockSize = Min(blockSize, docCount);
         auto treeStepCount = (BinaryTrees.size() + incrementStep - 1) / incrementStep;
         yvector<yvector<double>> results(docCount, yvector<double>(treeStepCount));
         CB_ENSURE(ModelClassCount == 1);
@@ -240,6 +243,7 @@ namespace NCatBoost {
             blockSize = 4096;
         }
         auto docCount = mixedFeatures.size();
+        blockSize = Min(blockSize, docCount);
         auto treeStepCount = (BinaryTrees.size() + incrementStep - 1) / incrementStep;
         yvector<yvector<double>> results(docCount, yvector<double>(treeStepCount));
         CB_ENSURE(ModelClassCount == 1);
@@ -281,6 +285,7 @@ namespace NCatBoost {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
         auto docCount = Max(catFeatures.size(), floatFeatures.size());
+        blockSize = Min(blockSize, docCount);
         CB_ENSURE(results.size() == docCount * ModelClassCount);
         std::fill(results.begin(), results.end(), 0.0);
         yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);

@@ -215,7 +215,7 @@ private:
             File.Read(&nCount, sizeof(TStoredSize));
             data.resize(nCount);
             if (nCount)
-                File.Read(data.begin(), nCount * elemSize);
+                File.Read(&*data.begin(), nCount * elemSize);
         } else {
             TStoredSize nCount = data.size();
             CheckOverflow(nCount, data.size());

@@ -31,6 +31,7 @@
 #include <util/string/vector.h>
 #include <util/string/iterator.h>
 #include <util/stream/file.h>
+#include <util/generic/ymath.h>
 
 void ShrinkModel(int itCount, TCoreModel* model);
 
@@ -450,9 +451,17 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
         profile.FinishIteration();
         ctx->SaveProgress();
 
+        if (IsNan(ctx->LearnProgress.LearnErrorsHistory.back()[0])) {
+            ctx->LearnProgress.Model.LeafValues.pop_back();
+            ctx->LearnProgress.Model.TreeStruct.pop_back();
+            MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
+                                  << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
+            break;
+        }
+
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_INFO_LOG << "Stopped by overfitting detector with threshold "
-                               << errorTracker.GetOverfittingDetectorThreshold() << Endl;
+            MATRIXNET_INFO_LOG << "Stopped by overfitting detector "
+                               << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
     }

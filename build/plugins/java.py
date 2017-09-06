@@ -1,4 +1,5 @@
 import _common as common
+import ymake
 import json
 import base64
 
@@ -84,6 +85,14 @@ def onjava_module(unit, *args):
 
     if unit.get('ERROR_PRONE_VALUE') == 'yes':
         data['ERROR_PRONE'] = extract_macro_calls(unit, 'ERROR_PRONE_VALUE', args_delim)
+
+    if unit.get('MAKE_UBERJAR_VALUE') == 'yes':
+        if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
+            ymake.report_configure_error('{}: UBERJAR supported only for JAVA_PROGRAM module type'.format(unit.path()))
+        data['UBERJAR'] = extract_macro_calls(unit, 'MAKE_UBERJAR_VALUE', args_delim)
+        data['UBERJAR_PREFIX'] = extract_macro_calls(unit, 'UBERJAR_PREFIX_VALUE', args_delim)
+        data['UBERJAR_HIDE_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_HIDE_EXCLUDE_VALUE', args_delim)
+        data['UBERJAR_PATH_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_PATH_EXCLUDE_VALUE', args_delim)
 
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:

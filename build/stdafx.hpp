@@ -189,7 +189,6 @@
 #include <util/draft/memory.h>
 #include <util/draft/holder_vector.h>
 #include <util/generic/object_counter.h>
-#include <util/draft/math_utils.h>
 #include <util/draft/datetime.h>
 #include <util/draft/estimators.h>
 #include <util/draft/parse_utils.h>

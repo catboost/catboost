@@ -3,24 +3,26 @@
 #include <library/unittest/registar.h>
 
 #include <util/stream/output.h>
+#include <util/stream/file.h>
 #include <util/generic/buffer.h>
 
-SIMPLE_UNIT_TEST_SUITE(TBlobTest){
-    SIMPLE_UNIT_TEST(TestSubBlob){
-        TBlob child;
-const char* p = nullptr;
+SIMPLE_UNIT_TEST_SUITE(TBlobTest) {
 
-{
-    TBlob parent = TBlob::CopySingleThreaded("0123456789", 10);
-    UNIT_ASSERT_EQUAL(parent.Length(), 10);
-    p = parent.AsCharPtr();
-    UNIT_ASSERT_EQUAL(memcmp(p, "0123456789", 10), 0);
-    child = parent.SubBlob(2, 5);
-} // Don't worry about parent
+SIMPLE_UNIT_TEST(TestSubBlob) {
+    TBlob child;
+    const char* p = nullptr;
 
-UNIT_ASSERT_EQUAL(child.Length(), 3);
-UNIT_ASSERT_EQUAL(memcmp(child.AsCharPtr(), "234", 3), 0);
-UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
+    {
+        TBlob parent = TBlob::CopySingleThreaded("0123456789", 10);
+        UNIT_ASSERT_EQUAL(parent.Length(), 10);
+        p = parent.AsCharPtr();
+        UNIT_ASSERT_EQUAL(memcmp(p, "0123456789", 10), 0);
+        child = parent.SubBlob(2, 5);
+    } // Don't worry about parent
+
+    UNIT_ASSERT_EQUAL(child.Length(), 3);
+    UNIT_ASSERT_EQUAL(memcmp(child.AsCharPtr(), "234", 3), 0);
+    UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
 }
 
 SIMPLE_UNIT_TEST(TestFromStream) {
@@ -47,5 +49,22 @@ SIMPLE_UNIT_TEST(TestFromBuffer) {
     UNIT_ASSERT_EQUAL(buf.Size(), 0u);
     UNIT_ASSERT_EQUAL(b.Size(), sz);
 }
+
+SIMPLE_UNIT_TEST(TestFromFile) {
+    TString path = "testfile";
+
+    TOFStream stream(path);
+    stream.Write("1234", 4);
+    stream.Finish();
+
+    auto testMode = [](TBlob blob) {
+        UNIT_ASSERT_EQUAL(blob.Size(), 4);
+        UNIT_ASSERT_EQUAL(TStringBuf(static_cast<const char*>(blob.Data()), 4), "1234");
+    };
+
+    testMode(TBlob::FromFile(path));
+    testMode(TBlob::PrechargedFromFile(path));
+    testMode(TBlob::LockedFromFile(path));
 }
-;
+
+};

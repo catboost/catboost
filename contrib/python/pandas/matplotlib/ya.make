@@ -5,7 +5,7 @@ PY_LIBRARY()
 
 
 PEERDIR(
-    contrib/python/matplotlib-2.0.0b3
+    contrib/python/matplotlib
     contrib/python/pandas
 )
 

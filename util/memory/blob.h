@@ -179,6 +179,8 @@ public:
     /// Creates a blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
     static TBlob FromFile(const TFile& file);
 
+    // TODO: drop Precharged* functions.
+
     /// Creates a precharged blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
     static TBlob PrechargedFromFileSingleThreaded(const TString& path);
 
@@ -190,6 +192,18 @@ public:
 
     /// Creates a precharged blob with a multi-threaded (atomic) refcounter. It maps the file content as data.
     static TBlob PrechargedFromFile(const TFile& file);
+
+    /// Creates a locked blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
+    static TBlob LockedFromFileSingleThreaded(const TString& path);
+
+    /// Creates a locked blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
+    static TBlob LockedFromFile(const TString& path);
+
+    /// Creates a locked blob with a single-threaded (non atomic) refcounter. It maps the file content as data.
+    static TBlob LockedFromFileSingleThreaded(const TFile& file);
+
+    /// Creates a locked blob with a multi-threaded (atomic) refcounter. It maps the file content as data.
+    static TBlob LockedFromFile(const TFile& file);
 
     /// Creates a blob with a single-threaded (non atomic) refcounter from the mapped memory.
     static TBlob FromMemoryMapSingleThreaded(const TMemoryMap& map, ui64 offset, size_t length);

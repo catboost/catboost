@@ -53,7 +53,7 @@ TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
     return JoinFsPaths(namePrefix + filename);
 }
 
-void TLearnContext::OutputMeta(int approxDimension) {
+void TLearnContext::OutputMeta() {
     if (Files.MetaFile.empty()) {
         return;
     }
@@ -68,18 +68,18 @@ void TLearnContext::OutputMeta(int approxDimension) {
         meta << "testErrorLog\t" << FilePathForMeta(Params.TestErrorLog, Files.NamesPrefix) << Endl;
     }
     meta << "timeLeft\t" << FilePathForMeta(Params.TimeLeftLog, Files.NamesPrefix) << Endl;
-    auto losses = CreateMetrics(Params, approxDimension);
+    auto losses = CreateMetrics(Params, LearnProgress.Model.ApproxDimension);
     for (const auto& loss : losses) {
         meta << "loss\t" << loss->GetDescription() << "\t" << (loss->IsMaxOptimal() ? "max" : "min") << Endl;
     }
 }
 
-void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
+void TLearnContext::InitData(const TTrainData& data) {
     for (const auto& ctr : Params.CtrParams.Ctrs) {
         int targetBorderCount = 0;
         if (ctr.CtrType != ECtrType::Counter) {
             if (IsMultiClassError(Params.LossFunction)) {
-                targetBorderCount = approxDimension - 1;
+                targetBorderCount = LearnProgress.Model.ApproxDimension - 1;
             } else {
                 targetBorderCount = ctr.TargetBorderCount;
             }
@@ -111,7 +111,7 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
                 LearnProgress.Model.TargetClassifiers,
                 foldIdx != 0,
                 foldPermutationBlockSize,
-                approxDimension,
+                LearnProgress.Model.ApproxDimension,
                 Params.FoldLenMultiplier,
                 Rand));
     }
@@ -119,12 +119,12 @@ void TLearnContext::InitData(const TTrainData& data, int approxDimension) {
     LearnProgress.AveragingFold = BuildAveragingFold(data,
                                                      LearnProgress.Model.TargetClassifiers,
                                                      !Params.HasTime,
-                                                     approxDimension,
+                                                     LearnProgress.Model.ApproxDimension,
                                                      Rand);
 
-    LearnProgress.AvrgApprox.resize(approxDimension, yvector<double>(sampleCount));
+    LearnProgress.AvrgApprox.resize(LearnProgress.Model.ApproxDimension, yvector<double>(sampleCount));
     if (!data.Baseline[0].empty()) {
-        for (int dim = 0; dim < approxDimension; ++dim) {
+        for (int dim = 0; dim < LearnProgress.Model.ApproxDimension; ++dim) {
             for (int docId = 0; docId < sampleCount; ++docId) {
                 LearnProgress.AvrgApprox[dim][docId] = data.Baseline[docId][dim];
             }

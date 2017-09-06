@@ -16,6 +16,12 @@
 #include <util/generic/maybe.h>
 #include <util/datetime/systime.h>
 
+enum class ENanMode {
+    Min,
+    Max,
+    Forbidden
+};
+
 enum class ELossFunction {
     RMSE,
     MAE,
@@ -33,6 +39,7 @@ enum class ELossFunction {
     Recall,
     F1,
     TotalF1,
+    MCC,
     R2,
     Custom
 };
@@ -48,9 +55,10 @@ enum class EFeatureType {
 };
 
 enum class ECounterCalc {
-    Universal,
-    Static,
-    Basic
+    Full,
+    FullTest,
+    PrefixTest,
+    SkipTest
 };
 
 constexpr int CB_THREAD_LIMIT = 32;
@@ -123,6 +131,7 @@ public:
     // TODO(asaitgalin): Rename.
     // TODO(annaveronika): remove LossFunction.
     ELossFunction LossFunction;
+    ENanMode NanMode = ENanMode::Forbidden;
     TString Objective = ToString<ELossFunction>(ELossFunction::RMSE);
     TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
 
@@ -143,7 +152,7 @@ public:
     int FoldPermutationBlockSize = ParameterNotSet;
     int BorderCount = 128;
     TCtrParams CtrParams;
-    ECounterCalc CounterCalcMethod = ECounterCalc::Basic;
+    ECounterCalc CounterCalcMethod = ECounterCalc::PrefixTest;
     float AutoStopPval = 0;
     EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
     int OverfittingDetectorIterationsWait = 20;
@@ -180,7 +189,7 @@ public:
     bool StoreAllSimpleCtr = false;
     bool PrintTrees = false;
     bool DeveloperMode = false;
-    bool ApproxOnPartialHistory = false;
+    bool ApproxOnPartialHistory = true;
     bool AllowWritingFiles = true;
 
     TFitParams() = default;
@@ -245,7 +254,8 @@ inline bool IsClassificationLoss(ELossFunction lossFunction) {
             lossFunction == ELossFunction::Precision ||
             lossFunction == ELossFunction::Recall ||
             lossFunction == ELossFunction::F1 ||
-            lossFunction == ELossFunction::TotalF1);
+            lossFunction == ELossFunction::TotalF1 ||
+            lossFunction == ELossFunction::MCC);
 }
 
 inline bool IsMultiClassError(ELossFunction lossFunction) {

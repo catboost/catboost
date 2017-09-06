@@ -396,7 +396,7 @@ public:
     * @param program      prefix of result (path to the program)
     * @param os           destination stream
     */
-    void PrintUsage(const TStringBuf& program, IOutputStream& os = Cerr) const;
+    void PrintUsage(const TStringBuf& program, IOutputStream& os = Cout) const;
 private:
     /**
     * @return argument title of a free argument

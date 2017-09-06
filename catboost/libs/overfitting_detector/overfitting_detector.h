@@ -19,6 +19,7 @@ public:
     }
     virtual void AddError(double err) = 0;
     virtual bool IsNeedStop() const = 0;
+    virtual int GetIterationsWait() const = 0;
     virtual double GetCurrentPValue() const = 0;
     virtual double GetThreshold() const = 0;
     virtual bool GetMaxIsOptimal() const = 0;
@@ -33,6 +34,10 @@ public:
         , MaxIsOptimal(maxIsOptimal)
         , IterationsWait(iterationsWait)
         , CurrentPValue(1.0) {
+    }
+
+    int GetIterationsWait() const override {
+        return IterationsWait;
     }
 
     double GetCurrentPValue() const override {
@@ -126,13 +131,10 @@ inline TAutoPtr<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDete
                                                                 int iterationsWait,
                                                                 bool hasTest) {
     // TODO(annaveronika): if !hasTest create empty detector
-    if (type == EOverfittingDetectorType::Wilcoxon) {
-        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorWilcoxon(maxIsOptimal, threshold, iterationsWait, hasTest));
-    } else if (type == EOverfittingDetectorType::IncToDec) {
+    if (type == EOverfittingDetectorType::IncToDec) {
         return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, threshold, iterationsWait, hasTest));
-    } else if (type == EOverfittingDetectorType::Iter) {
-        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, 1.0, iterationsWait, hasTest));
     } else {
-        CB_ENSURE(false);
+        Y_ASSERT(type == EOverfittingDetectorType::Iter);
+        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, 1.0, iterationsWait, hasTest));
     }
 }

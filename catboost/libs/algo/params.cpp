@@ -238,7 +238,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(print_trees, PrintTrees, Boolean)
     GET_FIELD(developer_mode, DeveloperMode, Boolean)
     GET_FIELD(used_ram_limit, UsedRAMLimit, UInteger)
-    GET_FIELD(approx_on_partial_history, ApproxOnPartialHistory, Boolean)
+    GET_FIELD(approx_on_full_history, ApproxOnPartialHistory, Boolean)
 #undef GET_FIELD
 
 #define GET_ENUM_FIELD(json_name, target_name, type)                      \
@@ -251,6 +251,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_ENUM_FIELD(counter_calc_method, CounterCalcMethod, ECounterCalc)
     GET_ENUM_FIELD(feature_border_type, FeatureBorderType, EBorderSelectionType)
     GET_ENUM_FIELD(prediction_type, PredictionType, EPredictionType)
+    GET_ENUM_FIELD(nan_mode, NanMode, ENanMode)
 #undef GET_ENUM_FIELD
 
 #define GET_VECTOR_FIELD(json_name, target_name, type)                  \
@@ -321,7 +322,6 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     for (const auto& keyVal : tree.GetMap()) {
         CB_ENSURE(validKeys.has(keyVal.first), "invalid parameter: " << keyVal.first);
     }
-
     if (!EvalMetric) {
         CB_ENSURE(LossFunction != ELossFunction::Custom,
                   "Eval metric should be specified for custom objective");
@@ -344,6 +344,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
         CB_ENSURE(IsMultiClassError(LossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
         CB_ENSURE(ClassesCount > 1, "classes-count should be at least 2");
     }
+    CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Wilcoxon, "Wilcoxon detector is not supported");
     if (tree.Has("od_pval")) {
         CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Iter, "od_pval is not supported with iterational overfitting detector");
     }
