@@ -23,7 +23,7 @@ You can use the metrics to look how its values are changing during training or t
 ## Bug Fixes and Other Changes
 * Stability improvements and bug fixes
 
-##Thanks to our Contributors
+## Thanks to our Contributors
 This release contains contributions from: grayskripko, hadjipantelis and CatBoost team.
 
 We are grateful to all who filed issues or helped resolve them, asked and answered questions.
