@@ -1,5 +1,9 @@
 LIBRARY(dateutil)
 
+LICENSE(
+    BSD
+)
+
 
 
 PEERDIR(

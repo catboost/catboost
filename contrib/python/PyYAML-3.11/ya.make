@@ -1,5 +1,9 @@
 LIBRARY(yaml)
 
+LICENSE(
+    MIT
+)
+
 
 
 IF (NOT MSVC)

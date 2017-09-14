@@ -1,5 +1,9 @@
 LIBRARY(py)
 
+LICENSE(
+    MIT
+)
+
 
 
 PY_SRCS(

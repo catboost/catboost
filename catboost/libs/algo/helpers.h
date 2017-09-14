@@ -9,7 +9,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/hash_set.h>
 
-yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx);
+void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvector<yvector<float>>* borders, yvector<bool>* hasNans);
 
 void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool);
 yvector<size_t> InvertPermutation(const yvector<size_t>& permutation);

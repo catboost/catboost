@@ -6,8 +6,6 @@
 #include <util/generic/yexception.h>
 #include <util/generic/vector.h>
 
-#include "math_utils.h"
-
 template <class TEl, class TRes = TEl>
 class TRandVarParamsEstimator {
     TRes Sum;

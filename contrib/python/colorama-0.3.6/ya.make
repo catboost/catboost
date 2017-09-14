@@ -1,5 +1,9 @@
 LIBRARY(colorama)
 
+LICENSE(
+    BSD3
+)
+
 
 
 PY_SRCS(

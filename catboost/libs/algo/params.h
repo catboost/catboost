@@ -11,6 +11,7 @@
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 #include <util/generic/maybe.h>
@@ -56,8 +57,6 @@ enum class EFeatureType {
 
 enum class ECounterCalc {
     Full,
-    FullTest,
-    PrefixTest,
     SkipTest
 };
 
@@ -122,6 +121,12 @@ enum class EFstrType {
 
 const int ParameterNotSet = -1;
 
+struct TOverfittingDetectorParams {
+    float AutoStopPval = 0;
+    EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
+    int OverfittingDetectorIterationsWait = 20;
+};
+
 class TFitParams {
 public:
     int Iterations = 500;
@@ -131,6 +136,7 @@ public:
     // TODO(asaitgalin): Rename.
     // TODO(annaveronika): remove LossFunction.
     ELossFunction LossFunction;
+    bool StoreExpApprox;
     ENanMode NanMode = ENanMode::Forbidden;
     TString Objective = ToString<ELossFunction>(ELossFunction::RMSE);
     TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
@@ -152,10 +158,8 @@ public:
     int FoldPermutationBlockSize = ParameterNotSet;
     int BorderCount = 128;
     TCtrParams CtrParams;
-    ECounterCalc CounterCalcMethod = ECounterCalc::PrefixTest;
-    float AutoStopPval = 0;
-    EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
-    int OverfittingDetectorIterationsWait = 20;
+    ECounterCalc CounterCalcMethod = ECounterCalc::Full;
+    TOverfittingDetectorParams OdParams;
     bool UseBestModel = false;
     bool DetailedProfile = false;
     ELeafEstimation LeafEstimationMethod = ELeafEstimation::Gradient;
@@ -194,14 +198,15 @@ public:
 
     TFitParams() = default;
 
-    explicit TFitParams(const NJson::TJsonValue& tree,
-                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                        NJson::TJsonValue* resultingParams = nullptr)
+    TFitParams(const NJson::TJsonValue& tree,
+               const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+               const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+               NJson::TJsonValue* resultingParams = nullptr)
         : ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
     {
         InitFromJson(tree, resultingParams);
+        StoreExpApprox = EqualToOneOf(LossFunction, ELossFunction::Logloss, ELossFunction::LogLinQuantile, ELossFunction::Poisson, ELossFunction::CrossEntropy);
     }
 
 private:
@@ -212,10 +217,9 @@ private:
 struct TCrossValidationParams {
     size_t FoldCount = 0;
     bool Inverted = false;
-    int RandSeed = 0;
+    int PartitionRandSeed = 0;
     bool Shuffle = true;
     int EvalPeriod = 1;
-    bool EnableEarlyStopping = true;
 };
 
 struct TCvDataPartitionParams {

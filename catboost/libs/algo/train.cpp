@@ -31,10 +31,10 @@ yvector<int> CountSplits(
 }
 
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx) {
-    return TErrorTracker(ctx->Params.OverfittingDetectorType,
+    return TErrorTracker(ctx->Params.OdParams.OverfittingDetectorType,
                          isMaxOptimal,
-                         ctx->Params.AutoStopPval,
-                         ctx->Params.OverfittingDetectorIterationsWait,
+                         ctx->Params.OdParams.AutoStopPval,
+                         ctx->Params.OdParams.OverfittingDetectorIterationsWait,
                          true,
                          hasTest);
 }

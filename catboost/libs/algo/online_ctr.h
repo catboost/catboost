@@ -1,6 +1,7 @@
 #pragma once
 
 #include "full_features.h"
+#include "train_data.h"
 #include "target_classifier.h"
 #include "bin_tracker.h"
 
@@ -50,10 +51,22 @@ struct TCalcOnlineCTRsBatchTask {
 void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
 
 void CalcFinalCtrs(const TModelCtr& ctr,
-                   const TTrainData& data,
+                   const TAllFeatures& features,
+                   const ui64 learnSampleCount,
                    const yvector<int>& learnPermutation,
                    const yvector<int>& permutedTargetClass,
                    int targetClassesCount,
                    ui64 ctrLeafCountLimit,
                    bool storeAllSimpleCtr,
                    TCtrValueTable* result);
+
+inline void CalcFinalCtrs(const TModelCtr& ctr,
+                          const TTrainData& data,
+                          const yvector<int>& learnPermutation,
+                          const yvector<int>& permutedTargetClass,
+                          int targetClassesCount,
+                          ui64 ctrLeafCountLimit,
+                          bool storeAllSimpleCtr,
+                          TCtrValueTable* result) {
+    CalcFinalCtrs(ctr, data.AllFeatures, static_cast<ui64>(data.LearnSampleCount), learnPermutation, permutedTargetClass, targetClassesCount, ctrLeafCountLimit, storeAllSimpleCtr, result);
+}

@@ -15,6 +15,7 @@ SRCS(
     index_hash_calcer.cpp
     interrupt.cpp
     learn_context.cpp
+    logger.cpp
     online_ctr.cpp
     online_predictor.cpp
     params.cpp
@@ -39,7 +40,9 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/data
     catboost/libs/overfitting_detector
+    catboost/libs/tensorboard_logger
     library/digest/md5
+    library/dot_product
     library/fast_exp
     library/grid_creator
     library/containers/dense_hash
@@ -50,5 +53,7 @@ PEERDIR(
 GENERATE_ENUM_SERIALIZATION(params.h)
 
 GENERATE_ENUM_SERIALIZATION(metric.h)
+
+GENERATE_ENUM_SERIALIZATION(logger.h)
 
 END()

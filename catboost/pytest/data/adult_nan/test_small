@@ -92,7 +92,7 @@
 0	1	n	1	47.0	Private	159550.0	HS-grad	9.0	Divorced	Adm-clerical	Not-in-family	Black	Female	0.0	0.0	40.0	United-States
 0	1	n	1	57.0	Private	130714.0	1st-4th	2.0	Married-civ-spouse	Handlers-cleaners	Husband	White	Male	0.0	0.0	22.0	United-States
 0	1	n	1	21.0	?	133515.0	Assoc-acdm	12.0	Never-married	?	Own-child	White	Female	594.0	0.0	40.0	United-States
-0	1	n	1	24.0	Private	128477.0	Masters	14.0	Never-married	Prof-specialty	Not-in-family	White	Female	nan	0.0	40.0	United-States
+0	1	n	1	24.0	Private	128477.0	Masters	14.0	Never-married	Prof-specialty	Not-in-family	White	Female	0.0	0.0	40.0	United-States
 0	1	n	1	42.0	Private	121287.0	HS-grad	9.0	Divorced	Machine-op-inspct	Not-in-family	White	Male	0.0	0.0	45.0	United-States
 0	1	n	1	45.0	Self-emp-inc	177543.0	HS-grad	9.0	Married-civ-spouse	Sales	Wife	White	Female	0.0	0.0	50.0	United-States
 0	0	n	1	36.0	Private	175360.0	Masters	14.0	Never-married	Adm-clerical	Not-in-family	White	Male	13550.0	0.0	50.0	United-States

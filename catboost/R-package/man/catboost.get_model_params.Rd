@@ -2,7 +2,7 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.get_model_params}
 \alias{catboost.get_model_params}
-\title{catboost.get_model_params}
+\title{Model parameters}
 \usage{
 catboost.get_model_params(model)
 }

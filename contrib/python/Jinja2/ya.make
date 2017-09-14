@@ -2,6 +2,10 @@
 
 LIBRARY()
 
+LICENSE(
+    BSD3
+)
+
 PEERDIR(
     contrib/python/MarkupSafe
 )

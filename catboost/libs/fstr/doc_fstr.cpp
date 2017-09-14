@@ -113,7 +113,7 @@ yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     TAllFeatures allFeatures;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
+    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, model.HasNans, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
 
     const int approxDimension = model.ApproxDimension;
     const int docCount = pool.Docs.ysize();

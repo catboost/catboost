@@ -1,10 +1,10 @@
 #include "delim_stroka_iter.h"
 
 //
-// TKeyValueDelimStrokaIter
+// TKeyValueDelimStringIter
 //
 
-void TKeyValueDelimStrokaIter::ReadKeyAndValue() {
+void TKeyValueDelimStringIter::ReadKeyAndValue() {
     TStringBuf currentToken(*DelimIter);
 
     size_t pos = currentToken.find('=');
@@ -17,18 +17,18 @@ void TKeyValueDelimStrokaIter::ReadKeyAndValue() {
     }
 }
 
-TKeyValueDelimStrokaIter::TKeyValueDelimStrokaIter(const TStringBuf str, const TStringBuf delim)
+TKeyValueDelimStringIter::TKeyValueDelimStringIter(const TStringBuf str, const TStringBuf delim)
     : DelimIter(str, delim)
 {
     if (DelimIter.Valid())
         ReadKeyAndValue();
 }
 
-bool TKeyValueDelimStrokaIter::Valid() const {
+bool TKeyValueDelimStringIter::Valid() const {
     return DelimIter.Valid();
 }
 
-TKeyValueDelimStrokaIter& TKeyValueDelimStrokaIter::operator++() {
+TKeyValueDelimStringIter& TKeyValueDelimStringIter::operator++() {
     ++DelimIter;
     if (DelimIter.Valid())
         ReadKeyAndValue();
@@ -36,10 +36,10 @@ TKeyValueDelimStrokaIter& TKeyValueDelimStrokaIter::operator++() {
     return *this;
 }
 
-const TStringBuf& TKeyValueDelimStrokaIter::Key() const {
+const TStringBuf& TKeyValueDelimStringIter::Key() const {
     return ChunkKey;
 }
 
-const TStringBuf& TKeyValueDelimStrokaIter::Value() const {
+const TStringBuf& TKeyValueDelimStringIter::Value() const {
     return ChunkValue;
 }

@@ -1,5 +1,9 @@
 LIBRARY(wcwidth)
 
+LICENSE(
+    MIT
+)
+
 
 
 PY_SRCS(

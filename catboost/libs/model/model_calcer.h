@@ -40,6 +40,65 @@ namespace NCatBoost {
             InitFromFullModel(model);
         }
 
+        template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+        void CalcGeneric(TFloatFeatureAccessor floatFeatureAccessor, TCatFeatureAccessor catFeaturesAccessor, size_t docCount, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const {
+            size_t blockSize;
+            if (UsedCtrFeatures.empty()) {
+                blockSize = 128;
+            } else {
+                blockSize = 4096;
+            }
+            blockSize = Min(blockSize, docCount);
+            CB_ENSURE(results.size() == docCount * ModelClassCount);
+            std::fill(results.begin(), results.end(), 0.0);
+            yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
+            yvector<ui32> indexesVec(blockSize);
+            yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
+            yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
+            for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+                const auto docCountInBlock = Min(blockSize, docCount - blockStart);
+                BinarizeFeatures(floatFeatureAccessor, catFeaturesAccessor, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
+                CalcTrees(blockStart, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, results);
+            }
+        }
+
+        template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+        yvector<yvector<double>> CalcTreeIntervalsGeneric(TFloatFeatureAccessor floatFeatureAccessor, TCatFeatureAccessor catFeaturesAccessor, size_t docCount, size_t incrementStep) const {
+            size_t blockSize;
+            if (UsedCtrFeatures.empty()) {
+                blockSize = 128;
+            } else {
+                blockSize = 4096;
+            }
+            blockSize = Min(blockSize, docCount);
+            auto treeStepCount = (BinaryTrees.size() + incrementStep - 1) / incrementStep;
+            yvector<yvector<double>> results(docCount, yvector<double>(treeStepCount));
+            CB_ENSURE(ModelClassCount == 1);
+            yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
+            yvector<ui32> indexesVec(blockSize);
+            yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
+            yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
+            yvector<double> tmpResult(docCount);
+            NArrayRef::TArrayRef<double> tmpResultRef(tmpResult);
+            for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+                const auto docCountInBlock = Min(blockSize, docCount - blockStart);
+                BinarizeFeatures(floatFeatureAccessor, catFeaturesAccessor, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
+                for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
+                    CalcTrees(blockStart,
+                              binFeatures,
+                              docCountInBlock,
+                              indexesVec,
+                              stepIdx * incrementStep,
+                              Min((stepIdx + 1) * incrementStep, BinaryTrees.size()),
+                              tmpResultRef);
+                    for (size_t i = 0; i < docCountInBlock; ++i) {
+                        results[blockStart + i][stepIdx] = tmpResult[i];
+                    }
+                }
+            }
+            return results;
+        }
+
         void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const;
         void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, NArrayRef::TArrayRef<double> results) const {
             CalcFlat(features, 0, BinaryTrees.size(), results);
@@ -49,7 +108,14 @@ namespace NCatBoost {
             CalcFlat(featuresVec, result);
         }
 
-        void CalcTreeIntervalsFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, size_t treeStep, NArrayRef::TArrayRef<double> results);
+        yvector<yvector<double>> CalcTreeIntervals(
+            const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+            const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+            size_t incrementStep) const;
+
+        yvector<yvector<double>> CalcTreeIntervalsFlat(
+            const yvector<NArrayRef::TConstArrayRef<float>>& mixedFeatures,
+            size_t incrementStep) const;
 
         void Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
                   const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
@@ -82,14 +148,7 @@ namespace NCatBoost {
             Calc(floatFeatures, catFeatures, 0, BinaryTrees.size(), results);
         }
 
-        yvector<yvector<double>> CalcTreeIntervals(
-            const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-            const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
-            size_t incrementStep);
 
-        yvector<yvector<double>> CalcTreeIntervalsFlat(
-            const yvector<NArrayRef::TConstArrayRef<float>>& mixedFeatures,
-            size_t incrementStep);
 
         void InitFromCoreModel(const TCoreModel& coreModel) {
             InitBinTreesFromCoreModel(coreModel);
@@ -154,84 +213,27 @@ namespace NCatBoost {
             }
         }
 
-        //TODO(kirillovs): remove copypaste and use templates for features hashing/reindexing if needed
-        void BinarizeFeaturesFlat(
-            const yvector<NArrayRef::TConstArrayRef<float>>& mixedFeatures,
-            size_t start,
-            size_t end,
-            yvector<ui8>& result,
-            yvector<int>& transposedHash,
-            yvector<float>& ctrs) const {
-            const auto docCount = end - start;
-            const auto docCount4 = (docCount | 0x3) ^ 0x3;
-            size_t currentBinIndex = 0;
-            for (const auto& floatFeature : UsedFloatFeatures) {
-                auto fidx = FloatFeatureFlatIndex[floatFeature.FeatureIndex];
-                for (size_t docId = 0; docId < docCount4; docId += 4) {
-                    const float val[4] = {
-                        mixedFeatures[start + docId + 0][fidx],
-                        mixedFeatures[start + docId + 1][fidx],
-                        mixedFeatures[start + docId + 2][fidx],
-                        mixedFeatures[start + docId + 3][fidx]
-                    };
-                    auto writePtr = &result[docId + currentBinIndex];
-                    for (const auto border : floatFeature.Borders) {
-                        writePtr[0] = (ui8)(val[0] > border);
-                        writePtr[1] = (ui8)(val[1] > border);
-                        writePtr[2] = (ui8)(val[2] > border);
-                        writePtr[3] = (ui8)(val[3] > border);
-                        writePtr += docCount;
-                    }
-                }
-                for (size_t docId = docCount4; docId < docCount; ++docId) {
-                    const auto val = mixedFeatures[start + docId][fidx];
-                    auto writePtr = &result[docId + currentBinIndex];
-                    for (const auto border : floatFeature.Borders) {
-                        *writePtr = (ui8)(val > border);
-                        writePtr += docCount;
-                    }
-                }
-                currentBinIndex += floatFeature.Borders.size() * docCount;
-            }
-            auto catFeatureCount = CatFeatureFlatIndex.size();
-            if (catFeatureCount > 0) {
-                for (size_t docId = 0; docId < docCount; ++docId) {
-                    auto idx = docId;
-                    for (size_t i = 0; i < catFeatureCount; ++i) {
-                        transposedHash[idx] = ConvertFloatCatFeatureToIntHash(
-                            mixedFeatures[start + docId][CatFeatureFlatIndex[i]]);
-                        idx += docCount;
-                    }
-                }
-                OneHotBinsFromTransposedCatFeatures(docCount, result, transposedHash, currentBinIndex);
-                CtrProvider->CalcCtrs(UsedModelCtrs,
-                                      result,
-                                      transposedHash,
-                                      TFeatureIndexProvider(*this),
-                                      docCount,
-                                      ctrs);
-                BinarizeFloatCtrs(docCount, currentBinIndex, ctrs, result);
-            }
-        }
-
+        template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
         void BinarizeFeatures(
-            const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-            const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+            TFloatFeatureAccessor floatAccessor,
+            TCatFeatureAccessor catFeatureAccessor,
             size_t start,
             size_t end,
             yvector<ui8>& result,
             yvector<int>& transposedHash,
-            yvector<float>& ctrs) const {
+            yvector<float>& ctrs
+            ) const {
             const auto docCount = end - start;
             const auto docCount4 = (docCount | 0x3) ^ 0x3;
             size_t currentBinIndex = 0;
             for (const auto& floatFeature : UsedFloatFeatures) {
                 for (size_t docId = 0; docId < docCount4; docId += 4) {
-                    const float val[4] = {
-                        floatFeatures[start + docId + 0][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 1][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 2][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 3][floatFeature.FeatureIndex]
+                    const float val[4] =
+                    {
+                        floatAccessor(floatFeature, start + docId + 0),
+                        floatAccessor(floatFeature, start + docId + 1),
+                        floatAccessor(floatFeature, start + docId + 2),
+                        floatAccessor(floatFeature, start + docId + 3)
                     };
                     auto writePtr = &result[docId + currentBinIndex];
                     for (const auto border : floatFeature.Borders) {
@@ -243,7 +245,7 @@ namespace NCatBoost {
                     }
                 }
                 for (size_t docId = docCount4; docId < docCount; ++docId) {
-                    const auto val = floatFeatures[start + docId][floatFeature.FeatureIndex];
+                    const auto val = floatAccessor(floatFeature, start + docId);
                     auto writePtr = &result[docId + currentBinIndex];
                     for (const auto border : floatFeature.Borders) {
                         *writePtr = (ui8)(val > border);
@@ -257,65 +259,7 @@ namespace NCatBoost {
                 for (size_t docId = 0; docId < docCount; ++docId) {
                     auto idx = docId;
                     for (size_t i = 0; i < catFeatureCount; ++i) {
-                        transposedHash[idx] = catFeatures[start + docId][i];
-                        idx += docCount;
-                    }
-                }
-                OneHotBinsFromTransposedCatFeatures(docCount, result, transposedHash, currentBinIndex);
-                CtrProvider->CalcCtrs(UsedModelCtrs,
-                                      result,
-                                      transposedHash,
-                                      TFeatureIndexProvider(*this),
-                                      docCount,
-                                      ctrs);
-                BinarizeFloatCtrs(docCount, currentBinIndex, ctrs, result);
-            }
-        }
-
-        void BinarizeFeatures(
-            const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-            const yvector<yvector<TStringBuf>>& catFeatures,
-            size_t start,
-            size_t end,
-            yvector<ui8>& result,
-            yvector<int>& transposedHash,
-            yvector<float>& ctrs) const {
-            const auto docCount = end - start;
-            const auto docCount4 = (docCount | 0x3) ^ 0x3;
-            size_t currentBinIndex = 0;
-            for (const auto& floatFeature : UsedFloatFeatures) {
-                for (size_t docId = 0; docId < docCount4; docId += 4) {
-                    const float val[4] = {
-                        floatFeatures[start + docId + 0][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 1][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 2][floatFeature.FeatureIndex],
-                        floatFeatures[start + docId + 3][floatFeature.FeatureIndex]
-                    };
-                    auto writePtr = &result[docId + currentBinIndex];
-                    for (const auto border : floatFeature.Borders) {
-                        writePtr[0] = (ui8)(val[0] > border);
-                        writePtr[1] = (ui8)(val[1] > border);
-                        writePtr[2] = (ui8)(val[2] > border);
-                        writePtr[3] = (ui8)(val[3] > border);
-                        writePtr += docCount;
-                    }
-                }
-                for (size_t docId = docCount4; docId < docCount; ++docId) {
-                    const auto val = floatFeatures[start + docId][floatFeature.FeatureIndex];
-                    auto writePtr = &result[docId + currentBinIndex];
-                    for (const auto border : floatFeature.Borders) {
-                        *writePtr = (ui8)(val > border);
-                        writePtr += docCount;
-                    }
-                }
-                currentBinIndex += floatFeature.Borders.size() * docCount;
-            }
-            auto catFeatureCount = CatFeatureFlatIndex.size();
-            if (catFeatureCount > 0) {
-                for (size_t docId = 0; docId < docCount; ++docId) {
-                    auto idx = docId;
-                    for (size_t i = 0; i < catFeatureCount; ++i) {
-                        transposedHash[idx] = CalcCatFeatureHash(catFeatures[start + docId][i]);
+                        transposedHash[idx] = catFeatureAccessor(i, start + docId);
                         idx += docCount;
                     }
                 }

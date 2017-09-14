@@ -71,7 +71,7 @@ void CheckValues(const TFitParams& params) {
     CB_ENSURE(params.GradientIterations > 0);
     CB_ENSURE(params.Iterations >= 0);
     CB_ENSURE(params.Rsm > 0 && params.Rsm <= 1);
-    CB_ENSURE(params.OverfittingDetectorIterationsWait >= 0);
+    CB_ENSURE(params.OdParams.OverfittingDetectorIterationsWait >= 0);
     CB_ENSURE(params.BaggingTemperature >= 0);
     CB_ENSURE(params.FoldPermutationBlockSize > 0 || params.FoldPermutationBlockSize == ParameterNotSet);
     CB_ENSURE(!params.SaveSnapshot || !params.SnapshotFileName.empty(), "snapshot saving enabled but snapshot file name is empty");
@@ -211,8 +211,8 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(ctr_border_count, CtrParams.CtrBorderCount, Integer)
     GET_FIELD(max_ctr_complexity, CtrParams.MaxCtrComplexity, Integer)
     GET_FIELD(border_count, BorderCount, Integer)
-    GET_FIELD(od_pval, AutoStopPval, Double)
-    GET_FIELD(od_wait, OverfittingDetectorIterationsWait, Integer)
+    GET_FIELD(od_pval, OdParams.AutoStopPval, Double)
+    GET_FIELD(od_wait, OdParams.OverfittingDetectorIterationsWait, Integer)
     GET_FIELD(use_best_model, UseBestModel, Boolean)
     GET_FIELD(detailed_profile, DetailedProfile, Boolean)
     GET_FIELD(learn_error_log, LearnErrorLog, String)
@@ -246,7 +246,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     if (tree.Has(#json_name)) {                                           \
         target_name = FromString<type>(tree[#json_name].GetStringSafe()); \
     }
-    GET_ENUM_FIELD(od_type, OverfittingDetectorType, EOverfittingDetectorType)
+    GET_ENUM_FIELD(od_type, OdParams.OverfittingDetectorType, EOverfittingDetectorType)
     GET_ENUM_FIELD(leaf_estimation_method, LeafEstimationMethod, ELeafEstimation)
     GET_ENUM_FIELD(counter_calc_method, CounterCalcMethod, ECounterCalc)
     GET_ENUM_FIELD(feature_border_type, FeatureBorderType, EBorderSelectionType)
@@ -344,9 +344,9 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
         CB_ENSURE(IsMultiClassError(LossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
         CB_ENSURE(ClassesCount > 1, "classes-count should be at least 2");
     }
-    CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Wilcoxon, "Wilcoxon detector is not supported");
+    CB_ENSURE(OdParams.OverfittingDetectorType != EOverfittingDetectorType::Wilcoxon, "Wilcoxon detector is not supported");
     if (tree.Has("od_pval")) {
-        CB_ENSURE(OverfittingDetectorType != EOverfittingDetectorType::Iter, "od_pval is not supported with iterational overfitting detector");
+        CB_ENSURE(OdParams.OverfittingDetectorType != EOverfittingDetectorType::Iter, "od_pval is not supported with iterational overfitting detector");
     }
 
     CheckValues(*this);

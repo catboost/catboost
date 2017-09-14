@@ -1,5 +1,10 @@
 PY_LIBRARY()
 
+LICENSE(
+    APACHE
+    BSD
+)
+ 
 
 
 # Version: 16.8

@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    GPL
+)
+
 
 
 ADDINCL(

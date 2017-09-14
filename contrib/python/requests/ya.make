@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    APACHE2
+)
+
 
 
 RESOURCE(

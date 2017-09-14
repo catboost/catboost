@@ -69,7 +69,7 @@ void CalcNormalization(const yvector<float>& priors, yvector<float>* shift, yvec
 }
 
 int GetCtrBorderCount(int targetClassesCount, ECtrType ctrType) {
-    if (ctrType == ECtrType::MeanValue || ctrType == ECtrType::Counter) {
+    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::Counter) {
         return 1;
     }
     return ctrType == ECtrType::Buckets ? targetClassesCount : targetClassesCount - 1;
@@ -233,7 +233,6 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
     Y_ASSERT(docCount >= data.LearnSampleCount);
 
     enum ECalcMode {
-        Prefix,
         Skip,
         Full
     };
@@ -264,10 +263,6 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
             const int blockEnd = Min(lastId, blockStart + blockSize);
             for (int docId = blockStart; docId < blockEnd; ++docId) {
                 const auto elemId = enumeratedCatFeatures[docId];
-                if (mode == ECalcMode::Prefix) {
-                    ++ctrArrTotal[elemId];
-                    currentDenominator = Max(currentDenominator, ctrArrTotal[elemId]);
-                }
                 ctrTotal[docId - blockStart] = ctrArrTotal[elemId];
                 ctrDenominator[docId - blockStart] = currentDenominator;
             }
@@ -296,6 +291,7 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
                  ctrArrTotal,
                  feature);
     } else {
+        Y_ASSERT(counterCalc == ECounterCalc::SkipTest);
         CalcCTRs(enumeratedCatFeatures,
                  priors, shift, norm,
                  ctrBorderCount,
@@ -303,33 +299,13 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
                  &denominator,
                  ctrArrTotal,
                  feature);
-        if (counterCalc == ECounterCalc::FullTest) {
-            CalcCTRs(enumeratedCatFeatures,
-                     priors, shift, norm,
-                     ctrBorderCount,
-                     data.LearnSampleCount, docCount, ECalcMode::Full,
-                     &denominator,
-                     ctrArrTotal,
-                     feature);
-        } else if (counterCalc == ECounterCalc::PrefixTest) {
-            CalcCTRs(enumeratedCatFeatures,
-                     priors, shift, norm,
-                     ctrBorderCount,
-                     data.LearnSampleCount, docCount, ECalcMode::Prefix,
-                     &denominator,
-                     ctrArrTotal,
-                     feature);
-        } else if (counterCalc == ECounterCalc::SkipTest) {
-            CalcCTRs(enumeratedCatFeatures,
-                     priors, shift, norm,
-                     ctrBorderCount,
-                     data.LearnSampleCount, docCount, ECalcMode::Skip,
-                     &denominator,
-                     ctrArrTotal,
-                     feature);
-        } else {
-            Y_ASSERT(false);
-        }
+        CalcCTRs(enumeratedCatFeatures,
+                 priors, shift, norm,
+                 ctrBorderCount,
+                 data.LearnSampleCount, docCount, ECalcMode::Skip,
+                 &denominator,
+                 ctrArrTotal,
+                 feature);
     }
 }
 
@@ -377,7 +353,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
                 priors,
                 ctx->Params.CtrParams.CtrBorderCount,
                 &dst->Feature[ctrIdx]);
-        } else if (ctrType == ECtrType::MeanValue) {
+        } else if (ctrType == ECtrType::BinarizedTargetMeanValue) {
             CalcOnlineCTRMean(
                 data,
                 hashArr,
@@ -440,7 +416,8 @@ void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const T
 }
 
 void CalcFinalCtrs(const TModelCtr& ctr,
-                   const TTrainData& data,
+                   const TAllFeatures& data,
+                   const ui64 learnSampleCount,
                    const yvector<int>& learnPermutation,
                    const yvector<int>& permutedTargetClass,
                    int targetClassesCount,
@@ -449,7 +426,7 @@ void CalcFinalCtrs(const TModelCtr& ctr,
                    TCtrValueTable* result) {
     const ECtrType ctrType = ctr.CtrType;
     yvector<ui64> hashArr;
-    CalcHashes(ctr.Projection, data.AllFeatures, data.LearnSampleCount, learnPermutation, &hashArr);
+    CalcHashes(ctr.Projection, data,  learnSampleCount, learnPermutation, &hashArr);
 
     ui64 topSize = ctrLeafCountLimit;
     if (ctr.Projection.IsSingleCatFeature() && storeAllSimpleCtr) {
@@ -457,12 +434,12 @@ void CalcFinalCtrs(const TModelCtr& ctr,
     }
 
     auto leafCount = ReindexHash(
-        data.LearnSampleCount,
+        learnSampleCount,
         topSize,
         &hashArr,
         &result->Hash).first;
 
-    if (ctrType == ECtrType::MeanValue) {
+    if (ctrType == ECtrType::BinarizedTargetMeanValue) {
         result->CtrMean.resize(leafCount);
     } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
         result->CtrTotal.resize(leafCount);
@@ -471,11 +448,11 @@ void CalcFinalCtrs(const TModelCtr& ctr,
         result->Ctr.resize(leafCount, yvector<int>(targetClassesCount));
     }
 
-    Y_ASSERT(hashArr.ysize() == data.LearnSampleCount);
+    Y_ASSERT(hashArr.size() == learnSampleCount);
     int targetBorderCount = targetClassesCount - 1;
-    for (int z = 0; z < data.LearnSampleCount; ++z) {
+    for (ui32 z = 0; z < learnSampleCount; ++z) {
         const ui64 elemId = hashArr[z];
-        if (ctrType == ECtrType::MeanValue) {
+        if (ctrType == ECtrType::BinarizedTargetMeanValue) {
             TCtrMeanHistory& elem = result->CtrMean[elemId];
             elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
         } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
@@ -490,6 +467,6 @@ void CalcFinalCtrs(const TModelCtr& ctr,
         result->CounterDenominator = *MaxElement(result->CtrTotal.begin(), result->CtrTotal.end());
     }
     if (ctrType == ECtrType::FeatureFreq) {
-        result->CounterDenominator = data.LearnSampleCount;
+        result->CounterDenominator = static_cast<int>(learnSampleCount);
     }
 }

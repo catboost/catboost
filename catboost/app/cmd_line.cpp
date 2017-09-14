@@ -163,7 +163,7 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     // TODO(annaveronika): Save properly in json.
-    parser.AddLongOption("ctr-description", "Ctr description should be written in format CtrType[:TargetBorderCount][:TargetBorderType]. CtrType should be one of: Borders, Buckets, MeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
+    parser.AddLongOption("ctr-description", "Ctr description should be written in format CtrType[:TargetBorderCount][:TargetBorderType]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .AddLongName("ctr")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([&trainJson](const TString& ctrDescriptionLine) {
@@ -230,7 +230,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("leaf_estimation_method", method);
         });
 
-    parser.AddLongOption("counter-calc-method", "Should be one of {Full, FullTest, PrefixTest, SkipTest}")
+    parser.AddLongOption("counter-calc-method", "Should be one of {Full, SkipTest}")
         .RequiredArgument("method-name")
         .Handler1T<TString>([&trainJson](const TString& method) {
             trainJson->InsertValue("counter_calc_method", method);

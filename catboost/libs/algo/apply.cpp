@@ -5,6 +5,8 @@
 #include "eval_helpers.h"
 #include "learn_context.h"
 
+#include <catboost/libs/model/model_calcer.h>
+
 void CalcApproxForTree(const TAllFeatures& features,
                        const TFullModel& model,
                        int treeIdx,
@@ -63,11 +65,12 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
                                          const TPool& pool,
                                          bool verbose,
                                          const EPredictionType predictionType,
-                                         int begin, /*=0*/
+                                         int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          int threadCount /*= 1*/) {
     CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
     CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !pool.CatFeatures.empty(), "if model has cat-features pool should also have them");
+
     if (verbose) {
         SetVerboseLogingMode();
     } else {
@@ -75,30 +78,60 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
     }
 
     const int featureCount = pool.Docs[0].Factors.ysize();
-    CB_ENSURE(featureCount == model.FeatureCount, "train and test datasets should have the same feature count");
+    const int docCount = pool.Docs.size();
+    CB_ENSURE(featureCount >= model.FeatureCount, "Test dataset has not enough features");
+
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    jsonParams.InsertValue("thread_count", threadCount);
-    TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
+    NJson::TJsonValue resultParams;
+    TFitParams params(jsonParams, Nothing(), Nothing(), &resultParams);
+    // TODO(noxoomo): Add params to json in gpu model.
+    // CB_ENSURE(IsClassificationLoss(params.LossFunction) || predictionType == EPredictionType::RawFormulaVal,
+    //           "This prediction type is supported only for classification: " << ToString<EPredictionType>(predictionType));
 
-    CB_ENSURE(IsClassificationLoss(ctx.Params.LossFunction) || predictionType == EPredictionType::RawFormulaVal,
-              "This prediction type is supported only for classification: " << ToString<EPredictionType>(predictionType));
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    NCatBoost::TModelCalcer calcer(model);
+    yvector<double> approxFlat(docCount * model.ApproxDimension);
+    NPar::TLocalExecutor::TBlockParams blockParams(0, docCount);
+    blockParams.SetBlockCount(threadCount);
 
-    TAllFeatures features;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &features);
+    if (end == 0) {
+        end = model.TreeStruct.ysize();
+    } else {
+        end = Min(end, model.TreeStruct.ysize());
+    }
 
-    int approxDimension = model.ApproxDimension;
-    yvector<yvector<double>> approx = MapFunctionToTrees(model, features, begin, end, CalcApproxForTree, approxDimension, &ctx);
-    approx = PrepareEval(predictionType, approx, &ctx.LocalExecutor);
+    executor.ExecRange([&](int blockId) {
+        yvector<NArrayRef::TConstArrayRef<float>> repackedFeatures;
+        const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
+        for (int i = blockFirstId; i < blockLastId; ++i) {
+            const auto& doc = pool.Docs[i];
+            repackedFeatures.emplace_back(MakeArrayRef(doc.Factors));
+        }
+        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * model.ApproxDimension, repackedFeatures.size() * model.ApproxDimension);
+        calcer.CalcFlat(repackedFeatures, begin, end, resultRef);
+    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+    yvector<yvector<double>> approx(model.ApproxDimension, yvector<double>(docCount));
+    for (int dim = 0; dim < model.ApproxDimension; ++dim) {
+        for (int doc = 0; doc < docCount; ++doc) {
+            approx[dim][doc] = approxFlat[model.ApproxDimension * doc + dim];
+        }
+    }
+
+    approx = PrepareEval(predictionType, approx, &executor);
+
     SetSilentLogingMode();
     return approx;
 }
 
 yvector<double> ApplyModel(const TFullModel& model,
-                           const TPool& pool,
-                           bool verbose,
-                           const EPredictionType predictionType,
-                           int begin, /*=0*/
-                           int end,   /*= 0*/
-                           int threadCount /*= 1*/) {
+        const TPool& pool,
+        bool verbose,
+        const EPredictionType predictionType,
+        int begin, /*= 0*/
+        int end,   /*= 0*/
+        int threadCount /*= 1*/) {
     return ApplyModelMulti(model, pool, verbose, predictionType, begin, end, threadCount)[0];
 }

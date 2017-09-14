@@ -5,21 +5,23 @@
 \title{catboost.from_data_frame}
 \usage{
 catboost.from_data_frame(data, target = NULL, weight = NULL,
-  baseline = NULL)
+  baseline = NULL, feature_names = NULL)
 }
 \arguments{
 \item{data}{A data.frame with features.
 The following column types are supported:
 \itemize{
-\item double
-\item factor.
-It is assumed that categorical features are given in this type of columns.
-A standard CatBoost processing procedure is applied to this type of columns:
-  \describe{
-  \item{1.}{The values are converted to strings.}
-  \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
-  }
-}}
+    \item double
+    \item factor.
+    It is assumed that categorical features are given in this type of columns.
+    A standard CatBoost processing procedure is applied to this type of columns:
+    \describe{
+        \item{1.}{The values are converted to strings.}
+        \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+    }
+}
+
+Default value: Required argument}
 
 \item{target}{The target vector.}
 
@@ -27,6 +29,8 @@ A standard CatBoost processing procedure is applied to this type of columns:
 
 \item{baseline}{Vector of initial (raw) values of the target function for the object.
 Used in the calculation of final values of trees.}
+
+\item{feature_names}{A list of names for each feature in the dataset.}
 }
 \value{
 catboost.Pool
@@ -49,7 +53,4 @@ test <- data[-learn_ind,]
 learn_pool <- catboost.from_data_frame(data = learn[,-target], target = learn[,target])
 test_pool <- catboost.from_data_frame(data = test[,-target], target = test[,target])
 
-}
-\seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_data_frame-docpage/}
 }

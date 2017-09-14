@@ -201,7 +201,13 @@ class BufferEntry(object):
         self.type = entry.type
         self.cname = entry.buffer_aux.buflocal_nd_var.cname
         self.buf_ptr = "%s.rcbuffer->pybuffer.buf" % self.cname
-        self.buf_ptr_type = self.entry.type.buffer_ptr_type
+        self.buf_ptr_type = entry.type.buffer_ptr_type
+        self.init_attributes()
+
+    def init_attributes(self):
+        self.shape = self.get_buf_shapevars()
+        self.strides = self.get_buf_stridevars()
+        self.suboffsets = self.get_buf_suboffsetvars()
 
     def get_buf_suboffsetvars(self):
         return self._for_all_ndim("%s.diminfo[%d].suboffsets")
@@ -568,14 +574,14 @@ class GetAndReleaseBufferUtilityCode(object):
     def __hash__(self):
         return 24342342
 
-    def get_tree(self): pass
+    def get_tree(self, **kwargs): pass
 
     def put_code(self, output):
         code = output['utility_code_def']
         proto_code = output['utility_code_proto']
         env = output.module_node.scope
         cython_scope = env.context.cython_scope
-        
+
         # Search all types for __getbuffer__ overloads
         types = []
         visited_scopes = set()
@@ -625,9 +631,7 @@ def mangle_dtype_name(dtype):
             prefix = "nn_"
         else:
             prefix = ""
-        type_decl = dtype.empty_declaration_code()
-        type_decl = type_decl.replace(" ", "_")
-        return prefix + type_decl.replace("[", "_").replace("]", "_")
+        return prefix + dtype.specialization_name()
 
 def get_type_information_cname(code, dtype, maxdepth=None):
     """

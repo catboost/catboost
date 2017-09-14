@@ -1,5 +1,9 @@
 PY_LIBRARY()
 
+LICENSE(
+    BSD
+)
+
 # Version: 0.19.1
 
 

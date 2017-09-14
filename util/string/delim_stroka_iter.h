@@ -168,11 +168,11 @@ inline TDelimStrokaIter end_delim(const TString& /*str*/, TStringBuf /*delim*/) 
     return TDelimStrokaIter();
 }
 
-class TKeyValueDelimStrokaIter {
+class TKeyValueDelimStringIter {
 public:
-    TKeyValueDelimStrokaIter(const TStringBuf str, const TStringBuf delim);
+    TKeyValueDelimStringIter(const TStringBuf str, const TStringBuf delim);
     bool Valid() const;
-    TKeyValueDelimStrokaIter& operator++();
+    TKeyValueDelimStringIter& operator++();
     const TStringBuf& Key() const;
     const TStringBuf& Value() const;
 

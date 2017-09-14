@@ -178,6 +178,10 @@ class BytesLiteral(_bytes):
 
     is_unicode = False
 
+    def as_c_string_literal(self):
+        value = split_string_literal(escape_byte_string(self))
+        return '"%s"' % value
+
 
 def bytes_literal(s, encoding):
     assert isinstance(s, bytes)

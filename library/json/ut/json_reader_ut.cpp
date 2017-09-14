@@ -104,16 +104,23 @@ SIMPLE_UNIT_TEST_SUITE(TJsonReaderTest) {
         TJsonValue value;
         ReadJsonTree(&in, &value);
 
-        TJsonValue copy = value;
-        UNIT_ASSERT_VALUES_EQUAL(copy["intkey"].GetInteger(), 10);
+        UNIT_ASSERT_VALUES_EQUAL(value["intkey"].GetInteger(), 10);
         UNIT_ASSERT_DOUBLES_EQUAL(value["double key"].GetDouble(), 11.11, 0.001);
         UNIT_ASSERT_VALUES_EQUAL(value["bool key"].GetBoolean(), true);
         UNIT_ASSERT_VALUES_EQUAL(value["string key"].GetString(), TString("string"));
         UNIT_ASSERT_VALUES_EQUAL(value["array"][0].GetInteger(), 1);
         UNIT_ASSERT_VALUES_EQUAL(value["array"][1].GetInteger(), 2);
         UNIT_ASSERT_VALUES_EQUAL(value["array"][2].GetInteger(), 3);
-        UNIT_ASSERT_VALUES_EQUAL(copy["array"][3].GetString(), TString("TString"));
+        UNIT_ASSERT_VALUES_EQUAL(value["array"][3].GetString(), TString("TString"));
         UNIT_ASSERT(value["null value"].IsNull());
+
+        // AsString
+        UNIT_ASSERT_VALUES_EQUAL(value["intkey"].GetStringRobust(), "10");
+        UNIT_ASSERT_VALUES_EQUAL(value["double key"].GetStringRobust(), "11.11");
+        UNIT_ASSERT_VALUES_EQUAL(value["bool key"].GetStringRobust(), "true");
+        UNIT_ASSERT_VALUES_EQUAL(value["string key"].GetStringRobust(), "string");
+        UNIT_ASSERT_VALUES_EQUAL(value["array"].GetStringRobust(), "[1,2,3,\"TString\"]");
+        UNIT_ASSERT_VALUES_EQUAL(value["null value"].GetStringRobust(), "null");
 
         const TJsonValue::TArray *array;
         UNIT_ASSERT(GetArrayPointer(value, "array", &array));

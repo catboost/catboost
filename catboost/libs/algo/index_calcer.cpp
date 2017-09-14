@@ -267,33 +267,27 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
             const auto& projection = split.OnlineCtr.Ctr.Projection;
             CalcHashes(projection, features, samplesCount, yvector<int>(), &ctrHashes);
 
-            if (ctrType == ECtrType::MeanValue) {
+            if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                 for (int doc = 0; doc < samplesCount; ++doc) {
-                    int goodCount = 0;
+                    float targetStatisticSum = 0;
                     int totalCount = 0;
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     if (idx != TCtrValueTable::UnknownHash) {
                         const TCtrMeanHistory& ctrMeanHistory = learnCtr.CtrMean[idx];
-                        goodCount = ctrMeanHistory.Sum;
+                        targetStatisticSum = ctrMeanHistory.Sum;
                         totalCount = ctrMeanHistory.Count;
                     }
-                    const float ctrValue = ctr.Calc(goodCount, totalCount);
+                    const float ctrValue = ctr.Calc(targetStatisticSum, totalCount);
                     indices[doc] |= ((int)(ctrValue > split.OnlineCtr.Border)) << splitIdx;
                 }
-            } else if (ctrType == ECtrType::Counter) {
-                NTensor2::TDenseHash<> additionalHash;
-                additionalHash.Init(2 * samplesCount);
-                yvector<int> additionalCtrTotal(2 * samplesCount);
+            } else if (ctrType == ECtrType::FeatureFreq || ctrType == ECtrType::Counter) {
                 int denominator = learnCtr.CounterDenominator;
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
-                    const ui64 elemId = additionalHash.AddIndex(ctrHashes[doc]);
-                    ++additionalCtrTotal[elemId];
-                    int currentBucket = additionalCtrTotal[elemId];
+                    int currentBucket = 0;
                     if (idx != TCtrValueTable::UnknownHash) {
                         currentBucket += learnCtr.CtrTotal[idx];
                     }
-                    denominator = Max(denominator, currentBucket);
                     const float ctrValue = ctr.Calc(currentBucket, denominator);
                     indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
                 }
@@ -313,7 +307,7 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
                     const float ctrValue = ctr.Calc(goodCount, totalCount);
                     indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
                 }
-            } else {
+            } else if (ctrType == ECtrType::Borders) {
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     int goodCount = 0;
                     int totalCount = 0;
@@ -332,6 +326,8 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
                     const float ctrValue = ctr.Calc(goodCount, totalCount);
                     indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
                 }
+            } else {
+                ythrow TCatboostException() << "Unsupported ctr type " << ctrType;
             }
         }
     }

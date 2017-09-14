@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    MIT
+)
+
 # Version: 2.1.0
 
 

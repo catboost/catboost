@@ -9,20 +9,24 @@ static void AddReason(yvector<ui8>* hist,
                       const yvector<size_t>& docIndices,
                       int idx,
                       ENanMode nanMode,
+                      bool nanInLearn,
                       const yvector<float>& featureBorder,
                       NPar::TLocalExecutor* localExecutor)
 {
     ui8* histData = hist->data();
     const float* featureBorderData = featureBorder.data();
     const yssize_t featureBorderSize = featureBorder.ysize();
-    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, idx, nanMode, &docInfos, &docIndices] (int i) {
+    bool hasNans = false;
+    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, &hasNans, idx, nanMode, &docInfos, &docIndices] (int i) {
         const auto& featureVal = docInfos[docIndices[i]].Factors[idx];
         if (IsNan(featureVal)) {
+            hasNans = true;
             histData[i] = nanMode == ENanMode::Min ? 0 : featureBorderSize;
         } else {
             histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
         }
     }, NPar::TLocalExecutor::TBlockParams(0, docInfos.ysize()).SetBlockSize(1000).WaitCompletion());
+    CB_ENSURE(!hasNans || nanInLearn, "There are nans in test dataset (feature number " << idx << ") but there were not nans in learn dataset");
 }
 
 static bool IsRedundantFeature(const yvector<TDocInfo>& docInfos, const yvector<size_t>& docIndices, int learnSampleCount, int featureIdx) {
@@ -43,6 +47,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                                     const yvector<size_t>& docIndices,
                                     const yhash_set<int>& categFeatures,
                                     const yvector<yvector<float>>& allBorders,
+                                    const yvector<bool>& hasNans,
                                     const yvector<int>& ignoredFeatures,
                                     int learnSampleCount,
                                     size_t oneHotMaxSize,
@@ -135,6 +140,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                         docIndices,
                         featureIdx,
                         nanMode,
+                        hasNans.empty() ? false : hasNans[reasonIdx],
                         allBorders[reasonIdx],
                         &localExecutor);
                 }
@@ -152,6 +158,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                                         const yvector<size_t>& docIndices,
                                         const yhash_set<int>& categFeatures,
                                         const yvector<yvector<float>>& allBorders,
+                                        const yvector<bool>& hasNans,
                                         const yvector<int>& ignoredFeatures,
                                         int learnSampleCount,
                                         size_t oneHotMaxSize,
@@ -166,6 +173,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                             docIndices,
                             categFeatures,
                             allBorders,
+                            hasNans,
                             ignoredFeatures,
                             learnSampleCount,
                             oneHotMaxSize,
@@ -185,6 +193,7 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
 void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
                         const yhash_set<int>& categFeatures,
                         const yvector<yvector<float>>& allBorders,
+                        const yvector<bool>& hasNans,
                         const yvector<int>& ignoredFeatures,
                         int learnSampleCount,
                         size_t oneHotMaxSize,
@@ -200,6 +209,7 @@ void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
         indices,
         categFeatures,
         allBorders,
+        hasNans,
         ignoredFeatures,
         learnSampleCount,
         oneHotMaxSize,

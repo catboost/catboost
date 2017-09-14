@@ -1,5 +1,9 @@
 PY_LIBRARY()
 
+LICENSE(
+    MIT
+)
+
 
 
 # Version: 34.3.2

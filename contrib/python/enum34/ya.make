@@ -2,6 +2,10 @@
 
 LIBRARY()
 
+LICENSE(
+    BSD
+)
+
 PY_SRCS(
     TOP_LEVEL
     enum/__init__.py

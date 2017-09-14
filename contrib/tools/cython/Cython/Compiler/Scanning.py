@@ -53,19 +53,22 @@ pyx_reserved_words = py_reserved_words + [
 
 class Method(object):
 
-    def __init__(self, name):
+    def __init__(self, name, **kwargs):
         self.name = name
+        self.kwargs = kwargs or None
         self.__name__ = name  # for Plex tracing
 
     def __call__(self, stream, text):
-        return getattr(stream, self.name)(text)
+        method = getattr(stream, self.name)
+        # self.kwargs is almost always unused => avoid call overhead
+        return method(text, **self.kwargs) if self.kwargs is not None else method(text)
 
 
 #------------------------------------------------------------------
 
 class CompileTimeScope(object):
 
-    def __init__(self, outer = None):
+    def __init__(self, outer=None):
         self.entries = {}
         self.outer = outer
 
@@ -94,8 +97,7 @@ class CompileTimeScope(object):
 
 def initial_compile_time_env():
     benv = CompileTimeScope()
-    names = ('UNAME_SYSNAME', 'UNAME_NODENAME', 'UNAME_RELEASE',
-        'UNAME_VERSION', 'UNAME_MACHINE')
+    names = ('UNAME_SYSNAME', 'UNAME_NODENAME', 'UNAME_RELEASE', 'UNAME_VERSION', 'UNAME_MACHINE')
     for name, value in zip(names, platform.uname()):
         benv.declare(name, value)
     try:
@@ -103,13 +105,17 @@ def initial_compile_time_env():
     except ImportError:
         import builtins
 
-    names = ('False', 'True',
-             'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
-             'chr', 'cmp', 'complex', 'dict', 'divmod', 'enumerate', 'filter',
-             'float', 'format', 'frozenset', 'hash', 'hex', 'int', 'len',
-             'list', 'long', 'map', 'max', 'min', 'oct', 'ord', 'pow', 'range',
-             'repr', 'reversed', 'round', 'set', 'slice', 'sorted', 'str',
-             'sum', 'tuple', 'xrange', 'zip')
+    names = (
+        'False', 'True',
+        'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
+        'chr', 'cmp', 'complex', 'dict', 'divmod', 'enumerate', 'filter',
+        'float', 'format', 'frozenset', 'hash', 'hex', 'int', 'len',
+        'list', 'map', 'max', 'min', 'oct', 'ord', 'pow', 'range',
+        'repr', 'reversed', 'round', 'set', 'slice', 'sorted', 'str',
+        'sum', 'tuple', 'zip',
+        ### defined below in a platform independent way
+        # 'long', 'unicode', 'reduce', 'xrange'
+    )
 
     for name in names:
         try:
@@ -117,6 +123,14 @@ def initial_compile_time_env():
         except AttributeError:
             # ignore, likely Py3
             pass
+
+    # Py2/3 adaptations
+    from functools import reduce
+    benv.declare('reduce', reduce)
+    benv.declare('unicode', getattr(builtins, 'unicode', getattr(builtins, 'str')))
+    benv.declare('long', getattr(builtins, 'long', getattr(builtins, 'int')))
+    benv.declare('xrange', getattr(builtins, 'xrange', getattr(builtins, 'range')))
+
     denv = CompileTimeScope(benv)
     return denv
 
@@ -146,8 +160,11 @@ class SourceDescriptor(object):
 
     def get_escaped_description(self):
         if self._escaped_description is None:
-            self._escaped_description = \
+            esc_desc = \
                 self.get_description().encode('ASCII', 'replace').decode("ASCII")
+            # Use foreward slashes on Windows since these paths
+            # will be used in the #line directives in the C/C++ files.
+            self._escaped_description = esc_desc.replace('\\', '/')
         return self._escaped_description
 
     def __gt__(self, other):
@@ -254,8 +271,8 @@ class StringSourceDescriptor(SourceDescriptor):
         if not encoding:
             return self.codelines
         else:
-            return [ line.encode(encoding, error_handling).decode(encoding)
-                     for line in self.codelines ]
+            return [line.encode(encoding, error_handling).decode(encoding)
+                    for line in self.codelines]
 
     def get_description(self):
         return self.name
@@ -324,6 +341,9 @@ class PyrexScanner(Scanner):
     def commentline(self, text):
         if self.parse_comments:
             self.produce('commentline', text)
+
+    def strip_underscores(self, text, symbol):
+        self.produce(symbol, text.replace('_', ''))
 
     def current_level(self):
         return self.indentation_stack[-1]
@@ -466,7 +486,7 @@ class PyrexScanner(Scanner):
         else:
             self.expected(what, message)
 
-    def expected(self, what, message = None):
+    def expected(self, what, message=None):
         if message:
             self.error(message)
         else:

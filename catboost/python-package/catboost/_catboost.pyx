@@ -134,10 +134,9 @@ cdef extern from "catboost/libs/algo/params.h":
     cdef cppclass TCrossValidationParams:
         size_t FoldCount
         bool_t Inverted
-        int RandSeed
+        int PartitionRandSeed
         bool_t Shuffle
         int EvalPeriod
-        bool_t EnableEarlyStopping
 
     cdef void CheckFitParams(const TJsonValue& tree,
                      const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
@@ -843,17 +842,16 @@ class _CatBoostBase(object):
     def is_fitted_(self):
         return getattr(self, '_is_fitted', False)
 
-cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int random_seed,
-          bool_t shuffle, bool_t enable_early_stopping, int eval_period):
+cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
+          bool_t shuffle, int eval_period):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef yvector[TCVResult] results
 
     cvParams.FoldCount = fold_count
-    cvParams.RandSeed = random_seed
+    cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
     cvParams.Inverted = inverted
-    cvParams.EnableEarlyStopping = enable_early_stopping
     cvParams.EvalPeriod = eval_period
 
     with nogil:

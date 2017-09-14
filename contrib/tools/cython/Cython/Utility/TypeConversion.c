@@ -81,17 +81,24 @@ static CYTHON_INLINE size_t __Pyx_Py_UNICODE_strlen(const Py_UNICODE *u)
 #define __Pyx_Owned_Py_None(b) __Pyx_NewRef(Py_None)
 #define __Pyx_PyBool_FromLong(b) ((b) ? __Pyx_NewRef(Py_True) : __Pyx_NewRef(Py_False))
 static CYTHON_INLINE int __Pyx_PyObject_IsTrue(PyObject*);
-static CYTHON_INLINE PyObject* __Pyx_PyNumber_Int(PyObject* x);
+static CYTHON_INLINE PyObject* __Pyx_PyNumber_IntOrLong(PyObject* x);
 
 static CYTHON_INLINE Py_ssize_t __Pyx_PyIndex_AsSsize_t(PyObject*);
 static CYTHON_INLINE PyObject * __Pyx_PyInt_FromSize_t(size_t);
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_ASSUME_SAFE_MACROS
 #define __pyx_PyFloat_AsDouble(x) (PyFloat_CheckExact(x) ? PyFloat_AS_DOUBLE(x) : PyFloat_AsDouble(x))
 #else
 #define __pyx_PyFloat_AsDouble(x) PyFloat_AsDouble(x)
 #endif
 #define __pyx_PyFloat_AsFloat(x) ((float) __pyx_PyFloat_AsDouble(x))
+
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyNumber_Int(x) (PyLong_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Long(x))
+#else
+#define __Pyx_PyNumber_Int(x) (PyInt_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Int(x))
+#endif
+#define __Pyx_PyNumber_Float(x) (PyFloat_CheckExact(x) ? __Pyx_NewRef(x) : PyNumber_Float(x))
 
 #if PY_MAJOR_VERSION < 3 && __PYX_DEFAULT_STRING_ENCODING_IS_ASCII
 static int __Pyx_sys_getdefaultencoding_not_ascii;
@@ -175,7 +182,6 @@ bad:
 #endif
 
 /////////////// TypeConversions ///////////////
-//@requires: PyLongInternals
 
 /* Type Conversion Functions */
 
@@ -259,8 +265,10 @@ static CYTHON_INLINE int __Pyx_PyObject_IsTrue(PyObject* x) {
    else return PyObject_IsTrue(x);
 }
 
-static CYTHON_INLINE PyObject* __Pyx_PyNumber_Int(PyObject* x) {
+static CYTHON_INLINE PyObject* __Pyx_PyNumber_IntOrLong(PyObject* x) {
+#if CYTHON_USE_TYPE_SLOTS
   PyNumberMethods *m;
+#endif
   const char *name = NULL;
   PyObject *res = NULL;
 #if PY_MAJOR_VERSION < 3
@@ -269,8 +277,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyNumber_Int(PyObject* x) {
   if (PyLong_Check(x))
 #endif
     return __Pyx_NewRef(x);
+#if CYTHON_USE_TYPE_SLOTS
   m = Py_TYPE(x)->tp_as_number;
-#if PY_MAJOR_VERSION < 3
+  #if PY_MAJOR_VERSION < 3
   if (m && m->nb_int) {
     name = "int";
     res = PyNumber_Int(x);
@@ -279,11 +288,14 @@ static CYTHON_INLINE PyObject* __Pyx_PyNumber_Int(PyObject* x) {
     name = "long";
     res = PyNumber_Long(x);
   }
-#else
+  #else
   if (m && m->nb_int) {
     name = "int";
     res = PyNumber_Long(x);
   }
+  #endif
+#else
+  res = PyNumber_Int(x);
 #endif
   if (res) {
 #if PY_MAJOR_VERSION < 3
@@ -391,7 +403,7 @@ static {{struct_type_decl}} {{funcname}}(PyObject * o) {
         goto bad;
     }
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     {{for ix, component in enumerate(components):}}
         {{py:attr = "result.f%s" % ix}}
         {{attr}} = {{component.from_py_function}}(PyTuple_GET_ITEM(o, {{ix}}));
@@ -543,14 +555,18 @@ static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value) {
             return PyInt_FromLong((long) value);
         } else if (sizeof({{TYPE}}) <= sizeof(unsigned long)) {
             return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
         } else if (sizeof({{TYPE}}) <= sizeof(unsigned PY_LONG_LONG)) {
             return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
         }
     } else {
         if (sizeof({{TYPE}}) <= sizeof(long)) {
             return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
         } else if (sizeof({{TYPE}}) <= sizeof(PY_LONG_LONG)) {
             return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
         }
     }
     {
@@ -560,6 +576,151 @@ static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value) {
                                      little, !is_unsigned);
     }
 }
+
+
+/////////////// CIntToDigits ///////////////
+
+static const char DIGIT_PAIRS_10[2*10*10+1] = {
+    "00010203040506070809"
+    "10111213141516171819"
+    "20212223242526272829"
+    "30313233343536373839"
+    "40414243444546474849"
+    "50515253545556575859"
+    "60616263646566676869"
+    "70717273747576777879"
+    "80818283848586878889"
+    "90919293949596979899"
+};
+
+static const char DIGIT_PAIRS_8[2*8*8+1] = {
+    "0001020304050607"
+    "1011121314151617"
+    "2021222324252627"
+    "3031323334353637"
+    "4041424344454647"
+    "5051525354555657"
+    "6061626364656667"
+    "7071727374757677"
+};
+
+static const char DIGITS_HEX[2*16+1] = {
+    "0123456789abcdef0123456789ABCDEF"
+};
+
+
+/////////////// CIntToPyUnicode.proto ///////////////
+
+static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value, Py_ssize_t width, char padding_char, char format_char);
+
+/////////////// CIntToPyUnicode ///////////////
+//@requires: StringTools.c::BuildPyUnicode
+//@requires: CIntToDigits
+
+#include <stdint.h>
+
+// NOTE: inlining because most arguments are constant, which collapses lots of code below
+
+static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value, Py_ssize_t width, char padding_char, char format_char) {
+    // simple and conservative C string allocation on the stack: each byte gives at most 3 digits, plus sign
+    char digits[sizeof({{TYPE}})*3+2];
+    // 'dpos' points to end of digits array + 1 initially to allow for pre-decrement looping
+    char *dpos, *end = digits + sizeof({{TYPE}})*3+2;
+    const char *hex_digits = DIGITS_HEX;
+    Py_ssize_t ulength;
+    int length, prepend_sign, last_one_off;
+    {{TYPE}} remaining;
+    const {{TYPE}} neg_one = ({{TYPE}}) -1, const_zero = ({{TYPE}}) 0;
+    const int is_unsigned = neg_one > const_zero;
+
+    if (format_char == 'X') {
+        hex_digits += 16;
+        format_char = 'x';
+    };
+
+    // surprise: even trivial sprintf() calls don't get optimised in gcc (4.8)
+    remaining = value; /* not using abs(value) to avoid overflow problems */
+    last_one_off = 0;
+    dpos = end;
+    while (remaining != 0) {
+        int digit_pos;
+        switch (format_char) {
+        case 'o':
+            digit_pos = abs(remaining % (8*8));
+            remaining = remaining / (8*8);
+            dpos -= 2;
+            *(uint16_t*)dpos = ((uint16_t*)DIGIT_PAIRS_8)[digit_pos]; /* copy 2 digits at a time */
+            last_one_off = (digit_pos < 8);
+            break;
+        case 'd':
+            digit_pos = abs(remaining % (10*10));
+            remaining = remaining / (10*10);
+            dpos -= 2;
+            *(uint16_t*)dpos = ((uint16_t*)DIGIT_PAIRS_10)[digit_pos]; /* copy 2 digits at a time */
+            last_one_off = (digit_pos < 10);
+            break;
+        case 'x':
+            *(--dpos) = hex_digits[abs(remaining % 16)];
+            remaining = remaining / 16;
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    }
+    if (last_one_off) {
+        assert(*dpos == '0');
+        dpos++;
+    } else if (unlikely(dpos == end)) {
+        *(--dpos) = '0';
+    }
+    length = end - dpos;
+    ulength = length;
+    prepend_sign = 0;
+    if (!is_unsigned && value <= neg_one) {
+        if (padding_char == ' ' || width <= length + 1) {
+            *(--dpos) = '-';
+            ++length;
+        } else {
+            prepend_sign = 1;
+        }
+        ++ulength;
+    }
+    if (width > ulength) {
+        ulength = width;
+    }
+    // single character unicode strings are cached in CPython => use PyUnicode_FromOrdinal() for them
+    if (ulength == 1) {
+        return PyUnicode_FromOrdinal(*dpos);
+    }
+    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, length, prepend_sign, padding_char);
+}
+
+
+/////////////// CBIntToPyUnicode.proto ///////////////
+
+#define {{TO_PY_FUNCTION}}(value)  \
+    ((value) ? __Pyx_NewRef({{TRUE_CONST}}) : __Pyx_NewRef({{FALSE_CONST}}))
+
+
+/////////////// PyIntFromDouble.proto ///////////////
+
+#if PY_MAJOR_VERSION < 3
+static CYTHON_INLINE PyObject* __Pyx_PyInt_FromDouble(double value);
+#else
+#define __Pyx_PyInt_FromDouble(value) PyLong_FromDouble(value)
+#endif
+
+/////////////// PyIntFromDouble ///////////////
+
+#if PY_MAJOR_VERSION < 3
+static CYTHON_INLINE PyObject* __Pyx_PyInt_FromDouble(double value) {
+    if (value >= (double)LONG_MIN && value <= (double)LONG_MAX) {
+        return PyInt_FromLong((long)value);
+    }
+    return PyLong_FromDouble(value);
+}
+#endif
 
 
 /////////////// CIntFromPyVerify ///////////////
@@ -589,20 +750,12 @@ static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value) {
     }
 
 
-/////////////// PyLongInternals ///////////////
-
-#if CYTHON_USE_PYLONG_INTERNALS
-  #include "longintrepr.h"
-#endif
-
-
 /////////////// CIntFromPy.proto ///////////////
 
 static CYTHON_INLINE {{TYPE}} {{FROM_PY_FUNCTION}}(PyObject *);
 
 /////////////// CIntFromPy ///////////////
 //@requires: CIntFromPyVerify
-//@requires: PyLongInternals
 
 {{py: from Cython.Utility import pylong_join }}
 
@@ -658,8 +811,10 @@ static CYTHON_INLINE {{TYPE}} {{FROM_PY_FUNCTION}}(PyObject *x) {
 #endif
             if (sizeof({{TYPE}}) <= sizeof(unsigned long)) {
                 __PYX_VERIFY_RETURN_INT_EXC({{TYPE}}, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
             } else if (sizeof({{TYPE}}) <= sizeof(unsigned PY_LONG_LONG)) {
                 __PYX_VERIFY_RETURN_INT_EXC({{TYPE}}, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
             }
         } else {
             // signed
@@ -686,8 +841,10 @@ static CYTHON_INLINE {{TYPE}} {{FROM_PY_FUNCTION}}(PyObject *x) {
 #endif
             if (sizeof({{TYPE}}) <= sizeof(long)) {
                 __PYX_VERIFY_RETURN_INT_EXC({{TYPE}}, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
             } else if (sizeof({{TYPE}}) <= sizeof(PY_LONG_LONG)) {
                 __PYX_VERIFY_RETURN_INT_EXC({{TYPE}}, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
             }
         }
         {
@@ -696,7 +853,7 @@ static CYTHON_INLINE {{TYPE}} {{FROM_PY_FUNCTION}}(PyObject *x) {
                             "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
 #else
             {{TYPE}} val;
-            PyObject *v = __Pyx_PyNumber_Int(x);
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
  #if PY_MAJOR_VERSION < 3
             if (likely(v) && !PyLong_Check(v)) {
                 PyObject *tmp = v;
@@ -719,7 +876,7 @@ static CYTHON_INLINE {{TYPE}} {{FROM_PY_FUNCTION}}(PyObject *x) {
         }
     } else {
         {{TYPE}} val;
-        PyObject *tmp = __Pyx_PyNumber_Int(x);
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
         if (!tmp) return ({{TYPE}}) -1;
         val = {{FROM_PY_FUNCTION}}(tmp);
         Py_DECREF(tmp);

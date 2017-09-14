@@ -2,6 +2,10 @@
 
 LIBRARY()
 
+LICENSE(
+    BSD3
+)
+
 NO_LINT()
 
 PY_SRCS(

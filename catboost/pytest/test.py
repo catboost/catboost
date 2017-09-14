@@ -770,7 +770,7 @@ def test_target_border(border_type):
     return [local_canonical_file(output_eval_path)]
 
 
-COUNTER_METHODS = ['Full', 'FullTest', 'PrefixTest', 'SkipTest']
+COUNTER_METHODS = ['Full', 'SkipTest']
 
 
 @pytest.mark.parametrize('counter_calc_method', COUNTER_METHODS)
@@ -797,7 +797,7 @@ def test_counter_calc(counter_calc_method):
     return [local_canonical_file(output_eval_path)]
 
 
-CTR_TYPES = ['Borders', 'Buckets', 'MeanValue:10', 'Borders,MeanValue:10', 'Buckets,Borders']
+CTR_TYPES = ['Borders', 'Buckets', 'BinarizedTargetMeanValue:10', 'Borders,BinarizedTargetMeanValue:10', 'Buckets,Borders']
 
 
 @pytest.mark.parametrize('ctr_type', CTR_TYPES)
@@ -962,6 +962,7 @@ def test_calc_no_target():
         '-T', '4',
         '-r', '0',
         '-m', model_path,
+        '--counter-calc-method', 'SkipTest',
         '--eval-file', fit_output_eval_path
     )
     yatest.common.execute(cmd)

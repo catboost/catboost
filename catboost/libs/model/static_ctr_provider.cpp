@@ -39,8 +39,8 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
             for (size_t docId = 0; docId < samplesCount; ++docId) {
                 ptrBuckets[docId] = learnCtr.ResolveHashToIndex(ctrHashes[docId]);
             }
-            if (ctrType == ECtrType::MeanValue) {
-                auto emptyVal = ctr.Calc(0, 0);
+            if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+                auto emptyVal = ctr.Calc(0.f, 0.f);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
                     if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
                         const TCtrMeanHistory& ctrMeanHistory = learnCtr.CtrMean[ptrBuckets[doc]];

@@ -2,5 +2,13 @@ import os
 
 
 def onbundle(unit, *args):
-    for arg in args:
-        unit.onbundle_program([arg, os.path.basename(arg)])
+    i = 0
+    while i < len(args):
+        if i + 2 < len(args) and args[i + 1] == "NAME":
+            target, name = args[i], args[i + 2]
+            i += 3
+        else:
+            target, name = args[i], os.path.basename(args[i])
+            i += 1
+
+        unit.onbundle_program([target, name])

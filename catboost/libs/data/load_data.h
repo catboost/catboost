@@ -1,10 +1,10 @@
 #pragma once
 
-#include <catboost/libs/cat_feature/cat_feature.h>
 #include "pool.h"
 #include "column.h"
 #include <string>
 #include <util/string/vector.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 
 struct TPoolColumnsMetaInfo {
     ui32 FactorCount;
@@ -45,6 +45,15 @@ void ReadPool(const TString& cdFile,
               bool hasHeader,
               const yvector<TString>& classNames,
               TPool* pool);
+
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
+              int threadCount,
+              bool verbose,
+              char fieldDelimiter,
+              bool hasHeader,
+              const yvector<TString>& classNames,
+              IPoolBuilder* poolBuilder);
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,

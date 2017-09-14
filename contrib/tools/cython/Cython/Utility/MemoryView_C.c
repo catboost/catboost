@@ -692,29 +692,29 @@ __pyx_slices_overlap({{memviewslice_name}} *slice1,
 ////////// MemviewSliceIsCContig.proto //////////
 
 #define __pyx_memviewslice_is_c_contig{{ndim}}(slice) \
-        __pyx_memviewslice_is_contig(&slice, 'C', {{ndim}})
+        __pyx_memviewslice_is_contig(slice, 'C', {{ndim}})
 
 
 ////////// MemviewSliceIsFContig.proto //////////
 
 #define __pyx_memviewslice_is_f_contig{{ndim}}(slice) \
-        __pyx_memviewslice_is_contig(&slice, 'F', {{ndim}})
+        __pyx_memviewslice_is_contig(slice, 'F', {{ndim}})
 
 
 ////////// MemviewSliceIsContig.proto //////////
 
-static int __pyx_memviewslice_is_contig(const {{memviewslice_name}} *mvs,
+static int __pyx_memviewslice_is_contig(const {{memviewslice_name}} mvs,
                                         char order, int ndim);
 
 
 ////////// MemviewSliceIsContig //////////
 
 static int
-__pyx_memviewslice_is_contig(const {{memviewslice_name}} *mvs,
+__pyx_memviewslice_is_contig(const {{memviewslice_name}} mvs,
                              char order, int ndim)
 {
     int i, index, step, start;
-    Py_ssize_t itemsize = mvs->memview->view.itemsize;
+    Py_ssize_t itemsize = mvs.memview->view.itemsize;
 
     if (order == 'F') {
         step = 1;
@@ -726,10 +726,10 @@ __pyx_memviewslice_is_contig(const {{memviewslice_name}} *mvs,
 
     for (i = 0; i < ndim; i++) {
         index = start + step * i;
-        if (mvs->suboffsets[index] >= 0 || mvs->strides[index] != itemsize)
+        if (mvs.suboffsets[index] >= 0 || mvs.strides[index] != itemsize)
             return 0;
 
-        itemsize *= mvs->shape[index];
+        itemsize *= mvs.shape[index];
     }
 
     return 1;
@@ -753,11 +753,11 @@ __pyx_memviewslice_index_full(const char *bufp, Py_ssize_t idx,
 /////////////// MemviewDtypeToObject.proto ///////////////
 
 {{if to_py_function}}
-static PyObject *{{get_function}}(const char *itemp); /* proto */
+static CYTHON_INLINE PyObject *{{get_function}}(const char *itemp); /* proto */
 {{endif}}
 
 {{if from_py_function}}
-static int {{set_function}}(const char *itemp, PyObject *obj); /* proto */
+static CYTHON_INLINE int {{set_function}}(const char *itemp, PyObject *obj); /* proto */
 {{endif}}
 
 /////////////// MemviewDtypeToObject ///////////////
@@ -767,13 +767,13 @@ static int {{set_function}}(const char *itemp, PyObject *obj); /* proto */
 /* Convert a dtype to or from a Python object */
 
 {{if to_py_function}}
-static PyObject *{{get_function}}(const char *itemp) {
+static CYTHON_INLINE PyObject *{{get_function}}(const char *itemp) {
     return (PyObject *) {{to_py_function}}(*({{dtype}} *) itemp);
 }
 {{endif}}
 
 {{if from_py_function}}
-static int {{set_function}}(const char *itemp, PyObject *obj) {
+static CYTHON_INLINE int {{set_function}}(const char *itemp, PyObject *obj) {
     {{dtype}} value = {{from_py_function}}(obj);
     if ({{error_condition}})
         return 0;

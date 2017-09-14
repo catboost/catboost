@@ -113,13 +113,13 @@ inline TString JoinStrings(const yvector<TString>& v, size_t index, size_t count
 }
 
 template <typename T>
-inline TString JoinVectorIntoStroku(const yvector<T>& v, const TStringBuf delim) {
+inline TString JoinVectorIntoString(const yvector<T>& v, const TStringBuf delim) {
     return JoinStrings(v.begin(), v.end(), delim);
 }
 
 template <typename T>
-inline TString JoinVectorIntoStroku(const yvector<T>& v, size_t index, size_t count, const TStringBuf delim) {
-    Y_ASSERT(index + count <= v.size() && "JoinVectorIntoStroku(): index or count out of range");
+inline TString JoinVectorIntoString(const yvector<T>& v, size_t index, size_t count, const TStringBuf delim) {
+    Y_ASSERT(index + count <= v.size() && "JoinVectorIntoString(): index or count out of range");
     return JoinStrings(v.begin() + index, v.begin() + index + count, delim);
 }
 

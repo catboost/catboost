@@ -4,6 +4,7 @@ RECURSE(
     base64
     clapack
     coreml
+    crcutil
     cxxsupp/libcxx-next
     fastlz
     fmath
@@ -24,6 +25,7 @@ RECURSE(
     protobuf/ut
     snappy
     sqlite3
+    tensorboard
     yaml
     zlib
     zstd01

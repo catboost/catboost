@@ -1,5 +1,9 @@
 PY_LIBRARY()
 
+LICENSE(
+    PD
+)
+
 
 
 # Version: 10.3.1

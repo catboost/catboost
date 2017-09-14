@@ -5,7 +5,11 @@
 // but maybe some other profilers don't.
 
 #ifndef CYTHON_PROFILE
+#if CYTHON_COMPILING_IN_PYPY || CYTHON_COMPILING_IN_PYSTON
+  #define CYTHON_PROFILE 0
+#else
   #define CYTHON_PROFILE 1
+#endif
 #endif
 
 #ifndef CYTHON_TRACE_NOGIL
@@ -90,7 +94,7 @@
               (tstate->c_profilefunc || (CYTHON_TRACE && tstate->c_tracefunc))) {          \
           tstate->tracing++;                                                               \
           tstate->use_tracing = 0;                                                         \
-          PyObject *exc_info = __Pyx_GetExceptionTuple();                                  \
+          PyObject *exc_info = __Pyx_GetExceptionTuple(tstate);                            \
           if (exc_info) {                                                                  \
               if (CYTHON_TRACE && tstate->c_tracefunc)                                     \
                   tstate->c_tracefunc(                                                     \
@@ -169,7 +173,7 @@
       int ret;
       PyObject *type, *value, *traceback;
       PyErr_Fetch(&type, &value, &traceback);
-      frame->f_lineno = lineno;
+      __Pyx_PyFrame_SetLineNumber(frame, lineno);
       tstate->tracing++;
       tstate->use_tracing = 0;
       ret = tstate->c_tracefunc(tstate->c_traceobj, frame, PyTrace_LINE, NULL);
@@ -258,7 +262,7 @@ static int __Pyx_TraceSetupAndCall(PyCodeObject** code,
         (*frame)->f_tstate = tstate;
 #endif
     }
-    (*frame)->f_lineno = firstlineno;
+      __Pyx_PyFrame_SetLineNumber(*frame, firstlineno);
     retval = 1;
     tstate->tracing++;
     tstate->use_tracing = 0;

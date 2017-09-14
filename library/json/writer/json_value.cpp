@@ -70,9 +70,7 @@ namespace NJson {
 
 const TJsonValue TJsonValue::UNDEFINED;
 
-TJsonValue::TJsonValue(const EJsonValueType type)
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const EJsonValueType type) {
     SetType(type);
 }
 
@@ -124,86 +122,62 @@ TJsonValue& TJsonValue::operator = (TJsonValue&& val) noexcept {
     return *this;
 }
 
-TJsonValue::TJsonValue(const bool value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const bool value) noexcept {
     SetType(JSON_BOOLEAN);
     Value.Boolean = value;
 }
 
-TJsonValue::TJsonValue(const long long value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const long long value) noexcept {
     SetType(JSON_INTEGER);
     Value.Integer = value;
 }
 
-TJsonValue::TJsonValue(const unsigned long long value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const unsigned long long value) noexcept {
     SetType(JSON_UINTEGER);
     Value.UInteger = value;
 }
 
-TJsonValue::TJsonValue(const int value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const int value) noexcept {
     SetType(JSON_INTEGER);
     Value.Integer = value;
 }
 
-TJsonValue::TJsonValue(const unsigned int value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const unsigned int value) noexcept {
     SetType(JSON_UINTEGER);
     Value.UInteger = value;
 }
 
-TJsonValue::TJsonValue(const long value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const long value) noexcept {
     SetType(JSON_INTEGER);
     Value.Integer = value;
 }
 
-TJsonValue::TJsonValue(const unsigned long value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const unsigned long value) noexcept {
     SetType(JSON_UINTEGER);
     Value.UInteger = value;
 }
 
-TJsonValue::TJsonValue(const double value) noexcept
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const double value) noexcept {
     SetType(JSON_DOUBLE);
     Value.Double = value;
 }
 
-TJsonValue::TJsonValue(const TString& value)
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const TString& value) {
     SetType(JSON_STRING);
     *Value.String = value;
 }
 
-TJsonValue::TJsonValue(TString&& value)
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(TString&& value) {
     SetType(JSON_STRING);
     *Value.String = std::move(value);
 }
 
-TJsonValue::TJsonValue(const TStringBuf value)
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const TStringBuf value) {
     SetType(JSON_STRING);
     *Value.String = value;
 }
 
-TJsonValue::TJsonValue(const char* value)
-    : Type(JSON_UNDEFINED)
-{
+TJsonValue::TJsonValue(const char* value) {
     SetType(JSON_STRING);
     *Value.String = value;
 }

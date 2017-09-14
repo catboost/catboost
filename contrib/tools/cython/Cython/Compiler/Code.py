@@ -40,7 +40,7 @@ try:
 except ImportError:
     from builtins import str as basestring
 
-KEYWORDS_MUST_BE_BYTES = sys.version_info < (2,7)
+KEYWORDS_MUST_BE_BYTES = sys.version_info < (2, 7)
 
 
 non_portable_builtins_map = {
@@ -137,16 +137,19 @@ class UtilityCodeBase(object):
 
         if type == 'proto':
             utility[0] = code
+        elif type.startswith('proto.'):
+            utility[0] = code
+            utility[1] = type[6:]
         elif type == 'impl':
-            utility[1] = code
+            utility[2] = code
         else:
-            all_tags = utility[2]
+            all_tags = utility[3]
             if KEYWORDS_MUST_BE_BYTES:
                 type = type.encode('ASCII')
             all_tags[type] = code
 
         if tags:
-            all_tags = utility[2]
+            all_tags = utility[3]
             for name, values in tags.items():
                 if KEYWORDS_MUST_BE_BYTES:
                     name = name.encode('ASCII')
@@ -172,12 +175,12 @@ class UtilityCodeBase(object):
             (r'^%(C)s{5,30}\s*(?P<name>(?:\w|\.)+)\s*%(C)s{5,30}|'
              r'^%(C)s+@(?P<tag>\w+)\s*:\s*(?P<value>(?:\w|[.:])+)') %
             {'C': comment}).match
-        match_type = re.compile('(.+)[.](proto|impl|init|cleanup)$').match
+        match_type = re.compile('(.+)[.](proto(?:[.]\S+)?|impl|init|cleanup)$').match
 
         with closing(Utils.open_source_file(filename, encoding='UTF-8')) as f:
             all_lines = f.readlines()
 
-        utilities = defaultdict(lambda: [None, None, {}])
+        utilities = defaultdict(lambda: [None, None, None, {}])
         lines = []
         tags = defaultdict(set)
         utility = type = None
@@ -251,7 +254,7 @@ class UtilityCodeBase(object):
             from_file = files[0]
 
         utilities = cls.load_utilities_from_file(from_file)
-        proto, impl, tags = utilities[util_code_name]
+        proto, proto_block, impl, tags = utilities[util_code_name]
 
         if tags:
             orig_kwargs = kwargs.copy()
@@ -275,6 +278,8 @@ class UtilityCodeBase(object):
 
         if proto is not None:
             kwargs['proto'] = proto
+        if proto_block is not None:
+            kwargs['proto_block'] = proto_block
         if impl is not None:
             kwargs['impl'] = impl
 
@@ -316,9 +321,9 @@ class UtilityCodeBase(object):
         return code_string
 
     def __str__(self):
-        return "<%s(%s)" % (type(self).__name__, self.name)
+        return "<%s(%s)>" % (type(self).__name__, self.name)
 
-    def get_tree(self):
+    def get_tree(self, **kwargs):
         pass
 
 
@@ -361,7 +366,8 @@ class UtilityCode(UtilityCodeBase):
     def __eq__(self, other):
         if self is other:
             return True
-        if not isinstance(other, type(self)):
+        self_type, other_type = type(self), type(other)
+        if self_type is not other_type and not (isinstance(other, self_type) or isinstance(self, other_type)):
             return False
 
         self_proto = getattr(self, 'proto', None)
@@ -391,12 +397,12 @@ class UtilityCode(UtilityCodeBase):
                 requires = [r.specialize(data) for r in self.requires]
 
             s = self._cache[key] = UtilityCode(
-                    self.none_or_sub(self.proto, data),
-                    self.none_or_sub(self.impl, data),
-                    self.none_or_sub(self.init, data),
-                    self.none_or_sub(self.cleanup, data),
-                    requires,
-                    self.proto_block)
+                self.none_or_sub(self.proto, data),
+                self.none_or_sub(self.impl, data),
+                self.none_or_sub(self.init, data),
+                self.none_or_sub(self.cleanup, data),
+                requires,
+                self.proto_block)
 
             self.specialize_list.append(s)
             return s
@@ -471,19 +477,21 @@ class UtilityCode(UtilityCodeBase):
             for dependency in self.requires:
                 output.use_utility_code(dependency)
         if self.proto:
-            output[self.proto_block].put_or_include(
-                self.format_code(self.proto),
-                '%s_proto' % self.name)
+            writer = output[self.proto_block]
+            writer.putln("/* %s.proto */" % self.name)
+            writer.put_or_include(
+                self.format_code(self.proto), '%s_proto' % self.name)
         if self.impl:
             impl = self.format_code(self.wrap_c_strings(self.impl))
             is_specialised1, impl = self.inject_string_constants(impl, output)
             is_specialised2, impl = self.inject_unbound_methods(impl, output)
+            writer = output['utility_code_def']
+            writer.putln("/* %s */" % self.name)
             if not (is_specialised1 or is_specialised2):
                 # no module specific adaptations => can be reused
-                output['utility_code_def'].put_or_include(
-                    impl, '%s_impl' % self.name)
+                writer.put_or_include(impl, '%s_impl' % self.name)
             else:
-                output['utility_code_def'].put(impl)
+                writer.put(impl)
         if self.init:
             writer = output['init_globals']
             writer.putln("/* %s.init */" % self.name)
@@ -495,6 +503,7 @@ class UtilityCode(UtilityCodeBase):
             writer.putln()
         if self.cleanup and Options.generate_cleanup_code:
             writer = output['cleanup_globals']
+            writer.putln("/* %s.cleanup */" % self.name)
             if isinstance(self.cleanup, basestring):
                 writer.put_or_include(
                     self.format_code(self.cleanup),
@@ -553,6 +562,7 @@ class LazyUtilityCode(UtilityCodeBase):
     Utility code that calls a callback with the root code writer when
     available. Useful when you only have 'env' but not 'code'.
     """
+    __name__ = '<lazy>'
 
     def __init__(self, callback):
         self.callback = callback
@@ -572,11 +582,13 @@ class FunctionState(object):
     # in_try_finally   boolean         inside try of try...finally
     # exc_vars         (string * 3)    exception variables for reraise, or None
     # can_trace        boolean         line tracing is supported in the current context
+    # scope            Scope           the scope object of the current function
 
     # Not used for now, perhaps later
-    def __init__(self, owner, names_taken=set()):
+    def __init__(self, owner, names_taken=set(), scope=None):
         self.names_taken = names_taken
         self.owner = owner
+        self.scope = scope
 
         self.error_label = None
         self.label_counter = 0
@@ -701,19 +713,22 @@ class FunctionState(object):
         """
         if type.is_const and not type.is_reference:
             type = type.const_base_type
+        elif type.is_reference and not type.is_fake_reference:
+            type = type.ref_base_type
         if not type.is_pyobject and not type.is_memoryviewslice:
             # Make manage_ref canonical, so that manage_ref will always mean
             # a decref is needed.
             manage_ref = False
 
         freelist = self.temps_free.get((type, manage_ref))
-        if freelist is not None and len(freelist) > 0:
-            result = freelist.pop()
+        if freelist is not None and freelist[0]:
+            result = freelist[0].pop()
+            freelist[1].remove(result)
         else:
             while True:
                 self.temp_counter += 1
                 result = "%s%d" % (Naming.codewriter_temp_prefix, self.temp_counter)
-                if not result in self.names_taken: break
+                if result not in self.names_taken: break
             self.temps_allocated.append((result, type, manage_ref, static))
         self.temps_used_type[result] = (type, manage_ref)
         if DebugFlags.debug_temp_code_comments:
@@ -732,11 +747,12 @@ class FunctionState(object):
         type, manage_ref = self.temps_used_type[name]
         freelist = self.temps_free.get((type, manage_ref))
         if freelist is None:
-            freelist = []
+            freelist = ([], set())  # keep order in list and make lookups in set fast
             self.temps_free[(type, manage_ref)] = freelist
-        if name in freelist:
+        if name in freelist[1]:
             raise RuntimeError("Temp %s freed twice!" % name)
-        freelist.append(name)
+        freelist[0].append(name)
+        freelist[1].add(name)
         if DebugFlags.debug_temp_code_comments:
             self.owner.putln("/* %s released */" % name)
 
@@ -747,7 +763,7 @@ class FunctionState(object):
         used = []
         for name, type, manage_ref, static in self.temps_allocated:
             freelist = self.temps_free.get((type, manage_ref))
-            if freelist is None or name not in freelist:
+            if freelist is None or name not in freelist[1]:
                 used.append((name, type, manage_ref and type.is_pyobject))
         return used
 
@@ -764,8 +780,8 @@ class FunctionState(object):
         """Return a list of (cname, type) tuples of refcount-managed Python objects.
         """
         return [(cname, type)
-                    for cname, type, manage_ref, static in self.temps_allocated
-                        if manage_ref]
+                for cname, type, manage_ref, static in self.temps_allocated
+                if manage_ref]
 
     def all_free_managed_temps(self):
         """Return a list of (cname, type) tuples of refcount-managed Python
@@ -775,7 +791,7 @@ class FunctionState(object):
         """
         return [(cname, type)
                 for (type, manage_ref), freelist in self.temps_free.items() if manage_ref
-                for cname in freelist]
+                for cname in freelist[0]]
 
     def start_collecting_temps(self):
         """
@@ -840,7 +856,7 @@ class StringConst(object):
 
     def add_py_version(self, version):
         if not version:
-            self.py_versions = [2,3]
+            self.py_versions = [2, 3]
         elif version not in self.py_versions:
             self.py_versions.append(version)
 
@@ -985,14 +1001,14 @@ class GlobalState(object):
     ]
 
 
-    def __init__(self, writer, module_node, emit_linenums=False, common_utility_include_dir=None):
+    def __init__(self, writer, module_node, code_config, common_utility_include_dir=None):
         self.filename_table = {}
         self.filename_list = []
         self.input_file_contents = {}
         self.utility_codes = set()
         self.declared_cnames = {}
         self.in_utility_code_generation = False
-        self.emit_linenums = emit_linenums
+        self.code_config = code_config
         self.common_utility_include_dir = common_utility_include_dir
         self.parts = {}
         self.module_node = module_node # because some utility code generation needs it
@@ -1005,8 +1021,7 @@ class GlobalState(object):
         self.py_constants = []
         self.cached_cmethods = {}
 
-        assert writer.globalstate is None
-        writer.globalstate = self
+        writer.set_global_state(self)
         self.rootwriter = writer
 
     def initialize_main_c_code(self):
@@ -1046,7 +1061,7 @@ class GlobalState(object):
         code.putln("/* --- Runtime support code (head) --- */")
 
         code = self.parts['utility_code_def']
-        if self.emit_linenums:
+        if self.code_config.emit_linenums:
             code.write('\n#line 1 "cython_utility"\n')
         code.putln("")
         code.putln("/* --- Runtime support code --- */")
@@ -1272,8 +1287,8 @@ class GlobalState(object):
         self.generate_object_constant_decls()
 
     def generate_object_constant_decls(self):
-        consts = [ (len(c.cname), c.cname, c)
-                   for c in self.py_constants ]
+        consts = [(len(c.cname), c.cname, c)
+                  for c in self.py_constants]
         consts.sort()
         decls_writer = self.parts['decls']
         for _, cname, c in consts:
@@ -1313,7 +1328,7 @@ class GlobalState(object):
                 conditional = True
                 decls_writer.putln("#if PY_MAJOR_VERSION %s 3" % (
                     (2 in c.py_versions) and '<' or '>='))
-            decls_writer.putln('static char %s[] = "%s";' % (
+            decls_writer.putln('static const char %s[] = "%s";' % (
                 cname, StringEncoding.split_string_literal(c.escaped_value)))
             if conditional:
                 decls_writer.putln("#endif")
@@ -1321,7 +1336,7 @@ class GlobalState(object):
                 for py_string in c.py_strings.values():
                     py_strings.append((c.cname, len(py_string.cname), py_string))
 
-        for c, cname in self.pyunicode_ptr_const_index.items():
+        for c, cname in sorted(self.pyunicode_ptr_const_index.items()):
             utf16_array, utf32_array = StringEncoding.encode_pyunicode_string(c)
             if utf16_array:
                 # Narrow and wide representations differ
@@ -1337,12 +1352,11 @@ class GlobalState(object):
             py_strings.sort()
             w = self.parts['pystring_table']
             w.putln("")
-            w.putln("static __Pyx_StringTabEntry %s[] = {" %
-                                      Naming.stringtab_cname)
+            w.putln("static __Pyx_StringTabEntry %s[] = {" % Naming.stringtab_cname)
             for c_cname, _, py_string in py_strings:
                 if not py_string.is_str or not py_string.encoding or \
-                       py_string.encoding in ('ASCII', 'USASCII', 'US-ASCII',
-                                              'UTF8', 'UTF-8'):
+                        py_string.encoding in ('ASCII', 'USASCII', 'US-ASCII',
+                                               'UTF8', 'UTF-8'):
                     encoding = '0'
                 else:
                     encoding = '"%s"' % py_string.encoding.lower()
@@ -1351,8 +1365,7 @@ class GlobalState(object):
                     "static PyObject *%s;" % py_string.cname)
                 if py_string.py3str_cstring:
                     w.putln("#if PY_MAJOR_VERSION >= 3")
-                    w.putln(
-                        "{&%s, %s, sizeof(%s), %s, %d, %d, %d}," % (
+                    w.putln("{&%s, %s, sizeof(%s), %s, %d, %d, %d}," % (
                         py_string.cname,
                         py_string.py3str_cstring.cname,
                         py_string.py3str_cstring.cname,
@@ -1360,8 +1373,7 @@ class GlobalState(object):
                         py_string.intern
                         ))
                     w.putln("#else")
-                w.putln(
-                    "{&%s, %s, sizeof(%s), %s, %d, %d, %d}," % (
+                w.putln("{&%s, %s, sizeof(%s), %s, %d, %d, %d}," % (
                     py_string.cname,
                     c_cname,
                     c_cname,
@@ -1466,9 +1478,17 @@ class GlobalState(object):
 
         See UtilityCode.
         """
-        if utility_code not in self.utility_codes:
+        if utility_code and utility_code not in self.utility_codes:
             self.utility_codes.add(utility_code)
             utility_code.put_code(self)
+
+    def use_entry_utility_code(self, entry):
+        if entry is None:
+            return
+        if entry.utility_code:
+            self.use_utility_code(entry.utility_code)
+        if entry.utility_code_definition:
+            self.use_utility_code(entry.utility_code_definition)
 
 
 def funccontext_property(name):
@@ -1478,6 +1498,17 @@ def funccontext_property(name):
     def set(self, value):
         setattr(self.funcstate, name, value)
     return property(get, set)
+
+
+class CCodeConfig(object):
+    # emit_linenums       boolean         write #line pragmas?
+    # emit_code_comments  boolean         copy the original code into C comments?
+    # c_line_in_traceback boolean         append the c file and line number to the traceback for exceptions?
+
+    def __init__(self, emit_linenums=True, emit_code_comments=True, c_line_in_traceback=True):
+        self.emit_code_comments = emit_code_comments
+        self.emit_linenums = emit_linenums
+        self.c_line_in_traceback = c_line_in_traceback
 
 
 class CCodeWriter(object):
@@ -1507,16 +1538,13 @@ class CCodeWriter(object):
     #                                     generation (labels and temps state etc.)
     # globalstate         GlobalState     contains state global for a C file (input file info,
     #                                     utility code, declared constants etc.)
-    # emit_linenums       boolean         whether or not to write #line pragmas
-    #
-    # c_line_in_traceback boolean         append the c file and line number to the traceback for exceptions
-    #
     # pyclass_stack       list            used during recursive code generation to pass information
     #                                     about the current class one is in
+    # code_config         CCodeConfig     configuration options for the C code writer
 
-    globalstate = None
+    globalstate = code_config = None
 
-    def __init__(self, create_from=None, buffer=None, copy_formatting=False, emit_linenums=None, c_line_in_traceback=True):
+    def __init__(self, create_from=None, buffer=None, copy_formatting=False):
         if buffer is None: buffer = StringIOTree()
         self.buffer = buffer
         self.last_pos = None
@@ -1530,7 +1558,7 @@ class CCodeWriter(object):
 
         if create_from is not None:
             # Use same global state
-            self.globalstate = create_from.globalstate
+            self.set_global_state(create_from.globalstate)
             self.funcstate = create_from.funcstate
             # Clone formatting state
             if copy_formatting:
@@ -1540,18 +1568,16 @@ class CCodeWriter(object):
             self.last_pos = create_from.last_pos
             self.last_marked_pos = create_from.last_marked_pos
 
-        if emit_linenums is None and self.globalstate:
-            self.emit_linenums = self.globalstate.emit_linenums
-        else:
-            self.emit_linenums = emit_linenums
-        self.c_line_in_traceback = c_line_in_traceback
-
     def create_new(self, create_from, buffer, copy_formatting):
         # polymorphic constructor -- very slightly more versatile
         # than using __class__
-        result = CCodeWriter(create_from, buffer, copy_formatting,
-                             c_line_in_traceback=self.c_line_in_traceback)
+        result = CCodeWriter(create_from, buffer, copy_formatting)
         return result
+
+    def set_global_state(self, global_state):
+        assert self.globalstate is None  # prevent overwriting once it's set
+        self.globalstate = global_state
+        self.code_config = global_state.code_config
 
     def copyto(self, f):
         self.buffer.copyto(f)
@@ -1575,7 +1601,7 @@ class CCodeWriter(object):
         Creates a new CCodeWriter connected to the same global state, which
         can later be inserted using insert.
         """
-        return CCodeWriter(create_from=self, c_line_in_traceback=self.c_line_in_traceback)
+        return CCodeWriter(create_from=self)
 
     def insert(self, writer):
         """
@@ -1611,8 +1637,8 @@ class CCodeWriter(object):
     def label_used(self, lbl):         return self.funcstate.label_used(lbl)
 
 
-    def enter_cfunc_scope(self):
-        self.funcstate = FunctionState(self)
+    def enter_cfunc_scope(self, scope=None):
+        self.funcstate = FunctionState(self, scope=scope)
 
     def exit_cfunc_scope(self):
         self.funcstate = None
@@ -1656,7 +1682,7 @@ class CCodeWriter(object):
     def putln(self, code="", safe=False):
         if self.last_pos and self.bol:
             self.emit_marker()
-        if self.emit_linenums and self.last_marked_pos:
+        if self.code_config.emit_linenums and self.last_marked_pos:
             source_desc, line, _ = self.last_marked_pos
             self.write('\n#line %s "%s"\n' % (line, source_desc.get_escaped_description()))
         if code:
@@ -1679,8 +1705,9 @@ class CCodeWriter(object):
         self.last_marked_pos = pos
         self.last_pos = None
         self.write("\n")
-        self.indent()
-        self.write("/* %s */\n" % self._build_marker(pos))
+        if self.code_config.emit_code_comments:
+            self.indent()
+            self.write("/* %s */\n" % self._build_marker(pos))
         if trace and self.funcstate and self.funcstate.can_trace and self.globalstate.directives['linetrace']:
             self.indent()
             self.write('__Pyx_TraceLine(%d,%d,%s)\n' % (
@@ -2119,7 +2146,7 @@ class CCodeWriter(object):
         self.funcstate.should_declare_error_indicator = True
         if used:
             self.funcstate.uses_error_indicator = True
-        if self.c_line_in_traceback:
+        if self.code_config.c_line_in_traceback:
             cinfo = " %s = %s;" % (Naming.clineno_cname, Naming.line_c_macro)
         else:
             cinfo = ""
@@ -2135,8 +2162,9 @@ class CCodeWriter(object):
     def error_goto(self, pos):
         lbl = self.funcstate.error_label
         self.funcstate.use_label(lbl)
-        return "{%s goto %s;}" % (
-            self.set_error_info(pos),
+        return "__PYX_ERR(%s, %s, %s)" % (
+            self.lookup_filename(pos[0]),
+            pos[1],
             lbl)
 
     def error_goto_if(self, cond, pos):
@@ -2340,7 +2368,7 @@ class ClosureTempAllocator(object):
             self.temps_free[type] = list(cnames)
 
     def allocate_temp(self, type):
-        if not type in self.temps_allocated:
+        if type not in self.temps_allocated:
             self.temps_allocated[type] = []
             self.temps_free[type] = []
         elif self.temps_free[type]:

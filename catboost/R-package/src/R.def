@@ -25,3 +25,5 @@ STRING_ELT
 TYPEOF
 R_NilValue
 R_DimSymbol
+Rprintf
+VECTOR_ELT

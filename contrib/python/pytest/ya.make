@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    MIT
+)
+
 VERSION(3.0.7)
 
 

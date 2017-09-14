@@ -229,6 +229,39 @@ cdef object {{cname}}(const map[X,Y]& s):
     return o
 
 
+#################### complex.from_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass std_complex "std::complex" [T]:
+        std_complex()
+        std_complex(T, T) except +
+
+@cname("{{cname}}")
+cdef std_complex[X] {{cname}}(object o) except *:
+    cdef double complex z = o
+    return std_complex[X](<X>z.real, <X>z.imag)
+
+
+#################### complex.to_py ####################
+
+{{template_type_declarations}}
+
+cdef extern from *:
+    cdef cppclass std_complex "std::complex" [T]:
+        X real()
+        X imag()
+
+@cname("{{cname}}")
+cdef object {{cname}}(const std_complex[X]& z):
+    cdef double complex tmp
+    tmp.real = <double>z.real()
+    tmp.imag = <double>z.imag()
+    return tmp
+
+
+
 #################### arcadia_TMaybe.from_py ####################
 
 {{template_type_declarations}}

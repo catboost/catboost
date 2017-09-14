@@ -5,10 +5,12 @@
 \title{catboost.from_matrix}
 \usage{
 catboost.from_matrix(data, target = NULL, weight = NULL, baseline = NULL,
-  cat_features = NULL)
+  cat_features = NULL, feature_names = NULL)
 }
 \arguments{
-\item{data}{A matrix with features.}
+\item{data}{A matrix with features.
+
+Default value: Required argument}
 
 \item{target}{The target vector.}
 
@@ -19,6 +21,8 @@ Used in the calculation of final values of trees.}
 
 \item{cat_features}{A vector of categorical features indices.
 The indices are zero based and can differ from the given in the Column descriptions file.}
+
+\item{feature_names}{A list of names for each feature in the dataset.}
 }
 \value{
 catboost.Pool
@@ -38,7 +42,4 @@ cat_features <- seq(1,8)
 data_matrix <- as.matrix(data)
 pool <- catboost.from_matrix(data = as.matrix(data[,-target]), target = as.matrix(data[,target]), cat_features = cat_features)
 
-}
-\seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_matrix-docpage/}
 }

@@ -2,10 +2,10 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.predict}
 \alias{catboost.predict}
-\title{catboost.predict}
+\title{Apply the model}
 \usage{
-catboost.predict(model, pool, verbose = FALSE, type = "RawFormulaVal",
-  tree_count_limit = 0, thread_count = 1)
+catboost.predict(model, pool, verbose = FALSE,
+  prediction_type = "RawFormulaVal", ntree_limit = 0, thread_count = 1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -20,7 +20,7 @@ Default value: Required argument}
 
 Default value: FALSE (not used)}
 
-\item{type}{The format for displaying approximated values in output data
+\item{prediction_type}{The format for displaying approximated values in output data
 (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
 
 Possible values:
@@ -32,7 +32,7 @@ Possible values:
 
 Default value: 'RawFormulaVal'}
 
-\item{tree_count_limit}{The number of trees from the model to use when applying. If specified, the first <value> trees are used.
+\item{ntree_limit}{The number of trees from the model to use when applying. If specified, the first <value> trees are used.
 
 Default value: 0 (if value equals to 0 this parameter is ignored and all trees from the model are used)}
 

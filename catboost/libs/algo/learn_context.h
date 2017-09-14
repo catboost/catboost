@@ -22,6 +22,7 @@ struct TLearnProgress {
     yvector<yvector<double>> AvrgApprox;
     TCoreModel Model;
     yvector<yvector<double>> LearnErrorsHistory, TestErrorsHistory;
+    bool StoreExpApprox;
 
     void Save(IOutputStream* s) const;
     void Load(IInputStream* s);
@@ -92,6 +93,7 @@ public:
         , Profile(Params.DetailedProfile, Params.Iterations, TimeLeftLog.Get()) {
         LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams);
         LearnProgress.Model.FeatureCount = featureCount;
+        LearnProgress.StoreExpApprox = Params.StoreExpApprox;
     }
 
     void OutputMeta();

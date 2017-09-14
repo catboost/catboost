@@ -1,5 +1,9 @@
 LIBRARY(pickleshare)
 
+LICENSE(
+    MIT
+)
+
 
 
 PY_SRCS(

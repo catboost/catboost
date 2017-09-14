@@ -2,23 +2,26 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.save_pool}
 \alias{catboost.save_pool}
-\title{catboost.save_pool}
+\title{Save the dataset}
 \usage{
-catboost.save_pool(data, target, weight, baseline, pool_path, cd_path)
+catboost.save_pool(data, target = NULL, weight = NULL, baseline = NULL,
+  pool_path = "data.pool", cd_path = "cd.pool")
 }
 \arguments{
 \item{data}{A data.frame with features.
 The following column types are supported:
-\itemize{
-\item double
-\item factor.
-It is assumed that categorical features are given in this type of columns.
-A standard CatBoost processing procedure is applied to this type of columns:
-  \describe{
-  \item{1.}{The values are converted to strings.}
-  \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
-  }
-}}
+    \itemize{
+    \item double
+    \item factor.
+    It is assumed that categorical features are given in this type of columns.
+    A standard CatBoost processing procedure is applied to this type of columns:
+    \describe{
+        \item{1.}{The values are converted to strings.}
+        \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+    }
+}
+
+Default value: Required argument}
 
 \item{target}{The target vector.}
 
@@ -35,12 +38,9 @@ Used in the calculation of final values of trees.}
 Save the dataset to the CatBoost format.
 Files with the following data are created:
 \itemize{
-\item Dataset description
-\item Column descriptions
+    \item Dataset description
+    \item Column descriptions
 }
 Use the catboost.load_pool function to read the resulting files.
 These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version} and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
-}
-\seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost_save_pool-docpage/}
 }

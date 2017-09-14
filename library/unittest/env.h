@@ -8,5 +8,6 @@ TString ArcadiaSourceRoot();
 TString ArcadiaFromCurrentLocation(TStringBuf where, TStringBuf path);
 TString BuildRoot();
 TString BinaryPath(TStringBuf path);
+bool FromYaTest();
 
 #define SRC_(path) ArcadiaFromCurrentLocation(__SOURCE_FILE__, path)

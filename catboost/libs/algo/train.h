@@ -19,6 +19,7 @@
 #include "greedy_tensor_search.h"
 #include "metric.h"
 #include "interrupt.h"
+#include "logger.h"
 
 #include <catboost/libs/model/hash.h>
 #include <catboost/libs/model/model.h>
@@ -27,6 +28,9 @@
 
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/logging/profile_info.h>
+
+#include <library/fast_exp/fast_exp.h>
+#include <library/fast_log/fast_log.h>
 
 #include <util/string/vector.h>
 #include <util/string/iterator.h>
@@ -40,18 +44,18 @@ yvector<int> CountSplits(const yvector<yvector<float>>& borders);
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx);
 
 template <typename TError>
-TError BuildError(const TFitParams&) {
-    return TError();
+TError BuildError(const TFitParams& params) {
+    return TError(params.StoreExpApprox);
 }
 
 template <>
 inline TQuantileError BuildError<TQuantileError>(const TFitParams& params) {
     auto lossParams = GetLossParams(params.Objective);
     if (lossParams.empty()) {
-        return TQuantileError();
+        return TQuantileError(params.StoreExpApprox);
     } else {
         CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description");
-        return TQuantileError(lossParams["alpha"]);
+        return TQuantileError(lossParams["alpha"], params.StoreExpApprox);
     }
 }
 
@@ -59,33 +63,17 @@ template <>
 inline TLogLinearQuantileError BuildError<TLogLinearQuantileError>(const TFitParams& params) {
     auto lossParams = GetLossParams(params.Objective);
     if (lossParams.empty()) {
-        return TLogLinearQuantileError();
+        return TLogLinearQuantileError(params.StoreExpApprox);
     } else {
         CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description");
-        return TLogLinearQuantileError(lossParams["alpha"]);
+        return TLogLinearQuantileError(lossParams["alpha"], params.StoreExpApprox);
     }
 }
 
 template <>
 inline TCustomError BuildError<TCustomError>(const TFitParams& params) {
     Y_ASSERT(params.ObjectiveDescriptor.Defined());
-    return TCustomError(*params.ObjectiveDescriptor);
-}
-
-inline THolder<TOFStream> InitErrLog(const yvector<THolder<IMetric>>& errors, const yvector<yvector<double>>& history, const TString& logName) {
-    THolder<TOFStream> errLog = new TOFStream(logName);
-    *errLog << "iter";
-    for (const auto& error : errors) {
-        *errLog << "\t" << error->GetDescription();
-    }
-    *errLog << Endl;
-    for (const auto& errors : history) {
-        for (const auto& error : errors) {
-            *errLog << "\t" << error;
-        }
-        *errLog << Endl;
-    }
-    return errLog;
+    return TCustomError(params);
 }
 
 using TTrainFunc = std::function<void(const TTrainData& data,
@@ -109,13 +97,13 @@ inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
     if (approxDimension == 1) {
         ctx->LocalExecutor.ExecRange([&](int blockId) {
             const int blockOffset = blockId * blockParams.GetBlockSize();
-            const double* approxData = approx[0].data() + blockOffset;
-            const float* targetArrData = target.data() + blockOffset;
-            double* dersPtr = (*derivatives)[0].data() + blockOffset;
-            error.CalcFirstDerRange(Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset), approxData, targetArrData,
-                                    weight.empty() ? nullptr : weight.data() + blockOffset, dersPtr);
-        },
-                                     0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                approx[0].data(),
+                nullptr, // no approx deltas
+                target.data(),
+                weight.data(),
+                (*derivatives)[0].data());
+        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
         ctx->LocalExecutor.ExecRange([&](int blockId) {
             yvector<double> curApprox(approxDimension);
@@ -129,8 +117,7 @@ inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
                     (*derivatives)[dim][z] = curDelta[dim];
                 }
             })(blockId);
-        },
-                                     0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
@@ -142,7 +129,7 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                                   int iteration,
                                   yvector<yvector<double>>* learnErrorsHistory,
                                   NPar::TLocalExecutor* localExecutor,
-                                  IOutputStream* learnErrLog) {
+                                  TLogger* logger) {
     learnErrorsHistory->emplace_back();
     for (int i = 0; i < errors.ysize(); ++i) {
         double learnErr = errors[i]->GetFinalError(
@@ -153,12 +140,8 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
         learnErrorsHistory->back().push_back(learnErr);
     }
 
-    if (learnErrLog != nullptr) {
-        *learnErrLog << iteration;
-        for (int i = 0; i < errors.ysize(); ++i) {
-            *learnErrLog << "\t" << learnErrorsHistory->back()[i];
-        }
-        *learnErrLog << Endl;
+    if (logger != nullptr) {
+        Log(iteration, learnErrorsHistory->back(), errors, logger, EPhase::Learn);
     }
 }
 
@@ -172,7 +155,7 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
                                  TErrorTracker& errorTracker,
                                  yvector<yvector<double>>* testErrorsHistory,
                                  NPar::TLocalExecutor* localExecutor,
-                                 IOutputStream* testErrLog) {
+                                 TLogger* logger) {
     yvector<double> valuesToLog;
 
     testErrorsHistory->emplace_back();
@@ -189,12 +172,8 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
         testErrorsHistory->back().push_back(testErr);
     }
 
-    if (testErrLog != nullptr) {
-        *testErrLog << iteration;
-        for (int i = 0; i < errors.ysize(); ++i) {
-            *testErrLog << "\t" << testErrorsHistory->back()[i];
-        }
-        *testErrLog << Endl;
+    if (logger != nullptr) {
+        Log(iteration, testErrorsHistory->back(), errors, logger, EPhase::Test);
     }
 }
 
@@ -208,9 +187,6 @@ void TrainOneIter(const TTrainData& data,
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
 
     yvector<THolder<IMetric>> errors = CreateMetrics(ctx->Params, approxDimension);
-
-    yvector<yvector<yvector<yvector<double>>>> approxDelta;
-    yvector<yvector<double>> approxDeltaAvrg;
 
     auto splitCounts = CountSplits(ctx->LearnProgress.Model.Borders);
 
@@ -236,10 +212,9 @@ void TrainOneIter(const TTrainData& data,
 
         ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
             TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailId];
-            CalcWeightedDerivatives(bt.Approx, takenFold->LearnTarget, takenFold->LearnWeights, error,
+            CalcWeightedDerivatives<TError>(bt.Approx, takenFold->LearnTarget, takenFold->LearnWeights, error,
                                     bt.TailFinish, ctx, &bt.Derivatives);
-        },
-                                     0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         profile.AddOperation("Calc derivatives");
 
         GreedyTensorSearch(
@@ -285,6 +260,7 @@ void TrainOneIter(const TTrainData& data,
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation
 
+        yvector<yvector<yvector<yvector<double>>>> approxDelta;
         CalcApproxForLeafStruct(
             data,
             error,
@@ -298,29 +274,7 @@ void TrainOneIter(const TTrainData& data,
         profile.AddOperation("CalcApprox tree struct");
         CheckInterrupted(); // check after long-lasting operation
 
-        yvector<yvector<double>> treeValues;
-        CalcApprox(
-            data,
-            error,
-            ctx->Params.GradientIterations,
-            {&ctx->LearnProgress.AveragingFold},
-            bestSplitTree,
-            ctx->Params.LeafEstimationMethod,
-            l2LeafRegularizer,
-            ctx,
-            &approxDeltaAvrg,
-            &treeValues);
-        profile.AddOperation("CalcApprox result leafs");
-        CheckInterrupted(); // check after long-lasting operation
-
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            for (auto& leafVal : treeValues[dim]) {
-                leafVal *= ctx->Params.LearningRate;
-            }
-        }
-
-        ctx->LearnProgress.Model.LeafValues.push_back(treeValues);
-        ctx->LearnProgress.Model.TreeStruct.push_back(bestTree);
+        const double learningRate = ctx->Params.LearningRate;
 
         for (int foldId = 0; foldId < foldCount; ++foldId) {
             TFold& ff = ctx->LearnProgress.Folds[foldId];
@@ -328,40 +282,66 @@ void TrainOneIter(const TTrainData& data,
             for (int bodyTailId = 0; bodyTailId < ff.BodyTailArr.ysize(); ++bodyTailId) {
                 TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
                 for (int dim = 0; dim < approxDimension; ++dim) {
-                    const double* approxDeltaData = approxDelta[foldId][bodyTailId][dim].data();
-                    const double learningRate = ctx->Params.LearningRate;
+                    double* approxDeltaData = approxDelta[foldId][bodyTailId][dim].data();
                     double* approxData = bt.Approx[dim].data();
-                    ctx->LocalExecutor.ExecRange([&](int z) {
-                        approxData[z] += approxDeltaData[z] * learningRate;
-                    },
-                                                 NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000).WaitCompletion());
+                    ctx->LocalExecutor.ExecRange([=](int z) {
+                        approxData[z] = UpdateApprox<TError::StoreExpApprox>(approxData[z], ApplyLearningRate<TError::StoreExpApprox>(approxDeltaData[z], learningRate));
+                    }, NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000).WaitCompletion());
                 }
             }
         }
         profile.AddOperation("Update tree structure approx");
         CheckInterrupted(); // check after long-lasting operation
 
+        yvector<TIndexType> indices;
+        yvector<yvector<double>> treeValues;
+        CalcLeafValues(data,
+                       ctx->LearnProgress.AveragingFold,
+                       bestSplitTree,
+                       error,
+                       ctx->Params.GradientIterations,
+                       ctx->Params.LeafEstimationMethod,
+                       l2LeafRegularizer,
+                       ctx,
+                       &treeValues,
+                       &indices);
+
+        yvector<yvector<double>> expTreeValues;
+        expTreeValues.yresize(approxDimension);
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            for (auto& leafVal : treeValues[dim]) {
+                leafVal *= learningRate;
+            }
+            expTreeValues[dim] = treeValues[dim];
+            ExpApproxIf<TError::StoreExpApprox>(&expTreeValues[dim]);
+        }
+
+        profile.AddOperation("CalcApprox result leafs");
+        CheckInterrupted(); // check after long-lasting operation
+
         Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
         TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
 
+        const int tailFinish = bt.TailFinish;
+        const int learnSampleCount = data.LearnSampleCount;
+        const int* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
+        const TIndexType* indicesData = indices.data();
         for (int dim = 0; dim < approxDimension; ++dim) {
-            for (int z = 0; z < bt.TailFinish; ++z) {
-                bt.Approx[dim][z] += approxDeltaAvrg[dim][z] * ctx->Params.LearningRate;
-            }
-            const int* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
+            const double* expTreeValuesData = expTreeValues[dim].data();
+            const double* treeValuesData = treeValues[dim].data();
+            double* approxData = bt.Approx[dim].data();
             double* avrgApproxData = ctx->LearnProgress.AvrgApprox[dim].data();
-            const double* approxDeltaAvrgData = approxDeltaAvrg[dim].data();
-            const double learningRate = ctx->Params.LearningRate;
-            ctx->LocalExecutor.ExecRange([&](int z) {
-                int i = learnPermutationData[z];
-                avrgApproxData[i] += approxDeltaAvrgData[z] * learningRate;
-            },
-                                         NPar::TLocalExecutor::TBlockParams(0, data.LearnSampleCount).SetBlockSize(10000).WaitCompletion());
-
-            for (int i = data.LearnSampleCount; i < sampleCount; ++i) {
-                ctx->LearnProgress.AvrgApprox[dim][i] += approxDeltaAvrg[dim][i] * ctx->Params.LearningRate;
-            }
+            ctx->LocalExecutor.ExecRange([=](int docIdx) {
+                const int permutedDocIdx = docIdx < learnSampleCount ? learnPermutationData[docIdx] : docIdx;
+                if (docIdx < tailFinish) {
+                    approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
+                }
+                avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
+            }, NPar::TLocalExecutor::TBlockParams(0, sampleCount).SetBlockSize(10000).WaitCompletion());
         }
+
+        ctx->LearnProgress.Model.LeafValues.push_back(treeValues);
+        ctx->LearnProgress.Model.TreeStruct.push_back(bestTree);
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
@@ -383,14 +363,10 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
 
     CB_ENSURE(hasTest || !ctx->Params.UseBestModel, "cannot select best model, no test provided");
 
-    THolder<TOFStream> learnErrLog;
-    THolder<TOFStream> testErrLog;
+    THolder<TLogger> logger;
 
     if (ctx->Params.AllowWritingFiles) {
-        learnErrLog = InitErrLog(metrics, ctx->LearnProgress.LearnErrorsHistory, ctx->Files.LearnErrorLogFile);
-        if (hasTest) {
-            testErrLog = InitErrLog(metrics, ctx->LearnProgress.TestErrorsHistory, ctx->Files.TestErrorLogFile);
-        }
+        logger = InitLogger(metrics, *ctx, hasTest);
     }
 
     ctx->LoadProgress();
@@ -407,9 +383,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
     }
 
     for (int iter = ctx->LearnProgress.Model.TreeStruct.ysize(); iter < ctx->Params.Iterations; ++iter) {
-        TrainOneIter<TError>(
-            data,
-            ctx);
+        TrainOneIter<TError>(data, ctx);
 
         CalcAndLogLearnErrors(
             ctx->LearnProgress.AvrgApprox,
@@ -420,7 +394,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
             iter,
             &ctx->LearnProgress.LearnErrorsHistory,
             &ctx->LocalExecutor,
-            learnErrLog.Get());
+            logger.Get());
 
         profile.AddOperation("Calc learn errors");
 
@@ -436,7 +410,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
                 errorTracker,
                 &ctx->LearnProgress.TestErrorsHistory,
                 &ctx->LocalExecutor,
-                testErrLog.Get());
+                logger.Get());
 
             profile.AddOperation("Calc test errors");
 

@@ -3,6 +3,7 @@
 #include "params.h"
 #include "metric.h"
 #include "ders_holder.h"
+#include "approx_util.h"
 
 #include <catboost/libs/metrics/auc.h>
 
@@ -17,29 +18,42 @@
 
 void CalcSoftmax(const yvector<double>& approx, yvector<double>* softmax);
 
-template<typename TChild>
+template<typename TChild, bool StoreExpApproxParam>
 class IDerCalcer {
 public:
-    void CalcFirstDerRange(int count, const double* approxes, const float* targets, const float* weights, double* ders) const {
-        if (weights) {
-            for (int i = 0; i < count; ++i) {
-                ders[i] = CalcDer(approxes[i], targets[i]) * static_cast<double>(weights[i]);
+    static const constexpr bool StoreExpApprox = StoreExpApproxParam;
+
+    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, double* ders) const {
+        if (approxDeltas != nullptr) {
+            for (int i = start; i < start + count; ++i) {
+                ders[i] = CalcDer(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i]);
             }
         } else {
-            for (int i = 0; i < count; ++i) {
+            for (int i = start; i < start + count; ++i) {
                 ders[i] = CalcDer(approxes[i], targets[i]);
+            }
+        }
+        if (weights != nullptr) {
+            for (int i = start; i < start + count; ++i) {
+                ders[i] *= static_cast<double>(weights[i]);
             }
         }
     }
 
-    void CalcDersRange(int count, const double* approxes, const float* targets, const float* weights, TDer1Der2* ders) const {
-        if (weights) {
-            for (int i = 0; i < count; ++i) {
-                CalcWeightedDers(approxes[i], targets[i], weights[i], &ders[i]);
+    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, TDer1Der2* ders) const {
+        if (approxDeltas != nullptr) {
+            for (int i = start; i < start + count; ++i) {
+                CalcDers(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i], &ders[i]);
             }
         } else {
-            for (int i = 0; i < count; ++i) {
+            for (int i = start; i < start + count; ++i) {
                 CalcDers(approxes[i], targets[i], &ders[i]);
+            }
+        }
+        if (weights != nullptr) {
+            for (int i = start; i < start + count; ++i) {
+                ders[i].Der1 *= weights[i];
+                ders[i].Der2 *= weights[i];
             }
         }
     }
@@ -61,40 +75,40 @@ private:
         ders->Der1 = CalcDer(approx, target);
         ders->Der2 = CalcDer2(approx, target);
     }
-
-    void CalcWeightedDers(double approx, float target, float w, TDer1Der2* ders) const {
-        ders->Der1 = CalcDer(approx, target) * static_cast<double>(w);
-        ders->Der2 = CalcDer2(approx, target) * static_cast<double>(w);
-    }
 };
 
-class TBinclassError : public IDerCalcer<TBinclassError>  {
+class TBinclassError : public IDerCalcer<TBinclassError, /*StoreExpApproxParam*/ true> {
 public:
-    double CalcDer(double approx, float target) const {
-        const double approxExp = exp(approx);
+    explicit TBinclassError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
+    double CalcDer(double approxExp, float target) const {
         const double p = approxExp / (1 + approxExp);
         return target > 0 ? (1 - p) : -p;
     }
 
-    double CalcDer2(double approx, float = 0) const {
-        const double approxExp = exp(approx);
+    double CalcDer2(double approxExp, float = 0) const {
         const double p = approxExp / (1 + approxExp);
         return -p * (1 - p);
     }
 
-    void CalcDers(double approx, float target, TDer1Der2* ders) const {
-        const double approxExp = exp(approx);
+    void CalcDers(double approxExp, float target, TDer1Der2* ders) const {
         const double p = approxExp / (1 + approxExp);
         ders->Der1 = target > 0 ? (1 - p) : -p;
         ders->Der2 = -p * (1 - p);
     }
-    void CalcFirstDerRange(int count, const double* approxes, const float* targets, const float* weights, double* ders) const;
-    void CalcDersRange(int count, const double* approxes, const float* targets, const float* weights, TDer1Der2* ders) const;
+    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, double* ders) const;
+    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, TDer1Der2* ders) const;
 };
 
-class TQuadError : public IDerCalcer<TQuadError> {
+class TQuadError : public IDerCalcer<TQuadError, /*StoreExpApproxParam*/ false> {
 public:
     static constexpr double RMSE_DER2 = -1.0;
+
+    explicit TQuadError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
 
     double CalcDer(double approx, float target) const {
         return target - approx;
@@ -105,47 +119,50 @@ public:
     }
 };
 
-class TCrossEntropyError : public IDerCalcer<TCrossEntropyError> {
+class TCrossEntropyError : public IDerCalcer<TCrossEntropyError, /*StoreExpApproxParam*/ true> {
 public:
-    double CalcDer(double approx, float prob) const {
+    explicit TCrossEntropyError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
+    double CalcDer(double approxExp, float prob) const {
         // p * 1/(1+exp(x)) + (1-p) * (-exp(x)/(1+exp(x))) =
         // (p - (1-p)exp(x)) / (1+exp(x))
-        double approxExp = exp(approx);
         return (prob - (1 - prob) * approxExp) / (1 + approxExp);
     }
 
-    double CalcDer2(double approx, float = 0) const {
-        double approxExp = exp(approx);
+    double CalcDer2(double approxExp, float = 0) const {
         double p = approxExp / (1 + approxExp);
         return -p * (1 - p);
     }
 
-    void CalcDers(double approx, float prob, TDer1Der2* ders) const {
-        const double approxExp = exp(approx);
+    void CalcDers(double approxExp, float prob, TDer1Der2* ders) const {
         const double p = approxExp / (1 + approxExp);
         ders->Der1 = (prob - (1 - prob) * approxExp) / (1 + approxExp);
         ders->Der2 = -p * (1 - p);
     }
 
-    void CalcDersRange(int count, const double* approxes, const float* probs, const float* weights, TDer1Der2* ders) const;
+    void CalcDersRange(int start, int count, const double* approxes, const double* approxDelta, const float* probs, const float* weights, TDer1Der2* ders) const;
 };
 
-class TQuantileError : public IDerCalcer<TQuantileError> {
+class TQuantileError : public IDerCalcer<TQuantileError, /*StoreExpApproxParam*/ false> {
 public:
     const double QUANTILE_DER2 = 0.0;
 
     double Alpha;
     SAVELOAD(Alpha);
 
-    TQuantileError()
+    explicit TQuantileError(bool storeExpApprox)
         : Alpha(0.5)
     {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
-    explicit TQuantileError(double alpha)
+    TQuantileError(double alpha, bool storeExpApprox)
         : Alpha(alpha)
     {
         Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
     double CalcDer(double approx, float target) const {
@@ -157,27 +174,28 @@ public:
     }
 };
 
-class TLogLinearQuantileError : public IDerCalcer<TLogLinearQuantileError> {
+class TLogLinearQuantileError : public IDerCalcer<TLogLinearQuantileError, /*StoreExpApproxParam*/ true> {
 public:
     const double QUANTILE_DER2 = 0.0;
 
     double Alpha;
     SAVELOAD(Alpha);
 
-    TLogLinearQuantileError()
+    explicit TLogLinearQuantileError(bool storeExpApprox)
         : Alpha(0.5)
     {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
-    explicit TLogLinearQuantileError(double alpha)
+    TLogLinearQuantileError(double alpha, bool storeExpApprox)
         : Alpha(alpha)
     {
         Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
-    double CalcDer(double approx, float target) const {
-        double expApprox = exp(approx);
-        return (target - expApprox > 0) ? Alpha * expApprox : -(1 - Alpha) * expApprox;
+    double CalcDer(double approxExp, float target) const {
+        return (target - approxExp > 0) ? Alpha * approxExp : -(1 - Alpha) * approxExp;
     }
 
     double CalcDer2(double = 0, float = 0) const {
@@ -185,26 +203,33 @@ public:
     }
 };
 
-class TPoissonError : public IDerCalcer<TPoissonError> {
+class TPoissonError : public IDerCalcer<TPoissonError, /*StoreExpApproxParam*/ true> {
 public:
-    double CalcDer(double approx, float target) const {
-        return target - exp(approx);
+    explicit TPoissonError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
-    double CalcDer2(double approx, float) const {
-        return -exp(approx);
+    double CalcDer(double approxExp, float target) const {
+        return target - approxExp;
     }
 
-    void CalcDers(double approx, float target, TDer1Der2* ders) const {
-        const double expApprox = exp(approx);
-        ders->Der1 = target - expApprox;
-        ders->Der2 = -expApprox;
+    double CalcDer2(double approxExp, float) const {
+        return -approxExp;
+    }
+
+    void CalcDers(double approxExp, float target, TDer1Der2* ders) const {
+        ders->Der1 = target - approxExp;
+        ders->Der2 = -approxExp;
     }
 };
 
-class TMAPError : public IDerCalcer<TMAPError> {
+class TMAPError : public IDerCalcer<TMAPError, /*StoreExpApproxParam*/ false> {
 public:
     const double MAPE_DER2 = 0.0;
+
+    explicit TMAPError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
 
     double CalcDer(double approx, float target) const {
         return (target - approx > 0) ? 1 / target : -1 / target;
@@ -215,8 +240,12 @@ public:
     }
 };
 
-class TMultiClassError : public IDerCalcer<TMultiClassError> {
+class TMultiClassError : public IDerCalcer<TMultiClassError, /*StoreExpApproxParam*/ false> {
 public:
+    explicit TMultiClassError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
     double CalcDer(double /*approx*/, float /*target*/) const {
         CB_ENSURE(false, "Not implemented for MultiClass error.");
     }
@@ -261,8 +290,12 @@ public:
     }
 };
 
-class TMultiClassOneVsAllError : public IDerCalcer<TMultiClassError> {
+class TMultiClassOneVsAllError : public IDerCalcer<TMultiClassError, /*StoreExpApproxParam*/ false> {
 public:
+    explicit TMultiClassOneVsAllError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
     double CalcDer(double /*approx*/, float /*target*/) const {
         CB_ENSURE(false, "Not implemented for MultiClassOneVsAll error.");
     }
@@ -301,11 +334,13 @@ public:
     }
 };
 
-class TCustomError : public IDerCalcer<TCustomError> {
+class TCustomError : public IDerCalcer<TCustomError, /*StoreExpApproxParam*/ false> {
 public:
-    explicit TCustomError(const TCustomObjectiveDescriptor& descriptor)
-        : Descriptor(descriptor)
-    { }
+    TCustomError(const TFitParams& params)
+        : Descriptor(*params.ObjectiveDescriptor)
+    {
+        CB_ENSURE(params.StoreExpApprox == StoreExpApprox, "Approx format does not match");
+    }
 
     void CalcDersMulti(const yvector<double>& approx, float target, float weight,
                        yvector<double>* der, TArray2D<double>* der2) const
@@ -313,19 +348,27 @@ public:
         Descriptor.CalcDersMulti(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
-    void CalcDersRange(int count, const double* approxes, const float* targets,
+    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets,
                        const float* weights, TDer1Der2* ders) const
     {
-        Descriptor.CalcDersRange(count, approxes, targets, weights, ders, Descriptor.CustomData);
+        if (approxDeltas != nullptr) {
+            yvector<double> updatedApproxes(count);
+            for (int i = start; i < start + count; ++i) {
+                updatedApproxes[i - start] = approxes[i] + approxDeltas[i];
+            }
+            Descriptor.CalcDersRange(count, updatedApproxes.data(), targets + start, weights + start, ders + start, Descriptor.CustomData);
+        } else {
+            Descriptor.CalcDersRange(count, approxes + start, targets + start, weights + start, ders + start, Descriptor.CustomData);
+        }
     }
 
-    void CalcFirstDerRange(int count, const double* approxes, const float* targets,
+    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets,
                            const float* weights, double* ders) const
     {
         yvector<TDer1Der2> derivatives(count, {0.0, 0.0});
-        CalcDersRange(count, approxes, targets, weights, derivatives.data());
-        for (int i = 0; i < count; ++i) {
-            ders[i] = derivatives[i].Der1;
+        CalcDersRange(start, count, approxes, approxDeltas, targets, weights, derivatives.data() - start);
+        for (int i = start; i < start + count; ++i) {
+            ders[i] = derivatives[i - start].Der1;
         }
     }
 private:

@@ -52,7 +52,7 @@ namespace NPar {
             return true;
         }
         void WaitComplete() {
-            while (WorkerCount > 0)
+            while (AtomicGet(WorkerCount) > 0)
                 RegularYield();
         }
         int GetRangeSize() const {
@@ -128,7 +128,7 @@ namespace NPar {
         AtomicAdd(QueueSize, 1);
         JobQueue.Enqueue(TSingleJob(nullptr, 0));
         HasJob.Signal();
-        while (ThreadCount) {
+        while (AtomicGet(ThreadCount)) {
             ThreadYield();
         }
     }
@@ -175,7 +175,7 @@ namespace NPar {
     void TLocalExecutor::LaunchRange(TLocalRangeExecutor* rangeExec, int queueSizeLimit,
                                      TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue) {
         int count = Min<int>(ThreadCount + 1, rangeExec->GetRangeSize());
-        if (queueSizeLimit >= 0 && *queueSize >= queueSizeLimit) {
+        if (queueSizeLimit >= 0 && AtomicGet(*queueSize) >= queueSizeLimit) {
             return;
         }
         AtomicAdd(*queueSize, count);

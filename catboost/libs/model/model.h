@@ -79,6 +79,7 @@ struct TOneHotFeaturesInfo {
 };
 
 struct TCoreModel {
+    yvector<bool> HasNans;
     yvector<yvector<float>> Borders;
     yvector<TTensorStructure3> TreeStruct;
     yvector<yvector<yvector<double>>> LeafValues; // [numTree][dim][bucketId]

@@ -5,18 +5,64 @@
 // 'except' statement, curexc_* is moved over to exc_* by
 // __Pyx_GetException()
 
-/////////////// PyErrFetchRestore.proto ///////////////
 
-static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb); /*proto*/
-static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+/////////////// PyThreadStateGet.proto ///////////////
+//@substitute: naming
+
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_PyThreadState_declare  PyThreadState *$local_tstate_cname;
+#define __Pyx_PyThreadState_assign  $local_tstate_cname = PyThreadState_GET();
+#else
+#define __Pyx_PyThreadState_declare
+#define __Pyx_PyThreadState_assign
+#endif
+
+
+/////////////// PyErrExceptionMatches.proto ///////////////
+//@substitute: naming
+
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_PyErr_ExceptionMatches(err) __Pyx_PyErr_ExceptionMatchesInState($local_tstate_cname, err)
+static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tstate, PyObject* err);
+#else
+#define __Pyx_PyErr_ExceptionMatches(err)  PyErr_ExceptionMatches(err)
+#endif
+
+/////////////// PyErrExceptionMatches ///////////////
+
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tstate, PyObject* err) {
+    PyObject *exc_type = tstate->curexc_type;
+    if (exc_type == err) return 1;
+    if (unlikely(!exc_type)) return 0;
+    return PyErr_GivenExceptionMatches(exc_type, err);
+}
+#endif
+
+/////////////// PyErrFetchRestore.proto ///////////////
+//@substitute: naming
+//@requires: PyThreadStateGet
+
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ErrRestoreWithState(type, value, tb)  __Pyx_ErrRestoreInState(PyThreadState_GET(), type, value, tb)
+#define __Pyx_ErrFetchWithState(type, value, tb)    __Pyx_ErrFetchInState(PyThreadState_GET(), type, value, tb)
+#define __Pyx_ErrRestore(type, value, tb)  __Pyx_ErrRestoreInState($local_tstate_cname, type, value, tb)
+#define __Pyx_ErrFetch(type, value, tb)    __Pyx_ErrFetchInState($local_tstate_cname, type, value, tb)
+static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb); /*proto*/
+static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+
+#else
+#define __Pyx_ErrRestoreWithState(type, value, tb)  PyErr_Restore(type, value, tb)
+#define __Pyx_ErrFetchWithState(type, value, tb)  PyErr_Fetch(type, value, tb)
+#define __Pyx_ErrRestore(type, value, tb)  PyErr_Restore(type, value, tb)
+#define __Pyx_ErrFetch(type, value, tb)  PyErr_Fetch(type, value, tb)
+#endif
 
 /////////////// PyErrFetchRestore ///////////////
 
-static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
-    PyThreadState *tstate = PyThreadState_GET();
-
     tmp_type = tstate->curexc_type;
     tmp_value = tstate->curexc_value;
     tmp_tb = tstate->curexc_traceback;
@@ -26,25 +72,17 @@ static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyOb
     Py_XDECREF(tmp_type);
     Py_XDECREF(tmp_value);
     Py_XDECREF(tmp_tb);
-#else
-    PyErr_Restore(type, value, tb);
-#endif
 }
 
-static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
-    PyThreadState *tstate = PyThreadState_GET();
+static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     *type = tstate->curexc_type;
     *value = tstate->curexc_value;
     *tb = tstate->curexc_traceback;
-
     tstate->curexc_type = 0;
     tstate->curexc_value = 0;
     tstate->curexc_traceback = 0;
-#else
-    PyErr_Fetch(type, value, tb);
-#endif
 }
+#endif
 
 /////////////// RaiseException.proto ///////////////
 
@@ -52,6 +90,7 @@ static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject 
 
 /////////////// RaiseException ///////////////
 //@requires: PyErrFetchRestore
+//@requires: PyThreadStateGet
 
 // The following function is based on do_raise() from ceval.c. There
 // are separate versions for Python2 and Python3 as exception handling
@@ -60,6 +99,7 @@ static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject 
 #if PY_MAJOR_VERSION < 3
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
                         CYTHON_UNUSED PyObject *cause) {
+    __Pyx_PyThreadState_declare
     /* 'cause' is only used in Py3 */
     Py_XINCREF(type);
     if (!value || value == Py_None)
@@ -107,6 +147,7 @@ static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
         }
     }
 
+    __Pyx_PyThreadState_assign
     __Pyx_ErrRestore(type, value, tb);
     return;
 raise_error:
@@ -241,16 +282,26 @@ bad:
 #endif
 
 /////////////// GetException.proto ///////////////
+//@substitute: naming
+//@requires: PyThreadStateGet
 
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_GetException(type, value, tb)  __Pyx__GetException($local_tstate_cname, type, value, tb)
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+#else
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+#endif
 
 /////////////// GetException ///////////////
 
+#if CYTHON_FAST_THREAD_STATE
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
+#else
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb) {
+#endif
     PyObject *local_type, *local_value, *local_tb;
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
     PyObject *tmp_type, *tmp_value, *tmp_tb;
-    PyThreadState *tstate = PyThreadState_GET();
     local_type = tstate->curexc_type;
     local_value = tstate->curexc_value;
     local_tb = tstate->curexc_traceback;
@@ -261,7 +312,7 @@ static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb) 
     PyErr_Fetch(&local_type, &local_value, &local_tb);
 #endif
     PyErr_NormalizeException(&local_type, &local_value, &local_tb);
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
     if (unlikely(tstate->curexc_type))
 #else
     if (unlikely(PyErr_Occurred()))
@@ -281,7 +332,7 @@ static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb) 
     *type = local_type;
     *value = local_value;
     *tb = local_tb;
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
     tmp_type = tstate->exc_type;
     tmp_value = tstate->exc_value;
     tmp_tb = tstate->exc_traceback;
@@ -315,7 +366,7 @@ static CYTHON_INLINE void __Pyx_ReraiseException(void); /*proto*/
 
 static CYTHON_INLINE void __Pyx_ReraiseException(void) {
     PyObject *type = NULL, *value = NULL, *tb = NULL;
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
     PyThreadState *tstate = PyThreadState_GET();
     type = tstate->exc_type;
     value = tstate->exc_value;
@@ -324,7 +375,7 @@ static CYTHON_INLINE void __Pyx_ReraiseException(void) {
     PyErr_GetExcInfo(&type, &value, &tb);
 #endif
     if (!type || type == Py_None) {
-#if !CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_FAST_THREAD_STATE
         Py_XDECREF(type);
         Py_XDECREF(value);
         Py_XDECREF(tb);
@@ -333,7 +384,7 @@ static CYTHON_INLINE void __Pyx_ReraiseException(void) {
         PyErr_SetString(PyExc_RuntimeError,
             "No active exception to reraise");
     } else {
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_FAST_THREAD_STATE
         Py_INCREF(type);
         Py_XINCREF(value);
         Py_XINCREF(tb);
@@ -344,30 +395,35 @@ static CYTHON_INLINE void __Pyx_ReraiseException(void) {
 }
 
 /////////////// SaveResetException.proto ///////////////
+//@substitute: naming
+//@requires: PyThreadStateGet
 
-static CYTHON_INLINE void __Pyx_ExceptionSave(PyObject **type, PyObject **value, PyObject **tb); /*proto*/
-static void __Pyx_ExceptionReset(PyObject *type, PyObject *value, PyObject *tb); /*proto*/
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave($local_tstate_cname, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset($local_tstate_cname, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb); /*proto*/
+
+#else
+
+#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
+#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
+#endif
 
 /////////////// SaveResetException ///////////////
 
-static CYTHON_INLINE void __Pyx_ExceptionSave(PyObject **type, PyObject **value, PyObject **tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
-    PyThreadState *tstate = PyThreadState_GET();
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     *type = tstate->exc_type;
     *value = tstate->exc_value;
     *tb = tstate->exc_traceback;
     Py_XINCREF(*type);
     Py_XINCREF(*value);
     Py_XINCREF(*tb);
-#else
-    PyErr_GetExcInfo(type, value, tb);
-#endif
 }
 
-static void __Pyx_ExceptionReset(PyObject *type, PyObject *value, PyObject *tb) {
-#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
-    PyThreadState *tstate = PyThreadState_GET();
     tmp_type = tstate->exc_type;
     tmp_value = tstate->exc_value;
     tmp_tb = tstate->exc_traceback;
@@ -377,22 +433,25 @@ static void __Pyx_ExceptionReset(PyObject *type, PyObject *value, PyObject *tb) 
     Py_XDECREF(tmp_type);
     Py_XDECREF(tmp_value);
     Py_XDECREF(tmp_tb);
-#else
-    PyErr_SetExcInfo(type, value, tb);
-#endif
 }
+#endif
 
 /////////////// SwapException.proto ///////////////
+//@substitute: naming
+//@requires: PyThreadStateGet
 
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSwap(type, value, tb)  __Pyx__ExceptionSwap($local_tstate_cname, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+#else
 static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb); /*proto*/
+#endif
 
 /////////////// SwapException ///////////////
 
-static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb) {
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
-#if CYTHON_COMPILING_IN_CPYTHON
-    PyThreadState *tstate = PyThreadState_GET();
-
     tmp_type = tstate->exc_type;
     tmp_value = tstate->exc_value;
     tmp_tb = tstate->exc_traceback;
@@ -400,15 +459,23 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
     tstate->exc_type = *type;
     tstate->exc_value = *value;
     tstate->exc_traceback = *tb;
-#else
-    PyErr_GetExcInfo(&tmp_type, &tmp_value, &tmp_tb);
-    PyErr_SetExcInfo(*type, *value, *tb);
-#endif
 
     *type = tmp_type;
     *value = tmp_value;
     *tb = tmp_tb;
 }
+
+#else
+
+static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb) {
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    PyErr_GetExcInfo(&tmp_type, &tmp_value, &tmp_tb);
+    PyErr_SetExcInfo(*type, *value, *tb);
+    *type = tmp_type;
+    *value = tmp_value;
+    *tb = tmp_tb;
+}
+#endif
 
 /////////////// WriteUnraisableException.proto ///////////////
 
@@ -418,17 +485,24 @@ static void __Pyx_WriteUnraisable(const char *name, int clineno,
 
 /////////////// WriteUnraisableException ///////////////
 //@requires: PyErrFetchRestore
+//@requires: PyThreadStateGet
 
 static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
                                   CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
                                   int full_traceback, CYTHON_UNUSED int nogil) {
     PyObject *old_exc, *old_val, *old_tb;
     PyObject *ctx;
+    __Pyx_PyThreadState_declare
 #ifdef WITH_THREAD
     PyGILState_STATE state;
     if (nogil)
         state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    /* arbitrary, to suppress warning */
+    else state = (PyGILState_STATE)-1;
 #endif
+#endif
+    __Pyx_PyThreadState_assign
     __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
     if (full_traceback) {
         Py_XINCREF(old_exc);
@@ -541,7 +615,7 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
         0                    /*PyObject *locals*/
     );
     if (!py_frame) goto bad;
-    py_frame->f_lineno = py_line;
+    __Pyx_PyFrame_SetLineNumber(py_frame, py_line);
     PyTraceBack_Here(py_frame);
 bad:
     Py_XDECREF(py_code);

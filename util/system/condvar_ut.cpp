@@ -64,7 +64,7 @@ class TCondVarTest: public TTestBase {
             if (Id_ < 2) {
                 TGuard<TMutex> guard(Data_.mutex);
                 while (!Data_.stopWaiting) {
-                    bool res = Data_.condVar1.TimedWait(Data_.mutex, TDuration::Seconds(1));
+                    bool res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1));
                     FAIL_ASSERT(res == true);
                 }
             } else {
@@ -87,7 +87,7 @@ class TCondVarTest: public TTestBase {
                 } else {
                     ++Data_.waited;
                     while (Data_.in < TotalIds_) {
-                        bool res = Data_.condVar1.TimedWait(Data_.mutex, TDuration::Seconds(1));
+                        bool res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1));
                         FAIL_ASSERT(res == true);
                     }
                 }
@@ -98,7 +98,7 @@ class TCondVarTest: public TTestBase {
                     Data_.condVar2.BroadCast();
                 } else {
                     while (Data_.out < TotalIds_) {
-                        bool res = Data_.condVar2.TimedWait(Data_.mutex, TDuration::Seconds(1));
+                        bool res = Data_.condVar2.WaitT(Data_.mutex, TDuration::Seconds(1));
                         FAIL_ASSERT(res == true);
                     }
                 }

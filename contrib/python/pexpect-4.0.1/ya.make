@@ -1,5 +1,9 @@
 LIBRARY(pexpect)
 
+LICENSE(
+    ISC
+)
+
 
 
 PEERDIR(

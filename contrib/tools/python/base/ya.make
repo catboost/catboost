@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    PSF
+)
+
 
 
 NO_WSHADOW()

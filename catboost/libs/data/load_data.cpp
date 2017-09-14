@@ -177,7 +177,18 @@ void ReadPool(const TString& cdFile,
               const yvector<TString>& classNames,
               TPool* pool) {
     TPoolBuilder builder(pool);
-    ReadPool(cdFile, poolFile, threadCount, verbose, fieldDelimiter, hasHeader, TTargetConverter(classNames), &builder);
+    ReadPool(cdFile, poolFile, threadCount, verbose, fieldDelimiter, hasHeader, classNames, &builder);
+}
+
+void ReadPool(const TString& cdFile,
+              const TString& poolFile,
+              int threadCount,
+              bool verbose,
+              char fieldDelimiter,
+              bool hasHeader,
+              const yvector<TString>& classNames,
+              IPoolBuilder* poolBuilder) {
+    ReadPool(cdFile, poolFile, threadCount, verbose, fieldDelimiter, hasHeader, TTargetConverter(classNames), poolBuilder);
 }
 
 static bool IsNan(const TStringBuf& s) {

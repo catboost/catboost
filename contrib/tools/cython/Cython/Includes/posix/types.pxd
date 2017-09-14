@@ -1,4 +1,4 @@
-# Note that the actual size of these types is system-dependant, and
+# Note that the actual size of these types is system-dependent, and
 # can't be detected at C compile time.  However, the generated C code
 # will correctly use the actual size of these types *except* for
 # determining promotion in binary arithmetic expressions involving
@@ -10,7 +10,7 @@
 # the POSIX standard doesn't even specify that time_t must be an integral
 # type).
 
-cdef extern from "sys/types.h":
+cdef extern from "<sys/types.h>":
     ctypedef long blkcnt_t
     ctypedef long blksize_t
     ctypedef long clockid_t

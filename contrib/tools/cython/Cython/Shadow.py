@@ -1,7 +1,7 @@
 # cython.* namespace for pure mode.
 from __future__ import absolute_import
 
-__version__ = "0.23.5"
+__version__ = "0.25.2"
 
 try:
     from __builtin__ import basestring
@@ -102,23 +102,41 @@ class _EmptyDecoratorAndManager(object):
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 
+class _Optimization(object):
+    pass
+
 cclass = ccall = cfunc = _EmptyDecoratorAndManager()
 
-returns = wraparound = boundscheck = profile = freelist = lambda arg: _EmptyDecoratorAndManager()
+returns = wraparound = boundscheck = initializedcheck = nonecheck = \
+    overflowcheck = embedsignature = cdivision = cdivision_warnings = \
+    always_allows_keywords = profile = linetrace = infer_type = \
+    unraisable_tracebacks = freelist = \
+        lambda arg: _EmptyDecoratorAndManager()
 
-final = internal = type_version_tag = no_gc_clear = _empty_decorator
+optimization = _Optimization()
 
+overflowcheck.fold = optimization.use_switch = \
+    optimization.unpack_method_calls = lambda arg: _EmptyDecoratorAndManager()
+
+final = internal = type_version_tag = no_gc_clear = no_gc = _empty_decorator
+
+
+_cython_inline = None
 def inline(f, *args, **kwds):
-  if isinstance(f, basestring):
-    from Cython.Build.Inline import cython_inline
-    return cython_inline(f, *args, **kwds)
-  else:
-    assert len(args) == len(kwds) == 0
-    return f
+    if isinstance(f, basestring):
+        global _cython_inline
+        if _cython_inline is None:
+            from Cython.Build.Inline import cython_inline as _cython_inline
+        return _cython_inline(f, *args, **kwds)
+    else:
+        assert len(args) == len(kwds) == 0
+        return f
+
 
 def compile(f):
     from Cython.Build.Inline import RuntimeCompiledFunction
     return RuntimeCompiledFunction(f)
+
 
 # Special functions
 
@@ -136,7 +154,9 @@ def cmod(a, b):
 
 # Emulated language constructs
 
-def cast(type, *args):
+def cast(type, *args, **kwargs):
+    kwargs.pop('typecheck', None)
+    assert not kwargs
     if hasattr(type, '__call__'):
         return type(*args)
     else:

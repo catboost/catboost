@@ -22,11 +22,11 @@ devtools::install()
 # load data to R
 pool_path = 'train_full3'
 column_description_path = 'train_full3.cd'
-pool <- catboost.load_pool(pool_path, column_description_path)
+pool <- catboost.load_pool(pool_path, column_description = column_description_path)
 
 # fit model
 fit_params <- list(iterations=100, thread_count=10, loss_function='Logloss')
-model <- catboost.train(pool, pool, cat_features, fit_params)
+model <- catboost.train(pool, pool, fit_params)
 
 # predict
 prediction <- catboost.predict(model, pool)

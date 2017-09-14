@@ -1,5 +1,6 @@
 #pragma once
 
+#include "approx_util.h"
 #include "restorable_rng.h"
 #include "target_classifier.h"
 #include "train_data.h"
@@ -138,6 +139,7 @@ private:
 static void InitFromBaseline(const int beginIdx, const int endIdx,
                         const yvector<yvector<double>>& baseline,
                         const yvector<int>& learnPermutation,
+                        bool storeExpApproxes,
                         yvector<yvector<double>>* approx) {
     const int learnSampleCount = learnPermutation.ysize();
     const int approxDimension = approx->ysize();
@@ -146,8 +148,10 @@ static void InitFromBaseline(const int beginIdx, const int endIdx,
         if (docId < learnSampleCount) {
             initialIdx = learnPermutation[docId];
         }
+        yvector<yvector<double>> tempBaseline(1, baseline[initialIdx]);
+        ExpApproxIf(storeExpApproxes, &tempBaseline);
         for (int dim = 0; dim < approxDimension; ++dim) {
-            (*approx)[dim][docId] = baseline[initialIdx][dim];
+            (*approx)[dim][docId] = tempBaseline[0][dim];
         }
     }
 }
@@ -159,6 +163,7 @@ inline TFold BuildLearnFold(const TTrainData& data,
                             int permuteBlockSize,
                             int approxDimension,
                             double multiplier,
+                            bool storeExpApproxes,
                             TRestorableFastRng64& rand) {
     TFold ff;
     ff.LearnPermutation.resize(data.LearnSampleCount);
@@ -195,9 +200,9 @@ inline TFold BuildLearnFold(const TTrainData& data,
         TFold::TBodyTail bt;
         bt.BodyFinish = leftPartLen;
         bt.TailFinish = Min(ceil(leftPartLen * multiplier), ff.LearnPermutation.ysize() + 0.);
-        bt.Approx.resize(approxDimension, yvector<double>(bt.TailFinish));
+        bt.Approx.resize(approxDimension, yvector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
         if (!data.Baseline[0].empty()) {
-            InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, &bt.Approx);
+            InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
         }
         bt.Derivatives.resize(approxDimension, yvector<double>(bt.TailFinish));
         bt.WeightedDer.resize(approxDimension, yvector<double>(bt.TailFinish));
@@ -211,6 +216,7 @@ inline TFold BuildAveragingFold(const TTrainData& data,
                                 const yvector<TTargetClassifier>& targetClassifiers,
                                 bool shuffle,
                                 int approxDimension,
+                                bool storeExpApproxes,
                                 TRestorableFastRng64& rand) {
     TFold ff;
     ff.LearnPermutation.resize(data.LearnSampleCount);
@@ -229,10 +235,10 @@ inline TFold BuildAveragingFold(const TTrainData& data,
     TFold::TBodyTail bt;
     bt.BodyFinish = data.LearnSampleCount;
     bt.TailFinish = data.LearnSampleCount;
-    bt.Approx.resize(approxDimension, yvector<double>(data.GetSampleCount()));
+    bt.Approx.resize(approxDimension, yvector<double>(data.GetSampleCount(), GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDer.resize(approxDimension, yvector<double>(data.GetSampleCount()));
     if (!data.Baseline[0].empty()) {
-        InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, &bt.Approx);
+        InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }
     ff.BodyTailArr.emplace_back(std::move(bt));
     return ff;

@@ -3,7 +3,7 @@ require(catboost)
 load_adult_pool <- function() {
   pool.path <- system.file("extdata", "adult_train.1000", package="catboost")
   column_description.path <- system.file("extdata", "adult.cd", package="catboost")
-  pool <- catboost::catboost.load_pool(pool.path, column_description.path)
+  pool <- catboost::catboost.load_pool(pool.path, column_description = column_description.path)
 }
 
 test_that("load adult pool", {

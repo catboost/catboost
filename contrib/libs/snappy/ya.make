@@ -1,5 +1,10 @@
 LIBRARY()
 
+LICENSE(
+    BSD
+)
+
+
 
 NO_COMPILER_WARNINGS()
 NO_UTIL()

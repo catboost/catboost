@@ -1,5 +1,9 @@
 LIBRARY(ipython_genutils)
 
+LICENSE(
+    BSD
+)
+
 
 
 PY_SRCS(

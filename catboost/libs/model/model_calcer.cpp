@@ -141,24 +141,18 @@ namespace NCatBoost {
                                 size_t treeStart,
                                 size_t treeEnd,
                                 NArrayRef::TArrayRef<double> results) const {
-        size_t blockSize;
-        if (UsedCtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
-        blockSize = Min(blockSize, features.size());
-        CB_ENSURE(results.size() == features.size() * ModelClassCount);
-        std::fill(results.begin(), results.end(), 0.0);
-        yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
-        yvector<ui32> indexesVec(blockSize);
-        yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
-        yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
-        for (size_t blockStart = 0; blockStart < features.size(); blockStart += blockSize) {
-            const auto docCountInBlock = Min(blockSize, features.size() - blockStart);
-            BinarizeFeaturesFlat(features, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
-            CalcTrees(blockStart, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, results);
-        }
+        CalcGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return features[index][FloatFeatureFlatIndex[floatFeature.FeatureIndex]];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return ConvertFloatCatFeatureToIntHash(features[index][CatFeatureFlatIndex[catFeatureIdx]]);
+            },
+            features.size(),
+            treeStart,
+            treeEnd,
+            results
+        );
     }
 
     void TModelCalcer::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
@@ -166,136 +160,75 @@ namespace NCatBoost {
                             size_t treeStart,
                             size_t treeEnd,
                             NArrayRef::TArrayRef<double> results) const {
-        size_t blockSize;
-        if (UsedCtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
-        auto docCount = Max(catFeatures.size(), floatFeatures.size());
-        blockSize = Min(blockSize, docCount);
-        CB_ENSURE(results.size() == docCount * ModelClassCount);
-        std::fill(results.begin(), results.end(), 0.0);
-        yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
-        yvector<ui32> indexesVec(blockSize);
-        yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
-        yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
-        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-            BinarizeFeatures(floatFeatures, catFeatures, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
-            CalcTrees(blockStart, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, results);
-        }
-    }
-
-    yvector<yvector<double>> TModelCalcer::CalcTreeIntervals(
-        const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-        const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
-        size_t incrementStep) {
-        size_t blockSize;
-        if (UsedCtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
-        if (!floatFeatures.empty() && !catFeatures.empty()) {
-            CB_ENSURE(catFeatures.size() == floatFeatures.size());
-        }
-        auto docCount = Max(catFeatures.size(), floatFeatures.size());
-        blockSize = Min(blockSize, docCount);
-        auto treeStepCount = (BinaryTrees.size() + incrementStep - 1) / incrementStep;
-        yvector<yvector<double>> results(docCount, yvector<double>(treeStepCount));
-        CB_ENSURE(ModelClassCount == 1);
-        yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
-        yvector<ui32> indexesVec(blockSize);
-        yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
-        yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
-        yvector<double> tmpResult(docCount);
-        NArrayRef::TArrayRef<double> tmpResultRef(tmpResult);
-        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-            BinarizeFeatures(floatFeatures, catFeatures, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
-            for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
-                CalcTrees(blockStart,
-                          binFeatures,
-                          docCountInBlock,
-                          indexesVec,
-                          stepIdx * incrementStep,
-                          Min((stepIdx + 1) * incrementStep, BinaryTrees.size()),
-                          tmpResultRef);
-                for (size_t i = 0; i < docCountInBlock; ++i) {
-                    results[blockStart + i][stepIdx] = tmpResult[i];
-                }
-            }
-        }
-        return results;
-    }
-
-    yvector<yvector<double>> TModelCalcer::CalcTreeIntervalsFlat(
-        const yvector<NArrayRef::TConstArrayRef<float>>& mixedFeatures,
-        size_t incrementStep) {
-        size_t blockSize;
-        if (UsedCtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
-        auto docCount = mixedFeatures.size();
-        blockSize = Min(blockSize, docCount);
-        auto treeStepCount = (BinaryTrees.size() + incrementStep - 1) / incrementStep;
-        yvector<yvector<double>> results(docCount, yvector<double>(treeStepCount));
-        CB_ENSURE(ModelClassCount == 1);
-        yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
-        yvector<ui32> indexesVec(blockSize);
-        yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
-        yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
-        yvector<double> tmpResult(docCount);
-        NArrayRef::TArrayRef<double> tmpResultRef(tmpResult);
-        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-            BinarizeFeaturesFlat(mixedFeatures, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
-            for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
-                CalcTrees(blockStart,
-                          binFeatures,
-                          docCountInBlock,
-                          indexesVec,
-                          stepIdx * incrementStep,
-                          Min((stepIdx + 1) * incrementStep, BinaryTrees.size()),
-                          tmpResultRef);
-                for (size_t i = 0; i < docCountInBlock; ++i) {
-                    results[blockStart + i][stepIdx] = tmpResult[i];
-                }
-            }
-        }
-        return results;
+        CalcGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return floatFeatures[index][floatFeature.FeatureIndex];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return catFeatures[index][catFeatureIdx];
+            },
+            floatFeatures.size(),
+            treeStart,
+            treeEnd,
+            results
+        );
     }
 
     void TModelCalcer::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
                             const yvector<yvector<TStringBuf>>& catFeatures, size_t treeStart, size_t treeEnd,
                             NArrayRef::TArrayRef<double> results) const {
-        size_t blockSize;
-        if (UsedCtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
-        auto docCount = Max(catFeatures.size(), floatFeatures.size());
-        blockSize = Min(blockSize, docCount);
-        CB_ENSURE(results.size() == docCount * ModelClassCount);
-        std::fill(results.begin(), results.end(), 0.0);
-        yvector<ui8> binFeatures(UsedBinaryFeaturesCount * blockSize);
-        yvector<ui32> indexesVec(blockSize);
-        yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
-        yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
-        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-            BinarizeFeatures(floatFeatures, catFeatures, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
-            CalcTrees(blockStart, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, results);
+
+        CalcGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return floatFeatures[index][floatFeature.FeatureIndex];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return CalcCatFeatureHash(catFeatures[index][catFeatureIdx]);
+            },
+            floatFeatures.size(),
+            treeStart,
+            treeEnd,
+            results
+        );
+    }
+
+    yvector<yvector<double>> TModelCalcer::CalcTreeIntervals(
+        const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+        const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+        size_t incrementStep) const {
+        if (!floatFeatures.empty() && !catFeatures.empty()) {
+            CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
+
+        return CalcTreeIntervalsGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return floatFeatures[index][floatFeature.FeatureIndex];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return catFeatures[index][catFeatureIdx];
+            },
+            floatFeatures.size(),
+            incrementStep
+        );
+    }
+    yvector<yvector<double>> TModelCalcer::CalcTreeIntervalsFlat(
+        const yvector<NArrayRef::TConstArrayRef<float>>& features,
+        size_t incrementStep) const {
+        return CalcTreeIntervalsGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return features[index][FloatFeatureFlatIndex[floatFeature.FeatureIndex]];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return ConvertFloatCatFeatureToIntHash(features[index][CatFeatureFlatIndex[catFeatureIdx]]);
+            },
+            features.size(),
+            incrementStep
+        );
     }
 }

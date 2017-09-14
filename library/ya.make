@@ -13,9 +13,13 @@ RECURSE(
     diff
     diff/ut
     digest
+    dot_product
+    dot_product/bench
+    dot_product/ut
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
+    fast_log
     getopt
     getopt/last_getopt_demo
     getopt/small

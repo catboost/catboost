@@ -1,5 +1,9 @@
 LIBRARY(pygments)
 
+LICENSE(
+    BSD
+)
+
 
 
 PEERDIR(

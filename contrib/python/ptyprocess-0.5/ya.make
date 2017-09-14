@@ -1,5 +1,9 @@
 LIBRARY(ptyprocess)
 
+LICENSE(
+    ISC
+)
+
 
 
 PY_SRCS(

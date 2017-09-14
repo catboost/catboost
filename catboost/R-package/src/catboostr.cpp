@@ -74,6 +74,8 @@ extern "C" {
 
 SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP cdFileParam,
+                              SEXP delimiterParam,
+                              SEXP hasHeaderParam,
                               SEXP threadCountParam,
                               SEXP verboseParam) {
     SEXP result = NULL;
@@ -83,8 +85,8 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
              CHAR(asChar(poolFileParam)),
              asInteger(threadCountParam),
              asLogical(verboseParam),
-             '\t',
-             false,
+             CHAR(asChar(delimiterParam))[0],
+             asLogical(hasHeaderParam),
              yvector<TString>(),
              poolPtr.get());
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
@@ -99,7 +101,8 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                                 SEXP targetParam,
                                 SEXP weightParam,
                                 SEXP baselineParam,
-                                SEXP catFeaturesParam) {
+                                SEXP catFeaturesParam,
+                                SEXP featureNamesParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     SEXP dataDim = getAttrib(matrixParam, R_DimSymbol);
@@ -131,6 +134,11 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         poolPtr->Docs[i].Factors.resize(dataColumns);
         for (size_t j = 0; j < dataColumns; ++j) {
             poolPtr->Docs[i].Factors[j] = static_cast<float>(REAL(matrixParam)[i + dataRows * j]);  // casting double to float
+        }
+    }
+    if (featureNamesParam != R_NilValue) {
+        for (size_t j = 0; j < dataColumns; ++j) {
+            poolPtr->FeatureId.push_back(CHAR(asChar(VECTOR_ELT(featureNamesParam, j))));
         }
     }
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
@@ -180,24 +188,25 @@ SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
     return result;
 }
 
-SEXP CatBoostPoolHead_R(SEXP poolParam, SEXP n) {
+SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     SEXP result = NULL;
-    size_t resultSize = 0;
+    size_t size, offset;
     R_API_BEGIN();
+    size = static_cast<size_t>(asInteger(sizeParam));
+    offset = static_cast<size_t>(asInteger(offsetParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
-    resultSize = std::min(static_cast<size_t>(asInteger(n)), pool->Docs.size());
-    result = PROTECT(allocVector(VECSXP, resultSize));
-    for (size_t i = 0; i < resultSize; ++i) {
+    result = PROTECT(allocVector(VECSXP, size));
+    for (size_t i = offset; i < std::min(pool->Docs.size(), offset + size); ++i) {
         SEXP row = PROTECT(allocVector(REALSXP, pool->Docs[i].Factors.size() + 2));
         REAL(row)[0] = pool->Docs[i].Target;
         REAL(row)[1] = pool->Docs[i].Weight;
         for (size_t j = 0; j < pool->Docs[i].Factors.size(); ++j) {
             REAL(row)[j + 2] = pool->Docs[i].Factors[j];
         }
-        SET_VECTOR_ELT(result, i, row);
+        SET_VECTOR_ELT(result, i - offset, row);
     }
     R_API_END();
-    UNPROTECT(resultSize + 1);
+    UNPROTECT(size - offset + 1);
     return result;
 }
 

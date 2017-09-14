@@ -3,6 +3,8 @@
 #include "index_calcer.h"
 #include "tree_print.h"
 #include "interrupt.h"
+#include <library/dot_product/dot_product.h>
+#include <library/fast_log/fast_log.h>
 #include <util/string/builder.h>
 #include <util/system/mem_info.h>
 
@@ -25,9 +27,11 @@ static void AssignRandomWeights(int learnSampleCount,
     ctx->LocalExecutor.ExecRange([&](int blockIdx) {
         TFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
-            float w = -log(rand.GenRandReal1() + 1e-100);
-            sampleWeights[i] = powf(w, ctx->Params.BaggingTemperature);
+        const float baggingTemperature = ctx->Params.BaggingTemperature;
+        float* sampleWeightsData = sampleWeights.data();
+        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&rand, sampleWeightsData, baggingTemperature](int i) {
+            const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
+            sampleWeightsData[i] = powf(w, baggingTemperature);
         })(blockIdx);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
@@ -224,9 +228,7 @@ static double CalcScoreStDev(const TFold& ff) {
     double sum2 = 0, totalSum2Count = 0;
     for (const TFold::TBodyTail& bt : ff.BodyTailArr) {
         for (int dim = 0; dim < bt.Derivatives.ysize(); ++dim) {
-            for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
-                sum2 += Sqr(bt.Derivatives[dim][z]);
-            }
+            sum2 += DotProduct(bt.Derivatives[dim].data() + bt.BodyFinish, bt.Derivatives[dim].data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish);
         }
         totalSum2Count += bt.TailFinish - bt.BodyFinish;
     }

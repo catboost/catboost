@@ -2,7 +2,7 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.load_model}
 \alias{catboost.load_model}
-\title{catboost.load_model}
+\title{Load the model}
 \usage{
 catboost.load_model(model_path)
 }

@@ -1,5 +1,9 @@
 LIBRARY(decorator)
 
+LICENSE(
+    BSD2
+)
+
 
 
 PY_SRCS(

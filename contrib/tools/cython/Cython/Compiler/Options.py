@@ -4,22 +4,50 @@
 
 from __future__ import absolute_import
 
-# Perform lookups on builtin names only once, at module initialisation
-# time.  This will prevent the module from getting imported if a
-# builtin name that it uses cannot be found during initialisation.
-cache_builtins = True
+class ShouldBeFromDirective(object):
 
-embed_pos_in_docstring = False
-gcc_branch_hints = True
+    known_directives = []
 
-pre_import = None
+    def __init__(self, options_name, directive_name=None, dissallow=False):
+        self.options_name = options_name
+        self.directive_name = directive_name or options_name
+        self.dissallow = dissallow
+        self.known_directives.append(self)
+
+    def __nonzero__(self):
+        self._bad_access()
+
+    def __int__(self):
+        self._bad_access()
+
+    def _bad_access(self):
+        raise RuntimeError(repr(self))
+
+    def __repr__(self):
+        return (
+        "Illegal access of '%s' from Options module rather than directive '%s'"
+        % (self.options_name, self.directive_name))
+
+# Include docstrings.
 docstrings = True
+
+# Embed the source code position in the docstrings of functions and classes.
+embed_pos_in_docstring = False
+
+# Copy the original source code line by line into C code comments
+# in the generated code file to help with understanding the output.
+emit_code_comments = True
+
+pre_import = None  # undocumented
 
 # Decref global variables in this module on exit for garbage collection.
 # 0: None, 1+: interned objects, 2+: cdef globals, 3+: types objects
-# Mostly for reducing noise for Valgrind, only executes at process exit
+# Mostly for reducing noise in Valgrind, only executes at process exit
 # (when all memory will be reclaimed anyways).
 generate_cleanup_code = False
+
+# Should tp_clear() set object fields to None instead of clearing them to NULL?
+clear_to_none = True
 
 # Generate an annotated HTML version of the input source files.
 annotate = False
@@ -28,7 +56,7 @@ annotate = False
 # this file.
 annotate_coverage_xml = None
 
-# This will abort the compilation on the first error occured rather than trying
+# This will abort the compilation on the first error occurred rather than trying
 # to keep going and printing further error messages.
 fast_fail = False
 
@@ -52,25 +80,33 @@ error_on_uninitialized = True
 # (i.e. sign of step) can be determined.
 # WARNING: This may change the semantics if the range causes assignment to
 # i to overflow. Specifically, if this option is set, an error will be
-# raised before the loop is entered, wheras without this option the loop
+# raised before the loop is entered, whereas without this option the loop
 # will execute until an overflowing value is encountered.
 convert_range = True
+
+# Perform lookups on builtin names only once, at module initialisation
+# time.  This will prevent the module from getting imported if a
+# builtin name that it uses cannot be found during initialisation.
+cache_builtins = True
+
+# Generate branch prediction hints to speed up error handling etc.
+gcc_branch_hints = True
 
 # Enable this to allow one to write your_module.foo = ... to overwrite the
 # definition if the cpdef function foo, at the cost of an extra dictionary
 # lookup on every call.
-# If this is 0 it simply creates a wrapper.
+# If this is false it generates only the Python wrapper and no override check.
 lookup_module_cpdef = False
 
 # Whether or not to embed the Python interpreter, for use in making a
 # standalone executable or calling from external libraries.
-# This will provide a method which initalizes the interpreter and
+# This will provide a method which initialises the interpreter and
 # executes the body of this module.
 embed = None
 
 # In previous iterations of Cython, globals() gave the first non-Cython module
 # globals in the call stack.  Sage relies on this behavior for variable injection.
-old_style_globals = False
+old_style_globals = ShouldBeFromDirective('old_style_globals')
 
 # Allows cimporting from a pyx file without a pxd file.
 cimport_from_pyx = False
@@ -82,12 +118,26 @@ buffer_max_dims = 8
 # Number of function closure instances to keep in a freelist (0: no freelists)
 closure_freelist_size = 8
 
-# Should tp_clear() set object fields to None instead of clearing them to NULL?
-clear_to_none = True
 
+def get_directive_defaults():
+  # To add an item to this list, all accesses should be changed to use the new
+  # directive, and the global option itself should be set to an instance of
+  # ShouldBeFromDirective.
+  for old_option in ShouldBeFromDirective.known_directives:
+    value = globals().get(old_option.options_name)
+    assert old_option.directive_name in _directive_defaults
+    if not isinstance(value, ShouldBeFromDirective):
+        if old_option.disallow:
+            raise RuntimeError(
+                "Option '%s' must be set from directive '%s'" % (
+                old_option.option_name, old_option.directive_name))
+        else:
+            # Warn?
+            _directive_defaults[old_option.directive_name] = value
+  return _directive_defaults
 
 # Declare compiler directives
-directive_defaults = {
+_directive_defaults = {
     'boundscheck' : True,
     'nonecheck' : False,
     'initializedcheck' : True,
@@ -107,7 +157,9 @@ directive_defaults = {
     'internal' : False,
     'profile': False,
     'no_gc_clear': False,
+    'no_gc': False,
     'linetrace': False,
+    'emit_code_comments': True,  # copy original source code into C code comments
     'annotation_typing': False,  # read type declarations from Python function annotations
     'infer_types': None,
     'infer_types.verbose': False,
@@ -121,6 +173,7 @@ directive_defaults = {
     'c_string_encoding': '',
     'type_version_tag': True,   # enables Py_TPFLAGS_HAVE_VERSION_TAG on extension types
     'unraisable_tracebacks': False,
+    'old_style_globals': False,
 
     # set __file__ and/or __path__ to known source/target path at import time (instead of not having them available)
     'set_initial_path' : None,  # SOURCEFILE or "/full/path/to/module"
@@ -226,7 +279,7 @@ directive_types = {
     'c_string_encoding': normalise_encoding_name,
 }
 
-for key, val in directive_defaults.items():
+for key, val in _directive_defaults.items():
     if key not in directive_types:
         directive_types[key] = type(val)
 
@@ -236,6 +289,7 @@ directive_scopes = { # defaults to available everywhere
     'inline' : ('function',),
     'staticmethod' : ('function',),  # FIXME: analysis currently lacks more specific function scope
     'no_gc_clear' : ('cclass',),
+    'no_gc' : ('cclass',),
     'internal' : ('cclass',),
     'autotestdict' : ('module',),
     'autotestdict.all' : ('module',),
@@ -244,13 +298,18 @@ directive_scopes = { # defaults to available everywhere
     'test_assert_path_exists' : ('function', 'class', 'cclass'),
     'test_fail_if_path_exists' : ('function', 'class', 'cclass'),
     'freelist': ('cclass',),
+    'emit_code_comments': ('module',),
     'annotation_typing': ('module',),  # FIXME: analysis currently lacks more specific function scope
     # Avoid scope-specific to/from_py_functions for c_string.
     'c_string_type': ('module',),
     'c_string_encoding': ('module',),
     'type_version_tag': ('module', 'cclass'),
     'language_level': ('module',),
+    # globals() could conceivably be controlled at a finer granularity,
+    # but that would complicate the implementation
+    'old_style_globals': ('module',),
 }
+
 
 def parse_directive_value(name, value, relaxed_bool=False):
     """
@@ -281,16 +340,21 @@ def parse_directive_value(name, value, relaxed_bool=False):
     ValueError: c_string_type directive must be one of ('bytes', 'bytearray', 'str', 'unicode'), got 'unnicode'
     """
     type = directive_types.get(name)
-    if not type: return None
+    if not type:
+        return None
     orig_value = value
     if type is bool:
         value = str(value)
-        if value == 'True': return True
-        if value == 'False': return False
+        if value == 'True':
+            return True
+        if value == 'False':
+            return False
         if relaxed_bool:
             value = value.lower()
-            if value in ("true", "yes"): return True
-            elif value in ("false", "no"): return False
+            if value in ("true", "yes"):
+                return True
+            elif value in ("false", "no"):
+                return False
         raise ValueError("%s directive must be set to True or False, got '%s'" % (
             name, orig_value))
     elif type is int:
@@ -305,6 +369,7 @@ def parse_directive_value(name, value, relaxed_bool=False):
         return type(name, value)
     else:
         assert False
+
 
 def parse_directive_list(s, relaxed_bool=False, ignore_unknown=False,
                          current_settings=None):
@@ -341,14 +406,16 @@ def parse_directive_list(s, relaxed_bool=False, ignore_unknown=False,
         result = current_settings
     for item in s.split(','):
         item = item.strip()
-        if not item: continue
-        if not '=' in item: raise ValueError('Expected "=" in option "%s"' % item)
-        name, value = [ s.strip() for s in item.strip().split('=', 1) ]
-        if name not in directive_defaults:
+        if not item:
+            continue
+        if not '=' in item:
+            raise ValueError('Expected "=" in option "%s"' % item)
+        name, value = [s.strip() for s in item.strip().split('=', 1)]
+        if name not in _directive_defaults:
             found = False
             if name.endswith('.all'):
                 prefix = name[:-3]
-                for directive in directive_defaults:
+                for directive in _directive_defaults:
                     if directive.startswith(prefix):
                         found = True
                         parsed_value = parse_directive_value(directive, value, relaxed_bool=relaxed_bool)

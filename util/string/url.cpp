@@ -175,6 +175,35 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDe
     }
 }
 
+bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port) {
+    const size_t schemeSize = GetSchemePrefixSize(url);
+    if (schemeSize != 0) {
+        scheme = url.Head(schemeSize);
+    }
+
+    TStringBuf portStr;
+    TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
+    if (hostAndPort.TrySplit(':', host, portStr)) {
+        // URL has port
+        if (!TryFromString(portStr, port)) {
+            return false;
+        }
+    } else {
+        host = hostAndPort;
+        if (scheme == STRINGBUF("https://")) {
+            port = 443;
+        } else if (scheme == STRINGBUF("http://")) {
+            port = 80;
+        }
+    }
+    return true;
+}
+
+void GetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port) {
+    bool isOk = TryGetSchemeHostAndPort(url, scheme, host, port);
+    Y_ENSURE(isOk, "cannot parse port number from URL: " << url);
+}
+
 TStringBuf GetOnlyHost(const TStringBuf url) {
     return GetHost(CutSchemePrefix(url));
 }

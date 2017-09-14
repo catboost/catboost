@@ -28,7 +28,7 @@ static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
 
 /////////////// ListAppend.proto ///////////////
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
     PyListObject* L = (PyListObject*) list;
     Py_ssize_t len = Py_SIZE(list);
@@ -46,7 +46,7 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 
 /////////////// ListCompAppend.proto ///////////////
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
     PyListObject* L = (PyListObject*) list;
     Py_ssize_t len = Py_SIZE(list);
@@ -80,7 +80,7 @@ static CYTHON_INLINE int __Pyx_PyList_Extend(PyObject* L, PyObject* v) {
 
 static CYTHON_INLINE PyObject* __Pyx__PyObject_Pop(PyObject* L); /*proto*/
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE PyObject* __Pyx_PyList_Pop(PyObject* L); /*proto*/
 #define __Pyx_PyObject_Pop(L) (likely(PyList_CheckExact(L)) ? \
     __Pyx_PyList_Pop(L) : __Pyx__PyObject_Pop(L))
@@ -94,15 +94,13 @@ static CYTHON_INLINE PyObject* __Pyx_PyList_Pop(PyObject* L); /*proto*/
 //@requires: ObjectHandling.c::PyObjectCallMethod0
 
 static CYTHON_INLINE PyObject* __Pyx__PyObject_Pop(PyObject* L) {
-#if CYTHON_COMPILING_IN_CPYTHON
     if (Py_TYPE(L) == &PySet_Type) {
         return PySet_Pop(L);
     }
-#endif
     return __Pyx_PyObject_CallMethod0(L, PYIDENT("pop"));
 }
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static CYTHON_INLINE PyObject* __Pyx_PyList_Pop(PyObject* L) {
     /* Check that both the size is positive and no reallocation shrinking needs to be done. */
     if (likely(PyList_GET_SIZE(L) > (((PyListObject*)L)->allocated >> 1))) {
@@ -119,7 +117,7 @@ static CYTHON_INLINE PyObject* __Pyx_PyList_Pop(PyObject* L) {
 static PyObject* __Pyx__PyObject_PopNewIndex(PyObject* L, PyObject* py_ix); /*proto*/
 static PyObject* __Pyx__PyObject_PopIndex(PyObject* L, PyObject* py_ix); /*proto*/
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static PyObject* __Pyx__PyList_PopIndex(PyObject* L, PyObject* py_ix, Py_ssize_t ix); /*proto*/
 
 #define __Pyx_PyObject_PopIndex(L, py_ix, ix, is_signed, type, to_py_func) ( \
@@ -159,7 +157,7 @@ static PyObject* __Pyx__PyObject_PopIndex(PyObject* L, PyObject* py_ix) {
     return __Pyx_PyObject_CallMethod1(L, PYIDENT("pop"), py_ix);
 }
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
 static PyObject* __Pyx__PyList_PopIndex(PyObject* L, PyObject* py_ix, Py_ssize_t ix) {
     Py_ssize_t size = PyList_GET_SIZE(L);
     if (likely(size > (((PyListObject*)L)->allocated >> 1))) {
@@ -421,7 +419,7 @@ static double __Pyx__PyObject_AsDouble(PyObject* obj); /* proto */
 
 static double __Pyx__PyObject_AsDouble(PyObject* obj) {
     PyObject* float_value;
-#if CYTHON_COMPILING_IN_PYPY
+#if !CYTHON_USE_TYPE_SLOTS
     float_value = PyNumber_Float(obj);  if (0) goto bad;
 #else
     PyNumberMethods *nb = Py_TYPE(obj)->tp_as_number;
@@ -467,12 +465,11 @@ bad:
 static PyObject* __Pyx__PyNumber_PowerOf2(PyObject *two, PyObject *exp, PyObject *none, int inplace); /*proto*/
 
 /////////////// PyNumberPow2 ///////////////
-//@requires: TypeConversion.c::PyLongInternals
 
 static PyObject* __Pyx__PyNumber_PowerOf2(PyObject *two, PyObject *exp, PyObject *none, int inplace) {
 // in CPython, 1<<N is substantially faster than 2**N
 // see http://bugs.python.org/issue21420
-#if CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_COMPILING_IN_PYPY
     Py_ssize_t shiftby;
 #if PY_MAJOR_VERSION < 3
     if (likely(PyInt_CheckExact(exp))) {
@@ -502,9 +499,11 @@ static PyObject* __Pyx__PyNumber_PowerOf2(PyObject *two, PyObject *exp, PyObject
         if ((size_t)shiftby <= sizeof(long) * 8 - 2) {
             long value = 1L << shiftby;
             return PyInt_FromLong(value);
+#ifdef HAVE_LONG_LONG
         } else if ((size_t)shiftby <= sizeof(unsigned PY_LONG_LONG) * 8 - 1) {
             unsigned PY_LONG_LONG value = ((unsigned PY_LONG_LONG)1) << shiftby;
             return PyLong_FromUnsignedLongLong(value);
+#endif
         } else {
             PyObject *one = PyInt_FromLong(1L);
             if (unlikely(!one)) return NULL;
@@ -521,7 +520,7 @@ fallback:
 
 /////////////// PyIntBinop.proto ///////////////
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, long intval, int inplace); /*proto*/
 #else
 #define __Pyx_PyInt_{{op}}{{order}}(op1, op2, intval, inplace) \
@@ -531,16 +530,15 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, long 
 #endif
 
 /////////////// PyIntBinop ///////////////
-//@requires: TypeConversion.c::PyLongInternals
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_COMPILING_IN_PYPY
 {{py: from Cython.Utility import pylong_join }}
 {{py: pyval, ival = ('op2', 'b') if order == 'CObj' else ('op1', 'a') }}
 {{py: slot_name = {'TrueDivide': 'true_divide', 'FloorDivide': 'floor_divide'}.get(op, op.lower()) }}
 {{py:
 c_op = {
     'Add': '+', 'Subtract': '-', 'Remainder': '%', 'TrueDivide': '/', 'FloorDivide': '/',
-    'Or': '|', 'Xor': '^', 'And': '&', 'Rshift': '>>',
+    'Or': '|', 'Xor': '^', 'And': '&', 'Rshift': '>>', 'Lshift': '<<',
     'Eq': '==', 'Ne': '!=',
     }[op]
 }}
@@ -597,6 +595,10 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
                 x = q;
             }
             return PyInt_FromLong(x);
+        {{elif op == 'Lshift'}}
+            if (likely(b < (int)(sizeof(long)*8) && a == (a << b) >> b) || !a) {
+                return PyInt_FromLong(a {{c_op}} b);
+            }
         {{else}}
             // other operations are safe, no overflow
             return PyInt_FromLong(a {{c_op}} b);
@@ -604,13 +606,15 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
     }
     #endif
 
-    #if CYTHON_USE_PYLONG_INTERNALS && PY_MAJOR_VERSION >= 3
+    #if CYTHON_USE_PYLONG_INTERNALS
     if (likely(PyLong_CheckExact({{pyval}}))) {
         const long {{'a' if order == 'CObj' else 'b'}} = intval;
         long {{ival}}{{if op not in ('Eq', 'Ne')}}, x{{endif}};
         {{if op not in ('Eq', 'Ne', 'TrueDivide')}}
+#ifdef HAVE_LONG_LONG
         const PY_LONG_LONG ll{{'a' if order == 'CObj' else 'b'}} = intval;
         PY_LONG_LONG ll{{ival}}, llx;
+#endif
         {{endif}}
         const digit* digits = ((PyLongObject*){{pyval}})->ob_digit;
         const Py_ssize_t size = Py_SIZE({{pyval}});
@@ -627,9 +631,11 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
                         {{ival}} = {{'-' if _case < 0 else ''}}(long) {{pylong_join(_size, 'digits')}};
                         break;
                     {{if op not in ('Eq', 'Ne', 'TrueDivide')}}
+#ifdef HAVE_LONG_LONG
                     } else if (8 * sizeof(PY_LONG_LONG) - 1 > {{_size}} * PyLong_SHIFT) {
                         ll{{ival}} = {{'-' if _case < 0 else ''}}(PY_LONG_LONG) {{pylong_join(_size, 'digits', 'unsigned PY_LONG_LONG')}};
                         goto long_long;
+#endif
                     {{endif}}
                     }
                     // if size doesn't fit into a long or PY_LONG_LONG anymore, fall through to default
@@ -677,10 +683,21 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
                 }
             {{else}}
                 x = a {{c_op}} b;
+                {{if op == 'Lshift'}}
+#ifdef HAVE_LONG_LONG
+                if (unlikely(!(b < (int)(sizeof(long)*8) && a == x >> b)) && a) {
+                    ll{{ival}} = {{ival}};
+                    goto long_long;
+                }
+#else
+                if (likely(b < (int)(sizeof(long)*8) && a == x >> b) || !a) /* execute return statement below */
+#endif
+                {{endif}}
             {{endif}}
             return PyLong_FromLong(x);
 
         {{if op != 'TrueDivide'}}
+#ifdef HAVE_LONG_LONG
         long_long:
             {{if c_op == '%'}}
                 // see ExprNodes.py :: mod_int_utility_code
@@ -697,10 +714,14 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
                 }
             {{else}}
                 llx = lla {{c_op}} llb;
+                {{if op == 'Lshift'}}
+                if (likely(lla == llx >> llb)) /* then execute 'return' below */
+                {{endif}}
             {{endif}}
             return PyLong_FromLongLong(llx);
-        {{endif}}
-        {{endif}}
+#endif
+        {{endif}}{{# if op != 'TrueDivide' #}}
+        {{endif}}{{# if op in ('Eq', 'Ne') #}}
     }
     #endif
 
@@ -735,7 +756,7 @@ static PyObject* __Pyx_PyInt_{{op}}{{order}}(PyObject *op1, PyObject *op2, CYTHO
 
 /////////////// PyFloatBinop.proto ///////////////
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyFloat_{{op}}{{order}}(PyObject *op1, PyObject *op2, double floatval, int inplace); /*proto*/
 #else
 #define __Pyx_PyFloat_{{op}}{{order}}(op1, op2, floatval, inplace) \
@@ -746,9 +767,8 @@ static PyObject* __Pyx_PyFloat_{{op}}{{order}}(PyObject *op1, PyObject *op2, dou
 #endif
 
 /////////////// PyFloatBinop ///////////////
-//@requires: TypeConversion.c::PyLongInternals
 
-#if CYTHON_COMPILING_IN_CPYTHON
+#if !CYTHON_COMPILING_IN_PYPY
 {{py: from Cython.Utility import pylong_join }}
 {{py: pyval, fval = ('op2', 'b') if order == 'CObj' else ('op1', 'a') }}
 {{py:
@@ -779,7 +799,7 @@ static PyObject* __Pyx_PyFloat_{{op}}{{order}}(PyObject *op1, PyObject *op2, dou
     #endif
 
     if (likely(PyLong_CheckExact({{pyval}}))) {
-        #if CYTHON_USE_PYLONG_INTERNALS && PY_MAJOR_VERSION >= 3
+        #if CYTHON_USE_PYLONG_INTERNALS
         const digit* digits = ((PyLongObject*){{pyval}})->ob_digit;
         const Py_ssize_t size = Py_SIZE({{pyval}});
         switch (size) {

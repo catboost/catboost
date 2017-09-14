@@ -2,10 +2,10 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.staged_predict}
 \alias{catboost.staged_predict}
-\title{catboost.staged_predict}
+\title{Apply the model for each tree}
 \usage{
-catboost.staged_predict(model, pool, verbose = FALSE, type = "RawFormulaVal",
-  thread_count = 1)
+catboost.staged_predict(model, pool, verbose = FALSE,
+  prediction_type = "RawFormulaVal", thread_count = 1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -20,7 +20,7 @@ Default value: Required argument}
 
 Default value: FALSE (not used)}
 
-\item{type}{The format for displaying approximated values in output data
+\item{prediction_type}{The format for displaying approximated values in output data
 (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
 
 Possible values:

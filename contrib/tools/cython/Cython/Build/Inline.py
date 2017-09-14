@@ -48,6 +48,7 @@ class UnboundSymbols(EnvTransform, SkipDeclarations):
         super(UnboundSymbols, self).__call__(node)
         return self.unbound
 
+
 @cached_function
 def unbound_symbols(code, context=None):
     code = to_unicode(code)
@@ -65,7 +66,8 @@ def unbound_symbols(code, context=None):
         import builtins
     except ImportError:
         import __builtin__ as builtins
-    return UnboundSymbols()(tree) - set(dir(builtins))
+    return tuple(UnboundSymbols()(tree) - set(dir(builtins)))
+
 
 def unsafe_type(arg, context=None):
     py_type = type(arg)
@@ -74,9 +76,10 @@ def unsafe_type(arg, context=None):
     else:
         return safe_type(arg, context)
 
+
 def safe_type(arg, context=None):
     py_type = type(arg)
-    if py_type in [list, tuple, dict, str]:
+    if py_type in (list, tuple, dict, str):
         return py_type.__name__
     elif py_type is complex:
         return 'double complex'
@@ -97,6 +100,7 @@ def safe_type(arg, context=None):
                     return '%s.%s' % (base_type.__module__, base_type.__name__)
         return 'object'
 
+
 def _get_build_extension():
     dist = Distribution()
     # Ensure the build respects distutils configuration by parsing
@@ -107,40 +111,60 @@ def _get_build_extension():
     build_extension.finalize_options()
     return build_extension
 
+
 @cached_function
 def _create_context(cython_include_dirs):
     return Context(list(cython_include_dirs), default_options)
 
-def cython_inline(code,
-                  get_type=unsafe_type,
-                  lib_dir=os.path.join(get_cython_cache_dir(), 'inline'),
-                  cython_include_dirs=['.'],
-                  force=False,
-                  quiet=False,
-                  locals=None,
-                  globals=None,
-                  **kwds):
-    if get_type is None:
-        get_type = lambda x: 'object'
-    code = to_unicode(code)
-    orig_code = code
-    code, literals = strip_string_literals(code)
-    code = strip_common_indent(code)
-    ctx = _create_context(tuple(cython_include_dirs))
-    if locals is None:
-        locals = inspect.currentframe().f_back.f_back.f_locals
-    if globals is None:
-        globals = inspect.currentframe().f_back.f_back.f_globals
-    try:
-        for symbol in unbound_symbols(code):
-            if symbol in kwds:
-                continue
-            elif symbol in locals:
+
+_cython_inline_cache = {}
+_cython_inline_default_context = _create_context(('.',))
+
+def _populate_unbound(kwds, unbound_symbols, locals=None, globals=None):
+    for symbol in unbound_symbols:
+        if symbol not in kwds:
+            if locals is None or globals is None:
+                calling_frame = inspect.currentframe().f_back.f_back.f_back
+                if locals is None:
+                    locals = calling_frame.f_locals
+                if globals is None:
+                    globals = calling_frame.f_globals
+            if symbol in locals:
                 kwds[symbol] = locals[symbol]
             elif symbol in globals:
                 kwds[symbol] = globals[symbol]
             else:
                 print("Couldn't find %r" % symbol)
+
+def cython_inline(code, get_type=unsafe_type, lib_dir=os.path.join(get_cython_cache_dir(), 'inline'),
+                  cython_include_dirs=None, force=False, quiet=False, locals=None, globals=None, **kwds):
+
+    if get_type is None:
+        get_type = lambda x: 'object'
+    ctx = _create_context(tuple(cython_include_dirs)) if cython_include_dirs else _cython_inline_default_context
+
+    # Fast path if this has been called in this session.
+    _unbound_symbols = _cython_inline_cache.get(code)
+    if _unbound_symbols is not None:
+        _populate_unbound(kwds, _unbound_symbols, locals, globals)
+        args = sorted(kwds.items())
+        arg_sigs = tuple([(get_type(value, ctx), arg) for arg, value in args])
+        invoke = _cython_inline_cache.get((code, arg_sigs))
+        if invoke is not None:
+            arg_list = [arg[1] for arg in args]
+            return invoke(*arg_list)
+
+    orig_code = code
+    code = to_unicode(code)
+    code, literals = strip_string_literals(code)
+    code = strip_common_indent(code)
+    if locals is None:
+        locals = inspect.currentframe().f_back.f_back.f_locals
+    if globals is None:
+        globals = inspect.currentframe().f_back.f_back.f_globals
+    try:
+        _cython_inline_cache[orig_code] = _unbound_symbols = unbound_symbols(code)
+        _populate_unbound(kwds, _unbound_symbols, locals, globals)
     except AssertionError:
         if not quiet:
             # Parsing from strings not fully supported (e.g. cimports).
@@ -209,13 +233,14 @@ def __invoke(%(params)s):
                 extra_compile_args = cflags)
             if build_extension is None:
                 build_extension = _get_build_extension()
-            build_extension.extensions = cythonize([extension], include_path=cython_include_dirs, quiet=quiet)
+            build_extension.extensions = cythonize([extension], include_path=cython_include_dirs or ['.'], quiet=quiet)
             build_extension.build_temp = os.path.dirname(pyx_file)
             build_extension.build_lib  = lib_dir
             build_extension.run()
 
         module = imp.load_dynamic(module_name, module_path)
 
+    _cython_inline_cache[orig_code, arg_sigs] = module.__invoke
     arg_list = [kwds[arg] for arg in arg_names]
     return module.__invoke(*arg_list)
 
@@ -263,7 +288,6 @@ def extract_func_code(code):
     return '\n'.join(module), '    ' + '\n    '.join(function)
 
 
-
 try:
     from inspect import getcallargs
 except ImportError:
@@ -294,12 +318,14 @@ except ImportError:
                     raise TypeError("Missing argument: %s" % name)
         return all
 
+
 def get_body(source):
     ix = source.index(':')
     if source[:5] == 'lambda':
         return "return %s" % source[ix+1:]
     else:
         return source[ix+1:]
+
 
 # Lots to be done here... It would be especially cool if compiled functions
 # could invoke each other quickly.

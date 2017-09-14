@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    MIT
+)
+
 
 
 PEERDIR(contrib/libs/yaml)

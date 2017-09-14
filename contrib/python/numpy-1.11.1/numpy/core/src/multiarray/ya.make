@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    BSD3
+)
+
 
 
 USE_PYTHON()

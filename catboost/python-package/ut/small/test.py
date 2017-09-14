@@ -356,7 +356,7 @@ def test_feature_importance_off():
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
         model = CatBoostClassifier(iterations=5, random_seed=0, calc_feature_importance=False)
         model.fit(pool)
-        model.feature_importance_
+        model.feature_importances_
 
 
 def test_wrong_params_classifier():
@@ -545,7 +545,7 @@ def test_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0)
     model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.feature_importance_))
+    np.save(FIMP_PATH, np.array(model.feature_importances_))
     return local_canonical_file(FIMP_PATH)
 
 
@@ -594,3 +594,9 @@ def test_full_history():
     model.fit(train_pool, eval_set=test_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
+
+
+def test_bad_params_in_cv():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.warns(UserWarning):
+        cv({"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "use_best_model": True}, pool)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.train}
 \alias{catboost.train}
-\title{catboost.train}
+\title{Train the model}
 \usage{
 catboost.train(learn_pool, test_pool = NULL, params = list(),
   calc_importance = FALSE)
@@ -10,13 +10,11 @@ catboost.train(learn_pool, test_pool = NULL, params = list(),
 \arguments{
 \item{learn_pool}{The dataset used for training the model.
 
-Default value:
-Required argument}
+Default value: Required argument}
 
 \item{test_pool}{The dataset used for testing the quality of the model.
 
-Default value:
-NULL (not used)}
+Default value: NULL (not used)}
 
 \item{params}{The list of parameters to start training with.
 
@@ -24,15 +22,13 @@ If omitted, default values are used (see The list of parameters).
 
 If set, the passed list of parameters overrides the default values.
 
-Default value:
-Required argument}
+Default value: Required argument}
 
 \item{calc_importance}{Calculate the feature importance.
 
-If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.importance function.
+If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.get_feature_importance function.
 
-Default value:
-FALSE}
+Default value: FALSE}
 }
 \description{
 Train the model using a CatBoost dataset.
@@ -249,7 +245,8 @@ Default value:
 \item depth
 
 Depth of the tree.
-      The value can be any integer up to 32. It is recommended to use values in the range [1; 10].
+
+The value can be any integer up to 32. It is recommended to use values in the range [1; 10].
 
 Default value:
 
@@ -273,7 +270,8 @@ The value must be in the range [0;1].
 Default value:
 
 1
-    \item random_seed
+
+\item random_seed
 
 The random seed used for training.
 
@@ -281,22 +279,22 @@ Default value:
 
 A new random value is selected on each run
 
-    \item nan_mode
+\item nan_mode
 
 Way to process nan-values.
 
 Possible values:
-        \itemize{
-          \item \code{'Min'}
-          \item \code{'Max'}
-          \item \code{'Forbidden'}
-        }
+      \itemize{
+        \item \code{'Min'}
+        \item \code{'Max'}
+        \item \code{'Forbidden'}
+      }
 
 Default value:
 
 \code{'Forbidden'}
 
-    \item od_pval
+\item od_pval
 
 Use the Overfitting detector (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/overfitting-detector-docpage/#overfitting-detector})
       to stop training when the threshold is reached.
@@ -310,31 +308,31 @@ Default value:
 
 The overfitting detection is turned off
 
-    \item od_type
+\item od_type
 
 The method used to calculate the values in leaves.
 
 Possible values:
-        \itemize{
-          \item IncToDec
-          \item Iter
-        }
+      \itemize{
+        \item IncToDec
+        \item Iter
+      }
 
 Restriction.
-Do not specify the overfitting detector threshold when using the Iter type.
+      Do not specify the overfitting detector threshold when using the Iter type.
 
 Default value:
 
 'IncToDec'
 
-    \item od_wait
+\item od_wait
 
 The number of iterations to continue the training after the iteration with the optimal loss function value.
-The purpose of this parameter differs depending on the selected overfitting detector type:
-        \itemize{
-          \item IncToDec — Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
-          \item Iter — Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
-        }
+      The purpose of this parameter differs depending on the selected overfitting detector type:
+      \itemize{
+        \item IncToDec — Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
+        \item Iter — Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
+      }
 
 Default value:
 
@@ -513,7 +511,7 @@ Components:
         \itemize{
           \item \code{'Borders'}
           \item \code{'Buckets'}
-          \item \code{'MeanValue'}
+          \item \code{'BinarizedTargetMeanValue'}
           \item \code{'Counter'}
         }
         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
@@ -547,11 +545,8 @@ Possible values:
           \item \code{'SkipTest'}
         }
 
-Default value:
-
-\code{'PrefixTest'}
-
-\item ctr_border_count
+Default value: \code{'PrefixTest'}
+    \item ctr_border_count
 
 The number of splits for categorical features.
 
@@ -599,7 +594,7 @@ Default value:
 
 FALSE (Both simple features and feature combinations are taken in account when limiting the number of leafs with categorical features)
 
-  }
+}
   \item Binarization settings
   \itemize{
     \item  border_count
@@ -642,7 +637,7 @@ Min(number of processor cores, 8)
   }
   \item Output settings
   \itemize{
-\item verbose
+    \item verbose
 
 Verbose output to stdout.
 
@@ -684,25 +679,35 @@ File can't be generated or read. If the value is omitted, the file name is exper
 \item allow_writing_files
 
 If this flag is set to FALSE, no files with different diagnostic info will be created during training.
-With this flag set to FALSE no snapshotting can be done. Plus visualisation will not
-work, because visualisation uses files that are created and updated during training.
+      With this flag set to FALSE no snapshotting can be done. Plus visualisation will not
+      work, because visualisation uses files that are created and updated during training.
 
 Default value:
-TRUE (not used)
-}
+
+TRUE
+
+\item approx_on_full_history
+
+If this flag is set to TRUE, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
+      If this flag is set to FALSE, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
+
+Default value:
+
+FALSE
+  }
 }
 }
 \examples{
 fit_params <- list(iterations = 100,
-  thread_count = 10,
-  loss_function = 'Logloss',
-  ignored_features = c(4,9),
-  border_count = 32,
-  depth = 5,
-  learning_rate = 0.03,
-  l2_leaf_reg = 3.5,
-  border = 0.5,
-  train_dir = 'train_dir')
+    thread_count = 10,
+    loss_function = 'Logloss',
+    ignored_features = c(4,9),
+    border_count = 32,
+    depth = 5,
+    learning_rate = 0.03,
+    l2_leaf_reg = 3.5,
+    border = 0.5,
+    train_dir = 'train_dir')
 model <- catboost.train(pool, test_pool, fit_params)
 }
 \seealso{

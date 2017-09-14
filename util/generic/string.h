@@ -1167,39 +1167,85 @@ public:
         return *This();
     }
 
-    // "s1 + s2 + s3" expressions optimization:
-    // 1. Pass first argument by value and let compiler to copy it for us, or
-    // elide copying if this is possible.
-    // 2. I haven't heard about compiler which is smart enough to elide copying
-    // and perform return value optimization of the same variable, so we're
-    // performing lightweight swap operation and returning new variable, which
-    // allows compiler to apply RVO.
-    friend TDerived operator+(TDerived s1, const TDerived& s2) {
+    /*
+     * Following overloads of "operator+" aim to choose the cheapest implementation depending on
+     * summand types: lvalues, detached rvalues, shared rvalues.
+     *
+     * General idea is to use the detached-rvalue argument (left of right) to store the result
+     * wherever possible. If a buffer in rvalue is large enough this saves a re-allocation. If
+     * both arguments are rvalues we check which one is detached. If both of them are detached then
+     * the left argument is obviously preferrable because you won't need to shift the data.
+     *
+     * If an rvalue is shared then it's basically the same as lvalue because you cannot use its
+     * buffer to store the sum. However, we rely on the fact that append() and prepend() are already
+     * optimized for the shared case and detach the string into the buffer large enough to store
+     * the sum (compared to the detach+reallocation). This way, if we have only one rvalue argument
+     * (left or right) then we simply append/prepend into it, without checking if it's detached or
+     * not. This will be checked inside ReserveAndResize anyway.
+     *
+     * If both arguments cannot be used to store the sum (e.g. two lvalues) then we fall back to the
+     * Join function that constructs a resulting string in the new buffer with the minimum overhead:
+     * malloc + memcpy + memcpy.
+     */
+
+    friend TDerived operator+(TDerived&& s1, const TDerived& s2) {
         s1 += s2;
-        TDerived result;
-        result.swap(s1);
-        return result;
+        return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived s1, const TFixedString s2) {
-        s1 += s2;
-        TDerived result;
-        result.swap(s1);
-        return result;
+    friend TDerived operator+(const TDerived& s1, TDerived&& s2) {
+        s2.prepend(s1);
+        return std::move(s2);
     }
 
-    friend TDerived operator+(TDerived s1, const TCharType* s2) {
+    friend TDerived operator+(TDerived&& s1, TDerived&& s2) {
+        if (!s1.IsDetached() && s2.IsDetached()) {
+            s2.prepend(s1);
+            return std::move(s2);
+        }
         s1 += s2;
-        TDerived result;
-        result.swap(s1);
-        return result;
+        return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived s1, TCharType s2) {
+    friend TDerived operator+(TDerived&& s1, const TFixedString s2) {
         s1 += s2;
-        TDerived result;
-        result.swap(s1);
-        return result;
+        return std::move(s1);
+    }
+
+    friend TDerived operator+(TDerived&& s1, const TCharType* s2) {
+        s1 += s2;
+        return std::move(s1);
+    }
+
+    friend TDerived operator+(TDerived&& s1, TCharType s2) {
+        s1 += s2;
+        return std::move(s1);
+    }
+
+    friend TDerived operator+(const TDerived& s1, const TDerived& s2) {
+        return Join(s1, s2);
+    }
+
+    friend TDerived operator+(const TDerived& s1, const TFixedString s2) {
+        return Join(s1, s2);
+    }
+
+    friend TDerived operator+(const TDerived& s1, const TCharType* s2) {
+        return Join(s1, s2);
+    }
+
+    friend TDerived operator+(const TDerived& s1, TCharType s2) {
+        return Join(s1, TFixedString(&s2, 1));
+    }
+
+    friend TDerived operator+(const TCharType* s1, TDerived&& s2) {
+        s2.prepend(s1);
+        return std::move(s2);
+    }
+
+    friend TDerived operator+(const TFixedString s1, TDerived&& s2) {
+        s2.prepend(s1);
+        return std::move(s2);
     }
 
     friend TDerived operator+(const TFixedString s1, const TDerived& s2) {

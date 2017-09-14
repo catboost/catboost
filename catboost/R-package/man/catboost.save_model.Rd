@@ -2,7 +2,7 @@
 % Please edit documentation in R/catboost.R
 \name{catboost.save_model}
 \alias{catboost.save_model}
-\title{catboost.save_model}
+\title{Save the model}
 \usage{
 catboost.save_model(model, model_path)
 }

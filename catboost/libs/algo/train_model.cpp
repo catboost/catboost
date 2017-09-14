@@ -104,11 +104,14 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         CB_ENSURE(learnPool.Docs[0].Baseline.ysize() == testPool.Docs[0].Baseline.ysize(), "Baseline dimensions differ.");
     }
 
+    bool nonZero = false;
     for (const auto& doc : learnPool.Docs) {
         trainData.Target.push_back(doc.Target);
         trainData.Baseline.push_back(doc.Baseline);
         trainData.Weights.push_back(doc.Weight);
+        nonZero |= doc.Weight != 0;
     }
+    CB_ENSURE(nonZero, "All documents have zero weights");
 
     float minTarget = *MinElement(trainData.Target.begin(), trainData.Target.end());
     float maxTarget = *MaxElement(trainData.Target.begin(), trainData.Target.end());
@@ -146,7 +149,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     ctx.InitData(trainData);
 
-    ctx.LearnProgress.Model.Borders = GenerateBorders(learnPool.Docs, &ctx);
+    GenerateBorders(learnPool.Docs, &ctx, &ctx.LearnProgress.Model.Borders, &ctx.LearnProgress.Model.HasNans);
 
     learnPool.Docs.insert(learnPool.Docs.end(), testPool.Docs.begin(), testPool.Docs.end());
 
@@ -159,6 +162,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         learnPool.Docs,
         ctx.CatFeatures,
         ctx.LearnProgress.Model.Borders,
+        ctx.LearnProgress.Model.HasNans,
         ctx.Params.IgnoredFeatures,
         trainData.LearnSampleCount,
         ctx.Params.OneHotMaxSize,

@@ -51,6 +51,7 @@
         "yt": {"description": "Run YT client"},
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
+        "pyndexer": {"description": "Run Python Yndexer"},
         "transfer-manager": { "description": "Run Transfer Manager client" },
         "rem-tool": { "description": "Run REM cli client" },
         "afl-fuzz": { "description": "Run afl-fuzz" }
@@ -1412,6 +1413,15 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "pyndexer": {
+            "tools": {
+                "pyndexer": {  "bottle": "pyndexer", "executable": "pyndexer" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "transfer-manager": {
             "tools": {
                 "transfer-manager": { "bottle": "transfer-manager", "executable": "transfer-manager" }
@@ -1920,7 +1930,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 146615919,
+                "sandbox_id": 149540003,
                 "match": "YMake"
             },
             "executable": {
@@ -1938,7 +1948,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 143538262,
+                "sandbox_id": 148956810,
                 "match": "test_tool"
             },
             "executable": {
@@ -1947,7 +1957,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 146277684,
+                "sandbox_id": 148956171,
                 "match": "coverage_uploader"
             },
             "executable": {
@@ -1965,7 +1975,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [134128985, 134133253, 74450064],
+                "sandbox_id": [146689376, 146689368, 74450064],
                 "match": "Hg"
             },
             "executable": {
@@ -2158,7 +2168,7 @@
         },
         "uber_jar": {
             "formula": {
-                "sandbox_id": [145771747],
+                "sandbox_id": [147123506],
                 "match": "uber_jar"
             }
         },
@@ -2217,6 +2227,15 @@
             },
             "executable": {
                 "ytyndexer": ["ytyndexer"]
+            }
+        },
+        "pyndexer": {
+            "formula": {
+                "sandbox_id": 149663685,
+                "match": "PYNDEXER"
+            },
+            "executable": {
+                "pyndexer": ["pyndexer"]
             }
         },
         "transfer-manager": {

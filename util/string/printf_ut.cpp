@@ -21,6 +21,10 @@ SIMPLE_UNIT_TEST_SUITE(TStringPrintf) {
     }
 
     SIMPLE_UNIT_TEST(TestSpecial) {
-        UNIT_ASSERT("4294967295" == Sprintf("%" PRIu32, (ui32)(-1)));
+        UNIT_ASSERT_EQUAL("4294967295", Sprintf("%" PRIu32, (ui32)(-1)));
+    }
+
+    SIMPLE_UNIT_TEST(TestExplicitPositions) {
+        UNIT_ASSERT_EQUAL("abc xyz abc", Sprintf("%1$s %2$s %1$s", "abc", "xyz"));
     }
 }

@@ -6,15 +6,17 @@
 #include <util/generic/algorithm.h>
 #include <util/system/mem_info.h>
 
-yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx) {
+void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvector<yvector<float>>* borders, yvector<bool>* hasNans) {
+
     const yhash_set<int>& categFeatures = ctx->CatFeatures;
     const int borderCount = ctx->Params.BorderCount;
     const EBorderSelectionType borderType = ctx->Params.FeatureBorderType;
 
     size_t reasonCount = docInfos[0].Factors.size() - categFeatures.size();
-    yvector<yvector<float>> res(reasonCount);
+    borders->resize(reasonCount);
+    hasNans->resize(reasonCount);
     if (reasonCount == 0) {
-        return res;
+        return;
     }
 
     yvector<int> floatIndexes;
@@ -37,30 +39,30 @@ yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLear
 
         yvector<float> vals;
 
-        bool foundNan = false;
+        (*hasNans)[idx] = false;
         for (int i = 0; i < docInfos.ysize(); ++i) {
             if (!IsNan(docInfos[i].Factors[floatFeatureIdx])) {
                 vals.push_back(docInfos[i].Factors[floatFeatureIdx]);
             } else {
-                foundNan = true;
+                (*hasNans)[idx] = true;
             }
         }
         Sort(vals.begin(), vals.end());
 
         yhash_set<float> borderSet = BestSplit(vals, borderCount, borderType);
-        yvector<float> borders(borderSet.begin(), borderSet.end());
-        Sort(borders.begin(), borders.end());
-        if (foundNan) {
+        yvector<float> bordersBlock(borderSet.begin(), borderSet.end());
+        Sort(bordersBlock.begin(), bordersBlock.end());
+        if ((*hasNans)[idx]) {
             if (ctx->Params.NanMode == ENanMode::Min) {
-                borders.insert(borders.begin(), std::numeric_limits<float>::lowest());
+                bordersBlock.insert(bordersBlock.begin(), std::numeric_limits<float>::lowest());
             } else if (ctx->Params.NanMode == ENanMode::Max) {
-                borders.push_back(std::numeric_limits<float>::max());
+                bordersBlock.push_back(std::numeric_limits<float>::max());
             } else {
                 Y_ASSERT(ctx->Params.NanMode == ENanMode::Forbidden);
                 CB_ENSURE(false, "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
             }
         }
-        res[idx].swap(borders);
+        (*borders)[idx].swap(bordersBlock);
     };
     size_t nReason = 0;
     for (; nReason + threadCount <= reasonCount; nReason += threadCount) {
@@ -71,7 +73,6 @@ yvector<yvector<float>> GenerateBorders(const yvector<TDocInfo>& docInfos, TLear
     }
 
     MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
-    return res;
 }
 
 void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool) {

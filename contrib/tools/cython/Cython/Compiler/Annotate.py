@@ -30,14 +30,19 @@ class AnnotationCCodeWriter(CCodeWriter):
         CCodeWriter.__init__(self, create_from, buffer, copy_formatting=copy_formatting)
         if create_from is None:
             self.annotation_buffer = StringIO()
-            self.annotations = []
             self.last_annotated_pos = None
+            # annotations[filename][line] -> [(column, AnnotationItem)*]
+            self.annotations = defaultdict(partial(defaultdict, list))
+            # code[filename][line] -> str
             self.code = defaultdict(partial(defaultdict, str))
+            # scopes[filename][line] -> set(scopes)
+            self.scopes = defaultdict(partial(defaultdict, set))
         else:
             # When creating an insertion point, keep references to the same database
             self.annotation_buffer = create_from.annotation_buffer
             self.annotations = create_from.annotations
             self.code = create_from.code
+            self.scopes = create_from.scopes
             self.last_annotated_pos = create_from.last_annotated_pos
 
     def create_new(self, create_from, buffer, copy_formatting):
@@ -50,6 +55,9 @@ class AnnotationCCodeWriter(CCodeWriter):
     def mark_pos(self, pos, trace=True):
         if pos is not None:
             CCodeWriter.mark_pos(self, pos, trace)
+            if self.funcstate and self.funcstate.scope:
+                # lambdas and genexprs can result in multiple scopes per line => keep them in a set
+                self.scopes[pos[0].filename][pos[1]].add(self.funcstate.scope)
         if self.last_annotated_pos:
             source_desc, line, _ = self.last_annotated_pos
             pos_code = self.code[source_desc.filename]
@@ -58,7 +66,7 @@ class AnnotationCCodeWriter(CCodeWriter):
         self.last_annotated_pos = pos
 
     def annotate(self, pos, item):
-        self.annotations.append((pos, item))
+        self.annotations[pos[0].filename][pos[1]].append((pos[2], item))
 
     def _css(self):
         """css template will later allow to choose a colormap"""
@@ -169,10 +177,12 @@ class AnnotationCCodeWriter(CCodeWriter):
             covered_lines = self._get_line_coverage(coverage_xml, source_filename)
         else:
             coverage_timestamp = covered_lines = None
+        annotation_items = dict(self.annotations[source_filename])
+        scopes = dict(self.scopes[source_filename])
 
         outlist = []
         outlist.extend(self._save_annotation_header(c_file, source_filename, coverage_timestamp))
-        outlist.extend(self._save_annotation_body(code, generated_code, covered_lines))
+        outlist.extend(self._save_annotation_body(code, generated_code, annotation_items, scopes, covered_lines))
         outlist.extend(self._save_annotation_footer())
         return ''.join(outlist)
 
@@ -208,7 +218,7 @@ class AnnotationCCodeWriter(CCodeWriter):
             HtmlFormatter(nowrap=True))
         return html_code
 
-    def _save_annotation_body(self, cython_code, generated_code, covered_lines=None):
+    def _save_annotation_body(self, cython_code, generated_code, annotation_items, scopes, covered_lines=None):
         outlist = [u'<div class="cython">']
         pos_comment_marker = u'/* \N{HORIZONTAL ELLIPSIS} */\n'
         new_calls_map = dict(
@@ -283,7 +293,7 @@ _parse_code = re.compile((
     br'(?P<trace>__Pyx_Trace[A-Za-z]+)|'
     br'(?:'
     br'(?P<pyx_macro_api>__Pyx_[A-Z][A-Z_]+)|'
-    br'(?P<pyx_c_api>__Pyx_[A-Z][a-z_][A-Za-z_]*)|'
+    br'(?P<pyx_c_api>(?:__Pyx_[A-Z][a-z_][A-Za-z_]*)|__pyx_convert_[A-Za-z_]*)|'
     br'(?P<py_macro_api>Py[A-Z][a-z]+_[A-Z][A-Z_]+)|'
     br'(?P<py_c_api>Py[A-Z][a-z]+_[A-Z][a-z][A-Za-z_]*)'
     br')(?=\()|'       # look-ahead to exclude subsequent '(' from replacement

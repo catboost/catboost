@@ -15,7 +15,6 @@ SRCS(
     estimators.cpp
     holder_vector.cpp
     ip.cpp
-    math_utils.cpp
     matrix.cpp
     memory.cpp
 )

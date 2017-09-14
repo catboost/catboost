@@ -1,13 +1,98 @@
 require(jsonlite)
 
+#' @importFrom utils head
+#' @importFrom utils tail
 #' @useDynLib libcatboostr
 NULL
 
-#' catboost.load_pool
+
+#' Create a dataset
 #'
-#' Load the CatBoost dataset.
+#' Create a dataset from the given file, matrix or data.frame.
+#'
+#' @param data A file path, matrix or data.frame with features.
+#' The following column types are supported:
+#' \itemize{
+#'     \item double
+#'     \item factor.
+#'     It is assumed that categorical features are given in this type of columns.
+#'     A standard CatBoost processing procedure is applied to this type of columns:
+#'     \describe{
+#'         \item{1.}{The values are converted to strings.}
+#'         \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+#'     }
+#' }
+#'
+#' Default value: Required argument
+#' @param label The label vector.
+#' @param cat_features A vector of categorical features indices.
+#' The indices are zero based and can differ from the given in the Column descriptions file.
+#' @param column_description The path to the input file that contains the column descriptions.
+#' @param delimiter Delimiter character to use to separate features in a file.
+#' @param has_header Read column names from first line, if this parameter is set to True.
+#' @param weight The weights of the target vector.
+#' @param baseline Vector of initial (raw) values of the target function for the object.
+#' Used in the calculation of final values of trees.
+#' @param feature_names A list of names for each feature in the dataset.
+#' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
+#'
+#' @return catboost.Pool
+#'
+#' @examples
+#' # From file
+#' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+#' test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
+#' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+#' pool <- catboost.load_pool(pool_path, column_description = cd_path)
+#' test_pool <- catboost.load_pool(test_pool_path, column_description = cd_path)
+#'
+#' # From matrix
+#' pool_path <- 'train_full3'
+#' data <- read.table(pool_path, head = F, sep = "\t", colClasses = rep('numeric', 10))
+#' target <- c(1)
+#' cat_features <- seq(1,8)
+#' data_matrix <- as.matrix(data)
+#' pool <- catboost.load_pool(as.matrix(data[,-target]), label = as.matrix(data[,target]), cat_features = cat_features)
+#'
+#' # From data.frame
+#' pool_path <- 'train_full3'
+#' cd_vector <- c('numeric',  rep('numeric',2), rep('factor',7))
+#' data <- read.table(pool_path, head = F, sep = "\t", colClasses = cd_vector)
+#' target <- c(1)
+#' learn_size <- floor(0.8 * nrow(data))
+#' learn_ind <- sample(nrow(data), learn_size)
+#' learn <- data[learn_ind,]
+#' test <- data[-learn_ind,]
+#' learn_pool <- catboost.load_pool(learn[,-target], label = learn[,target])
+#' test_pool <- catboost.load_pool(test[,-target], label = test[,target])
+#'
+#' @export
+catboost.load_pool <- function(data, label = NULL, cat_features = "", column_description = NULL,
+                               delimiter = "\t", has_header = FALSE, weight = NULL, baseline = NULL,
+                               feature_names = NULL, thread_count = 1) {
+    if (is.character(data)) {
+        pool <- catboost.from_file(data, column_description, delimiter, has_header, thread_count)
+    } else if (is.matrix(data)) {
+        pool <- catboost.from_matrix(data, label, weight, baseline, cat_features, feature_names)
+    } else if (is.data.frame(data)) {
+        pool <- catboost.from_data_frame(data, label, weight, baseline, feature_names)
+    } else {
+        stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
+    }
+    return(pool)
+}
+
+
+#' catboost.from_file
+#'
+#' Create a dataset from the given file.
+#'
 #' @param pool_path The path to the input file that contains the dataset description.
+#'
+#' Default value: Required argument
 #' @param cd_path The path to the input file that contains the column descriptions.
+#' @param delimiter Delimiter character to use to separate features in a file.
+#' @param has_header Read column names from first line, if this parameter is set to True.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
 #' @param verbose Verbose output to stdout.
 #'
@@ -17,81 +102,20 @@ NULL
 #' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
-#' pool <- catboost.load_pool(pool_path, cd_path)
-#' test_pool <- catboost.load_pool(test_pool_path, cd_path)
+#' pool <- catboost.from_file(pool_path, cd_path)
+#' test_pool <- catboost.from_file(test_pool_path, cd_path)
 #'
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load-docpage/}
-catboost.load_pool <- function(pool_path, cd_path = "", thread_count = 1, verbose = FALSE) {
+catboost.from_file <- function(pool_path, cd_path = "", delimiter = "\t", has_header = FALSE, thread_count = 1, verbose = FALSE) {
   if (missing(pool_path))
         stop("Need to specify pool path.")
   if (!is.character(pool_path) || !is.character(cd_path))
         stop("Path must be a string.")
 
-  pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, thread_count, verbose)
+  pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, delimiter, has_header, thread_count, verbose)
   attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
   return(pool)
 }
 
-#' catboost.save_pool
-#'
-#' Save the dataset to the CatBoost format.
-#' Files with the following data are created:
-#' \itemize{
-#' \item Dataset description
-#' \item Column descriptions
-#' }
-#' Use the catboost.load_pool function to read the resulting files.
-#' These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version} and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
-#'
-#' @param data A data.frame with features.
-#' The following column types are supported:
-#' \itemize{
-#' \item double
-#' \item factor.
-#' It is assumed that categorical features are given in this type of columns.
-#' A standard CatBoost processing procedure is applied to this type of columns:
-#'   \describe{
-#'   \item{1.}{The values are converted to strings.}
-#'   \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
-#'   }
-#' }
-#' @param target The target vector.
-#' @param weight The weights of the target vector.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
-#' Used in the calculation of final values of trees.
-#' @param pool_path The path to the otuptut file that contains the dataset description.
-#' @param cd_path The path to the output file that contains the column descriptions.
-#'
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost_save_pool-docpage/}
-catboost.save_pool <- function(data, target, weight, baseline, pool_path, cd_path) {
-  if (missing(pool_path) || missing(cd_path))
-        stop("Need to specify pool_path and cd_path.")
-  if (!is.character(pool_path) || !is.character(cd_path))
-        stop("Path must be a string.")
-
-  pool <- target
-  column_description <- c("Target")
-  if (is.null(weight) == FALSE) {
-    pool <- cbind(pool, weight)
-    column_description <- c(column_description, "Weight")
-  }
-  if (is.null(baseline) == FALSE) {
-    baseline <- matrix(baseline, nrow = nrow(data), byrow = TRUE)
-    pool <- cbind(pool, baseline)
-    column_description <- c(column_description, rep("Baseline", ncol(baseline)))
-  }
-  pool <- cbind(pool, data)
-  column_description <- data.frame(index = seq(0, length(column_description) - 1), type = column_description)
-  factors <- which(sapply(data, class) == "factor")
-  if (length(factors) != 0) {
-    column_description <- rbind(column_description, data.frame(index = nrow(column_description) + factors - 1,
-                               type = rep("Categ", length(factors))))
-  }
-  write.table(pool, file = pool_path, sep = "\t", row.names = FALSE, col.names= FALSE, quote = FALSE)
-  write.table(column_description, file = cd_path, sep = "\t", row.names = FALSE, col.names= FALSE, quote = FALSE)
-}
 
 #' catboost.from_matrix
 #'
@@ -102,12 +126,15 @@ catboost.save_pool <- function(data, target, weight, baseline, pool_path, cd_pat
 #' The target type should be double.
 #'
 #' @param data A matrix with features.
+#'
+#' Default value: Required argument
 #' @param target The target vector.
 #' @param weight The weights of the target vector.
 #' @param baseline Vector of initial (raw) values of the target function for the object.
 #' Used in the calculation of final values of trees.
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
+#' @param feature_names A list of names for each feature in the dataset.
 #'
 #' @return catboost.Pool
 #'
@@ -119,9 +146,7 @@ catboost.save_pool <- function(data, target, weight, baseline, pool_path, cd_pat
 #' data_matrix <- as.matrix(data)
 #' pool <- catboost.from_matrix(data = as.matrix(data[,-target]), target = as.matrix(data[,target]), cat_features = cat_features)
 #'
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_matrix-docpage/}
-catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = NULL, cat_features = NULL) {
+catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = NULL, cat_features = NULL, feature_names = NULL) {
   if (!is.matrix(data))
       stop("Unsupported data type, expecting matrix, got: ", class(data))
   if (!is.double(target) && !is.integer(target) && !is.null(target))
@@ -140,14 +165,19 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
       stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(data), " objects, baseline has ", nrow(baseline), " rows.")
   if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
       stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
+  if (!is.list(feature_names) && !is.null(feature_names))
+      stop("Unsupported feature_names type, expecting list, got: ", typeof(feature_names))
+  if (length(feature_names) != ncol(data) && !is.null(feature_names))
+      stop("Data has ", ncol(data), " columns, feature_names has ", length(feature_names), " columns.")
 
   if (!is.double(target) && !is.null(target))
       target <- as.double(target)
 
-  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, weight, baseline, cat_features)
-  attributes(pool) <- list(.Names = colnames(data), class = "catboost.Pool")
+  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, weight, baseline, cat_features, feature_names)
+  attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
+
 
 #' catboost.from_data_frame
 #'
@@ -159,19 +189,22 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
 #' @param data A data.frame with features.
 #' The following column types are supported:
 #' \itemize{
-#' \item double
-#' \item factor.
-#' It is assumed that categorical features are given in this type of columns.
-#' A standard CatBoost processing procedure is applied to this type of columns:
-#'   \describe{
-#'   \item{1.}{The values are converted to strings.}
-#'   \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
-#'   }
+#'     \item double
+#'     \item factor.
+#'     It is assumed that categorical features are given in this type of columns.
+#'     A standard CatBoost processing procedure is applied to this type of columns:
+#'     \describe{
+#'         \item{1.}{The values are converted to strings.}
+#'         \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+#'     }
 #' }
+#'
+#' Default value: Required argument
 #' @param target The target vector.
 #' @param weight The weights of the target vector.
 #' @param baseline Vector of initial (raw) values of the target function for the object.
 #' Used in the calculation of final values of trees.
+#' @param feature_names A list of names for each feature in the dataset.
 #'
 #' @return catboost.Pool
 #'
@@ -187,103 +220,194 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
 #' learn_pool <- catboost.from_data_frame(data = learn[,-target], target = learn[,target])
 #' test_pool <- catboost.from_data_frame(data = test[,-target], target = test[,target])
 #'
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-from_data_frame-docpage/}
-catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baseline = NULL) {
-  if (!is.data.frame(data)) {
-    stop("Unsupported data type, expecting data.frame, got: ", class(data))
-  }
-  if (sum(is.na(data)) > 0) {
-    stop("NA and NULL values are not supported!")
-  }
+catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baseline = NULL, feature_names = NULL) {
+    if (!is.data.frame(data)) {
+        stop("Unsupported data type, expecting data.frame, got: ", class(data))
+    }
+    if (sum(is.na(data)) > 0) {
+        stop("NA and NULL values are not supported!")
+    }
+    if (is.null(feature_names)) {
+        feature_names = as.list(colnames(data))
+    }
 
-  factor_columns = sapply(data, is.factor)
-  num_columns = sapply(data, is.double) | sapply(data, is.integer)
-  bad_columns = !(factor_columns | num_columns)
+    factor_columns = sapply(data, is.factor)
+    num_columns = sapply(data, is.double) | sapply(data, is.integer)
+    bad_columns = !(factor_columns | num_columns)
 
-  if (sum(bad_columns) > 0) {
-    stop("Unsupported column type: ", paste(c(unique(sapply(data[,bad_columns], class))), collapse = ', '))
-  }
+    if (sum(bad_columns) > 0) {
+        stop("Unsupported column type: ", paste(c(unique(sapply(data[,bad_columns], class))), collapse = ', '))
+    }
 
-  preprocessed <- data
-  cat_features <- c()
-  for (column_index in which(factor_columns)) {
-    preprocessed[, column_index] = .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
-    cat_features <- c(cat_features, column_index - 1)
-  }
+    preprocessed <- data
+    cat_features <- c()
+    for (column_index in which(factor_columns)) {
+        preprocessed[, column_index] = .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
+        cat_features <- c(cat_features, column_index - 1)
+    }
 
-  pool <- catboost.from_matrix(as.matrix(preprocessed), target, weight, baseline, cat_features)
-  return(pool)
+    pool <- catboost.from_matrix(as.matrix(preprocessed), target, weight, baseline, cat_features, feature_names)
+    return(pool)
 }
 
-#' catboost.nrow
+
+#' Save the dataset
 #'
-#' Calculate the number of objects in the dataset.
-#' @param pool The input dataset.
-#' @return The number of objects.
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-nrow-docpage/}
-catboost.nrow <- function(pool) {
-  if (class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
-  num_row <- .Call("CatBoostPoolNumRow_R", pool)
-  return(num_row)
-}
-
-#' catboost.ncol
+#' Save the dataset to the CatBoost format.
+#' Files with the following data are created:
+#' \itemize{
+#'     \item Dataset description
+#'     \item Column descriptions
+#' }
+#' Use the catboost.load_pool function to read the resulting files.
+#' These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version} and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
 #'
-#' Calculate the number of columns in the dataset.
-#' @param pool The input dataset.
-#' @return The number of columns.
-#' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-ncol-docpage/}
-catboost.ncol <- function(pool) {
-  if (class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
-  num_col <- .Call("CatBoostPoolNumCol_R", pool)
-  return(num_col)
-}
-
-#' catboost.ntrees
+#' @param data A data.frame with features.
+#' The following column types are supported:
+#'     \itemize{
+#'     \item double
+#'     \item factor.
+#'     It is assumed that categorical features are given in this type of columns.
+#'     A standard CatBoost processing procedure is applied to this type of columns:
+#'     \describe{
+#'         \item{1.}{The values are converted to strings.}
+#'         \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
+#'     }
+#' }
 #'
-#' Return the number of trees in the model.
-#' @param model The model obtained as the result of training.
-#' @return The number of trees.
+#' Default value: Required argument
+#' @param target The target vector.
+#' @param weight The weights of the target vector.
+#' @param baseline Vector of initial (raw) values of the target function for the object.
+#' Used in the calculation of final values of trees.
+#' @param pool_path The path to the otuptut file that contains the dataset description.
+#' @param cd_path The path to the output file that contains the column descriptions.
+#'
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-ntrees-docpage/}
-catboost.ntrees <- function(model) {
-  if (class(model) != "catboost.Model")
-      stop("Expected catboost.Model, got: ", class(pool))
-  num_trees <- .Call("CatBoostPoolNumTrees_R", model$handle)
-  return(num_trees)
+catboost.save_pool <- function(data, target = NULL, weight = NULL, baseline = NULL,
+                               pool_path = "data.pool", cd_path = 'cd.pool') {
+    if (missing(pool_path) || missing(cd_path))
+        stop("Need to specify pool_path and cd_path.")
+    if (!is.character(pool_path) || !is.character(cd_path))
+        stop("Path must be a string.")
+
+    pool <- target
+    column_description <- c("Target")
+    if (is.null(weight) == FALSE) {
+        pool <- cbind(pool, weight)
+        column_description <- c(column_description, "Weight")
+    }
+    if (is.null(baseline) == FALSE) {
+        baseline <- matrix(baseline, nrow = nrow(data), byrow = TRUE)
+        pool <- cbind(pool, baseline)
+        column_description <- c(column_description, rep("Baseline", ncol(baseline)))
+    }
+    pool <- cbind(pool, data)
+    column_description <- data.frame(index = seq(0, length(column_description) - 1), type = column_description)
+    factors <- which(sapply(data, class) == "factor")
+    if (length(factors) != 0) {
+        column_description <- rbind(column_description, data.frame(index = nrow(column_description) + factors - 1,
+                                                                   type = rep("Categ", length(factors))))
+    }
+    write.table(pool, file = pool_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+    write.table(column_description, file = cd_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 }
 
-#' catboost.head
+
+#' Dimensions of catboost.Pool
+#'
+#' Returns a vector of row numbers and columns column numbers in an catboost.Pool.
+#' @param x The input dataset.
+#'
+#' Default value: Required argument
+#' @export
+dim.catboost.Pool <- function(x) {
+    return(c(.Call("CatBoostPoolNumRow_R", x), .Call("CatBoostPoolNumCol_R", x)))
+}
+
+
+#' Dimension names of catboost.Pool
+#'
+#' Return a list with the two elements. The second element contains the column names.
+#' @param x The input dataset.
+#'
+#' Default value: Required argument
+#' @export
+dimnames.catboost.Pool <- function(x) {
+    return(attr(x, '.Dimnames'))
+}
+
+
+#' Head of catboost.Pool
 #'
 #' Return a list with the first n objects of the dataset.
 #'
 #' Each line of this list contains the following information for each object:
 #' \itemize{
-#'   \item The target value.
-#'   \item The weight of the object.
-#'   \item The feature values for the object.
+#'     \item The target value.
+#'     \item The weight of the object.
+#'     \item The feature values for the object.
 #' }
-#' @param pool The input dataset.
+#' @param x The input dataset.
 #'
 #' Default value: Required argument
 #' @param n The quantity of the first objects in the dataset to be returned.
 #'
 #' Default value: 10
+#' @param ... not currently used
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-head-docpage/}
-catboost.head <- function(pool, n = 10) {
-  if (class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
-  result <- .Call("CatBoostPoolHead_R", pool, n)
-  return(result)
+head.catboost.Pool <- function(x, n = 10, ...) {
+    if (n < 0) {
+        n <- max(0, dim(x)[1] + n)
+    }
+    result <- .Call("CatBoostPoolSlice_R", x, n, 0)
+    return(result)
 }
 
-#' catboost.train
+
+#' Tail of catboost.Pool
+#'
+#' Return a list with the last n objects of the dataset.
+#'
+#' Each line of this list contains the following information for each object:
+#' \itemize{
+#'     \item The target value.
+#'     \item The weight of the object.
+#'     \item The feature values for the object.
+#' }
+#' @param x The input dataset.
+#'
+#' Default value: Required argument
+#' @param n The quantity of the last objects in the dataset to be returned.
+#'
+#' Default value: 10
+#' @param ... not currently used
+#' @export
+tail.catboost.Pool <- function(x, n = 10, ...) {
+    if (n < 0) {
+        n <- max(0, dim(x)[1] + n)
+    }
+    result <- .Call("CatBoostPoolSlice_R", x, n, dim(x)[1] - n)
+    return(result)
+}
+
+
+#' Print catboost.Pool
+#'
+#' Print dimensions of catboost.Pool.
+#'
+#' @param x an xgb.DMatrix object
+#'
+#' Default value: Required argument
+#' @param ... not currently used
+#' @export
+print.catboost.Pool <- function(x, ...) {
+    cat("catboost.Pool\n", nrow(x), " rows, ", ncol(x), " columns", sep = "")
+}
+
+
+
+#' Train the model
 #'
 #' Train the model using a CatBoost dataset.
 #'
@@ -366,10 +490,9 @@ catboost.head <- function(pool, n = 10) {
 #'       \itemize{
 #'         \item alpha - The coefficient used in quantile-based losses ('Quantile' and 'LogLinQuantile'). The default value is 0.5.
 #'
+#'         For example, if you need to calculate the value of Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
 #'
-#'        For example, if you need to calculate the value of Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
-#'
-#'        'Quantile:alpha=0.1'
+#'         'Quantile:alpha=0.1'
 #'       }
 #'
 #'       Default value:
@@ -499,7 +622,7 @@ catboost.head <- function(pool, n = 10) {
 #'     \item depth
 #'
 #'       Depth of the tree.
-
+#'
 #'       The value can be any integer up to 32. It is recommended to use values in the range [1; 10].
 #'
 #'       Default value:
@@ -524,6 +647,7 @@ catboost.head <- function(pool, n = 10) {
 #'       Default value:
 #'
 #'       1
+#'
 #'     \item random_seed
 #'
 #'       The random seed used for training.
@@ -754,7 +878,6 @@ catboost.head <- function(pool, n = 10) {
 #'
 #'       Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
 #'
-#'
 #'       Format:
 #'
 #'       \code{c(<CTR type 1>:[<number of borders 1>:<Binarization type 1>],...,<CTR type N>:[<number of borders N>:<Binarization type N>])}
@@ -765,7 +888,7 @@ catboost.head <- function(pool, n = 10) {
 #'         \itemize{
 #'           \item \code{'Borders'}
 #'           \item \code{'Buckets'}
-#'           \item \code{'MeanValue'}
+#'           \item \code{'BinarizedTargetMeanValue'}
 #'           \item \code{'Counter'}
 #'         }
 #'         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
@@ -954,61 +1077,58 @@ catboost.head <- function(pool, n = 10) {
 #'
 #' @param learn_pool The dataset used for training the model.
 #'
-#' Default value:
-#' Required argument
+#' Default value: Required argument
 #' @param test_pool The dataset used for testing the quality of the model.
 #'
-#' Default value:
-#' NULL (not used)
+#' Default value: NULL (not used)
 #' @param params The list of parameters to start training with.
 #'
 #' If omitted, default values are used (see The list of parameters).
 #'
 #' If set, the passed list of parameters overrides the default values.
 #'
-#' Default value:
-#' Required argument
+#' Default value: Required argument
 #' @param calc_importance
 #' Calculate the feature importance.
 #'
-#' If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.importance function.
+#' If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.get_feature_importance function.
 #'
-#' Default value:
-#' FALSE
+#' Default value: FALSE
 #' @examples
 #' fit_params <- list(iterations = 100,
-#'   thread_count = 10,
-#'   loss_function = 'Logloss',
-#'   ignored_features = c(4,9),
-#'   border_count = 32,
-#'   depth = 5,
-#'   learning_rate = 0.03,
-#'   l2_leaf_reg = 3.5,
-#'   border = 0.5,
-#'   train_dir = 'train_dir')
+#'     thread_count = 10,
+#'     loss_function = 'Logloss',
+#'     ignored_features = c(4,9),
+#'     border_count = 32,
+#'     depth = 5,
+#'     learning_rate = 0.03,
+#'     l2_leaf_reg = 3.5,
+#'     border = 0.5,
+#'     train_dir = 'train_dir')
 #' model <- catboost.train(pool, test_pool, fit_params)
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-train-docpage/}
 catboost.train <- function(learn_pool, test_pool = NULL, params = list(), calc_importance = FALSE) {
-  if (class(learn_pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(learn_pool))
-  if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
-      stop("Expected catboost.Pool, got: ", class(test_pool))
-  if (length(params) == 0)
-      message("Training catboost with default parameters! See help(catboost.train).")
+    if (class(learn_pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(learn_pool))
+    if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
+        stop("Expected catboost.Pool, got: ", class(test_pool))
+    if (length(params) == 0)
+        message("Training catboost with default parameters! See help(catboost.train).")
 
-  json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
-  handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
-  model <- list(handle = handle)
-  class(model) <- "catboost.Model"
-  if (calc_importance) {
-    model$var_imp <- catboost.importance(model, learn_pool)
-  }
-  model$tree_count <- catboost.ntrees(model)
-  return(model)
+    json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
+    model <- list(handle = handle)
+    class(model) <- "catboost.Model"
+    if (calc_importance) {
+        model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
+    }
+    model$tree_count <- catboost.ntrees(model)
+    return(model)
 }
 
-#' catboost.load_model
+
+#' Load the model
 #'
 #' Load the model from a file.
 #'
@@ -1019,13 +1139,14 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), calc_i
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
 catboost.load_model <- function(model_path) {
-  handle <- .Call("CatBoostReadModel_R", model_path)
-  model <- list(handle = handle, var_imp = NULL)
-  class(model) <- "catboost.Model"
-  return(model)
+    handle <- .Call("CatBoostReadModel_R", model_path)
+    model <- list(handle = handle, feature_importances = NULL)
+    class(model) <- "catboost.Model"
+    return(model)
 }
 
-#' catboost.save_model
+
+#' Save the model
 #'
 #' Save the model to a file.
 #'
@@ -1040,11 +1161,12 @@ catboost.load_model <- function(model_path) {
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-save_model-docpage/}
 catboost.save_model <- function(model, model_path) {
-  status <- .Call("CatBoostOutputModel_R", model$handle, model_path)
-  return(status)
+    status <- .Call("CatBoostOutputModel_R", model$handle, model_path)
+    return(status)
 }
 
-#' catboost.predict
+
+#' Apply the model
 #'
 #' Apply the model to the given dataset.
 #'
@@ -1059,7 +1181,7 @@ catboost.save_model <- function(model, model_path) {
 #' @param verbose Verbose output to stdout.
 #'
 #' Default value: FALSE (not used)
-#' @param type The format for displaying approximated values in output data
+#' @param prediction_type The format for displaying approximated values in output data
 #' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
 #'
 #' Possible values:
@@ -1070,7 +1192,7 @@ catboost.save_model <- function(model, model_path) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param tree_count_limit The number of trees from the model to use when applying. If specified, the first <value> trees are used.
+#' @param ntree_limit The number of trees from the model to use when applying. If specified, the first <value> trees are used.
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and all trees from the model are used)
 #' @param thread_count The number of threads to use when applying the model.
@@ -1081,24 +1203,25 @@ catboost.save_model <- function(model, model_path) {
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
 catboost.predict <- function(model, pool,
-                             verbose = FALSE, type = 'RawFormulaVal',
-                             tree_count_limit = 0, thread_count = 1) {
-  if (class(model) != "catboost.Model")
-      stop("Expected catboost.Model, got: ", class(model))
-  if (class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
+                             verbose = FALSE, prediction_type = 'RawFormulaVal',
+                             ntree_limit = 0, thread_count = 1) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
 
-  params <- catboost.get_model_params(model)
-  prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
-                      verbose, type, tree_count_limit, thread_count)
-  prediction_columns <- length(prediction) / catboost.nrow(pool)
-  if (prediction_columns != 1) {
-    prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
-  }
-  return(prediction)
+    params <- catboost.get_model_params(model)
+    prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
+                        verbose, prediction_type, ntree_limit, thread_count)
+    prediction_columns <- length(prediction) / nrow(pool)
+    if (prediction_columns != 1) {
+        prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
+    }
+    return(prediction)
 }
 
-#' catboost.staged_predict
+
+#' Apply the model for each tree
 #'
 #' Apply the model to the given dataset and calculate the results for each i-th tree of the model taking into consideration only the trees in the range [1;i].
 #'
@@ -1113,7 +1236,7 @@ catboost.predict <- function(model, pool,
 #' @param verbose Verbose output to stdout.
 #'
 #' Default value: FALSE (not used)
-#' @param type The format for displaying approximated values in output data
+#' @param prediction_type The format for displaying approximated values in output data
 #' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
 #'
 #' Possible values:
@@ -1132,27 +1255,27 @@ catboost.predict <- function(model, pool,
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
 catboost.staged_predict <- function(model, pool, verbose = FALSE,
-                                    type = 'RawFormulaVal', thread_count = 1) {
-  if (class(model) != "catboost.Model")
-      stop("Expected catboost.Model, got: ", class(model))
-  if (class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
+                                    prediction_type = 'RawFormulaVal', thread_count = 1) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
 
-  current_tree_count <- 0
-  preds <- function() {
+    current_tree_count <- 0
+    preds <- function() {
       current_tree_count <<- current_tree_count + 1
-      if (current_tree_count > model$tree_count) {
+      if (current_tree_count > model$tree_count)
           stop('StopIteration')
-      }
-      catboost.predict(model, pool, verbose, type, current_tree_count, thread_count)
-  }
+      catboost.predict(model, pool, verbose, prediction_type, current_tree_count, thread_count)
+    }
 
-  obj <- list(nextElem = preds)
-  class(obj) <- c('catboost.staged_predict', 'abstractiter', 'iter')
-  return(obj)
+    obj <- list(nextElem = preds)
+    class(obj) <- c('catboost.staged_predict', 'abstractiter', 'iter')
+    return(obj)
 }
 
-#' catboost.importance
+
+#' Calculate the feature importances
 #'
 #' Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
 #' (Regular feature importance
@@ -1176,20 +1299,35 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE,
 #' Default value: 1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
-catboost.importance <- function(model, pool = NULL, thread_count = 1) {
-  if (class(model) != "catboost.Model")
-      stop("Expected catboost.Model, got: ", class(model))
-  if (!is.null(pool) && class(pool) != "catboost.Pool")
-      stop("Expected catboost.Pool, got: ", class(pool))
-  if (is.null(pool)) {
-    return(model$var_imp)
-  }
-  importance <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, thread_count)
-  names(importance) <- attr(pool, '.Names')
-  return(importance)
+catboost.get_feature_importance <- function(model, pool = NULL, thread_count = 1) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (!is.null(pool) && class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null(pool)) {
+        return(model$feature_importances)
+    }
+    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, thread_count)
+    names(importances) <- attr(pool, '.Dimnames')[[2]]
+    return(importances)
 }
 
-#' catboost.get_model_params
+#' Number of trees in the model
+#'
+#' Return the number of trees in the model.
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+catboost.ntrees <- function(model) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(pool))
+    num_trees <- .Call("CatBoostPoolNumTrees_R", model$handle)
+    return(num_trees)
+}
+
+
+
+#' Model parameters
 #'
 #' Return the model parameters.
 #'
@@ -1200,9 +1338,9 @@ catboost.importance <- function(model, pool = NULL, thread_count = 1) {
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-get_model_params-docpage/}
 catboost.get_model_params <- function(model) {
-  if (class(model) != "catboost.Model")
-      stop("Expected catboost.Model, got: ", class(pool))
-  params <- .Call("CatBoostGetModelParams_R", model$handle)
-  params <- jsonlite::fromJSON(params)
-  return(params)
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(pool))
+    params <- .Call("CatBoostGetModelParams_R", model$handle)
+    params <- jsonlite::fromJSON(params)
+    return(params)
 }

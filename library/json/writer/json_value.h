@@ -178,7 +178,7 @@ public:
     static const TJsonValue UNDEFINED;
 
 private:
-    EJsonValueType Type;
+    EJsonValueType Type = JSON_UNDEFINED;
     union TValueUnion {
         bool Boolean;
         long long Integer;

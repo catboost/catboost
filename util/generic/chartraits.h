@@ -111,7 +111,7 @@ namespace NCharTraitsImpl {
             return TCmpWchar16::Compare(s1, s2) == 0;
         }
         static bool Equal(const wchar16* s1, const wchar16* s2, size_t n) {
-            return memcmp(s1, s2, n * sizeof(wchar16)) == 0;
+            return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
         }
     };
 } // namespace NCharTraitsImpl

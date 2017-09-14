@@ -1,3 +1,4 @@
+#include "error_functions.h"
 #include "learn_context.h"
 #include "metric.h"
 
@@ -113,6 +114,7 @@ void TLearnContext::InitData(const TTrainData& data) {
                 foldPermutationBlockSize,
                 LearnProgress.Model.ApproxDimension,
                 Params.FoldLenMultiplier,
+                Params.StoreExpApprox,
                 Rand));
     }
 
@@ -120,6 +122,7 @@ void TLearnContext::InitData(const TTrainData& data) {
                                                      LearnProgress.Model.TargetClassifiers,
                                                      !Params.HasTime,
                                                      LearnProgress.Model.ApproxDimension,
+                                                     Params.StoreExpApprox,
                                                      Rand);
 
     LearnProgress.AvrgApprox.resize(LearnProgress.Model.ApproxDimension, yvector<double>(sampleCount));

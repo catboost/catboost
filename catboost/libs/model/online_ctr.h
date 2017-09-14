@@ -2,7 +2,6 @@
 
 #include "projection.h"
 #include <catboost/libs/ctr_description/ctr_type.h>
-#include <library/containers/2d_array/2d_array.h>
 #include <library/containers/dense_hash/dense_hash.h>
 #include <util/ysaveload.h>
 

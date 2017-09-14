@@ -17,7 +17,6 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/cat_feature
     catboost/libs/logging
-    library/containers/2d_array
     library/json
     contrib/libs/coreml
 )

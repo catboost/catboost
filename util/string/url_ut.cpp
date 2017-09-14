@@ -1,4 +1,5 @@
 #include "url.h"
+#include "cast.h"
 
 #include <library/unittest/registar.h>
 
@@ -102,5 +103,55 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("", CutWWWPrefix("WwW."));
         UNIT_ASSERT_VALUES_EQUAL("www", CutWWWPrefix("www"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWPrefix("www.ya.ru"));
+    }
+
+    SIMPLE_UNIT_TEST(TestGetSchemeHostAndPort) {
+        { // all components are present
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("https://ya.ru:8080/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "https://");
+            UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
+            UNIT_ASSERT_VALUES_EQUAL(port, 8080);
+        }
+        { // scheme is abset
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("ya.ru:8080/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "unknown");
+            UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
+            UNIT_ASSERT_VALUES_EQUAL(port, 8080);
+        }
+        { // scheme and port are absent
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("ya.ru/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "unknown");
+            UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
+            UNIT_ASSERT_VALUES_EQUAL(port, 0);
+        }
+        { // port is absent, but returned its default value for HTTP
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("http://ya.ru/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "http://");
+            UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
+            UNIT_ASSERT_VALUES_EQUAL(port, 80);
+        }
+        { // port is absent, but returned its default value for HTTPS
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("https://ya.ru/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "https://");
+            UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
+            UNIT_ASSERT_VALUES_EQUAL(port, 443);
+        }
+        // port overflow
+        auto testCase = []() {
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("https://ya.ru:65536/bebe", scheme, host, port);
+        };
+        UNIT_ASSERT_EXCEPTION(testCase(), yexception);
     }
 }

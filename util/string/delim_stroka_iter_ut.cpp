@@ -55,7 +55,7 @@ static void AssertKeyValueStringSplit(
     const TStringBuf str,
     const TStringBuf delim,
     const yvector<std::pair<TStringBuf, TStringBuf>>& expected) {
-    TKeyValueDelimStrokaIter it(str, delim);
+    TKeyValueDelimStringIter it(str, delim);
 
     for (const auto& expectedKeyValue : expected) {
         UNIT_ASSERT(it.Valid());
@@ -66,7 +66,7 @@ static void AssertKeyValueStringSplit(
     UNIT_ASSERT(!it.Valid());
 }
 
-SIMPLE_UNIT_TEST_SUITE(TKeyValueDelimStrokaIterTestSuite) {
+SIMPLE_UNIT_TEST_SUITE(TKeyValueDelimStringIterTestSuite) {
     SIMPLE_UNIT_TEST(SingleCharacterAsDelimiter) {
         AssertKeyValueStringSplit(
             "abc=123,cde=qwer", ",",

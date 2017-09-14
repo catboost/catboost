@@ -93,6 +93,10 @@ struct TDateTimeFields {
 };
 
 class TDateTimeParserBase {
+public:
+    const TDateTimeFields& GetDateTimeFields() const {
+        return DateTimeFields;
+    }
 protected:
     TDateTimeFields DateTimeFields;
     int cs; //for ragel

@@ -573,13 +573,13 @@ class CatBoost(_CatBoostBase):
         return self._staged_predict(data, weight, prediction_type, verbose)
 
     @property
-    def feature_importance_(self):
-        feature_importance_ = getattr(self, "_feature_importance", None)
+    def feature_importances_(self):
+        feature_importances_ = getattr(self, "_feature_importance", None)
         if not self.is_fitted_:
-            raise CatboostError("There is no trained model to use `feature_importance_`. Use fit() to train model with param `calc_feature_importance=True`. Then use `feature_importance_`.")
-        if feature_importance_ is None:
-            raise CatboostError("Invalid attribute `feature_importance_`: use calc_feature_importance=True in model params for use it")
-        return feature_importance_
+            raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model with param `calc_feature_importance=True`. Then use `feature_importances_`.")
+        if feature_importances_ is None:
+            raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
+        return feature_importances_
 
     def get_feature_importance(self, X, y=None, cat_features=None, weight=None, baseline=None, thread_count=1):
         """
@@ -805,11 +805,11 @@ class CatBoostClassifier(CatBoost):
         Format :   ['<CTR_type_1>:[<number_of_borders_1>]:[<Binarization_type_1>]',
                     '<CTR_type_2>:[<number_of_borders_2>]:[<Binarization_type_2>]',
                     ... ]
-        Example: ['Borders:5:Median', 'MeanValue:10:MinEntropy', ...]
+        Example: ['Borders:5:Median', 'BinarizedTargetMeanValue:10:MinEntropy', ...]
         CTR types:
             - 'Borders'
             - 'Buckets'
-            - 'MeanValue'
+            - 'BinarizedTargetMeanValue'
             - 'Counter'
         Number_of_borders and Binarization_type are optional parametrs
         that only used for regression.
@@ -1286,7 +1286,10 @@ class CatBoostRegressor(CatBoost):
         return np.mean(error)
 
 
-def cv(params, pool, fold_count=3, inverted=False, random_seed=0, shuffle=True,
-       enable_early_stopping=False, eval_period=1):
+def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True,
+       eval_period=1):
+    if "use_best_model" in params:
+        warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
+
     with log_fixup():
-        return _cv(params, pool, fold_count, inverted, random_seed, shuffle, enable_early_stopping, eval_period)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, eval_period)

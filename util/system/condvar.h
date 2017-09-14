@@ -38,10 +38,6 @@ public:
         WaitI(m);
     }
 
-    inline bool TimedWait(TMutex& m, TDuration timeOut) noexcept {
-        return WaitT(m, timeOut);
-    }
-
 private:
     class TImpl;
     THolder<TImpl> Impl_;
