@@ -83,10 +83,29 @@ namespace NPrivateGlobalLogger {
             return *this;
         }
     };
+    class TNullStream: public TStringStream {
+    public:
+        ~TNullStream() = default;
+
+        template <class T>
+        inline TNullStream& operator<<(const T& /*t*/) {
+            return *this;
+        }
+    };
 }
 
 #define CHECK_WITH_LOG(expr) \
     Y_UNLIKELY(!(expr)) && NPrivateGlobalLogger::TEatStream() | NPrivateGlobalLogger::TVerifyEvent() << __LOCATION__ << ": " << #expr << "(verification failed!): "
+
+#if !defined(NDEBUG) && !defined(__GCCXML__)
+#define ASSERT_WITH_LOG(expr) \
+    Y_UNLIKELY(!(expr)) && NPrivateGlobalLogger::TEatStream() | NPrivateGlobalLogger::TVerifyEvent() << __LOCATION__ << ": " << #expr << "(verification failed!): "
+#else
+#define ASSERT_WITH_LOG(expr) \
+    Y_UNLIKELY(false && !(expr)) && NPrivateGlobalLogger::TEatStream() | NPrivateGlobalLogger::TNullStream()
+#endif
+
+
 
 #define CHECK_EQ_WITH_LOG(a, b) CHECK_WITH_LOG((a) == (b)) << a << " != " << b;
 #define CHECK_LEQ_WITH_LOG(a, b) CHECK_WITH_LOG((a) <= (b)) << a << " > " << b;

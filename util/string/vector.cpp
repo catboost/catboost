@@ -91,31 +91,31 @@ void SplitStroku(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, con
 }
 
 template <class T>
-void SplitStrokuBySetImpl(yvector<T>* res, const typename T::char_type* ptr, const typename T::char_type* delimiters, size_t maxFields, int options) {
+void SplitStringBySetImpl(yvector<T>* res, const typename T::char_type* ptr, const typename T::char_type* delimiters, size_t maxFields, int options) {
     TSetDelimiter<const typename T::char_type> d(delimiters);
     DoSplit0(res, TFixedString<typename T::char_type>(ptr), d, maxFields, options);
 }
 
 template <class T>
-void SplitStrokuBySetImpl(yvector<T>* res, const typename T::char_type* ptr, size_t len, const typename T::char_type* delimiters, size_t maxFields, int options) {
+void SplitStringBySetImpl(yvector<T>* res, const typename T::char_type* ptr, size_t len, const typename T::char_type* delimiters, size_t maxFields, int options) {
     TSetDelimiter<const typename T::char_type> d(delimiters);
     DoSplit0(res, TFixedString<typename T::char_type>(ptr, len), d, maxFields, options);
 }
 
-void SplitStrokuBySet(yvector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields, int options) {
-    SplitStrokuBySetImpl<TString>(res, ptr, delimiters, maxFields, options);
+void SplitStringBySet(yvector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields, int options) {
+    SplitStringBySetImpl<TString>(res, ptr, delimiters, maxFields, options);
 }
 
-void SplitStrokuBySet(yvector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields, int options) {
-    SplitStrokuBySetImpl<TString>(res, ptr, len, delimiters, maxFields, options);
+void SplitStringBySet(yvector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields, int options) {
+    SplitStringBySetImpl<TString>(res, ptr, len, delimiters, maxFields, options);
 }
 
-void SplitStrokuBySet(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields, int options) {
-    SplitStrokuBySetImpl<TUtf16String>(res, ptr, delimiters, maxFields, options);
+void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields, int options) {
+    SplitStringBySetImpl<TUtf16String>(res, ptr, delimiters, maxFields, options);
 }
 
-void SplitStrokuBySet(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields, int options) {
-    SplitStrokuBySetImpl<TUtf16String>(res, ptr, len, delimiters, maxFields, options);
+void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields, int options) {
+    SplitStringBySetImpl<TUtf16String>(res, ptr, len, delimiters, maxFields, options);
 }
 
 TUtf16String JoinStrings(const yvector<TUtf16String>& v, const TWtringBuf delim) {

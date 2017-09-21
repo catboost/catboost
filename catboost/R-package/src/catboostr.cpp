@@ -5,6 +5,7 @@
 #include <catboost/libs/algo/calc_fstr.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/algo/eval_helpers.h>
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
@@ -254,7 +255,7 @@ SEXP CatBoostReadModel_R(SEXP fileParam) {
 }
 
 SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
-                            SEXP typeParam, SEXP treeCountLimitParam, SEXP threadCountParam) {
+                            SEXP typeParam, SEXP treeCountStartParam, SEXP treeCountEndParam, SEXP threadCountParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
@@ -265,12 +266,43 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     yvector<yvector<double>> prediction = ApplyModelMulti(*model, *pool,
                                                           asLogical(verboseParam),
                                                           predictionType,
-                                                          0,
-                                                          asInteger(treeCountLimitParam),
+                                                          asInteger(treeCountStartParam),
+                                                          asInteger(treeCountEndParam),
                                                           asInteger(threadCountParam));
     size_t predictionSize = prediction.size() * pool->Docs.size();
     result = PROTECT(allocVector(REALSXP, predictionSize));
     for (size_t i = 0, k = 0; i < pool->Docs.size(); ++i) {
+        for (size_t j = 0; j < prediction.size(); ++j) {
+            REAL(result)[k++] = prediction[j][i];
+        }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountParam, SEXP threadCountParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    SEXP dataDim = getAttrib(approxParam, R_DimSymbol);
+    size_t dataRows = static_cast<size_t>(INTEGER(dataDim)[0]) / asInteger(columnCountParam);
+    yvector<yvector<double>> prediction(asInteger(columnCountParam), yvector<double>(dataRows));
+    for (size_t i = 0, k = 0; i < dataRows; ++i) {
+        for (size_t j = 0; j < prediction.size(); ++j) {
+            prediction[j][i] = static_cast<double>(REAL(approxParam)[k++]);
+        }
+    }
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(asInteger(threadCountParam) - 1);
+    EPredictionType predictionType;
+    CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
+              "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
+    prediction = PrepareEval(predictionType, prediction, &executor);
+
+    size_t predictionSize = prediction.size() * dataRows;
+    result = PROTECT(allocVector(REALSXP, predictionSize));
+    for (size_t i = 0, k = 0; i < dataRows; ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
             REAL(result)[k++] = prediction[j][i];
         }

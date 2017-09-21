@@ -40,6 +40,24 @@ def validate_test(kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
+    def resolve_size_metric(val):
+        metrics = {
+            "tb": 1000 ** 4, "tib": 1024 ** 4,
+            "gb": 1000 ** 3, "gib": 1024 ** 3,
+            "mb": 1000 ** 2, "mib": 1024 ** 2,
+            "kb": 1000, "kib": 1024, "b": 1,
+        }
+        match = re.match(r"(\d*\.?\d+|\d+)(.*)", val)
+        if not match:
+            return None
+
+        val, metric = match.groups()
+        if not metric:
+            return int(val)
+        if metric in metrics:
+            return int(float(val) * metrics[metric])
+        return None
+
     errors = []
 
     if kw.get('SCRIPT-REL-PATH') == 'boost.test':
@@ -56,6 +74,21 @@ def validate_test(kw):
 
     size = kw.get('SIZE', 'SMALL')
     tags = get_list("TAG")
+    requirements = {}
+    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb'}
+    memory_requirements = {'disk_usage', 'ram', 'ram_disk'}
+    for req in get_list("REQUIREMENTS"):
+        if ":" in req:
+            req_name, req_value = req.split(":", 1)
+            if req_name not in valid_requirements:
+                errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(valid_requirements)))
+            elif req_name in memory_requirements:
+                if not resolve_size_metric(req_value.lower()):
+                    errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
+
+            requirements[req_name] = req_value
+        else:
+            errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
 
@@ -77,11 +110,9 @@ def validate_test(kw):
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
 
-        requirements = kw.get("REQUIREMENTS", "")
-
         is_fat = size == "FAT" or 'ya:fat' in tags
         for req in ["container", "ram", "disk"]:
-            if req + ":" in requirements and not is_fat:
+            if req in requirements and not is_fat:
                 errors.append("Only [[imp]]FAT[[rst]] tests can have [[imp]]{}[[rst]] requirement".format(req))
 
         if in_autocheck and size == "LARGE" and not is_fat:

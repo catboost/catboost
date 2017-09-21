@@ -241,10 +241,11 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
             oneHotFeaturesInfo.FeatureHashToOrigString[split.OneHotFeature.Value] = learnPool.CatFeaturesHashToString.at(split.OneHotFeature.Value);
         }
     }
+
     if (modelPtr) {
         *modelPtr = std::move(ctx.LearnProgress.Model);
         modelPtr->OneHotFeaturesInfo = std::move(oneHotFeaturesInfo);
-        yvector<TModelCtr> ctrsForModelCalcTasks;
+        yvector<TModelCtrBase> ctrsForModelCalcTasks;
         for (const auto& bestTree : modelPtr->TreeStruct) {
             for (const auto& split : bestTree.SelectedSplits) {
                 if (split.Type != ESplitType::OnlineCtr) {
@@ -272,9 +273,9 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
                 resTable);
         }, 0, ctrsForModelCalcTasks.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
-        yvector<TModelCtr> usedCtrs;
+        yvector<TModelCtrBase> usedCtrs;
         {
-            yhash_set<TModelCtr> ctrsSet;
+            yhash_set<TModelCtrBase> ctrsSet;
             for (const auto& bestTree : ctx.LearnProgress.Model.TreeStruct) {
                 for (const auto& split : bestTree.SelectedSplits) {
                     if (split.Type != ESplitType::OnlineCtr) {

@@ -5,7 +5,8 @@
 \title{Apply the model}
 \usage{
 catboost.predict(model, pool, verbose = FALSE,
-  prediction_type = "RawFormulaVal", ntree_limit = 0, thread_count = 1)
+  prediction_type = "RawFormulaVal", ntree_start = 0, ntree_end = 0,
+  thread_count = 1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -32,9 +33,13 @@ Possible values:
 
 Default value: 'RawFormulaVal'}
 
-\item{ntree_limit}{The number of trees from the model to use when applying. If specified, the first <value> trees are used.
+\item{ntree_start}{Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
 
-Default value: 0 (if value equals to 0 this parameter is ignored and all trees from the model are used)}
+Default value: 0}
+
+\item{ntree_end}{Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)}
 
 \item{thread_count}{The number of threads to use when applying the model.
 

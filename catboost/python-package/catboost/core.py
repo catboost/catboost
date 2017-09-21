@@ -197,13 +197,6 @@ class Pool(_PoolBase):
         if len(label) == 0:
             raise CatboostError("Labels variable is empty.")
 
-    def _check_label_unique_value(self, label):
-        """
-        Check count label unique values.
-        """
-        if len(np.unique(label)) < 2:
-            raise CatboostError("Labels has only one unique value.")
-
     def _check_label_shape(self, label, data_len):
         """
         Check label length and dimension.
@@ -314,7 +307,6 @@ class Pool(_PoolBase):
                 label = label.values
             if isinstance(label, DataFrame):
                 label = np.transpose(label.values)[0]
-            self._check_label_unique_value(label)
             self._check_label_shape(label, data_len)
         if cat_features is not None:
             self._check_cf_type(cat_features)
@@ -581,7 +573,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
         return feature_importances_
 
-    def get_feature_importance(self, X, y=None, cat_features=None, weight=None, baseline=None, thread_count=1):
+    def get_feature_importance(self, X, y=None, cat_features=None, weight=None, baseline=None, thread_count=1, fstr_type='FeatureImportance'):
         """
         Parameters
         ----------
@@ -606,10 +598,21 @@ class CatBoost(_CatBoostBase):
         thread_count : int, optional (default=1)
             Number of threads.
 
+        fstr_type : string, optional (default='FeatureImportance')
+            Possible values:
+                - FeatureImportance
+                    Calculate score for every feature.
+                - Interaction
+                    Calculate pairwise score between every feature.
+                - Doc
+                    Calculate score for every feature in every object.
+
         Returns
         -------
         feature_importances : array of shape = [n_features]
         """
+        if fstr_type not in ('FeatureImportance', 'Interaction', 'Doc'):
+            raise CatboostError("Invalid feature_importances type = {} : should be one of 'FeatureImportance', 'Interaction', 'Doc'".format(fstr_type))
         if isinstance(X, Pool):
             if X.get_label() is None:
                 raise CatboostError("Label in X has not initialized.")
@@ -618,10 +621,19 @@ class CatBoost(_CatBoostBase):
         else:
             if y is None:
                 raise CatboostError("y has not initialized in feature_importances(): X is not Pool object, y must be not None in feature_importances().")
+            if len(np.shape(X)) == 1:
+                X = [X]
+            if not isinstance(y, Sequence):
+                y = [y]
             X = Pool(X, y, cat_features=cat_features, weight=weight, baseline=baseline)
         if X.is_empty_:
             raise CatboostError("X is empty.")
-        return self._calc_fstr(X, thread_count)
+        fstr = self._calc_fstr(X, fstr_type, thread_count)
+        if fstr_type == 'FeatureImportance':
+            return [value[0] for value in fstr]
+        elif fstr_type == 'Doc':
+            return np.transpose(fstr)
+        return fstr
 
     def save_model(self, fname, format="cbm", export_parameters=None):
         """
@@ -769,7 +781,7 @@ class CatBoostClassifier(CatBoost):
             - 'Forbidden' - raises an exception if there is nan value in dataset.
             - 'Min' - each nan float feature will be processed as minimum value from dataset.
             - 'Max' - each nan float feature will be processed as maximum value from dataset.
-        If None, then nan_mode=Forbidden.
+        If None, then nan_mode=Min.
     counter_calc_method : string, [default=None]
         The method used to calculate counters for dataset with Counter type.
         Possible values:

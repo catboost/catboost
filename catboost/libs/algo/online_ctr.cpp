@@ -415,7 +415,7 @@ void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const T
     ctx->LocalExecutor.ExecRange(calcer, 0, tasks.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-void CalcFinalCtrs(const TModelCtr& ctr,
+void CalcFinalCtrs(const TModelCtrBase& ctr,
                    const TAllFeatures& data,
                    const ui64 learnSampleCount,
                    const yvector<int>& learnPermutation,
@@ -438,14 +438,16 @@ void CalcFinalCtrs(const TModelCtr& ctr,
         topSize,
         &hashArr,
         &result->Hash).first;
-
+    NArrayRef::TArrayRef<int> ctrIntArray;
+    NArrayRef::TArrayRef<TCtrMeanHistory> ctrMean;
     if (ctrType == ECtrType::BinarizedTargetMeanValue) {
-        result->CtrMean.resize(leafCount);
+        ctrMean = result->AllocateBlobAndGetArrayRef<TCtrMeanHistory>(leafCount);
     } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
-        result->CtrTotal.resize(leafCount);
+        ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount);
         result->CounterDenominator = 0;
     } else {
-        result->Ctr.resize(leafCount, yvector<int>(targetClassesCount));
+        result->TargetClassesCount = targetClassesCount;
+        ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount * targetClassesCount);
     }
 
     Y_ASSERT(hashArr.size() == learnSampleCount);
@@ -453,18 +455,18 @@ void CalcFinalCtrs(const TModelCtr& ctr,
     for (ui32 z = 0; z < learnSampleCount; ++z) {
         const ui64 elemId = hashArr[z];
         if (ctrType == ECtrType::BinarizedTargetMeanValue) {
-            TCtrMeanHistory& elem = result->CtrMean[elemId];
+            TCtrMeanHistory& elem = ctrMean[elemId];
             elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
         } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
-            ++result->CtrTotal[elemId];
+            ++ctrIntArray[elemId];
         } else {
-            yvector<int>& elem = result->Ctr[elemId];
+            NArrayRef::TArrayRef<int> elem = MakeArrayRef(ctrIntArray.data() + targetClassesCount * elemId, targetClassesCount);
             ++elem[permutedTargetClass[z]];
         }
     }
 
     if (ctrType == ECtrType::Counter) {
-        result->CounterDenominator = *MaxElement(result->CtrTotal.begin(), result->CtrTotal.end());
+        result->CounterDenominator = *MaxElement(ctrIntArray.begin(), ctrIntArray.end());
     }
     if (ctrType == ECtrType::FeatureFreq) {
         result->CounterDenominator = static_cast<int>(learnSampleCount);

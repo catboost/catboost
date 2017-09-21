@@ -33,6 +33,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ProcessException()
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
+    cdef yvector[yvector[double]] GetFeatureImportances(const TFullModel& model,
+                                                        const TPool& pool,
+                                                        const TString& type,
+                                                        int threadCount) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocInfo:
@@ -183,11 +187,6 @@ cdef extern from "catboost/libs/algo/apply.h":
                                                   int begin,
                                                   int end,
                                                   int threadCount) nogil except +ProcessException
-
-cdef extern from "catboost/libs/algo/calc_fstr.h":
-    cdef yvector[double] CalcRegularFeatureEffect(const TFullModel& model,
-                                                const TPool& pool,
-                                                int threadCount) except +ProcessException
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
@@ -672,8 +671,13 @@ cdef class _CatBoost:
                                 ntree_limit, 1)
         return [[value for value in vec] for vec in pred]
 
-    cpdef _calc_fstr(self, _PoolBase pool, int thread_count):
-        return [value for value in CalcRegularFeatureEffect(dereference(self.__model), dereference(pool.__pool), thread_count)]
+    cpdef _calc_fstr(self, _PoolBase pool, fstr_type, int thread_count):
+        fstr_type = to_binary_str(fstr_type)
+        cdef yvector[yvector[double]] fstr = GetFeatureImportances(dereference(self.__model),
+                                                                    dereference(pool.__pool),
+                                                                    TString(<const char*>fstr_type),
+                                                                    thread_count)
+        return [[value for value in fstr[i]] for i in range(fstr.size())]
 
     cpdef _load_model(self, model_file):
         cdef TFullModel tmp_model
@@ -786,8 +790,8 @@ class _CatBoostBase(object):
     def _base_predict_multi(self, pool, prediction_type, ntree_limit, verbose):
         return self._object._base_predict_multi(pool, prediction_type, ntree_limit, verbose)
 
-    def _calc_fstr(self, pool, thread_count):
-        return self._object._calc_fstr(pool, thread_count)
+    def _calc_fstr(self, pool, fstr_type, thread_count):
+        return self._object._calc_fstr(pool, fstr_type, thread_count)
 
     def _save_model(self, output_file, format, export_parameters):
         if self.is_fitted_:

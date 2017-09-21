@@ -328,7 +328,11 @@ public:
         if (weight != 1) {
             for (int dim = 0; dim < approxDimension; ++dim) {
                 (*der)[dim] *= weight;
-                (*der2)[dim][dim] *= weight;
+            }
+            if (der2 != nullptr) {
+                for (int dim = 0; dim < approxDimension; ++dim) {
+                    (*der2)[dim][dim] *= weight;
+                }
             }
         }
     }

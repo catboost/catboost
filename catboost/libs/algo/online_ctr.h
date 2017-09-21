@@ -50,7 +50,7 @@ struct TCalcOnlineCTRsBatchTask {
 
 void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
 
-void CalcFinalCtrs(const TModelCtr& ctr,
+void CalcFinalCtrs(const TModelCtrBase& ctr,
                    const TAllFeatures& features,
                    const ui64 learnSampleCount,
                    const yvector<int>& learnPermutation,
@@ -60,7 +60,7 @@ void CalcFinalCtrs(const TModelCtr& ctr,
                    bool storeAllSimpleCtr,
                    TCtrValueTable* result);
 
-inline void CalcFinalCtrs(const TModelCtr& ctr,
+inline void CalcFinalCtrs(const TModelCtrBase& ctr,
                           const TTrainData& data,
                           const yvector<int>& learnPermutation,
                           const yvector<int>& permutedTargetClass,

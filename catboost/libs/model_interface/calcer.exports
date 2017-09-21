@@ -2,4 +2,5 @@ C ModelCalcerCreate
 C ModelCalcerDelete
 
 C LoadFullModelFromFile
-C CalcModelPredition
+C CalcModelPrediction
+C CalcModelPredictionFlat

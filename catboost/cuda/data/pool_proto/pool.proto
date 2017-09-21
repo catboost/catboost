@@ -1,0 +1,69 @@
+package NCompressedPool;
+
+enum TFeatureType {
+    Float = 1;
+    Binarized = 2;
+    Categorical = 3;
+}
+
+message TBinarization {
+    repeated float Borders = 1 [packed=true];
+}
+
+message TFloatColumn {
+    repeated float Values = 1 [packed = true];
+}
+
+message TIntegerColumn {
+    repeated uint32 Values = 1 [packed = true];
+}
+
+
+message TBinarizedColumn {
+    required uint64 BitsPerKey = 1 [default = 16];
+    required uint32 Length = 2;
+    repeated fixed64 Data = 3;
+}
+
+
+message TFeatureDescription {
+    required uint32 FeatureId = 1;
+    required TFeatureType FeatureType = 2;
+    optional string FeatureName = 3;
+    optional uint32 ColumnId = 4;
+}
+
+message TFeatureColumn {
+
+    required TFeatureDescription FeatureDescription = 1;
+    optional TBinarization Binarization = 2;//shortcut for float features
+    optional uint32 UniqueValues = 3;
+
+    oneof Column {
+        TFloatColumn FloatColumn = 4;
+        TBinarizedColumn BinarizedColumn = 5;
+    }
+}
+
+//compressed pool is header message TPoolStructure, succeding by column message with data
+message TPoolStructure {
+    required uint32 DocCount = 1;
+    required uint32 FeatureCount = 2;
+
+    required bool DocIdColumn = 3;
+    required bool QueryIdColumn = 4;
+    required bool WeightColumn = 5;
+    required uint32 BaselineColumn = 6 [default = 0];
+}
+
+
+message TCatFeatureBinarization {
+    required TFeatureDescription FeatureDescription = 1;
+    repeated string Keys = 2;
+    repeated uint32 Bins = 3;
+}
+
+message TFloatFeatureBinarization {
+    required TFeatureDescription FeatureDescription = 1;
+    required TBinarization Binarization = 2;
+}

@@ -1,0 +1,105 @@
+#pragma once
+
+#include "target_base.h"
+#include "kernel.h"
+#include "target_options.h"
+#include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_util/dot_product.h>
+#include <catboost/cuda/cuda_util/algorithm.h>
+
+template <class TDocLayout, class TDataSet>
+class TL2: public TPointwiseTarget<TDocLayout, TDataSet> {
+public:
+    using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
+    using TStat = TAdditiveStatistic;
+    using TMapping = TDocLayout;
+    CB_DEFINE_CUDA_TARGET_BUFFERS();
+
+    TL2(const TDataSet& dataSet,
+        TRandom& random,
+        TSlice slice,
+        const TTargetOptions& targetOptions)
+        : TParent(dataSet,
+                  random,
+                  slice,
+                  targetOptions) {
+    }
+
+    TL2(const TL2& target,
+        const TSlice& slice)
+        : TParent(target,
+                  slice) {
+    }
+
+    TL2(const TDataSet& dataSet,
+        TRandom& random,
+        TCudaBuffer<const float, TMapping>&& target,
+        TCudaBuffer<const float, TMapping>&& weights,
+        TCudaBuffer<const ui32, TMapping>&& indices,
+        const TTargetOptions& targetOptions)
+        : TParent(dataSet,
+                  random,
+                  std::move(target),
+                  std::move(weights),
+                  std::move(indices),
+                  targetOptions) {
+    }
+
+    TL2(TL2&& other)
+        : TParent(std::move(other))
+    {
+    }
+
+    using TParent::GetWeights;
+    using TParent::GetTarget;
+    using TParent::GetTotalWeight;
+
+    TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TVec tmp = TVec::CopyMapping(point);
+        tmp.Copy(point);
+        SubtractVector(tmp, GetTarget());
+        auto& weights = GetWeights();
+        const double sum2 = DotProduct(tmp, tmp, &weights);
+        const double weight = GetTotalWeight();
+
+        return TAdditiveStatistic(sum2, weight);
+    }
+
+    static double Score(const TAdditiveStatistic& score) {
+        return sqrt(score.Sum / score.Weight);
+    }
+
+    double Score(const TConstVec& point) {
+        return Score(ComputeStats(point));
+    }
+
+    void GradientAt(const TConstVec& point,
+                    TVec& dst,
+                    ui32 stream = 0) const {
+        Approximate(GetTarget(),
+                    GetWeights(),
+                    point,
+                    nullptr,
+                    &dst,
+                    nullptr,
+                    stream);
+    }
+
+    void Approximate(const TConstVec& target,
+                     const TConstVec& weights,
+                     const TConstVec& point,
+                     TVec* value,
+                     TVec* der,
+                     TVec* der2,
+                     ui32 stream = 0) const {
+        ApproximateMse(target, weights, point, value, der, der2, stream);
+    }
+
+    static constexpr bool IsMinOptimal() {
+        return true;
+    }
+
+    static constexpr TStringBuf TargetName() {
+        return "RMSE";
+    }
+};

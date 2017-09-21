@@ -4,6 +4,8 @@
 
 #include <util/generic/buffer.h>
 
+#include <cstring>
+
 #include "str.h"
 
 SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
@@ -29,5 +31,21 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(input.ReadTo(tmp, 'z'), 7);
         UNIT_ASSERT_VALUES_EQUAL(tmp, "4567890");
+    }
+
+    SIMPLE_UNIT_TEST(Write) {
+        TBuffer buffer;
+        TBufferOutput output(buffer);
+        output << "1" << "22" << "333" << "4444" << "55555";
+
+        UNIT_ASSERT(0 == memcmp(~buffer, "1" "22" "333" "4444" "55555", +buffer));
+    }
+
+    SIMPLE_UNIT_TEST(WriteChars) {
+        TBuffer buffer;
+        TBufferOutput output(buffer);
+        output << '1' << '2' << '3' << '4' << '5' << '6' << '7' << '8' << '9' << '0';
+
+        UNIT_ASSERT(0 == memcmp(~buffer, "1234567890", +buffer));
     }
 }

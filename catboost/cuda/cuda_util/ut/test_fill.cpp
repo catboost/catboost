@@ -1,0 +1,82 @@
+#include <catboost/cuda/cuda_lib/cuda_base.h>
+#include <library/unittest/registar.h>
+#include <iostream>
+#include <thread>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_util/fill.h>
+
+using namespace NCudaLib;
+
+SIMPLE_UNIT_TEST_SUITE(TFillTest) {
+    SIMPLE_UNIT_TEST(TestMakeSequence) {
+        StartCudaManager();
+        {
+            ui64 tries = 100;
+            TRandom rand(0);
+            for (ui32 k = 0; k < tries; ++k) {
+                ui64 size = 2 + rand.NextUniformL() % 1000000;
+                ui32 dev = rand.NextUniformL() % GetDeviceCount();
+                TSingleMapping mapping(dev, size);
+                auto cVec = TCudaBuffer<ui32, TSingleMapping>::Create(mapping);
+                MakeSequence(cVec);
+                yvector<ui32> result;
+                cVec.Read(result);
+
+                for (ui32 i = 0; i < result.size(); ++i) {
+                    UNIT_ASSERT_EQUAL(result[i], i);
+                }
+            }
+
+            for (ui32 k = 0; k < tries; ++k) {
+                ui64 size = 2 + rand.NextUniformL() % 1000000;
+
+                TStripeMapping stripeMapping = TStripeMapping::SplitBetweenDevices(size);
+                auto cVec = TCudaBuffer<ui32, TStripeMapping>::Create(stripeMapping);
+                MakeSequence(cVec);
+                yvector<ui32> result;
+                cVec.Read(result);
+
+                UNIT_ASSERT_EQUAL(result.size(), size);
+
+                for (ui32 devId : cVec.NonEmptyDevices()) {
+                    TSlice devSlice = stripeMapping.DeviceSlice(devId);
+                    for (ui32 i = devSlice.Left; i < devSlice.Right; ++i) {
+                        UNIT_ASSERT_EQUAL(result[i], i - devSlice.Left);
+                    }
+                }
+            }
+        }
+        StopCudaManager();
+    }
+
+    SIMPLE_UNIT_TEST(TestFill) {
+        auto& manager = NCudaLib::GetCudaManager();
+        manager.Start();
+        {
+            ui64 tries = 100;
+            TRandom rand(0);
+            for (ui32 k = 0; k < tries; ++k) {
+                const ui64 size = 2 + rand.NextUniformL() % 1000000;
+                yvector<float> data(size);
+                yvector<float> tmp;
+                std::generate(data.begin(), data.end(), [&]() {
+                    return rand.NextUniform();
+                });
+
+                TStripeMapping mapping = TStripeMapping::SplitBetweenDevices(data.size());
+                auto cudaVec = TCudaBuffer<float, TStripeMapping>::Create(mapping);
+                cudaVec.Write(data);
+                FillBuffer(cudaVec, 1.0f);
+                cudaVec.Read(tmp);
+
+                UNIT_ASSERT_EQUAL(tmp.size(), size);
+                for (ui32 i = 0; i < tmp.size(); ++i) {
+                    UNIT_ASSERT_EQUAL(tmp[i], 1.0f);
+                }
+            }
+        }
+        manager.Stop();
+    }
+}

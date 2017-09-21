@@ -7,6 +7,8 @@ TEST_SRCS(test.py)
 FORK_TESTS()
 FORK_SUBTESTS()
 
+SIZE(MEDIUM)
+
 PEERDIR(
     catboost/pytest/lib
 )

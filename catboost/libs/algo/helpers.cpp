@@ -34,6 +34,7 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
     const size_t threadCount = Min(reasonCount, (ctx->Params.UsedRAMLimit - bytesUsed) / bytesRequiredPerThread);
     CB_ENSURE(ctx->Params.UsedRAMLimit >= bytesUsed && threadCount > 0, "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders");
 
+    TAtomic taskFailedBecauseOfNans = 0;
     auto calcOneFeatureBorder = [&](int idx) {
         const auto floatFeatureIdx = floatIndexes[idx];
 
@@ -59,7 +60,7 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
                 bordersBlock.push_back(std::numeric_limits<float>::max());
             } else {
                 Y_ASSERT(ctx->Params.NanMode == ENanMode::Forbidden);
-                CB_ENSURE(false, "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
+                taskFailedBecauseOfNans = 1;
             }
         }
         (*borders)[idx].swap(bordersBlock);
@@ -67,6 +68,7 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
     size_t nReason = 0;
     for (; nReason + threadCount <= reasonCount; nReason += threadCount) {
         ctx->LocalExecutor.ExecRange(calcOneFeatureBorder, nReason, nReason + threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+        CB_ENSURE(taskFailedBecauseOfNans == 0, "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
     }
     for (; nReason < reasonCount; ++nReason) {
         calcOneFeatureBorder(nReason);

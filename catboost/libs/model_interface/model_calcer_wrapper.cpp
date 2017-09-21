@@ -37,11 +37,23 @@ EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* calcer, const char* filenam
     return true;
 }
 
-EXPORT void CalcModelPredition(ModelCalcerHandle* calcer, size_t docCount, const float** features, size_t featuresSize, double* result, size_t resultSize) {
+EXPORT void CalcModelPredictionFlat(ModelCalcerHandle* calcer, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     yvector<NArrayRef::TConstArrayRef<float>> featuresVec(docCount);
     for (size_t i = 0; i < docCount; ++i) {
-        featuresVec[i] = NArrayRef::TConstArrayRef<float>(features[i], featuresSize);
+        featuresVec[i] = NArrayRef::TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
     }
     CALCER(calcer)->CalcFlat(featuresVec, NArrayRef::TArrayRef<double>(result, resultSize));
+}
+
+void CalcModelPrediction(ModelCalcerHandle* calcer, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, const char*** catFeatures, size_t catFeaturesSize, double* result, size_t resultSize) {
+    yvector<NArrayRef::TConstArrayRef<float>> floatFeaturesVec(docCount);
+    yvector<yvector<TStringBuf>> catFeaturesVec(docCount, yvector<TStringBuf>(catFeaturesSize));
+    for (size_t i = 0; i < docCount; ++i) {
+        floatFeaturesVec[i] = NArrayRef::TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+        for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
+            catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
+        }
+    }
+    CALCER(calcer)->Calc(floatFeaturesVec, catFeaturesVec, NArrayRef::TArrayRef<double>(result, resultSize));
 }
 }

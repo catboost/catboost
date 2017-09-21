@@ -40,33 +40,36 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                 ptrBuckets[docId] = learnCtr.ResolveHashToIndex(ctrHashes[docId]);
             }
             if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
-                auto emptyVal = ctr.Calc(0.f, 0.f);
+                const auto emptyVal = ctr.Calc(0.f, 0.f);
+                auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
                     if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
-                        const TCtrMeanHistory& ctrMeanHistory = learnCtr.CtrMean[ptrBuckets[doc]];
+                        const TCtrMeanHistory& ctrMeanHistory = ctrMean[ptrBuckets[doc]];
                         resultPtr[doc + resultIdx] = ctr.Calc(ctrMeanHistory.Sum, ctrMeanHistory.Count);
                     } else {
                         resultPtr[doc + resultIdx] = emptyVal;
                     }
                 }
             } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
-                int denominator = learnCtr.CounterDenominator;
+                NArrayRef::TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
+                const int denominator = learnCtr.CounterDenominator;
                 auto emptyVal = ctr.Calc(0, denominator);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
                     if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
-                        resultPtr[doc + resultIdx] = ctr.Calc(learnCtr.CtrTotal[ptrBuckets[doc]], denominator);
+                        resultPtr[doc + resultIdx] = ctr.Calc(ctrTotal[ptrBuckets[doc]], denominator);
                     } else {
                         resultPtr[doc + resultIdx] = emptyVal;
                     }
                 }
             } else if (ctrType == ECtrType::Buckets) {
+                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+                const int targetClassesCount = learnCtr.TargetClassesCount;
                 auto emptyVal = ctr.Calc(0, 0);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
                     if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
                         int goodCount = 0;
                         int totalCount = 0;
-                        const yvector<int>& ctrHistory = learnCtr.Ctr[ptrBuckets[doc]];
-                        const int targetClassesCount = ctrHistory.ysize();
+                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
                         goodCount = ctrHistory[ctr.TargetBorderIdx];
                         for (int classId = 0; classId < targetClassesCount; ++classId) {
                             totalCount += ctrHistory[classId];
@@ -77,14 +80,16 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                     }
                 }
             } else {
-                const int targetClassesCount = learnCtr.Ctr[0].ysize();
+                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+                const int targetClassesCount = learnCtr.TargetClassesCount;
+
                 auto emptyVal = ctr.Calc(0, 0);
                 if (targetClassesCount > 2) {
                     for (size_t doc = 0; doc < samplesCount; ++doc) {
                         int goodCount = 0;
                         int totalCount = 0;
                         if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
-                            const int* ctrHistory = learnCtr.Ctr[ptrBuckets[doc]].data();
+                            auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
                             for (int classId = 0; classId < ctr.TargetBorderIdx + 1; ++classId) {
                                 totalCount += ctrHistory[classId];
                             }
@@ -98,7 +103,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                 } else {
                     for (size_t doc = 0; doc < samplesCount; ++doc) {
                         if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
-                            const int* ctrHistory = &learnCtr.CtrTotal[ptrBuckets[doc] * 2];
+                            const int* ctrHistory = &ctrIntArray[ptrBuckets[doc] * 2];
                             resultPtr[doc + resultIdx] = ctr.Calc(ctrHistory[1], ctrHistory[0] + ctrHistory[1]);
                         } else {
                             resultPtr[doc + resultIdx] = emptyVal;

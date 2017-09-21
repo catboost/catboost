@@ -81,7 +81,7 @@ bool ToLowerUTF8Impl(const char* beg, size_t n, TString& newString) {
     size_t destSpace = n - written;
 
     //before each iteration (including the first one) variable 'cNew' contains unwritten symbol
-    while (1) {
+    while (true) {
         size_t cNewLen;
         Y_ASSERT((writePtr - ~newString) + destSpace == +newString);
         if (RECODE_EOOUTPUT == SafeWriteUTF8Char(cNew, cNewLen, (unsigned char*)writePtr, destSpace)) {

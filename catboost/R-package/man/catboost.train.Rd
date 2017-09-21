@@ -292,7 +292,7 @@ Possible values:
 
 Default value:
 
-\code{'Forbidden'}
+\code{'Min'}
 
 \item od_pval
 

@@ -29,6 +29,7 @@ RECURSE(
     json/fuzzy_test
     json/ut
     json/writer/ut
+    json/yson
     lcs
     lcs/ut
     lfalloc
@@ -40,6 +41,7 @@ RECURSE(
     logger/global
     logger/global/ut
     malloc
+    protobuf
     python
     resource
     resource/ut

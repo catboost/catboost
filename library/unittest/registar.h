@@ -484,7 +484,9 @@ public:                       \
                 UNIT_ASSERT_C(CurrentExceptionMessage()        \
                               .Contains(_substr),              \
                               "Exception doesn't contain \""   \
-                              << _substr << "\"");             \
+                              << _substr << "\".\n"            \
+                              << "Exception message: "         \
+                              << CurrentExceptionMessage());   \
             }                                                  \
         } catch (...) {                                        \
             _thrown = true;                                    \

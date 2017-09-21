@@ -42,6 +42,60 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\app\catboost.vcxproj">
       <Project>F5E5CE4E-6D98-67E2-8A01-37BFA83D2DE3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\app\cb_cuda.vcxproj">
+      <Project>CC08883D-9C83-00CA-F7B2-C10BC80FE8BC</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
+      <Project>25AC1B6D-6F5F-550C-B8D7-D7E344784C2E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\catboost-cuda-ctrs.vcxproj">
+      <Project>07ECC93E-2BA3-7E0C-C328-28501ED2E5A3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\ut\ctrs_ut.vcxproj">
+      <Project>BE19711F-9193-1989-1964-FB77507F0A3E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\catboost-cuda-cuda_lib.vcxproj">
+      <Project>8F0089E7-CD22-2D41-938B-A9A7A3319AE7</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\ut\cuda_lib_ut.vcxproj">
+      <Project>FF28825A-C354-F653-BADC-814AEB962C6D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\catboost-cuda-cuda_util.vcxproj">
+      <Project>46C6451F-4D82-1C63-28D4-7F5FD766784A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\ut\cuda_util_ut.vcxproj">
+      <Project>EDD1DCFA-46CC-D3F3-E79E-E0F9A77FE218</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
+      <Project>7A8B786E-2597-9616-5F4E-B17CEE2501EE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\pool_proto\cuda-data-pool_proto.vcxproj">
+      <Project>776C0F6C-4CE0-51A1-3D4F-E1EE7385FA28</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\catboost-cuda-gpu_data.vcxproj">
+      <Project>4FE35BB1-F43A-39F4-9770-E9463DC3D595</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\ut\gpu_data_test.vcxproj">
+      <Project>EABF487D-452C-F771-C854-521DDA050828</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\catboost-cuda-methods.vcxproj">
+      <Project>B414E7D1-BF71-311C-0E2C-D6B4527D7528</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\ut\method_tests.vcxproj">
+      <Project>C0586287-04FE-545A-5E6E-BF40B282E8A8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
+      <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\targets.vcxproj">
+      <Project>59D63632-46B4-5714-3BC2-5664B8ADDC73</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\tsv_to_proto_converter\tsv_to_proto_converter.vcxproj">
+      <Project>40A3F677-3904-81F5-833E-7516775024CC</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ut_helpers\ut_helpers.vcxproj">
+      <Project>FDD25008-369E-2F3A-AB2B-AAE786EA08BE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
     </ProjectReference>
@@ -78,8 +132,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
       <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\catboostmodel.vcxproj">
-      <Project>4D7E3A2D-8534-FF5D-5F6B-AFAF877D2578</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\libcatboostmodel.vcxproj">
+      <Project>D4209663-15EB-94C8-7ABF-349458922BEB</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
@@ -141,6 +195,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
       <Project>1EE751F2-33FA-3640-4C59-F20313BE143E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
+      <Project>E6D0934F-A141-5DB0-60FA-6BD719540061</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
     </ProjectReference>
@@ -173,6 +230,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nvidia\cudalib\libs-nvidia-cudalib.vcxproj">
+      <Project>6A572681-D04A-51FF-5E85-183AAAF3B1FF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
@@ -416,6 +476,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>EB1297E8-310F-2F45-45A8-54D412024564</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>CF2582C4-C4A1-875F-6897-27B28FB8018A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854</Project>

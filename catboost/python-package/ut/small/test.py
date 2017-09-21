@@ -15,6 +15,10 @@ TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
 CD_FILE = data_file('adult', 'train.cd')
 
+NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
+NAN_TEST_FILE = data_file('adult_nan', 'test_small')
+NAN_CD_FILE = data_file('adult_nan', 'train.cd')
+
 CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
@@ -45,7 +49,7 @@ def _check_shape(pool):
 
 
 def _check_data(data1, data2):
-    return np.all(np.isclose(data1, data2, rtol=0.001))
+    return np.all(np.isclose(data1, data2, rtol=0.001, equal_nan=True))
 
 
 def test_load_file():
@@ -69,8 +73,8 @@ def test_load_ndarray():
 
 
 def test_load_df():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    data = read_table(TRAIN_FILE, header=None)
+    pool = Pool(NAN_TRAIN_FILE, column_description=NAN_CD_FILE)
+    data = read_table(NAN_TRAIN_FILE, header=None)
     label = DataFrame(data.iloc[:, TARGET_IDX])
     data.drop([TARGET_IDX], axis=1, inplace=True)
     cat_features = pool.get_cat_feature_indices()
@@ -200,9 +204,12 @@ def test_save_model():
 
 def test_multiclass():
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function='MultiClass', thread_count=8)
-    model.fit(pool)
-    pred = model.predict_proba(pool)
+    classifier = CatBoostClassifier(iterations=2, random_seed=0, loss_function='MultiClass', thread_count=8)
+    classifier.fit(pool)
+    classifier.save_model(OUTPUT_MODEL_PATH)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(OUTPUT_MODEL_PATH)
+    pred = new_classifier.predict_proba(pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
 
@@ -546,6 +553,30 @@ def test_feature_importance():
     model = CatBoostClassifier(iterations=5, random_seed=0)
     model.fit(pool)
     np.save(FIMP_PATH, np.array(model.feature_importances_))
+    return local_canonical_file(FIMP_PATH)
+
+
+def test_interaction_feature_importance():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='Interaction')))
+    return local_canonical_file(FIMP_PATH)
+
+
+def test_doc_feature_importance():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='Doc')))
+    return local_canonical_file(FIMP_PATH)
+
+
+def test_one_doc_feature_importance():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_PATH, np.array(model.get_feature_importance(np.ones(pool.num_col(), dtype=int), 0, cat_features=pool.get_cat_feature_indices(), fstr_type='Doc')))
     return local_canonical_file(FIMP_PATH)
 
 

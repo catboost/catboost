@@ -6,7 +6,6 @@
 // Source Licenses. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-
 #include "vector"
 
 _LIBCPP_BEGIN_NAMESPACE_STD

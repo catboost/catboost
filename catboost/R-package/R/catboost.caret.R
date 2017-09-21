@@ -99,7 +99,7 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
         tmp <- vector(mode = "list", length = nrow(submodels) + 1)
         tmp[[1]] <- prediction
         for(j in seq(along = submodels$iterations)) {
-            tmp_pred <- catboost.predict(modelFit, pool, prediction_type = pred_type, tree_count_limit = submodels$iterations[j])
+            tmp_pred <- catboost.predict(modelFit, pool, prediction_type = pred_type, ntree_end = submodels$iterations[j])
             if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
                 tmp_pred <- modelFit$lev[tmp_pred + 1]
             }
@@ -135,7 +135,7 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
         tmp <- vector(mode = "list", length = nrow(submodels) + 1)
         tmp[[1]] <- prediction
         for(j in seq(along = submodels$iterations)) {
-            tmp_pred <- catboost.predict(modelFit, pool, prediction_type = "Probability", tree_count_limit = submodels$iterations[j])
+            tmp_pred <- catboost.predict(modelFit, pool, prediction_type = "Probability", ntree_end = submodels$iterations[j])
             if (is.matrix(tmp_pred)) {
                 colnames(tmp_pred) <- modelFit$lev
                 tmp_pred <- as.data.frame(tmp_pred)

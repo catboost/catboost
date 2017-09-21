@@ -1,0 +1,4 @@
+RECURSE(
+    protofile
+    protofile/ut
+)

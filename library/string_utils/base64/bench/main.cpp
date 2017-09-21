@@ -106,6 +106,20 @@ static inline void BenchEncode(T& d, const NBench::NCpu::TParams& iface) {
 }
 
 template <typename T>
+static inline void BenchEncodeUrl(T& d, const NBench::NCpu::TParams& iface) {
+    for (const auto it : xrange(iface.Iterations())) {
+        Y_UNUSED(it);
+        for (size_t i = 0; i < d.Size; ++i) {
+            NBench::Escape(~d.PlaceToEncode[i]);
+            Y_DO_NOT_OPTIMIZE_AWAY(
+                Base64EncodeUrl(~d.PlaceToEncode[i], (const unsigned char*)~d.Data[i], +d.Data[i])
+            );
+            NBench::Clobber();
+        }
+    }
+}
+
+template <typename T>
 static inline void BenchDecode(T& d, const NBench::NCpu::TParams& iface) {
     for (const auto it : xrange(iface.Iterations())) {
         Y_UNUSED(it);
@@ -247,4 +261,69 @@ Y_CPU_BENCHMARK(EncodeF10485760, iface) {
 Y_CPU_BENCHMARK(DecodeF10485760, iface) {
     auto& d = *Singleton<FSRDH_10485760>();
     BenchDecode(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF1, iface) {
+    auto& d = *Singleton<FSRDH_1>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF2, iface) {
+    auto& d = *Singleton<FSRDH_2>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF4, iface) {
+    auto& d = *Singleton<FSRDH_4>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF8, iface) {
+    auto& d = *Singleton<FSRDH_8>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF16, iface) {
+    auto& d = *Singleton<FSRDH_16>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF32, iface) {
+    auto& d = *Singleton<FSRDH_32>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF64, iface) {
+    auto& d = *Singleton<FSRDH_64>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF128, iface) {
+    auto& d = *Singleton<FSRDH_128>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF1024, iface) {
+    auto& d = *Singleton<FSRDH_1024>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF10240, iface) {
+    auto& d = *Singleton<FSRDH_10240>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF102400, iface) {
+    auto& d = *Singleton<FSRDH_102400>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF1048576, iface) {
+    auto& d = *Singleton<FSRDH_1048576>();
+    BenchEncodeUrl(d, iface);
+}
+
+Y_CPU_BENCHMARK(EncodeUrlF10485760, iface) {
+    auto& d = *Singleton<FSRDH_10485760>();
+    BenchEncodeUrl(d, iface);
 }

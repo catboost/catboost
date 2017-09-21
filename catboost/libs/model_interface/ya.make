@@ -10,4 +10,8 @@ SRCS(
     model_calcer_wrapper.cpp
 )
 
+IF (OS_WINDOWS)
+CFLAGS(-D_WINDLL)
+ENDIF()
+
 END()

@@ -5,16 +5,13 @@
 
 struct TStaticCtrProvider: public ICtrProvider {
 public:
-    TStaticCtrProvider(TCtrData&& ctrData)
+    explicit TStaticCtrProvider(TCtrData&& ctrData)
         : CtrData(std::move(ctrData))
-    {
-        ReFill();
-    }
-    TStaticCtrProvider(const TCtrData& ctrData)
+    {}
+
+    explicit TStaticCtrProvider(const TCtrData& ctrData)
         : CtrData(ctrData)
-    {
-        ReFill();
-    }
+    {}
 
     void CalcCtrs(
         const yvector<TModelCtr>& neededCtrs,
@@ -25,22 +22,5 @@ public:
         NArrayRef::TArrayRef<float> result) override;
 
 private:
-    void ReFill() {
-        for (auto& ctr_value : CtrData.LearnCtrs) {
-            auto& val = ctr_value.second;
-            if (val.Ctr.empty()) {
-                continue;
-            }
-            val.CtrTotal.resize(val.Ctr.size() * val.Ctr[0].size());
-            auto ptr = val.CtrTotal.data();
-            for (size_t i = 0; i < val.Ctr.size(); ++i) {
-                for (size_t j = 0; j < val.Ctr[i].size(); ++j) {
-                    *ptr = val.Ctr[i][j];
-                    ++ptr;
-                }
-            }
-            //val.Ctr.clear();
-        }
-    }
     TCtrData CtrData;
 };

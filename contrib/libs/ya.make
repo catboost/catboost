@@ -16,6 +16,7 @@ RECURSE(
     lz4/generated
     lzmasdk
     nayuki_md5
+    nvidia
     openssl
     openssl/apps
     openssl/dynamic

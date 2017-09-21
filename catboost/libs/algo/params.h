@@ -137,7 +137,7 @@ public:
     // TODO(annaveronika): remove LossFunction.
     ELossFunction LossFunction;
     bool StoreExpApprox;
-    ENanMode NanMode = ENanMode::Forbidden;
+    ENanMode NanMode = ENanMode::Min;
     TString Objective = ToString<ELossFunction>(ELossFunction::RMSE);
     TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
 

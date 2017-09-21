@@ -190,7 +190,7 @@
 #include <util/draft/holder_vector.h>
 #include <util/generic/object_counter.h>
 #include <util/draft/datetime.h>
-#include <util/draft/estimators.h>
+#include <library/deprecated/estimators/estimators.h>
 #include <util/draft/parse_utils.h>
 #include <util/network/netloss.h>
 #include <util/draft/enum_codegen.h>

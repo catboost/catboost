@@ -40,21 +40,7 @@ size_t TCgiParameters::EraseAll(const TStringBuf name) {
     return num;
 }
 
-void TCgiParameters::ReplaceUnescaped(const TStringBuf key, const TStringBuf val) {
-    const auto pair = equal_range(key);
-    auto it = pair.first;
-
-    if (it == pair.second) { // not found
-        emplace_hint(it, TString(key), TString(val));
-    } else {
-        it->second = val;
-
-        for (++it; it != pair.second; erase(it++))
-            ;
-    }
-}
-
-void TCgiParameters::JoinUnescaped(const TStringBuf key, TStringBuf sep, TStringBuf val) {
+void TCgiParameters::JoinUnescaped(const TStringBuf key, char sep, TStringBuf val) {
     const auto pair = equal_range(key);
     auto it = pair.first;
 

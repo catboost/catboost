@@ -1802,6 +1802,16 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "lcov_cobertura": {
+            "tools": {
+                "lcov_cobertura": { "bottle": "lcov_cobertura", "executable": "lcov_cobertura" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "uber_jar": {
             "tools": {
                 "uber_jar": { "bottle": "uber_jar" }
@@ -1930,7 +1940,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 149540003,
+                "sandbox_id": 151782345,
                 "match": "YMake"
             },
             "executable": {
@@ -1948,7 +1958,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 148956810,
+                "sandbox_id": 152257016,
                 "match": "test_tool"
             },
             "executable": {
@@ -1957,7 +1967,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 148956171,
+                "sandbox_id": 150035627,
                 "match": "coverage_uploader"
             },
             "executable": {
@@ -2093,7 +2103,7 @@
         },
         "clang39": {
             "formula": {
-                "sandbox_id": [127828138, 127490348],
+                "sandbox_id": [127828138, 151982980],
                 "match": "CLANG"
             },
             "executable": {
@@ -2166,6 +2176,15 @@
                 "gcovr": ["gcovr"]
             }
         },
+        "lcov_cobertura": {
+            "formula": {
+                "sandbox_id": [151814389],
+                "match": "lcov_cobertura"
+            },
+            "executable": {
+                "lcov_cobertura": ["lcovcob"]
+            }
+        },
         "uber_jar": {
             "formula": {
                 "sandbox_id": [147123506],
@@ -2231,7 +2250,7 @@
         },
         "pyndexer": {
             "formula": {
-                "sandbox_id": 149663685,
+                "sandbox_id": 149949165,
                 "match": "PYNDEXER"
             },
             "executable": {

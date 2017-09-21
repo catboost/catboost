@@ -11,18 +11,37 @@
 #include <util/system/mutex.h>
 #include <util/stream/file.h>
 
-struct TCtrValueTable {
+class TCtrValueTable {
+public:
     TDenseHash<ui64, ui32> Hash;
 
-    yvector<yvector<int>> Ctr;
-    yvector<TCtrMeanHistory> CtrMean;
-    yvector<int> CtrTotal;
     int CounterDenominator = 0;
+    int TargetClassesCount = 0;
+
+
+    template<typename T>
+    NArrayRef::TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
+        return MakeArrayRef(
+            reinterpret_cast<const T*>(CTRBlob.data()),
+            CTRBlob.size() / sizeof(T)
+        );
+    }
+
+    template<typename T>
+    NArrayRef::TArrayRef<T> AllocateBlobAndGetArrayRef(size_t elementCount) {
+        CTRBlob.resize(elementCount * sizeof(T));
+        std::fill(CTRBlob.begin(), CTRBlob.end(), 0);
+        return MakeArrayRef(
+            reinterpret_cast<T*>(CTRBlob.data()),
+            elementCount
+        );
+    }
 
     bool operator==(const TCtrValueTable& other) const {
-        return std::tie(Hash, Ctr, CtrMean, CtrTotal, CounterDenominator) ==
-               std::tie(other.Hash, other.Ctr, other.CtrMean, other.CtrTotal, other.CounterDenominator);
+        return std::tie(Hash, CTRBlob, CounterDenominator, TargetClassesCount) ==
+               std::tie(other.Hash, other.CTRBlob, other.CounterDenominator, other.TargetClassesCount);
     }
+
     static const ui64 UnknownHash = (ui64)-1;
 
     inline ui64 ResolveHashToIndex(ui64 hash) const {
@@ -32,11 +51,15 @@ struct TCtrValueTable {
         }
         return UnknownHash;
     }
-    Y_SAVELOAD_DEFINE(Hash, Ctr, CtrMean, CtrTotal, CounterDenominator)
+
+    Y_SAVELOAD_DEFINE(Hash, CTRBlob, CounterDenominator, TargetClassesCount)
+
+private:
+    yvector<ui8> CTRBlob;
 };
 
 struct TCtrData {
-    using TLearnCtrHash = yhash<TModelCtr, TCtrValueTable>;
+    using TLearnCtrHash = yhash<TModelCtrBase, TCtrValueTable>;
     TLearnCtrHash LearnCtrs;
 
     bool operator==(const TCtrData& other) const {
@@ -59,7 +82,7 @@ struct TCtrData {
         LearnCtrs.reserve(cnt);
 
         for (size_t i = 0; i != cnt; ++i) {
-            std::pair<TModelCtr, TCtrValueTable> kv;
+            std::pair<TModelCtrBase, TCtrValueTable> kv;
             ::Load(s, kv);
             LearnCtrs.emplace(std::move(kv));
         }
@@ -91,7 +114,8 @@ struct TCoreModel {
     yhash<TString, TString> ModelInfo;
 
     bool operator==(const TCoreModel& other) const {
-        return std::tie(Borders, TreeStruct, LeafValues, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo) == std::tie(other.Borders, other.TreeStruct, other.LeafValues, other.CatFeatures, other.FeatureIds, other.FeatureCount, other.TargetClassifiers, other.ModelInfo);
+        return std::tie(HasNans, Borders, TreeStruct, LeafValues, CatFeatures, FeatureIds, FeatureCount, ApproxDimension, TargetClassifiers, ModelInfo) ==
+               std::tie(other.HasNans, other.Borders, other.TreeStruct, other.LeafValues, other.CatFeatures, other.FeatureIds, other.FeatureCount, other.ApproxDimension, other.TargetClassifiers, other.ModelInfo);
     }
 
     bool operator!=(const TCoreModel& other) const {
@@ -99,17 +123,19 @@ struct TCoreModel {
     }
 
     void Swap(TCoreModel& other) {
+        DoSwap(HasNans, other.HasNans);
         DoSwap(Borders, other.Borders);
         DoSwap(TreeStruct, other.TreeStruct);
         DoSwap(LeafValues, other.LeafValues);
         DoSwap(CatFeatures, other.CatFeatures);
         DoSwap(FeatureIds, other.FeatureIds);
         DoSwap(FeatureCount, other.FeatureCount);
+        DoSwap(ApproxDimension, other.ApproxDimension);
         DoSwap(TargetClassifiers, other.TargetClassifiers);
         DoSwap(ModelInfo, other.ModelInfo);
     }
 
-    Y_SAVELOAD_DEFINE(TreeStruct, LeafValues, Borders, CatFeatures, FeatureIds, FeatureCount, TargetClassifiers, ModelInfo, ApproxDimension)
+    Y_SAVELOAD_DEFINE(HasNans, Borders, TreeStruct, LeafValues, CatFeatures, FeatureIds, FeatureCount, ApproxDimension, TargetClassifiers, ModelInfo)
 };
 
 struct TFullModel: public TCoreModel {
@@ -166,7 +192,7 @@ public:
         ::SaveSize(&Stream, ExpectedWritesCount);
     }
 
-    void SaveOneCtr(const TModelCtr& ctr, const TCtrValueTable& valTable) {
+    void SaveOneCtr(const TModelCtrBase& ctr, const TCtrValueTable& valTable) {
         with_lock (StreamLock) {
             ++WritesCount;
             ::SaveMany(&Stream, ctr, valTable);

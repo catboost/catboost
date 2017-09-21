@@ -1,0 +1,6 @@
+message TProtoTest {
+    optional uint32 Version = 1;
+    repeated bytes Blob = 2;
+    repeated float Factors = 3 [packed=true];
+    required fixed64 Hash = 4;
+}

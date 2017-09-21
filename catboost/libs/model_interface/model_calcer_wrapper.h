@@ -22,7 +22,11 @@ EXPORT ModelCalcerHandle* ModelCalcerCreate();
 EXPORT void ModelCalcerDelete(ModelCalcerHandle* calcer);
 
 EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* calcer, const char* filename);
-EXPORT void CalcModelPredition(ModelCalcerHandle* calcer, size_t docCount, const float** features, size_t featuresSize, double* result, size_t resultSize);
+EXPORT void CalcModelPredictionFlat(ModelCalcerHandle* calcer, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize);
+EXPORT void CalcModelPrediction(ModelCalcerHandle* calcer, size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    double* result, size_t resultSize);
 
 #if defined(__cplusplus)
 }

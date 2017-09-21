@@ -669,7 +669,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       \code{'Forbidden'}
+#'       \code{'Min'}
 #'
 #'     \item od_pval
 #'
@@ -1192,9 +1192,12 @@ catboost.save_model <- function(model, model_path) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_limit The number of trees from the model to use when applying. If specified, the first <value> trees are used.
+#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
-#' Default value: 0 (if value equals to 0 this parameter is ignored and all trees from the model are used)
+#' Default value: 0
+#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#'
+#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
 #' @param thread_count The number of threads to use when applying the model.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
@@ -1204,15 +1207,14 @@ catboost.save_model <- function(model, model_path) {
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = 'RawFormulaVal',
-                             ntree_limit = 0, thread_count = 1) {
+                             ntree_start = 0, ntree_end = 0, thread_count = 1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
 
-    params <- catboost.get_model_params(model)
     prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
-                        verbose, prediction_type, ntree_limit, thread_count)
+                        verbose, prediction_type, ntree_start, ntree_end, thread_count)
     prediction_columns <- length(prediction) / nrow(pool)
     if (prediction_columns != 1) {
         prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
@@ -1247,6 +1249,15 @@ catboost.predict <- function(model, pool,
 #' }
 #'
 #' Default value: 'RawFormulaVal'
+#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
+#' @param eval_period Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 1
 #' @param thread_count The number of threads to use when applying the model.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
@@ -1254,19 +1265,30 @@ catboost.predict <- function(model, pool,
 #' Default value: 1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
-catboost.staged_predict <- function(model, pool, verbose = FALSE,
-                                    prediction_type = 'RawFormulaVal', thread_count = 1) {
+catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = 'RawFormulaVal',
+                                    ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = 1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (ntree_end == 0)
+        ntree_end = model$tree_count
 
-    current_tree_count <- 0
+    current_tree_count <- ntree_start
+    approx <- 0
     preds <- function() {
-      current_tree_count <<- current_tree_count + 1
-      if (current_tree_count > model$tree_count)
-          stop('StopIteration')
-      catboost.predict(model, pool, verbose, prediction_type, current_tree_count, thread_count)
+        current_tree_count <<- current_tree_count + eval_period
+        if (current_tree_count - eval_period >= ntree_end)
+            stop('StopIteration')
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
+                                         verbose, 'RawFormulaVal', current_tree_count - eval_period, min(current_tree_count, ntree_end), thread_count))
+        approx <<- approx + current_approx
+        prediction_columns <- length(approx) / nrow(pool)
+        prediction <- .Call("CatBoostPrepareEval_R", approx, prediction_type, prediction_columns, thread_count)
+        if (prediction_columns != 1) {
+            prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
+        }
+        return(prediction)
     }
 
     obj <- list(nextElem = preds)
@@ -1324,7 +1346,6 @@ catboost.ntrees <- function(model) {
     num_trees <- .Call("CatBoostPoolNumTrees_R", model$handle)
     return(num_trees)
 }
-
 
 
 #' Model parameters

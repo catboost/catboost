@@ -166,7 +166,7 @@ namespace NCatBoost {
             yvector<int>& transposedHash,
             size_t& currentBinIndex) const {
             for (const auto& oheFeature : UsedOHEFeatures) {
-                auto catIdx = CatFeatureFlatIndex[oheFeature.CatFeatureIndex];
+                const auto catIdx = oheFeature.CatFeatureIndex;
                 for (size_t docId = 0; docId < docCount; ++docId) {
                     const auto val = transposedHash[catIdx * docCount + docId];
                     auto writeIdx = docId + currentBinIndex;

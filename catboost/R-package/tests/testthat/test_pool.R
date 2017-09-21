@@ -7,7 +7,7 @@ train_and_predict <- function(pool_train, pool_test, iterations, params) {
   catboost_model <- catboost.train(pool_train, pool_test, params = params)
   prediction <- catboost.predict(catboost_model, pool_test,
                                  prediction_type = "Probability",
-                                 ntree_limit = iterations)
+                                 ntree_end = iterations)
   return(prediction)
 }
 

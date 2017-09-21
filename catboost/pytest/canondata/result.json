@@ -79,10 +79,16 @@
             "uri": "file://test.test_class_names_logloss/test.eval"
         }
     ],
-    "test.test_class_names_multiclass": [
+    "test.test_class_names_multiclass[MultiClassOneVsAll]": [
+        {
+            "checksum": "79688265a3f8ff6604eba6a386f7ec5d",
+            "uri": "file://test.test_class_names_multiclass_MultiClassOneVsAll_/test.eval"
+        }
+    ],
+    "test.test_class_names_multiclass[MultiClass]": [
         {
             "checksum": "fac9f612e28adf32ca2d160e1ec76de2",
-            "uri": "file://test.test_class_names_multiclass/test.eval"
+            "uri": "file://test.test_class_names_multiclass_MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_logloss": [
@@ -91,10 +97,16 @@
             "uri": "file://test.test_class_weight_logloss/test.eval"
         }
     ],
-    "test.test_class_weight_multiclass": [
+    "test.test_class_weight_multiclass[MultiClassOneVsAll]": [
+        {
+            "checksum": "4ea1d38920679f44652545bce749a1eb",
+            "uri": "file://test.test_class_weight_multiclass_MultiClassOneVsAll_/test.eval"
+        }
+    ],
+    "test.test_class_weight_multiclass[MultiClass]": [
         {
             "checksum": "e76763b18354d2a6565c5c4485e57001",
-            "uri": "file://test.test_class_weight_multiclass/test.eval"
+            "uri": "file://test.test_class_weight_multiclass_MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class": [

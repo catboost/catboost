@@ -17,11 +17,11 @@
 void SplitStroku(yvector<TString>* res, const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0);
 void SplitStroku(yvector<TString>* res, const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0);
 
-void SplitStrokuBySet(yvector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
-void SplitStrokuBySet(yvector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(yvector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(yvector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
 
-void SplitStrokuBySet(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
-void SplitStrokuBySet(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
 
 inline void SplitStroku(yvector<TString>* res, const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
     SplitStroku(res, ~str, +str, delimiter, maxFields, options);
@@ -50,15 +50,15 @@ inline yvector<TString> splitStroku(const TString& str, const char* delimiter, s
     return splitStroku(~str, +str, delimiter, maxFields, options);
 }
 
-inline yvector<TString> splitStrokuBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
+inline yvector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
     yvector<TString> res;
-    SplitStrokuBySet(&res, ptr, delimiters, maxFields, options);
+    SplitStringBySet(&res, ptr, delimiters, maxFields, options);
     return res;
 }
 
-inline yvector<TString> splitStrokuBySet(const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0) {
+inline yvector<TString> SplitStringBySet(const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0) {
     yvector<TString> res;
-    SplitStrokuBySet(&res, ptr, len, delimiters, maxFields, options);
+    SplitStringBySet(&res, ptr, len, delimiters, maxFields, options);
     return res;
 }
 

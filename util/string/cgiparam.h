@@ -85,12 +85,21 @@ public:
     }
 #endif
 
-    // will replace one or more values with a single one
-    void ReplaceUnescaped(const TStringBuf key, const TStringBuf val);
+    // replace all values for a given key with new values
+    template <typename TIter>
+    void ReplaceUnescaped(const TStringBuf key, TIter valuesBegin, const TIter valuesEnd);
 
-    // will join multiple values into a single one using a separator
+    void ReplaceUnescaped(const TStringBuf key, std::initializer_list<TStringBuf> values) {
+        ReplaceUnescaped(key, values.begin(), values.end());
+    }
+
+    void ReplaceUnescaped(const TStringBuf key, const TStringBuf value) {
+        ReplaceUnescaped(key, { value });
+    }
+
+    // join multiple values into a single one using a separator
     // if val is a [possibly empty] non-NULL string, append it as well
-    void JoinUnescaped(const TStringBuf key, TStringBuf sep, TStringBuf val = TStringBuf());
+    void JoinUnescaped(const TStringBuf key, char sep, TStringBuf val = TStringBuf());
 
     bool Erase(const TStringBuf name, size_t numOfValue = 0);
 
@@ -104,3 +113,24 @@ public:
         return ~it->second;
     }
 };
+
+template <typename TIter>
+void TCgiParameters::ReplaceUnescaped(const TStringBuf key, TIter valuesBegin, const TIter valuesEnd) {
+    const auto oldRange = equal_range(key);
+    auto current = oldRange.first;
+
+    // reuse as many existing nodes as possible (probably none)
+    for ( ; valuesBegin != valuesEnd && current != oldRange.second; ++valuesBegin, ++current) {
+        current->second = *valuesBegin;
+    }
+
+    // if there were more nodes than we need to insert then erase remaining ones
+    for ( ; current != oldRange.second; erase(current++)) {
+    }
+
+    // if there were less nodes than we need to insert then emplace the rest of the range
+    const TString keyStr = TString(key);
+    for ( ; valuesBegin != valuesEnd; ++valuesBegin) {
+        emplace_hint(oldRange.second, keyStr, TString(*valuesBegin));
+    }
+}

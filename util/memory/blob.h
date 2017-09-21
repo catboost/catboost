@@ -205,6 +205,12 @@ public:
     /// Creates a locked blob with a multi-threaded (atomic) refcounter. It maps the file content as data.
     static TBlob LockedFromFile(const TFile& file);
 
+    /// Creates a locked blob with a single-threaded (non atomic) refcounter from the mapped memory.
+    static TBlob LockedFromMemoryMapSingleThreaded(const TMemoryMap& map, ui64 offset, size_t length);
+
+    /// Creates a locked blob with a multi-threaded (atomic) refcounter from the mapped memory.
+    static TBlob LockedFromMemoryMap(const TMemoryMap& map, ui64 offset, size_t length);
+
     /// Creates a blob with a single-threaded (non atomic) refcounter from the mapped memory.
     static TBlob FromMemoryMapSingleThreaded(const TMemoryMap& map, ui64 offset, size_t length);
 

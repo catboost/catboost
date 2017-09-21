@@ -88,35 +88,47 @@ static_assert(Y_ARRAY_SIZE(base64_bkw) == 256, "wrong size");
 // Base64 for url encoding, RFC3548
 static const char base64_etab_url[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
+static inline unsigned char GetBase64EncodedIndex0(unsigned char octet0) {
+    return (octet0 >> 2);
+}
+
+static inline unsigned char GetBase64EncodedIndex1(unsigned char octet0, unsigned char octet1) {
+    return (((octet0 << 4) & 0x30) | ((octet1 >> 4) & 0x0f));
+}
+
+static inline unsigned char GetBase64EncodedIndex2(unsigned char octet1, unsigned char octet2) {
+    return (((octet1 << 2) & 0x3c) | ((octet2 >> 6) & 0x03));
+}
+
+static inline unsigned char GetBase64EncodedIndex3(unsigned char octet2) {
+    return (octet2 & 0x3f);
+}
+
 template <bool urlVersion>
 static inline char* Base64EncodeImpl(char* outstr, const unsigned char* instr, size_t len) {
-    const char* base64_etab = (urlVersion ? base64_etab_url : base64_etab_std);
-    const char last = (urlVersion ? ',' : '=');
+    const char* const base64_etab = (urlVersion ? base64_etab_url : base64_etab_std);
+    const char pad = (urlVersion ? ',' : '=');
 
     size_t idx = 0;
 
-    while (idx < len) {
-        if (idx % 3 == 0) {
-            *outstr++ = base64_etab[(int)(instr[idx] >> 2)];
-        } else if (idx % 3 == 1) {
-            *outstr++ = base64_etab[(int)(((instr[idx - 1] << 4) & 0x30) | ((instr[idx] >> 4) & 0x0f))];
-            char c3 = idx + 1 < len ? instr[idx + 1] : '\0';
-            *outstr++ = base64_etab[(int)(((instr[idx] << 2) & 0x3c) | ((c3 >> 6) & 0x03))];
+    while (idx + 2 < len) {
+        *outstr++ = base64_etab[GetBase64EncodedIndex0(instr[idx])];
+        *outstr++ = base64_etab[GetBase64EncodedIndex1(instr[idx], instr[idx + 1])];
+        *outstr++ = base64_etab[GetBase64EncodedIndex2(instr[idx + 1], instr[idx + 2])];
+        *outstr++ = base64_etab[GetBase64EncodedIndex3(instr[idx + 2])];
+        idx += 3;
+    }
+    if (idx < len) {
+        *outstr++ = base64_etab[GetBase64EncodedIndex0(instr[idx])];
+        if (idx + 1 < len) {
+            *outstr++ = base64_etab[GetBase64EncodedIndex1(instr[idx], instr[idx + 1])];
+            *outstr++ = base64_etab[GetBase64EncodedIndex2(instr[idx + 1], '\0')];
         } else {
-            *outstr++ = base64_etab[(int)(instr[idx] & 0x3f)];
+            *outstr++ = base64_etab[GetBase64EncodedIndex1(instr[idx], '\0')];
+            *outstr++ = pad;
         }
-
-        idx++;
+        *outstr++ = pad;
     }
-
-    if (idx % 3 == 1) {
-        *outstr++ = base64_etab[(int)((instr[idx - 1] << 4) & 0x30)];
-        *outstr++ = last;
-        *outstr++ = last;
-    } else if (idx % 3 == 2) {
-        *outstr++ = last;
-    }
-
     *outstr = 0;
 
     return outstr;

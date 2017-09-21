@@ -1,0 +1,36 @@
+#pragma once
+
+#include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
+#include <catboost/cuda/cuda_util/gpu_data/partitions.h>
+#include <catboost/cuda/gpu_data/gpu_structures.h>
+#include <catboost/cuda/methods/score_function.h>
+
+namespace NKernel {
+
+    void UpdatePartitionProps(const float* target,
+                              const float* weights,
+                              const float* counts,
+                              const struct TDataPartition* parts,
+                              struct TPartitionStatistics* partStats,
+                              int partsCount,
+                              TCudaStream stream);
+
+
+    bool GatherHistogramByLeaves(const float* histogram,
+                                 const ui32 binFeatureCount,
+                                 const ui32 histCount,
+                                 const ui32 leafCount,
+                                 const ui32 foldCount,
+                                 float* result,
+                                 TCudaStream stream
+    );
+
+    void FindOptimalSplit(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+                          const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
+                          TBestSplitProperties* result, ui32 resultSize,
+                          EScoreFunction scoreFunction, double l2, bool normalize,
+                          double scoreStdDev, ui64 seed,
+                          TCudaStream stream);
+
+
+};

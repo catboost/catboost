@@ -1225,14 +1225,15 @@ def test_class_names_logloss():
     return [local_canonical_file(output_eval_path)]
 
 
-def test_class_names_multiclass():
+@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+def test_class_names_multiclass(loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'MultiClass',
+        '--loss-function', loss_function,
         '-f', data_file('precipitation_small', 'train_small'),
         '-t', data_file('precipitation_small', 'test_small'),
         '--column-description', data_file('precipitation_small', 'train.cd'),
@@ -1271,14 +1272,15 @@ def test_class_weight_logloss():
     return [local_canonical_file(output_eval_path)]
 
 
-def test_class_weight_multiclass():
+@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+def test_class_weight_multiclass(loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'MultiClass',
+        '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),

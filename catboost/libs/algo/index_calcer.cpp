@@ -268,12 +268,13 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
             CalcHashes(projection, features, samplesCount, yvector<int>(), &ctrHashes);
 
             if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+                auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     float targetStatisticSum = 0;
                     int totalCount = 0;
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     if (idx != TCtrValueTable::UnknownHash) {
-                        const TCtrMeanHistory& ctrMeanHistory = learnCtr.CtrMean[idx];
+                        const TCtrMeanHistory& ctrMeanHistory = ctrMean[idx];
                         targetStatisticSum = ctrMeanHistory.Sum;
                         totalCount = ctrMeanHistory.Count;
                     }
@@ -282,23 +283,25 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
                 }
             } else if (ctrType == ECtrType::FeatureFreq || ctrType == ECtrType::Counter) {
                 int denominator = learnCtr.CounterDenominator;
+                NArrayRef::TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     int currentBucket = 0;
                     if (idx != TCtrValueTable::UnknownHash) {
-                        currentBucket += learnCtr.CtrTotal[idx];
+                        currentBucket = ctrTotal[idx];
                     }
                     const float ctrValue = ctr.Calc(currentBucket, denominator);
                     indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
                 }
             } else if (ctrType == ECtrType::Buckets) {
+                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+                const int targetClassesCount = learnCtr.TargetClassesCount;
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     int goodCount = 0;
                     int totalCount = 0;
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     if (idx != TCtrValueTable::UnknownHash) {
-                        const yvector<int>& ctrHistory = learnCtr.Ctr[idx];
-                        const int targetClassesCount = ctrHistory.ysize();
+                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + idx * targetClassesCount, targetClassesCount);
                         goodCount = ctrHistory[ctr.TargetBorderIdx];
                         for (int classId = 0; classId < targetClassesCount; ++classId) {
                             totalCount += ctrHistory[classId];
@@ -308,13 +311,14 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
                     indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
                 }
             } else if (ctrType == ECtrType::Borders) {
+                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+                const int targetClassesCount = learnCtr.TargetClassesCount;
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     int goodCount = 0;
                     int totalCount = 0;
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     if (idx != TCtrValueTable::UnknownHash) {
-                        const yvector<int>& ctrHistory = learnCtr.Ctr[idx];
-                        const int targetClassesCount = ctrHistory.ysize();
+                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + idx * targetClassesCount, targetClassesCount);
                         for (int classId = 0; classId < ctr.TargetBorderIdx + 1; ++classId) {
                             totalCount += ctrHistory[classId];
                         }

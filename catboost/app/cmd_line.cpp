@@ -281,8 +281,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("feature_border_type", type);
         });
 
-    parser.AddLongOption("l2-leaf-regularizer", "Regularization value. Should be >= 0")
-        .AddLongName("l2-leaf-reg")
+    parser.AddLongOption("l2-leaf-reg", "Regularization value. Should be >= 0")
         .RequiredArgument("float")
         .Handler1T<float>([&trainJson](float reg) {
             trainJson->InsertValue("l2_leaf_reg", reg);

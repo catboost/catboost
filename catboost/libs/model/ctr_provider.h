@@ -69,7 +69,7 @@ inline void CalcHashes(
     }
     for (const TOneHotFeature& feature : proj.OneHotFeatures) {
         const auto idx = binFeatureIndexProvider.GetBinFeatureIdx(feature) * docCount;
-        auto valPtr = &hashedCatFeatures[idx * docCount];
+        auto valPtr = &binarizedFeatures[idx];
         for (size_t i = 0; i < docCount; ++i) {
             ptr[i] = CalcHash(ptr[i], (ui64)valPtr[i]);
         }

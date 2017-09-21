@@ -12,7 +12,6 @@ SRCS(
     parse_utils.cpp
     enum.cpp
     enum_codegen.cpp
-    estimators.cpp
     holder_vector.cpp
     ip.cpp
     matrix.cpp

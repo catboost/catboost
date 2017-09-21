@@ -43,7 +43,7 @@ test_that("model: catboost.importance", {
   expect_equal(length(model$feature_importances), ncol(features))
 })
 
-test_that("model: catboost.train multiclass", {
+test_that("model: catboost.train & catboost.predict multiclass", {
   classes <- c(0, 1, 2)
   target <- sample(classes, size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
@@ -59,6 +59,15 @@ test_that("model: catboost.train multiclass", {
   prediction <- catboost.predict(model, pool)
   expect_equal(nrow(pool), nrow(prediction))
   expect_equal(length(classes), ncol(prediction))
+
+  prediction_first <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 4)
+  prediction_second <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 5)
+
+  staged_preds = catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
+
+  expect_equal(prediction_first, staged_preds$nextElem())
+  expect_equal(prediction_second, staged_preds$nextElem())
+
 })
 
 test_that("model: catboost.load_model", {
@@ -180,14 +189,14 @@ test_that("model: catboost.predict vs catboost.staged_predict", {
 
   pool <- catboost.load_pool(pool_path, column_description = column_description_path)
 
-  params <- list(iterations = 2,
+  params <- list(iterations = 10,
                  loss_function = "Logloss")
 
   model <- catboost.train(pool, NULL, params)
-  prediction_first <- catboost.predict(model, pool, ntree_limit = 1)
-  prediction_second <- catboost.predict(model, pool, ntree_limit = 2)
+  prediction_first <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 4)
+  prediction_second <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 5)
 
-  staged_preds = catboost.staged_predict(model, pool)
+  staged_preds = catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
 
   expect_equal(prediction_first, staged_preds$nextElem())
   expect_equal(prediction_second, staged_preds$nextElem())
