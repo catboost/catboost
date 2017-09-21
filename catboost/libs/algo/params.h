@@ -60,7 +60,7 @@ enum class ECounterCalc {
     SkipTest
 };
 
-constexpr int CB_THREAD_LIMIT = 32;
+constexpr int CB_THREAD_LIMIT = 128;
 
 struct TCtrDescription {
     ECtrType CtrType = ECtrType::Borders;
