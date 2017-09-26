@@ -4,7 +4,8 @@
 [Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) |
 [Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
-[![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost) 
+[![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcatboost%2Fcatboost.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcatboost%2Fcatboost?ref=badge_shield)
+
 [![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
 
 CatBoost is a machine learning method based on gradient boosting over decision trees.
@@ -47,3 +48,7 @@ Questions and bug reports
 License
 -------
 © YANDEX LLC, 2017. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcatboost%2Fcatboost.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcatboost%2Fcatboost?ref=badge_large)
