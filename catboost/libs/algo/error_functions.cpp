@@ -13,8 +13,10 @@ void CalcSoftmax(const yvector<double>& approx, yvector<double>* softmax) {
     }
 }
 
-void TBinclassError::CalcFirstDerRange(int start, int count, const double* __restrict approxes, const double* __restrict approxDeltas, const float* __restrict targets, const float* __restrict weights,
-                                       double* __restrict ders) const {
+void TLoglossError::CalcFirstDerRange(int start, int count,
+                                      const double* __restrict approxes, const double* __restrict approxDeltas,
+                                      const float* __restrict targets, const float* __restrict weights,
+                                      double* __restrict ders) const {
     if (approxDeltas != nullptr) {
 #pragma clang loop vectorize_width(4) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
@@ -38,8 +40,10 @@ void TBinclassError::CalcFirstDerRange(int start, int count, const double* __res
     }
 }
 
-void TBinclassError::CalcDersRange(int start, int count, const double* __restrict approxExps, const double* __restrict approxDeltas, const float* __restrict targets, const float* __restrict weights,
-                                   TDer1Der2* __restrict ders) const {
+void TLoglossError::CalcDersRange(int start, int count,
+                                  const double* __restrict approxExps, const double* __restrict approxDeltas,
+                                  const float* __restrict targets, const float* __restrict weights,
+                                  TDer1Der2* __restrict ders) const {
     if (approxDeltas != nullptr) {
 #pragma clang loop vectorize_width(4) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
@@ -64,7 +68,9 @@ void TBinclassError::CalcDersRange(int start, int count, const double* __restric
     }
 }
 
-void TCrossEntropyError::CalcDersRange(int start, int count, const double* __restrict approxExps, const double* __restrict approxDeltas, const float* __restrict probs, const float* __restrict weights,
+void TCrossEntropyError::CalcDersRange(int start, int count,
+                                       const double* __restrict approxExps, const double* __restrict approxDeltas,
+                                       const float* __restrict probs, const float* __restrict weights,
                                        TDer1Der2* __restrict ders) const {
     if (approxDeltas != nullptr) {
 #pragma clang loop vectorize_width(4) interleave_count(2)

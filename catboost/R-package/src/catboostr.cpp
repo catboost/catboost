@@ -84,6 +84,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     TPoolPtr poolPtr = std::make_unique<TPool>();
     ReadPool(CHAR(asChar(cdFileParam)),
              CHAR(asChar(poolFileParam)),
+             "",
              asInteger(threadCountParam),
              asLogical(verboseParam),
              CHAR(asChar(delimiterParam))[0],

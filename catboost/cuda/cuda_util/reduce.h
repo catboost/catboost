@@ -98,12 +98,13 @@ namespace NKernelHost {
         }
     };
 
-    template <typename T>
+    template <typename T, EPtrType PtrType>
     class TSegmentedReduceKernel: public TKernelBase<NKernel::TCubKernelContext, false> {
     private:
+        using TOutputPtr = TDeviceBuffer<T, TFixedSizesObjectsMeta, PtrType>;
         TCudaBufferPtr<const T> Input;
         TCudaBufferPtr<const ui32> Offsets;
-        TCudaBufferPtr<T> Output;
+        TOutputPtr Output;
         EOperatorType Type;
 
     public:
@@ -113,7 +114,7 @@ namespace NKernelHost {
 
         TSegmentedReduceKernel(TCudaBufferPtr<const T> input,
                                TCudaBufferPtr<const ui32> offsets,
-                               TCudaBufferPtr<T> output, EOperatorType type)
+                               TOutputPtr output, EOperatorType type)
             : Input(input)
             , Offsets(offsets)
             , Output(output)
@@ -164,12 +165,12 @@ inline void ReduceByKeyVector(const TCudaBuffer<T, TMapping>& input,
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, keys, outputKeys, output, outputSizes, type);
 }
 
-template <typename T, class TMapping>
+template <typename T, class TMapping, NCudaLib::EPtrType OutputPtrType = NCudaLib::CudaDevice>
 inline void SegmentedReduceVector(const TCudaBuffer<T, TMapping>& input,
                                   const TCudaBuffer<ui32, TMapping>& offsets,
-                                  TCudaBuffer<T, TMapping>& output,
+                                  TCudaBuffer<T, TMapping, OutputPtrType >& output,
                                   EOperatorType type = EOperatorType::Sum,
                                   ui32 streamId = 0) {
-    using TKernel = NKernelHost::TSegmentedReduceKernel<T>;
+    using TKernel = NKernelHost::TSegmentedReduceKernel<T, OutputPtrType>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
 }

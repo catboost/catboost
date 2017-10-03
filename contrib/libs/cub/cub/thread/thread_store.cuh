@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -145,10 +145,10 @@ template <int MAX>
 struct IterateThreadStore<MAX, MAX>
 {
     template <CacheStoreModifier MODIFIER, typename T>
-    static __device__ __forceinline__ void Store(T *ptr, T *vals) {}
+    static __device__ __forceinline__ void Store(T * /*ptr*/, T * /*vals*/) {}
 
     template <typename OutputIteratorT, typename T>
-    static __device__ __forceinline__ void Dereference(OutputIteratorT ptr, T *vals) {}
+    static __device__ __forceinline__ void Dereference(OutputIteratorT /*ptr*/, T * /*vals*/) {}
 };
 
 
@@ -264,7 +264,7 @@ struct IterateThreadStore<MAX, MAX>
  * Define ThreadStore specializations for the various Cache load modifiers
  */
 #if CUB_PTX_ARCH >= 200
-    _CUB_STORE_ALL(STORE_WB, ca)
+    _CUB_STORE_ALL(STORE_WB, wb)
     _CUB_STORE_ALL(STORE_CG, cg)
     _CUB_STORE_ALL(STORE_CS, cs)
     _CUB_STORE_ALL(STORE_WT, wt)
@@ -292,8 +292,8 @@ template <typename OutputIteratorT, typename T>
 __device__ __forceinline__ void ThreadStore(
     OutputIteratorT             itr,
     T                           val,
-    Int2Type<STORE_DEFAULT>     modifier,
-    Int2Type<false>             is_pointer)
+    Int2Type<STORE_DEFAULT>     /*modifier*/,
+    Int2Type<false>             /*is_pointer*/)
 {
     *itr = val;
 }
@@ -306,8 +306,8 @@ template <typename T>
 __device__ __forceinline__ void ThreadStore(
     T                           *ptr,
     T                           val,
-    Int2Type<STORE_DEFAULT>     modifier,
-    Int2Type<true>              is_pointer)
+    Int2Type<STORE_DEFAULT>     /*modifier*/,
+    Int2Type<true>              /*is_pointer*/)
 {
     *ptr = val;
 }
@@ -320,7 +320,7 @@ template <typename T>
 __device__ __forceinline__ void ThreadStoreVolatilePtr(
     T                           *ptr,
     T                           val,
-    Int2Type<true>              is_primitive)
+    Int2Type<true>              /*is_primitive*/)
 {
     *reinterpret_cast<volatile T*>(ptr) = val;
 }
@@ -333,15 +333,8 @@ template <typename T>
 __device__ __forceinline__ void ThreadStoreVolatilePtr(
     T                           *ptr,
     T                           val,
-    Int2Type<false>             is_primitive)
+    Int2Type<false>             /*is_primitive*/)
 {
-#if CUB_PTX_ARCH <= 130
-
-    *ptr = val;
-    __threadfence_block();
-
-#else
-
     // Create a temporary using shuffle-words, then store using volatile-words
     typedef typename UnitWord<T>::VolatileWord  VolatileWord;  
     typedef typename UnitWord<T>::ShuffleWord   ShuffleWord;
@@ -358,9 +351,6 @@ __device__ __forceinline__ void ThreadStoreVolatilePtr(
     IterateThreadStore<0, VOLATILE_MULTIPLE>::template Dereference(
         reinterpret_cast<volatile VolatileWord*>(ptr),
         words);
-
-#endif  // CUB_PTX_ARCH <= 130
-
 }
 
 
@@ -371,8 +361,8 @@ template <typename T>
 __device__ __forceinline__ void ThreadStore(
     T                           *ptr,
     T                           val,
-    Int2Type<STORE_VOLATILE>    modifier,
-    Int2Type<true>              is_pointer)
+    Int2Type<STORE_VOLATILE>    /*modifier*/,
+    Int2Type<true>              /*is_pointer*/)
 {
     ThreadStoreVolatilePtr(ptr, val, Int2Type<Traits<T>::PRIMITIVE>());
 }
@@ -385,8 +375,8 @@ template <typename T, int MODIFIER>
 __device__ __forceinline__ void ThreadStore(
     T                           *ptr,
     T                           val,
-    Int2Type<MODIFIER>          modifier,
-    Int2Type<true>              is_pointer)
+    Int2Type<MODIFIER>          /*modifier*/,
+    Int2Type<true>              /*is_pointer*/)
 {
     // Create a temporary using shuffle-words, then store using device-words
     typedef typename UnitWord<T>::DeviceWord    DeviceWord;  

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -58,7 +58,7 @@ namespace cub {
  * Alias temporaries to externally-allocated device storage (or simply return the amount of storage needed).
  */
 template <int ALLOCATIONS>
-CUB_RUNTIME_FUNCTION __forceinline__
+__host__ __device__ __forceinline__
 cudaError_t AliasTemporaries(
     void    *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
     size_t  &temp_storage_bytes,                ///< [in,out] Size in bytes of \t d_temp_storage allocation
@@ -132,6 +132,7 @@ CUB_RUNTIME_FUNCTION __forceinline__ cudaError_t PtxVersion(int &ptx_version)
 
 
 #ifndef CUB_RUNTIME_ENABLED
+    (void)ptx_version;
 
     // CUDA API calls not supported from this device
     return cudaErrorInvalidConfiguration;
@@ -164,6 +165,8 @@ CUB_RUNTIME_FUNCTION __forceinline__ cudaError_t PtxVersion(int &ptx_version)
 CUB_RUNTIME_FUNCTION __forceinline__ cudaError_t SmVersion(int &sm_version, int device_ordinal)
 {
 #ifndef CUB_RUNTIME_ENABLED
+    (void)sm_version;
+    (void)device_ordinal;
 
     // CUDA API calls not supported from this device
     return cudaErrorInvalidConfiguration;
@@ -198,6 +201,7 @@ static cudaError_t SyncStream(cudaStream_t stream)
 #if (CUB_PTX_ARCH == 0)
     return cudaStreamSynchronize(stream);
 #else
+    (void)stream;
     // Device can't yet sync on a specific stream
     return cudaDeviceSynchronize();
 #endif
@@ -244,6 +248,10 @@ cudaError_t MaxSmOccupancy(
     int                 dynamic_smem_bytes = 0)
 {
 #ifndef CUB_RUNTIME_ENABLED
+    (void)dynamic_smem_bytes;
+    (void)block_threads;
+    (void)kernel_ptr;
+    (void)max_sm_occupancy;
 
     // CUDA API calls not supported from this device
     return CubDebug(cudaErrorInvalidConfiguration);
@@ -320,7 +328,7 @@ struct ChainedPolicy<PTX_VERSION, PolicyT, PolicyT>
     /// Specializes and dispatches op in accordance to the first policy in the chain of adequate PTX version
     template <typename FunctorT>
     CUB_RUNTIME_FUNCTION __forceinline__
-    static cudaError_t Invoke(int ptx_version, FunctorT &op) {
+    static cudaError_t Invoke(int /*ptx_version*/, FunctorT &op) {
         return op.template Invoke<PolicyT>();
     }
 };

@@ -30,6 +30,7 @@ RECURSE(
     json/ut
     json/writer/ut
     json/yson
+    json/yson/ut
     lcs
     lcs/ut
     lfalloc

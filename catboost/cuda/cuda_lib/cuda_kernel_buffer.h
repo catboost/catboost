@@ -121,7 +121,6 @@ namespace NKernelHost {
             return ColumnCount;
         }
 
-
         void AsyncWrite(const yvector<T>& data,
                         const TCudaStream& stream) const {
             CB_ENSURE(data.size() <= Size());

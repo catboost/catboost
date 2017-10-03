@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -63,6 +63,9 @@ struct WarpScanSmem
         /// Whether the logical warp size and the PTX warp size coincide
         IS_ARCH_WARP = (LOGICAL_WARP_THREADS == CUB_WARP_THREADS(PTX_ARCH)),
 
+        /// Whether the logical warp size is a power-of-two
+        IS_POW_OF_TWO = PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE,
+
         /// The number of warp scan steps
         STEPS = Log2<LOGICAL_WARP_THREADS>::VALUE,
 
@@ -89,6 +92,7 @@ struct WarpScanSmem
 
     _TempStorage    &temp_storage;
     unsigned int    lane_id;
+    unsigned int    member_mask;
 
 
     /******************************************************************************
@@ -100,9 +104,14 @@ struct WarpScanSmem
         TempStorage     &temp_storage)
     :
         temp_storage(temp_storage.Alias()),
+
         lane_id(IS_ARCH_WARP ?
             LaneId() :
-            LaneId() % LOGICAL_WARP_THREADS)
+            LaneId() % LOGICAL_WARP_THREADS),
+
+        member_mask((0xffffffff >> (32 - LOGICAL_WARP_THREADS)) << ((IS_ARCH_WARP || !IS_POW_OF_TWO ) ?
+            0 : // arch-width and non-power-of-two subwarps cannot be tiled with the arch-warp
+            ((LaneId() / LOGICAL_WARP_THREADS) * LOGICAL_WARP_THREADS)))
     {}
 
 
@@ -118,12 +127,14 @@ struct WarpScanSmem
     __device__ __forceinline__ void ScanStep(
         T                       &partial,
         ScanOp                  scan_op,
-        Int2Type<STEP>          step)
+        Int2Type<STEP>          /*step*/)
     {
         const int OFFSET = 1 << STEP;
 
         // Share partial into buffer
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) partial);
+
+        WARP_SYNC(member_mask);
 
         // Update partial if addend is in range
         if (HAS_IDENTITY || (lane_id >= OFFSET))
@@ -131,6 +142,7 @@ struct WarpScanSmem
             T addend = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - OFFSET]);
             partial = scan_op(addend, partial);
         }
+        WARP_SYNC(member_mask);
 
         ScanStep<HAS_IDENTITY>(partial, scan_op, Int2Type<STEP + 1>());
     }
@@ -141,9 +153,9 @@ struct WarpScanSmem
         bool        HAS_IDENTITY,
         typename    ScanOp>
     __device__ __forceinline__ void ScanStep(
-        T                       &partial,
-        ScanOp                  scan_op,
-        Int2Type<STEPS>         step)
+        T                       &/*partial*/,
+        ScanOp                  /*scan_op*/,
+        Int2Type<STEPS>         /*step*/)
     {}
 
 
@@ -152,10 +164,12 @@ struct WarpScanSmem
         T                       input,              ///< [in] Calling thread's input item.
         T                       &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
         Sum                     scan_op,            ///< [in] Binary scan operator
-        Int2Type<true>          is_primitive)       ///< [in] Marker type indicating whether T is primitive type
+        Int2Type<true>          /*is_primitive*/)   ///< [in] Marker type indicating whether T is primitive type
     {
         T identity = 0;
         ThreadStore<STORE_VOLATILE>(&temp_storage[lane_id], (CellT) identity);
+
+        WARP_SYNC(member_mask);
 
         // Iterate scan steps
         output = input;
@@ -169,7 +183,7 @@ struct WarpScanSmem
         T                       input,              ///< [in] Calling thread's input item.
         T                       &output,            ///< [out] Calling thread's output item.  May be aliased with \p input.
         ScanOp                  scan_op,            ///< [in] Binary scan operator
-        Int2Type<IS_PRIMITIVE>  is_primitive)       ///< [in] Marker type indicating whether T is primitive type
+        Int2Type<IS_PRIMITIVE>  /*is_primitive*/)   ///< [in] Marker type indicating whether T is primitive type
     {
         // Iterate scan steps
         output = input;
@@ -195,7 +209,9 @@ struct WarpScanSmem
             ThreadStore<STORE_VOLATILE>(temp_storage, (CellT) input);
         }
 
-        return (T) ThreadLoad<LOAD_VOLATILE>(temp_storage);
+        WARP_SYNC(member_mask);
+
+        return (T)ThreadLoad<LOAD_VOLATILE>(temp_storage);
     }
 
 
@@ -226,7 +242,12 @@ struct WarpScanSmem
 
         // Retrieve aggregate
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive_output);
+
+        WARP_SYNC(member_mask);
+
         warp_aggregate = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[WARP_SMEM_ELEMENTS - 1]);
+
+        WARP_SYNC(member_mask);
     }
 
 
@@ -237,14 +258,17 @@ struct WarpScanSmem
     /// Update inclusive and exclusive using input and inclusive
     template <typename ScanOpT, typename IsIntegerT>
     __device__ __forceinline__ void Update(
-        T                       input,          ///< [in]
+        T                       /*input*/,      ///< [in]
         T                       &inclusive,     ///< [in, out]
         T                       &exclusive,     ///< [out]
-        ScanOpT                 scan_op,        ///< [in]
-        IsIntegerT              is_integer)     ///< [in]
+        ScanOpT                 /*scan_op*/,    ///< [in]
+        IsIntegerT              /*is_integer*/) ///< [in]
     {
         // initial value unknown
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         exclusive = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - 1]);
     }
 
@@ -253,8 +277,8 @@ struct WarpScanSmem
         T                       input,
         T                       &inclusive,
         T                       &exclusive,
-        cub::Sum                scan_op,
-        Int2Type<true>          is_integer)
+        cub::Sum                /*scan_op*/,
+        Int2Type<true>          /*is_integer*/)
     {
         // initial value presumed 0
         exclusive = inclusive - input;
@@ -263,15 +287,18 @@ struct WarpScanSmem
     /// Update inclusive and exclusive using initial value using input, inclusive, and initial value
     template <typename ScanOpT, typename IsIntegerT>
     __device__ __forceinline__ void Update (
-        T                       input,
+        T                       /*input*/,
         T                       &inclusive,
         T                       &exclusive,
         ScanOpT                 scan_op,
         T                       initial_value,
-        IsIntegerT              is_integer)
+        IsIntegerT              /*is_integer*/)
     {
         inclusive = scan_op(initial_value, inclusive);
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         exclusive = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - 1]);
         if (lane_id == 0)
             exclusive = initial_value;
@@ -284,7 +311,7 @@ struct WarpScanSmem
         T                       &exclusive,
         cub::Sum                scan_op,
         T                       initial_value,
-        Int2Type<true>          is_integer)
+        Int2Type<true>          /*is_integer*/)
     {
         inclusive = scan_op(initial_value, inclusive);
         exclusive = inclusive - input;
@@ -294,15 +321,18 @@ struct WarpScanSmem
     /// Update inclusive, exclusive, and warp aggregate using input and inclusive
     template <typename ScanOpT, typename IsIntegerT>
     __device__ __forceinline__ void Update (
-        T                       input,
+        T                       /*input*/,
         T                       &inclusive,
         T                       &exclusive,
         T                       &warp_aggregate,
-        ScanOpT                 scan_op,
-        IsIntegerT              is_integer)
+        ScanOpT                 /*scan_op*/,
+        IsIntegerT              /*is_integer*/)
     {
         // Initial value presumed to be unknown or identity (either way our padding is correct)
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         exclusive = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - 1]);
         warp_aggregate = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[WARP_SMEM_ELEMENTS - 1]);
     }
@@ -313,11 +343,14 @@ struct WarpScanSmem
         T                       &inclusive,
         T                       &exclusive,
         T                       &warp_aggregate,
-        cub::Sum                scan_op,
-        Int2Type<true>          is_integer)
+        cub::Sum                /*scan_o*/,
+        Int2Type<true>          /*is_integer*/)
     {
         // Initial value presumed to be unknown or identity (either way our padding is correct)
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         warp_aggregate = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[WARP_SMEM_ELEMENTS - 1]);
         exclusive = inclusive - input;
     }
@@ -325,23 +358,31 @@ struct WarpScanSmem
     /// Update inclusive, exclusive, and warp aggregate using input, inclusive, and initial value
     template <typename ScanOpT, typename IsIntegerT>
     __device__ __forceinline__ void Update (
-        T                       input,
+        T                       /*input*/,
         T                       &inclusive,
         T                       &exclusive,
         T                       &warp_aggregate,
         ScanOpT                 scan_op,
         T                       initial_value,
-        IsIntegerT              is_integer)
+        IsIntegerT              /*is_integer*/)
     {
         // Broadcast warp aggregate
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         warp_aggregate = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[WARP_SMEM_ELEMENTS - 1]);
+
+        WARP_SYNC(member_mask);
 
         // Update inclusive with initial value
         inclusive = scan_op(initial_value, inclusive);
 
         // Get exclusive from exclusive
         ThreadStore<STORE_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - 1], (CellT) inclusive);
+
+        WARP_SYNC(member_mask);
+
         exclusive = (T) ThreadLoad<LOAD_VOLATILE>(&temp_storage[HALF_WARP_THREADS + lane_id - 2]);
 
         if (lane_id == 0)

@@ -158,10 +158,10 @@ void DeleteSplit(int curDepth, int redundantIdx, yvector<TSplit>* tree, TTensorS
 }
 
 yvector<TIndexType> BuildIndices(const TFold& fold,
-    const yvector<TSplit>& tree,
-    const TTrainData& data,
-    NPar::TLocalExecutor* localExecutor) {
-    yvector<TIndexType> indices(fold.EffectiveDocCount);
+                                 const yvector<TSplit>& tree,
+                                 const TTrainData& data,
+                                 NPar::TLocalExecutor* localExecutor) {
+                                 yvector<TIndexType> indices(fold.EffectiveDocCount);
     yvector<const TOnlineCTR*> onlineCtrs(tree.ysize());
     for (int splitIdx = 0; splitIdx < tree.ysize(); ++splitIdx) {
         const auto& split = tree[splitIdx];
@@ -204,6 +204,7 @@ yvector<TIndexType> BuildIndices(const TFold& fold,
             if (split.Type == ESplitType::FloatFeature) {
                 const ui8 featureSplitIdx = GetFeatureSplitIdx(split);
                 const ui8* floatHistogramData = GetFloatHistogram(split, data.AllFeatures).data();
+
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
                     indices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
                 })(blockIdx);

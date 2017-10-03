@@ -150,40 +150,38 @@ public:
             });
 
         options
-                .AddLongOption("dev-freq-ctr-border-count")
-                .RequiredArgument("INT")
-                .Help("Sets number of conditions per float feature. Default is 16.")
-                .DefaultValue("16")
-                .Handler1T<ui32>([&](ui32 discretization) {
-                    binarizationConfiguration.FreqCtrBinarization.Discretization = discretization;
-                });
-
-
-        options
-                .AddLongOption("dev-freq-ctr-border-type")
-                .RequiredArgument("INT")
-                .Help("Sets number of conditions per float feature. Default is 16.")
-                .DefaultValue("GreedyLogSum")
-                .Handler1T<EBorderSelectionType>([&](EBorderSelectionType type) {
-                    binarizationConfiguration.FreqCtrBinarization.BorderSelectionType = type;
-                });
+            .AddLongOption("dev-freq-ctr-border-count")
+            .RequiredArgument("INT")
+            .Help("Sets number of conditions per float feature. Default is 16.")
+            .DefaultValue("16")
+            .Handler1T<ui32>([&](ui32 discretization) {
+                binarizationConfiguration.FreqCtrBinarization.Discretization = discretization;
+            });
 
         options
-                .AddLongOption("dev-freq-tree-ctr-border-count")
-                .RequiredArgument("INT")
-                .Help("Sets number of conditions per float feature. Default is 16.")
-                .DefaultValue("16")
-                .Handler1T<ui32>([&](ui32 discretization) {
-                    binarizationConfiguration.FreqTreeCtrBinarization.Discretization = discretization;
-                });
+            .AddLongOption("dev-freq-ctr-border-type")
+            .RequiredArgument("INT")
+            .Help("Sets number of conditions per float feature. Default is 16.")
+            .DefaultValue("GreedyLogSum")
+            .Handler1T<EBorderSelectionType>([&](EBorderSelectionType type) {
+                binarizationConfiguration.FreqCtrBinarization.BorderSelectionType = type;
+            });
 
         options
-                .AddLongOption("dev-tree-ctr-border-type")
-                .RequiredArgument("Grid")
-                .Help("Sets  tree ctrs borders selection type")
-                .DefaultValue("Uniform")
-                .StoreResult(&binarizationConfiguration.DefaultTreeCtrBinarization.BorderSelectionType);
+            .AddLongOption("dev-freq-tree-ctr-border-count")
+            .RequiredArgument("INT")
+            .Help("Sets number of conditions per float feature. Default is 16.")
+            .DefaultValue("16")
+            .Handler1T<ui32>([&](ui32 discretization) {
+                binarizationConfiguration.FreqTreeCtrBinarization.Discretization = discretization;
+            });
 
+        options
+            .AddLongOption("dev-tree-ctr-border-type")
+            .RequiredArgument("Grid")
+            .Help("Sets  tree ctrs borders selection type")
+            .DefaultValue("Uniform")
+            .StoreResult(&binarizationConfiguration.DefaultTreeCtrBinarization.BorderSelectionType);
 
         options
             .AddLongOption("dev-target-binarization")
@@ -252,11 +250,11 @@ public:
             .StoreResult(&bootstrapOptions.TakenFraction);
 
         options
-                .AddLongOption("bagging-temperature")
-                .RequiredArgument("Float")
-                .Help("Sample rate")
-                .DefaultValue("1.0")
-                .StoreResult(&bootstrapOptions.BaggingTemperature);
+            .AddLongOption("bagging-temperature")
+            .RequiredArgument("Float")
+            .Help("Sample rate")
+            .DefaultValue("1.0")
+            .StoreResult(&bootstrapOptions.BaggingTemperature);
 
         options
             .AddLongOption("dev-bootstrap-type")
@@ -264,8 +262,6 @@ public:
             .Help("Bootstrap type")
             .DefaultValue("Bayesian")
             .StoreResult(&bootstrapOptions.BootstrapType);
-
-
 
         if (options.HasLongOption("random-seed")) {
             options
@@ -372,6 +368,28 @@ public:
 };
 
 template <>
+class TOptionsBinder<TOverfittingDetectorOptions> {
+public:
+    static void Bind(TOverfittingDetectorOptions& detectorOptions,
+                     NLastGetopt::TOpts& options) {
+        options.AddLongOption("auto-stop-pval", "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
+            .AddLongName("od-pval")
+            .RequiredArgument("float")
+            .StoreResult(&detectorOptions.AutoStopPValue);
+
+        options.AddLongOption("overfitting-detector-iterations-wait", "number of iterations which overfitting detector will wait after new best error")
+            .AddLongName("od-wait")
+            .RequiredArgument("int")
+            .StoreResult(&detectorOptions.IterationsWait);
+
+        options.AddLongOption("overfitting-detector-type", "Should be one of {IncToDec, Iter}")
+            .AddLongName("od-type")
+            .RequiredArgument("detector-type")
+            .StoreResult(&detectorOptions.OverfittingDetectorType);
+    }
+};
+
+template <>
 class TOptionsBinder<TBoostingOptions> {
 public:
     static void Bind(TBoostingOptions& boostingOptions,
@@ -391,10 +409,10 @@ public:
             .StoreResult(&boostingOptions.IterationCount);
 
         options
-                .AddLongOption("random-strength")
-                .RequiredArgument("DOUBLE")
-                .DefaultValue("1.0")
-                .StoreResult(&boostingOptions.RandomStrength);
+            .AddLongOption("random-strength")
+            .RequiredArgument("DOUBLE")
+            .DefaultValue("1.0")
+            .StoreResult(&boostingOptions.RandomStrength);
 
         options
             .AddLongOption("dev-min-fold-size")
@@ -417,23 +435,23 @@ public:
             .StoreResult(&boostingOptions.PermutationCount);
 
         options
-                .AddLongOption("dev-use-cpu-ram-for-catfeatures")
-                .RequiredArgument("INT")
-                .Help("Store")
-                .SetFlag(&boostingOptions.UseCpuRamForCatFeaturesFlag)
-                .NoArgument();
+            .AddLongOption("dev-use-cpu-ram-for-catfeatures")
+            .RequiredArgument("INT")
+            .Help("Store")
+            .SetFlag(&boostingOptions.UseCpuRamForCatFeaturesFlag)
+            .NoArgument();
 
         options.AddLongOption("fold-permutation-block", "Enables fold permutation by blocks of given length, preserving documents order inside each block. Block size should be power of two. ")
-                .RequiredArgument("BLOCKSIZE")
-                .DefaultValue("32")
-                .StoreResult(&boostingOptions.PermutationBlockSize);
+            .RequiredArgument("BLOCKSIZE")
+            .DefaultValue("32")
+            .StoreResult(&boostingOptions.PermutationBlockSize);
 
         options
-                .AddLongOption("dev-disable-dontlookahead")
-                .RequiredArgument("INT")
-                .Help("Store")
-                .SetFlag(&boostingOptions.DisableDontLookAheadFlag)
-                .NoArgument();
+            .AddLongOption("dev-disable-dontlookahead")
+            .RequiredArgument("INT")
+            .Help("Store")
+            .SetFlag(&boostingOptions.DisableDontLookAheadFlag)
+            .NoArgument();
 
         options
             .AddLongOption("has-time")
@@ -446,6 +464,13 @@ public:
             });
 
         options
+            .AddLongOption("use-best-model")
+            .RequiredArgument("FLAG")
+            .Help("Use best model")
+            .SetFlag(&boostingOptions.UseBestModelFlag)
+            .NoArgument();
+
+        options
             .AddLongOption("dev-skip-calc-scores")
             .RequiredArgument("Flag")
             .Help("Calc scores")
@@ -453,19 +478,41 @@ public:
             .StoreResult(&boostingOptions.CalcScores, false)
             .NoArgument();
 
+        TOptionsBinder<TOverfittingDetectorOptions>::Bind(boostingOptions.OverfittingDetectorOptions, options);
+    }
+};
+
+template <>
+class TOptionsBinder<TOutputFilesOptions> {
+public:
+    static void Bind(TOutputFilesOptions& outputFiles,
+                     NLastGetopt::TOpts& options) {
         options.AddLongOption("learn-err-log", "file to log error function on train")
             .RequiredArgument("file")
+            .DefaultValue("learn")
             .Handler1T<TString>([&](const TString& log) {
-                boostingOptions.CalcScores = true;
-                boostingOptions.LearnErrorLogPath = log;
+                outputFiles.LearnErrorLogPath = log;
             });
 
         options.AddLongOption("test-err-log", "file to log error function on test")
             .RequiredArgument("file")
             .Handler1T<TString>([&](const TString& log) {
-                boostingOptions.CalcScores = true;
-                boostingOptions.TestErrorLogPath = log;
+                outputFiles.TestErrorLogPath = log;
             });
+
+        options.AddLongOption("time-left-log", "file to log error function on test")
+            .RequiredArgument("file")
+            .DefaultValue("time_left.tsv")
+            .StoreResult(&outputFiles.TimeLeftLog);
+
+        options.AddLongOption("meta-file", "file to write meta information")
+            .RequiredArgument("file")
+            .DefaultValue("meta.tsv")
+            .StoreResult(&outputFiles.MetaFile);
+
+        options
+            .AddLongOption('m', "model-file")
+            .StoreResult(&outputFiles.ResultModelPath);
     }
 };
 

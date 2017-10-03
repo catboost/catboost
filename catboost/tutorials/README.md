@@ -29,7 +29,7 @@
     * __catboost\_r\_tutorial.ipynb__
         * This tutorial shows how to convert your data to CatBoost Pool, how to train a model and how to make cross validation and parameter tunning.
 
-## Cmomand line tutorials
+## Command line tutorials
 
 * Main CatBoost tutorial with base features demonstration:
     * __catboost\_cmdline\_tutorial.md__

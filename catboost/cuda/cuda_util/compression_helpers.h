@@ -154,6 +154,6 @@ inline yvector<TBinType> BinarizeLine(const float* values,
     return result;
 }
 
-inline ui32 StringToIntHash(const TStringBuf& buf) {
-    return (ui32)CalcCatFeatureHash(buf);
+inline int StringToIntHash(const TStringBuf& buf) {
+    return CalcCatFeatureHash(buf);
 }

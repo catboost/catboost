@@ -37,6 +37,16 @@ TStringBuf GetHostAndPort(const TStringBuf url);
 TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp = true, bool trimDefaultPort = true);
 
 /**
+ * Splits URL to host and path
+ *
+ * @param[in] url       any URL
+ * @param[out] host     parsed host
+ * @param[out] path     parsed path
+ */
+void SplitUrlToHostAndPath(const TStringBuf url, TStringBuf& host, TStringBuf& path);
+void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path);
+
+/**
  * Extracts scheme, host and port from URL.
  *
  * Port will be parsed from URL with checks against ui16 overflow. If URL doesn't

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -124,6 +124,7 @@ public:
         cudaStream_t stream = 0)
     {
 #if (CUB_PTX_ARCH > 0)
+        (void)stream;
         d_counters[FILL] = fill_size;
         d_counters[DRAIN] = 0;
         return cudaSuccess;
@@ -140,6 +141,7 @@ public:
     __host__ __device__ __forceinline__ cudaError_t ResetDrain(cudaStream_t stream = 0)
     {
 #if (CUB_PTX_ARCH > 0)
+        (void)stream;
         d_counters[DRAIN] = 0;
         return cudaSuccess;
 #else
@@ -152,6 +154,7 @@ public:
     __host__ __device__ __forceinline__ cudaError_t ResetFill(cudaStream_t stream = 0)
     {
 #if (CUB_PTX_ARCH > 0)
+        (void)stream;
         d_counters[FILL] = 0;
         return cudaSuccess;
 #else
@@ -166,6 +169,7 @@ public:
         cudaStream_t stream = 0)
     {
 #if (CUB_PTX_ARCH > 0)
+        (void)stream;
         fill_size = d_counters[FILL];
         return cudaSuccess;
 #else

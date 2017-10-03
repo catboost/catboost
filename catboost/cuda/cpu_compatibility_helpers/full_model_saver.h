@@ -4,7 +4,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/algo/online_ctr.h>
-#include <catboost/libs/model/model_calcer.h>
+#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/algo/index_hash_calcer.h>
 
 //TODO(noxoomo): correct decomposition of logic and move from app to proper place

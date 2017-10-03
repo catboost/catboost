@@ -1,5 +1,5 @@
-#include "model_calcer.h"
-#include "static_ctr_provider.h"
+#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/static_ctr_provider.h>
 
 #include <set>
 
@@ -25,7 +25,7 @@ size_t RepackLeaves(
 
 
 namespace NCatBoost {
-    void TModelCalcer::InitBinTreesFromCoreModel(const TCoreModel& model) {
+    void TFormulaEvaluator::InitBinTreesFromCoreModel(const TCoreModel& model) {
         const auto featureCount = model.CatFeatures.ysize() + model.Borders.ysize();
         CatFeatureFlatIndex = model.CatFeatures;
         Sort(CatFeatureFlatIndex);
@@ -45,7 +45,6 @@ namespace NCatBoost {
         yvector<TModelSplit> usedSplits;
         {
             std::set<TModelSplit> allSplits;
-            std::set<TProjection> UniqueCtrProjections;
             for (const auto& treeStruct : model.TreeStruct) {
                 for (const auto& split : treeStruct.SelectedSplits) {
                     allSplits.insert(split);
@@ -95,6 +94,7 @@ namespace NCatBoost {
                 if (UsedFloatFeatures.empty() || UsedFloatFeatures.back().FeatureIndex != split.BinFeature.FloatFeature) {
                     UsedFloatFeatures.emplace_back();
                     UsedFloatFeatures.back().FeatureIndex = split.BinFeature.FloatFeature;
+                    FloatFeaturesCount = Max(FloatFeaturesCount, (size_t)split.BinFeature.FloatFeature + 1);
                 }
                 UsedFloatFeatures.back().Borders.push_back(
                     model.Borders[split.BinFeature.FloatFeature][split.BinFeature.SplitIdx]);
@@ -102,12 +102,16 @@ namespace NCatBoost {
                 if (UsedOHEFeatures.empty() || UsedOHEFeatures.back().CatFeatureIndex != split.OneHotFeature.CatFeatureIdx) {
                     UsedOHEFeatures.emplace_back();
                     UsedOHEFeatures.back().CatFeatureIndex = split.OneHotFeature.CatFeatureIdx;
+                    CatFeaturesCount = Max(CatFeaturesCount, (size_t)split.OneHotFeature.CatFeatureIdx + 1);
                 }
                 UsedOHEFeatures.back().Values.push_back(split.OneHotFeature.Value);
             } else {
                 if (UsedCtrFeatures.empty() || UsedCtrFeatures.back().Ctr != split.OnlineCtr.Ctr) {
                     UsedCtrFeatures.emplace_back();
                     UsedCtrFeatures.back().Ctr = split.OnlineCtr.Ctr;
+                    for (const auto& catFeatureIdx : split.OnlineCtr.Ctr.Projection.CatFeatures) {
+                        CatFeaturesCount = Max(CatFeaturesCount, (size_t)catFeatureIdx + 1);
+                    }
                 }
                 UsedCtrFeatures.back().Borders.push_back(split.OnlineCtr.Border);
             }
@@ -127,20 +131,26 @@ namespace NCatBoost {
         }
     }
 
-    void TModelCalcer::InitFromFullModel(const TFullModel& fullModel) {
+    void TFormulaEvaluator::InitFromFullModel(const TFullModel& fullModel) {
         InitBinTreesFromCoreModel(fullModel);
         CtrProvider.Reset(new TStaticCtrProvider(fullModel.CtrCalcerData));
     }
 
-    void TModelCalcer::InitFromFullModel(TFullModel&& fullModel) {
+    void TFormulaEvaluator::InitFromFullModel(TFullModel&& fullModel) {
         InitBinTreesFromCoreModel(fullModel);
         CtrProvider.Reset(new TStaticCtrProvider(std::move(fullModel.CtrCalcerData)));
     }
 
-    void TModelCalcer::CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features,
+    void TFormulaEvaluator::CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features,
                                 size_t treeStart,
                                 size_t treeEnd,
                                 NArrayRef::TArrayRef<double> results) const {
+        const auto expectedFlatVecSize = FlatFeatureVectorExpectedSize();
+        for (const auto& flatFeaturesVec : features) {
+            CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
+                      "insufficient flat features vector size: " << flatFeaturesVec.size()
+                                                                 << " expected: " << expectedFlatVecSize);
+        }
         CalcGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
                 return features[index][FloatFeatureFlatIndex[floatFeature.FeatureIndex]];
@@ -155,13 +165,23 @@ namespace NCatBoost {
         );
     }
 
-    void TModelCalcer::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+    void TFormulaEvaluator::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
                             const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
                             size_t treeStart,
                             size_t treeEnd,
                             NArrayRef::TArrayRef<double> results) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
+        }
+        for (const auto& floatFeaturesVec : floatFeatures) {
+            CB_ENSURE(floatFeaturesVec.size() >= FloatFeaturesCount,
+                      "insufficient float features vector size: " << floatFeaturesVec.size()
+                                                                  << " expected: " << FloatFeaturesCount);
+        }
+        for (const auto& catFeaturesVec : catFeatures) {
+            CB_ENSURE(catFeaturesVec.size() >= CatFeaturesCount,
+                      "insufficient cat features vector size: " << catFeaturesVec.size()
+                                                                << " expected: " << CatFeaturesCount);
         }
         CalcGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
@@ -177,13 +197,22 @@ namespace NCatBoost {
         );
     }
 
-    void TModelCalcer::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+    void TFormulaEvaluator::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
                             const yvector<yvector<TStringBuf>>& catFeatures, size_t treeStart, size_t treeEnd,
                             NArrayRef::TArrayRef<double> results) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
-
+        for (const auto& floatFeaturesVec : floatFeatures) {
+            CB_ENSURE(floatFeaturesVec.size() >= FloatFeaturesCount,
+                      "insufficient float features vector size: " << floatFeaturesVec.size()
+                                                                  << " expected: " << FloatFeaturesCount);
+        }
+        for (const auto& catFeaturesVec : catFeatures) {
+            CB_ENSURE(catFeaturesVec.size() >= CatFeaturesCount,
+                      "insufficient cat features vector size: " << catFeaturesVec.size()
+                                                                << " expected: " << CatFeaturesCount);
+        }
         CalcGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
                 return floatFeatures[index][floatFeature.FeatureIndex];
@@ -198,14 +227,23 @@ namespace NCatBoost {
         );
     }
 
-    yvector<yvector<double>> TModelCalcer::CalcTreeIntervals(
+    yvector<yvector<double>> TFormulaEvaluator::CalcTreeIntervals(
         const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
         const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
         size_t incrementStep) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
-
+        for (const auto& floatFeaturesVec : floatFeatures) {
+            CB_ENSURE(floatFeaturesVec.size() >= FloatFeaturesCount,
+                      "insufficient float features vector size: " << floatFeaturesVec.size()
+                                                                  << " expected: " << FloatFeaturesCount);
+        }
+        for (const auto& catFeaturesVec : catFeatures) {
+            CB_ENSURE(catFeaturesVec.size() >= CatFeaturesCount,
+                      "insufficient cat features vector size: " << catFeaturesVec.size()
+                                                                  << " expected: " << CatFeaturesCount);
+        }
         return CalcTreeIntervalsGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
                 return floatFeatures[index][floatFeature.FeatureIndex];
@@ -217,9 +255,15 @@ namespace NCatBoost {
             incrementStep
         );
     }
-    yvector<yvector<double>> TModelCalcer::CalcTreeIntervalsFlat(
+    yvector<yvector<double>> TFormulaEvaluator::CalcTreeIntervalsFlat(
         const yvector<NArrayRef::TConstArrayRef<float>>& features,
         size_t incrementStep) const {
+        const auto expectedFlatVecSize = FlatFeatureVectorExpectedSize();
+        for (const auto& flatFeaturesVec : features) {
+            CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
+                      "insufficient flat features vector size: " << flatFeaturesVec.size()
+                                                                  << " expected: " << expectedFlatVecSize);
+        }
         return CalcTreeIntervalsGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
                 return features[index][FloatFeatureFlatIndex[floatFeature.FeatureIndex]];

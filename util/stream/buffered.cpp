@@ -202,6 +202,16 @@ public:
         }
     }
 
+    inline void Write(char c) {
+        if (Y_UNLIKELY(MemOut_.Avail() == 0)) {
+            Slave_->Write(Buf(), Stored());
+            OnBufferExhausted();
+            Reset();
+        }
+
+        MemOut_.Write(c);
+    }
+
     inline void SetFlushPropagateMode(bool mode) noexcept {
         PropagateFlush_ = mode;
     }
@@ -341,7 +351,15 @@ void TBufferedOutputBase::DoWrite(const void* data, size_t len) {
     if (Impl_.Get()) {
         Impl_->Write(data, len);
     } else {
-        ythrow yexception() << "can not write to finished stream";
+        ythrow yexception() << "cannot write to finished stream";
+    }
+}
+
+void TBufferedOutputBase::DoWriteC(char c) {
+    if (Impl_.Get()) {
+        Impl_->Write(c);
+    } else {
+        ythrow yexception() << "cannot write to finished stream";
     }
 }
 

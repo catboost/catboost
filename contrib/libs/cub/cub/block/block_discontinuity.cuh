@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -157,7 +157,7 @@ private:
     struct ApplyOp<FlagOp, false>
     {
         // Apply flag operator
-        static __device__ __forceinline__ bool FlagT(FlagOp flag_op, const T &a, const T &b, int idx)
+        static __device__ __forceinline__ bool FlagT(FlagOp flag_op, const T &a, const T &b, int /*idx*/)
         {
             return flag_op(a, b);
         }
@@ -222,11 +222,11 @@ private:
             typename        FlagT,
             typename        FlagOp>
         static __device__ __forceinline__ void FlagHeads(
-            int                     linear_tid,
-            FlagT                   (&flags)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
-            T                       (&input)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
-            T                       (&preds)[ITEMS_PER_THREAD],         ///< [out] Calling thread's predecessor items
-            FlagOp                  flag_op)                            ///< [in] Binary boolean flag predicate
+            int                     /*linear_tid*/,
+            FlagT                   (&/*flags*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
+            T                       (&/*input*/)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
+            T                       (&/*preds*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's predecessor items
+            FlagOp                  /*flag_op*/)                            ///< [in] Binary boolean flag predicate
         {}
 
         // Tail flags
@@ -235,10 +235,10 @@ private:
             typename        FlagT,
             typename        FlagOp>
         static __device__ __forceinline__ void FlagTails(
-            int                     linear_tid,
-            FlagT                   (&flags)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
-            T                       (&input)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
-            FlagOp                  flag_op)                            ///< [in] Binary boolean flag predicate
+            int                     /*linear_tid*/,
+            FlagT                   (&/*flags*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
+            T                       (&/*input*/)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
+            FlagOp                  /*flag_op*/)                            ///< [in] Binary boolean flag predicate
         {}
     };
 
@@ -308,7 +308,7 @@ public:
         // Share last item
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         if (linear_tid == 0)
         {
@@ -339,7 +339,7 @@ public:
         // Share last item
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Set flag for first thread-item
         preds[0] = (linear_tid == 0) ?
@@ -558,7 +558,7 @@ public:
         // Share first item
         temp_storage.first_items[linear_tid] = input[0];
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Set flag for last thread-item
         tail_flags[ITEMS_PER_THREAD - 1] = (linear_tid == BLOCK_THREADS - 1) ?
@@ -643,7 +643,7 @@ public:
         // Share first item
         temp_storage.first_items[linear_tid] = input[0];
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Set flag for last thread-item
         T successor_item = (linear_tid == BLOCK_THREADS - 1) ?
@@ -742,7 +742,7 @@ public:
         temp_storage.first_items[linear_tid] = input[0];
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         T preds[ITEMS_PER_THREAD];
 
@@ -859,7 +859,7 @@ public:
         temp_storage.first_items[linear_tid] = input[0];
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         T preds[ITEMS_PER_THREAD];
 
@@ -983,7 +983,7 @@ public:
         temp_storage.first_items[linear_tid] = input[0];
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         T preds[ITEMS_PER_THREAD];
 
@@ -1103,7 +1103,7 @@ public:
         temp_storage.first_items[linear_tid] = input[0];
         temp_storage.last_items[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
-        __syncthreads();
+        CTA_SYNC();
 
         T preds[ITEMS_PER_THREAD];
 

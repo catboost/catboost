@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -195,7 +195,7 @@ public:
 
     /// Array subscript
     template <typename Distance>
-    __host__ __device__ __forceinline__ reference operator[](Distance n) const
+    __host__ __device__ __forceinline__ reference operator[](Distance /*n*/) const
     {
         return val;
     }

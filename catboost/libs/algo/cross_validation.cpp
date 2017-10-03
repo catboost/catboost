@@ -211,10 +211,6 @@ void CrossValidate(
             TrainOneIteration(folds[foldIdx], contexts[foldIdx].Get());
         }
 
-        if ((iteration % cvParams.EvalPeriod) != 0) {
-            continue;
-        }
-
         for (size_t metricIdx = 0; metricIdx < metrics.size(); ++metricIdx) {
             const auto& metric = metrics[metricIdx];
 

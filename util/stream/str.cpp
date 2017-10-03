@@ -20,4 +20,8 @@ void TStringOutput::DoWrite(const void* buf, size_t len) {
     S_.append((const char*)buf, len);
 }
 
+void TStringOutput::DoWriteC(char c) {
+    S_.append(c);
+}
+
 TStringStream::~TStringStream() = default;

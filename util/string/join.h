@@ -12,6 +12,7 @@ inline void AppendToString(TString& dst, const T& t) {
     // which allocates and returns temporary string on each call.
     // It would be more efficient to define AppendToString() as the base instead,
     // and then implement ToString(), Out(), Join(), etc. via AppendToString().
+    // See IGNIETFERRO-629.
 }
 
 inline void AppendToString(TString& dst, const char* t) {

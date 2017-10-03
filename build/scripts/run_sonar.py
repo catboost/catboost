@@ -95,9 +95,11 @@ def main(opts, props_args):
             '-Dsonar.core.codeCoveragePlugin=jacoco',
             '-Dsonar.jacoco.reportPath=' + jacoco_report_path
         ]
+    java_args = ['-Djava.net.preferIPv6Addresses=true', '-Djava.net.preferIPv4Addresses=false']
 
     sonar_cmd = [
         opts.java_binary_path,
+    ] + java_args + [
         '-classpath',
         opts.sonar_scanner_jar_path,
     ] + base_props_args + props_args + [opts.sonar_scanner_main_class, '-X']
@@ -106,7 +108,7 @@ def main(opts, props_args):
     out, _ = p.communicate()
 
     sys.stderr.write(out)
-    with open(opts.log_path, 'w') as f:
+    with open(opts.log_path, 'a') as f:
         f.write(out)
 
     sys.exit(p.returncode)

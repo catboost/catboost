@@ -42,6 +42,10 @@ void IOutputStream::DoWriteV(const TPart* parts, size_t count) {
     }
 }
 
+void IOutputStream::DoWriteC(char ch) {
+    DoWrite(&ch, 1);
+}
+
 static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
     const size_t buflen = (n * 4); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
@@ -95,7 +99,7 @@ void Out<TUtf16String>(IOutputStream& o, const TUtf16String& w) {
 #define DEF_CONV_CHR(type)                      \
     template <>                                 \
     void Out<type>(IOutputStream & o, type p) { \
-        o.Write((const char*)&p, 1);            \
+        o.Write((char)p);            \
     }
 
 #define DEF_CONV_NUM(type, len)                                   \

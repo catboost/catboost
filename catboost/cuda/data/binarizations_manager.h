@@ -77,8 +77,12 @@ public:
     {
     }
 
+    bool IsKnown(const ui32 featuresProviderId) const {
+        return DataProviderFloatFeatureIdToFeatureManagerId.has(featuresProviderId) || DataProviderCatFeatureIdToFeatureManagerId.has(featuresProviderId);
+    }
+
     bool IsKnown(const IFeatureValuesHolder& feature) const {
-        return DataProviderFloatFeatureIdToFeatureManagerId.has(feature.GetId()) || DataProviderCatFeatureIdToFeatureManagerId.has(feature.GetId());
+        return IsKnown(feature.GetId());
     }
 
     template <class TBuilder>
@@ -88,15 +92,21 @@ public:
 
         if (!IsKnown(feature)) {
             featureId = AddFloatFeature(feature,
-                                        builder(GetDefaultBinarization().DefaultFloatBinarization));
+                                        builder(GetDefaultFloatFeatureBinarizationDescription()));
         } else {
             featureId = GetId(feature);
             if (Borders[featureId].size() == 0) {
-                Borders[featureId] = builder(GetDefaultBinarization().DefaultFloatBinarization);
+                Borders[featureId] = builder(GetDefaultFloatFeatureBinarizationDescription());
             }
         }
 
         return Borders[featureId];
+    }
+
+    const yvector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const {
+        CB_ENSURE(IsKnown(feature));
+        ui32 id = GetId(feature);
+        return Borders.at(id);
     }
 
     template <class TBuilder>
@@ -209,8 +219,16 @@ public:
 
         const ui32 id = RequestNewId();
         Borders[id] = feature.GetBorders();
-        DataProviderFloatFeatureIdToFeatureManagerId[feature.GetId()] = id;
-        FeatureManagerIdToDataProviderId[id] = feature.GetId();
+        UpdateFloatFeatureIndex(feature.GetId(), id);
+        return id;
+    }
+
+    ui32 AddEmptyFloatFeature(const ui32 floatFeatureFeatureManagerId) {
+        CB_ENSURE(!IsKnown(floatFeatureFeatureManagerId));
+
+        const ui32 id = RequestNewId();
+        Borders[id] = yvector<float>();
+        UpdateFloatFeatureIndex(floatFeatureFeatureManagerId, id);
         return id;
     }
 
@@ -220,8 +238,7 @@ public:
 
         const ui32 id = RequestNewId();
         Borders[id] = std::move(borders);
-        DataProviderFloatFeatureIdToFeatureManagerId[feature.GetId()] = id;
-        FeatureManagerIdToDataProviderId[id] = feature.GetId();
+        UpdateFloatFeatureIndex(feature.GetId(), id);
         return id;
     }
 
@@ -300,6 +317,10 @@ public:
 
     const TBinarizationDescription& GetBinarizationDescription(ui32 featureId) const {
         Y_UNUSED(featureId);
+        return GetDefaultBinarization().DefaultFloatBinarization;
+    }
+
+    const TBinarizationDescription& GetDefaultFloatFeatureBinarizationDescription() const {
         return GetDefaultBinarization().DefaultFloatBinarization;
     }
 
@@ -392,7 +413,7 @@ public:
         ui32 total = 0;
         for (auto& type : EnabledCtrTypes) {
             ui32 binarization = GetDefaultTreeCtrBinarization(type).Discretization;
-            total +=  DefaultCtrConfigsForType.at(type).size() * binarization;
+            total += DefaultCtrConfigsForType.at(type).size() * binarization;
         }
         return total;
     }
@@ -416,7 +437,9 @@ public:
         yvector<ui32> featureIds;
 
         for (auto& feature : DataProviderCatFeatureIdToFeatureManagerId) {
-            featureIds.push_back(feature.second);
+            if (GetBinCount(feature.second)) {
+                featureIds.push_back(feature.second);
+            }
         }
         Sort(featureIds.begin(), featureIds.end());
         return featureIds;
@@ -426,7 +449,9 @@ public:
         yvector<ui32> featureIds;
 
         for (auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
-            featureIds.push_back(feature.second);
+            if (GetBinCount(feature.second)) {
+                featureIds.push_back(feature.second);
+            }
         }
         return featureIds;
     }
@@ -466,7 +491,7 @@ public:
         if (ctr.FeatureTensor.IsSimple()) {
             return GetDefaultBinarization().DefaultCtrBinarization;
         }
-        return  ctr.FeatureTensor.IsSimple() ? GetDefaultBinarization().DefaultCtrBinarization : GetDefaultBinarization().DefaultTreeCtrBinarization;
+        return ctr.FeatureTensor.IsSimple() ? GetDefaultBinarization().DefaultCtrBinarization : GetDefaultBinarization().DefaultTreeCtrBinarization;
     }
 
     inline const TBinarizationDescription& GetDefaultTreeCtrBinarization(const ECtrType type) const {
@@ -519,6 +544,11 @@ public:
              DefaultCtrConfigsForType, Borders, CatFeatureUniqueValues, TargetBorders);
 
 private:
+    void UpdateFloatFeatureIndex(ui32 floatFeatureFeatureManagerId, ui32 id) {
+        DataProviderFloatFeatureIdToFeatureManagerId[floatFeatureFeatureManagerId] = id;
+        FeatureManagerIdToDataProviderId[id] = floatFeatureFeatureManagerId;
+    }
+
     ui32 RequestNewId() {
         return Cursor++;
     }

@@ -7,8 +7,7 @@
 #include <catboost/cuda/data/grid_creator.h>
 
 namespace NKernelHost {
-    class TFindBordersKernel: public TStatelessKernel
-    {
+    class TFindBordersKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Feature;
         TBinarizationDescription BinarizationDescription;
@@ -20,9 +19,9 @@ namespace NKernelHost {
         TFindBordersKernel(TCudaBufferPtr<const float> feature,
                            TBinarizationDescription description,
                            TCudaBufferPtr<float> dst)
-                : Feature(feature)
-                  , BinarizationDescription(description)
-                  , Dst(dst)
+            : Feature(feature)
+            , BinarizationDescription(description)
+            , Dst(dst)
         {
         }
 
@@ -31,12 +30,10 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Dst.Size() > BinarizationDescription.Discretization);
 
-            if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Median)
-            {
+            if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Median) {
                 NKernel::FastGpuBorders(Feature.Get(), Feature.Size(), Dst.Get(),
                                         BinarizationDescription.Discretization, stream.GetStream());
-            } else if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Uniform)
-            {
+            } else if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Uniform) {
                 NKernel::ComputeUniformBorders(Feature.Get(), static_cast<ui32>(Feature.Size()),
                                                Dst.Get(), BinarizationDescription.Discretization,
                                                stream.GetStream());

@@ -161,13 +161,16 @@ public:
     void ApproximateAt(const TVec& point,
                        TVec* value,
                        TVec* der,
-                       TVec* der2) const {
+                       TVec* der2,
+                       ui32 stream = 0
+    ) const {
         Parent->Approximate(Target,
                             Weights,
                             point,
                             value,
                             der,
-                            der2);
+                            der2,
+                            stream);
     }
 
     const TVec& GetWeights() const {
@@ -206,7 +209,6 @@ public:
     void GradientAtZero(TVec& der, ui32 stream = 0) const {
         Parent.GradientAt(Shift, der, stream);
     }
-
 
     const TConstVec& GetTarget() const {
         return Parent.GetTarget();

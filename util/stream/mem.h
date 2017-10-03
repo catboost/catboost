@@ -175,6 +175,7 @@ public:
 
 private:
     void DoWrite(const void* buf, size_t len) override;
+    void DoWriteC(char c) override;
 
 protected:
     char* Buf_;

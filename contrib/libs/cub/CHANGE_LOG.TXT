@@ -1,14 +1,100 @@
-1.5.4    10/14/2016
+1.7.4    09/20/2017
+    - Bug fixes: 
+        - Issue #114: Can't pair non-trivially-constructible values in radix sort
+        - Issue #115: WarpReduce segmented reduction broken in CUDA 9 for logical warp sizes < 32 
+          		  
+//-----------------------------------------------------------------------------
+
+1.7.3    08/28/2017
+    - Bug fixes: 
+        - Issue #110: DeviceHistogram null-pointer exception bug for iterator inputs
+          		  
+//-----------------------------------------------------------------------------
+
+1.7.2    08/26/2017
+    - Bug fixes: 
+        - Issue #104: Device-wide reduction is now "run-to-run" deterministic for 
+          pseudo-associative reduction operators (like floating point addition)
+          		  
+//-----------------------------------------------------------------------------
+
+1.7.1    08/18/2017
+    - Updated Volta radix sorting tuning policies 
+    - Bug fixes: 
+        - Issue #104 (uint64_t warp-reduce broken for cub 1.7.0 on cuda 8 and older)
+        - Issue #103 (Can't mix Thrust 9.0 and CUB)
+        - Issue #102 (CUB pulls in windows.h which defines min/max macros that conflict with std::min/std::max)
+        - Issue #99 (Radix sorting crashes NVCC on Windows 10 for SM52)
+        - Issue #98 (cuda-memcheck: --tool initcheck failed with lineOfSight)
+        - Issue #94 (Git clone size)
+        - Issue #93 (accept iterators for segment offsets)
+        - Issue #87 (CUB uses anonymous unions which is not valid C++)
+        - Issue #44 (Check for C++ 11 should be changed that Visual Studio 2013 is also recognized as C++ 11 capable)
+          		  
+//-----------------------------------------------------------------------------
+
+1.7.0    06/07/2017
+    - Compatible with CUDA9 and SM7.x (Volta) independent thread scheduling 
+    - API change: remove cub::WarpAll() and cub::WarpAny().  These functions served to 
+      emulate __all and __any functionality for SM1.x devices, which did not have those 
+      operations.  However, the SM1.x devices are now deprecated in CUDA, and the 
+      interfaces of the these two functions are now lacking the lane-mask needed 
+      for collectives to run on Volta SMs having independent thread scheduling. 
+    - Bug fixes: 
+        - Issue #86 Incorrect results with ReduceByKey
+          		  
+//-----------------------------------------------------------------------------
+
+1.6.4    12/06/2016
+    - Updated sm_5x, sm_6x tuning policies for radix sorting (3.5B and 3.4B 
+      32b keys/s on TitanX and GTX 1080, respectively)
+    - Bug fixes: 
+        - Restore fence work-around for scan (reduce-by-key, etc.) hangs 
+          in CUDA 8.5
+        - Issue 65: DeviceSegmentedRadixSort should allow inputs to have 
+          pointer-to-const type 
+        - Mollify Clang device-side warnings
+        - Remove out-dated VC project files
+          		  
+//-----------------------------------------------------------------------------
+
+1.6.3    11/20/2016
+    - API change: BlockLoad and BlockStore are now templated by the local
+      data type, instead of the Iterator type.  This allows for output iterators
+      having \p void as their \p value_type (e.g., discard iterators).
+    - Updated GP100 tuning policies for radix sorting (6.2B 32b keys/s)
+    - Bug fixes: 
+        - Issue #74: Warpreduce executes reduction operator for out-of-bounds items
+        - Issue #72 (cub:InequalityWrapper::operator() should be non-const)
+        - Issue #71 (KeyVairPair won't work if Key has non-trivial ctor)
+		- Issue #70 1.5.3 breaks BlockScan API.  Retroactively reversioned
+		  from v1.5.3 -> v1.6 to appropriately indicate API change.
+		- Issue #69 cub::BlockStore::Store doesn't compile if OutputIteratorT::value_type != T  
+        - Issue #68 (cub::TilePrefixCallbackOp::WarpReduce doesn't permit ptx 
+          arch specialization)
+		- Improved support for Win32 platforms (warnings, alignment, etc)
+		  
+//-----------------------------------------------------------------------------
+
+1.6.2 (was 1.5.5)    10/25/2016
+    - Updated Pascal tuning policies for radix sorting
+    - Bug fixes: 
+        - Fix for arm64 compilation of caching allocator
+
+//-----------------------------------------------------------------------------
+
+1.6.1 (was 1.5.4)    10/14/2016
     - Bug fixes: 
         - Fix for radix sorting bug introduced by scan refactorization
 
 //-----------------------------------------------------------------------------
 
-1.5.3    10/11/2016
-    - Device/block/warp-wide exclusive scans now take an "initial value" (instead 
-      of an "identity value") for seeding the computation with an arbitrary prefix.  
-    - Device-wide reductions and scans can now have input sequence types that are 
-      differnet from output sequence types (as long as they are coercible)
+1.6.0 (was 1.5.3)    10/11/2016
+    - API change: Device/block/warp-wide exclusive scans have been revised to now 
+      accept an "initial value" (instead of an "identity value") for seeding the 
+      computation with an arbitrary prefix.  
+    - API change: Device-wide reductions and scans can now have input sequence types that are 
+      different from output sequence types (as long as they are coercible)
       value") for seeding the computation with an arbitrary prefix
     - Reduce repository size (move doxygen binary to doc repository)
     - Minor reductions in block-scan instruction count
@@ -105,7 +191,7 @@
 1.3.2    07/28/2014
     - Bug fixes: 
         - Fix for cub::DeviceReduce where reductions of small problems 
-          (small enough to only dispatch a single threadblock) would run in 
+          (small enough to only dispatch a single thread block) would run in 
           the default stream (stream zero) regardless of whether an alternate
           stream was specified.  
           

@@ -11,6 +11,7 @@
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_base.h>
+#include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 
 /*
  * Oblivious tree batch estimator
@@ -33,47 +34,59 @@ private:
         TStripeBuffer<float> Baseline;
         TStripeBuffer<float> Cursor;
 
+        TStripeBuffer<float> TmpDer;
+        TStripeBuffer<float> TmpValue;
+        TStripeBuffer<float> TmpDer2;
+
         TEstimationTaskHelper() = default;
 
-        void MoveToPoint(const TMirrorBuffer<float>& point) {
-            auto guard = NCudaLib::GetProfiler().Profile("Move to point");
-
-            Cursor.Copy(Baseline);
+        void MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream = 0) {
+            Cursor.Copy(Baseline, stream);
 
             AddBinModelValues(Cursor,
                               point,
-                              Bins);
+                              Bins,
+                              stream
+            );
         }
 
-        void ProjectWeights(TStripeBuffer<float>& weightsDst) {
-            SegmentedReduceVector(DerCalcer.GetWeights(), Offsets, weightsDst);
+        template <NCudaLib::EPtrType Type>
+        void ProjectWeights(TCudaBuffer<float, NCudaLib::TStripeMapping, Type>& weightsDst, ui32 streamId = 0) {
+            SegmentedReduceVector(DerCalcer.GetWeights(), Offsets, weightsDst, EOperatorType::Sum, streamId);
         }
 
-        void Project(TStripeBuffer<float>* value,
-                     TStripeBuffer<float>* der,
-                     TStripeBuffer<float>* der2) {
-            TStripeBuffer<float> tmpDer;
+        template <NCudaLib::EPtrType PtrType>
+        void Project(TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* value,
+                     TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* der,
+                     TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* der2,
+                     ui32 stream = 0) {
+            if (value) {
+                TmpValue.Reset(Cursor.GetMapping().Transform([&](const TSlice&) -> ui64 {
+                    return 1;
+                }));
+            }
             if (der) {
-                tmpDer = TStripeBuffer<float>::CopyMapping(Cursor);
+                TmpDer.Reset(Cursor.GetMapping());
             }
-            TStripeBuffer<float> tmpDer2;
             if (der2) {
-                tmpDer2 = TStripeBuffer<float>::CopyMapping(Cursor);
+                TmpDer2.Reset(Cursor.GetMapping());
             }
-
-            DerCalcer.ApproximateAt(Cursor,
-                                    value,
-                                    der ? &tmpDer : nullptr,
-                                    der2 ? &tmpDer2 : nullptr);
 
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
+            DerCalcer.ApproximateAt(Cursor,
+                                    value ? &TmpValue : nullptr,
+                                    der ? &TmpDer : nullptr,
+                                    der2 ? &TmpDer2 : nullptr,
+                                    stream);
+
+            value->Copy(TmpValue, stream);
             {
                 auto guard = profiler.Profile("Segmented reduce derivatives");
                 if (der) {
-                    SegmentedReduceVector(tmpDer, Offsets, *der);
+                    SegmentedReduceVector(TmpDer, Offsets, *der, EOperatorType::Sum, stream);
                 }
                 if (der2) {
-                    SegmentedReduceVector(tmpDer2, Offsets, *der2);
+                    SegmentedReduceVector(TmpDer2, Offsets, *der2, EOperatorType::Sum, stream);
                 }
             }
         }
@@ -84,7 +97,7 @@ private:
     yvector<float> LeafWeights;
     yvector<double> TaskTotalWeights;
     TMirrorBuffer<float> LeafValues;
-    TStripeBuffer<float> PartStats;
+    TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::CudaHost> PartStats;
 
     TObliviousTreeStructure Structure;
     const TBinarizedFeaturesManager& FeaturesManager;
@@ -108,12 +121,14 @@ private:
     }
 
     void MoveTo(const yvector<float>& point) {
+        auto guard = NCudaLib::GetProfiler().Profile("Move to point");
         CB_ENSURE(LeafValues.GetObjectsSlice().Size() == point.size());
 
         LeafValues.Write(point);
-        for (ui32 task = 0; task < TaskHelpers.size(); ++task) {
-            TaskHelpers[task].MoveToPoint(LeavesView(LeafValues, task));
-        }
+        const ui32 streamCount = Min<ui32>(TaskHelpers.size(), 8);
+        RunInStreams(TaskHelpers.size(), streamCount, [&](ui32 taskId, ui32 streamId) {
+            TaskHelpers[taskId].MoveToPoint(LeavesView(LeafValues, taskId), streamId);
+        });
     }
 
     void Regularize(yvector<float>& point) {
@@ -130,31 +145,33 @@ private:
 
         const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
         const ui32 leavesCount = Structure.LeavesCount();
-        for (ui32 taskId = 0; taskId < taskCount; ++taskId) {
+        const ui32 streamCount = Min<ui32>(taskCount, 8);
+        RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
             TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
             auto scoreView = NCudaLib::ParallelStripeView(PartStats, TSlice(taskId, taskId + 1));
             const ui32 derOffset = taskCount + taskId * leavesCount;
             auto derView = NCudaLib::ParallelStripeView(PartStats, TSlice(derOffset, derOffset + leavesCount));
 
-            TStripeBuffer<float> der2View;
+            TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::CudaHost> der2View;
             if (UseNewton) {
                 const ui32 der2Offset = taskCount * (leavesCount + 1) + taskId * leavesCount;
-
                 der2View = NCudaLib::ParallelStripeView(PartStats, TSlice(der2Offset, der2Offset + leavesCount));
             }
 
             taskHelper.Project(&scoreView,
                                &derView,
-                               UseNewton ? &der2View : nullptr);
-        }
+                               UseNewton ? &der2View : nullptr,
+                               streamId
+            );
+        });
 
         yvector<float> data;
+        //TODO(noxoomo): change to reduceToAll and migrate all gradient descent to device side
 
         PartStats.CreateReader()
             .SetReadSlice(PartStats.GetMapping().DeviceSlice(0))
             .SetFactorSlice(PartStats.GetMapping().DeviceSlice(0))
             .ReadReduce(data);
-
         WriteValueAndDerivatives(data, descentPoint);
     }
 
@@ -252,7 +269,7 @@ private:
         const ui32 taskCount = TaskHelpers.size();
         ui32 sumCount = UseNewton ? 2 : 1;
         auto mapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(leafCount * taskCount * sumCount + taskCount);
-        PartStats = TStripeBuffer<float>::Create(mapping);
+        PartStats.Reset(mapping);
     }
 
     void ComputePartWeights() {
@@ -261,13 +278,13 @@ private:
 
         CB_ENSURE(PartStats.GetMapping().DeviceSlice(0).Size() >= taskCount * leavesCount);
 
-        for (ui32 taskId = 0; taskId < taskCount; ++taskId) {
+        RunInStreams(taskCount, Min<ui32>(taskCount, 8), [&](ui32 taskId, ui32 streamId) {
             TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
             auto weightBuffer = NCudaLib::ParallelStripeView(PartStats,
                                                              TSlice(taskId * leavesCount, (taskId + 1) * leavesCount));
 
-            taskHelper.ProjectWeights(weightBuffer);
-        }
+            taskHelper.ProjectWeights(weightBuffer, streamId);
+        });
 
         auto weightsBufferSlice = NCudaLib::ParallelStripeView(PartStats,
                                                                TSlice(0, taskCount * leavesCount));

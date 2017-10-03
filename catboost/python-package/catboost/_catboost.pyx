@@ -53,8 +53,9 @@ cdef extern from "catboost/libs/data/pool.h":
         yhash[int, TString] CatFeaturesHashToString
 
 cdef extern from "catboost/libs/data/load_data.h":
-    cdef void ReadPool(const TString& fdFile,
+    cdef void ReadPool(const TString& cdFile,
                        const TString& poolFile,
+                       const TString& pairsFile,
                        int threadCount,
                        bool_t verbose,
                        const char fieldDelimiter,
@@ -187,6 +188,11 @@ cdef extern from "catboost/libs/algo/apply.h":
                                                   int begin,
                                                   int end,
                                                   int threadCount) nogil except +ProcessException
+
+cdef extern from "catboost/libs/algo/eval_helpers.h":
+    cdef yvector[yvector[double]] PrepareEval(const EPredictionType predictionType,
+                                              const yvector[yvector[double]]& approx,
+                                              int threadCount) nogil except +ProcessException
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
@@ -403,6 +409,7 @@ cdef class _PoolBase:
         cdef yvector[TString] emptyVec
         ReadPool(TString(<char*>cd_file),
                  TString(<char*>pool_file),
+                 "",
                  thread_count,
                  False,
                  ord(delimiter),
@@ -649,27 +656,32 @@ cdef class _CatBoost:
     cpdef _get_cat_feature_indices(self):
         return [feature for feature in self.__model.CatFeatures]
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_limit, verbose):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, verbose):
         cdef yvector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         pred = ApplyModel(dereference(self.__model),
                             dereference(pool.__pool),
                             verbose,
                             predictionType,
-                            0,
-                            ntree_limit, 1)
+                            ntree_start,
+                            ntree_end, 1)
         return [value for value in pred]
 
-    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_limit, verbose):
+    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, verbose):
         cdef yvector[yvector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         pred = ApplyModelMulti(dereference(self.__model),
                                 dereference(pool.__pool),
                                 verbose,
                                 predictionType,
-                                0,
-                                ntree_limit, 1)
+                                ntree_start,
+                                ntree_end, 1)
         return [[value for value in vec] for vec in pred]
+
+    cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
+        stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+        stagedPredictIterator.set_model(self.__model)
+        return stagedPredictIterator
 
     cpdef _calc_fstr(self, _PoolBase pool, fstr_type, int thread_count):
         fstr_type = to_binary_str(fstr_type)
@@ -784,11 +796,14 @@ class _CatBoostBase(object):
     def _get_cat_feature_indices(self):
         return self._object._get_cat_feature_indices()
 
-    def _base_predict(self, pool, prediction_type, ntree_limit, verbose):
-        return self._object._base_predict(pool, prediction_type, ntree_limit, verbose)
+    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, verbose):
+        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, verbose)
 
-    def _base_predict_multi(self, pool, prediction_type, ntree_limit, verbose):
-        return self._object._base_predict_multi(pool, prediction_type, ntree_limit, verbose)
+    def _base_predict_multi(self, pool, prediction_type, ntree_start, ntree_end, verbose):
+        return self._object._base_predict_multi(pool, prediction_type, ntree_start, ntree_end, verbose)
+
+    def _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
+        return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, verbose)
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
@@ -847,7 +862,7 @@ class _CatBoostBase(object):
         return getattr(self, '_is_fitted', False)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, int eval_period):
+          bool_t shuffle):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef yvector[TCVResult] results
@@ -856,7 +871,6 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
     cvParams.Inverted = inverted
-    cvParams.EvalPeriod = eval_period
 
     with nogil:
         SetPythonInterruptHandler()
@@ -881,6 +895,48 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
             result[metric_name + "_test_stddev"].append(results[metric_idx].StdDevTest[it])
 
     return result
+
+
+cdef class _StagedPredictIterator:
+    cdef yvector[yvector[double]] __approx
+    cdef TFullModel* __model
+    cdef _PoolBase pool
+    cdef str prediction_type
+    cdef int ntree_start, ntree_end, eval_period
+    cdef bool_t verbose
+
+    cdef set_model(self, TFullModel* model):
+        self.__model = model
+
+    def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
+        self.pool = pool
+        self.prediction_type = prediction_type
+        self.ntree_start = ntree_start
+        self.ntree_end = ntree_end
+        self.eval_period = eval_period
+        self.verbose = verbose
+
+    def next(self):
+        if self.ntree_start >= self.ntree_end:
+            raise StopIteration
+
+        cdef yvector[yvector[double]] pred
+        cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
+        pred = ApplyModelMulti(dereference(self.__model),
+                               dereference(self.pool.__pool),
+                               self.verbose,
+                               PyPredictionType('RawFormulaVal').predictionType,
+                               self.ntree_start,
+                               min(self.ntree_start + self.eval_period, self.ntree_end), 1)
+        if self.__approx.empty():
+            self.__approx = pred
+        else:
+            for i in range(self.__approx.size()):
+                for j in range(self.__approx[0].size()):
+                    self.__approx[i][j] += pred[i][j]
+        pred = PrepareEval(predictionType, self.__approx, 1)
+        self.ntree_start += self.eval_period
+        return [[value for value in vec] for vec in pred]
 
 log_out = None
 

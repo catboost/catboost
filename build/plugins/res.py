@@ -1,5 +1,4 @@
-from _common import iterpair
-from _common import listid, pathid
+from _common import iterpair, listid, pathid, rootrel_arc_src
 
 
 def split(lst, limit):
@@ -45,21 +44,47 @@ def onresource(unit, *args):
         unit.onsrcs(['GLOBAL', output])
 
 
+def gen_ro_flags(unit):
+    if unit.enabled('darwin') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
+        return ['--prefix']
+    return []
+
+
 def onro_resource(unit, *args):
     unit.onpeerdir(['library/resource'])
 
     for part_args in split(args, 8000):
         srcs_gen = []
+        raw_gen = []
+        raw_inputs = []
+        ro_gen = []
         for p, n in iterpair(part_args):
             if p == '-':
+                raw_gen += [p, n]
                 continue
-            lid = '_' + pathid(p)
-            compressed_out = lid + '.rodata'
-            unit.onrun_program(['tools/rescompressor', p, compressed_out, 'IN', p, 'OUT', compressed_out])
+            if unit.enabled('ARCH_AARCH64') or unit.enabled('ARCH_ARM') or unit.enabled('ARCH_PPC64LE'):
+                raw_gen += [p, n]
+                raw_inputs.append(p)
+                continue
+            lid = '_' + pathid(p + n + unit.path())
             srcs_gen.append('{}={}'.format(n, lid))
-        output = listid(part_args) + '.cpp'
-        unit.onrun_program(['tools/rorescompiler', output] + srcs_gen + ['OUT_NOAUTO', output])
-        unit.onsrcs(['GLOBAL', output])
+            output = lid + '.roresource'
+            unit.onrun_program(['tools/rescompressor', p, output, 'IN', p, 'OUT_NOAUTO', output])
+            ro_gen.append(output)
+        if ro_gen:
+            output = listid(part_args) + '.asm'
+            unit.onbuiltin_python(['build/scripts/gen_rodata.py', '--out-file', output, '--yasm', '${tool:"contrib/tools/yasm"}'] + gen_ro_flags(unit) + ro_gen +
+                                  ['IN'] + ro_gen + ['OUTPUT_INCLUDES'] + ro_gen + ['OUT', output])
+        if srcs_gen:
+            output = listid(part_args) + '.cpp'
+            unit.onrun_program(['tools/rorescompiler', output] + srcs_gen + ['OUT_NOAUTO', output])
+            unit.onsrcs(['GLOBAL', output])
+        if raw_gen:
+            output = listid(part_args) + '_raw.cpp'
+            if raw_inputs:
+                raw_inputs = ['IN'] + raw_inputs
+            unit.onrun_program(['tools/rescompiler', output] + raw_gen + raw_inputs + ['OUT_NOAUTO', output])
+            unit.onsrcs(['GLOBAL', output])
 
 
 def onfrom_sandbox(unit, *args):
@@ -68,3 +93,38 @@ def onfrom_sandbox(unit, *args):
     if res_id == "FILE":
         res_id = args[1]
     unit.onadd_check(["check.resource", res_id])
+
+
+def onresource_files(unit, *args):
+    """
+    RESOURCE_FILES([PREFIX {prefix}] {path}) expands into
+    RESOURCE({path} resfs/file/{prefix}{path}
+        - resfs/src/resfs/file/{prefix}{path}={rootrel_arc_src(path)}
+    )
+
+    resfs/src/{key} stores a source root (or build root) relative path of the
+    source of the value of the {key} resource.
+
+    resfs/file/{key} stores any value whose source was a file on a filesystem.
+    resfs/src/resfs/file/{key} must store its path.
+
+    This form is for use from other plugins:
+    RESOURCE_FILES([DEST {dest}] {path}) expands into RESOURCE({path} resfs/file/{dest})
+    """
+    prefix = ''
+    dest = None
+    res = []
+
+    args = iter(args)
+    for arg in args:
+        if arg == 'PREFIX':
+            prefix, dest = next(args), None
+        elif arg == 'DEST':
+            dest, prefix = next(args), None
+        else:
+            path = arg
+            key = 'resfs/file/' + (dest or (prefix + path))
+            src = 'resfs/src/{}={}'.format(key, rootrel_arc_src(path, unit))
+            res += ['-', src, path, key]
+
+    unit.onresource(res)

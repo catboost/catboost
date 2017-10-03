@@ -18,10 +18,11 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
         TBinarizedFeaturesManager binarizedFeaturesManager(featureManagerOptions);
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder builder(binarizedFeaturesManager, gridBuilderFactory, dataProvider);
+        TDataProviderBuilder builder(binarizedFeaturesManager, dataProvider);
 
         ReadPool("test-pool.txt.cd",
                  "test-pool.txt",
+                 "",
                  16,
                  true,
                  builder.SetShuffleFlag(false));

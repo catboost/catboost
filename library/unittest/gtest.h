@@ -82,7 +82,8 @@ namespace testing {
 #define EXPECT_NEAR(A, B, D) UNIT_ASSERT_DOUBLES_EQUAL(A, B, D)
 #define EXPECT_STREQ(A, B) UNIT_ASSERT_VALUES_EQUAL(A, B)
 
-#define EXPECT_DOUBLE_EQ(A, B) UNIT_ASSERT(fabs((A) - (B)) < 4.0 * std::numeric_limits<decltype(A)>::epsilon())
+#define EXPECT_DOUBLE_EQ_TOLERANCE(A, B, tolerance) UNIT_ASSERT_C(fabs((A) - (B)) < tolerance * std::numeric_limits<decltype(A)>::epsilon(), TString("\n") + ToString(A) + " <> " + ToString(B))
+#define EXPECT_DOUBLE_EQ(A, B) EXPECT_DOUBLE_EQ_TOLERANCE(A, B, 4.0)
 
 //conflicts with util/system/defaults.h
 #undef EXPECT_TRUE

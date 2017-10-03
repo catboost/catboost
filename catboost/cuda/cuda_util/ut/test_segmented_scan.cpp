@@ -194,7 +194,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         StopCudaManager();
     }
 
-
     SIMPLE_UNIT_TEST(TestNonNegativeSegmentedScanAndScatter) {
         StartCudaManager();
         {
@@ -239,7 +238,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
 
                 SegmentedScanAndScatterNonNegativeVector(input, indices, output, false);
                 output.Read(result);
-//
+                //
                 float prefixSum = 0;
                 const ui32 mask = 0x3FFFFFFF;
                 for (ui32 i = 0; i < result.size(); ++i) {
@@ -256,7 +255,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
 
                 SegmentedScanAndScatterNonNegativeVector(input, indices, output, true);
                 output.Read(result);
-
 
                 for (ui32 i = 0; i < result.size(); ++i) {
                     if (indicesCpu[i] >> 31) {

@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -146,7 +146,7 @@ struct DeviceRunLengthEncode
         typename                    NumRunsOutputIteratorT>
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Encode(
-        void*               d_temp_storage,                ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                      &temp_storage_bytes,            ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to the input sequence of keys
         UniqueOutputIteratorT       d_unique_out,                   ///< [out] Pointer to the output sequence of unique keys (one key per run)
@@ -156,27 +156,26 @@ struct DeviceRunLengthEncode
         cudaStream_t                stream             = 0,         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous  = false)     ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
-        // Data type of value iterator
-        typedef typename std::iterator_traits<LengthsOutputIteratorT>::value_type Value;
-
-        typedef int         OffsetT;                     // Signed integer type for global offsets
+        typedef int         OffsetT;                    // Signed integer type for global offsets
         typedef NullType*   FlagIterator;               // FlagT iterator type (not used)
         typedef NullType    SelectOp;                   // Selection op (not used)
         typedef Equality    EqualityOp;                 // Default == operator
         typedef cub::Sum    ReductionOp;                // Value reduction operator
 
-        // Generator type for providing 1s values for run-length reduction
-        typedef ConstantInputIterator<Value, OffsetT> LengthsInputIteratorT;
+        // The lengths output value type
+        typedef typename If<(Equals<typename std::iterator_traits<LengthsOutputIteratorT>::value_type, void>::VALUE),   // LengthT =  (if output iterator's value type is void) ?
+            OffsetT,                                                                                                    // ... then the OffsetT type,
+            typename std::iterator_traits<LengthsOutputIteratorT>::value_type>::Type LengthT;                           // ... else the output iterator's value type
 
-        Value one_val;
-        one_val = 1;
+        // Generator type for providing 1s values for run-length reduction
+        typedef ConstantInputIterator<LengthT, OffsetT> LengthsInputIteratorT;
 
         return DispatchReduceByKey<InputIteratorT, UniqueOutputIteratorT, LengthsInputIteratorT, LengthsOutputIteratorT, NumRunsOutputIteratorT, EqualityOp, ReductionOp, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_in,
             d_unique_out,
-            LengthsInputIteratorT(one_val),
+            LengthsInputIteratorT((LengthT) 1),
             d_counts_out,
             d_num_runs_out,
             EqualityOp(),
@@ -253,7 +252,7 @@ struct DeviceRunLengthEncode
         cudaStream_t            stream             = 0,         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                    debug_synchronous  = false)     ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
-        typedef int         OffsetT;                     // Signed integer type for global offsets
+        typedef int         OffsetT;                    // Signed integer type for global offsets
         typedef Equality    EqualityOp;                 // Default == operator
 
         return DeviceRleDispatch<InputIteratorT, OffsetsOutputIteratorT, LengthsOutputIteratorT, NumRunsOutputIteratorT, EqualityOp, OffsetT>::Dispatch(

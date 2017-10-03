@@ -14,12 +14,10 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/cuda/models
-    catboost/libs/model
     catboost/libs/logging
     catboost/libs/data
     catboost/libs/algo
     library/grid_creator
 )
-
 
 END()

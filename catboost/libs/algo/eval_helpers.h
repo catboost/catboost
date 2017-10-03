@@ -12,9 +12,11 @@ yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
                                      const yvector<yvector<double>>& approx,
                                      NPar::TLocalExecutor* localExecutor);
 
-void OutputTestEval(
-    const yvector<yvector<double>>& testApprox,
-    const TString& testEvalFile,
-    const yvector<TDocInfo>& docIds,
-    const bool outputTarget);
+yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const yvector<yvector<double>>& approx,
+                                     int threadCount);
 
+void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox,
+                    const yvector<TDocInfo>& docIds,
+                    const bool outputTarget,
+                    TOFStream* outputStream);

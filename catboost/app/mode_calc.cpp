@@ -1,4 +1,5 @@
 #include "cmd_line.h"
+#include "proceed_pool_in_blocks.h"
 
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
@@ -12,9 +13,37 @@
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
 
+#include <algorithm>
+
+// Returns approx[evalPeriodIdx][classIdx][objectIdx]
+static yvector<yvector<yvector<double>>> Apply(const TFullModel& model, const NCatBoost::TFormulaEvaluator& calcer,
+                                               const TPool& pool, bool verbose,
+                                               const EPredictionType predictionType, int begin, int end,
+                                               int evalPeriod, int threadCount)
+{
+    yvector<yvector<double>> currentApprox; // [classIdx][objectIdx]
+    yvector<yvector<yvector<double>>> resultApprox; // [evalPeriodIdx][classIdx][objectIdx]
+    for (; begin < end; begin += evalPeriod) {
+        yvector<yvector<double>> approx = ApplyModelMulti(model, calcer, pool, verbose, EPredictionType::RawFormulaVal,
+                                                          begin, Min(begin + evalPeriod, end), threadCount);
+        if (currentApprox.empty()) {
+            currentApprox.swap(approx);
+        } else {
+            for (size_t i = 0; i < approx.size(); ++i) {
+                for (size_t j = 0; j < approx[0].size(); ++j) {
+                    currentApprox[i][j] += approx[i][j];
+                }
+            }
+        }
+        resultApprox.push_back(PrepareEval(predictionType, currentApprox, threadCount));
+    }
+    return resultApprox;
+}
+
 int mode_calc(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
     int iterationsLimit = 0;
+    int evalPeriod = 0;
 
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
@@ -26,25 +55,35 @@ int mode_calc(int argc, const char* argv[]) {
         .Handler1T<TString>([&params](const TString& predictionType) {
             params.PredictionType = FromString<EPredictionType>(predictionType);
         });
-    parser.AddLongOption("class-names", "names for classes.")
-        .RequiredArgument("comma separated list of names")
-        .Handler1T<TString>([&params](const TString& namesLine) {
-            for (const auto& t : StringSplitter(namesLine).Split(',')) {
-                params.ClassNames.push_back(FromString<TString>(t.Token()));
-            }
-        });
+    parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
+        .StoreResult(&evalPeriod);
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     CB_ENSURE(NFs::Exists(params.ModelFileName));
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "specify column_description file for calc mode");
+    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(),
+              "specify column_description file for calc mode");
 
-    TPool pool;
-    ReadPool(params.CdFile, params.InputPath, params.ThreadCount, false, '\t', false, params.ClassNames, &pool);
+    if (iterationsLimit == 0) {
+        iterationsLimit = model.TreeStruct.ysize();
+    }
+    iterationsLimit = Min(iterationsLimit, model.TreeStruct.ysize());
 
-    yvector<yvector<double>> approx = ApplyModelMulti(model, pool, true, params.PredictionType, 0, iterationsLimit, params.ThreadCount);
+    if (evalPeriod == 0) {
+        evalPeriod = model.TreeStruct.ysize();
+    }
+    evalPeriod = Min(evalPeriod, model.TreeStruct.ysize());
 
-    OutputTestEval(approx, params.OutputPath, pool.Docs, false);
+    const ui32 blockSize = Max(32., 10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ApproxDimension);
+    TOFStream outputStream(params.OutputPath);
+    NCatBoost::TFormulaEvaluator calcer(model);
+
+    ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
+        yvector<yvector<yvector<double>>> approx = Apply(model, calcer, poolPart, true, params.PredictionType,
+                                                         0, iterationsLimit, evalPeriod, params.ThreadCount);
+        OutputTestEval(approx, poolPart.Docs, false, &outputStream);
+    });
+
     return 0;
 }

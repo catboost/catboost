@@ -226,7 +226,7 @@ JOIN_SRCS(
     all_string.cpp
     string/builder.cpp
     string/cgiparam.cpp
-    string/delim_stroka_iter.cpp
+    string/delim_string_iter.cpp
     string/escape.cpp
     string/util.cpp
     string/vector.cpp

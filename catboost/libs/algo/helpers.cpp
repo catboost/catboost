@@ -88,6 +88,11 @@ void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool) {
             DoSwap(toIndices[i], toIndices[destinationIndex]);
         }
     }
+
+    for (auto& pair : pool->Pairs) {
+        pair.WinnerId = permutation[pair.WinnerId];
+        pair.LoserId = permutation[pair.LoserId];
+    }
 }
 
 yvector<size_t> InvertPermutation(const yvector<size_t>& permutation) {

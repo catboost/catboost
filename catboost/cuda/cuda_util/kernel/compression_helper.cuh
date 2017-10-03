@@ -32,39 +32,48 @@ namespace NKernel {
         }
     };
 
+
+
     template<class TStorageType, ui32 BLOCK_SIZE>
     struct TCompressionHelper {
 
         const int BitsPerKey;
         const int KeysPerStorageType;
 
-        __host__ __device__
-        TCompressionHelper(int bitsPerKey)
+        __host__ __device__ TCompressionHelper(int bitsPerKey)
                 : BitsPerKey(bitsPerKey), KeysPerStorageType(sizeof(TStorageType) * 8 / bitsPerKey) {
 
         }
 
-        __forceinline__ __device__ __host__ int KeysPerBlock() {
+        __forceinline__ __device__ __host__ int KeysPerBlock() const {
             return KeysPerStorageType * BLOCK_SIZE;
         }
 
-        __forceinline__ __device__
-
-        __host__ int CompressedSize(int size) {
+        __forceinline__ __device__ __host__ int CompressedSize(int size) {
             return CeilDivide(size, KeysPerStorageType);
         }
 
-        __forceinline__ __device__
-        __host__ ui32 Mask() const {
+        __forceinline__ __device__ __host__ ui32 Mask() const {
             return (ui32)((1 << BitsPerKey) - 1);
         }
 
+        __forceinline__ __device__ ui32 GetBlockIndex(ui32 key) const {
+            return CeilDivide<ui32>(key, KeysPerBlock());
+        }
 
+        __forceinline__ __device__ ui32 Read(const __restrict__ TStorageType* data,
+                                             ui32 key) const {
+            const ui32 blockOffset = key / KeysPerBlock();
+            key %= KeysPerBlock();
+            const int id = key / BLOCK_SIZE;
+            const int offset = key & (BLOCK_SIZE - 1);
+            return (LdgWithFallback(data, blockOffset * BLOCK_SIZE + offset) >> (((KeysPerStorageType - id - 1) * BitsPerKey))) & Mask();
+        }
 
         template <class TLoader>
         __forceinline__ __device__ void CompressBlock(TLoader&& loader,
-                                       int srcSize,
-                                       TStorageType* dst) {
+                                                      int srcSize,
+                                                      TStorageType* dst) {
 
             const int N = 4;
             const int tid = threadIdx.x;

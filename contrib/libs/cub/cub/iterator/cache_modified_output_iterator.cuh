@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,8 +42,8 @@
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
-    // #include <thrust/iterator/iterator_facade.h>
-    // #include <thrust/iterator/iterator_traits.h>
+//    #include <thrust/iterator/iterator_facade.h>
+//    #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
 
 
@@ -130,8 +130,8 @@ public:
     // Required iterator traits
     typedef CacheModifiedOutputIterator         self_type;              ///< My own type
     typedef OffsetT                             difference_type;        ///< Type to express the result of subtracting one iterator from another
-    typedef ValueType                           value_type;             ///< The type of the element the iterator can point to
-    typedef ValueType*                          pointer;                ///< The type of a pointer to an element the iterator can point to
+    typedef void                                value_type;             ///< The type of the element the iterator can point to
+    typedef void                                pointer;                ///< The type of a pointer to an element the iterator can point to
     typedef Reference                           reference;              ///< The type of a reference to an element the iterator can point to
 
 #if (THRUST_VERSION >= 100700)

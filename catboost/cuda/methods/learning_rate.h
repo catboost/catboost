@@ -4,7 +4,6 @@
 
 class TLearningRate {
 public:
-
     explicit TLearningRate(double rate)
         : LearningRate(rate)
     {

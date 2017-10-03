@@ -204,8 +204,7 @@
                 "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64/link.exe",
                 "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64/ml64.exe",
                 "sdk_root": "$(MSVC)/msvc",
-                "wine": "yes",
-                "disable_fix_msvc_output": "yes"
+                "wine": "yes"
             }
         },
         "wine-msvc2015-arm-up3": {
@@ -225,8 +224,7 @@
                 "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_arm/link.exe",
                 "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_arm/armasm.exe",
                 "sdk_root": "$(MSVC)/msvc",
-                "wine": "yes",
-                "disable_fix_msvc_output": "yes"
+                "wine": "yes"
             }
         },
         "wine-msvc2015-x86-up3": {
@@ -246,8 +244,7 @@
                 "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_x86/link.exe",
                 "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(MSVC)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_x86/ml.exe",
                 "sdk_root": "$(MSVC)/msvc",
-                "wine": "yes",
-                "disable_fix_msvc_output": "yes"
+                "wine": "yes"
             }
         },
         "ymake": {
@@ -778,7 +775,9 @@
                 "gcc_version": "3.7",
                 "target_opt": ["-target", "x86_64-apple-darwin14"],
                 "arch_opt": ["-isysroot", "$(CLANG)/sdk"],
-                "sdk_lib": ["-Wl,-syslibroot,$(CLANG)/sdk", "-Wl,-sdk_version,10.10", "-L$(CLANG)/sdk/usr/lib", "-L$(CLANG)/sdk/usr/lib/system"],
+                "sys_lib": {
+                    "DARWIN": ["-Wl,-syslibroot,$(CLANG)/sdk", "-Wl,-sdk_version,10.10", "-L$(CLANG)/sdk/usr/lib", "-L$(CLANG)/sdk/usr/lib/system"]
+                },
                 "supported_codegen_opts": ["-msse3", "-msse2", "-msse"]
             },
             "env": {
@@ -1940,7 +1939,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 151782345,
+                "sandbox_id": 156603945,
                 "match": "YMake"
             },
             "executable": {
@@ -1958,7 +1957,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 152257016,
+                "sandbox_id": 156414067,
                 "match": "test_tool"
             },
             "executable": {
@@ -1967,7 +1966,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 150035627,
+                "sandbox_id": 156413893,
                 "match": "coverage_uploader"
             },
             "executable": {
@@ -1985,7 +1984,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [146689376, 146689368, 74450064],
+                "sandbox_id": [155220459, 155220597, 74450064],
                 "match": "Hg"
             },
             "executable": {
@@ -2103,7 +2102,7 @@
         },
         "clang39": {
             "formula": {
-                "sandbox_id": [127828138, 151982980],
+                "sandbox_id": [127828138, 153033679],
                 "match": "CLANG"
             },
             "executable": {
@@ -2250,11 +2249,11 @@
         },
         "pyndexer": {
             "formula": {
-                "sandbox_id": 149949165,
+                "sandbox_id": 157027072,
                 "match": "PYNDEXER"
             },
             "executable": {
-                "pyndexer": ["pyndexer"]
+                "pyndexer": ["pyxref"]
             }
         },
         "transfer-manager": {

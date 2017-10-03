@@ -1,7 +1,7 @@
 #pragma once
 
-#include "model.h"
-#include "ctr_provider.h"
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/model/ctr_provider.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
 #include <util/system/hp_timer.h>
@@ -13,10 +13,10 @@ namespace NCatBoost {
  * Binarized features in worst case consumes N_trees * max(TreeDepth) bytes
  * WARNING: Currently it builds optimized tree structures on construction or model load, try reuse calcer
  */
-    class TModelCalcer {
+    class TFormulaEvaluator {
         class TFeatureIndexProvider: public IFeatureIndexProvider {
         public:
-            TFeatureIndexProvider(const TModelCalcer& calcer)
+            TFeatureIndexProvider(const TFormulaEvaluator& calcer)
                 : Calcer(calcer)
             {
             }
@@ -27,16 +27,16 @@ namespace NCatBoost {
                 return Calcer.BinFeatureIndexes.at(TModelSplit(feature));
             }
         private:
-            const TModelCalcer& Calcer;
+            const TFormulaEvaluator& Calcer;
         };
         friend class TFeatureIndexProvider;
 
     public:
-        TModelCalcer() = default;
-        TModelCalcer(TFullModel&& model) {
+        TFormulaEvaluator() = default;
+        TFormulaEvaluator(TFullModel&& model) {
             InitFromFullModel(std::move(model));
         }
-        TModelCalcer(const TFullModel& model) {
+        TFormulaEvaluator(const TFullModel& model) {
             InitFromFullModel(model);
         }
 
@@ -156,6 +156,22 @@ namespace NCatBoost {
         }
         void InitFromFullModel(const TFullModel& fullModel);
         void InitFromFullModel(TFullModel&& fullModel);
+
+        size_t FloatFeaturesUsed() const {
+            return FloatFeaturesCount;
+        }
+
+        size_t CatFeaturesUsed() const {
+            return CatFeaturesCount;
+        }
+
+        size_t FlatFeatureVectorExpectedSize() const {
+            return CatFeaturesCount + FloatFeaturesCount;
+        }
+
+        size_t BinFeaturesCount() const {
+            return UsedBinaryFeaturesCount;
+        }
 
     private:
         void InitBinTreesFromCoreModel(const TCoreModel& model);
@@ -346,6 +362,10 @@ namespace NCatBoost {
         yvector<TModelCtr> UsedModelCtrs;
         size_t UsedBinaryFeaturesCount = 0;
         size_t ModelClassCount = 0;
+
+        size_t FloatFeaturesCount = 0;
+        size_t CatFeaturesCount = 0;
+
         // oblivious bin features trees
         yvector<yvector<int>> BinaryTrees;
         yvector<yvector<double>> LeafValues; // [numTree][bucketId * classCount + classId]

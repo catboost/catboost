@@ -145,18 +145,27 @@ yvector<TFeatureEffect> CalcRegularFeatureEffect(const yvector<std::pair<double,
 
     for (const auto& effectWithSplit : internalEffect) {
         TFeature feature = effectWithSplit.second;
-        if (feature.Type == ESplitType::FloatFeature) {
-            floatFeatureEffect[feature.FeatureIdx] += effectWithSplit.first;
-        } else {
-            TProjection proj = feature.Ctr.Projection;
-            int featuresInSplit = proj.BinFeatures.ysize() + proj.CatFeatures.ysize();
-            double addEffect = effectWithSplit.first / featuresInSplit;
-            for (const auto& binFeature : proj.BinFeatures) {
-                floatFeatureEffect[binFeature.FloatFeature] += addEffect;
-            }
-            for (auto catIndex : proj.CatFeatures) {
-                catFeatureEffect[catIndex] += addEffect;
-            }
+        switch (feature.Type) {
+            case ESplitType::FloatFeature:
+                floatFeatureEffect[feature.FeatureIdx] += effectWithSplit.first;
+                break;
+            case ESplitType::OneHotFeature:
+                catFeatureEffect[feature.FeatureIdx] += effectWithSplit.first;
+                break;
+            case ESplitType::OnlineCtr:
+                TProjection proj = feature.Ctr.Projection;
+                int featuresInSplit = proj.BinFeatures.ysize() + proj.CatFeatures.ysize() + proj.OneHotFeatures.ysize();
+                double addEffect = effectWithSplit.first / featuresInSplit;
+                for (const auto& binFeature : proj.BinFeatures) {
+                    floatFeatureEffect[binFeature.FloatFeature] += addEffect;
+                }
+                for (auto catIndex : proj.CatFeatures) {
+                    catFeatureEffect[catIndex] += addEffect;
+                }
+                for (auto oneHotFeature : proj.OneHotFeatures) {
+                    catFeatureEffect[oneHotFeature.CatFeatureIdx] += addEffect;
+                }
+                break;
         }
     }
 

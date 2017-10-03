@@ -8,11 +8,19 @@
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/model/projection.h>
+#include <catboost/libs/data/pair.h>
 
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 #include <util/generic/ymath.h>
 
+static yvector<int> InvertPermutation(const yvector<int>& permutation) {
+    yvector<int> result(permutation.size());
+    for (size_t i = 0; i < permutation.size(); ++i) {
+        result[permutation[i]] = i;
+    }
+    return result;
+}
 
 static int SelectMinBatchSize(int sampleCount) {
     return sampleCount > 500 ? Min<int>(100, sampleCount / 50) : 1;
@@ -24,6 +32,7 @@ struct TFold {
         yvector<yvector<double>> Derivatives;
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
         yvector<yvector<double>> WeightedDer;
+        yvector<yvector<TCompetitor>> Competitors;
 
         int BodyFinish;
         int TailFinish;
@@ -100,6 +109,37 @@ struct TFold {
         for (int z = 0; z < learnSampleCount; ++z) {
             int i = LearnPermutation[z];
             destination[z] = source[i];
+        }
+    }
+
+    void AssignCompetitors(const yvector<TPair>& pairs,
+                           const yvector<int>& invertPermutation,
+                           TFold::TBodyTail* bt) {
+        int learnSampleCount = LearnPermutation.ysize();
+        int bodyFinish = bt->BodyFinish;
+        int tailFinish = bt->TailFinish;
+        yvector<yvector<TCompetitor>>& competitors = bt->Competitors;
+        competitors.resize(tailFinish);
+        for (const auto& pair : pairs) {
+            if (pair.WinnerId >= learnSampleCount || pair.LoserId >= learnSampleCount) {
+                continue;
+            }
+
+            int winnerId = invertPermutation[pair.WinnerId];
+            int loserId = invertPermutation[pair.LoserId];
+
+            if (winnerId >= tailFinish || loserId >= tailFinish) {
+                continue;
+            }
+
+            float weight = 1;
+
+            if (winnerId < bodyFinish || winnerId > loserId) {
+                competitors[winnerId].emplace_back(loserId, weight);
+            }
+            if (loserId < bodyFinish || loserId > winnerId) {
+                competitors[loserId].emplace_back(winnerId, -weight);
+            }
         }
     }
 
@@ -195,6 +235,9 @@ inline TFold BuildLearnFold(const TTrainData& data,
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
     ff.EffectiveDocCount = data.LearnSampleCount;
+
+    yvector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+
     int leftPartLen = SelectMinBatchSize(data.LearnSampleCount);
     while (leftPartLen < data.LearnSampleCount) {
         TFold::TBodyTail bt;
@@ -206,6 +249,7 @@ inline TFold BuildLearnFold(const TTrainData& data,
         }
         bt.Derivatives.resize(approxDimension, yvector<double>(bt.TailFinish));
         bt.WeightedDer.resize(approxDimension, yvector<double>(bt.TailFinish));
+        ff.AssignCompetitors(data.Pairs, invertPermutation, &bt);
         ff.BodyTailArr.emplace_back(std::move(bt));
         leftPartLen = bt.TailFinish;
     }
@@ -232,6 +276,9 @@ inline TFold BuildAveragingFold(const TTrainData& data,
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
     ff.EffectiveDocCount = data.GetSampleCount();
+
+    yvector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+
     TFold::TBodyTail bt;
     bt.BodyFinish = data.LearnSampleCount;
     bt.TailFinish = data.LearnSampleCount;
@@ -240,6 +287,7 @@ inline TFold BuildAveragingFold(const TTrainData& data,
     if (!data.Baseline[0].empty()) {
         InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }
+    ff.AssignCompetitors(data.Pairs, invertPermutation, &bt);
     ff.BodyTailArr.emplace_back(std::move(bt));
     return ff;
 }

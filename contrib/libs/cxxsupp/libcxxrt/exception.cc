@@ -443,17 +443,23 @@ static void init_key(void)
 	pthread_setspecific(eh_key, 0);
 }
 
+static __thread __cxa_thread_info* THR_INFO = nullptr;
+
 /**
  * Returns the thread info structure, creating it if it is not already created.
  */
 static __cxa_thread_info *thread_info()
 {
+    if (THR_INFO) {
+        return THR_INFO;
+    }
 	pthread_once(&once_control, init_key);
 	__cxa_thread_info *info = static_cast<__cxa_thread_info*>(pthread_getspecific(eh_key));
 	if (0 == info) {
 		info = alloc_thread_info();
 		pthread_setspecific(eh_key, info);
 	}
+    THR_INFO = info;
 	return info;
 }
 
@@ -470,6 +476,9 @@ static struct InitMainTls {
  */
 static __cxa_thread_info *thread_info_fast()
 {
+    if (THR_INFO) {
+        return THR_INFO;
+    }
 	return static_cast<__cxa_thread_info*>(pthread_getspecific(eh_key));
 }
 /**

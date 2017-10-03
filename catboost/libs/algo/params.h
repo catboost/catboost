@@ -24,16 +24,35 @@ enum class ENanMode {
 };
 
 enum class ELossFunction {
-    RMSE,
-    MAE,
+    /* binary classification errors */
+
     Logloss,
     CrossEntropy,
+
+    /* regression errors */
+
+    RMSE,
+    MAE,
     Quantile,
     LogLinQuantile,
-    Poisson,
     MAPE,
+    Poisson,
+
+    /* multiclassification errors */
+
     MultiClass,
     MultiClassOneVsAll,
+
+    /* pair errors */
+
+    PairLogit,
+
+    /* regression metrics */
+
+    R2,
+
+    /* classification metrics */
+
     AUC,
     Accuracy,
     Precision,
@@ -41,7 +60,13 @@ enum class ELossFunction {
     F1,
     TotalF1,
     MCC,
-    R2,
+
+    /* pair metrics */
+
+    PairAccuracy,
+
+    /* custom errors */
+
     Custom
 };
 
@@ -193,7 +218,7 @@ public:
     bool StoreAllSimpleCtr = false;
     bool PrintTrees = false;
     bool DeveloperMode = false;
-    bool ApproxOnPartialHistory = true;
+    bool ApproxOnFullHistory = false;
     bool AllowWritingFiles = true;
 
     TFitParams() = default;
@@ -206,12 +231,17 @@ public:
         , EvalMetricDescriptor(evalMetricDescriptor)
     {
         InitFromJson(tree, resultingParams);
-        StoreExpApprox = EqualToOneOf(LossFunction, ELossFunction::Logloss, ELossFunction::LogLinQuantile, ELossFunction::Poisson, ELossFunction::CrossEntropy);
+        StoreExpApprox = EqualToOneOf(LossFunction,
+                                      ELossFunction::Logloss,
+                                      ELossFunction::LogLinQuantile,
+                                      ELossFunction::Poisson,
+                                      ELossFunction::CrossEntropy,
+                                      ELossFunction::PairLogit);
     }
 
 private:
     void InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* resultingParams = nullptr);
-    void ParseCtrDescription(const NJson::TJsonValue& tree, yset<TString>* validKeys);
+    void ParseCtrDescription(const NJson::TJsonValue& tree, ELossFunction lossFunction, yset<TString>* validKeys);
 };
 
 struct TCrossValidationParams {
@@ -219,7 +249,6 @@ struct TCrossValidationParams {
     bool Inverted = false;
     int PartitionRandSeed = 0;
     bool Shuffle = true;
-    int EvalPeriod = 1;
 };
 
 struct TCvDataPartitionParams {
@@ -235,10 +264,15 @@ struct TCmdLineParams {
     TString LearnFile;
     TString CdFile;
     TString TestFile;
+
     TString EvalFileName;
     TString ModelFileName = "model.bin";
     TString FstrRegularFileName;
     TString FstrInternalFileName;
+
+    TString LearnPairsFile;
+    TString TestPairsFile;
+
     bool HasHeaders = false;
     char Delimiter = '\t';
 };
@@ -265,6 +299,10 @@ inline bool IsClassificationLoss(ELossFunction lossFunction) {
 inline bool IsMultiClassError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
             lossFunction == ELossFunction::MultiClassOneVsAll);
+}
+
+inline bool IsPairwiseError(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::PairLogit);
 }
 
 ELossFunction GetLossType(const TString& lossDescription);

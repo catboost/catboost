@@ -1,13 +1,12 @@
 #include "library/json/yson/json2yson.h"
 
+#include <library/blockcodecs/codecs.h>
 #include <library/histogram/simple/histogram.h>
 #include <library/unittest/registar.h>
 #include <library/unittest/tests_data.h>
 
 #include <util/datetime/cputimer.h>
 #include <util/stream/file.h>
-
-#include <web/app_host/lib/converter/converter.h>
 
 template <typename TCallBack>
 ui64 Run(TCallBack&& callBack) {
@@ -16,35 +15,43 @@ ui64 Run(TCallBack&& callBack) {
     return timer.Get().MicroSeconds();
 }
 
+static TString GetRequestsWithDecoding(const TString& inputPath, const NBlockCodecs::ICodec* codec) {
+    TIFStream inputFileStream(inputPath);
+    TString encodedRequests = inputFileStream.ReadAll();
+    TString requests;
+    codec->Decode(encodedRequests, requests);
+    return requests;
+}
+
 SIMPLE_UNIT_TEST_SUITE(Json2Yson) {
     SIMPLE_UNIT_TEST_WITH_CONTEXT(NOAPACHE_REQUESTS) {
         const ui32 warmUpRetries = 5;
         const yvector<double> percentiles = {0.25, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.97, 0.99, 1.0};
 
-        const auto converter = NAppHost::NConverter::TConverterFactory().Create("service_request");
         NSimpleHistogram::TMultiHistogramCalcer<ui64> calcer;
 
-        TIFStream inputStream(GetWorkPath() + "/noapache_requests_sample");
-        for (TString convertedRequest, buffer; inputStream.ReadLine(buffer);) {
-            convertedRequest = converter->ConvertToJSON(buffer);
-            TStringInput jsonInput(convertedRequest);
+        TString requests = GetRequestsWithDecoding(GetWorkPath() + "/noapache_requests_sample_lz4", NBlockCodecs::Codec("lz4"));
+        TStringInput inputStream(requests);
+
+        for (TString jsonRequest, jsonString, ysonString; inputStream.ReadLine(jsonRequest);) {
+            TStringInput jsonInput(jsonRequest);
             NJson::TJsonValue readedJson;
             NJson::ReadJsonTree(&jsonInput, &readedJson, true);
-            buffer.clear();
+            jsonRequest.clear();
 
             ui64 writeTime = Max<ui64>();
             ui64 readTime = Max<ui64>();
 
             for (ui32 i = 0; i < warmUpRetries; ++i) {
                 NJson::TJsonValue Json2Json;
-                TStringOutput jsonWriteOutput(buffer);
+                TStringOutput jsonWriteOutput(jsonString);
                 NJsonWriter::TBuf jsonBuf(NJsonWriter::HEM_UNSAFE, &jsonWriteOutput);
 
                 writeTime = Min(writeTime, Run([&]() {
                                     jsonBuf.WriteJsonValue(&readedJson);
                                 }));
 
-                TStringInput jsonInput(buffer);
+                TStringInput jsonInput(jsonString);
                 NJson::TJsonReaderConfig config;
                 config.DontValidateUtf8 = true;
                 readTime = Min(readTime, Run([&]() {
@@ -55,7 +62,7 @@ SIMPLE_UNIT_TEST_SUITE(Json2Yson) {
                     NJsonWriter::TBuf().WriteJsonValue(&readedJson, true).Str(),
                     NJsonWriter::TBuf().WriteJsonValue(&Json2Json, true).Str());
 
-                buffer.clear();
+                jsonString.clear();
             }
 
             calcer.RecordValue("read_json", readTime);
@@ -67,13 +74,13 @@ SIMPLE_UNIT_TEST_SUITE(Json2Yson) {
 
             for (ui32 i = 0; i < warmUpRetries; ++i) {
                 NJson::TJsonValue convertedJson;
-                TStringOutput ysonOutput(buffer);
+                TStringOutput ysonOutput(ysonString);
 
                 writeTime = Min(writeTime, Run([&]() {
                                     NJson2Yson::ConvertJson2Yson(readedJson, &ysonOutput);
                                 }));
 
-                TStringInput ysonInput(buffer);
+                TStringInput ysonInput(ysonString);
                 readTime = Min(readTime, Run([&]() {
                                    NJson2Yson::ConvertYson2Json(&ysonInput, &convertedJson);
                                }));
@@ -82,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(Json2Yson) {
                     NJsonWriter::TBuf().WriteJsonValue(&convertedJson, true).Str(),
                     NJsonWriter::TBuf().WriteJsonValue(&readedJson, true).Str());
 
-                buffer.clear();
+                ysonString.clear();
             }
 
             calcer.RecordValue("read_yson", readTime);

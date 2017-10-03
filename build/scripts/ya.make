@@ -29,6 +29,7 @@ TEST_SRCS(
     gen_java_codenav_entry.py
     gen_mx_table.py
     gen_py_reg.py
+    gen_rodata.py
     gen_ub.py
     generate_pom.py
     last_changed_rev.py

@@ -19,6 +19,9 @@ struct TAnalyticalModeCommonParams {
     EFstrType FstrType = EFstrType::FeatureImportance;
     yvector<TString> ClassNames;
     int ThreadCount = 1;
+    char Delimiter = '\t';
+    bool HasHeader = false;
+    TString PairsFile = "";
 
     void BindParserOpts(NLastGetopt::TOpts& parser);
 };

@@ -26,18 +26,18 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
                 const TString& outputModelPath,
                 TFullModel* modelPtr,
                 yvector<yvector<double>>* testApprox) {
-    TrainModelBody(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, testPool, outputModelPath, /*clearLearnPool*/ false, modelPtr,testApprox);
+    TrainModelBody(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, testPool, outputModelPath, /*clearLearnPool*/ false, modelPtr, testApprox);
 }
 
 void TrainModelBody(const NJson::TJsonValue& jsonParams,
-                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                TPool& learnPool,
-                const TPool& testPool,
-                const TString& outputModelPath,
-                bool clearLearnPool,
-                TFullModel* modelPtr,
-                yvector<yvector<double>>* testApprox) {
+                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                    TPool& learnPool,
+                    const TPool& testPool,
+                    const TString& outputModelPath,
+                    bool clearLearnPool,
+                    TFullModel* modelPtr,
+                    yvector<yvector<double>>* testApprox) {
     CB_ENSURE(!learnPool.Docs.empty(), "Train dataset is empty");
 
     auto sortedCatFeatures = learnPool.CatFeatures;
@@ -89,6 +89,14 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     trainData.Target.reserve(learnPool.Docs.size() + testPool.Docs.size());
 
+    trainData.Pairs.reserve(learnPool.Pairs.size() + testPool.Pairs.size());
+    trainData.Pairs.insert(trainData.Pairs.end(), learnPool.Pairs.begin(), learnPool.Pairs.end());
+    trainData.Pairs.insert(trainData.Pairs.end(), testPool.Pairs.begin(), testPool.Pairs.end());
+    for (int pairInd = learnPool.Pairs.ysize(); pairInd < trainData.Pairs.ysize(); ++pairInd) {
+        trainData.Pairs[pairInd].WinnerId += trainData.LearnSampleCount;
+        trainData.Pairs[pairInd].LoserId += trainData.LearnSampleCount;
+    }
+
     bool trainHasBaseline = !learnPool.Docs[0].Baseline.empty();
     bool testHasBaseline = trainHasBaseline;
     if (!testPool.Docs.empty()) {
@@ -115,7 +123,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     float minTarget = *MinElement(trainData.Target.begin(), trainData.Target.end());
     float maxTarget = *MaxElement(trainData.Target.begin(), trainData.Target.end());
-    CB_ENSURE(minTarget != maxTarget, "All targets are equal");
+    CB_ENSURE(minTarget != maxTarget || IsPairwiseError(ctx.Params.LossFunction), "All targets are equal");
 
     for (const auto& doc : testPool.Docs) {
         trainData.Target.push_back(doc.Target);
@@ -193,33 +201,36 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     TTrainFunc trainFunc;
     switch (ctx.Params.LossFunction) {
-        case ELossFunction::RMSE:
-            trainFunc = Train<TQuadError>;
-            break;
         case ELossFunction::Logloss:
-            trainFunc = Train<TBinclassError>;
+            trainFunc = Train<TLoglossError>;
+            break;
+        case ELossFunction::CrossEntropy:
+            trainFunc = Train<TCrossEntropyError>;
+            break;
+        case ELossFunction::RMSE:
+            trainFunc = Train<TRMSEError>;
             break;
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             trainFunc = Train<TQuantileError>;
             break;
         case ELossFunction::LogLinQuantile:
-            trainFunc = Train<TLogLinearQuantileError>;
-            break;
-        case ELossFunction::Poisson:
-            trainFunc = Train<TPoissonError>;
-            break;
-        case ELossFunction::CrossEntropy:
-            trainFunc = Train<TCrossEntropyError>;
+            trainFunc = Train<TLogLinQuantileError>;
             break;
         case ELossFunction::MAPE:
             trainFunc = Train<TMAPError>;
+            break;
+        case ELossFunction::Poisson:
+            trainFunc = Train<TPoissonError>;
             break;
         case ELossFunction::MultiClass:
             trainFunc = Train<TMultiClassError>;
             break;
         case ELossFunction::MultiClassOneVsAll:
             trainFunc = Train<TMultiClassOneVsAllError>;
+            break;
+        case ELossFunction::PairLogit:
+            trainFunc = Train<TPairLogitError>;
             break;
         case ELossFunction::Custom:
             trainFunc = Train<TCustomError>;
@@ -315,33 +326,36 @@ void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx)
 
     TTrainOneIterationFunc trainFunc;
     switch (ctx->Params.LossFunction) {
-        case ELossFunction::RMSE:
-            trainFunc = TrainOneIter<TQuadError>;
-            break;
         case ELossFunction::Logloss:
-            trainFunc = TrainOneIter<TBinclassError>;
+            trainFunc = TrainOneIter<TLoglossError>;
+            break;
+        case ELossFunction::CrossEntropy:
+            trainFunc = TrainOneIter<TCrossEntropyError>;
+            break;
+        case ELossFunction::RMSE:
+            trainFunc = TrainOneIter<TRMSEError>;
             break;
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             trainFunc = TrainOneIter<TQuantileError>;
             break;
         case ELossFunction::LogLinQuantile:
-            trainFunc = TrainOneIter<TLogLinearQuantileError>;
-            break;
-        case ELossFunction::Poisson:
-            trainFunc = TrainOneIter<TPoissonError>;
-            break;
-        case ELossFunction::CrossEntropy:
-            trainFunc = TrainOneIter<TCrossEntropyError>;
+            trainFunc = TrainOneIter<TLogLinQuantileError>;
             break;
         case ELossFunction::MAPE:
             trainFunc = TrainOneIter<TMAPError>;
+            break;
+        case ELossFunction::Poisson:
+            trainFunc = TrainOneIter<TPoissonError>;
             break;
         case ELossFunction::MultiClass:
             trainFunc = TrainOneIter<TMultiClassError>;
             break;
         case ELossFunction::MultiClassOneVsAll:
             trainFunc = TrainOneIter<TMultiClassOneVsAllError>;
+            break;
+        case ELossFunction::PairLogit:
+            trainFunc = TrainOneIter<TPairLogitError>;
             break;
         case ELossFunction::Custom:
             trainFunc = TrainOneIter<TCustomError>;

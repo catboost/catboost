@@ -3,7 +3,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/string/split.h>
-#include <util/string/delim_stroka_iter.h>
+#include <util/string/delim_string_iter.h>
 #include <util/charset/utf8.h>
 
 ////////////////////////////////////
@@ -59,7 +59,7 @@ void AddToNameValueHash(TStringBuf input, TMap& nameValueMap) {
 
     TStringBuf name;
     TStringBuf value;
-    for (TDelimStrokaIter it(input, "\t"); it.Valid(); ++it) {
+    for (TDelimStringIter it(input, "\t"); it.Valid(); ++it) {
         if (!ExtractField(it, name, value))
             ythrow yexception() << "Failed to extract field from \"" << *it << "\"";
 

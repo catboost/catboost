@@ -132,8 +132,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
       <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\libcatboostmodel.vcxproj">
-      <Project>D4209663-15EB-94C8-7ABF-349458922BEB</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\catboostmodel.vcxproj">
+      <Project>4D7E3A2D-8534-FF5D-5F6B-AFAF877D2578</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
@@ -153,8 +153,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.vcxproj">
       <Project>A1EEDDE4-9AC5-CB02-DE9E-BADAB13F81A3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\small\catboost-python-package-ut-small.vcxproj">
-      <Project>7E2F460F-53B0-2475-C4AD-56F8073FE005</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\catboost-python-package-ut-medium.vcxproj">
+      <Project>0C034D70-14B6-8458-3798-29013EA2BBD8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>

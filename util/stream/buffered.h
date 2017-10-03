@@ -108,6 +108,7 @@ public:
 
 protected:
     void DoWrite(const void* data, size_t len) override;
+    void DoWriteC(char c) override;
     void DoFlush() override;
     void DoFinish() override;
 

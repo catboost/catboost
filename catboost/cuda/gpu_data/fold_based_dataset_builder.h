@@ -233,7 +233,8 @@ private:
 
         const auto& featuresHolder = dynamic_cast<const TCatFeatureValuesHolder&>(featureStorage);
         builder.Write(feature,
-                      FeaturesManager.GetBinCount(feature),
+                      /*hack for using only learn catFeatures as one-hot splits. test set storage should now about unseen catFeatures from learn. binCount is totalUniqueValues (learn + test)*/
+                      Min<ui32>(FeaturesManager.GetBinCount(feature), featuresHolder.GetUniqueValues()),
                       featuresHolder.ExtractValues());
     }
 
@@ -376,8 +377,7 @@ public:
                            const TDataProvider& dataProvider,
                            const TDataProvider* linkedTest = nullptr,
                            bool shuffleFeatures = true,
-                           ui32 blockSize = 1
-    )
+                           ui32 blockSize = 1)
         : FeaturesManager(featuresManager)
         , DataProvider(dataProvider)
         , LinkedTest(linkedTest)
@@ -409,14 +409,12 @@ public:
                 dataSetsHolder.DirectWeights.Reset(learnMapping);
                 dataSetsHolder.DirectWeights.Write(DataProvider.GetWeights());
             }
-            if (isTrivialLearnWeights && ctrsTarget.IsTrivialWeights())
-            {
+            if (isTrivialLearnWeights && ctrsTarget.IsTrivialWeights()) {
                 dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
             } else {
                 dataSetsHolder.DirectTarget.Reset(learnMapping);
                 dataSetsHolder.DirectTarget.Write(DataProvider.GetTargets());
             }
-
         }
 
         for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
@@ -540,7 +538,7 @@ private:
 
     void BuildTestTargetAndIndices(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
                                    const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget) {
-        dataSetsHolder.TestDataSet.Reset(new TDataSet<CatFeaturesStoragePtrType>(*LinkedTest, 0, 1/*blockSize*/));
+        dataSetsHolder.TestDataSet.Reset(new TDataSet<CatFeaturesStoragePtrType>(*LinkedTest, 0, 1 /*blockSize*/));
         dataSetsHolder.TestDataSet->CtrTargets = dataSetsHolder.CtrTargets;
         dataSetsHolder.TestDataSet->LinkedHistoryForCtrs = dataSetsHolder.PermutationDataSets[0];
 

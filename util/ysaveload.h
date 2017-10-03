@@ -619,6 +619,47 @@ public:
     }
 };
 
+template <typename... Args>
+struct TSerializer<TVariant<Args...>> {
+    using TVar = TVariant<Args...>;
+
+    static_assert(sizeof...(Args) < 256, "We use ui8 to store tag");
+
+    struct TTypeListTagLoader {
+        IInputStream* InputStream;
+        TVar& Target;
+        int Tag;
+
+        void Load(TTypeList<>) {
+            ythrow TLoadEOF() << "Unexpected tag value " << Tag << " while loading TVariant";
+        }
+
+        template <class THead, class... TTail>
+        void Load(TTypeList<THead, TTail...>) {
+            if (Tag == TVar::template TagOf<THead>()) {
+                THead x;
+                ::Load(InputStream, x);
+                Target = std::move(x);
+            } else {
+                Load(TTypeList<TTail...>{});
+            }
+        }
+    };
+
+    static void Save(IOutputStream* os, const TVar& v) {
+        ::Save<ui8>(os, v.Tag());
+        v.Visit([os](const auto& data) {
+            ::Save(os, data);
+        });
+    }
+
+    static void Load(IInputStream* is, TVar& v) {
+        ui8 tag;
+        ::Load(is, tag);
+        TTypeListTagLoader{is, v, static_cast<int>(tag)}.Load(TTypeList<Args...>{});
+    }
+};
+
 template <class T>
 static inline void SaveLoad(IOutputStream* out, const T& t) {
     Save(out, t);

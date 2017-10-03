@@ -91,7 +91,8 @@ private:
         auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
         auto remapId = CatFeaturesRemap.at(dataProviderId);
         CB_ENSURE(CatFeatureBinToHashIndex[remapId].size(), TStringBuilder() << "Error: no catFeature perferct hash for feature " << dataProviderId);
-        const ui32 hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
+        CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[remapId].size(), TStringBuilder() << "Error: no gasg fir feature " << split.FeatureId << " " << split.BinIdx);
+        const int hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
         modelSplit.OneHotFeature = TOneHotFeature(remapId,
                                                   hash);
         return modelSplit;
@@ -173,7 +174,7 @@ private:
 private:
     const TBinarizedFeaturesManager& FeaturesManager;
     const TDataProvider& DataProvider;
-    yvector<yvector<ui32>> CatFeatureBinToHashIndex;
+    yvector<yvector<int>> CatFeatureBinToHashIndex;
     ymap<ui32, ui32> CatFeaturesRemap;
     ymap<ui32, ui32> FloatFeaturesRemap;
     yvector<yvector<float>> Borders;

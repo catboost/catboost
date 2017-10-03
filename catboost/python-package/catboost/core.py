@@ -1,6 +1,6 @@
 import sys
 from six import iteritems, string_types, integer_types
-import os.path
+import os
 from collections import Iterable, Sequence, Mapping, MutableMapping
 import warnings
 import numpy as np
@@ -221,7 +221,7 @@ class Pool(_PoolBase):
         if len(baseline) != data_len:
             raise CatboostError("Length of baseline={} and length of data={} are different.".format(len(baseline), data_len))
         if not isinstance(baseline[0], Iterable) or isinstance(baseline[0], STRING_TYPES):
-            raise CatboostError("baseline must be 2 dimensional data, 1 column for each class.")
+            raise CatboostError("Baseline must be 2 dimensional data, 1 column for each class.")
         try:
             if np.array(baseline).dtype not in (np.dtype('float'), np.dtype('int')):
                 raise CatboostError()
@@ -383,6 +383,12 @@ class CatBoost(_CatBoostBase):
                 if param not in allowed_kwargs:
                     raise CatboostError("Invalid param `{}`.".format(param))
 
+    def _clear_tsv_files(self, train_dir):
+        for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
+            path = os.path.join(train_dir, filename)
+            if os.path.exists(path):
+                os.remove(path)
+
     def _fit(self, X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot):
         params = self._get_init_train_params()
         init_params = self.get_init_params()
@@ -415,6 +421,7 @@ class CatBoost(_CatBoostBase):
 
         if plot:
             train_dir = self.get_param('train_dir') or '.'
+            self._clear_tsv_files(train_dir)
 
             try:
                 from .widget import CatboostIpythonWidget
@@ -472,7 +479,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._fit(X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot)
 
-    def _predict(self, data, weight, prediction_type, ntree_limit, verbose):
+    def _predict(self, data, weight, prediction_type, ntree_start, ntree_end, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -481,22 +488,22 @@ class CatBoost(_CatBoostBase):
         if not isinstance(data, Pool):
             data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
         elif not np.all(sorted(data.get_cat_feature_indices()) == sorted(self._get_cat_feature_indices())):
-            raise CatboostError("data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
+            raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
-            raise CatboostError("data is empty.")
+            raise CatboostError("Data is empty.")
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function = self.get_param('loss_function')
         if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
-            return np.transpose(self._base_predict_multi(data, prediction_type, ntree_limit, verbose))
-        predictions = np.array(self._base_predict(data, prediction_type, ntree_limit, verbose))
+            return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, verbose))
+        predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, verbose))
         if prediction_type == 'Probability':
             predictions = np.transpose([1 - predictions, predictions])
         return predictions
 
-    def predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_limit=0, verbose=None):
+    def predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, verbose=None):
         """
         Predict with data.
 
@@ -514,10 +521,12 @@ class CatBoost(_CatBoostBase):
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
-        ntree_limit: int, optional (default=0)
-            Use first ntree_limit trees for prediction.
-            If is set to 0 then all trees from the model are used.
-            Defaults to 0.
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
@@ -526,18 +535,39 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_limit, verbose)
+        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, verbose)
 
-    def _staged_predict(self, data, weight, prediction_type, verbose):
+    def _staged_predict(self, data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted_ or self.tree_count_ is None:
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
-        for ntree_limit in range(1, self.tree_count_ + 1):
-            yield self._predict(data, weight, prediction_type, ntree_limit, verbose)
+        if not isinstance(data, Pool):
+            data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
+        elif not np.all(sorted(data.get_cat_feature_indices()) == sorted(self._get_cat_feature_indices())):
+            raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
+        if data.is_empty_:
+            raise CatboostError("Data is empty.")
+        if not isinstance(prediction_type, STRING_TYPES):
+            raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
+            raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
+        if ntree_end == 0:
+            ntree_end = self.tree_count_
+        staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+        loss_function = self.get_param('loss_function')
+        while True:
+            predictions = staged_predict_iterator.next()
+            if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
+                predictions = np.transpose(predictions)
+            else:
+                predictions = np.array(predictions[0])
+                if prediction_type == 'Probability':
+                    predictions = np.transpose([1 - predictions, predictions])
+            yield predictions
 
-    def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', verbose=None):
+    def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -555,6 +585,16 @@ class CatBoost(_CatBoostBase):
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -562,7 +602,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, verbose)
+        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose)
 
     @property
     def feature_importances_(self):
@@ -621,10 +661,12 @@ class CatBoost(_CatBoostBase):
         else:
             if y is None:
                 raise CatboostError("y has not initialized in feature_importances(): X is not Pool object, y must be not None in feature_importances().")
-            if len(np.shape(X)) == 1:
-                X = [X]
-            if not isinstance(y, Sequence):
-                y = [y]
+            if len(np.shape(X)) == 1 and len(np.shape(y)) == 0:
+                X, y = [X], [y]
+            if len(np.shape(X)) != 2:
+                raise CatboostError("X has invalid shape or empty: {}. Must be 2 dimensional".format(np.shape(X)))
+            if len(np.shape(y)) != 1:
+                raise CatboostError("y has invalid shape or empty: {}. Must be 1 dimensional".format(np.shape(y)))
             X = Pool(X, y, cat_features=cat_features, weight=weight, baseline=baseline)
         if X.is_empty_:
             raise CatboostError("X is empty.")
@@ -1027,7 +1069,7 @@ class CatBoostClassifier(CatBoost):
             setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
-    def predict(self, data, weight=None, prediction_type='Class', ntree_limit=0, verbose=None):
+    def predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, verbose=None):
         """
         Predict with data.
 
@@ -1045,10 +1087,12 @@ class CatBoostClassifier(CatBoost):
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
-        ntree_limit: int, optional (default=0)
-            Use first ntree_limit trees for prediction.
-            If is set to 0 then all trees from the model are used.
-            Defaults to 0.
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
@@ -1057,9 +1101,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_limit, verbose)
+        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, verbose)
 
-    def predict_proba(self, data, weight=None,  ntree_limit=0, verbose=None):
+    def predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, verbose=None):
         """
         Predict class probability with data.
 
@@ -1071,10 +1115,12 @@ class CatBoostClassifier(CatBoost):
         weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        ntree_limit: int, optional (default=0)
-            Use first ntree_limit trees for prediction.
-            If is set to 0 then all trees from the model are used.
-            Defaults to 0.
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1083,9 +1129,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, 'Probability', ntree_limit, verbose)
+        return self._predict(data, weight, 'Probability', ntree_start, ntree_end, verbose)
 
-    def staged_predict(self, data, weight=None, prediction_type='Class', verbose=None):
+    def staged_predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1103,6 +1149,16 @@ class CatBoostClassifier(CatBoost):
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1110,9 +1166,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, verbose)
+        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose)
 
-    def staged_predict_proba(self, data, weight=None, verbose=None):
+    def staged_predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
         """
         Predict classification target at each stage for data.
 
@@ -1124,6 +1180,16 @@ class CatBoostClassifier(CatBoost):
         weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1131,7 +1197,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, 'Probability', verbose)
+        return self._staged_predict(data, weight, 'Probability', ntree_start, ntree_end, eval_period, verbose)
 
     def score(self, X, y):
         """
@@ -1230,7 +1296,7 @@ class CatBoostRegressor(CatBoost):
                 params[key] = value
         super(CatBoostRegressor, self).__init__(params)
 
-    def predict(self, data, weight=None, ntree_limit=0, verbose=None):
+    def predict(self, data, weight=None, ntree_start=0, ntree_end=0, verbose=None):
         """
         Predict with data.
 
@@ -1242,8 +1308,12 @@ class CatBoostRegressor(CatBoost):
         weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        ntree_limit: int, optional (default=0)
-            Limit number of trees in the prediction; defaults to 0 (use all trees).
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1252,9 +1322,9 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, "RawFormulaVal", ntree_limit, verbose)
+        return self._predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, verbose)
 
-    def staged_predict(self, data, weight=None, verbose=None):
+    def staged_predict(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1266,6 +1336,16 @@ class CatBoostRegressor(CatBoost):
         weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1273,7 +1353,7 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, "RawFormulaVal", verbose)
+        return self._staged_predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, eval_period, verbose)
 
     def score(self, X, y):
         """
@@ -1298,10 +1378,9 @@ class CatBoostRegressor(CatBoost):
         return np.mean(error)
 
 
-def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True,
-       eval_period=1):
+def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True):
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
 
     with log_fixup():
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, eval_period)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)

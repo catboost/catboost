@@ -139,6 +139,7 @@
 #include <util/system/atomic.h>
 #include <util/system/yield.h>
 #include <util/system/filemap.h>
+#include <library/deprecated/mapped_file/mapped_file.h>
 #include <util/system/sys_alloc.h>
 #include <util/system/sysstat.h>
 #include <util/system/env.h>
@@ -179,7 +180,7 @@
 #include <util/memory/smallobj.h>
 #include <util/memory/segmented_string_pool.h>
 #include <util/memory/mmapalloc.h>
-#include <util/string/delim_stroka_iter.h>
+#include <util/string/delim_string_iter.h>
 #include <util/draft/bitutils.h>
 #include <util/draft/ip.h>
 #include <util/draft/matrix.h>

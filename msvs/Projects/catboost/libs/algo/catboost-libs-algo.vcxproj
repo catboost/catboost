@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=pg_was_here2 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=pg_was_here2 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3181195 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3181195 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -98,6 +98,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\params.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\params.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
@@ -187,6 +188,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_pairwise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_fstr.h"/>
@@ -207,6 +211,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\priors.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\restorable_rng.h"/>

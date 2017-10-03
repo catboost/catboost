@@ -199,15 +199,21 @@ namespace NPar {
     }
 
     template <typename TBody>
-    inline void ParallelFor(ui32 from, ui32 to, TBody&& body) {
+    inline void ParallelFor(TLocalExecutor& executor,
+                            ui32 from, ui32 to, TBody&& body) {
         TLocalExecutor::TBlockParams params(from, to);
         params.WaitCompletion();
-        LocalExecutor().ExecRange(std::move(body), params);
+        executor.ExecRange(std::forward<TBody>(body), params);
+    }
+
+    template <typename TBody>
+    inline void ParallelFor(ui32 from, ui32 to, TBody&& body) {
+        ParallelFor(LocalExecutor(), from, to, std::forward<TBody>(body));
     }
 
     template <typename TBody>
     inline void AsyncParallelFor(ui32 from, ui32 to, TBody&& body) {
         TLocalExecutor::TBlockParams params(from, to);
-        LocalExecutor().ExecRange(std::move(body), params);
+        LocalExecutor().ExecRange(std::forward<TBody>(body), params);
     }
 }

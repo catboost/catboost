@@ -5,12 +5,13 @@ UNITTEST_FOR(library/json/yson)
 ALLOCATOR(LF)
 
 DATA(
-    sbr://347179162
+    sbr://363537653
 )
 
 PEERDIR(
+    library/blockcodecs
     library/histogram/simple
-    web/app_host/lib/converter
+    library/unittest
 )
 
 SIZE(FAT)

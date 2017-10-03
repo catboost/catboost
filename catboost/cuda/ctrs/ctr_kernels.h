@@ -27,7 +27,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Bins, Indices);
+        SAVELOAD(Bins, PrevBins, Indices);
 
         void Run(const TCudaStream& stream) const {
             NKernel::UpdateBordersMask(Bins.Get(), PrevBins.Get(), Indices.Get(),
@@ -209,12 +209,12 @@ namespace NKernelHost {
         TComputeWeightedBinFreqCtrKernel() = default;
 
         TComputeWeightedBinFreqCtrKernel(TCudaBufferPtr<const ui32> indices,
-                                 TCudaBufferPtr<const ui32> bins,
-                                 TCudaBufferPtr<const float> binSums,
-                                 float totalWeight,
-                                 float prior,
-                                 float priorObservations,
-                                 TCudaBufferPtr<float> dst)
+                                         TCudaBufferPtr<const ui32> bins,
+                                         TCudaBufferPtr<const float> binSums,
+                                         float totalWeight,
+                                         float prior,
+                                         float priorObservations,
+                                         TCudaBufferPtr<float> dst)
             : Indices(indices)
             , Bins(bins)
             , BinSums(binSums)
@@ -245,10 +245,9 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeWeightedBinFreqCtr(Indices.Get(), Bins.Get(), BinSums.Get(),
                                                TotalWeight, Prior, PriorObservations, Dst.Get(),
-                                               (ui32) Dst.Size(), stream.GetStream());
+                                               (ui32)Dst.Size(), stream.GetStream());
         }
     };
-
 
     class TComputeNonWeightedBinFreqCtrKernel: public TStatelessKernel {
     private:
@@ -263,21 +262,19 @@ namespace NKernelHost {
         TComputeNonWeightedBinFreqCtrKernel() = default;
 
         TComputeNonWeightedBinFreqCtrKernel(TCudaBufferPtr<const ui32> indices,
-                                         TCudaBufferPtr<const ui32> bins,
-                                         TCudaBufferPtr<const ui32> binOffsets,
-                                         float prior,
-                                         float priorObservations,
-                                         TCudaBufferPtr<float> dst)
-                : Indices(indices)
-                  , Bins(bins)
-                  , BinOffsets(binOffsets)
-                  , Prior(prior)
-                  , PriorObservations(priorObservations)
-                  , Dst(dst)
+                                            TCudaBufferPtr<const ui32> bins,
+                                            TCudaBufferPtr<const ui32> binOffsets,
+                                            float prior,
+                                            float priorObservations,
+                                            TCudaBufferPtr<float> dst)
+            : Indices(indices)
+            , Bins(bins)
+            , BinOffsets(binOffsets)
+            , Prior(prior)
+            , PriorObservations(priorObservations)
+            , Dst(dst)
         {
         }
-
-
 
         SAVELOAD(Indices, Bins, BinOffsets, Prior, PriorObservations, Dst);
 
@@ -295,18 +292,18 @@ namespace NKernelHost {
         TCudaBufferPtr<float> Dst;
         ui32 FirstZeroIndex;
         bool WriteSegmentStartFloatMask;
+
     public:
         TGatherTrivialWeightsKernel() = default;
 
         TGatherTrivialWeightsKernel(TCudaBufferPtr<const ui32> indices,
                                     TCudaBufferPtr<float> dst,
                                     ui32 firstZeroIndex,
-                                    bool writeSegmentStartFloatMask
-        )
-                : Indices(indices)
-                  , Dst(dst)
-                  , FirstZeroIndex(firstZeroIndex)
-                  , WriteSegmentStartFloatMask(writeSegmentStartFloatMask)
+                                    bool writeSegmentStartFloatMask)
+            : Indices(indices)
+            , Dst(dst)
+            , FirstZeroIndex(firstZeroIndex)
+            , WriteSegmentStartFloatMask(writeSegmentStartFloatMask)
         {
         }
 
@@ -321,13 +318,14 @@ namespace NKernelHost {
     private:
         TCudaBufferPtr<const ui32> Indices;
         TCudaBufferPtr<float> Dst;
+
     public:
         TWriteMaskKernel() = default;
 
         TWriteMaskKernel(TCudaBufferPtr<const ui32> indices,
                          TCudaBufferPtr<float> dst)
-                : Indices(indices)
-                , Dst(dst)
+            : Indices(indices)
+            , Dst(dst)
         {
         }
 
@@ -339,7 +337,6 @@ namespace NKernelHost {
     };
 }
 
-
 template <class TMapping, class TUint32>
 inline void GatherTrivialWeights(TCudaBuffer<float, TMapping>& dst,
                                  const TCudaBuffer<TUint32, TMapping>& indices,
@@ -350,7 +347,6 @@ inline void GatherTrivialWeights(TCudaBuffer<float, TMapping>& dst,
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst, firstZeroIndex, writeSegmentStartFloatMask);
 }
 
-
 template <class TMapping, class TUint32>
 inline void WriteFloatMask(const TCudaBuffer<TUint32, TMapping>& indices,
                            TCudaBuffer<float, TMapping>& dst,
@@ -358,7 +354,6 @@ inline void WriteFloatMask(const TCudaBuffer<TUint32, TMapping>& indices,
     using TKernel = NKernelHost::TWriteMaskKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst);
 }
-
 
 template <class TMapping, class TUint32>
 inline void ExtractMask(const TCudaBuffer<TUint32, TMapping>& indices,
@@ -443,7 +438,6 @@ inline void ComputeWeightedBinFreqCtr(const TCudaBuffer<TUi32, TMapping>& indice
     using TKernel = NKernelHost::TComputeWeightedBinFreqCtrKernel;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, indices, bins, binWeights, totalWeight, prior, priorObservations, dst);
 }
-
 
 template <class TMapping, class TUi32>
 inline void ComputeNonWeightedBinFreqCtr(const TCudaBuffer<TUi32, TMapping>& indices,

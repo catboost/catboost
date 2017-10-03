@@ -29,7 +29,8 @@ namespace NKernelHost {
             , Flags(flags)
             , FlagMask(flagMask)
             , Output(output)
-            , Inclusive(inclusive) {
+            , Inclusive(inclusive)
+        {
         }
 
         SAVELOAD(Input, Flags, Output, FlagMask, Inclusive);

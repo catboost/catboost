@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -105,7 +105,7 @@ struct BlockReduceRaking
     union _TempStorage
     {
         typename WarpReduce::TempStorage            warp_storage;        ///< Storage for warp-synchronous reduction
-        typename BlockRakingLayout::TempStorage     raking_grid;         ///< Padded threadblock raking grid
+        typename BlockRakingLayout::TempStorage     raking_grid;         ///< Padded thread block raking grid
     };
 
 
@@ -133,7 +133,7 @@ struct BlockReduceRaking
         T                           *raking_segment,
         T                           partial,            ///< [in] <b>[<em>lane</em><sub>0</sub> only]</b> Warp-wide aggregate reduction of input items
         int                         num_valid,          ///< [in] Number of valid elements (may be less than BLOCK_THREADS)
-        Int2Type<ITERATION>         iteration)
+        Int2Type<ITERATION>         /*iteration*/)
     {
         // Update partial if addend is in range
         if ((IS_FULL_TILE && RAKING_UNGUARDED) || ((linear_tid * SEGMENT_LENGTH) + ITERATION < num_valid))
@@ -146,18 +146,18 @@ struct BlockReduceRaking
 
     template <bool IS_FULL_TILE, typename ReductionOp>
     __device__ __forceinline__ T RakingReduction(
-        ReductionOp                 reduction_op,       ///< [in] Binary scan operator
-        T                           *raking_segment,
+        ReductionOp                 /*reduction_op*/,   ///< [in] Binary scan operator
+        T                           * /*raking_segment*/,
         T                           partial,            ///< [in] <b>[<em>lane</em><sub>0</sub> only]</b> Warp-wide aggregate reduction of input items
-        int                         num_valid,          ///< [in] Number of valid elements (may be less than BLOCK_THREADS)
-        Int2Type<SEGMENT_LENGTH>    iteration)
+        int                         /*num_valid*/,      ///< [in] Number of valid elements (may be less than BLOCK_THREADS)
+        Int2Type<SEGMENT_LENGTH>    /*iteration*/)
     {
         return partial;
     }
 
 
 
-    /// Computes a threadblock-wide reduction using the specified reduction operator. The first num_valid threads each contribute one reduction partial.  The return value is only valid for thread<sub>0</sub>.
+    /// Computes a thread block-wide reduction using the specified reduction operator. The first num_valid threads each contribute one reduction partial.  The return value is only valid for thread<sub>0</sub>.
     template <
         bool                IS_FULL_TILE,
         typename            ReductionOp>
@@ -179,7 +179,7 @@ struct BlockReduceRaking
             // Place partial into shared memory grid.
             *BlockRakingLayout::PlacementPtr(temp_storage.raking_grid, linear_tid) = partial;
 
-            __syncthreads();
+            CTA_SYNC();
 
             // Reduce parallelism to one warp
             if (linear_tid < RAKING_THREADS)
@@ -202,7 +202,7 @@ struct BlockReduceRaking
     }
 
 
-    /// Computes a threadblock-wide reduction using addition (+) as the reduction operator. The first num_valid threads each contribute one reduction partial.  The return value is only valid for thread<sub>0</sub>.
+    /// Computes a thread block-wide reduction using addition (+) as the reduction operator. The first num_valid threads each contribute one reduction partial.  The return value is only valid for thread<sub>0</sub>.
     template <bool IS_FULL_TILE>
     __device__ __forceinline__ T Sum(
         T                   partial,            ///< [in] Calling thread's input partial reductions

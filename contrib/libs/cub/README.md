@@ -1,7 +1,7 @@
 <hr>
 <h3>About CUB</h3>
 
-Current release: v1.5.3 (10/11/2016)
+Current release: v1.7.4 (09/20/2017)
 
 We recommend the [CUB Project Website](http://nvlabs.github.com/cub) and the [cub-users discussion forum](http://groups.google.com/group/cub-users) for further information and examples.
 
@@ -35,8 +35,8 @@ __global__ void BlockSortKernel(int *d_in, int *d_out)
      // Specialize BlockRadixSort, BlockLoad, and BlockStore for 128 threads 
      // owning 16 integer items each
      typedef BlockRadixSort<int, 128, 16>                     BlockRadixSort;
-     typedef BlockLoad<int*, 128, 16, BLOCK_LOAD_TRANSPOSE>   BlockLoad;
-     typedef BlockStore<int*, 128, 16, BLOCK_STORE_TRANSPOSE> BlockStore;
+     typedef BlockLoad<int, 128, 16, BLOCK_LOAD_TRANSPOSE>   BlockLoad;
+     typedef BlockStore<int, 128, 16, BLOCK_STORE_TRANSPOSE> BlockStore;
  
      // Allocate shared memory
      __shared__ union {
@@ -102,7 +102,7 @@ CUB is available under the "New BSD" open-source license:
 
 ```
 Copyright (c) 2010-2011, Duane Merrill.  All rights reserved.
-Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -124,11 +124,13 @@ struct DeviceRleDispatch
      * Types and constants
      ******************************************************************************/
 
-    // Data type of input iterator
+    // The input value type
     typedef typename std::iterator_traits<InputIteratorT>::value_type T;
 
-    // Signed integer type for run lengths
-    typedef typename std::iterator_traits<LengthsOutputIteratorT>::value_type LengthT;
+    // The lengths output value type
+    typedef typename If<(Equals<typename std::iterator_traits<LengthsOutputIteratorT>::value_type, void>::VALUE),   // LengthT =  (if output iterator's value type is void) ?
+        OffsetT,                                                                                                    // ... then the OffsetT type,
+        typename std::iterator_traits<LengthsOutputIteratorT>::value_type>::Type LengthT;                           // ... else the output iterator's value type
 
     enum
     {

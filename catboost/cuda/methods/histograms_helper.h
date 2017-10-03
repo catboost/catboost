@@ -109,8 +109,7 @@ public:
                  EScoreFunction score = EScoreFunction::Correlation,
                  double l2 = 1.0,
                  bool normalize = false,
-                 bool requestStream = true
-    )
+                 bool requestStream = true)
         : DataSet(&dataSet)
         , Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream() : NCudaLib::GetCudaManager().DefaultStream())
         , FoldCount(foldCount)

@@ -193,11 +193,11 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 gridBuilderFactory,
                                                  dataProvider);
 
         ReadPool("test-pool.txt.cd",
                  "test-pool.txt",
+                 "",
                  16,
                  true,
                  dataProviderBuilder.SetShuffleFlag(false));

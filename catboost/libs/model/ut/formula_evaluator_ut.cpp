@@ -1,5 +1,5 @@
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/model_calcer.h>
+#include <catboost/libs/model/formula_evaluator.h>
 #include <library/unittest/registar.h>
 
 using namespace std;
@@ -39,9 +39,9 @@ TFullModel MultiValueFloatModel() {
     return model;
 }
 
-SIMPLE_UNIT_TEST_SUITE(TModelCalcer) {
+SIMPLE_UNIT_TEST_SUITE(TFormulaEvaluator) {
     SIMPLE_UNIT_TEST(TestFlatCalcFloat) {
-        NCatBoost::TModelCalcer modelCalcer(SimpleFloatModel());
+        NCatBoost::TFormulaEvaluator modelCalcer(SimpleFloatModel());
         yvector<double> result(8);
         yvector<NArrayRef::TConstArrayRef<float>> features = {
             {0.f, 0.f, 0.f},
@@ -63,7 +63,7 @@ SIMPLE_UNIT_TEST_SUITE(TModelCalcer) {
     }
 
     SIMPLE_UNIT_TEST(TestFlatCalcMultiVal) {
-        NCatBoost::TModelCalcer modelCalcer(MultiValueFloatModel());
+        NCatBoost::TFormulaEvaluator modelCalcer(MultiValueFloatModel());
         yvector<NArrayRef::TConstArrayRef<float>> features = {
             {0.f, 0.f},
             {1.f, 0.f},

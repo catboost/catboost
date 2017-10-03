@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    APACHE2
-)
+LICENSE(Apache-2.0)
 
 
 
@@ -10,6 +8,12 @@ RESOURCE(
     .dist-info/METADATA      /fs/contrib/python/requests/.dist-info/METADATA
     .dist-info/top_level.txt /fs/contrib/python/requests/.dist-info/top_level.txt
 )
+
+RESOURCE_FILES(
+    requests/cacert.pem
+)
+
+NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL
@@ -93,12 +97,5 @@ PY_SRCS(
     requests/packages/chardet/mbcsgroupprober.py
     requests/packages/chardet/jisfreq.py
 )
-
-RESOURCE(
-    requests/cacert.pem /py_modules/cacert
-)
-
-
-NO_LINT()
 
 END()

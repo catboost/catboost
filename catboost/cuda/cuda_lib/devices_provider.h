@@ -17,7 +17,7 @@ namespace NCudaLib {
 
         ui32 WorkersPerDevice = 1;
         ui64 PinnedMemorySize = 1024 * MB;
-        double GpuMemoryPartByWorker = 0.99;
+        double GpuMemoryPartByWorker = 0.95;
 
         TString DeviceConfig = "-1";
 

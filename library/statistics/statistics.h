@@ -100,16 +100,16 @@ namespace NStatistics {
         }
 
         Sort(xy.begin(), xy.end());
-        if (xy.front().first == xy.back().first) {
-            //if all elements are equal return uncertainty
-            return TStatTestResult(static_cast<ValueType>(0.5), 0);
-        }
         NDetail::MWStatistics<ValueType> statistics = NDetail::GetMWStatistics<ValueType>(xy.begin(), xy.end());
 
         ValueType nx = statistics.xIndicesSum > statistics.yIndicesSum ? xSize : ySize;
         ValueType u = xSize * ySize + nx * (nx + 1) / 2 - Max(statistics.xIndicesSum, statistics.yIndicesSum);
         statistics.modifier /= (xSize + ySize) * (Sqr(xSize + ySize) - 1);
         statistics.modifier = sqrt(1 - statistics.modifier);
+
+        if (statistics.modifier < std::numeric_limits<double>::epsilon()) {
+            return TStatTestResult(static_cast<ValueType>(0.5), 0);
+        }
 
         const ValueType mean = xSize * ySize / 2.0;
         const ValueType stdDeviation = sqrt(xSize * ySize * (xSize + ySize + 1) / 12);

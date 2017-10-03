@@ -276,7 +276,7 @@ def test_ntree_limit():
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=100, random_seed=0)
     model.fit(train_pool)
-    pred = model.predict_proba(test_pool, ntree_limit=10)
+    pred = model.predict_proba(test_pool, ntree_end=10)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
 

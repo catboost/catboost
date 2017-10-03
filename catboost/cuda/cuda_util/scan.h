@@ -43,8 +43,8 @@ namespace NKernelHost {
             if (IsNonNegativeSegmentedScan) {
                 CB_ENSURE(Inclusive, "Error: fast exclusive scan currently not working via simple operator transformation");
                 CUDA_SAFE_CALL(NKernel::SegmentedScanNonNegativeVector<T>(Input.Get(), Output.Get(),
-                                                           (ui32)Input.Size(), Inclusive,
-                                                           context, stream.GetStream()));
+                                                                          (ui32)Input.Size(), Inclusive,
+                                                                          context, stream.GetStream()));
             } else {
                 //scan is done by cub.
                 CUDA_SAFE_CALL(NKernel::ScanVector<T>(Input.Get(), Output.Get(),
@@ -55,7 +55,6 @@ namespace NKernelHost {
         }
     };
 
-
     template <typename T>
     class TNonNegativeSegmentedScanAndScatterVectorKernel: public TKernelBase<NKernel::TScanKernelContext<T>, false> {
     private:
@@ -63,6 +62,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const ui32> Indices;
         TCudaBufferPtr<T> Output;
         bool Inclusive;
+
     public:
         using TKernelContext = NKernel::TScanKernelContext<T>;
         SAVELOAD(Input, Indices, Output, Inclusive);
@@ -80,10 +80,11 @@ namespace NKernelHost {
                                                         TCudaBufferPtr<const ui32> indices,
                                                         TCudaBufferPtr<T> output,
                                                         bool inclusive)
-                : Input(input)
-                , Indices(indices)
-                , Output(output)
-                , Inclusive(inclusive) {
+            : Input(input)
+            , Indices(indices)
+            , Output(output)
+            , Inclusive(inclusive)
+        {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) {
@@ -109,7 +110,6 @@ inline void InclusiveSegmentedScanNonNegativeVector(const TCudaBuffer<T, TMappin
     using TKernel = NKernelHost::TScanVectorKernel<T>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, true, true);
 }
-
 
 //Not the safest way…
 template <typename T, class TMapping, class TUi32 = ui32>

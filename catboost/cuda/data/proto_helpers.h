@@ -13,7 +13,14 @@ inline void ReadMessage(TIFStream& input, TProtoMessage& message) {
     messageReader.GetNext(message);
 }
 
-inline void ReadIntColumn(TIFStream& input, yvector<ui32>& dst) {
+inline void ReadUnsignedIntColumn(TIFStream& input, yvector<ui32>& dst) {
+    NCompressedPool::TUnsignedIntegerColumn column;
+    ReadMessage(input, column);
+    dst.resize((unsigned long)column.GetValues().size());
+    std::copy(column.GetValues().begin(), column.GetValues().end(), dst.begin());
+}
+
+inline void ReadIntColumn(TIFStream& input, yvector<i32>& dst) {
     NCompressedPool::TIntegerColumn column;
     ReadMessage(input, column);
     dst.resize((unsigned long)column.GetValues().size());

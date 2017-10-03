@@ -14,13 +14,13 @@
 1	47.0	Private	101299.0	HS-grad	9.0	Married-civ-spouse	Craft-repair	Husband	White	Male	0.0	0.0	40.0	United-States
 1	39.0	Local-gov	178100.0	Masters	14.0	Divorced	Prof-specialty	Unmarried	White	Female	0.0	0.0	40.0	United-States
 1	26.0	Self-emp-not-inc	253899.0	Bachelors	13.0	Divorced	Sales	Not-in-family	White	Male	0.0	0.0	40.0	United-States
-1	32.0	Local-gov	223267.0	HS-grad	9.0	Married-civ-spouse	Transport-moving	Husband	White	Male	0.0	0.0	40.0	United-States
+1	32.0	Local-gov	223267.0	HS-grad	9.0	Married-civ-spouse	Transport-moving	Husband	White	Male	0.0	0.0	NaN	United-States
 1	38.0	Private	22245.0	Some-college	10.0	Divorced	Exec-managerial	Not-in-family	White	Male	0.0	0.0	50.0	United-States
 1	64.0	Self-emp-not-inc	144391.0	Masters	14.0	Married-civ-spouse	Farming-fishing	Husband	White	Male	0.0	0.0	40.0	United-States
 1	39.0	Private	28572.0	HS-grad	9.0	Never-married	Handlers-cleaners	Own-child	White	Male	0.0	0.0	48.0	United-States
 1	19.0	State-gov	156294.0	Some-college	10.0	Never-married	Prof-specialty	Own-child	White	Male	0.0	0.0	25.0	United-States
 1	31.0	Private	197689.0	HS-grad	9.0	Never-married	Other-service	Not-in-family	Black	Female	0.0	0.0	38.0	United-States
-1	56.0	Federal-gov	61885.0	Bachelors	13.0	Never-married	Transport-moving	Not-in-family	Black	Male	0.0	2001.0	65.0	United-States
+1	56.0	Federal-gov	nan	Bachelors	13.0	Never-married	Transport-moving	Not-in-family	Black	Male	NAN	2001.0	65.0	United-States
 1	21.0	Private	341368.0	HS-grad	9.0	Divorced	Craft-repair	Not-in-family	White	Male	0.0	0.0	20.0	United-States
 1	31.0	Private	113708.0	HS-grad	9.0	Married-civ-spouse	Machine-op-inspct	Husband	White	Male	0.0	0.0	40.0	United-States
 1	24.0	State-gov	211049.0	7th-8th	4.0	Never-married	Tech-support	Unmarried	White	Female	0.0	0.0	20.0	United-States

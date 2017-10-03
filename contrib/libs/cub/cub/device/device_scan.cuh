@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -98,6 +98,11 @@ struct DeviceScan
      *
      * \par
      * - Supports non-commutative sum operators.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Performance
@@ -153,8 +158,10 @@ struct DeviceScan
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        // Scan data type
-        typedef typename std::iterator_traits<OutputIteratorT>::value_type OutputT;
+        // The output value type
+        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+            typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
+            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
         // Initial value
         OutputT init_value = 0;
@@ -177,6 +184,11 @@ struct DeviceScan
      *
      * \par
      * - Supports non-commutative scan operators.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -267,6 +279,11 @@ struct DeviceScan
      *
      * \par
      * - Supports non-commutative sum operators.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -333,6 +350,11 @@ struct DeviceScan
      *
      * \par
      * - Supports non-commutative scan operators.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet

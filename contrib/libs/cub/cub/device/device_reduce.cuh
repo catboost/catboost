@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -88,6 +88,11 @@ struct DeviceReduce
      *
      * \par
      * - Does not support binary reduction operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -151,7 +156,8 @@ struct DeviceReduce
         cudaStream_t                stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        typedef int OffsetT;  // Signed integer type for global offsets
+        // Signed integer type for global offsets
+        typedef int OffsetT;
 
         return DispatchReduce<InputIteratorT, OutputIteratorT, OffsetT, ReductionOpT>::Dispatch(
             d_temp_storage,
@@ -172,6 +178,11 @@ struct DeviceReduce
      * \par
      * - Uses \p 0 as the initial value of the reduction.
      * - Does not support \p + operators that are non-commutative..
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Performance
@@ -224,8 +235,13 @@ struct DeviceReduce
         cudaStream_t                stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        typedef int OffsetT;                                                    // Signed integer type for global offsets
-        typedef typename std::iterator_traits<InputIteratorT>::value_type T;    // Data element type
+        // Signed integer type for global offsets
+        typedef int OffsetT;
+
+        // The output value type
+        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+            typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
+            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
         return DispatchReduce<InputIteratorT, OutputIteratorT, OffsetT, cub::Sum>::Dispatch(
             d_temp_storage,
@@ -234,7 +250,7 @@ struct DeviceReduce
             d_out,
             num_items,
             cub::Sum(),
-            T(),            // zero-initialize
+            OutputT(),            // zero-initialize
             stream,
             debug_synchronous);
     }
@@ -246,6 +262,11 @@ struct DeviceReduce
      * \par
      * - Uses <tt>std::numeric_limits<T>::max()</tt> as the initial value of the reduction.
      * - Does not support \p < operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -291,8 +312,11 @@ struct DeviceReduce
         cudaStream_t                stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        typedef int OffsetT;                                                    // Signed integer type for global offsets
-        typedef typename std::iterator_traits<InputIteratorT>::value_type T;    // Data element type
+        // Signed integer type for global offsets
+        typedef int OffsetT;
+
+        // The input value type
+        typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
 
         return DispatchReduce<InputIteratorT, OutputIteratorT, OffsetT, cub::Min>::Dispatch(
             d_temp_storage,
@@ -301,7 +325,7 @@ struct DeviceReduce
             d_out,
             num_items,
             cub::Min(),
-            Traits<T>::Max(),    // replace with std::numeric_limits<T>::max() when C++11 support is more prevalent
+            Traits<InputT>::Max(), // replace with std::numeric_limits<T>::max() when C++11 support is more prevalent
             stream,
             debug_synchronous);
     }
@@ -315,6 +339,11 @@ struct DeviceReduce
      *   - The minimum is written to <tt>d_out.value</tt> and its offset in the input array is written to <tt>d_out.key</tt>.
      *   - The <tt>{1, std::numeric_limits<T>::max()}</tt> tuple is produced for zero-length inputs
      * - Does not support \p < operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -363,17 +392,23 @@ struct DeviceReduce
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        // Input and output data types
-        typedef typename std::iterator_traits<OutputIteratorT>::value_type  OutputT;        // Output tuple type
-        typedef typename OutputT::Value                                     OutputValueT;   // Output data type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type   InputValueT;    // Input data type
+        // The input type
+        typedef typename std::iterator_traits<InputIteratorT>::value_type InputValueT;
+
+        // The output tuple type
+        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+            KeyValuePair<OffsetT, InputValueT>,                                                                 // ... then the key value pair OffsetT + InputValueT
+            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputTupleT;                     // ... else the output iterator's value type
+
+        // The output value type
+        typedef typename OutputTupleT::Value OutputValueT;
 
         // Wrapped input iterator to produce index-value <OffsetT, InputT> tuples
         typedef ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT> ArgIndexInputIteratorT;
         ArgIndexInputIteratorT d_indexed_in(d_in);
 
         // Initial value
-        OutputT initial_value = {1, Traits<InputValueT>::Max()};   // replace with std::numeric_limits<T>::max() when C++11 support is more prevalent
+        OutputTupleT initial_value(1, Traits<InputValueT>::Max());   // replace with std::numeric_limits<T>::max() when C++11 support is more prevalent
 
         return DispatchReduce<ArgIndexInputIteratorT, OutputIteratorT, OffsetT, cub::ArgMin>::Dispatch(
             d_temp_storage,
@@ -394,6 +429,11 @@ struct DeviceReduce
      * \par
      * - Uses <tt>std::numeric_limits<T>::lowest()</tt> as the initial value of the reduction.
      * - Does not support \p > operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -439,8 +479,11 @@ struct DeviceReduce
         cudaStream_t                stream              = 0,            ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        typedef int OffsetT;                                                    // Signed integer type for global offsets
-        typedef typename std::iterator_traits<InputIteratorT>::value_type T;    // Data element type
+        // Signed integer type for global offsets
+        typedef int OffsetT;
+
+        // The input value type
+        typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
 
         return DispatchReduce<InputIteratorT, OutputIteratorT, OffsetT, cub::Max>::Dispatch(
             d_temp_storage,
@@ -449,7 +492,7 @@ struct DeviceReduce
             d_out,
             num_items,
             cub::Max(),
-            Traits<T>::Lowest(),    // replace with std::numeric_limits<T>::lowest() when C++11 support is more prevalent
+            Traits<InputT>::Lowest(),    // replace with std::numeric_limits<T>::lowest() when C++11 support is more prevalent
             stream,
             debug_synchronous);
     }
@@ -463,6 +506,11 @@ struct DeviceReduce
      *   - The maximum is written to <tt>d_out.value</tt> and its offset in the input array is written to <tt>d_out.key</tt>.
      *   - The <tt>{1, std::numeric_limits<T>::lowest()}</tt> tuple is produced for zero-length inputs
      * - Does not support \p > operators that are non-commutative.
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Snippet
@@ -511,17 +559,23 @@ struct DeviceReduce
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        // Input and output data types
-        typedef typename std::iterator_traits<OutputIteratorT>::value_type  OutputT;        // Output tuple type
-        typedef typename OutputT::Value                                     OutputValueT;   // Output data type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type   InputValueT;    // Input data type
+        // The input type
+        typedef typename std::iterator_traits<InputIteratorT>::value_type InputValueT;
+
+        // The output tuple type
+        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+            KeyValuePair<OffsetT, InputValueT>,                                                                 // ... then the key value pair OffsetT + InputValueT
+            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputTupleT;                     // ... else the output iterator's value type
+
+        // The output value type
+        typedef typename OutputTupleT::Value OutputValueT;
 
         // Wrapped input iterator to produce index-value <OffsetT, InputT> tuples
         typedef ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT> ArgIndexInputIteratorT;
         ArgIndexInputIteratorT d_indexed_in(d_in);
 
         // Initial value
-        OutputT initial_value = {1, Traits<InputValueT>::Lowest()};     // replace with std::numeric_limits<T>::lowest() when C++11 support is more prevalent
+        OutputTupleT initial_value(1, Traits<InputValueT>::Lowest());     // replace with std::numeric_limits<T>::lowest() when C++11 support is more prevalent
 
         return DispatchReduce<ArgIndexInputIteratorT, OutputIteratorT, OffsetT, cub::ArgMax>::Dispatch(
             d_temp_storage,
@@ -550,6 +604,11 @@ struct DeviceReduce
      *
      * \par
      * - The <tt>==</tt> equality operator is used to determine whether keys are equivalent
+     * - Provides "run-to-run" determinism for pseudo-associative reduction
+     *   (e.g., addition of floating point types) on the same GPU device.
+     *   However, results for pseudo-associative reduction may be inconsistent
+     *   from one device to a another device of a different compute-capability
+     *   because CUB can employ different tile-sizing for different architectures.
      * - \devicestorage
      *
      * \par Performance
@@ -638,10 +697,15 @@ struct DeviceReduce
         cudaStream_t                stream             = 0,         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous  = false)     ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
-        typedef int                 OffsetT;        // Signed integer type for global offsets
-        typedef NullType*           FlagIterator;   // FlagT iterator type (not used)
-        typedef NullType            SelectOp;       // Selection op (not used)
-        typedef Equality            EqualityOp;     // Default == operator
+        // Signed integer type for global offsets
+        typedef int OffsetT;
+
+        // FlagT iterator type (not used)
+
+        // Selection op (not used)
+
+        // Default == operator
+        typedef Equality EqualityOp;
 
         return DispatchReduceByKey<KeysInputIteratorT, UniqueOutputIteratorT, ValuesInputIteratorT, AggregatesOutputIteratorT, NumRunsOutputIteratorT, EqualityOp, ReductionOpT, OffsetT>::Dispatch(
             d_temp_storage,

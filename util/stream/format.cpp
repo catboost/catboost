@@ -33,11 +33,11 @@ void Out<NFormatPrivate::THumanReadableSize>(IOutputStream& stream, const NForma
 
     if (v < base) {
         NFormatPrivate::PrintDoubleShortly(stream, v);
-    } else if (value.Value < base2) {
+    } else if (v < base2) {
         NFormatPrivate::PrintDoubleShortly(stream, v / (double)base) << 'K';
-    } else if (value.Value < base3) {
+    } else if (v < base3) {
         NFormatPrivate::PrintDoubleShortly(stream, v / (double)base2) << 'M';
-    } else if (value.Value < base4) {
+    } else if (v < base4) {
         NFormatPrivate::PrintDoubleShortly(stream, v / (double)base3) << 'G';
     } else {
         NFormatPrivate::PrintDoubleShortly(stream, v / (double)base4) << 'T';

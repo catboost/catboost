@@ -9,7 +9,7 @@ namespace NCudaLib {
     private:
         yvector<cudaEvent_t> FreeHandles;
         yvector<cudaEvent_t> FreeHandlesWithoutTiming;
-        static const ui64 RequestHandlesBatchSize = 8;
+        static const ui64 RequestHandlesBatchSize = 16;
         TSpinLock Lock;
 
         void RequestHandle(bool disableTimming = true) {

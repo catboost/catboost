@@ -15,26 +15,24 @@
 #include <catboost/cuda/gpu_data/remote_binarize.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
-
 class TTreeCtrDataSetMemoryUsageEstimator {
 public:
-
     TTreeCtrDataSetMemoryUsageEstimator(const TBinarizedFeaturesManager& featuresManager,
                                         const double freeMemory,
                                         const ui32 catFeaturesCount,
                                         const ui32 foldCount,
                                         const ui32 maxDepth,
                                         const ui32 docCount,
-                                        const NCudaLib::EPtrType ptrType
-    )
-            : FreeMemory(freeMemory)
-              , MaxDepth(maxDepth)
-              , FoldCount(foldCount)
-              , DocCount(docCount)
-              , CatFeaturesCount(catFeaturesCount)
-              , BinFeatureCountPerCatFeature(featuresManager.MaxTreeCtrBinFeaturesCount())
-              , CatFeaturesStoragePtrType(ptrType)
-              , CtrPerCatFeature(featuresManager.CtrsPerFeatureTensorCount()) {
+                                        const NCudaLib::EPtrType ptrType)
+        : FreeMemory(freeMemory)
+        , MaxDepth(maxDepth)
+        , FoldCount(foldCount)
+        , DocCount(docCount)
+        , CatFeaturesCount(catFeaturesCount)
+        , BinFeatureCountPerCatFeature(featuresManager.MaxTreeCtrBinFeaturesCount())
+        , CatFeaturesStoragePtrType(ptrType)
+        , CtrPerCatFeature(featuresManager.CtrsPerFeatureTensorCount())
+    {
         MaxPackSize = EstimateMaxPackSize();
     }
 
@@ -43,7 +41,7 @@ public:
             return 1;
         }
         if (CatFeaturesStoragePtrType == NCudaLib::CudaHost) {
-            return 2;
+            return (DocCount > 15e6 ? 1 : 2);
         }
         if (FreeMemory < 512) {
             return 1;
@@ -54,17 +52,16 @@ public:
         return 8;
     }
 
-    ui32 GetMaxPackSize() const
-    {
+    ui32 GetMaxPackSize() const {
         return MaxPackSize;
     }
 
-    bool NotEnoughMemoryForDataSet(const TTreeCtrDataSet& dataSet) {
+    bool NotEnoughMemoryForDataSet(const TTreeCtrDataSet& dataSet, ui32 depth) {
         if (dataSet.HasCompressedIndex()) {
             return false;
         }
         const ui32 deviceId = dataSet.GetDeviceId();
-        auto freeMemory = NCudaLib::GetCudaManager().FreeMemoryMb(deviceId) - ReserveMemory;
+        auto freeMemory = NCudaLib::GetCudaManager().FreeMemoryMb(deviceId) - GetReserveMemory(depth);
         return MemoryForDataSet(dataSet) > freeMemory;
     }
 
@@ -76,27 +73,22 @@ public:
             binFeatureCount = static_cast<ui32>(dataSet.GetDataSet().GetHostBinaryFeatures().size());
         } else {
             binFeatureCount = static_cast<ui32>(BinFeatureCountPerCatFeature * dataSet.GetCatFeatures().size());
-            memoryForCtrsCalc +=  MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation();
-
+            memoryForCtrsCalc += MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation();
         }
         return (cindexSize + MemoryForHistogramsMb(binFeatureCount) + memoryForCtrsCalc + MemoryForGridForOneFeatureMb() * dataSet.GetCatFeatures().size()) * ReservationFactor;
     }
 
-    double GetReserveMemory() const {
-        return ReserveMemory;
+    double GetReserveMemory(ui32 currentDepth) const {
+        return ReserveMemory + MemoryForTensorMirrorCatFeaturesCache(currentDepth) + MemoryForRestBuffers() + MaxDepth * MemoryForGridForOneFeatureMb() * CatFeaturesCount + MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation();
     }
 
 private:
     double MemoryForCtrInOneStreamCalculation() const {
-        return 48 * DocCount * 1.0 / MB;
+        return 40 * DocCount * 1.0 / MB;
     }
 
-    double MemoryForTensorCache() const {
-        return 4 * MaxDepth * DocCount / MB;
-    }
-
-    double MemoryForPermutationCache() const {
-        return 4 * MaxDepth * DocCount / MB;
+    double MemoryForTensorMirrorCatFeaturesCache(ui32 currentDepth) const {
+        return 8 * (MaxDepth - 1 - currentDepth) * DocCount / MB;
     }
 
     double MemoryForRestBuffers() const {
@@ -116,23 +108,20 @@ private:
     }
 
     double MemoryForCompressedIndexMb() {
-        return CtrPerCatFeature * sizeof(ui32) * DocCount / 4.0 / MB;
+        return NHelpers::CeilDivide<ui32>(CtrPerCatFeature, 4) * sizeof(ui32) * DocCount / MB;
     }
 
     double EstimateMaxPackSize() {
-        const double freeMemoryForDataSet = FreeMemory
-                                            - MemoryForTensorCache()
-                                            - MemoryForPermutationCache()
-                                            - MemoryForRestBuffers()
-                                            - MaxDepth * MemoryForGridForOneFeatureMb() * CatFeaturesCount
-                                            - MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation()
-                                            - ReserveMemory;
+        const double freeMemoryForDataSet = FreeMemory - GetReserveMemory(0);
 
         const double memoryForFeature = (MemoryForHistogramsMb() + MemoryForCompressedIndexMb()) * ReservationFactor;
         const double maxFeatures = freeMemoryForDataSet > 0 ? freeMemoryForDataSet / memoryForFeature : 0;
 
         if (maxFeatures >= CatFeaturesCount) {
             return CatFeaturesCount;
+        }
+        if (maxFeatures == 0) {
+            ythrow TCatboostException() << "Error: not enough memory for tree-ctrs: " << FreeMemory << " available, need at least " << (FreeMemory - freeMemoryForDataSet) + memoryForFeature;
         }
         const ui32 blockCount = static_cast<ui32>(ceil(CatFeaturesCount * 1.0 / maxFeatures));
         return NHelpers::CeilDivide(CatFeaturesCount, blockCount);
@@ -154,7 +143,6 @@ private:
     const double ReservationFactor = 1.15;
 };
 
-
 template <NCudaLib::EPtrType CatFeaturesStoragePtrType>
 class TBatchFeatureTensorBuilder {
 public:
@@ -162,8 +150,7 @@ public:
 
     TBatchFeatureTensorBuilder(const TBinarizedFeaturesManager& featuresManager,
                                const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& catFeatures,
-                               ui32 tensorBuilderStreams
-    )
+                               ui32 tensorBuilderStreams)
         : FeaturesManager(featuresManager)
         , CatFeatures(catFeatures)
         , TensorBuilderStreams(tensorBuilderStreams)
@@ -218,7 +205,6 @@ public:
             }
         }
     }
-
 
 private:
     ui32 RequestStream(ui32 featuresToBuild) {
@@ -290,14 +276,13 @@ public:
     }
 
 private:
-
     yvector<TCtrConfig> GetVisitOrder(const ymap<TCtrConfig, yvector<TCtrConfig>>& ctrs) {
         yvector<TCtrConfig> freqCtrs;
         yvector<TCtrConfig> restCtrs;
 
         for (auto& entry : ctrs) {
             if (entry.first.Type == ECtrType::FeatureFreq) {
-                 freqCtrs.push_back(entry.first);
+                freqCtrs.push_back(entry.first);
             } else {
                 restCtrs.push_back(entry.first);
             }
@@ -337,8 +322,7 @@ public:
     TTreeCtrDataSetBuilder(const TCudaBuffer<TUi32, NCudaLib::TSingleMapping>& indices,
                            TTreeCtrDataSet& ctrDataSet,
                            bool streamParallelCtrVisits,
-                           bool isIdentityPermutation = false
-    )
+                           bool isIdentityPermutation = false)
 
         : TreeCtrDataSet(ctrDataSet)
         , GatherIndices(indices.ConstCopyView())
@@ -355,7 +339,8 @@ public:
         FillBuffer(TreeCtrDataSet.BinarizedDataSet->CompressedIndex, 0u);
     }
 
-    void ResetTreeCtrDataSet() {}
+    void ResetTreeCtrDataSet() {
+    }
 
     void operator()(const TCtr& ctr,
                     const TVec& floatCtr,
@@ -368,8 +353,7 @@ public:
                          TreeCtrDataSet.BinarizedDataSet->CompressedIndex,
                          StreamParallelCtrVisits /* atomic update for 2 stream */,
                          IsIdentityPermutation ? nullptr : &GatherIndices,
-                         stream
-        );
+                         stream);
     }
 
     static void DropCache(TTreeCtrDataSet& dataSet) {
@@ -462,8 +446,7 @@ public:
         , FoldCount(foldCount)
     {
         DepthPermutations.resize(1);
-        if (LevelBasedCompressedIndex)
-        {
+        if (LevelBasedCompressedIndex) {
             DepthPermutations[0] = dataSet.GetIndices().ConstCopyView();
         } else {
             auto tmp = TMirrorBuffer<ui32>::CopyMapping(dataSet.GetIndices());
@@ -476,16 +459,15 @@ public:
         PureTreeCtrDataSets.resize(devCount);
         PackSizeEstimators.resize(devCount);
         NCudaLib::GetCudaManager().WaitComplete();
-        for (ui32 dev = 0; dev < devCount; ++dev)
-        {
+        for (ui32 dev = 0; dev < devCount; ++dev) {
             auto freeMemory = manager.FreeMemoryMb(dev, false);
             PackSizeEstimators[dev] = (new TTreeCtrDataSetMemoryUsageEstimator(featuresManager,
-                                                                                 freeMemory,
-                                                                                 dataSet.GetCatFeatures().GetFeatureCount(dev),
-                                                                                 FoldCount,
-                                                                                 MaxDepth,
-                                                                                 static_cast<const ui32>(dataSet.GetDataProvider().GetSampleCount()),
-                                                                                 CatFeaturesStoragePtrType));
+                                                                               freeMemory,
+                                                                               dataSet.GetCatFeatures().GetFeatureCount(dev),
+                                                                               FoldCount,
+                                                                               MaxDepth,
+                                                                               static_cast<const ui32>(dataSet.GetDataProvider().GetSampleCount()),
+                                                                               CatFeaturesStoragePtrType));
         }
     }
 
@@ -560,12 +542,10 @@ public:
     }
 
 private:
-
     void AddDataSets(const yvector<TTreeCtrDataSetPtr>& dataSets, ui32 permutationId, bool withCompressedIndexFlag, yvector<TTreeCtrDataSet*>& dst) {
         for (ui32 i = 0; i < dataSets.size(); ++i) {
             if (dataSets[i]->GetCompressedIndexPermutationKey() == permutationId) {
-                if (dataSets[i]->HasCompressedIndex() == withCompressedIndexFlag)
-                {
+                if (dataSets[i]->HasCompressedIndex() == withCompressedIndexFlag) {
                     dst.push_back(dataSets[i].Get());
                 }
             }
@@ -605,13 +585,12 @@ private:
     void ProceedDataSets(const ui32 dataSetPermutationId,
                          const yvector<TTreeCtrDataSet*>& dataSets,
                          TVisitor& visitor) {
-
         for (auto dataSetPtr : dataSets) {
             auto& dataSet = *dataSetPtr;
             if (dataSetPtr->GetCompressedIndexPermutationKey() != dataSetPermutationId) {
                 continue;
             }
-            if (PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet)) {
+            if (PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth)) {
                 FreeMemoryForDataSet(dataSet);
             }
             ProceedDataSet(dataSetPermutationId, dataSet, visitor);
@@ -623,7 +602,6 @@ private:
                                               const yvector<TTreeCtrDataSet*>& dataSets,
                                               bool withCompressedIndex,
                                               TVisitor& visitor) {
-
         yvector<ui32> dataSetIds;
         yvector<TTreeCtrDataSet*> rest;
 
@@ -637,20 +615,18 @@ private:
 
         for (auto idx : dataSetIds) {
             const auto& dataSet = *dataSets[idx];
-            if (!withCompressedIndex && PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet)) {
+            if (!withCompressedIndex && PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth)) {
                 FreeMemoryForDataSet(dataSet);
             }
             ProceedDataSet(dataSetPermutationId, *dataSets[idx], visitor);
         }
     }
 
-
     bool FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet,
                               yvector<TTreeCtrDataSetPtr>& dataSets) {
         const ui32 deviceId = dataSet.GetDeviceId();
         double freeMemory = GetFreeMemory(deviceId);
         double memoryForDataSet = PackSizeEstimators[deviceId]->MemoryForDataSet(dataSet);
-
 
         //drop should be in reverse order, so we not trigger defragmentation
         for (i32 dataSetId = (dataSets.size() - 1); dataSetId >= 0; --dataSetId) {
@@ -671,7 +647,7 @@ private:
 
     double GetFreeMemory(ui32 deviceId) {
         auto& manager = NCudaLib::GetCudaManager();
-        return manager.FreeMemoryMb(deviceId) - PackSizeEstimators[deviceId]->GetReserveMemory();
+        return manager.FreeMemoryMb(deviceId) - PackSizeEstimators[deviceId]->GetReserveMemory(CurrentDepth);
     }
 
     void FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet) {
@@ -697,13 +673,11 @@ private:
             TTreeCtrDataSetBuilder builder(DepthPermutations[dataSetPermutationKey].DeviceView(deviceId),
                                            dataSet,
                                            tensorBuilderStreams > 1,
-                                           !LevelBasedCompressedIndex
-            );
+                                           !LevelBasedCompressedIndex);
 
             TTensorBuilder batchFeatureTensorBuilder(FeaturesManager,
                                                      DataSet.GetCatFeatures(),
-                                                     tensorBuilderStreams
-            );
+                                                     tensorBuilderStreams);
 
             yvector<ui32> catFeatureIds(dataSet.GetCatFeatures().begin(), dataSet.GetCatFeatures().end());
             TCtrFromTensorCalcer<TTreeCtrDataSetBuilder> ctrFromTensorCalcer(builder,
@@ -741,8 +715,7 @@ private:
 
     void SortDataSetsByCompressedIndexLevelAndSize() {
         auto comparator = [&](const TTreeCtrDataSetPtr& left, const TTreeCtrDataSetPtr& right) -> bool {
-            return (left->GetCompressedIndexPermutationKey() < right->GetCompressedIndexPermutationKey())
-                   || (left->GetCompressedIndexPermutationKey() == right->GetCompressedIndexPermutationKey() && left->Ctrs.size() > right->Ctrs.size());
+            return (left->GetCompressedIndexPermutationKey() < right->GetCompressedIndexPermutationKey()) || (left->GetCompressedIndexPermutationKey() == right->GetCompressedIndexPermutationKey() && left->Ctrs.size() > right->Ctrs.size());
         };
 
         for (auto& devDataSets : DataSets) {
@@ -843,12 +816,11 @@ private:
         }
         auto freeMemory = NCudaLib::GetCudaManager().FreeMemoryMb(deviceId);
 
-        if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 16.0 / 1024 / 1024)) {
+        if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 24.0 / 1024 / 1024)) {
             return true;
         }
         return false;
     }
-
 
     TFeatureTensorTracker<CatFeaturesStoragePtrType> CreateEmptyTrackerForTensor(const TFeatureTensor& tensor) {
         ui64 maxSize = 0;

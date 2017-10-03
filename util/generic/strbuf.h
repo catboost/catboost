@@ -477,10 +477,10 @@ private:
 };
 
 //string type -> stringbuf type
-template <class TStroka>
+template <class TStringType>
 class TToStringBuf {
 public:
-    using TType = TGenericStringBuf<std::remove_cv_t<std::remove_reference_t<decltype(*std::declval<TStroka>().begin())>>>;
+    using TType = TGenericStringBuf<std::remove_cv_t<std::remove_reference_t<decltype(*std::declval<TStringType>().begin())>>>;
 };
 
 static inline TString ToString(const TStringBuf str) {

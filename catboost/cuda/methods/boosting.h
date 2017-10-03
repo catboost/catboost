@@ -1,5 +1,7 @@
 #pragma once
 
+#include "boosting_listeners.h"
+#include "boosting_options.h"
 #include "learning_rate.h"
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
@@ -10,174 +12,7 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <catboost/cuda/targets/target_options.h>
-
-template <class TTarget,
-          class TWeakModel>
-class IBoostingListener {
-public:
-    using TConstVec = typename TTarget::TConstVec;
-
-    virtual ~IBoostingListener() {
-    }
-
-    virtual void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
-                                const TTarget& target,
-                                const TConstVec& point) = 0;
-
-    virtual void SetProgress(const TAdditiveModel<TWeakModel>& newEnsemble,
-                             const TTarget& target,
-                             const TConstVec& point) = 0;
-};
-
-template <class TTarget, class TWeakModel>
-class TMetricLogger: public IBoostingListener<TTarget, TWeakModel> {
-public:
-    using TConstVec = typename TTarget::TConstVec;
-    using TTargetStat = typename TMetricHelper<TTarget>::TTargetStat;
-
-    TMetricLogger(const TString& messagePrefix,
-                  TString outputPath = "")
-        : MessagePrefix(messagePrefix)
-        , OutputPath(outputPath)
-    {
-        if (OutputPath) {
-            Out.Reset(new TOFStream(outputPath));
-            (*Out) << "iter\t" << TTarget::TargetName() << Endl;
-        }
-    }
-
-    void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
-                        const TTarget& target,
-                        const TConstVec& point) override {
-        Y_UNUSED(newEnsemble);
-        TMetricHelper<TTarget> metricHelper(target);
-        metricHelper.SetPoint(point);
-        if (BestEnsembleSize == 0 || metricHelper.IsBetter(BestStat)) {
-            BestStat = metricHelper.GetStat();
-            BestEnsembleSize = static_cast<ui32>(newEnsemble.Size());
-        }
-
-        MATRIXNET_INFO_LOG << MessagePrefix << metricHelper.ToTsv() << " best: " << metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")" << Endl;
-        if (Out) {
-            (*Out) << newEnsemble.Size() << "\t" << metricHelper.Score() << Endl;
-        }
-    }
-
-    void SetProgress(const TAdditiveModel<TWeakModel>& model,
-                     const TTarget& target,
-                     const TConstVec& point) override {
-        UpdateEnsemble(model, target, point);
-    }
-
-private:
-    ui32 BestEnsembleSize = 0;
-    TTargetStat BestStat;
-    TString MessagePrefix;
-    TString OutputPath;
-    THolder<TOFStream> Out;
-};
-
-template <class TTarget,
-          class TWeakModel>
-class TIterationLogger: public IBoostingListener<TTarget, TWeakModel> {
-public:
-    using TConstVec = typename TTarget::TConstVec;
-
-    void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
-                        const TTarget& target,
-                        const TConstVec& point) override {
-        Y_UNUSED(newEnsemble);
-        Y_UNUSED(target);
-        Y_UNUSED(point);
-        MATRIXNET_INFO_LOG << "Iteration #" << Iteration++ << " (ensemble size " << newEnsemble.Size() << ")" << Endl;
-    }
-
-    void SetProgress(const TAdditiveModel<TWeakModel>& model,
-                     const TTarget& target,
-                     const TConstVec& point) override {
-        UpdateEnsemble(model, target, point);
-    }
-
-private:
-    ui32 Iteration = 0;
-};
-
-class TBoostingOptions {
-public:
-    ui32 GetPermutationCount() const {
-        return HasTimeFlag ? 1 : PermutationCount;
-    }
-
-    void SetPermutationCount(ui32 count)  {
-        PermutationCount = count;
-    }
-
-    double GetGrowthRate() const {
-        return GrowthRate;
-    }
-
-    bool DisableDontLookAhead() const {
-        return DisableDontLookAheadFlag;
-    }
-
-    ui32 GetPermutationBlockSize() const {
-        return PermutationBlockSize;
-    }
-
-    bool UseCpuRamForCatFeaturesDataSet() const {
-        return UseCpuRamForCatFeaturesFlag;
-    }
-
-    TLearningRate GetLearningRate() const {
-        return TLearningRate(Regularization);
-    }
-
-    bool IsCalcScores() const {
-        return CalcScores;
-    }
-    ui32 GetIterationCount() const {
-        return IterationCount;
-    }
-
-    ui32 GetMinFoldSize() const {
-        return MinFoldSize;
-    }
-
-    const TString& GetLearnErrorLogPath() const {
-        return LearnErrorLogPath;
-    }
-
-    const TString& GetTestErrorLogPath() const {
-        return TestErrorLogPath;
-    }
-
-    double GetRandomStrength() const
-    {
-        return RandomStrength;
-    }
-
-    bool HasTime() const {
-        return HasTimeFlag;
-    }
-
-    template <class TConfig>
-    friend class TOptionsBinder;
-
-private:
-    ui32 PermutationCount = 4;
-    bool HasTimeFlag = false;
-    double GrowthRate = 2.0;
-    bool DisableDontLookAheadFlag = false;
-    ui32 PermutationBlockSize = 1;
-    bool UseCpuRamForCatFeaturesFlag = false;
-    ui32 IterationCount = 1000;
-    ui32 MinFoldSize = 1024;
-    double RandomStrength = 1.0;
-    double Regularization = 0.5;
-    bool CalcScores = true;
-    TString LearnErrorLogPath;
-    TString TestErrorLogPath;
-};
+#include <util/stream/format.h>
 
 template <template <class TMapping, class> class TTargetTemplate,
           class TWeakLearner,
@@ -204,9 +39,10 @@ private:
 
     yvector<IListener*> LearnListeners;
     yvector<IListener*> TestListeners;
+    IOverfittingDetector* Detector = nullptr;
 
     inline bool Stop(const ui32 iteration) {
-        return iteration >= Config.GetIterationCount();
+        return iteration >= Config.GetIterationCount() || (Detector && Detector->IsNeedStop());
     }
 
 private:
@@ -263,7 +99,6 @@ private:
     };
 
 private:
-
     ui32 GetPermutationBlockSize(ui32 sampleCount) const {
         ui32 suggestedBlockSize = Config.GetPermutationBlockSize();
         if (sampleCount < 50000) {
@@ -310,6 +145,12 @@ private:
         if (docCount < Config.GetMinFoldSize()) {
             return docCount / 2;
         }
+        const ui32 maxFolds = 18;
+        const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.GetMinFoldSize()));
+        if (folds >= maxFolds) {
+            return NHelpers::CeilDivide(docCount, 1 << maxFolds);
+        }
+
         return Config.GetMinFoldSize();
     }
 
@@ -371,12 +212,24 @@ private:
 
         auto startTimeBoosting = Now();
 
+        {
+            for (auto& listener : LearnListeners) {
+                listener->Init(target.GetTarget(estimationPermutation),
+                               cursor.Estimation);
+            }
+        }
+
+        if (dataSet.HasTestDataSet()) {
+            for (auto& listener : TestListeners) {
+                listener->Init(*testTarget,
+                               *testCursor);
+            }
+        }
+
         while (!Stop(iteration)) {
             auto iterationTimeGuard = profiler.Profile("Boosting iteration");
             {
                 {
-                    auto startTime = Now();
-
                     //cache
                     THolder<TScopedCacheHolder> iterationCacheHolderPtr;
                     iterationCacheHolderPtr.Reset(new TScopedCacheHolder);
@@ -406,22 +259,20 @@ private:
                             TShiftedTargetSlice<TTarget> shiftedTarget(taskTarget, allSlice, cursor.Get(learnPermutationId, 0).ConstCopyView());
                             optimizer.SetTarget(std::move(shiftedTarget));
                         } else {
-                            for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId)
-                            {
+                            for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId) {
                                 const auto& fold = taskFolds[foldId];
-
 
                                 TShiftedTargetSlice<TTarget> learnTarget(taskTarget,
                                                                          fold.EstimateSamples,
                                                                          cursor.Get(learnPermutationId,
-                                                                                    foldId).SliceView(fold.EstimateSamples));
+                                                                                    foldId)
+                                                                             .SliceView(fold.EstimateSamples));
 
                                 TShiftedTargetSlice<TTarget> validateTarget(taskTarget,
                                                                             fold.QualityEvaluateSamples,
                                                                             cursor.Get(learnPermutationId,
                                                                                        foldId)
-                                                                                    .SliceView(
-                                                                                            fold.QualityEvaluateSamples));
+                                                                                .SliceView(fold.QualityEvaluateSamples));
 
                                 optimizer.AddTask(std::move(learnTarget),
                                                   std::move(validateTarget));
@@ -486,7 +337,7 @@ private:
                             }
                         }
 
-                        if (!(Config.DisableDontLookAhead() && estimationPermutation == 0 /*no avereging permutation case*/)){
+                        if (!(Config.DisableDontLookAhead() && estimationPermutation == 0 /*no avereging permutation case*/)) {
                             auto allSlice = dataSet.GetDataSetForPermutation(estimationPermutation).GetIndices().GetObjectsSlice();
 
                             estimator.AddEstimationTask(TargetSlice(target.GetTarget(estimationPermutation), allSlice),
@@ -549,7 +400,6 @@ private:
                         addModelValue.Proceed();
                     }
 
-                    MATRIXNET_INFO_LOG << "Iteration time " << (Now() - startTime).SecondsFloat() << Endl;
                     result->AddWeakModel(models.Estimation);
                 }
 
@@ -617,6 +467,11 @@ public:
         return *this;
     }
 
+    TDontLookAheadBoosting& AddOverfitDetector(IOverfittingDetector& detector) {
+        Detector = &detector;
+        return *this;
+    }
+
     TDontLookAheadBoosting& LoadProgress(TIStream& input) {
         Y_UNUSED(input);
         ythrow TCatboostException() << "unsupported yet";
@@ -649,6 +504,9 @@ public:
         if (TestDataProvider) {
             state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
             state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget());
+            if (TestDataProvider->HasBaseline()) {
+                state->TestCursor.Write(TestDataProvider->GetBaseline());
+            }
             FillBuffer(state->TestCursor, 0.0f);
         }
 
@@ -660,6 +518,13 @@ public:
 
         for (ui32 i = 0; i < learnPermutationCount; ++i) {
             auto& folds = state->PermutationFolds[i];
+            auto& permutation = state->DataSets.GetPermutation(i);
+            yvector<float> baseline;
+            if (DataProvider->HasBaseline()) {
+                baseline = permutation.Gather(DataProvider->GetBaseline());
+            } else {
+                baseline.resize(DataProvider->GetSampleCount(), 0.0f);
+            }
 
             folds = CreateFolds(state->Targets.GetTarget(i),
                                 state->DataSets.GetDataSetForPermutation(i),
@@ -671,12 +536,20 @@ public:
             for (ui32 fold = 0; fold < folds.size(); ++fold) {
                 auto mapping = NCudaLib::TMirrorMapping(folds[fold].QualityEvaluateSamples.Right);
                 foldCursors[fold] = TVec::Create(mapping);
-                FillBuffer(foldCursors[fold], 0.0f);
+                foldCursors[fold].Write(baseline);
             }
         }
         {
+            auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
+            yvector<float> baseline;
+            if (DataProvider->HasBaseline()) {
+                baseline = permutation.Gather(DataProvider->GetBaseline());
+            } else {
+                baseline.resize(DataProvider->GetSampleCount(), 0.0f);
+            }
+
             state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget());
-            FillBuffer(state->Cursor.Estimation, 0.0f);
+            state->Cursor.Estimation.Write(baseline);
         }
         return state;
     }
@@ -697,5 +570,4 @@ public:
         double modelLeft = exp(modelExpLength - modelSize);
         return Config.GetRandomStrength() * modelLeft / (1 + modelLeft);
     }
-
 };

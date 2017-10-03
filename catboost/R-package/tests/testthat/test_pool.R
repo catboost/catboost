@@ -178,3 +178,24 @@ test_that("pool: data.frame weights", {
   prediction <- catboost.predict(model, pool)
   expect_equal(length(prediction), nrow(pool))
 })
+
+test_that("pool: nan", {
+  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
+  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+
+  first_pool <- catboost.load_pool(train_path, column_description = cd_path)
+
+  column_description_vector = rep('numeric', 15)
+  cd = read.table(cd_path)
+  cat_features = cd[cd[, 2] == 'Categ',1] + 1
+
+  for (i in cat_features)
+      column_description_vector[i] <- 'factor'
+
+  train <- read.table(train_path, head = F, sep = "\t", colClasses = column_description_vector, na.strings = 'NAN')
+  target <- c(1)
+  second_pool <- catboost.load_pool(data=train[,-target], label = train[,target])
+
+  expect_true(identical(matrix(unlist(head(first_pool, nrow(first_pool))), nrow = nrow(first_pool), byrow = TRUE),
+                        matrix(unlist(head(second_pool, nrow(second_pool))), nrow = nrow(second_pool), byrow = TRUE)))
+})

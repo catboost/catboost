@@ -1,10 +1,10 @@
-#include "delim_stroka_iter.h"
+#include "delim_string_iter.h"
 #include <util/generic/vector.h>
 #include <library/unittest/registar.h>
 
-/// Test that TDelimStrokaIter build on top of given string and delimeter will produce expected sequence
+/// Test that TDelimStringIter build on top of given string and delimeter will produce expected sequence
 static void AssertStringSplit(const TString& str, const TString& delim, const yvector<TString>& expected) {
-    TDelimStrokaIter it(str, delim);
+    TDelimStringIter it(str, delim);
 
     // test iterator invariants
     for (const auto& expectedString : expected) {
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TDelimStrokaIterTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(Cdr) {
-        TDelimStrokaIter it("a\tc\t", "\t");
+        TDelimStringIter it("a\tc\t", "\t");
         UNIT_ASSERT_STRINGS_EQUAL(*it, "a");
         UNIT_ASSERT_STRINGS_EQUAL(it.Cdr(), "c\t");
         ++it;

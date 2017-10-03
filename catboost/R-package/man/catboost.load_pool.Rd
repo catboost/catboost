@@ -4,7 +4,7 @@
 \alias{catboost.load_pool}
 \title{Create a dataset}
 \usage{
-catboost.load_pool(data, label = NULL, cat_features = "",
+catboost.load_pool(data, label = NULL, cat_features = NULL,
   column_description = NULL, delimiter = "\\t", has_header = FALSE,
   weight = NULL, baseline = NULL, feature_names = NULL,
   thread_count = 1)

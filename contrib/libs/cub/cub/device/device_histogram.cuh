@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -447,7 +447,8 @@ struct DeviceHistogram
         typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
-        if ((sizeof(OffsetT) > sizeof(int)) && (row_stride_bytes * num_rows < std::numeric_limits<int>::max()))
+        if ((sizeof(OffsetT) > sizeof(int)) &&
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
         {
             // Down-convert OffsetT data type
 
@@ -838,7 +839,8 @@ struct DeviceHistogram
         typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
-        if ((sizeof(OffsetT) > sizeof(int)) && (row_stride_bytes * num_rows < std::numeric_limits<int>::max()))
+        if ((sizeof(OffsetT) > sizeof(int)) &&
+            ((unsigned long long) (num_rows * row_stride_bytes) < (unsigned long long) std::numeric_limits<int>::max()))
         {
             // Down-convert OffsetT data type
             return DipatchHistogram<NUM_CHANNELS, NUM_ACTIVE_CHANNELS, SampleIteratorT, CounterT, LevelT, int>::DispatchRange(
@@ -857,10 +859,6 @@ struct DeviceHistogram
 
     //@}  end member group
 };
-
-/**
- * \example example_device_histogram.cu
- */
 
 }               // CUB namespace
 CUB_NS_POSTFIX  // Optional outer namespace(s)

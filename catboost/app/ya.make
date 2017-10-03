@@ -8,6 +8,7 @@ SRCS(
     mode_calc.cpp
     mode_fit.cpp
     mode_fstr.cpp
+    mode_plot.cpp
 )
 
 PEERDIR(

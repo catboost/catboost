@@ -255,7 +255,7 @@ namespace NKernel {
             }
 
             score = denumSqr > 0 ? -score / sqrt(denumSqr) : FLT_MAX;
-            double tmp = score;
+            float tmp = score;
             if (scoreStdDev) {
                 tmp += NextNormal(&seed) * scoreStdDev;
             }
@@ -272,8 +272,8 @@ namespace NKernel {
         __syncthreads();
         for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
             if (tid < s) {
-                if ( scores[tid] > scores[tid + s] ||
-                     (scores[tid] == scores[tid + s] && indices[tid] > indices[tid + s]) ) {
+                if (scores[tid] > scores[tid + s] ||
+                    (scores[tid] == scores[tid + s] && indices[tid] > indices[tid + s]) ) {
                     scores[tid] = scores[tid + s];
                     indices[tid] = indices[tid + s];
                 }

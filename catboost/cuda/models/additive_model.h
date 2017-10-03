@@ -48,6 +48,11 @@ public:
         return WeakModels.size();
     }
 
+    void Shrink(ui32 newSize) {
+        CB_ENSURE(newSize <= WeakModels.size());
+        WeakModels.resize(newSize);
+    }
+
     double Value(const yvector<float>& point) const {
         double value = 0.0;
         for (uint i = 0; i < WeakModels.size(); i++)

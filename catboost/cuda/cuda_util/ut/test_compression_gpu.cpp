@@ -18,7 +18,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
         StartCudaManager();
         {
             ui32 tries = 5;
-            ui64 bits = 2;
+            ui64 bits = 25;
             TRandom rand(0);
 
             for (ui32 i = 0; i < tries; ++i) {
@@ -46,6 +46,55 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
 
                     for (ui32 i = 0; i < size; ++i) {
                         UNIT_ASSERT_VALUES_EQUAL(vec[i], decompressedTmp[i]);
+                    }
+                }
+            }
+        }
+        StopCudaManager();
+    }
+
+    SIMPLE_UNIT_TEST(TestCompressAndGatherDecompress) {
+        StartCudaManager();
+        {
+            ui32 tries = 5;
+            ui64 bits = 25;
+            TRandom rand(0);
+
+            for (ui32 i = 0; i < tries; ++i) {
+                for (ui32 bitsPerKey = 1; bitsPerKey < bits; ++bitsPerKey) {
+                    yvector<ui32> vec;
+                    yvector<ui32> map;
+                    ui32 uniqueValues = (1 << bitsPerKey);
+
+                    ui64 size = 100000 + rand.NextUniformL() % 10000;
+                    const ui32 idxMask = (1u << 31) - 1;
+                    for (ui64 i = 0; i < size; ++i) {
+                        vec.push_back(rand.NextUniformL() % uniqueValues);
+                        ui32 idx = i;
+                        if (rand.NextUniform() < 0.05) {
+                            idx |= (1u << 31);
+                        }
+                        map.push_back(idx);
+                    }
+                    std::random_shuffle(map.begin(), map.end(), rand);
+
+                    auto vecGpu = TMirrorBuffer<ui32>::Create(TMirrorMapping(vec.size()));
+                    auto mapGpu = TMirrorBuffer<ui32>::Create(TMirrorMapping(vec.size()));
+                    auto decompressedGpu = TMirrorBuffer<ui32>::CopyMapping(vecGpu);
+                    vecGpu.Write(vec);
+                    mapGpu.Write(map);
+
+                    auto compressedMapping = CompressedSize<ui64>(vecGpu, uniqueValues);
+                    auto compressedGpu = TMirrorBuffer<ui64>::Create(compressedMapping);
+                    Compress(vecGpu, compressedGpu, uniqueValues);
+                    FillBuffer(decompressedGpu, static_cast<ui32>(0));
+                    GatherFromCompressed(compressedGpu, uniqueValues, mapGpu, idxMask, decompressedGpu);
+
+                    yvector<ui32> decompressedTmp;
+                    decompressedGpu.Read(decompressedTmp);
+
+                    for (ui32 i = 0; i < size; ++i) {
+                        UNIT_ASSERT_VALUES_EQUAL(vec[map[i] & idxMask], decompressedTmp[i]);
                     }
                 }
             }

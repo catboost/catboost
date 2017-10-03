@@ -40,14 +40,13 @@ public:
                            ui32 firstTestIndex,
                            ui32 mask = TCtrBinBuilder<TMapping>::GetMask(),
                            ui32 stream = 0)
-            : TGuidHolder()
-              , Indices(indices.ConstCopyView())
-              , Mask(mask)
-              , Stream(stream)
+        : TGuidHolder()
+        , Indices(indices.ConstCopyView())
+        , Mask(mask)
+        , Stream(stream)
     {
         Reset(indices, firstTestIndex);
     }
-
 
     template <class TFloat, class TUint32>
     THistoryBasedCtrCalcer& Reset(const TCudaBuffer<TFloat, TMapping>& weights,
@@ -242,8 +241,8 @@ public:
 
     template <class TUint32, class TVisitor>
     TWeightedBinFreqCalcer& VisitEqualUpToPriorFreqCtrs(const TCudaBuffer<TUint32, TMapping>& indices,
-                                                const yvector<TCtrConfig>& ctrConfigs,
-                                                TVisitor&& visitor) {
+                                                        const yvector<TCtrConfig>& ctrConfigs,
+                                                        TVisitor&& visitor) {
         //TODO(noxoomo): change tempFlags to ui8
         TempFlags.Reset(indices.GetMapping());
         ExtractMask(indices, TempFlags, false, Stream);
@@ -277,15 +276,15 @@ public:
 
     template <class TUint32, class TVisitor>
     TWeightedBinFreqCalcer& VisitFreqCtrs(const TCudaBuffer<TUint32, TMapping>& indices,
-                                  const TCtrConfig& ctrConfigs,
-                                  TVisitor&& visitor) {
+                                          const TCtrConfig& ctrConfigs,
+                                          TVisitor&& visitor) {
         return VisitEqualUpToPriorFreqCtrs(indices, SingletonVector(ctrConfigs), visitor);
     };
 
     template <class TUint32>
     TWeightedBinFreqCalcer& ComputeFreq(const TCudaBuffer<TUint32, TMapping>& indices,
-                                const TCtrConfig& dstConfig,
-                                TCudaBuffer<float, TMapping>& dst) {
+                                        const TCtrConfig& dstConfig,
+                                        TCudaBuffer<float, TMapping>& dst) {
         VisitFreqCtrs(indices, dstConfig, [&](const TCtrConfig& ctrConfig,
                                               const TCudaBuffer<float, TMapping>& ctr,
                                               ui32 stream) {

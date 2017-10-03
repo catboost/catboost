@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -108,10 +108,15 @@ struct AgentSelectIf
     // Types and constants
     //---------------------------------------------------------------------
 
-    // Data type of input iterator
-    typedef typename std::iterator_traits<InputIteratorT>::value_type T;
+    // The input value type
+    typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
 
-    // Data type of flag iterator
+    // The output value type
+    typedef typename If<(Equals<typename std::iterator_traits<SelectedOutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+        typename std::iterator_traits<InputIteratorT>::value_type,                                                  // ... then the input iterator's value type,
+        typename std::iterator_traits<SelectedOutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+
+    // The flag value type
     typedef typename std::iterator_traits<FlagsInputIteratorT>::value_type FlagT;
 
     // Tile status descriptor interface type
@@ -138,7 +143,7 @@ struct AgentSelectIf
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for items
     typedef typename If<IsPointer<InputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentSelectIfPolicyT::LOAD_MODIFIER, T, OffsetT>,        // Wrap the native input pointer with CacheModifiedValuesInputIterator
+            CacheModifiedInputIterator<AgentSelectIfPolicyT::LOAD_MODIFIER, InputT, OffsetT>,        // Wrap the native input pointer with CacheModifiedValuesInputIterator
             InputIteratorT>::Type                                                               // Directly use the supplied input iterator type
         WrappedInputIteratorT;
 
@@ -150,7 +155,7 @@ struct AgentSelectIf
 
     // Parameterized BlockLoad type for input data
     typedef BlockLoad<
-            WrappedInputIteratorT,
+            OutputT,
             BLOCK_THREADS,
             ITEMS_PER_THREAD,
             AgentSelectIfPolicyT::LOAD_ALGORITHM>
@@ -158,7 +163,7 @@ struct AgentSelectIf
 
     // Parameterized BlockLoad type for flags
     typedef BlockLoad<
-            WrappedFlagsInputIteratorT,
+            FlagT,
             BLOCK_THREADS,
             ITEMS_PER_THREAD,
             AgentSelectIfPolicyT::LOAD_ALGORITHM>
@@ -166,7 +171,7 @@ struct AgentSelectIf
 
     // Parameterized BlockDiscontinuity type for items
     typedef BlockDiscontinuity<
-            T,
+            OutputT,
             BLOCK_THREADS>
         BlockDiscontinuityT;
 
@@ -185,9 +190,9 @@ struct AgentSelectIf
         TilePrefixCallbackOpT;
 
     // Item exchange type
-    typedef T ItemExchangeT[TILE_ITEMS];
+    typedef OutputT ItemExchangeT[TILE_ITEMS];
 
-    // Shared memory type for this threadblock
+    // Shared memory type for this thread block
     union _TempStorage
     {
         struct
@@ -258,11 +263,11 @@ struct AgentSelectIf
      */
     template <bool IS_FIRST_TILE, bool IS_LAST_TILE>
     __device__ __forceinline__ void InitializeSelections(
-        OffsetT                     tile_offset,
+        OffsetT                     /*tile_offset*/,
         OffsetT                     num_tile_items,
-        T                           (&items)[ITEMS_PER_THREAD],
+        OutputT                     (&items)[ITEMS_PER_THREAD],
         OffsetT                     (&selection_flags)[ITEMS_PER_THREAD],
-        Int2Type<USE_SELECT_OP>     select_method)
+        Int2Type<USE_SELECT_OP>     /*select_method*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
@@ -283,11 +288,11 @@ struct AgentSelectIf
     __device__ __forceinline__ void InitializeSelections(
         OffsetT                     tile_offset,
         OffsetT                     num_tile_items,
-        T                           (&items)[ITEMS_PER_THREAD],
+        OutputT                     (&/*items*/)[ITEMS_PER_THREAD],
         OffsetT                     (&selection_flags)[ITEMS_PER_THREAD],
-        Int2Type<USE_SELECT_FLAGS>  select_method)
+        Int2Type<USE_SELECT_FLAGS>  /*select_method*/)
     {
-        __syncthreads();
+        CTA_SYNC();
 
         FlagT flags[ITEMS_PER_THREAD];
 
@@ -317,24 +322,24 @@ struct AgentSelectIf
     __device__ __forceinline__ void InitializeSelections(
         OffsetT                     tile_offset,
         OffsetT                     num_tile_items,
-        T                           (&items)[ITEMS_PER_THREAD],
+        OutputT                     (&items)[ITEMS_PER_THREAD],
         OffsetT                     (&selection_flags)[ITEMS_PER_THREAD],
-        Int2Type<USE_DISCONTINUITY> select_method)
+        Int2Type<USE_DISCONTINUITY> /*select_method*/)
     {
         if (IS_FIRST_TILE)
         {
-            __syncthreads();
+            CTA_SYNC();
 
             // Set head selection_flags.  First tile sets the first flag for the first item
             BlockDiscontinuityT(temp_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op);
         }
         else
         {
-            T tile_predecessor;
+            OutputT tile_predecessor;
             if (threadIdx.x == 0)
                 tile_predecessor = d_in[tile_offset - 1];
 
-            __syncthreads();
+            CTA_SYNC();
 
             BlockDiscontinuityT(temp_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op, tile_predecessor);
         }
@@ -359,7 +364,7 @@ struct AgentSelectIf
      */
     template <bool IS_LAST_TILE, bool IS_FIRST_TILE>
     __device__ __forceinline__ void ScatterDirect(
-        T       (&items)[ITEMS_PER_THREAD],
+        OutputT (&items)[ITEMS_PER_THREAD],
         OffsetT (&selection_flags)[ITEMS_PER_THREAD],
         OffsetT (&selection_indices)[ITEMS_PER_THREAD],
         OffsetT num_selections)
@@ -384,16 +389,16 @@ struct AgentSelectIf
      */
     template <bool IS_LAST_TILE, bool IS_FIRST_TILE>
     __device__ __forceinline__ void ScatterTwoPhase(
-        T               (&items)[ITEMS_PER_THREAD],
+        OutputT         (&items)[ITEMS_PER_THREAD],
         OffsetT         (&selection_flags)[ITEMS_PER_THREAD],
         OffsetT         (&selection_indices)[ITEMS_PER_THREAD],
-        int             num_tile_items,                             ///< Number of valid items in this tile
+        int             /*num_tile_items*/,                         ///< Number of valid items in this tile
         int             num_tile_selections,                        ///< Number of selections in this tile
         OffsetT         num_selections_prefix,                      ///< Total number of selections prior to this tile
-        OffsetT         num_rejected_prefix,                        ///< Total number of rejections prior to this tile
-        Int2Type<false> is_keep_rejects)                            ///< Marker type indicating whether to keep rejected items in the second partition
+        OffsetT         /*num_rejected_prefix*/,                    ///< Total number of rejections prior to this tile
+        Int2Type<false> /*is_keep_rejects*/)                        ///< Marker type indicating whether to keep rejected items in the second partition
     {
-        __syncthreads();
+        CTA_SYNC();
 
         // Compact and scatter items
         #pragma unroll
@@ -406,7 +411,7 @@ struct AgentSelectIf
             }
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         for (int item = threadIdx.x; item < num_tile_selections; item += BLOCK_THREADS)
         {
@@ -420,16 +425,16 @@ struct AgentSelectIf
      */
     template <bool IS_LAST_TILE, bool IS_FIRST_TILE>
     __device__ __forceinline__ void ScatterTwoPhase(
-        T               (&items)[ITEMS_PER_THREAD],
+        OutputT         (&items)[ITEMS_PER_THREAD],
         OffsetT         (&selection_flags)[ITEMS_PER_THREAD],
         OffsetT         (&selection_indices)[ITEMS_PER_THREAD],
         int             num_tile_items,                             ///< Number of valid items in this tile
         int             num_tile_selections,                        ///< Number of selections in this tile
         OffsetT         num_selections_prefix,                      ///< Total number of selections prior to this tile
         OffsetT         num_rejected_prefix,                        ///< Total number of rejections prior to this tile
-        Int2Type<true>  is_keep_rejects)                            ///< Marker type indicating whether to keep rejected items in the second partition
+        Int2Type<true>  /*is_keep_rejects*/)                        ///< Marker type indicating whether to keep rejected items in the second partition
     {
-        __syncthreads();
+        CTA_SYNC();
 
         int tile_num_rejections = num_tile_items - num_tile_selections;
 
@@ -447,7 +452,7 @@ struct AgentSelectIf
             temp_storage.raw_exchange.Alias()[local_scatter_offset] = items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Gather items from shared memory and scatter to global
         #pragma unroll
@@ -460,7 +465,7 @@ struct AgentSelectIf
                                         num_items - num_rejected_prefix - rejection_idx - 1 :
                                         num_selections_prefix + selection_idx;
 
-            T item = temp_storage.raw_exchange.Alias()[item_idx];
+            OutputT item = temp_storage.raw_exchange.Alias()[item_idx];
 
             if (!IS_LAST_TILE || (item_idx < num_tile_items))
             {
@@ -475,7 +480,7 @@ struct AgentSelectIf
      */
     template <bool IS_LAST_TILE, bool IS_FIRST_TILE>
     __device__ __forceinline__ void Scatter(
-        T               (&items)[ITEMS_PER_THREAD],
+        OutputT         (&items)[ITEMS_PER_THREAD],
         OffsetT         (&selection_flags)[ITEMS_PER_THREAD],
         OffsetT         (&selection_indices)[ITEMS_PER_THREAD],
         int             num_tile_items,                             ///< Number of valid items in this tile
@@ -521,7 +526,7 @@ struct AgentSelectIf
         OffsetT             tile_offset,        ///< Tile offset
         ScanTileStateT&     tile_state)         ///< Global tile state descriptor
     {
-        T           items[ITEMS_PER_THREAD];
+        OutputT     items[ITEMS_PER_THREAD];
         OffsetT     selection_flags[ITEMS_PER_THREAD];
         OffsetT     selection_indices[ITEMS_PER_THREAD];
 
@@ -539,7 +544,7 @@ struct AgentSelectIf
             selection_flags,
             Int2Type<SELECT_METHOD>());
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Exclusive scan of selection_flags
         OffsetT num_tile_selections;
@@ -581,7 +586,7 @@ struct AgentSelectIf
         OffsetT             tile_offset,        ///< Tile offset
         ScanTileStateT&     tile_state)         ///< Global tile state descriptor
     {
-        T           items[ITEMS_PER_THREAD];
+        OutputT     items[ITEMS_PER_THREAD];
         OffsetT     selection_flags[ITEMS_PER_THREAD];
         OffsetT     selection_indices[ITEMS_PER_THREAD];
 
@@ -599,7 +604,7 @@ struct AgentSelectIf
             selection_flags,
             Int2Type<SELECT_METHOD>());
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Exclusive scan of values and selection_flags
         TilePrefixCallbackOpT prefix_op(tile_state, temp_storage.prefix, cub::Sum(), tile_idx);

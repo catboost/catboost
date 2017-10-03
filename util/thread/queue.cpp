@@ -708,10 +708,10 @@ IThread* IMtpQueue::DoCreate() {
     return new TPoolThread(this);
 }
 
-TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit) {
+TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit, TMtpQueue::EBlocking blocking, TMtpQueue::ECatching catching) {
     THolder<IMtpQueue> queue;
     if (threadsCount > 1) {
-        queue.Reset(new TMtpQueue());
+        queue.Reset(new TMtpQueue(blocking, catching));
     } else {
         queue.Reset(new TFakeMtpQueue());
     }

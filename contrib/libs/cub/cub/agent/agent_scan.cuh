@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -93,7 +93,7 @@ template <
     typename InputIteratorT,        ///< Random-access input iterator type
     typename OutputIteratorT,       ///< Random-access output iterator type
     typename ScanOpT,               ///< Scan functor type
-    typename InitValueT,             ///< The init_value element for ScanOpT type (cub::NullType for inclusive scan)
+    typename InitValueT,            ///< The init_value element for ScanOpT type (cub::NullType for inclusive scan)
     typename OffsetT>               ///< Signed integer type for global offsets
 struct AgentScan
 {
@@ -101,9 +101,13 @@ struct AgentScan
     // Types and constants
     //---------------------------------------------------------------------
 
-    // The value types of the iterators
-    typedef typename std::iterator_traits<InputIteratorT>::value_type   InputT;
-    typedef typename std::iterator_traits<OutputIteratorT>::value_type  OutputT;
+    // The input value type
+    typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
+
+    // The output value type
+    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
+        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
     // Tile status descriptor interface type
     typedef ScanTileState<OutputT> ScanTileStateT;
@@ -125,7 +129,7 @@ struct AgentScan
 
     // Parameterized BlockLoad type
     typedef BlockLoad<
-            WrappedInputIteratorT,
+            OutputT,
             AgentScanPolicyT::BLOCK_THREADS,
             AgentScanPolicyT::ITEMS_PER_THREAD,
             AgentScanPolicyT::LOAD_ALGORITHM>
@@ -133,7 +137,7 @@ struct AgentScan
 
     // Parameterized BlockStore type
     typedef BlockStore<
-            OutputIteratorT,
+            OutputT,
             AgentScanPolicyT::BLOCK_THREADS,
             AgentScanPolicyT::ITEMS_PER_THREAD,
             AgentScanPolicyT::STORE_ALGORITHM>
@@ -159,7 +163,7 @@ struct AgentScan
             ScanOpT>
         RunningPrefixCallbackOp;
 
-    // Shared memory type for this threadblock
+    // Shared memory type for this thread block
     union _TempStorage
     {
         typename BlockLoadT::TempStorage    load;       // Smem needed for tile loading
@@ -200,7 +204,7 @@ struct AgentScan
         OutputT             init_value,
         ScanOpT             scan_op,
         OutputT             &block_aggregate,
-        Int2Type<false>     is_inclusive)
+        Int2Type<false>     /*is_inclusive*/)
     {
         BlockScanT(temp_storage.scan).ExclusiveScan(items, items, init_value, scan_op, block_aggregate);
         block_aggregate = scan_op(init_value, block_aggregate);
@@ -213,10 +217,10 @@ struct AgentScan
     __device__ __forceinline__
     void ScanTile(
         OutputT             (&items)[ITEMS_PER_THREAD],
-        InitValueT          init_value,
+        InitValueT          /*init_value*/,
         ScanOpT             scan_op,
         OutputT             &block_aggregate,
-        Int2Type<true>      is_inclusive)
+        Int2Type<true>      /*is_inclusive*/)
     {
         BlockScanT(temp_storage.scan).InclusiveScan(items, items, scan_op, block_aggregate);
     }
@@ -231,7 +235,7 @@ struct AgentScan
         OutputT             (&items)[ITEMS_PER_THREAD],
         ScanOpT             scan_op,
         PrefixCallback      &prefix_op,
-        Int2Type<false>     is_inclusive)
+        Int2Type<false>     /*is_inclusive*/)
     {
         BlockScanT(temp_storage.scan).ExclusiveScan(items, items, scan_op, prefix_op);
     }
@@ -246,7 +250,7 @@ struct AgentScan
         OutputT             (&items)[ITEMS_PER_THREAD],
         ScanOpT             scan_op,
         PrefixCallback      &prefix_op,
-        Int2Type<true>      is_inclusive)
+        Int2Type<true>      /*is_inclusive*/)
     {
         BlockScanT(temp_storage.scan).InclusiveScan(items, items, scan_op, prefix_op);
     }
@@ -295,7 +299,7 @@ struct AgentScan
         else
             BlockLoadT(temp_storage.load).Load(d_in + tile_offset, items);
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Perform tile scan
         if (tile_idx == 0)
@@ -313,7 +317,7 @@ struct AgentScan
             ScanTile(items, scan_op, prefix_op, Int2Type<IS_INCLUSIVE>());
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Store items
         if (IS_LAST_TILE)
@@ -372,7 +376,7 @@ struct AgentScan
         else
             BlockLoadT(temp_storage.load).Load(d_in + tile_offset, items);
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Block scan
         if (IS_FIRST_TILE)
@@ -386,7 +390,7 @@ struct AgentScan
             ScanTile(items, scan_op, prefix_op, Int2Type<IS_INCLUSIVE>());
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Store items
         if (IS_LAST_TILE)

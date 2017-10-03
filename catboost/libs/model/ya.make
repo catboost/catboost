@@ -6,10 +6,10 @@ SRCS(
     coreml_helpers.cpp
     ctr_provider.cpp
     model.cpp
-    model_calcer.cpp
     online_ctr.cpp
     static_ctr_provider.cpp
     tensor_struct.cpp
+    formula_evaluator.cpp
 )
 
 PEERDIR(

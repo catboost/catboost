@@ -1,4 +1,4 @@
-#include "delim_stroka_iter.h"
+#include "delim_string_iter.h"
 
 //
 // TKeyValueDelimStringIter

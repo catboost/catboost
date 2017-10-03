@@ -67,7 +67,7 @@ NULL
 #' test_pool <- catboost.load_pool(test[,-target], label = test[,target])
 #'
 #' @export
-catboost.load_pool <- function(data, label = NULL, cat_features = "", column_description = NULL,
+catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                delimiter = "\t", has_header = FALSE, weight = NULL, baseline = NULL,
                                feature_names = NULL, thread_count = 1) {
     if (is.character(data)) {
@@ -224,9 +224,6 @@ catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baselin
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
     }
-    if (sum(is.na(data)) > 0) {
-        stop("NA and NULL values are not supported!")
-    }
     if (is.null(feature_names)) {
         feature_names = as.list(colnames(data))
     }
@@ -359,6 +356,8 @@ dimnames.catboost.Pool <- function(x) {
 head.catboost.Pool <- function(x, n = 10, ...) {
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
+    } else {
+        n <- min(n, dim(x)[1])
     }
     result <- .Call("CatBoostPoolSlice_R", x, n, 0)
     return(result)
@@ -386,6 +385,8 @@ head.catboost.Pool <- function(x, n = 10, ...) {
 tail.catboost.Pool <- function(x, n = 10, ...) {
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
+    } else {
+        n <- min(n, dim(x)[1])
     }
     result <- .Call("CatBoostPoolSlice_R", x, n, dim(x)[1] - n)
     return(result)

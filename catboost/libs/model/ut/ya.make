@@ -3,7 +3,7 @@ UNITTEST(model_ut)
 
 
 SRCS(
-    model_calcer_ut.cpp
+    formula_evaluator_ut.cpp
     model_serialization_ut.cpp
 )
 

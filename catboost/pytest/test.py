@@ -9,6 +9,84 @@ from catboost_pytest_lib import data_file, local_canonical_file
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
 
+def test_pairlogit():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '--eval-metric', 'PairAccuracy',
+        '-f', data_file('zen', 'learn_small.tsv'),
+        '-t', data_file('zen', 'test_small.tsv'),
+        '--column-description', data_file('zen', 'zen.cd'),
+        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
+        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
+        '--ctr', 'Borders,Counter',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
+def test_pairlogit_no_target():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('zen', 'learn_small.tsv'),
+        '-t', data_file('zen', 'test_small.tsv'),
+        '--column-description', data_file('zen', 'zen_target_aux.cd'),
+        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
+        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_pairlogit_approx_on_full_history():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('zen', 'learn_small.tsv'),
+        '-t', data_file('zen', 'test_small.tsv'),
+        '--column-description', data_file('zen', 'zen.cd'),
+        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
+        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
+        '--approx-on-full-history',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 NAN_MODE = ['Min', 'Max']
 
 
@@ -576,6 +654,7 @@ def test_fstr(fstr_type):
         '-i', '10',
         '-T', '4',
         '-r', '0',
+        '--one-hot-max-size', '10',
         '-m', model_path
     )
     yatest.common.execute(cmd)

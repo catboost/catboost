@@ -4,21 +4,12 @@
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <cstdlib>
 
 
 namespace NKernel {
 
-
-    texture<float, cudaTextureType1D, cudaReadModeElementType> weight_tex_ref;
-    texture<float, cudaTextureType1D, cudaReadModeElementType> target_tex_ref;
-
-    void BindPointwiseTextureData(const float* targets, 
-                                  const float* weights,
-                                  ui32 size) {
-        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
-        cudaBindTexture(0, target_tex_ref, targets, channelDesc, size * sizeof(float));
-        cudaBindTexture(0, weight_tex_ref, weights, channelDesc, size * sizeof(float));
-    }
 
     template <int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int BLOCK_SIZE>
     struct TPointHist {
@@ -130,102 +121,97 @@ namespace NKernel {
         }
     };
 
-    template <int STRIPE_SIZE, int HIST_BLOCK_COUNT, int N, typename THist>
+    template <int STRIPE_SIZE, int HIST_BLOCK_COUNT, int N, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__ __device__ void ComputeHistogram(
-            const ui32* __restrict indices, ui32 dsSize,
+            const ui32* __restrict indices, int dsSize,
             const float* __restrict target, const float* __restrict weight,
-            const ui32* __restrict cindex, float* result, ui32 textureOffset)
+            const ui32* __restrict cindex, float* result)
     {
 
+        indices += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+        target += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+        weight += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+        dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE, 0);
+        const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE;
+
         THist hist(result);
+        if (dsSize)
+        {
+            int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
+            int iteration_count = (dsSize - i + (stripe - 1)) / stripe;
+            int blocked_iteration_count = ((dsSize - (i | 31) + (stripe - 1)) / stripe) / N;
 
-        int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
-        int iteration_count = (dsSize - i + (STRIPE_SIZE - 1)) / STRIPE_SIZE;
-        int blocked_iteration_count = ((dsSize - (i | 31) + (STRIPE_SIZE - 1)) / STRIPE_SIZE) / N;
-
-        weight += i;
-        target += i;
-        indices += i;
+            weight += i;
+            target += i;
+            indices += i;
 
 #pragma unroll 4
-        for(int j = 0; j < blocked_iteration_count; ++j) {
-            ui32 local_index[N];
+            for (int j = 0; j < blocked_iteration_count; ++j)
+            {
+                ui32 local_index[N];
 #pragma unroll
-            for(int k = 0; k < N; k++) {
-#if __CUDA_ARCH__ >= 350
-                local_index[k] = __ldg(indices + STRIPE_SIZE * k);
-#else
-                local_index[k] = indices[STRIPE_SIZE * k];
-#endif
-            }
+                for (int k = 0; k < N; k++)
+                {
+                    local_index[k] = __ldg(indices + stripe * k);
+                }
 
-            ui32 local_ci[N];
-            float local_w[N];
-            float local_wt[N];
+                ui32 local_ci[N];
+                float local_w[N];
+                float local_wt[N];
 
 #pragma unroll
-            for(int k = 0; k < N; ++k) {
-#if __CUDA_ARCH__ >= 350
-            local_ci[k] = __ldg(cindex + local_index[k]);
-            local_w[k] = __ldg(weight + STRIPE_SIZE * k);
-            local_wt[k]= __ldg(target + STRIPE_SIZE * k);
-#else
-                local_ci[k] =  cindex[local_index[k]];
-                local_w[k] =  tex1Dfetch(weight_tex_ref, textureOffset + i + STRIPE_SIZE * k);
-                local_wt[k] =  tex1Dfetch(target_tex_ref, textureOffset + i + STRIPE_SIZE * k);
-#endif
-            }
+                for (int k = 0; k < N; ++k)
+                {
+                    local_ci[k] = __ldg(cindex + local_index[k]);
+                    local_w[k] = __ldg(weight + stripe * k);
+                    local_wt[k] = __ldg(target + stripe * k);
+                }
 
 #pragma unroll
-            for(int k = 0; k < N; ++k) {
-                hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
+                for (int k = 0; k < N; ++k)
+                {
+                    hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
+                }
+
+                i += stripe * N;
+                indices += stripe * N;
+                target += stripe * N;
+                weight += stripe * N;
             }
 
-            i += STRIPE_SIZE * N;
-            indices += STRIPE_SIZE * N;
-            target += STRIPE_SIZE * N;
-            weight += STRIPE_SIZE * N;
+            for (int k = blocked_iteration_count * N; k < iteration_count; ++k)
+            {
+                const int index = __ldg(indices);
+                ui32 ci = __ldg(cindex + index);
+                float w = __ldg(weight);
+                float wt = __ldg(target);
+                hist.AddPoint(ci, wt, w);
+                i += stripe;
+                indices += stripe;
+                target += stripe;
+                weight += stripe;
+            }
+            __syncthreads();
+
+            hist.Reduce();
         }
-
-        for(int k = blocked_iteration_count * N; k < iteration_count; ++k) {
-#if __CUDA_ARCH__ >= 350
-            const int index = __ldg(indices);
-            ui32 ci = __ldg(cindex + index);
-            float w = __ldg(weight);
-            float wt = __ldg(target);
-#else
-            const int index = indices[0];
-            ui32 ci = cindex[index];
-            float w = tex1Dfetch(weight_tex_ref, i + textureOffset);
-            float wt = tex1Dfetch(target_tex_ref, i + textureOffset);
-#endif
-            hist.AddPoint(ci, wt, w);
-            i += STRIPE_SIZE;
-            indices += STRIPE_SIZE;
-            target += STRIPE_SIZE;
-            weight += STRIPE_SIZE;
-        }
-        __syncthreads();
-
-        hist.Reduce();
-
     }
 
 
 
-    template <int BLOCK_SIZE, int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int N>
+    template <int BLOCK_SIZE, int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int N, int BLOCKS_PER_FEATURE>
     __forceinline__ __device__ void ComputeSplitPropertiesPass(const TCFeature* __restrict feature, const ui32* __restrict cindex,
-                                                   const float* __restrict target, const float* __restrict weight, const ui32* __restrict indices,
-                                                   const TDataPartition* __restrict partition, int fCount,
-                                                   volatile float* binSumsForPart,
-                                                   float* smem) {
+                                                               const float* __restrict target, const float* __restrict weight, const ui32* __restrict indices,
+                                                               const TDataPartition* __restrict partition, int fCount,
+                                                               float* binSumsForPart,
+                                                               float* smem) {
 
         using THist = TPointHist < OUTER_HIST_BITS_COUNT, INNER_HIST_BITS_COUNT, BLOCK_SIZE >;
         const int stripeSize = BLOCK_SIZE >> OUTER_HIST_BITS_COUNT;
         const int histBlockCount =  1 << OUTER_HIST_BITS_COUNT;
 
-        ComputeHistogram<stripeSize, histBlockCount, N, THist >(indices + partition->Offset,
-                partition->Size, target + partition->Offset, weight + partition->Offset, cindex, smem,  partition->Offset);
+        ComputeHistogram<stripeSize, histBlockCount, N,  BLOCKS_PER_FEATURE, THist >(indices + partition->Offset,
+                partition->Size, target + partition->Offset, weight + partition->Offset, cindex, smem);
 
         __syncthreads();
 
@@ -240,7 +226,11 @@ namespace NKernel {
 
             if (fid < fCount && fold < min((int)feature[fid].Folds - binOffset, 32)) {
                 int w = threadIdx.x & 1;
-                binSumsForPart[(feature[fid].FirstFoldIndex + fold + binOffset) * 2 + w] = smem[fold * 8 + 2 * fid + w + 256 * upperBits];
+                if (BLOCKS_PER_FEATURE > 1) {
+                    atomicAdd(binSumsForPart + (feature[fid].FirstFoldIndex + fold + binOffset) * 2 + w, smem[fold * 8 + 2 * fid + w + 256 * upperBits]);
+                } else {
+                    binSumsForPart[(feature[fid].FirstFoldIndex + fold + binOffset) * 2 + w] = smem[fold * 8 + 2 * fid + w + 256 * upperBits];
+                }
             }
         }
 
@@ -251,12 +241,11 @@ namespace NKernel {
 
 
 
-#define DECLARE_PASS(O, I, N) \
-    ComputeSplitPropertiesPass<BLOCK_SIZE, O, I, N>(feature, cindex, target, weight, indices, partition, fCount, binSums, &counters[0]);
+#define DECLARE_PASS(O, I, N, M) \
+    ComputeSplitPropertiesPass<BLOCK_SIZE, O, I, N, M>(feature, cindex, target, weight, indices, partition, fCount, binSums, &counters[0]);
 
 
-    template <int BLOCK_SIZE,
-            bool FULL_PASS>
+    template <int BLOCK_SIZE, bool FULL_PASS, int M>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BLOCK_SIZE, 2)
 #else
@@ -287,9 +276,9 @@ namespace NKernel {
             binSums += 2 * totalFeatureCount * helper.GetHistogramOffset(gridDim.y | blockIdx.y, blockIdx.z);
         }
 
-        feature += blockIdx.x * 4;
+        feature += (blockIdx.x / M) * 4;
         cindex += feature->Offset * ((size_t)dsSize);
-        fCount = min(fCount - blockIdx.x * 4, 4);
+        fCount = min(fCount - (blockIdx.x / M)  * 4, 4);
 
 //
         __shared__ float counters[32 * BLOCK_SIZE];
@@ -299,35 +288,19 @@ namespace NKernel {
 
         if (partition->Size) {
             if (maxBinCount <= 32) {
-#if __CUDA_ARCH__ >= 350
-                DECLARE_PASS(0, 0, 8);
-#else
-                DECLARE_PASS(0, 0, 4);
-#endif
+                DECLARE_PASS(0, 0, 8,  M);
             }
             else if (maxBinCount <= 64) {
-#if __CUDA_ARCH__ >= 350
-                DECLARE_PASS(0, 1, 4);
-#else
-                DECLARE_PASS(0, 1, 2);
-#endif
+                DECLARE_PASS(0, 1, 4, M);
             } else if (maxBinCount <= 128) {
-#if __CUDA_ARCH__ >= 350
-                DECLARE_PASS(0, 2, 4);
-#else
-                DECLARE_PASS(2, 0, 2);
-#endif
+                DECLARE_PASS(0, 2, 4, M);
             } else {
-#if __CUDA_ARCH__ >= 350
-                DECLARE_PASS(1, 2, 4);
-#else
-                DECLARE_PASS(2, 1, 2);
-#endif
+                DECLARE_PASS(1, 2, 4, M);
             }
         }
     }
 
-    template <int BIN_COUNT, int BLOCK_SIZE,  bool FULL_PASS>
+    template <int BIN_COUNT, int BLOCK_SIZE,  bool FULL_PASS, int M>
     __launch_bounds__(BLOCK_SIZE, 1)
     __global__ void ComputeSplitPropertiesBImpl(
             const TCFeature* __restrict feature, int fCount, const ui32* __restrict cindex,
@@ -352,18 +325,17 @@ namespace NKernel {
         }
 
 
-        feature += blockIdx.x * 20;
+        feature += (blockIdx.x / M) * 20;
         cindex += feature->Offset * ((size_t)dsSize);
-        fCount = min(fCount - blockIdx.x * 20, 20);
+        fCount = min(fCount - (blockIdx.x / M) * 20, 20);
 
         __shared__ float counters[BIN_COUNT * BLOCK_SIZE];
 
         if (partition->Size)
         {
 
-            ComputeHistogram < BLOCK_SIZE, 1, 8, TPointHist<0, 0, BLOCK_SIZE> > (indices + partition->Offset,
-                    partition->Size, target + partition->Offset, weight + partition->Offset,
-                    cindex, &counters[0], partition->Offset);
+            ComputeHistogram < BLOCK_SIZE, 1, 8, M, TPointHist<0, 0, BLOCK_SIZE> > (indices + partition->Offset,
+                    partition->Size, target + partition->Offset, weight + partition->Offset, cindex, &counters[0]);
 
             uchar fold = (threadIdx.x >> 1) & 1;
             uchar fid = (threadIdx.x >> 2);
@@ -379,9 +351,47 @@ namespace NKernel {
                         sum += counters[i * 8 + 2 * (fid / 5) + w];
                 }
 
-                binSums[(feature[fid].FirstFoldIndex + fold) * 2 + w] = sum;
+                if (M > 1) {
+                    atomicAdd(binSums + (feature[fid].FirstFoldIndex + fold) * 2 + w, sum);
+                } else {
+                    binSums[(feature[fid].FirstFoldIndex + fold) * 2 + w] = sum;
+                }
             }
         }
+    }
+
+    template <int BLOCK_SIZE,
+              int BLOCKS_PER_FEATURE_COUNT>
+    inline void RunComputeHist2NonBinaryKernel(const TCFeature* nbFeatures, int nbCount,
+                                              const ui32* cindex, int dsSize,
+                                              const float* target, const float* weight,  const ui32* indices,
+                                              const TDataPartition* partition,
+                                              float* binSums, const int binFeatureCount,
+                                              bool fullPass,
+                                              TCudaStream stream,
+                                              dim3 numBlocks) {
+
+        if (fullPass)
+        {
+            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                    nbFeatures, nbCount, cindex, target, weight, dsSize,
+                            indices, partition, binSums, binFeatureCount
+            );
+
+        } else {
+                ComputeSplitPropertiesNBImpl < BLOCK_SIZE, false, BLOCKS_PER_FEATURE_COUNT> << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                        nbFeatures, nbCount, cindex, target, weight, dsSize,
+                                indices, partition, binSums, binFeatureCount);
+        }
+
+    }
+
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize) {
+        ui32 multiplier = 1;
+        while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 4) * multiplier < TArchProps::SMCount()) && ((dsSize / multiplier) > 15000) && (multiplier < 64)) {
+            multiplier *= 2;
+        }
+        return multiplier;
     }
 
     void ComputeHist2NonBinary(const TCFeature* nbFeatures, int nbCount,
@@ -400,17 +410,25 @@ namespace NKernel {
             numBlocks.z = foldCount;
 
             const int blockSize = 384;
-            if (fullPass)
-            {
-                ComputeSplitPropertiesNBImpl < blockSize, true > << <numBlocks, blockSize, 0, stream>>>(
-                        nbFeatures, nbCount, cindex, target, weight, dsSize,
-                                indices, partition, binSums, binFeatureCount
-                );
+            const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, dsSize), 64);
+            numBlocks.x *= multiplier;
+
+            if (multiplier == 1) {
+                RunComputeHist2NonBinaryKernel<blockSize, 1>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 2) {
+                RunComputeHist2NonBinaryKernel<blockSize, 2>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 4) {
+                RunComputeHist2NonBinaryKernel<blockSize, 4>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 8) {
+                RunComputeHist2NonBinaryKernel<blockSize, 8>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 16) {
+                RunComputeHist2NonBinaryKernel<blockSize, 16>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 32) {
+                RunComputeHist2NonBinaryKernel<blockSize, 32>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            } else if (multiplier == 64) {
+                RunComputeHist2NonBinaryKernel<blockSize, 64>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
             } else {
-                ComputeSplitPropertiesNBImpl < blockSize, false > << <numBlocks, blockSize, 0, stream>>>(
-                        nbFeatures, nbCount, cindex, target, weight, dsSize,
-                                indices, partition, binSums, binFeatureCount
-                );
+                exit(1);
             }
 
             const int scanBlockSize = 256;
@@ -427,6 +445,28 @@ namespace NKernel {
         }
     }
 
+    template <int BLOCK_SIZE, int BLOCKS_PER_FEATURE_COUNT>
+    void RunComputeHist2BinaryKernel(const TCFeature* bFeatures, int bCount,
+                                     const ui32* cindex, int dsSize,
+                                     const float* target, const float* weight, const ui32* indices,
+                                     const TDataPartition* partition,
+                                     float* binSums, bool fullPass,
+                                     TCudaStream stream,
+                                     dim3 numBlocks) {
+        if (fullPass)
+        {
+            ComputeSplitPropertiesBImpl < 32, BLOCK_SIZE, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                    bFeatures, bCount, cindex, target, weight, dsSize,
+                            indices, partition, binSums, bCount
+            );
+        } else {
+            ComputeSplitPropertiesBImpl < 32, BLOCK_SIZE, false, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                    bFeatures, bCount, cindex, target, weight, dsSize,
+                            indices, partition, binSums, bCount
+            );
+        }
+    };
+
     void ComputeHist2Binary(const TCFeature* bFeatures, int bCount,
                             const ui32* cindex, int dsSize,
                             const float* target, const float* weight, const ui32* indices,
@@ -434,26 +474,34 @@ namespace NKernel {
                             float* binSums, bool fullPass,
                             TCudaStream stream)
     {
-        const int blockSize = 384;
-
         dim3 numBlocks;
         numBlocks.x = (bCount + 19) / 20;
         const int histCount = fullPass ? partsCount : partsCount / 2;
         numBlocks.y = histCount;
         numBlocks.z = foldCount;
 
+        const int blockSize = 384;
+        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, dsSize), 64);
+        numBlocks.x *= multiplier;
+
         if (bCount) {
-            if (fullPass)
-            {
-                ComputeSplitPropertiesBImpl < 32, blockSize, true > << <numBlocks, blockSize, 0, stream>>>(
-                        bFeatures, bCount, cindex, target, weight, dsSize,
-                                indices, partition, binSums, bCount
-                );
+
+            if (multiplier == 1) {
+                RunComputeHist2BinaryKernel<blockSize, 1>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 2) {
+                RunComputeHist2BinaryKernel<blockSize, 2>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 4) {
+                RunComputeHist2BinaryKernel<blockSize, 4>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition,  binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 8) {
+                RunComputeHist2BinaryKernel<blockSize, 8>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 16) {
+                RunComputeHist2BinaryKernel<blockSize, 16>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 32) {
+                RunComputeHist2BinaryKernel<blockSize, 32>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
+            } else if (multiplier == 64) {
+                RunComputeHist2BinaryKernel<blockSize, 64>(bFeatures, bCount, cindex, dsSize, target, weight, indices, partition, binSums, fullPass, stream, numBlocks);
             } else {
-                ComputeSplitPropertiesBImpl < 32, blockSize, false > << <numBlocks, blockSize, 0, stream>>>(
-                        bFeatures, bCount, cindex, target, weight, dsSize,
-                                indices, partition, binSums, bCount
-                );
+                exit(1);
             }
 
             if (!fullPass) {

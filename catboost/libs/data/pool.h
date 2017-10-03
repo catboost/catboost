@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pair.h"
+
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>
@@ -7,7 +9,7 @@
 #include <util/generic/hash.h>
 
 struct TDocInfo {
-    float Target;
+    float Target = 0;
     float Weight = 1;
     yvector<float> Factors;
     yvector<double> Baseline;
@@ -27,4 +29,5 @@ struct TPool {
     yvector<int> CatFeatures;
     yvector<TString> FeatureId;
     yhash<int, TString> CatFeaturesHashToString;
+    yvector<TPair> Pairs;
 };

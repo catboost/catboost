@@ -44,8 +44,7 @@ public:
         return Seed;
     }
 
-    float GetBaggingTemperature() const
-    {
+    float GetBaggingTemperature() const {
         return BaggingTemperature;
     }
 

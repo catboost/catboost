@@ -24,7 +24,7 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "723861225c502af80a633a7c1fedf36e",
+        "checksum": "b664b6cd7d9fab527e932073a7dbc67b",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {

@@ -72,10 +72,9 @@ namespace NJson2Yson {
     template <typename TBase>
     class TSkipAttributesProxy: public TBase {
     public:
-        TSkipAttributesProxy<TBase>() = default;
-
-        TSkipAttributesProxy<TBase>(NJson::TParserCallbacks* parserCallbacks)
-            : TBase(parserCallbacks)
+        template <typename... TArgs>
+        TSkipAttributesProxy<TBase>(TArgs&&... args)
+            : TBase(std::forward<TArgs>(args)...)
         {
         }
 
@@ -93,7 +92,7 @@ namespace NJson2Yson {
 
         void OnUint64Scalar(ui64 value) override {
             if (AttributesDepth == 0) {
-                TBase::OnInt64Scalar(value);
+                TBase::OnUint64Scalar(value);
             }
         }
 
@@ -157,6 +156,7 @@ namespace NJson2Yson {
 
         void OnEndAttributes() override {
             --AttributesDepth;
+            Y_ASSERT(AttributesDepth >= 0);
         }
 
     private:

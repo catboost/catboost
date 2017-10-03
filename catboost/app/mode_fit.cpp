@@ -104,7 +104,7 @@ int mode_fit(int argc, const char* argv[]) {
     NJson::TJsonValue trainJson;
     int threadCount = Min(8, (int)NSystemInfo::CachedNumberOfCpus());
     TString dataDir;
-    bool verbose = true;
+    bool verbose = false;
     yvector<TString> classNames;
     LoadParams(argc, argv, &trainJson, &params, &threadCount, &dataDir, &verbose, &classNames);
 
@@ -112,17 +112,22 @@ int mode_fit(int argc, const char* argv[]) {
 
     TPool learnPool;
     if (!params.LearnFile.empty()) {
-        ReadPool(params.CdFile, params.LearnFile, threadCount, verbose, params.Delimiter, params.HasHeaders, classNames, &learnPool);
+        ReadPool(params.CdFile, params.LearnFile, params.LearnPairsFile, threadCount, verbose,
+                 params.Delimiter, params.HasHeaders, classNames, &learnPool);
         profile.AddOperation("Build learn pool");
     }
 
     TPool testPool;
     if (!params.TestFile.empty()) {
-        ReadPool(params.CdFile, params.TestFile, threadCount, verbose, params.Delimiter, params.HasHeaders, classNames, &testPool);
+        ReadPool(params.CdFile, params.TestFile, params.TestPairsFile, threadCount, verbose,
+                 params.Delimiter, params.HasHeaders, classNames, &testPool);
         profile.AddOperation("Build test pool");
     }
 
     if (params.CvParams.FoldCount != 0) {
+        CB_ENSURE(params.TestFile.empty(), "Test file is not supported in cross-validation mode");
+        CB_ENSURE(params.LearnPairsFile.empty() && params.TestPairsFile.empty(),
+                  "Pairs are not supported in cross-validation mode");
         Y_VERIFY(params.CvParams.FoldIdx != -1);
         BuildCvPools(
             params.CvParams.FoldIdx,
@@ -135,13 +140,16 @@ int mode_fit(int argc, const char* argv[]) {
     }
     MoveFiles(dataDir, &params);
 
-    yvector<yvector<double>> testApprox;
-    TrainModelBody(trainJson, Nothing(), Nothing(), learnPool, testPool, params.ModelFileName, /*clearLearnPool*/ params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty(), nullptr, &testApprox);
+    yvector<yvector<yvector<double>>> testApprox(1); //[evalPeriodIdx][classIdx][objectIdx]
+    TrainModelBody(trainJson, Nothing(), Nothing(), learnPool, testPool, params.ModelFileName,
+                   /*clearLearnPool*/ params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty(),
+                   nullptr, &testApprox[0]);
 
     SetVerboseLogingMode();
     if (params.EvalFileName) {
         MATRIXNET_INFO_LOG << "Writing test eval to: " << params.EvalFileName << Endl;
-        OutputTestEval(testApprox, params.EvalFileName, testPool.Docs, true);
+        TOFStream fileStream(params.EvalFileName);
+        OutputTestEval(testApprox, testPool.Docs, true, &fileStream);
     } else {
         MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;
     }

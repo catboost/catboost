@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "../thread/thread_load.cuh"
 #include "../block/block_load.cuh"
 #include "../block/block_store.cuh"
@@ -55,27 +57,26 @@ namespace cub {
  ******************************************************************************/
 
 /**
- * Types of scattering strategies
+ * Radix ranking algorithm
  */
-enum RadixSortScatterAlgorithm
+enum RadixRankAlgorithm
 {
-    RADIX_SORT_SCATTER_DIRECT,      ///< Scatter directly from registers to global bins
-    RADIX_SORT_SCATTER_TWO_PHASE,   ///< First scatter from registers into shared memory bins, then into global bins
+    RADIX_RANK_BASIC,
+    RADIX_RANK_MEMOIZE,
+    RADIX_RANK_MATCH
 };
-
 
 /**
  * Parameterizable tuning policy type for AgentRadixSortDownsweep
  */
 template <
-    int                         _BLOCK_THREADS,             ///< Threads per thread block
-    int                         _ITEMS_PER_THREAD,          ///< Items per thread (per tile of input)
-    BlockLoadAlgorithm          _LOAD_ALGORITHM,            ///< The BlockLoad algorithm to use
-    CacheLoadModifier           _LOAD_MODIFIER,             ///< Cache load modifier for reading keys (and values)
-    bool                        _MEMOIZE_OUTER_SCAN,        ///< Whether or not to buffer outer raking scan partials to incur fewer shared memory reads at the expense of higher register pressure.  See BlockScanAlgorithm::BLOCK_SCAN_RAKING_MEMOIZE for more details.
-    BlockScanAlgorithm          _INNER_SCAN_ALGORITHM,      ///< The BlockScan algorithm algorithm to use
-    RadixSortScatterAlgorithm   _SCATTER_ALGORITHM,         ///< The scattering strategy to use
-    int                         _RADIX_BITS>                ///< The number of radix bits, i.e., log2(bins)
+    int                         _BLOCK_THREADS,         ///< Threads per thread block
+    int                         _ITEMS_PER_THREAD,      ///< Items per thread (per tile of input)
+    BlockLoadAlgorithm          _LOAD_ALGORITHM,        ///< The BlockLoad algorithm to use
+    CacheLoadModifier           _LOAD_MODIFIER,         ///< Cache load modifier for reading keys (and values)
+    RadixRankAlgorithm          _RANK_ALGORITHM,        ///< The radix ranking algorithm to use
+    BlockScanAlgorithm          _SCAN_ALGORITHM,        ///< The block scan algorithm to use
+    int                         _RADIX_BITS>            ///< The number of radix bits, i.e., log2(bins)
 struct AgentRadixSortDownsweepPolicy
 {
     enum
@@ -83,13 +84,12 @@ struct AgentRadixSortDownsweepPolicy
         BLOCK_THREADS           = _BLOCK_THREADS,           ///< Threads per thread block
         ITEMS_PER_THREAD        = _ITEMS_PER_THREAD,        ///< Items per thread (per tile of input)
         RADIX_BITS              = _RADIX_BITS,              ///< The number of radix bits, i.e., log2(bins)
-        MEMOIZE_OUTER_SCAN      = _MEMOIZE_OUTER_SCAN,      ///< Whether or not to buffer outer raking scan partials to incur fewer shared memory reads at the expense of higher register pressure.  See BlockScanAlgorithm::BLOCK_SCAN_RAKING_MEMOIZE for more details.
     };
 
-    static const BlockLoadAlgorithm         LOAD_ALGORITHM          = _LOAD_ALGORITHM;          ///< The BlockLoad algorithm to use
-    static const CacheLoadModifier          LOAD_MODIFIER           = _LOAD_MODIFIER;           ///< Cache load modifier for reading keys (and values)
-    static const BlockScanAlgorithm         INNER_SCAN_ALGORITHM    = _INNER_SCAN_ALGORITHM;    ///< The BlockScan algorithm algorithm to use
-    static const RadixSortScatterAlgorithm  SCATTER_ALGORITHM       = _SCATTER_ALGORITHM;       ///< The scattering strategy to use
+    static const BlockLoadAlgorithm  LOAD_ALGORITHM     = _LOAD_ALGORITHM;    ///< The BlockLoad algorithm to use
+    static const CacheLoadModifier   LOAD_MODIFIER      = _LOAD_MODIFIER;     ///< Cache load modifier for reading keys (and values)
+    static const RadixRankAlgorithm  RANK_ALGORITHM     = _RANK_ALGORITHM;    ///< The radix ranking algorithm to use
+    static const BlockScanAlgorithm  SCAN_ALGORITHM     = _SCAN_ALGORITHM;    ///< The BlockScan algorithm to use
 };
 
 
@@ -97,12 +97,16 @@ struct AgentRadixSortDownsweepPolicy
  * Thread block abstractions
  ******************************************************************************/
 
+
+
+
+
 /**
  * \brief AgentRadixSortDownsweep implements a stateful abstraction of CUDA thread blocks for participating in device-wide radix sort downsweep .
  */
 template <
     typename AgentRadixSortDownsweepPolicy,     ///< Parameterized AgentRadixSortDownsweepPolicy tuning policy type
-    bool     IS_DESCENDING,                        ///< Whether or not the sorted-order is high-to-low
+    bool     IS_DESCENDING,                     ///< Whether or not the sorted-order is high-to-low
     typename KeyT,                              ///< KeyT type
     typename ValueT,                            ///< ValueT type
     typename OffsetT>                           ///< Signed integer type for global offsets
@@ -115,96 +119,79 @@ struct AgentRadixSortDownsweep
     // Appropriate unsigned-bits representation of KeyT
     typedef typename Traits<KeyT>::UnsignedBits UnsignedBits;
 
-    static const UnsignedBits LOWEST_KEY = Traits<KeyT>::LOWEST_KEY;
-    static const UnsignedBits MAX_KEY = Traits<KeyT>::MAX_KEY;
+    static const UnsignedBits           LOWEST_KEY  = Traits<KeyT>::LOWEST_KEY;
+    static const UnsignedBits           MAX_KEY     = Traits<KeyT>::MAX_KEY;
 
-    static const BlockLoadAlgorithm         LOAD_ALGORITHM          = AgentRadixSortDownsweepPolicy::LOAD_ALGORITHM;
-    static const CacheLoadModifier          LOAD_MODIFIER           = AgentRadixSortDownsweepPolicy::LOAD_MODIFIER;
-    static const BlockScanAlgorithm         INNER_SCAN_ALGORITHM    = AgentRadixSortDownsweepPolicy::INNER_SCAN_ALGORITHM;
-    static const RadixSortScatterAlgorithm  SCATTER_ALGORITHM       = AgentRadixSortDownsweepPolicy::SCATTER_ALGORITHM;
+    static const BlockLoadAlgorithm     LOAD_ALGORITHM  = AgentRadixSortDownsweepPolicy::LOAD_ALGORITHM;
+    static const CacheLoadModifier      LOAD_MODIFIER   = AgentRadixSortDownsweepPolicy::LOAD_MODIFIER;
+    static const RadixRankAlgorithm     RANK_ALGORITHM  = AgentRadixSortDownsweepPolicy::RANK_ALGORITHM;
+    static const BlockScanAlgorithm     SCAN_ALGORITHM  = AgentRadixSortDownsweepPolicy::SCAN_ALGORITHM;
 
     enum
     {
         BLOCK_THREADS           = AgentRadixSortDownsweepPolicy::BLOCK_THREADS,
         ITEMS_PER_THREAD        = AgentRadixSortDownsweepPolicy::ITEMS_PER_THREAD,
         RADIX_BITS              = AgentRadixSortDownsweepPolicy::RADIX_BITS,
-        MEMOIZE_OUTER_SCAN      = AgentRadixSortDownsweepPolicy::MEMOIZE_OUTER_SCAN,
         TILE_ITEMS              = BLOCK_THREADS * ITEMS_PER_THREAD,
 
         RADIX_DIGITS            = 1 << RADIX_BITS,
         KEYS_ONLY               = Equals<ValueT, NullType>::VALUE,
-
-        WARP_THREADS            = CUB_PTX_LOG_WARP_THREADS,
-        WARPS                   = (BLOCK_THREADS + WARP_THREADS - 1) / WARP_THREADS,
-
-        BYTES_PER_SIZET         = sizeof(OffsetT),
-        LOG_BYTES_PER_SIZET     = Log2<BYTES_PER_SIZET>::VALUE,
-
-        LOG_SMEM_BANKS          = CUB_PTX_LOG_SMEM_BANKS,
-        SMEM_BANKS              = 1 << LOG_SMEM_BANKS,
-
-        DIGITS_PER_SCATTER_PASS = BLOCK_THREADS / SMEM_BANKS,
-        SCATTER_PASSES          = RADIX_DIGITS / DIGITS_PER_SCATTER_PASS,
-
-        LOG_STORE_TXN_THREADS   = LOG_SMEM_BANKS,
-        STORE_TXN_THREADS       = 1 << LOG_STORE_TXN_THREADS,
     };
 
     // Input iterator wrapper type (for applying cache modifier)s
     typedef CacheModifiedInputIterator<LOAD_MODIFIER, UnsignedBits, OffsetT>    KeysItr;
     typedef CacheModifiedInputIterator<LOAD_MODIFIER, ValueT, OffsetT>          ValuesItr;
 
-    // BlockRadixRank type
-    typedef BlockRadixRank<
-        BLOCK_THREADS,
-        RADIX_BITS,
-        IS_DESCENDING,
-        MEMOIZE_OUTER_SCAN,
-        INNER_SCAN_ALGORITHM> BlockRadixRank;
+    // Radix ranking type to use
+    typedef typename If<(RANK_ALGORITHM == RADIX_RANK_BASIC),
+            BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, false, SCAN_ALGORITHM>,
+            typename If<(RANK_ALGORITHM == RADIX_RANK_MEMOIZE),
+                BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, true, SCAN_ALGORITHM>,
+                BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, SCAN_ALGORITHM>
+            >::Type
+        >::Type BlockRadixRankT;
+
+    enum
+    {
+        /// Number of bin-starting offsets tracked per thread
+        BINS_TRACKED_PER_THREAD = BlockRadixRankT::BINS_TRACKED_PER_THREAD
+    };
 
     // BlockLoad type (keys)
     typedef BlockLoad<
-        KeysItr,
+        UnsignedBits,
         BLOCK_THREADS,
         ITEMS_PER_THREAD,
-        LOAD_ALGORITHM> BlockLoadKeys;
+        LOAD_ALGORITHM> BlockLoadKeysT;
 
     // BlockLoad type (values)
     typedef BlockLoad<
-        ValuesItr,
-        BLOCK_THREADS,
-        ITEMS_PER_THREAD,
-        LOAD_ALGORITHM> BlockLoadValues;
-
-    // BlockExchange type (keys)
-    typedef BlockExchange<
-        UnsignedBits,
-        BLOCK_THREADS,
-        ITEMS_PER_THREAD> BlockExchangeKeys;
-
-    // BlockExchange type (values)
-    typedef BlockExchange<
         ValueT,
         BLOCK_THREADS,
-        ITEMS_PER_THREAD> BlockExchangeValues;
+        ITEMS_PER_THREAD,
+        LOAD_ALGORITHM> BlockLoadValuesT;
 
+    // Value exchange array type
+    typedef ValueT ValueExchangeT[TILE_ITEMS];
 
     /**
      * Shared memory storage layout
      */
-    struct _TempStorage
+    union __align__(16) _TempStorage
     {
-        OffsetT relative_bin_offsets[RADIX_DIGITS + 1];
-        bool    short_circuit;
+        typename BlockLoadKeysT::TempStorage    load_keys;
+        typename BlockLoadValuesT::TempStorage  load_values;
+        typename BlockRadixRankT::TempStorage   radix_rank;
 
-        union
+        struct
         {
-            typename BlockRadixRank::TempStorage        ranking;
-            typename BlockLoadKeys::TempStorage         load_keys;
-            typename BlockLoadValues::TempStorage       load_values;
-            typename BlockExchangeKeys::TempStorage     exchange_keys;
-            typename BlockExchangeValues::TempStorage   exchange_values;
+            UnsignedBits                        exchange_keys[TILE_ITEMS];
+            OffsetT                             relative_bin_offsets[RADIX_DIGITS];
         };
+
+        Uninitialized<ValueExchangeT>           exchange_values;
+
+        OffsetT                                 exclusive_digit_prefix[RADIX_DIGITS];
     };
 
 
@@ -226,7 +213,7 @@ struct AgentRadixSortDownsweep
     ValueT          *d_values_out;
 
     // The global scatter base offset for each digit (valid in the first RADIX_DIGITS threads)
-    OffsetT         bin_offset;
+    OffsetT         bin_offset[BINS_TRACKED_PER_THREAD];
 
     // The least-significant bit position of the current digit to extract
     int             current_bit;
@@ -234,77 +221,12 @@ struct AgentRadixSortDownsweep
     // Number of bits in current digit
     int             num_bits;
 
+    // Whether to short-cirucit
+    int             short_circuit;
+
     //---------------------------------------------------------------------
     // Utility methods
     //---------------------------------------------------------------------
-
-    /**
-     * Decodes given keys to lookup digit offsets in shared memory
-     */
-    __device__ __forceinline__ void DecodeRelativeBinOffsets(
-        UnsignedBits    (&twiddled_keys)[ITEMS_PER_THREAD],
-        OffsetT         (&relative_bin_offsets)[ITEMS_PER_THREAD])
-    {
-        #pragma unroll
-        for (int KEY = 0; KEY < ITEMS_PER_THREAD; KEY++)
-        {
-            UnsignedBits digit = BFE(twiddled_keys[KEY], current_bit, num_bits);
-
-            // Lookup base digit offset from shared memory
-            relative_bin_offsets[KEY] = temp_storage.relative_bin_offsets[digit];
-        }
-    }
-
-
-    /**
-     * Scatter ranked items to device-accessible memory
-     */
-    template <bool FULL_TILE, typename T>
-    __device__ __forceinline__ void ScatterItems(
-        T       (&items)[ITEMS_PER_THREAD],
-        int     (&local_ranks)[ITEMS_PER_THREAD],
-        OffsetT (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        T       *d_out,
-        OffsetT valid_items)
-    {
-        #pragma unroll
-        for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
-        {
-            // Scatter if not out-of-bounds
-            if (FULL_TILE || (local_ranks[ITEM] < valid_items))
-            {
-                d_out[relative_bin_offsets[ITEM] + local_ranks[ITEM]] = items[ITEM];
-            }
-        }
-    }
-
-
-    /**
-     * Scatter ranked keys directly to device-accessible memory
-     */
-    template <bool FULL_TILE>
-    __device__ __forceinline__ void ScatterKeys(
-        UnsignedBits                            (&twiddled_keys)[ITEMS_PER_THREAD],
-        OffsetT                                 (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int                                     (&ranks)[ITEMS_PER_THREAD],
-        OffsetT                                 valid_items,
-        Int2Type<RADIX_SORT_SCATTER_DIRECT>     scatter_algorithm)
-    {
-        // Compute scatter offsets
-        DecodeRelativeBinOffsets(twiddled_keys, relative_bin_offsets);
-
-        // Untwiddle keys before outputting
-        UnsignedBits keys[ITEMS_PER_THREAD];
-
-        #pragma unroll
-        for (int KEY = 0; KEY < ITEMS_PER_THREAD; KEY++)
-        {
-            keys[KEY] = Traits<KeyT>::TwiddleOut(twiddled_keys[KEY]);
-        }
-
-        // Scatter to global
-        ScatterItems<FULL_TILE>(keys, ranks, relative_bin_offsets, d_keys_out, valid_items);
-    }
 
 
     /**
@@ -312,47 +234,35 @@ struct AgentRadixSortDownsweep
      */
     template <bool FULL_TILE>
     __device__ __forceinline__ void ScatterKeys(
-        UnsignedBits                            (&twiddled_keys)[ITEMS_PER_THREAD],
-        OffsetT                                 (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int                                     (&ranks)[ITEMS_PER_THREAD],
-        OffsetT                                 valid_items,
-        Int2Type<RADIX_SORT_SCATTER_TWO_PHASE>  scatter_algorithm)
+        UnsignedBits    (&twiddled_keys)[ITEMS_PER_THREAD],
+        OffsetT         (&relative_bin_offsets)[ITEMS_PER_THREAD],
+        int             (&ranks)[ITEMS_PER_THREAD],
+        OffsetT         valid_items)
     {
-        // Exchange keys through shared memory
-        BlockExchangeKeys(temp_storage.exchange_keys).ScatterToStriped(twiddled_keys, ranks);
+        #pragma unroll
+        for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
+        {
+            temp_storage.exchange_keys[ranks[ITEM]] = twiddled_keys[ITEM];
+        }
 
-        // Compute striped local ranks
-        int local_ranks[ITEMS_PER_THREAD];
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
         {
-            local_ranks[ITEM] = threadIdx.x + (ITEM * BLOCK_THREADS);
+            UnsignedBits key            = temp_storage.exchange_keys[threadIdx.x + (ITEM * BLOCK_THREADS)];
+            UnsignedBits digit          = BFE(key, current_bit, num_bits);
+            relative_bin_offsets[ITEM]  = temp_storage.relative_bin_offsets[digit];
+
+            // Un-twiddle
+            key = Traits<KeyT>::TwiddleOut(key);
+
+            if (FULL_TILE || 
+                (static_cast<OffsetT>(threadIdx.x + (ITEM * BLOCK_THREADS)) < valid_items))
+            {
+                d_keys_out[relative_bin_offsets[ITEM] + threadIdx.x + (ITEM * BLOCK_THREADS)] = key;
+            }
         }
-
-        // Scatter directly
-        ScatterKeys<FULL_TILE>(
-            twiddled_keys,
-            relative_bin_offsets,
-            local_ranks,
-            valid_items,
-            Int2Type<RADIX_SORT_SCATTER_DIRECT>());
-    }
-
-
-    /**
-     * Scatter ranked values directly to device-accessible memory
-     */
-    template <bool FULL_TILE>
-    __device__ __forceinline__ void ScatterValues(
-        ValueT                                  (&values)[ITEMS_PER_THREAD],
-        OffsetT                                 (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int                                     (&ranks)[ITEMS_PER_THREAD],
-        OffsetT                                 valid_items,
-        Int2Type<RADIX_SORT_SCATTER_DIRECT>     scatter_algorithm)
-    {
-        // Scatter to global
-        ScatterItems<FULL_TILE>(values, ranks, relative_bin_offsets, d_values_out, valid_items);
     }
 
 
@@ -361,124 +271,195 @@ struct AgentRadixSortDownsweep
      */
     template <bool FULL_TILE>
     __device__ __forceinline__ void ScatterValues(
-        ValueT                                  (&values)[ITEMS_PER_THREAD],
-        OffsetT                                 (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int                                     (&ranks)[ITEMS_PER_THREAD],
-        OffsetT                                 valid_items,
-        Int2Type<RADIX_SORT_SCATTER_TWO_PHASE>  scatter_algorithm)
+        ValueT      (&values)[ITEMS_PER_THREAD],
+        OffsetT     (&relative_bin_offsets)[ITEMS_PER_THREAD],
+        int         (&ranks)[ITEMS_PER_THREAD],
+        OffsetT     valid_items)
     {
-        __syncthreads();
+        CTA_SYNC();
 
-        // Exchange keys through shared memory
-        BlockExchangeValues(temp_storage.exchange_values).ScatterToStriped(values, ranks);
-
-        // Compute striped local ranks
-        int local_ranks[ITEMS_PER_THREAD];
+        ValueExchangeT &exchange_values = temp_storage.exchange_values.Alias();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
         {
-            local_ranks[ITEM] = threadIdx.x + (ITEM * BLOCK_THREADS);
+            exchange_values[ranks[ITEM]] = values[ITEM];
         }
 
-        // Scatter directly
-        ScatterValues<FULL_TILE>(
-            values,
-            relative_bin_offsets,
-            local_ranks,
-            valid_items,
-            Int2Type<RADIX_SORT_SCATTER_DIRECT>());
+        CTA_SYNC();
+
+        #pragma unroll
+        for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
+        {
+            ValueT value = exchange_values[threadIdx.x + (ITEM * BLOCK_THREADS)];
+
+            if (FULL_TILE || 
+                (static_cast<OffsetT>(threadIdx.x + (ITEM * BLOCK_THREADS)) < valid_items))
+            {
+                d_values_out[relative_bin_offsets[ITEM] + threadIdx.x + (ITEM * BLOCK_THREADS)] = value;
+            }
+        }
+    }
+
+    /**
+     * Load a tile of keys (specialized for full tile, any ranking algorithm)
+     */
+    template <int _RANK_ALGORITHM>
+    __device__ __forceinline__ void LoadKeys(
+        UnsignedBits                (&keys)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        UnsignedBits                oob_item,
+        Int2Type<true>              is_full_tile,
+        Int2Type<_RANK_ALGORITHM>   rank_algorithm)
+    {
+        BlockLoadKeysT(temp_storage.load_keys).Load(
+            d_keys_in + block_offset, keys);
+
+        CTA_SYNC();
     }
 
 
     /**
-     * Load a tile of items (specialized for full tile)
+     * Load a tile of keys (specialized for partial tile, any ranking algorithm)
      */
-    template <typename BlockLoadT, typename T, typename InputIteratorT>
-    __device__ __forceinline__ void LoadItems(
-        BlockLoadT      &block_loader, 
-        T               (&items)[ITEMS_PER_THREAD],
-        InputIteratorT  d_in,
-        OffsetT         valid_items,
-        Int2Type<true>  is_full_tile)
+    template <int _RANK_ALGORITHM>
+    __device__ __forceinline__ void LoadKeys(
+        UnsignedBits                (&keys)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        UnsignedBits                oob_item,
+        Int2Type<false>             is_full_tile,
+        Int2Type<_RANK_ALGORITHM>   rank_algorithm)
     {
-        block_loader.Load(d_in, items);
+        BlockLoadKeysT(temp_storage.load_keys).Load(
+            d_keys_in + block_offset, keys, valid_items, oob_item);
+
+        CTA_SYNC();
     }
 
 
     /**
-     * Load a tile of items (specialized for full tile)
+     * Load a tile of keys (specialized for full tile, match ranking algorithm)
      */
-    template <typename BlockLoadT, typename T, typename InputIteratorT>
-    __device__ __forceinline__ void LoadItems(
-        BlockLoadT      &block_loader,
-        T               (&items)[ITEMS_PER_THREAD],
-        InputIteratorT  d_in,
-        OffsetT         valid_items,
-        T               oob_item,
-        Int2Type<true>  is_full_tile)
+    __device__ __forceinline__ void LoadKeys(
+        UnsignedBits                (&keys)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        UnsignedBits                oob_item,
+        Int2Type<true>              is_full_tile,
+        Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
     {
-        block_loader.Load(d_in, items);
+        LoadDirectWarpStriped(threadIdx.x, d_keys_in + block_offset, keys);
     }
 
 
     /**
-     * Load a tile of items (specialized for partial tile)
+     * Load a tile of keys (specialized for partial tile, match ranking algorithm)
      */
-    template <typename BlockLoadT, typename T, typename InputIteratorT>
-    __device__ __forceinline__ void LoadItems(
-        BlockLoadT      &block_loader, 
-        T               (&items)[ITEMS_PER_THREAD],
-        InputIteratorT  d_in,
-        OffsetT         valid_items,
-        Int2Type<false> is_full_tile)
+    __device__ __forceinline__ void LoadKeys(
+        UnsignedBits                (&keys)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        UnsignedBits                oob_item,
+        Int2Type<false>             is_full_tile,
+        Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
     {
-        block_loader.Load(d_in, items, valid_items);
+        LoadDirectWarpStriped(threadIdx.x, d_keys_in + block_offset, keys, valid_items, oob_item);
     }
 
+
     /**
-     * Load a tile of items (specialized for partial tile)
+     * Load a tile of values (specialized for full tile, any ranking algorithm)
      */
-    template <typename BlockLoadT, typename T, typename InputIteratorT>
-    __device__ __forceinline__ void LoadItems(
-        BlockLoadT      &block_loader,
-        T               (&items)[ITEMS_PER_THREAD],
-        InputIteratorT  d_in,
-        OffsetT         valid_items,
-        T               oob_item,
-        Int2Type<false> is_full_tile)
+    template <int _RANK_ALGORITHM>
+    __device__ __forceinline__ void LoadValues(
+        ValueT                      (&values)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        Int2Type<true>              is_full_tile,
+        Int2Type<_RANK_ALGORITHM>   rank_algorithm)
     {
-        block_loader.Load(d_in, items, valid_items, oob_item);
+        BlockLoadValuesT(temp_storage.load_values).Load(
+            d_values_in + block_offset, values);
+
+        CTA_SYNC();
+    }
+
+
+    /**
+     * Load a tile of values (specialized for partial tile, any ranking algorithm)
+     */
+    template <int _RANK_ALGORITHM>
+    __device__ __forceinline__ void LoadValues(
+        ValueT                      (&values)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        OffsetT                     valid_items,
+        Int2Type<false>             is_full_tile,
+        Int2Type<_RANK_ALGORITHM>   rank_algorithm)
+    {
+        BlockLoadValuesT(temp_storage.load_values).Load(
+            d_values_in + block_offset, values, valid_items);
+
+        CTA_SYNC();
+    }
+
+
+    /**
+     * Load a tile of items (specialized for full tile, match ranking algorithm)
+     */
+    __device__ __forceinline__ void LoadValues(
+        ValueT                      (&values)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        volatile OffsetT                     valid_items,
+        Int2Type<true>              is_full_tile,
+        Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
+    {
+        LoadDirectWarpStriped(threadIdx.x, d_values_in + block_offset, values);
+    }
+
+
+    /**
+     * Load a tile of items (specialized for partial tile, match ranking algorithm)
+     */
+    __device__ __forceinline__ void LoadValues(
+        ValueT                      (&values)[ITEMS_PER_THREAD],
+        OffsetT                     block_offset,
+        volatile OffsetT                     valid_items,
+        Int2Type<false>             is_full_tile,
+        Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
+    {
+        LoadDirectWarpStriped(threadIdx.x, d_values_in + block_offset, values, valid_items);
     }
 
 
     /**
      * Truck along associated values
      */
-    template <bool FULL_TILE, typename _ValueT>
+    template <bool FULL_TILE>
     __device__ __forceinline__ void GatherScatterValues(
-        _ValueT     (&values)[ITEMS_PER_THREAD],
-        OffsetT     (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int         (&ranks)[ITEMS_PER_THREAD],
-        OffsetT     block_offset,
-        OffsetT     valid_items)
+        OffsetT         (&relative_bin_offsets)[ITEMS_PER_THREAD],
+        int             (&ranks)[ITEMS_PER_THREAD],
+        OffsetT         block_offset,
+        OffsetT         valid_items,
+        Int2Type<false> /*is_keys_only*/)
     {
-        __syncthreads();
+        CTA_SYNC();
 
-        BlockLoadValues loader(temp_storage.load_values);
-        LoadItems(
-            loader,
+        ValueT values[ITEMS_PER_THREAD];
+
+        LoadValues(
             values,
-            d_values_in + block_offset,
+            block_offset,
             valid_items,
-            Int2Type<FULL_TILE>());
+            Int2Type<FULL_TILE>(),
+            Int2Type<RANK_ALGORITHM>());
 
         ScatterValues<FULL_TILE>(
             values,
             relative_bin_offsets,
             ranks,
-            valid_items,
-            Int2Type<SCATTER_ALGORITHM>());
+            valid_items);
     }
 
 
@@ -487,11 +468,11 @@ struct AgentRadixSortDownsweep
      */
     template <bool FULL_TILE>
     __device__ __forceinline__ void GatherScatterValues(
-        NullType    (&values)[ITEMS_PER_THREAD],
-        OffsetT     (&relative_bin_offsets)[ITEMS_PER_THREAD],
-        int         (&ranks)[ITEMS_PER_THREAD],
-        OffsetT     block_offset,
-        OffsetT     valid_items)
+        OffsetT         (&/*relative_bin_offsets*/)[ITEMS_PER_THREAD],
+        int             (&/*ranks*/)[ITEMS_PER_THREAD],
+        OffsetT         /*block_offset*/,
+        OffsetT         /*valid_items*/,
+        Int2Type<true>  /*is_keys_only*/)
     {}
 
 
@@ -503,91 +484,103 @@ struct AgentRadixSortDownsweep
         OffsetT block_offset,
         const OffsetT &valid_items = TILE_ITEMS)
     {
-        // Per-thread tile data
-        UnsignedBits    keys[ITEMS_PER_THREAD];                     // Keys
-        UnsignedBits    twiddled_keys[ITEMS_PER_THREAD];            // Twiddled keys
-        int             ranks[ITEMS_PER_THREAD];                    // For each key, the local rank within the CTA
-        OffsetT         relative_bin_offsets[ITEMS_PER_THREAD];     // For each key, the global scatter base offset of the corresponding digit
+        UnsignedBits    keys[ITEMS_PER_THREAD];
+        int             ranks[ITEMS_PER_THREAD];
+        OffsetT         relative_bin_offsets[ITEMS_PER_THREAD];
 
         // Assign default (min/max) value to all keys
         UnsignedBits default_key = (IS_DESCENDING) ? LOWEST_KEY : MAX_KEY;
 
         // Load tile of keys
-        BlockLoadKeys loader(temp_storage.load_keys);
-        LoadItems(
-            loader,
+        LoadKeys(
             keys,
-            d_keys_in + block_offset,
+            block_offset,
             valid_items, 
             default_key,
-            Int2Type<FULL_TILE>());
-
-        __syncthreads();
+            Int2Type<FULL_TILE>(),
+            Int2Type<RANK_ALGORITHM>());
 
         // Twiddle key bits if necessary
         #pragma unroll
         for (int KEY = 0; KEY < ITEMS_PER_THREAD; KEY++)
         {
-            twiddled_keys[KEY] = Traits<KeyT>::TwiddleIn(keys[KEY]);
+            keys[KEY] = Traits<KeyT>::TwiddleIn(keys[KEY]);
         }
 
         // Rank the twiddled keys
-        int inclusive_digit_prefix;
-        BlockRadixRank(temp_storage.ranking).RankKeys(
-            twiddled_keys,
+        int exclusive_digit_prefix[BINS_TRACKED_PER_THREAD];
+        BlockRadixRankT(temp_storage.radix_rank).RankKeys(
+            keys,
             ranks,
             current_bit,
             num_bits,
-            inclusive_digit_prefix);
+            exclusive_digit_prefix);
 
-        // Update global scatter base offsets for each digit
-        if ((BLOCK_THREADS == RADIX_DIGITS) || (threadIdx.x < RADIX_DIGITS))
+        CTA_SYNC();
+
+        // Share exclusive digit prefix
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
         {
-            int exclusive_digit_prefix;
-
-            // Get exclusive digit prefix from inclusive prefix
-            if (IS_DESCENDING)
+            int bin_idx = (threadIdx.x * BINS_TRACKED_PER_THREAD) + track;
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
             {
-                // Get the prefix from the next thread (higher bins come first)
-#if CUB_PTX_ARCH >= 300
-                exclusive_digit_prefix = ShuffleDown(inclusive_digit_prefix, 1);
-                if (threadIdx.x == RADIX_DIGITS - 1)
-                    exclusive_digit_prefix = 0;
-#else
-                volatile int* exchange = reinterpret_cast<int *>(temp_storage.relative_bin_offsets);
-                exchange[threadIdx.x + 1] = 0;
-                exchange[threadIdx.x] = inclusive_digit_prefix;
-                exclusive_digit_prefix = exchange[threadIdx.x + 1];
-#endif
+                // Store exclusive prefix
+                temp_storage.exclusive_digit_prefix[bin_idx] =
+                    exclusive_digit_prefix[track];
             }
-            else
-            {
-                // Get the prefix from the previous thread (lower bins come first)
-#if CUB_PTX_ARCH >= 300
-                exclusive_digit_prefix = ShuffleUp(inclusive_digit_prefix, 1);
-                if (threadIdx.x == 0)
-                    exclusive_digit_prefix = 0;
-#else
-                volatile int* exchange = reinterpret_cast<int *>(temp_storage.relative_bin_offsets);
-                exchange[threadIdx.x] = 0;
-                exchange[threadIdx.x + 1] = inclusive_digit_prefix;
-                exclusive_digit_prefix = exchange[threadIdx.x];
-#endif
-            }
-
-            bin_offset -= exclusive_digit_prefix;
-            temp_storage.relative_bin_offsets[threadIdx.x] = bin_offset;
-            bin_offset += inclusive_digit_prefix;
         }
 
-        __syncthreads();
+        CTA_SYNC();
+
+        // Get inclusive digit prefix
+        int inclusive_digit_prefix[BINS_TRACKED_PER_THREAD];
+
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
+        {
+            int bin_idx = (threadIdx.x * BINS_TRACKED_PER_THREAD) + track;
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
+            {
+                if (IS_DESCENDING)
+                {
+                    // Get inclusive digit prefix from exclusive prefix (higher bins come first)
+                    inclusive_digit_prefix[track] = (bin_idx == 0) ?
+                        (BLOCK_THREADS * ITEMS_PER_THREAD) :
+                        temp_storage.exclusive_digit_prefix[bin_idx - 1];
+                }
+                else
+                {
+                    // Get inclusive digit prefix from exclusive prefix (lower bins come first)
+                    inclusive_digit_prefix[track] = (bin_idx == RADIX_DIGITS - 1) ?
+                        (BLOCK_THREADS * ITEMS_PER_THREAD) :
+                        temp_storage.exclusive_digit_prefix[bin_idx + 1];
+                }
+            }
+        }
+
+        CTA_SYNC();
+
+        // Update global scatter base offsets for each digit
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
+        {
+            int bin_idx = (threadIdx.x * BINS_TRACKED_PER_THREAD) + track;
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
+            {
+                bin_offset[track] -= exclusive_digit_prefix[track];
+                temp_storage.relative_bin_offsets[bin_idx] = bin_offset[track];
+                bin_offset[track] += inclusive_digit_prefix[track];
+            }
+        }
+
+        CTA_SYNC();
 
         // Scatter keys
-        ScatterKeys<FULL_TILE>(twiddled_keys, relative_bin_offsets, ranks, valid_items, Int2Type<SCATTER_ALGORITHM>());
+        ScatterKeys<FULL_TILE>(keys, relative_bin_offsets, ranks, valid_items);
 
         // Gather/scatter values
-        ValueT values[ITEMS_PER_THREAD];
-        GatherScatterValues<FULL_TILE>(values, relative_bin_offsets, ranks, block_offset, valid_items);
+        GatherScatterValues<FULL_TILE>(relative_bin_offsets , ranks, block_offset, valid_items, Int2Type<KEYS_ONLY>());
     }
 
     //---------------------------------------------------------------------
@@ -612,7 +605,7 @@ struct AgentRadixSortDownsweep
             T items[ITEMS_PER_THREAD];
 
             LoadDirectStriped<BLOCK_THREADS>(threadIdx.x, d_in + block_offset, items);
-            __syncthreads();
+            CTA_SYNC();
             StoreDirectStriped<BLOCK_THREADS>(threadIdx.x, d_out + block_offset, items);
 
             block_offset += TILE_ITEMS;
@@ -626,7 +619,7 @@ struct AgentRadixSortDownsweep
             T items[ITEMS_PER_THREAD];
 
             LoadDirectStriped<BLOCK_THREADS>(threadIdx.x, d_in + block_offset, items, valid_items);
-            __syncthreads();
+            CTA_SYNC();
             StoreDirectStriped<BLOCK_THREADS>(threadIdx.x, d_out + block_offset, items, valid_items);
         }
     }
@@ -637,10 +630,10 @@ struct AgentRadixSortDownsweep
      */
     template <typename InputIteratorT>
     __device__ __forceinline__ void Copy(
-        InputIteratorT  d_in,
-        NullType        *d_out,
-        OffsetT         block_offset,
-        OffsetT         block_end)
+        InputIteratorT  /*d_in*/,
+        NullType        * /*d_out*/,
+        OffsetT         /*block_offset*/,
+        OffsetT         /*block_end*/)
     {}
 
 
@@ -652,33 +645,39 @@ struct AgentRadixSortDownsweep
      * Constructor
      */
     __device__ __forceinline__ AgentRadixSortDownsweep(
-        TempStorage &temp_storage,
-        OffsetT     num_items,
-        OffsetT     bin_offset,
-        KeyT        *d_keys_in,
-        KeyT        *d_keys_out,
-        ValueT      *d_values_in,
-        ValueT      *d_values_out,
-        int         current_bit,
-        int         num_bits)
+        TempStorage     &temp_storage,
+        OffsetT         (&bin_offset)[BINS_TRACKED_PER_THREAD],
+        OffsetT         num_items,
+        const KeyT      *d_keys_in,
+        KeyT            *d_keys_out,
+        const ValueT    *d_values_in,
+        ValueT          *d_values_out,
+        int             current_bit,
+        int             num_bits)
     :
         temp_storage(temp_storage.Alias()),
-        bin_offset(bin_offset),
-        d_keys_in(reinterpret_cast<UnsignedBits*>(d_keys_in)),
-        d_keys_out(reinterpret_cast<UnsignedBits*>(d_keys_out)),
+        d_keys_in(reinterpret_cast<const UnsignedBits*>(d_keys_in)),
         d_values_in(d_values_in),
+        d_keys_out(reinterpret_cast<UnsignedBits*>(d_keys_out)),
         d_values_out(d_values_out),
         current_bit(current_bit),
-        num_bits(num_bits)
+        num_bits(num_bits),
+        short_circuit(1)
     {
-        if (threadIdx.x < RADIX_DIGITS)
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
         {
-            // Short circuit if the histogram has only bin counts of only zeros or problem-size
-            int predicate = ((bin_offset == 0) || (bin_offset == num_items));
-            this->temp_storage.short_circuit = WarpAll(predicate);
+            this->bin_offset[track] = bin_offset[track];
+
+            int bin_idx = (threadIdx.x * BINS_TRACKED_PER_THREAD) + track;
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
+            {
+                // Short circuit if the histogram has only bin counts of only zeros or problem-size
+                short_circuit = short_circuit && ((bin_offset[track] == 0) || (bin_offset[track] == num_items));
+            }
         }
 
-        __syncthreads();
+        short_circuit = CTA_SYNC_AND(short_circuit);
     }
 
 
@@ -686,41 +685,46 @@ struct AgentRadixSortDownsweep
      * Constructor
      */
     __device__ __forceinline__ AgentRadixSortDownsweep(
-        TempStorage &temp_storage,
-        OffsetT     num_items,
-        OffsetT     *d_spine,
-        KeyT        *d_keys_in,
-        KeyT        *d_keys_out,
-        ValueT      *d_values_in,
-        ValueT      *d_values_out,
-        int         current_bit,
-        int         num_bits)
+        TempStorage     &temp_storage,
+        OffsetT         num_items,
+        OffsetT         *d_spine,
+        const KeyT      *d_keys_in,
+        KeyT            *d_keys_out,
+        const ValueT    *d_values_in,
+        ValueT          *d_values_out,
+        int             current_bit,
+        int             num_bits)
     :
         temp_storage(temp_storage.Alias()),
-        d_keys_in(reinterpret_cast<UnsignedBits*>(d_keys_in)),
-        d_keys_out(reinterpret_cast<UnsignedBits*>(d_keys_out)),
+        d_keys_in(reinterpret_cast<const UnsignedBits*>(d_keys_in)),
         d_values_in(d_values_in),
+        d_keys_out(reinterpret_cast<UnsignedBits*>(d_keys_out)),
         d_values_out(d_values_out),
         current_bit(current_bit),
-        num_bits(num_bits)
+        num_bits(num_bits),
+        short_circuit(1)
     {
-        // Load digit bin offsets (each of the first RADIX_DIGITS threads will load an offset for that digit)
-        if (threadIdx.x < RADIX_DIGITS)
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
         {
-            int bin_idx = (IS_DESCENDING) ?
-                RADIX_DIGITS - threadIdx.x - 1 :
-                threadIdx.x;
+            int bin_idx = (threadIdx.x * BINS_TRACKED_PER_THREAD) + track;
 
-            // Short circuit if the first block's histogram has only bin counts of only zeros or problem-size
-            OffsetT first_block_bin_offset = d_spine[gridDim.x * bin_idx];
-            int predicate = ((first_block_bin_offset == 0) || (first_block_bin_offset == num_items));
-            this->temp_storage.short_circuit = WarpAll(predicate);
+            // Load digit bin offsets (each of the first RADIX_DIGITS threads will load an offset for that digit)
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
+            {
+                if (IS_DESCENDING)
+                    bin_idx = RADIX_DIGITS - bin_idx - 1;
 
-            // Load my block's bin offset for my bin
-            bin_offset = d_spine[(gridDim.x * bin_idx) + blockIdx.x];
+                // Short circuit if the first block's histogram has only bin counts of only zeros or problem-size
+                OffsetT first_block_bin_offset = d_spine[gridDim.x * bin_idx];
+                short_circuit = short_circuit && ((first_block_bin_offset == 0) || (first_block_bin_offset == num_items));
+
+                // Load my block's bin offset for my bin
+                bin_offset[track] = d_spine[(gridDim.x * bin_idx) + blockIdx.x];
+            }
         }
 
-        __syncthreads();
+        short_circuit = CTA_SYNC_AND(short_circuit);
     }
 
 
@@ -731,7 +735,7 @@ struct AgentRadixSortDownsweep
         OffsetT   block_offset,
         OffsetT   block_end)
     {
-        if (temp_storage.short_circuit)
+        if (short_circuit)
         {
             // Copy keys
             Copy(d_keys_in, d_keys_out, block_offset, block_end);
@@ -747,7 +751,7 @@ struct AgentRadixSortDownsweep
                 ProcessTile<true>(block_offset);
                 block_offset += TILE_ITEMS;
 
-                __syncthreads();
+                CTA_SYNC();
             }
 
             // Clean up last partial tile with guarded-I/O
@@ -755,6 +759,7 @@ struct AgentRadixSortDownsweep
             {
                 ProcessTile<false>(block_offset, block_end - block_offset);
             }
+
         }
     }
 

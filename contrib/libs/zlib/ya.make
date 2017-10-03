@@ -1,5 +1,10 @@
 LIBRARY()
 
+LICENSE(
+    ZLIB
+)
+
+
 
 NO_UTIL()
 NO_COMPILER_WARNINGS()

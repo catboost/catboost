@@ -13,5 +13,4 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
 
 void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool);
 yvector<size_t> InvertPermutation(const yvector<size_t>& permutation);
-
 int GetClassesCount(const yvector<float>& target, int classesCount);

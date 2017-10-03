@@ -75,8 +75,7 @@ public:
     TCudaBuffer<ui32, TMapping> MoveIndices() {
         return std::move(Indices);
     };
-    ui32 GetStream() const
-    {
+    ui32 GetStream() const {
         return Stream;
     }
 
@@ -94,8 +93,12 @@ public:
                                                           const TCudaBuffer<TUi64, TMapping, PtrType>& compressedLearn,
                                                           ui32 uniqueValues) {
         CB_ENSURE(TestSlice.Size() == 0);
-        AddLearnBins(compressedLearn, uniqueValues);
-        ProceedNewBins(uniqueValues, currentBins);
+        if (PtrType == NCudaLib::CudaDevice) {
+            ProceedCompressedBins(uniqueValues, compressedLearn, currentBins);
+        } else {
+            AddLearnBins(compressedLearn, uniqueValues);
+            ProceedNewBins(uniqueValues, currentBins);
+        }
         return *this;
     };
 
@@ -161,7 +164,6 @@ public:
         //TODO(noxoomo): change tempFlags to ui8
         Tmp.Reset(Indices.GetMapping());
         Bins.Reset(Indices.GetMapping());
-
         ExtractMask(Indices, Tmp, false, Stream);
         ScanVector(Tmp, Bins, false, Stream);
         UpdatePartitionOffsets(Bins, Tmp, Stream);
@@ -214,6 +216,16 @@ private:
         UpdateBordersMask(Bins, currentBins, Indices, Stream);
     }
 
+    template <NCudaLib::EPtrType Type>
+    void ProceedCompressedBins(ui32 uniqueValues,
+                               const TCudaBuffer<ui64, TMapping, Type>& binsCompressed,
+                               const TCudaBuffer<ui32, TMapping>& currentBins) {
+        AssertTempBuffersInitialized();
+        const ui32 newBits = IntLog2(uniqueValues);
+        GatherFromCompressed(binsCompressed, uniqueValues, Indices, Mask, Bins, Stream);
+        ReorderBins(Bins, Indices, 0, newBits, Tmp, DecompressedTempBins, Stream);
+        UpdateBordersMask(Bins, currentBins, Indices, Stream);
+    }
 
     void ProceedNewBins(ui32 uniqueValues) {
         {

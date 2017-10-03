@@ -6,7 +6,6 @@
 
 template <class TMapping>
 struct TCtrTargets {
-
     TCudaBuffer<float, TMapping> WeightedTarget;
     TCudaBuffer<ui8, TMapping> BinarizedTarget;
     TCudaBuffer<float, TMapping> Weights;
@@ -62,8 +61,7 @@ public:
                                                                          CtrTargets.LearnSlice.Size(),
                                                                          mask,
                                                                          Stream));
-            } else
-            {
+            } else {
                 HistoryCalcer.Reset(new THistoryBasedCtrCalcer<TMapping>(weights,
                                                                          SortedByBinsIndices,
                                                                          mask,
@@ -72,16 +70,15 @@ public:
         };
 
         if (IsCatFeatureStatisticCtr(ctrType)) {
-
             TWeightedBinFreqCalcer<TMapping> weightedFreqCalcer(weights,
                                                                 CtrTargets.TotalWeight,
                                                                 mask,
                                                                 Stream);
 
             weightedFreqCalcer
-                    .VisitEqualUpToPriorFreqCtrs(SortedByBinsIndices,
-                                                 configs,
-                                                 std::forward<TVisitor>(visitor));
+                .VisitEqualUpToPriorFreqCtrs(SortedByBinsIndices,
+                                             configs,
+                                             std::forward<TVisitor>(visitor));
 
         } else if (IsBinarizedTargetCtr(ctrType)) {
             if (!HistoryCalcer) {

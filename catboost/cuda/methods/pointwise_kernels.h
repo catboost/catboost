@@ -241,8 +241,7 @@ namespace NKernelHost {
                                 double l2,
                                 bool normalize,
                                 double scoreStdDev,
-                                ui64 seed
-        )
+                                ui64 seed)
             : BinaryFeatures(binaryFeatures)
             , Splits(splits)
             , Parts(parts)

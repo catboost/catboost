@@ -102,17 +102,6 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestFileMapEmpty) {
-        TFile file(FileName_, CreateAlways | WrOnly);
-        file.Close();
-
-        TMappedFile map;
-        map.init(FileName_);
-        map.getData(0);
-
-        NFs::Remove(FileName_);
-    }
-
 #if defined(_asan_enabled_) || defined(_msan_enabled_)
 //setrlimit incompatible with asan runtime
 #elif defined(_cygwin_)

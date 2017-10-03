@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -130,10 +130,12 @@ struct DispatchSelectIf
      * Types and constants
      ******************************************************************************/
 
-    // Data type of input iterator
-    typedef typename std::iterator_traits<InputIteratorT>::value_type T;
+    // The output value type
+    typedef typename If<(Equals<typename std::iterator_traits<SelectedOutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+        typename std::iterator_traits<InputIteratorT>::value_type,                                                  // ... then the input iterator's value type,
+        typename std::iterator_traits<SelectedOutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
-    // Data type of flag iterator
+    // The flag value type
     typedef typename std::iterator_traits<FlagsInputIteratorT>::value_type FlagT;
 
     enum
@@ -154,7 +156,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 10,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -171,7 +173,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 7,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(3, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(3, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -188,7 +190,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = (KEEP_REJECTS) ? 7 : 15,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -205,7 +207,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 9,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -222,7 +224,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 9,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -274,6 +276,7 @@ struct DispatchSelectIf
         KernelConfig    &select_if_config)
     {
     #if (CUB_PTX_ARCH > 0)
+        (void)ptx_version;
 
         // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
         select_if_config.template Init<PtxSelectIfPolicyT>();
@@ -350,14 +353,27 @@ struct DispatchSelectIf
         OffsetT                     num_items,                      ///< [in] Total number of input items (i.e., length of \p d_in)
         cudaStream_t                stream,                         ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                        debug_synchronous,              ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
-        int                         ptx_version,                    ///< [in] PTX version of dispatch kernels
+        int                         /*ptx_version*/,                ///< [in] PTX version of dispatch kernels
         ScanInitKernelPtrT          scan_init_kernel,               ///< [in] Kernel function pointer to parameterization of cub::DeviceScanInitKernel
         SelectIfKernelPtrT          select_if_kernel,               ///< [in] Kernel function pointer to parameterization of cub::DeviceSelectSweepKernel
         KernelConfig                select_if_config)               ///< [in] Dispatch parameters that match the policy that \p select_if_kernel was compiled for
     {
-        (void)ptx_version;
 
 #ifndef CUB_RUNTIME_ENABLED
+        (void)d_temp_storage;
+        (void)temp_storage_bytes;
+        (void)d_in;
+        (void)d_flags;
+        (void)d_selected_out;
+        (void)d_num_selected_out;
+        (void)select_op;
+        (void)equality_op;
+        (void)num_items;
+        (void)stream;
+        (void)debug_synchronous;
+        (void)scan_init_kernel;
+        (void)select_if_kernel;
+        (void)select_if_config;
 
         // Kernel launch not supported from this device
         return CubDebug(cudaErrorNotSupported);

@@ -14,10 +14,13 @@ message TFloatColumn {
     repeated float Values = 1 [packed = true];
 }
 
-message TIntegerColumn {
+message TUnsignedIntegerColumn {
     repeated uint32 Values = 1 [packed = true];
 }
 
+message TIntegerColumn {
+    repeated int32 Values = 1 [packed = true];
+}
 
 message TBinarizedColumn {
     required uint64 BitsPerKey = 1 [default = 16];

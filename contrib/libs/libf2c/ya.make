@@ -1,5 +1,9 @@
 LIBRARY()
 
+LICENSE(
+    LIBF2C
+)
+
 
 
 NO_COMPILER_WARNINGS()

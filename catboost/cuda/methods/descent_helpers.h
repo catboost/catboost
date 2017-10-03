@@ -190,25 +190,14 @@ public:
                                                       currentPointInfo.Gradient,
                                                       moveDirection);
 
-            auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
-
             for (; iteration < Iterations; ++iteration, step /= 2) {
                 auto& nextPoint = nextPointInfo.Point;
                 estimator.MoveInOptimalDirection(nextPoint, step);
 
-                {
-                    auto guard = profiler.Profile("regularize");
-                    DerCalcer.Regularize(nextPoint);
-                }
-                {
-                    auto guard = profiler.Profile("move to point");
-                    DerCalcer.MoveTo(nextPoint);
-                }
-                {
-                    auto guard = profiler.Profile("compute vals and der");
-                    //compute value and diagonal ders. it's faster to do all at once
-                    DerCalcer.ComputeValueAndDerivatives(nextPointInfo);
-                }
+                DerCalcer.Regularize(nextPoint);
+                DerCalcer.MoveTo(nextPoint);
+                //compute value and diagonal ders. it's faster to do all at once
+                DerCalcer.ComputeValueAndDerivatives(nextPointInfo);
 
                 if (stepEstimation.IsSatisfied(step,
                                                nextPointInfo.Value,

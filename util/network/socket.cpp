@@ -696,7 +696,7 @@ public:
     ssize_t Send(SOCKET fd, const void* data, size_t len) override {
         ssize_t ret = -1;
         do {
-            ret = send(fd, (const char*)data, (int)len, 0);
+            ret = send(fd, (const char*)data, (int)len, MSG_NOSIGNAL);
         } while (ret == -1 && errno == EINTR);
 
         if (ret < 0) {

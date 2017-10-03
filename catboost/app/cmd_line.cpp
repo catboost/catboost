@@ -49,13 +49,13 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("verbose", true);
         });
 
-    parser.AddLongOption("loss-function", "Should be one of: RMSE, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll. A loss might have params, then params should be written in format Loss:paramName=value.")
+    parser.AddLongOption("loss-function", "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit. A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
         .Handler1T<TString>([&trainJson](const TString& target) {
             trainJson->InsertValue("loss_function", target);
         });
 
-    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: RMSE, R2, Logloss, MAE, CrossEntropy, Quantile, LogLinQuantile, Poisson, MAPE, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC")
+    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
         .RequiredArgument("comma separated list of loss functions")
         .Handler1T<TString>([&trainJson](const TString& lossFunctionsLine) {
             for (const auto& t : StringSplitter(lossFunctionsLine).Split(',')) {
@@ -71,6 +71,16 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("PATH")
         .DefaultValue("")
         .StoreResult(&params->TestFile);
+
+    parser.AddLongOption("learn-pairs", "path to learn pairs")
+        .RequiredArgument("PATH")
+        .DefaultValue("")
+        .StoreResult(&params->LearnPairsFile);
+
+    parser.AddLongOption("test-pairs", "path to test pairs")
+        .RequiredArgument("PATH")
+        .DefaultValue("")
+        .StoreResult(&params->TestPairsFile);
 
     parser.AddLongOption("column-description", "column desctiption file name")
         .AddLongName("cd")
@@ -485,7 +495,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("approx-on-full-history")
         .NoArgument()
         .Handler0([&trainJson]() {
-            trainJson->InsertValue("approx_on_full_history", false);
+            trainJson->InsertValue("approx_on_full_history", true);
         })
         .Help("Use full history to calculate approxes.");
 
@@ -511,4 +521,20 @@ void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     parser.AddLongOption('T', "thread-count")
         .StoreResult(&ThreadCount)
         .DefaultValue("1");
+    parser.AddLongOption("delimiter", "delimiter")
+            .DefaultValue("\t")
+            .Handler1T<TString>([&](const TString& oneChar) {
+                CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
+                Delimiter = oneChar[0];
+            });
+    parser.AddLongOption("has-header", "has header flag")
+            .NoArgument()
+            .StoreValue(&HasHeader, true);
+    parser.AddLongOption("class-names", "names for classes.")
+            .RequiredArgument("comma separated list of names")
+            .Handler1T<TString>([&](const TString& namesLine) {
+                for (const auto& t : StringSplitter(namesLine).Split(',')) {
+                    ClassNames.push_back(FromString<TString>(t.Token()));
+                }
+            });
 }

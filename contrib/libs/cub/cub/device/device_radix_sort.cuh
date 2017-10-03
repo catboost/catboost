@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -147,9 +147,9 @@ struct DeviceRadixSort
     static cudaError_t SortPairs(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        KeyT                *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
+        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        ValueT              *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
+        const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
         ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
         int                 num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
@@ -160,8 +160,8 @@ struct DeviceRadixSort
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        DoubleBuffer<KeyT>       d_keys(d_keys_in, d_keys_out);
-        DoubleBuffer<ValueT>     d_values(d_values_in, d_values_out);
+        DoubleBuffer<KeyT>       d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
+        DoubleBuffer<ValueT>     d_values(const_cast<ValueT*>(d_values_in), d_values_out);
 
         return DispatchRadixSort<false, KeyT, ValueT, OffsetT>::Dispatch(
             d_temp_storage,
@@ -328,9 +328,9 @@ struct DeviceRadixSort
     static cudaError_t SortPairsDescending(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        KeyT                *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
+        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        ValueT              *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
+        const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
         ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
         int                 num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
@@ -341,8 +341,8 @@ struct DeviceRadixSort
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        DoubleBuffer<KeyT>       d_keys(d_keys_in, d_keys_out);
-        DoubleBuffer<ValueT>     d_values(d_values_in, d_values_out);
+        DoubleBuffer<KeyT>       d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
+        DoubleBuffer<ValueT>     d_values(const_cast<ValueT*>(d_values_in), d_values_out);
 
         return DispatchRadixSort<true, KeyT, ValueT, OffsetT>::Dispatch(
             d_temp_storage,
@@ -506,7 +506,7 @@ struct DeviceRadixSort
     static cudaError_t SortKeys(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        KeyT                *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
+        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
         int                 num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
@@ -518,7 +518,7 @@ struct DeviceRadixSort
         typedef int OffsetT;
 
         // Null value type
-        DoubleBuffer<KeyT>       d_keys(d_keys_in, d_keys_out);
+        DoubleBuffer<KeyT>      d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<NullType>  d_values;
 
         return DispatchRadixSort<false, KeyT, NullType, OffsetT>::Dispatch(
@@ -670,7 +670,7 @@ struct DeviceRadixSort
     static cudaError_t SortKeysDescending(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        KeyT                *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
+        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
         int                 num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
@@ -681,7 +681,7 @@ struct DeviceRadixSort
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        DoubleBuffer<KeyT>      d_keys(d_keys_in, d_keys_out);
+        DoubleBuffer<KeyT>      d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<NullType>  d_values;
 
         return DispatchRadixSort<true, KeyT, NullType, OffsetT>::Dispatch(

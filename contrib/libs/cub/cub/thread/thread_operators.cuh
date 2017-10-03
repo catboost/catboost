@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -96,7 +96,7 @@ struct InequalityWrapper
 
     /// Boolean inequality operator, returns <tt>(a != b)</tt>
     template <typename T>
-    __host__ __device__ __forceinline__ bool operator()(const T &a, const T &b) const
+    __host__ __device__ __forceinline__ bool operator()(const T &a, const T &b)
     {
         return !op(a, b);
     }
@@ -191,7 +191,7 @@ struct ArgMin
  * \brief Default cast functor
  */
 template <typename B>
-struct Cast
+struct CastOp
 {
     /// Cast operator, returns <tt>(B) a</tt>
     template <typename A>
@@ -224,7 +224,10 @@ public:
     __host__ __device__ __forceinline__
     T operator()(const T &a, const T &b)
     {
-        return scan_op(b, a);
+      T _a(a);
+      T _b(b);
+
+      return scan_op(_b, _a);
     }
 };
 
@@ -235,7 +238,7 @@ public:
  * Given two cub::KeyValuePair inputs \p a and \p b and a
  * binary associative combining operator \p <tt>f(const T &x, const T &y)</tt>,
  * an instance of this functor returns a cub::KeyValuePair whose \p key
- * field is <tt>a.key</tt> + <tt>a.key</tt>, and whose \p value field
+ * field is <tt>a.key</tt> + <tt>b.key</tt>, and whose \p value field
  * is either b.value if b.key is non-zero, or f(a.value, b.value) otherwise.
  *
  * ReduceBySegmentOp is an associative, non-commutative binary combining operator

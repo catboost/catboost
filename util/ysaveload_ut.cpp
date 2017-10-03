@@ -15,6 +15,7 @@
 #include <util/generic/buffer.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/maybe.h>
+#include <util/generic/variant.h>
 
 static inline char* AllocateFromPool(TMemoryPool& pool, size_t len) {
     return (char*)pool.Allocate(len);
@@ -27,6 +28,7 @@ class TSaveLoadTest: public TTestBase {
     UNIT_TEST(TestNewNewStyle)
     UNIT_TEST(TestList)
     UNIT_TEST(TestTuple)
+    UNIT_TEST(TestVariant)
     UNIT_TEST_SUITE_END();
 
     struct TSaveHelper {
@@ -402,6 +404,30 @@ private:
         UNIT_ASSERT_VALUES_EQUAL(std::get<2>(toLoad), std::get<2>(toSave));
     }
 
+    template <class TVariant, class T>
+    void TestVariantImpl(TVariant& v, const T& expected) {
+        v = expected;
+
+        TBufferStream s;
+        ::Save(&s, v);
+        ::Load(&s, v);
+        UNIT_ASSERT_VALUES_EQUAL(v.template As<T>(), expected);
+    }
+
+    void TestVariant() {
+        TVariant<int, bool, TString, yvector<char>> v(1);
+        TestVariantImpl(v, 42);
+        TestVariantImpl(v, true);
+        TestVariantImpl(v, TString("foo"));
+        TestVariantImpl(v, yvector<char>{'b', 'a', 'r'});
+
+        v = TString("baz");
+        TBufferStream s;
+        ::Save(&s, v);
+
+        TVariant<char, bool> v2 = false;
+        UNIT_ASSERT_EXCEPTION(::Load(&s, v2), TLoadEOF);
+    }
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSaveLoadTest);

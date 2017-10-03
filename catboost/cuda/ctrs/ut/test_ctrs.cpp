@@ -265,7 +265,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                     Compress(binsGpu, compressedBinsGpu, uniqueValues);
 
                     TWeightedBinFreqCalcer<NCudaLib::TMirrorMapping> builder(weights,
-                                                                     totalWeight);
+                                                                             totalWeight);
 
                     TMirrorBuffer<float> ctrs;
                     TMirrorBuffer<float> ctrs2;
@@ -299,8 +299,6 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                                                                       ctrs2.Copy(ctrValues);
                                                                   });
                     }
-
-
 
                     yvector<float> ctrsFromGpu;
                     yvector<float> ctrs2FromGpu;

@@ -13,6 +13,8 @@ SRCS(
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_leaves_estimator.cpp
     boosting.cpp
+    boosting_listeners.cpp
+    boosting_options.cpp
     bootstrap.cpp
     tree_ctrs.cpp
 )
@@ -24,12 +26,12 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/cuda/gpu_data
+    catboost/libs/overfitting_detector
 )
 
 CUDA_NVCC_FLAGS(
     --expt-relaxed-constexpr
     -std=c++11
-    -gencode arch=compute_20,code=sm_20
     -gencode arch=compute_35,code=sm_35
     -gencode arch=compute_52,code=sm_52
     -gencode arch=compute_60,code=sm_60

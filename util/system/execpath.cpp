@@ -162,16 +162,3 @@ namespace {
 const TString& GetExecPath() {
     return SingletonWithPriority<TExecPathHolder, 1>()->ExecPath;
 }
-
-TMappedFile* OpenExecFile() {
-    TString path = GetExecPathImpl();
-    THolder<TMappedFile> mf(new TMappedFile(path));
-
-    TString path2 = GetExecPathImpl();
-    if (path != path2)
-        ythrow yexception() << "OpenExecFile(): something happened to the binary while we were opening it: "
-                               "filename changed 'on the fly' from <"
-                            << path << "> to <" << path2 << ">";
-
-    return mf.Release();
-}

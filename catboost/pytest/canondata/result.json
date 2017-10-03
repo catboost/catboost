@@ -308,23 +308,23 @@
         }
     ],
     "test.test_fstr[Doc]": {
-        "checksum": "d6c342337510480a35760f18d376806e",
+        "checksum": "f7605753f3001fca395c6c670cd5473f",
         "uri": "file://test.test_fstr_Doc_/fstr.tsv"
     },
     "test.test_fstr[FeatureImportance]": {
-        "checksum": "4a5d56036aeceeeaa5219790e7d36b7e",
+        "checksum": "2ff10245b25ec9f067933edc1137bda5",
         "uri": "file://test.test_fstr_FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Interaction]": {
-        "checksum": "b9dcc8fbd0887a6ca8135c8e2d6d3a6e",
+        "checksum": "a6579a64f4d18ae0211a74d7ecc03886",
         "uri": "file://test.test_fstr_Interaction_/fstr.tsv"
     },
     "test.test_fstr[InternalFeatureImportance]": {
-        "checksum": "cd4a8db16417559ddc544ebb8eadc6df",
+        "checksum": "5a4e6f05a3dd0f964cdb43d4fd29e2e2",
         "uri": "file://test.test_fstr_InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[InternalInteraction]": {
-        "checksum": "2355ddd05a3e7ed0d63fc6e6143e498c",
+        "checksum": "5da131c2fec03883493516900be1c906",
         "uri": "file://test.test_fstr_InternalInteraction_/fstr.tsv"
     },
     "test.test_gradient": [
@@ -427,6 +427,32 @@
         {
             "checksum": "0ae2c2aa1adcbd9953c1ec0f105b268c",
             "uri": "file://test.test_overfit_detector_iter/test.eval"
+        }
+    ],
+    "test.test_pairlogit": [
+        {
+            "checksum": "b1a1fb26d5f0a7be5c799100f4efb454",
+            "uri": "file://test.test_pairlogit/learn_error.tsv"
+        },
+        {
+            "checksum": "ba98fc6497a50e5b54dad4e8fb9b18fe",
+            "uri": "file://test.test_pairlogit/test_error.tsv"
+        },
+        {
+            "checksum": "c2ed19dd25c41dcbe66970f2e90bfb3d",
+            "uri": "file://test.test_pairlogit/test.eval"
+        }
+    ],
+    "test.test_pairlogit_approx_on_full_history": [
+        {
+            "checksum": "3d5ef891df50342835919f7fb4f212cf",
+            "uri": "file://test.test_pairlogit_approx_on_full_history/test.eval"
+        }
+    ],
+    "test.test_pairlogit_no_target": [
+        {
+            "checksum": "d7daab0d2a55d5527590f7e4e670235c",
+            "uri": "file://test.test_pairlogit_no_target/test.eval"
         }
     ],
     "test.test_params_from_file": [

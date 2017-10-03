@@ -135,13 +135,11 @@ def onpy_srcs(unit, *args):
         for path, mod in pys:
             root_rel_path = rootrel_arc_src(path, unit)
             unit.onpy_compile_bytecode([root_rel_path + '-', path])
-
-            source_key = '/py_modules/' + mod
+            key = '/py_modules/' + mod
             res += [
-                path, source_key,
+                path, key,
+                '-', 'resfs/src/{}={}'.format(key, root_rel_path),
                 path + '.yapyc', '/py_code/' + mod,
-                # build map modname-filename via resource macro
-                '-', "{}={}".format('/py_fs/' + mod, root_rel_path)
             ]
 
         unit.onresource(res)

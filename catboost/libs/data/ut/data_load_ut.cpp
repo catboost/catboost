@@ -39,7 +39,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataLoadTest) {
             }
         }
         TPool pool;
-        ReadPool("", TestFileName, 2, false, '\t', false, yvector<TString>(), &pool);
+        ReadPool("", TestFileName, "", 2, false, '\t', false, yvector<TString>(), &pool);
         yvector<TDocInfo>& readTestDocuments = pool.Docs;
         UNIT_ASSERT_EQUAL(readTestDocuments.size(), documents.size());
         for (size_t i = 0; i < documents.size(); ++i) {

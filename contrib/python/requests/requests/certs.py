@@ -17,7 +17,7 @@ import ssl
 try:
     # load_verify_locations expects PEM cadata to be an ASCII-only unicode object,
     # so we discard unicode in comments.
-    builtin_cadata = __loader__.get_data('cacert').decode('ASCII', errors='ignore')
+    builtin_cadata = __loader__.get_data('requests/cacert.pem').decode('ASCII', errors='ignore')
 except NameError:
     # Support import from the filesystem for unit2 test runner during elliptics packaging.
     builtin_ca = os.path.abspath(os.path.join(os.path.dirname(__file__), 'cacert.pem'))

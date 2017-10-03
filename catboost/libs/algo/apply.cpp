@@ -5,7 +5,7 @@
 #include "eval_helpers.h"
 #include "learn_context.h"
 
-#include <catboost/libs/model/model_calcer.h>
+#include <catboost/libs/model/formula_evaluator.h>
 
 void CalcApproxForTree(const TAllFeatures& features,
                        const TFullModel& model,
@@ -31,7 +31,7 @@ yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
                                             const TAllFeatures& features,
                                             int begin,
                                             int end,
-                                            const TTreeFunction& treeFunction,
+                                            const TTreeFunction& function,
                                             int resultDimension,
                                             TCommonContext* ctx) {
     if (begin == 0 && end == 0) {
@@ -46,7 +46,7 @@ yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
     for (int treeBlockIdx = begin; treeBlockIdx < end; treeBlockIdx += CB_THREAD_LIMIT) {
         const int nextBlockIdx = Min(end, treeBlockIdx + CB_THREAD_LIMIT);
         ctx->LocalExecutor.ExecRange([&](int treeIdx) {
-            treeFunction(features, model, treeIdx, *ctx, &result[treeIdx - treeBlockIdx]);
+            function(features, model, treeIdx, *ctx, &result[treeIdx - treeBlockIdx]);
         },
                                      treeBlockIdx, nextBlockIdx, NPar::TLocalExecutor::WAIT_COMPLETE);
     }
@@ -62,37 +62,20 @@ yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
 }
 
 yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
+                                         const NCatBoost::TFormulaEvaluator& calcer,
                                          const TPool& pool,
-                                         bool verbose,
                                          const EPredictionType predictionType,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
-                                         int threadCount /*= 1*/) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !pool.CatFeatures.empty(), "if model has cat-features pool should also have them");
-
-    if (verbose) {
-        SetVerboseLogingMode();
-    } else {
-        SetSilentLogingMode();
-    }
+                                         NPar::TLocalExecutor& executor) {
 
     const int featureCount = pool.Docs[0].Factors.ysize();
     const int docCount = pool.Docs.size();
     CB_ENSURE(featureCount >= model.FeatureCount, "Test dataset has not enough features");
 
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    NJson::TJsonValue resultParams;
-    TFitParams params(jsonParams, Nothing(), Nothing(), &resultParams);
-    // TODO(noxoomo): Add params to json in gpu model.
-    // CB_ENSURE(IsClassificationLoss(params.LossFunction) || predictionType == EPredictionType::RawFormulaVal,
-    //           "This prediction type is supported only for classification: " << ToString<EPredictionType>(predictionType));
-
-    NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(threadCount - 1);
-    NCatBoost::TModelCalcer calcer(model);
-    yvector<double> approxFlat(docCount * model.ApproxDimension);
+    yvector<double> approxFlat(static_cast<unsigned long>(docCount * model.ApproxDimension));
     NPar::TLocalExecutor::TBlockParams blockParams(0, docCount);
+    const int threadCount = executor.GetThreadCount() + 1; //one for current thread
     blockParams.SetBlockCount(threadCount);
 
     if (end == 0) {
@@ -114,24 +97,66 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     yvector<yvector<double>> approx(model.ApproxDimension, yvector<double>(docCount));
-    for (int dim = 0; dim < model.ApproxDimension; ++dim) {
-        for (int doc = 0; doc < docCount; ++doc) {
-            approx[dim][doc] = approxFlat[model.ApproxDimension * doc + dim];
+    if (model.ApproxDimension == 1) { //shortcut
+        approx[0].swap(approxFlat);
+    } else {
+        for (int dim = 0; dim < model.ApproxDimension; ++dim) {
+            for (int doc = 0; doc < docCount; ++doc) {
+                approx[dim][doc] = approxFlat[model.ApproxDimension * doc + dim];
+            };
         }
     }
 
-    approx = PrepareEval(predictionType, approx, &executor);
-
-    SetSilentLogingMode();
-    return approx;
+    if (predictionType == EPredictionType::RawFormulaVal) {
+        //shortcut
+        return approx;
+    } else {
+        return PrepareEval(predictionType, approx, &executor);
+    }
 }
+
+
+yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
+                                         const NCatBoost::TFormulaEvaluator& calcer,
+                                         const TPool& pool,
+                                         bool verbose,
+                                         const EPredictionType predictionType,
+                                         int begin,
+                                         int end,
+                                         int threadCount) {
+    if (verbose) {
+        SetVerboseLogingMode();
+    } else {
+        SetSilentLogingMode();
+    }
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    yvector<yvector<double>> result = ApplyModelMulti(model, calcer, pool, predictionType, begin, end, executor);
+    SetSilentLogingMode();
+    return result;
+}
+
+yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
+                                         const TPool& pool,
+                                         bool verbose,
+                                         const EPredictionType predictionType,
+                                         int begin,
+                                         int end,
+                                         int threadCount) {
+    NCatBoost::TFormulaEvaluator calcer(model);
+    return ApplyModelMulti(model, calcer, pool, verbose, predictionType, begin, end, threadCount);
+}
+
 
 yvector<double> ApplyModel(const TFullModel& model,
-        const TPool& pool,
-        bool verbose,
-        const EPredictionType predictionType,
-        int begin, /*= 0*/
-        int end,   /*= 0*/
-        int threadCount /*= 1*/) {
+                           const TPool& pool,
+                           bool verbose,
+                           const EPredictionType predictionType,
+                           int begin, /*= 0*/
+                           int end,   /*= 0*/
+                           int threadCount /*= 1*/) {
+    NCatBoost::TFormulaEvaluator calcer(model);
     return ApplyModelMulti(model, pool, verbose, predictionType, begin, end, threadCount)[0];
 }
+

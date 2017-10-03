@@ -61,6 +61,39 @@ namespace NKernelHost {
             NKernel::Compress(Src.Get(), Dst.Get(), Src.Size(), BitsPerKey, stream.GetStream());
         }
     };
+
+    template <class TStorageType, NCudaLib::EPtrType Type>
+    class TGatherFromCompressedKernel: public TStatelessKernel {
+    private:
+        using TSrcBufferPtr = TDeviceBuffer<const TStorageType, TFixedSizesObjectsMeta, Type>;
+        TSrcBufferPtr Src;
+        TCudaBufferPtr<const ui32> Map;
+        TCudaBufferPtr<ui32> Dst;
+        ui32 Mask;
+        ui32 BitsPerKey;
+
+    public:
+        TGatherFromCompressedKernel() = default;
+
+        TGatherFromCompressedKernel(TSrcBufferPtr src,
+                                    TCudaBufferPtr<const ui32> map,
+                                    ui32 mask,
+                                    TCudaBufferPtr<ui32> dst,
+                                    ui32 bitsPerKey)
+            : Src(src)
+            , Map(map)
+            , Dst(dst)
+            , Mask(mask)
+            , BitsPerKey(bitsPerKey)
+        {
+        }
+
+        SAVELOAD(Src, Map, Dst, Mask, BitsPerKey);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::GatherFromCompressed(Src.Get(), Map.Get(), Mask, Dst.Get(), Map.Size(), BitsPerKey, stream.GetStream());
+        }
+    };
 }
 
 template <typename TStorageType>
@@ -97,4 +130,15 @@ inline void Decompress(const TCudaBuffer<T, TMapping, Type>& src,
                        ui32 stream = 0) {
     using TKernel = NKernelHost::TDecompressKernel<T, Type>;
     LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, IntLog2(uniqueValues));
+}
+
+template <typename T, typename TMapping, NCudaLib::EPtrType Type, class TUi32 = ui32>
+inline void GatherFromCompressed(const TCudaBuffer<T, TMapping, Type>& src,
+                                 const ui32 uniqueValues,
+                                 const TCudaBuffer<TUi32, TMapping>& map,
+                                 const ui32 mask,
+                                 TCudaBuffer<ui32, TMapping>& dst,
+                                 ui32 stream = 0) {
+    using TKernel = NKernelHost::TGatherFromCompressedKernel<T, Type>;
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, IntLog2(uniqueValues));
 }

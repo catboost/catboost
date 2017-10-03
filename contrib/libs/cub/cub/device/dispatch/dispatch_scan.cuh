@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -157,9 +157,10 @@ struct DispatchScan
         INIT_KERNEL_THREADS = 128
     };
 
-    // The value types of the iterators
-    typedef typename std::iterator_traits<InputIteratorT>::value_type   InputT;
-    typedef typename std::iterator_traits<OutputIteratorT>::value_type  OutputT;
+    // The output value type
+    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
+        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
 
     // Tile status descriptor interface type
     typedef ScanTileState<OutputT> ScanTileStateT;
@@ -168,6 +169,18 @@ struct DispatchScan
     //---------------------------------------------------------------------
     // Tuning policies
     //---------------------------------------------------------------------
+
+    /// SM600
+    struct Policy600
+    {
+        typedef AgentScanPolicy<
+            CUB_NOMINAL_CONFIG(128, 15, OutputT),      ///< Threads per block, items per thread
+                BLOCK_LOAD_TRANSPOSE,
+                LOAD_DEFAULT,
+                BLOCK_STORE_TRANSPOSE,
+                BLOCK_SCAN_WARP_SCANS>
+            ScanPolicyT;
+    };
 
 
     /// SM520
@@ -251,7 +264,10 @@ struct DispatchScan
     // Tuning policies of current PTX compiler pass
     //---------------------------------------------------------------------
 
-#if (CUB_PTX_ARCH >= 520)
+#if (CUB_PTX_ARCH >= 600)
+    typedef Policy600 PtxPolicy;
+
+#elif (CUB_PTX_ARCH >= 520)
     typedef Policy520 PtxPolicy;
 
 #elif (CUB_PTX_ARCH >= 350)
@@ -289,6 +305,7 @@ struct DispatchScan
         KernelConfig    &scan_kernel_config)
     {
     #if (CUB_PTX_ARCH > 0)
+        (void)ptx_version;
 
         // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
         scan_kernel_config.template Init<PtxAgentScanPolicy>();
@@ -296,7 +313,11 @@ struct DispatchScan
     #else
 
         // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
-        if (ptx_version >= 520)
+        if (ptx_version >= 600)
+        {
+            scan_kernel_config.template Init<typename Policy600::ScanPolicyT>();
+        }
+        else if (ptx_version >= 520)
         {
             scan_kernel_config.template Init<typename Policy520::ScanPolicyT>();
         }
@@ -367,13 +388,25 @@ struct DispatchScan
         OffsetT             num_items,              ///< [in] Total number of input items (i.e., the length of \p d_in)
         cudaStream_t        stream,                 ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous,      ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
-        int                 ptx_version,            ///< [in] PTX version of dispatch kernels
+        int                 /*ptx_version*/,        ///< [in] PTX version of dispatch kernels
         ScanInitKernelPtrT  init_kernel,            ///< [in] Kernel function pointer to parameterization of cub::DeviceScanInitKernel
         ScanSweepKernelPtrT scan_kernel,            ///< [in] Kernel function pointer to parameterization of cub::DeviceScanKernel
         KernelConfig        scan_kernel_config)     ///< [in] Dispatch parameters that match the policy that \p scan_kernel was compiled for
     {
 
 #ifndef CUB_RUNTIME_ENABLED
+        (void)d_temp_storage;
+        (void)temp_storage_bytes;
+        (void)d_in;
+        (void)d_out;
+        (void)scan_op;
+        (void)init_value;
+        (void)num_items;
+        (void)stream;
+        (void)debug_synchronous;
+        (void)init_kernel;
+        (void)scan_kernel;
+        (void)scan_kernel_config;
 
         // Kernel launch not supported from this device
         return CubDebug(cudaErrorNotSupported);

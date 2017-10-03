@@ -16,6 +16,7 @@
 template <template <class TMapping, class> class TTargetTemplate, NCudaLib::EPtrType CatFeaturesStoragePtrType>
 inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                           const TBoostingOptions& boostingOptions,
+                                                          const TOutputFilesOptions& logOptions,
                                                           const TObliviousTreeLearnerOptions& treeOptions,
                                                           const TTargetOptions& targetOptions,
                                                           const TDataProvider& learn,
@@ -33,18 +34,39 @@ inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesMana
     boosting.SetDataProvider(learn, test);
 
     using TMetricPrinter = TMetricLogger<TTarget, TObliviousTreeModel>;
+    TOFStream meta(logOptions.GetMetaFile());
     TIterationLogger<TTarget, TObliviousTreeModel> iterationPrinter;
+    TTimeWriter<TTarget, TObliviousTreeModel> timeWriter(boostingOptions.GetIterationCount(),
+                                                         logOptions.GetTimeLeftLog());
+
+    THolder<IOverfittingDetector> overfitDetector;
+
     boosting.RegisterLearnListener(iterationPrinter);
+    boosting.RegisterLearnListener(timeWriter);
 
     THolder<TMetricPrinter> learnPrinter;
     THolder<TMetricPrinter> testPrinter;
 
+    meta << "name\t" << logOptions.GetName() << Endl;
+    meta << "iterCount\t" << boostingOptions.GetIterationCount() << Endl;
+
     if (boostingOptions.IsCalcScores()) {
-        learnPrinter.Reset(new TMetricPrinter("Learn score: ", boostingOptions.GetLearnErrorLogPath()));
+        learnPrinter.Reset(new TMetricPrinter("Learn score: ", logOptions.GetLearnErrorLogPath()));
+        //output log files path relative to trainDirectory
+        meta << "learnErrorLog\t" << logOptions.GetLearnErrorLogPath() << Endl;
         if (test) {
-            testPrinter.Reset(new TMetricPrinter("Test score: ", boostingOptions.GetTestErrorLogPath()));
+            testPrinter.Reset(new TMetricPrinter("Test score: ", logOptions.GetTestErrorLogPath()));
+            meta << "testErrorLog\t" << logOptions.GetTestErrorLogPath() << Endl;
+
+            const auto& odOptions = boostingOptions.GetOverfittingDetectorOptions();
+            if (odOptions.GetAutoStopPval() > 0) {
+                overfitDetector = odOptions.CreateOverfittingDetector(!TTarget::IsMinOptimal());
+                testPrinter->RegisterOdDetector(overfitDetector.Get());
+            }
         }
     }
+    meta << "timeLeft\t" << logOptions.GetTimeLeftLog() << Endl;
+    meta << "loss\t" << TMetricPrinter::GetMetricName() << "\t" << (TMetricPrinter::IsMinOptimal() ? "min" : "max") << Endl;
 
     if (learnPrinter) {
         boosting.RegisterLearnListener(*learnPrinter);
@@ -53,13 +75,26 @@ inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesMana
     if (testPrinter) {
         boosting.RegisterTestListener(*testPrinter);
     }
-
-    return boosting.Run();
+    if (overfitDetector) {
+        boosting.AddOverfitDetector(*overfitDetector);
+    }
+    auto model = boosting.Run();
+    if (boostingOptions.UseBestModel()) {
+        if (testPrinter == nullptr) {
+            MATRIXNET_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
+        } else {
+            CB_ENSURE(testPrinter);
+            const ui32 bestIter = testPrinter->GetBestIteration();
+            model->Shrink(bestIter);
+        }
+    }
+    return model;
 }
 
 template <template <class TMapping, class> class TTargetTemplate>
 inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                           const TBoostingOptions& boostingOptions,
+                                                          const TOutputFilesOptions& outputFilesOptions,
                                                           const TObliviousTreeLearnerOptions& treeOptions,
                                                           const TTargetOptions& targetOptions,
                                                           const TDataProvider& learn,
@@ -67,9 +102,9 @@ inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesMana
                                                           TRandom& random,
                                                           bool storeCatFeaturesInPinnedMemory) {
     if (storeCatFeaturesInPinnedMemory) {
-        return Train<TTargetTemplate, NCudaLib::CudaHost>(featureManager, boostingOptions, treeOptions, targetOptions, learn, test, random);
+        return Train<TTargetTemplate, NCudaLib::CudaHost>(featureManager, boostingOptions, outputFilesOptions, treeOptions, targetOptions, learn, test, random);
     } else {
-        return Train<TTargetTemplate, NCudaLib::CudaDevice>(featureManager, boostingOptions, treeOptions, targetOptions, learn, test, random);
+        return Train<TTargetTemplate, NCudaLib::CudaDevice>(featureManager, boostingOptions, outputFilesOptions, treeOptions, targetOptions, learn, test, random);
     }
 };
 
@@ -81,6 +116,7 @@ inline void MakeFullModel(const TString& coreModelPath,
 
     ReadPool(poolLoadOptions.GetColumnDescriptionName(),
              poolLoadOptions.GetFeaturesFilename(),
+             "",
              numThreads,
              false,
              poolLoadOptions.GetDelimiter(),
@@ -103,9 +139,9 @@ int mode_fit(const int argc, const char** argv) {
     TPoolLoadOptions loadOptions;
     TObliviousTreeLearnerOptions treeConfig;
     TBoostingOptions boostingOptions;
+    TOutputFilesOptions outputFilesOptions;
     TTargetOptions targetOptions;
     TApplicationOptions applicationOptions;
-    TString resultModelPath = "catboost.bin";
 
     {
         NLastGetopt::TOpts options = NLastGetopt::TOpts::Default();
@@ -116,15 +152,13 @@ int mode_fit(const int argc, const char** argv) {
         TOptionsBinder<TObliviousTreeLearnerOptions>::Bind(treeConfig, options);
         TOptionsBinder<TBoostingOptions>::Bind(boostingOptions, options);
         TOptionsBinder<TTargetOptions>::Bind(targetOptions, options);
-
-        options
-            .AddLongOption('m', "model-file")
-            .StoreResult(&resultModelPath);
+        TOptionsBinder<TOutputFilesOptions>::Bind(outputFilesOptions, options);
 
         NLastGetopt::TOptsParseResult parse(&options, argc, argv);
         Y_UNUSED(parse);
     }
 
+    const auto& resultModelPath = outputFilesOptions.GetResultModelPath();
     TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 
     if (targetOptions.GetTargetType() == ETargetFunction::RMSE) {
@@ -159,20 +193,20 @@ int mode_fit(const int argc, const char** argv) {
             {
                 MATRIXNET_INFO_LOG << "Loading data..." << Endl;
 
-                TOnGpuGridBuilderFactory gridBuilderFactory;
-
                 TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                         gridBuilderFactory,
-                                                         dataProvider);
+                                                         dataProvider,
+                                                         false,
+                                                         applicationOptions.GetNumThreads());
 
                 dataProviderBuilder
                     .AddIgnoredFeatures(loadOptions.GetIgnoredFeatures())
-                    .SetShuffleFlag(boostingOptions.HasTime() ? false : true);
+                    .SetShuffleFlag(!boostingOptions.HasTime());
 
                 {
                     auto loadTimeGuard = profiler.Profile("Load learn data");
                     ReadPool(loadOptions.GetColumnDescriptionName(),
                              loadOptions.GetFeaturesFilename(),
+                             "",
                              applicationOptions.GetNumThreads(),
                              true,
                              loadOptions.GetDelimiter(),
@@ -187,9 +221,9 @@ int mode_fit(const int argc, const char** argv) {
 
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
-                                                     gridBuilderFactory,
                                                      *testProvider,
-                                                     true);
+                                                     true,
+                                                     applicationOptions.GetNumThreads());
                     testBuilder.AddIgnoredFeatures(loadOptions.GetIgnoredFeatures())
                         .SetShuffleFlag(false);
 
@@ -201,6 +235,7 @@ int mode_fit(const int argc, const char** argv) {
 
                     ReadPool(loadOptions.GetColumnDescriptionName(),
                              loadOptions.GetTestFilename(),
+                             "",
                              applicationOptions.GetNumThreads(),
                              true,
                              loadOptions.GetDelimiter(),
@@ -281,13 +316,13 @@ int mode_fit(const int argc, const char** argv) {
 
             switch (targetOptions.GetTargetType()) {
                 case ETargetFunction::RMSE: {
-                    model = Train<TL2>(featuresManager, boostingOptions, treeConfig, targetOptions, dataProvider,
+                    model = Train<TL2>(featuresManager, boostingOptions, outputFilesOptions, treeConfig, targetOptions, dataProvider,
                                        testProvider.Get(), random, storeCatFeaturesInPinnedMemory);
                     break;
                 }
                 case ETargetFunction::CrossEntropy:
                 case ETargetFunction::Logloss: {
-                    model = Train<TCrossEntropy>(featuresManager, boostingOptions, treeConfig, targetOptions,
+                    model = Train<TCrossEntropy>(featuresManager, boostingOptions, outputFilesOptions, treeConfig, targetOptions,
                                                  dataProvider, testProvider.Get(), random,
                                                  storeCatFeaturesInPinnedMemory);
                     break;

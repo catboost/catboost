@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -157,7 +157,7 @@ struct PowerOfTwo
  ******************************************************************************/
 
 /**
- * \brief Pointer vs. iterator
+ * \brief Pointer vs. iteratorsc
  */
 template <typename Tp>
 struct IsPointer
@@ -290,41 +290,48 @@ struct AlignBytes
 
     enum
     {
-        /// The alignment of T in bytes
+        /// The "true CUDA" alignment of T in bytes
         ALIGN_BYTES = sizeof(Pad) - sizeof(T)
     };
+
+    /// The "truly aligned" type
+    typedef T Type;
 };
 
-// Specializations where host C++ compilers (e.g., Windows) may disagree with device C++ compilers (EDG)
+// Specializations where host C++ compilers (e.g., 32-bit Windows) may disagree
+// with device C++ compilers (EDG) on types passed as template parameters through
+// kernel functions
 
-template <> struct AlignBytes<short4>               { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<ushort4>              { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<int2>                 { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<uint2>                { enum { ALIGN_BYTES = 8 }; };
+#define __CUB_ALIGN_BYTES(t, b)         \
+    template <> struct AlignBytes<t>    \
+    { enum { ALIGN_BYTES = b }; typedef __align__(b) t Type; };
+
+__CUB_ALIGN_BYTES(short4, 8)
+__CUB_ALIGN_BYTES(ushort4, 8)
+__CUB_ALIGN_BYTES(int2, 8)
+__CUB_ALIGN_BYTES(uint2, 8)
+__CUB_ALIGN_BYTES(long long, 8)
+__CUB_ALIGN_BYTES(unsigned long long, 8)
+__CUB_ALIGN_BYTES(float2, 8)
+__CUB_ALIGN_BYTES(double, 8)
 #ifdef _WIN32
-    template <> struct AlignBytes<long2>            { enum { ALIGN_BYTES = 8 }; };
-    template <> struct AlignBytes<ulong2>           { enum { ALIGN_BYTES = 8 }; };
+    __CUB_ALIGN_BYTES(long2, 8)
+    __CUB_ALIGN_BYTES(ulong2, 8)
+#else
+    __CUB_ALIGN_BYTES(long2, 16)
+    __CUB_ALIGN_BYTES(ulong2, 16)
 #endif
-template <> struct AlignBytes<long long>            { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<unsigned long long>   { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<float2>               { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<double>               { enum { ALIGN_BYTES = 8 }; };
-
-template <> struct AlignBytes<int4>                 { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<uint4>                { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<float4>               { enum { ALIGN_BYTES = 16 }; };
-#ifndef _WIN32
-    template <> struct AlignBytes<long2>            { enum { ALIGN_BYTES = 16 }; };
-    template <> struct AlignBytes<ulong2>           { enum { ALIGN_BYTES = 16 }; };
-#endif
-template <> struct AlignBytes<long4>                { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulong4>               { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<longlong2>            { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulonglong2>           { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<double2>              { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<longlong4>            { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulonglong4>           { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<double4>              { enum { ALIGN_BYTES = 16 }; };
+__CUB_ALIGN_BYTES(int4, 16)
+__CUB_ALIGN_BYTES(uint4, 16)
+__CUB_ALIGN_BYTES(float4, 16)
+__CUB_ALIGN_BYTES(long4, 16)
+__CUB_ALIGN_BYTES(ulong4, 16)
+__CUB_ALIGN_BYTES(longlong2, 16)
+__CUB_ALIGN_BYTES(ulonglong2, 16)
+__CUB_ALIGN_BYTES(double2, 16)
+__CUB_ALIGN_BYTES(longlong4, 16)
+__CUB_ALIGN_BYTES(ulonglong4, 16)
+__CUB_ALIGN_BYTES(double4, 16)
 
 template <typename T> struct AlignBytes<volatile T> : AlignBytes<T> {};
 template <typename T> struct AlignBytes<const T> : AlignBytes<T> {};
@@ -641,31 +648,110 @@ struct Uninitialized
 /**
  * \brief A key identifier paired with a corresponding value
  */
-template <typename _Key, typename _Value>
+template <
+    typename    _Key,
+    typename    _Value
+#if defined(_WIN32) && !defined(_WIN64)
+    , bool KeyIsLT = (AlignBytes<_Key>::ALIGN_BYTES < AlignBytes<_Value>::ALIGN_BYTES)
+    , bool ValIsLT = (AlignBytes<_Value>::ALIGN_BYTES < AlignBytes<_Key>::ALIGN_BYTES)
+#endif // #if defined(_WIN32) && !defined(_WIN64)
+    >
 struct KeyValuePair
 {
     typedef _Key    Key;                ///< Key data type
     typedef _Value  Value;              ///< Value data type
 
-#if (CUB_PTX_ARCH == 0)
-    union
-    {
-        Key                                     key;        ///< Item key
-        typename UnitWord<Value>::DeviceWord    align0;     ///< Alignment/padding (for Win32 consistency between host/device)
-    };
-#else
-    Key                     key;        ///< Item key
-#endif
+    Key     key;                        ///< Item key
+    Value   value;                      ///< Item value
 
-    Value                   value;      ///< Item value
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
 
     /// Inequality operator
     __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
     {
         return (value != b.value) || (key != b.key);
     }
-
 };
+
+#if defined(_WIN32) && !defined(_WIN64)
+
+/**
+ * Win32 won't do 16B alignment.  This can present two problems for
+ * should-be-16B-aligned (but actually 8B aligned) built-in and intrinsics members:
+ * 1) If a smaller-aligned item were to be listed first, the host compiler places the
+ *    should-be-16B item at too early an offset (and disagrees with device compiler)
+ * 2) Or, if a smaller-aligned item lists second, the host compiler gets the size
+ *    of the struct wrong (and disagrees with device compiler)
+ *
+ * So we put the larger-should-be-aligned item first, and explicitly pad the
+ * end of the struct
+ */
+
+/// Smaller key specialization
+template <typename K, typename V>
+struct KeyValuePair<K, V, true, false>
+{
+    typedef K Key;
+    typedef V Value;
+
+    typedef char Pad[AlignBytes<V>::ALIGN_BYTES - AlignBytes<K>::ALIGN_BYTES];
+
+    Value   value;  // Value has larger would-be alignment and goes first
+    Key     key;
+    Pad     pad;
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
+
+    /// Inequality operator
+    __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
+    {
+        return (value != b.value) || (key != b.key);
+    }
+};
+
+
+/// Smaller value specialization
+template <typename K, typename V>
+struct KeyValuePair<K, V, false, true>
+{
+    typedef K Key;
+    typedef V Value;
+
+    typedef char Pad[AlignBytes<K>::ALIGN_BYTES - AlignBytes<V>::ALIGN_BYTES];
+
+    Key     key;    // Key has larger would-be alignment and goes first
+    Value   value;
+    Pad     pad;
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
+
+    /// Inequality operator
+    __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
+    {
+        return (value != b.value) || (key != b.key);
+    }
+};
+
+#endif // #if defined(_WIN32) && !defined(_WIN64)
+
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 

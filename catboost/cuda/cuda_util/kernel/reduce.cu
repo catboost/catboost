@@ -12,6 +12,7 @@ namespace NKernel {
     //TODO(noxoomo): special version for by-thread reduction in case of 1-4 elements per segment
     //TODO(noxoomo): Fallback to block-reduce if one of segments is too big (e.g. loopSize > 256)
     template <typename T, int BLOCK_SIZE, int LINE_SIZE>
+    __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
     __global__ void SegmentedReduceWarpPartPerSegmentImpl(const T* src,
                                                           const int* segmentStarts,
                                                           const int* segmentEnds,
@@ -38,8 +39,13 @@ namespace NKernel {
         const int localId = tid & mask;
         const auto loopSize = LINE_SIZE * CeilDivide(segmentSize, LINE_SIZE);
 
-        for (int i = localId; i < loopSize; i += LINE_SIZE) {
-            localBuffer[localId] += i < segmentSize ? StreamLoad(src + i) : 0;
+        {
+            float tmp = 0;
+            for (int i = localId; i < loopSize; i += LINE_SIZE)
+            {
+                tmp += i < segmentSize ? StreamLoad(src + i) : 0;
+            }
+            localBuffer[localId] = tmp;
         }
 
         const T warpResult = WarpReduce(localId, localBuffer, LINE_SIZE);
@@ -180,7 +186,7 @@ namespace NKernel {
         int* endOffsets = const_cast<int*>((const int*) (offsets + 1));
 
         const double meanSize = size * 1.0 /  numSegments;
-        if (meanSize < 2048) {
+        if (meanSize < 600) {
             if (!context.Initialized) {
                 return cudaSuccess;
             }
@@ -224,7 +230,7 @@ namespace NKernel {
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
                         SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output);
                     } else {
-                        const ui32 blockSize = 256;
+                        const ui32 blockSize = 512;
                         const ui32 numBlocks = numSegments;
                         SegmentedReduceBlockPerSegmentImpl<T, blockSize> << < numBlocks, blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output);
                     }

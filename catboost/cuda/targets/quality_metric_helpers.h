@@ -53,12 +53,12 @@ public:
         return TStringBuilder() << MetricName() << "\t" << TTarget::Score(CurrentStats);
     }
 
-    TString Score() const {
-        return TStringBuilder() << TTarget::Score(CurrentStats);
+    double Score() const {
+        return TTarget::Score(CurrentStats);
     }
 
-    TString Score(const TTargetStat& stat) const {
-        return TStringBuilder() << TTarget::Score(stat);
+    double Score(const TTargetStat& stat) const {
+        return TTarget::Score(stat);
     }
 
     TString TsvHeader() const {

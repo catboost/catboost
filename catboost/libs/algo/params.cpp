@@ -154,7 +154,7 @@ yvector<std::pair<std::pair<int, int>, yvector<float>>> GetFeatureCtrPriors(cons
     return result;
 }
 
-void TFitParams::ParseCtrDescription(const NJson::TJsonValue& tree, yset<TString>* validKeys) {
+void TFitParams::ParseCtrDescription(const NJson::TJsonValue& tree, ELossFunction lossFunction, yset<TString>* validKeys) {
     TString ctrDescriptionKey = "ctr_description";
     validKeys->insert(ctrDescriptionKey);
     if (tree.Has(ctrDescriptionKey)) {
@@ -184,6 +184,11 @@ void TFitParams::ParseCtrDescription(const NJson::TJsonValue& tree, yset<TString
         }
         else {
             ctrDescriptionParserFunc(tree[ctrDescriptionKey].GetStringSafe());
+        }
+    } else {
+        if (IsPairwiseError(lossFunction)) {
+            CtrParams.Ctrs.clear();
+            CtrParams.Ctrs.emplace_back(ECtrType::Counter);
         }
     }
 }
@@ -238,7 +243,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_FIELD(print_trees, PrintTrees, Boolean)
     GET_FIELD(developer_mode, DeveloperMode, Boolean)
     GET_FIELD(used_ram_limit, UsedRAMLimit, UInteger)
-    GET_FIELD(approx_on_full_history, ApproxOnPartialHistory, Boolean)
+    GET_FIELD(approx_on_full_history, ApproxOnFullHistory, Boolean)
 #undef GET_FIELD
 
 #define GET_ENUM_FIELD(json_name, target_name, type)                      \
@@ -283,8 +288,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     CtrParams.PerCtrPriors = GetPriors(ctrPriors);
     CtrParams.PerFeaturePriors = GetPriors(featurePriors);
     CtrParams.PerFeatureCtrPriors = GetFeatureCtrPriors(featureCtrPriors);
-    ParseCtrDescription(tree, &validKeys);
-
+    ParseCtrDescription(tree, LossFunction, &validKeys);
 
     TString threadCountKey = "thread_count";
     if (!tree.Has(threadCountKey)) {

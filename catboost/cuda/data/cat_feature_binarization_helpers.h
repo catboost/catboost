@@ -25,9 +25,9 @@ public:
     }
 
     //store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
-    static yvector<yvector<ui32>> MakeInverseCatFeatureIndex(const yvector<ui32>& catFeatures,
-                                                             const TSimpleCatFeatureBinarizationInfo& info) {
-        yvector<yvector<ui32>> result(catFeatures.size());
+    static yvector<yvector<int>> MakeInverseCatFeatureIndex(const yvector<ui32>& catFeatures,
+                                                            const TSimpleCatFeatureBinarizationInfo& info) {
+        yvector<yvector<int>> result(catFeatures.size());
         for (ui32 i = 0; i < catFeatures.size(); ++i) {
             if (info.has(catFeatures[i])) {
                 const auto& binarization = info.at(catFeatures[i]);
@@ -41,8 +41,8 @@ public:
     }
 
     //store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
-    static yvector<yvector<ui32>> MakeInverseCatFeatureIndex(const yvector<ui32>& catFeatures,
-                                                             TString inputFile) {
+    static yvector<yvector<int>> MakeInverseCatFeatureIndex(const yvector<ui32>& catFeatures,
+                                                            TString inputFile) {
         TSimpleCatFeatureBinarizationInfo binarizationInfo;
         if (NFs::Exists(inputFile)) {
             TIFStream inputStream(inputFile);

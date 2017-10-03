@@ -8,14 +8,13 @@
 #include <util/generic/hash.h>
 #include <util/generic/set.h>
 
-
 /*
  * TreeCtrs dataSet are cached based on baseTensor, from which they we generated
  * If we don't have enough gpu-ram, then cache in batchs (for one baseTensor generate several dataSets with ctrs)
  * TreeCtrs dataSets always for catFeature i stores all ctrs with this catFeature - perFeatures batch instead of perCtr
  *
  */
-class TTreeCtrDataSet : public TGuidHolder {
+class TTreeCtrDataSet: public TGuidHolder {
 public:
     using TGpuDataSet = TGpuBinarizedDataSet<TByteFeatureGridPolicy, TSingleDevPoolLayout>;
     using TFeaturesMapping = typename TSingleDevPoolLayout::TFeaturesMapping;

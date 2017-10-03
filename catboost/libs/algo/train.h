@@ -60,13 +60,13 @@ inline TQuantileError BuildError<TQuantileError>(const TFitParams& params) {
 }
 
 template <>
-inline TLogLinearQuantileError BuildError<TLogLinearQuantileError>(const TFitParams& params) {
+inline TLogLinQuantileError BuildError<TLogLinQuantileError>(const TFitParams& params) {
     auto lossParams = GetLossParams(params.Objective);
     if (lossParams.empty()) {
-        return TLogLinearQuantileError(params.StoreExpApprox);
+        return TLogLinQuantileError(params.StoreExpApprox);
     } else {
         CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description");
-        return TLogLinearQuantileError(lossParams["alpha"], params.StoreExpApprox);
+        return TLogLinQuantileError(lossParams["alpha"], params.StoreExpApprox);
     }
 }
 
@@ -87,43 +87,51 @@ template <typename TError>
 inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
                                     const yvector<float>& target,
                                     const yvector<float>& weight,
+                                    const yvector<yvector<TCompetitor>>& competitors,
                                     const TError& error,
                                     int tailFinish,
                                     TLearnContext* ctx,
                                     yvector<yvector<double>>* derivatives) {
-    int approxDimension = approx.ysize();
-    NPar::TLocalExecutor::TBlockParams blockParams(0, tailFinish);
-    blockParams.SetBlockSize(1000);
-    if (approxDimension == 1) {
-        ctx->LocalExecutor.ExecRange([&](int blockId) {
-            const int blockOffset = blockId * blockParams.GetBlockSize();
-            error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                approx[0].data(),
-                nullptr, // no approx deltas
-                target.data(),
-                weight.data(),
-                (*derivatives)[0].data());
-        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    if (error.GetErrorType() == EErrorType::PairwiseError) {
+        error.CalcDersPairs(approx[0], competitors, 0, tailFinish, &(*derivatives)[0]);
     } else {
-        ctx->LocalExecutor.ExecRange([&](int blockId) {
-            yvector<double> curApprox(approxDimension);
-            yvector<double> curDelta(approxDimension);
-            NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
-                for (int dim = 0; dim < approxDimension; ++dim) {
-                    curApprox[dim] = approx[dim][z];
-                }
-                error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
-                for (int dim = 0; dim < approxDimension; ++dim) {
-                    (*derivatives)[dim][z] = curDelta[dim];
-                }
-            })(blockId);
-        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        int approxDimension = approx.ysize();
+        NPar::TLocalExecutor::TBlockParams blockParams(0, tailFinish);
+        blockParams.SetBlockSize(1000);
+
+        Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
+        if (approxDimension == 1) {
+            ctx->LocalExecutor.ExecRange([&](int blockId) {
+                const int blockOffset = blockId * blockParams.GetBlockSize();
+                error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                    approx[0].data(),
+                    nullptr, // no approx deltas
+                    target.data(),
+                    weight.data(),
+                    (*derivatives)[0].data());
+            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            ctx->LocalExecutor.ExecRange([&](int blockId) {
+                yvector<double> curApprox(approxDimension);
+                yvector<double> curDelta(approxDimension);
+                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
+                    for (int dim = 0; dim < approxDimension; ++dim) {
+                        curApprox[dim] = approx[dim][z];
+                    }
+                    error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
+                    for (int dim = 0; dim < approxDimension; ++dim) {
+                        (*derivatives)[dim][z] = curDelta[dim];
+                    }
+                })(blockId);
+            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
     }
 }
 
 inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                                   const yvector<float>& target,
                                   const yvector<float>& weight,
+                                  const yvector<TPair>& pairs,
                                   const yvector<THolder<IMetric>>& errors,
                                   int learnSampleCount,
                                   int iteration,
@@ -133,7 +141,9 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
     learnErrorsHistory->emplace_back();
     for (int i = 0; i < errors.ysize(); ++i) {
         double learnErr = errors[i]->GetFinalError(
-            errors[i]->Eval(avrgApprox, target, weight, 0, learnSampleCount, *localExecutor));
+            errors[i]->GetErrorType() == EErrorType::PerObjectError ?
+                errors[i]->Eval(avrgApprox, target, weight, 0, learnSampleCount, *localExecutor) :
+                errors[i]->EvalPairwise(avrgApprox, pairs, 0, learnSampleCount));
         if (i == 0) {
             MATRIXNET_INFO_LOG << "learn " << learnErr;
         }
@@ -148,6 +158,7 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
 inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
                                  const yvector<float>& target,
                                  const yvector<float>& weight,
+                                 const yvector<TPair>& pairs,
                                  const yvector<THolder<IMetric>>& errors,
                                  int learnSampleCount,
                                  int sampleCount,
@@ -161,7 +172,9 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
     testErrorsHistory->emplace_back();
     for (int i = 0; i < errors.ysize(); ++i) {
         double testErr = errors[i]->GetFinalError(
-            errors[i]->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor));
+            errors[i]->GetErrorType() == EErrorType::PerObjectError ?
+                errors[i]->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor) :
+                errors[i]->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount));
 
         if (i == 0) {
             errorTracker.AddError(testErr, iteration, &valuesToLog);
@@ -212,8 +225,14 @@ void TrainOneIter(const TTrainData& data,
 
         ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
             TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailId];
-            CalcWeightedDerivatives<TError>(bt.Approx, takenFold->LearnTarget, takenFold->LearnWeights, error,
-                                    bt.TailFinish, ctx, &bt.Derivatives);
+            CalcWeightedDerivatives<TError>(bt.Approx,
+                                            takenFold->LearnTarget,
+                                            takenFold->LearnWeights,
+                                            bt.Competitors,
+                                            error,
+                                            bt.TailFinish,
+                                            ctx,
+                                            &bt.Derivatives);
         }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         profile.AddOperation("Calc derivatives");
 
@@ -389,6 +408,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
             ctx->LearnProgress.AvrgApprox,
             data.Target,
             data.Weights,
+            data.Pairs,
             metrics,
             data.LearnSampleCount,
             iter,
@@ -403,6 +423,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
                 ctx->LearnProgress.AvrgApprox,
                 data.Target,
                 data.Weights,
+                data.Pairs,
                 metrics,
                 data.LearnSampleCount,
                 sampleCount,

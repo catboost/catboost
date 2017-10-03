@@ -175,6 +175,20 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDe
     }
 }
 
+void SplitUrlToHostAndPath(const TStringBuf url, TStringBuf& host, TStringBuf& path) {
+    host = GetSchemeHostAndPort(url, /*trimHttp=*/false, /*trimDefaultPort=*/false);
+    path = url;
+    path.SkipPrefix(host);
+}
+
+void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path) {
+    TStringBuf hostBuf;
+    TStringBuf pathBuf;
+    SplitUrlToHostAndPath(url, hostBuf, pathBuf);
+    hostBuf.ToString().swap(host);
+    pathBuf.ToString().swap(path);
+}
+
 bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port) {
     const size_t schemeSize = GetSchemePrefixSize(url);
     if (schemeSize != 0) {

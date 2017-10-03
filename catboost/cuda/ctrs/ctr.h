@@ -107,7 +107,6 @@ struct TCtrConfig {
     SAVELOAD(Type, Prior, ParamId);
 };
 
-
 inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {
     TCtrConfig result = ctrConfig;
     result.Prior.clear();
@@ -122,7 +121,6 @@ inline ymap<TCtrConfig, yvector<TCtrConfig>> CreateEqualUpToPriorCtrsGroupping(c
     }
     return result;
 }
-
 
 // equal configs factor
 inline bool IsEqualUpToPrior(const TCtrConfig& left, const TCtrConfig& right) {

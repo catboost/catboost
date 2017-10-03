@@ -34,20 +34,20 @@ inline void SplitStroku(yvector<TUtf16String>* res, const TUtf16String& str, con
     SplitStroku(res, ~str, +str, delimiter, maxFields, options);
 }
 
-inline yvector<TString> splitStroku(const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0) {
+inline yvector<TString> SplitStroku(const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0) {
     yvector<TString> res;
     SplitStroku(&res, ptr, delimiter, maxFields, options);
     return res;
 }
 
-inline yvector<TString> splitStroku(const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0) {
+inline yvector<TString> SplitStroku(const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0) {
     yvector<TString> res;
     SplitStroku(&res, ptr, len, delimiter, maxFields, options);
     return res;
 }
 
-inline yvector<TString> splitStroku(const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    return splitStroku(~str, +str, delimiter, maxFields, options);
+inline yvector<TString> SplitStroku(const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
+    return SplitStroku(~str, +str, delimiter, maxFields, options);
 }
 
 inline yvector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {

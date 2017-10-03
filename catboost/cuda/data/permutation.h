@@ -12,15 +12,15 @@ private:
     ui32 Index;
     ui32 Size;
     ui32 BlockSize;
+
 protected:
     TDataPermutation(ui32 index,
                      ui32 poolSize,
-                     ui32 blockSize
-    )
+                     ui32 blockSize)
         : Index(index)
         , Size(poolSize)
-        , BlockSize(blockSize) {
-
+        , BlockSize(blockSize)
+    {
     }
 
     friend TDataPermutation GetPermutation(const TDataProvider& dataProvider, ui32 permutationId, ui32 blockSize);
@@ -32,8 +32,7 @@ public:
 
         if (Index != IdentityPermutationId()) {
             TRandom rng(1664525 * GetPermutationId() + 1013904223);
-            if (BlockSize == 1)
-            {
+            if (BlockSize == 1) {
                 std::random_shuffle(order.begin(), order.begin() + Size, rng);
             } else {
                 const ui32 blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), BlockSize));
@@ -51,6 +50,19 @@ public:
                 }
             }
         }
+    }
+
+    template <class T>
+    yvector<T> Gather(const yvector<T>& src) const {
+        yvector<T> result;
+        result.resize(src.size());
+
+        yvector<ui32> order;
+        FillOrder(order);
+        for (ui32 i = 0; i < order.size(); ++i) {
+            result[i] = src[order[i]];
+        }
+        return result;
     }
 
     void FillInversePermutation(yvector<ui32>& permutation) const {
@@ -95,10 +107,8 @@ public:
 
 inline TDataPermutation GetPermutation(const TDataProvider& dataProvider,
                                        ui32 permutationId,
-                                       ui32 blockSize = 1
-) {
+                                       ui32 blockSize = 1) {
     return TDataPermutation(permutationId,
                             dataProvider.GetSampleCount(),
-                            blockSize
-    );
+                            blockSize);
 }

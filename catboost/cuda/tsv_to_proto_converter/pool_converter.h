@@ -410,11 +410,12 @@ public:
 
         //docId, queryId
         {
-            NCompressedPool::TIntegerColumn intColumn;
+            NCompressedPool::TUnsignedIntegerColumn uintColumn;
             if (docIdColumn != -1) {
-                ConvertColumn<ui32, NCompressedPool::TIntegerColumn>(docIdColumn, intColumn);
+                ConvertColumn<ui32, NCompressedPool::TUnsignedIntegerColumn>(docIdColumn, uintColumn);
             }
             if (queryIdColumn != -1) {
+                NCompressedPool::TIntegerColumn intColumn;
                 ConvertColumnAndWrite<ui32, NCompressedPool::TIntegerColumn>(queryIdColumn, intColumn, [](const TString& str, ui32& val) -> bool {
                     val = StringToIntHash(str);
                     return true;

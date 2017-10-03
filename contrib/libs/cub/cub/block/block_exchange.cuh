@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -144,9 +144,8 @@ private:
         WARP_TIME_SLICED_THREADS    = CUB_MIN(BLOCK_THREADS, WARP_THREADS),
         WARP_TIME_SLICED_ITEMS      = WARP_TIME_SLICED_THREADS * ITEMS_PER_THREAD,
 
-        // Insert padding if the number of items per thread is a power of two
-        INSERT_PADDING              = PowerOfTwo<ITEMS_PER_THREAD>::VALUE,
-//        INSERT_PADDING              = 0,
+        // Insert padding to avoid bank conflicts during raking when items per thread is a power of two and > 4 (otherwise we can typically use 128b loads)
+        INSERT_PADDING              = (ITEMS_PER_THREAD > 4) && (PowerOfTwo<ITEMS_PER_THREAD>::VALUE),
         PADDING_ITEMS               = (INSERT_PADDING) ? (TIME_SLICED_ITEMS >> LOG_SMEM_BANKS) : 0,
     };
 
@@ -155,7 +154,10 @@ private:
      ******************************************************************************/
 
     /// Shared memory storage layout type
-    typedef InputT _TempStorage[TIME_SLICED_ITEMS + PADDING_ITEMS];
+    struct __align__(16) _TempStorage
+    {
+        InputT buff[TIME_SLICED_ITEMS + PADDING_ITEMS];
+    };
 
 public:
 
@@ -198,24 +200,24 @@ private:
     __device__ __forceinline__ void BlockedToStriped(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = (linear_tid * ITEMS_PER_THREAD) + ITEM;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = int(ITEM * BLOCK_THREADS) + linear_tid;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -227,7 +229,7 @@ private:
     __device__ __forceinline__ void BlockedToStriped(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<true>  time_slicing)
+        Int2Type<true>  /*time_slicing*/)
     {
         InputT temp_items[ITEMS_PER_THREAD];
 
@@ -237,7 +239,7 @@ private:
             const int SLICE_OFFSET  = SLICE * TIME_SLICED_ITEMS;
             const int SLICE_OOB     = SLICE_OFFSET + TIME_SLICED_ITEMS;
 
-            __syncthreads();
+            CTA_SYNC();
 
             if (warp_id == SLICE)
             {
@@ -246,11 +248,11 @@ private:
                 {
                     int item_offset = (lane_id * ITEMS_PER_THREAD) + ITEM;
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    temp_storage[item_offset] = input_items[ITEM];
+                    temp_storage.buff[item_offset] = input_items[ITEM];
                 }
             }
 
-            __syncthreads();
+            CTA_SYNC();
 
             #pragma unroll
             for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
@@ -265,7 +267,7 @@ private:
                     if ((item_offset >= 0) && (item_offset < TIME_SLICED_ITEMS))
                     {
                         if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                        temp_items[ITEM] = temp_storage[item_offset];
+                        temp_items[ITEM] = temp_storage.buff[item_offset];
                     }
                 }
             }
@@ -287,24 +289,24 @@ private:
     __device__ __forceinline__ void BlockedToWarpStriped(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = warp_offset + ITEM + (lane_id * ITEMS_PER_THREAD);
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __threadfence_block();
+        WARP_SYNC(0xffffffff);
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = warp_offset + (ITEM * WARP_TIME_SLICED_THREADS) + lane_id;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -315,7 +317,7 @@ private:
     __device__ __forceinline__ void BlockedToWarpStriped(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<true>  time_slicing)
+        Int2Type<true>  /*time_slicing*/)
     {
         if (warp_id == 0)
         {
@@ -324,24 +326,24 @@ private:
             {
                 int item_offset = ITEM + (lane_id * ITEMS_PER_THREAD);
                 if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                temp_storage[item_offset] = input_items[ITEM];
+                temp_storage.buff[item_offset] = input_items[ITEM];
             }
 
-            __threadfence_block();
+            WARP_SYNC(0xffffffff);
 
             #pragma unroll
             for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
             {
                 int item_offset = (ITEM * WARP_TIME_SLICED_THREADS) + lane_id;
                 if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                output_items[ITEM] = temp_storage[item_offset];
+                output_items[ITEM] = temp_storage.buff[item_offset];
             }
         }
 
         #pragma unroll
-        for (int SLICE = 1; SLICE < TIME_SLICES; ++SLICE)
+        for (unsigned int SLICE = 1; SLICE < TIME_SLICES; ++SLICE)
         {
-            __syncthreads();
+            CTA_SYNC();
 
             if (warp_id == SLICE)
             {
@@ -350,17 +352,17 @@ private:
                 {
                     int item_offset = ITEM + (lane_id * ITEMS_PER_THREAD);
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    temp_storage[item_offset] = input_items[ITEM];
+                    temp_storage.buff[item_offset] = input_items[ITEM];
                 }
 
-                __threadfence_block();
+                WARP_SYNC(0xffffffff);
 
                 #pragma unroll
                 for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
                 {
                     int item_offset = (ITEM * WARP_TIME_SLICED_THREADS) + lane_id;
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    output_items[ITEM] = temp_storage[item_offset];
+                    output_items[ITEM] = temp_storage.buff[item_offset];
                 }
             }
         }
@@ -374,17 +376,17 @@ private:
     __device__ __forceinline__ void StripedToBlocked(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = int(ITEM * BLOCK_THREADS) + linear_tid;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         // No timeslicing
         #pragma unroll
@@ -392,7 +394,7 @@ private:
         {
             int item_offset = (linear_tid * ITEMS_PER_THREAD) + ITEM;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -404,7 +406,7 @@ private:
     __device__ __forceinline__ void StripedToBlocked(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<true>  time_slicing)
+        Int2Type<true>  /*time_slicing*/)
     {
         // Warp time-slicing
         InputT temp_items[ITEMS_PER_THREAD];
@@ -415,7 +417,7 @@ private:
             const int SLICE_OFFSET  = SLICE * TIME_SLICED_ITEMS;
             const int SLICE_OOB     = SLICE_OFFSET + TIME_SLICED_ITEMS;
 
-            __syncthreads();
+            CTA_SYNC();
 
             #pragma unroll
             for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
@@ -430,12 +432,12 @@ private:
                     if ((item_offset >= 0) && (item_offset < TIME_SLICED_ITEMS))
                     {
                         if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                        temp_storage[item_offset] = input_items[ITEM];
+                        temp_storage.buff[item_offset] = input_items[ITEM];
                     }
                 }
             }
 
-            __syncthreads();
+            CTA_SYNC();
 
             if (warp_id == SLICE)
             {
@@ -444,7 +446,7 @@ private:
                 {
                     int item_offset = (lane_id * ITEMS_PER_THREAD) + ITEM;
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    temp_items[ITEM] = temp_storage[item_offset];
+                    temp_items[ITEM] = temp_storage.buff[item_offset];
                 }
             }
         }
@@ -465,24 +467,24 @@ private:
     __device__ __forceinline__ void WarpStripedToBlocked(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = warp_offset + (ITEM * WARP_TIME_SLICED_THREADS) + lane_id;
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __threadfence_block();
+        WARP_SYNC(0xffffffff);
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = warp_offset + ITEM + (lane_id * ITEMS_PER_THREAD);
             if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -494,12 +496,12 @@ private:
     __device__ __forceinline__ void WarpStripedToBlocked(
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
-        Int2Type<true>  time_slicing)
+        Int2Type<true>  /*time_slicing*/)
     {
         #pragma unroll
-        for (int SLICE = 0; SLICE < TIME_SLICES; ++SLICE)
+        for (unsigned int SLICE = 0; SLICE < TIME_SLICES; ++SLICE)
         {
-            __syncthreads();
+            CTA_SYNC();
 
             if (warp_id == SLICE)
             {
@@ -508,17 +510,17 @@ private:
                 {
                     int item_offset = (ITEM * WARP_TIME_SLICED_THREADS) + lane_id;
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    temp_storage[item_offset] = input_items[ITEM];
+                    temp_storage.buff[item_offset] = input_items[ITEM];
                 }
 
-                __threadfence_block();
+                WARP_SYNC(0xffffffff);
 
                 #pragma unroll
                 for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
                 {
                     int item_offset = ITEM + (lane_id * ITEMS_PER_THREAD);
                     if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                    output_items[ITEM] = temp_storage[item_offset];
+                    output_items[ITEM] = temp_storage.buff[item_offset];
                 }
             }
         }
@@ -533,24 +535,24 @@ private:
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OffsetT         ranks[ITEMS_PER_THREAD],    ///< [in] Corresponding scatter ranks
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = ranks[ITEM];
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = (linear_tid * ITEMS_PER_THREAD) + ITEM;
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -562,14 +564,14 @@ private:
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OffsetT         ranks[ITEMS_PER_THREAD],    ///< [in] Corresponding scatter ranks
-        Int2Type<true>  time_slicing)
+        Int2Type<true>  /*time_slicing*/)
     {
         InputT temp_items[ITEMS_PER_THREAD];
 
         #pragma unroll
         for (int SLICE = 0; SLICE < TIME_SLICES; SLICE++)
         {
-            __syncthreads();
+            CTA_SYNC();
 
             const int SLICE_OFFSET = TIME_SLICED_ITEMS * SLICE;
 
@@ -580,11 +582,11 @@ private:
                 if ((item_offset >= 0) && (item_offset < WARP_TIME_SLICED_ITEMS))
                 {
                     if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-                    temp_storage[item_offset] = input_items[ITEM];
+                    temp_storage.buff[item_offset] = input_items[ITEM];
                 }
             }
 
-            __syncthreads();
+            CTA_SYNC();
 
             if (warp_id == SLICE)
             {
@@ -593,7 +595,7 @@ private:
                 {
                     int item_offset = (lane_id * ITEMS_PER_THREAD) + ITEM;
                     if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-                    temp_items[ITEM] = temp_storage[item_offset];
+                    temp_items[ITEM] = temp_storage.buff[item_offset];
                 }
             }
         }
@@ -615,24 +617,24 @@ private:
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OffsetT         ranks[ITEMS_PER_THREAD],    ///< [in] Corresponding scatter ranks
-        Int2Type<false> time_slicing)
+        Int2Type<false> /*time_slicing*/)
     {
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = ranks[ITEM];
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            temp_storage[item_offset] = input_items[ITEM];
+            temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = int(ITEM * BLOCK_THREADS) + linear_tid;
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -645,7 +647,7 @@ private:
         InputT          input_items[ITEMS_PER_THREAD],      ///< [in] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OutputT         output_items[ITEMS_PER_THREAD],     ///< [out] Items to exchange, converting between <em>blocked</em> and <em>striped</em> arrangements.
         OffsetT         ranks[ITEMS_PER_THREAD],    ///< [in] Corresponding scatter ranks
-        Int2Type<true> time_slicing)
+        Int2Type<true> /*time_slicing*/)
     {
         InputT temp_items[ITEMS_PER_THREAD];
 
@@ -655,7 +657,7 @@ private:
             const int SLICE_OFFSET  = SLICE * TIME_SLICED_ITEMS;
             const int SLICE_OOB     = SLICE_OFFSET + TIME_SLICED_ITEMS;
 
-            __syncthreads();
+            CTA_SYNC();
 
             #pragma unroll
             for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
@@ -664,11 +666,11 @@ private:
                 if ((item_offset >= 0) && (item_offset < WARP_TIME_SLICED_ITEMS))
                 {
                     if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-                    temp_storage[item_offset] = input_items[ITEM];
+                    temp_storage.buff[item_offset] = input_items[ITEM];
                 }
             }
 
-            __syncthreads();
+            CTA_SYNC();
 
             #pragma unroll
             for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
@@ -683,7 +685,7 @@ private:
                     if ((item_offset >= 0) && (item_offset < TIME_SLICED_ITEMS))
                     {
                         if (INSERT_PADDING) item_offset += item_offset >> LOG_SMEM_BANKS;
-                        temp_items[ITEM] = temp_storage[item_offset];
+                        temp_items[ITEM] = temp_storage.buff[item_offset];
                     }
                 }
             }
@@ -726,8 +728,8 @@ public:
     :
         temp_storage(temp_storage.Alias()),
         linear_tid(RowMajorTid(BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z)),
-        warp_id((WARPS == 1) ? 0 : linear_tid / WARP_THREADS),
         lane_id(LaneId()),
+        warp_id((WARPS == 1) ? 0 : linear_tid / WARP_THREADS),
         warp_offset(warp_id * WARP_TIME_SLICED_ITEMS)
     {}
 
@@ -997,17 +999,17 @@ public:
             int item_offset = ranks[ITEM];
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
             if (ranks[ITEM] >= 0)
-                temp_storage[item_offset] = input_items[ITEM];
+                temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = int(ITEM * BLOCK_THREADS) + linear_tid;
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -1036,17 +1038,17 @@ public:
             int item_offset = ranks[ITEM];
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
             if (is_valid[ITEM])
-                temp_storage[item_offset] = input_items[ITEM];
+                temp_storage.buff[item_offset] = input_items[ITEM];
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = int(ITEM * BLOCK_THREADS) + linear_tid;
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            output_items[ITEM] = temp_storage[item_offset];
+            output_items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 
@@ -1148,8 +1150,8 @@ private:
         LOG_SMEM_BANKS              = CUB_LOG_SMEM_BANKS(PTX_ARCH),
         SMEM_BANKS                  = 1 << LOG_SMEM_BANKS,
 
-        // Insert padding if the number of items per thread is a power of two
-        INSERT_PADDING              = 0, // Mooch PowerOfTwo<ITEMS_PER_THREAD>::VALUE,
+        // Insert padding if the number of items per thread is a power of two and > 4 (otherwise we can typically use 128b loads)
+        INSERT_PADDING              = (ITEMS_PER_THREAD > 4) && (PowerOfTwo<ITEMS_PER_THREAD>::VALUE),
         PADDING_ITEMS               = (INSERT_PADDING) ? (WARP_ITEMS >> LOG_SMEM_BANKS) : 0,
     };
 
@@ -1158,7 +1160,10 @@ private:
      ******************************************************************************/
 
     /// Shared memory storage layout type
-    typedef T _TempStorage[WARP_ITEMS + PADDING_ITEMS];
+    struct _TempStorage
+    {
+        T buff[WARP_ITEMS + PADDING_ITEMS];
+    };
 
 public:
 
@@ -1213,17 +1218,17 @@ public:
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             if (INSERT_PADDING) ranks[ITEM] = SHR_ADD(ranks[ITEM], LOG_SMEM_BANKS, ranks[ITEM]);
-            temp_storage[ranks[ITEM]] = items[ITEM];
+            temp_storage.buff[ranks[ITEM]] = items[ITEM];
         }
 
-        __threadfence_block();
+        WARP_SYNC(0xffffffff);
 
         #pragma unroll
         for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ITEM++)
         {
             int item_offset = (ITEM * LOGICAL_WARP_THREADS) + lane_id;
             if (INSERT_PADDING) item_offset = SHR_ADD(item_offset, LOG_SMEM_BANKS, item_offset);
-            items[ITEM] = temp_storage[item_offset];
+            items[ITEM] = temp_storage.buff[item_offset];
         }
     }
 

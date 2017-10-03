@@ -11,15 +11,30 @@ env_source_root = 'Y_PYTHON_SOURCE_ROOT'
 executable = sys.executable
 sys.modules['run_import_hook'] = __resource
 
+find_py_module = lambda mod: __resource.find('/py_modules/' + mod)
+find_py_code = lambda mod: __resource.find('/py_code/' + mod)
 
-def iter_keys():
-    for idx in range(__resource.count()):
+Y_PYTHON_SOURCE_ROOT = os.environ.get(env_source_root)
+if Y_PYTHON_SOURCE_ROOT is not None:
+    Y_PYTHON_SOURCE_ROOT = os.path.abspath(os.path.expanduser(Y_PYTHON_SOURCE_ROOT))
+    os.environ[env_source_root] = Y_PYTHON_SOURCE_ROOT
+
+
+def iter_keys(prefix):
+    l = len(prefix)
+    for idx in xrange(__resource.count()):
         key = __resource.key_by_index(idx)
+        if key.startswith(prefix):
+            yield key, key[l:]
 
-        if key.startswith('/py_modules/'):
-            mod = key[12:]
-            if '/' in mod:
-                raise Exception('Incorrect py_modules resource: ' + repr(key))
+
+def iter_py_modules(with_keys=False):
+    for key, mod in iter_keys('/py_modules/'):
+        if '/' in mod:
+            raise Exception('Incorrect py_modules resource: ' + repr(key))
+        if with_keys:
+            yield key, mod
+        else:
             yield mod
 
 
@@ -30,19 +45,57 @@ def iter_prefixes(s):
         i = s.find('.', i + 1)
 
 
+def resfs_resolve(path):
+    """
+    Return the absolute path of the resource path if it exists.
+    """
+    if Y_PYTHON_SOURCE_ROOT:
+        abspath = os.path.join(Y_PYTHON_SOURCE_ROOT, path)
+        if os.path.exists(abspath):
+            return abspath
+
+
+def resfs_read(path, builtin=None):
+    """
+    Return the bytes of the resouce file at path.
+    If builtin is True, do not look for it in Y_PYTHON_SOURCE_ROOT.
+    If builtin is False, do not look in the builtin resources.
+    """
+    if builtin is not True:
+        abspath = resfs_resolve(path)
+        if abspath:
+            with open(abspath, 'rb') as f:
+                return f.read()
+
+    if builtin is not False:
+        return __resource.find('resfs/file/' + path)
+
+
+def resfs_src(key, resfs_file=False):
+    """
+    Return the root-relative file path of a resource key.
+    """
+    if resfs_file:
+        key = 'resfs/file/' + key
+    return __resource.find('resfs/src/' + key)
+
+
+def resfs_files():
+    """
+    List builtin resource file paths.
+    """
+    return [path for _, path in iter_keys('resfs/file/')]
+
+
 class ResourceImporter(object):
 
     """ A meta_path importer that loads code from built-in resources.
     """
 
     def __init__(self):
-        self.memory = set(list(iter_keys()))  # Set of importable module names.
+        self.memory = set(iter_py_modules())  # Set of importable module names.
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
-        self._source_root = os.environ.get(env_source_root, None)
-        if self._source_root is not None:
-            self._source_root = os.path.abspath(os.path.expanduser(self._source_root))
-            os.environ[env_source_root] = self._source_root
 
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
@@ -50,84 +103,57 @@ class ResourceImporter(object):
                 if k not in self.memory:
                     self.memory.add(k)
 
-    def contains(self, name):
-        """See if a module or package is in the dict."""
-        if name in self.memory:
-            return name
-        package_name = '{0}.__init__'.format(name)
-        if package_name in self.memory:
-            return package_name
-        return False
-
-    __contains__ = contains  # Convenience.
-
+    # PEP-302 finder.
     def find_module(self, fullname, path=None):
-        """Find the module in the dict."""
-        if fullname in self:
-            return self
-        return None
+        try:
+            self.is_package(fullname)
+        except ImportError:
+            return None
+        return self
 
-    def source_path(self, fullname):
-        """Return the module name if the module is in the dict."""
-        if fullname not in self:
-            raise ImportError
-        return fullname
-
-    def file_source(self, filename):
-        if not self.source_map:
-            for i in xrange(__resource.count()):
-                key = __resource.key_by_index(i)
-                if key.startswith('/py_fs/'):
-                    modname = key[len('/py_fs/'):]
-                    path = __resource.find(key)
-                    self.source_map[path] = '/py_modules/' + modname
-
-        return self.source_map.get(filename, '')
-
-    _get_resource = __resource.find
-
-    def _get_data(self, path, prefix):
-        """Return the bytes for the source.
-
-        The value found in the dict is passed through 'bytes' before being
-        returned.
-
-        """
-        name = self.contains(path)
-        if not name:
-            raise IOError
-        res = self._get_resource(prefix + name)
-        if res is None:
-            # XXX(borman) A resource is missing? Let's just pretend it is empty.
-            return ''
-        return bytes(res)
-
+    # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
-        return self._get_data(path, '/py_modules/')
+        data = resfs_read(path)
+        if data is None:
+            raise IOError
+        return data
 
+    # PEP-302 extension 2 of 3: get __file__ without importing.
+    def get_filename(self, fullname):
+        modname = fullname
+        if self.is_package(fullname):
+            fullname += '.__init__'
+        return resfs_src('/py_modules/' + fullname) or modname
+
+    # PEP-302 extension 3 of 3: packaging introspection.
     # Used by `linecache` (while printing tracebacks) unless module filename
     # exists on the filesystem.
-    def get_source(self, mod_name):
-        return self.get_data(self._source_name.get(mod_name, mod_name))
+    def get_source(self, fullname):
+        original_name = self._source_name.get(fullname) or fullname
+        path = self.get_filename(original_name)
+        abspath = resfs_resolve(path)
+        if abspath:
+            with open(abspath, 'rb') as f:
+                return f.read()
+        return find_py_module(fullname)
 
-    def get_code(self, mod_name):
-        if self._source_root:
-            key = '/py_fs/' + mod_name
-            path = __resource.find(key)
-            if not path:
-                path = __resource.find(key + '.__init__')
-            if path:
-                path = os.path.join(self._source_root, path)
-                if os.path.exists(path):
-                    with open(path) as f:
-                        return compile(f.read(), path, 'exec', dont_inherit=True)
+    def get_code(self, fullname):
+        modname = fullname
+        if self.is_package(fullname):
+            fullname += '.__init__'
 
-        pyc = self._get_data(mod_name, '/py_code/')
+        path = self.get_filename(fullname)
+        abspath = resfs_resolve(path)
+        if abspath:
+            data = resfs_read(path, builtin=False)
+            return compile(data, abspath, 'exec', dont_inherit=True)
+
+        pyc = find_py_code(fullname)
         if pyc:
             return marshal.loads(pyc)
         else:
             # This covers packages with no __init__.py in resources.
-            return compile('', mod_name, 'exec', dont_inherit=True)
+            return compile('', modname, 'exec', dont_inherit=True)
 
     def is_package(self, fullname):
         if fullname in self.memory:
@@ -138,6 +164,19 @@ class ResourceImporter(object):
 
         raise ImportError
 
+    # Extension for contrib/python/coverage.
+    def file_source(self, filename):
+        """
+        Return the key of the module source by its resource path.
+        """
+        if not self.source_map:
+            for key, mod in iter_py_modules(with_keys=True):
+                path = self.get_filename(mod)
+                self.source_map[path] = key
+
+        return self.source_map.get(filename, '')
+
+    # PEP-302 loader.
     def load_module(self, mod_name, fix_name=None):
         code = self.get_code(mod_name)
         is_package = self.is_package(mod_name)

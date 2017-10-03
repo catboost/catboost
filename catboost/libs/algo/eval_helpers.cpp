@@ -65,6 +65,14 @@ static bool IsMulticlass(const yvector<yvector<double>>& approx) {
 
 yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
                                      const yvector<yvector<double>>& approx,
+                                     int threadCount) {
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    return PrepareEval(predictionType, approx, &executor);
+}
+
+yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const yvector<yvector<double>>& approx,
                                      NPar::TLocalExecutor* localExecutor) {
     yvector<yvector<double>> result;
     switch (predictionType) {
@@ -96,18 +104,21 @@ yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
     return result;
 }
 
-void OutputTestEval(const yvector<yvector<double>>& testApprox, const TString& testEvalFile, const yvector<TDocInfo>& docs,
-                    const bool outputTarget) {
-    TOFStream f(testEvalFile);
-    for (int i = 0; i < testApprox[0].ysize(); ++i) {
-        if (!docs[i].Id.empty()) {
-            f << docs[i].Id << '\t';
+void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox, const yvector<TDocInfo>& docs,
+                    const bool outputTarget, TOFStream* outputStream) {
+    for (int docIdx = 0; docIdx < testApprox[0][0].ysize(); ++docIdx) {
+        if (!docs[docIdx].Id.empty()) {
+            *outputStream << docs[docIdx].Id << '\t';
         }
-        for (int dim = 0; dim < testApprox.ysize(); ++dim) {
-            f << testApprox[dim][i] << (dim + 1 < testApprox.ysize() || outputTarget ? "\t" : "\n");
+        for (int evalIteration = 0; evalIteration < testApprox.ysize(); ++evalIteration) {
+            for (int dim = 0; dim < testApprox[0].ysize(); ++dim) {
+                *outputStream << testApprox[evalIteration][dim][docIdx] <<
+                    ((evalIteration + 1 < testApprox.ysize() || dim + 1 < testApprox[0].ysize()) ||
+                     outputTarget ? "\t" : "\n");
+            }
         }
         if (outputTarget) {
-            f << docs[i].Target << "\n";
+            *outputStream << docs[docIdx].Target << "\n";
         }
     }
 }

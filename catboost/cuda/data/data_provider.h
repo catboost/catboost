@@ -57,7 +57,7 @@ public:
         return Weights;
     }
 
-    const yvector<ui32>& GetQueryIds() const {
+    const yvector<int>& GetQueryIds() const {
         if (QueryIds.size() != Targets.size()) {
             ythrow yexception() << "Don't have query ids: qids vector size is less, than points (target) size. If you need qids, load data with LF_QUERY_ID flag";
         }
@@ -83,11 +83,19 @@ public:
         return CatFeatureIds;
     }
 
+    bool HasBaseline() const {
+        return Baseline.size() && Baseline[0].size() == GetSampleCount();
+    }
+
+    const yvector<float>& GetBaseline() const {
+        return Baseline[0];
+    }
+
 private:
     yvector<TFeatureColumnPtr> Features;
 
     yvector<ui32> Order;
-    yvector<ui32> QueryIds;
+    yvector<int> QueryIds;
     yvector<yvector<ui32>> Queries;
 
     yvector<ui32> DocIds;

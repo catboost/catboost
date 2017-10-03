@@ -287,5 +287,8 @@ inline void Delete(TAutoPtr<IMtpQueue> q) {
     }
 }
 
-/** creates and starts TMtpQueue if threadsCount > 1, or TFakeMtpQueue otherwise  */
-TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit = 0);
+/**
+ * Creates and starts TMtpQueue if threadsCount > 1, or TFakeMtpQueue otherwise
+ * You could specify blocking and catching modes for TMtpQueue only
+ */
+TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit = 0, TMtpQueue::EBlocking blocking = TMtpQueue::EBlocking::NonBlockingMode, TMtpQueue::ECatching catching = TMtpQueue::ECatching::CatchingMode);

@@ -112,7 +112,7 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
             SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
             for (ui32 k = 0; k < tries; ++k) {
-                for (ui32 meanSize : {2, 4, 7, 15, 30, 55, 77, 110, 140, 255, 1024, 10000, 20000}) {
+                for (ui32 meanSize : {2, 4, 7, 15, 30, 55, 77, 110, 140, 255, 512, 1024, 2048, 4096, 10000, 20000}) {
                     yvector<float> vec;
                     ui64 size = 10000000;
 

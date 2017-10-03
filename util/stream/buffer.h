@@ -47,6 +47,7 @@ public:
 
 private:
     void DoWrite(const void* buf, size_t len) override;
+    void DoWriteC(char c) override;
 
 private:
     THolder<TImpl> Impl_;

@@ -77,13 +77,13 @@ namespace NKernelHost {
 template <typename T, class TMapping>
 inline void FillBuffer(TCudaBuffer<T, TMapping>& buffer,
                        T value,
-                       ui64 streamId = 0) {
+                       ui32 streamId = 0) {
     using TKernel = NKernelHost::TFillBufferKernel<T>;
     LaunchKernels<TKernel>(buffer.NonEmptyDevices(), streamId, buffer, value);
 }
 
 template <typename T, class TMapping>
-inline void MakeSequence(TCudaBuffer<T, TMapping>& buffer, ui64 stream = 0) {
+inline void MakeSequence(TCudaBuffer<T, TMapping>& buffer, ui32 stream = 0) {
     using TKernel = NKernelHost::TMakeSequenceKernel<T>;
     LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer);
 }

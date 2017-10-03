@@ -8,23 +8,26 @@
 
 #include <catboost/cuda/cuda_util/compression_helpers.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/pair.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/cuda/cuda_util/cpu_random.h>
 #include <util/stream/file.h>
+#include <util/system/spinlock.h>
+#include <util/system/sem.h>
 
 class TDataProviderBuilder: public IPoolBuilder {
 public:
-    using TSimpleCatFeatureBinarizationInfo = ymap<ui32, ymap<ui32, ui32>>;
+    using TSimpleCatFeatureBinarizationInfo = ymap<ui32, ymap<int, ui32>>;
 
     TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
-                         IFactory<IGridBuilder>& gridBuilder,
                          TDataProvider& dst,
-                         bool isTest = false)
+                         bool isTest = false,
+                         ui32 buildThreads = 1)
         : FeaturesManager(featureManager)
-        , GridBuilder(gridBuilder)
         , DataProvider(dst)
         , IsTest(isTest)
+        , BuildThreads(buildThreads)
     {
     }
 
@@ -92,9 +95,9 @@ public:
                        const TStringBuf& feature) override {
         if (IgnoreFeatures.count(featureId) == 0) {
             Y_ASSERT(CatFeatureIds.has(featureId));
-            ui32 hash = StringToIntHash(feature);
+            int hash = StringToIntHash(feature);
             //dirty c++ hack to store everything in float-vector
-            AddFloatFeature(localIdx, featureId, *reinterpret_cast<float*>(&hash));
+            AddFloatFeature(localIdx, featureId, ConvertCatFeatureHashToFloat(hash));
         }
     }
 
@@ -132,6 +135,14 @@ public:
         FeatureNames = featureIds;
     }
 
+    void SetPairs(const yvector<TPair>& /*pairs*/) override {
+        CB_ENSURE(false, "This function is not implemented in cuda");
+    }
+
+    int GetDocCount() const override {
+        CB_ENSURE(false, "This function is not implemented in cuda");
+    }
+
     void Finish() {
         CB_ENSURE(!IsDone, "Error: can't finish more than once");
         DataProvider.Features.reserve(FeatureValues.size());
@@ -159,13 +170,22 @@ public:
             ApplyPermutation(DataProvider.Order, DataProvider.DocIds);
         }
         yvector<TString> featureNames;
+        featureNames.resize(FeatureValues.size());
 
-        for (ui32 featureId = 0; featureId < FeatureValues.size(); ++featureId) {
+        TFastSemaphore binarizationSemaphore(GetThreadLimitForBordersType(FeaturesManager.GetDefaultFloatFeatureBinarizationDescription().BorderSelectionType));
+        TAdaptiveLock lock;
+
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(BuildThreads - 1);
+
+        yvector<TFeatureColumnPtr> featureColumns(FeatureValues.size());
+
+        NPar::ParallelFor(executor, 0, FeatureValues.size(), [&](ui32 featureId) {
             auto featureName = GetFeatureName(featureId);
-            featureNames.push_back(featureName);
+            featureNames[featureId] = featureName;
 
             if (FeatureValues[featureId].size() == 0) {
-                continue;
+                return;
             }
 
             yvector<float> line(DataProvider.Order.size());
@@ -176,60 +196,98 @@ public:
             if (CatFeatureIds.has(featureId)) {
                 static_assert(sizeof(float) == sizeof(ui32), "Error: float size should be equal to ui32 size");
                 auto data = ComputeCatFeatureBinarization(featureId,
-                                                          reinterpret_cast<ui32*>(line.data()),
+                                                          reinterpret_cast<int*>(line.data()),
                                                           line.size());
 
-                auto& catFeatureBinarization = CatFeatureBinarizations[featureId];
+                const auto& catFeatureBinarization = CatFeatureBinarizations[featureId];
                 const ui32 uniqueValues = catFeatureBinarization.size();
 
-                if (uniqueValues <= 1) {
+                if (uniqueValues > 1) {
+                    auto compressedData = CompressVector<ui64>(~data, line.size(), IntLog2(uniqueValues));
+                    featureColumns[featureId] = MakeHolder<TCatFeatureValuesHolder>(featureId,
+                                                                                    line.size(),
+                                                                                    std::move(compressedData),
+                                                                                    uniqueValues,
+                                                                                    featureName);
+                }
+
+            } else {
+                auto floatFeature = MakeHolder<TFloatValuesHolder>(featureId,
+                                                                   std::move(line),
+                                                                   featureName);
+
+                yvector<float> borders;
+
+                if (FeaturesManager.IsKnown(*floatFeature)) {
+                    borders = FeaturesManager.GetFloatFeatureBorders(*floatFeature);
+                }
+
+                if (borders.empty() && !IsTest) {
+                    TGuard<TFastSemaphore> guard(binarizationSemaphore);
+                    TOnCpuGridBuilderFactory gridBuilderFactory;
+                    borders = TBordersBuilder(gridBuilderFactory, floatFeature->GetValues())(FeaturesManager.GetDefaultFloatFeatureBinarizationDescription());
+                }
+                if (borders.ysize() == 0) {
+                    MATRIXNET_WARNING_LOG << "Float Feature #" << featureId << " is empty" << Endl;
+                    return;
+                }
+
+                auto binarizedData = BinarizeLine(floatFeature->GetValues().data(), floatFeature->GetValues().size(), borders);
+                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(borders.size() + 1));
+
+                featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
+                                                                                    floatFeature->GetValues().size(),
+                                                                                    borders,
+                                                                                    std::move(compressedLine),
+                                                                                    featureName);
+            }
+
+            //Free memory
+            {
+                auto emptyVec = yvector<float>();
+                FeatureValues[featureId].swap(emptyVec);
+            }
+        });
+
+        for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId) {
+            if (CatFeatureIds.has(featureId)) {
+                if (featureColumns[featureId] == nullptr) {
                     if (!IsTest) {
                         MATRIXNET_WARNING_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                         FeaturesManager.AddEmptyCatFeature(featureId);
                     }
                     continue;
                 }
+                const TCatFeatureValuesHolder& catFeatureValues = dynamic_cast<TCatFeatureValuesHolder&>(*featureColumns[featureId]);
 
-                auto compressedData = CompressVector<ui64>(~data, line.size(), IntLog2(uniqueValues));
-                auto catFeature = MakeHolder<TCatFeatureValuesHolder>(featureId,
-                                                                      line.size(),
-                                                                      std::move(compressedData),
-                                                                      uniqueValues,
-                                                                      featureName);
                 if (IsTest) {
-                    FeaturesManager.UpdateUniqueValues(*catFeature);
+                    if (FeaturesManager.GetBinCount(FeaturesManager.GetId(catFeatureValues)) <= 1) {
+                        if (catFeatureValues.GetUniqueValues() > FeaturesManager.GetBinCount(FeaturesManager.GetId(catFeatureValues))) {
+                            MATRIXNET_WARNING_LOG << "Cat Feature #" << featureId << " is empty in learn set and has #"
+                                                  << catFeatureValues.GetUniqueValues() << " unique values in test set"
+                                                  << Endl;
+                        }
+                        continue;
+                    }
+                    FeaturesManager.UpdateUniqueValues(catFeatureValues);
                 } else {
-                    FeaturesManager.AddCatFeature(*catFeature);
+                    FeaturesManager.AddCatFeature(catFeatureValues);
                 }
+                DataProvider.Features.push_back(std::move(featureColumns[featureId]));
 
-                DataProvider.Features.push_back(std::move(catFeature));
             } else {
-                auto floatFeature = MakeHolder<TFloatValuesHolder>(featureId,
-                                                                   std::move(line),
-                                                                   featureName);
+                if (featureColumns[featureId] != nullptr) {
+                    const TBinarizedFloatValuesHolder& binarizedFloatValuesHolder = dynamic_cast<TBinarizedFloatValuesHolder&>(*featureColumns[featureId]);
 
-                auto borders = FeaturesManager.GetOrCreateFloatFeatureBorders(*floatFeature,
-                                                                              TBordersBuilder(GridBuilder, floatFeature->GetValues()));
-
-                if (borders.ysize() == 0) {
-                    MATRIXNET_WARNING_LOG << "Float Feature #" << featureId << " is empty" << Endl;
-                    continue;
+                    if (!FeaturesManager.IsKnown(binarizedFloatValuesHolder)) {
+                        FeaturesManager.AddFloatFeature(binarizedFloatValuesHolder);
+                    }
+                    DataProvider.Features.push_back(std::move(featureColumns[featureId]));
+                } else {
+                    if (!IsTest) {
+                        FeaturesManager.AddEmptyFloatFeature(featureId); //for pretty printing in logs and with ignored features
+                    }
                 }
-
-                auto binarizedData = BinarizeLine(floatFeature->GetValues().data(), floatFeature->GetValues().size(), borders);
-                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(borders.size() + 1));
-
-                DataProvider.Features.push_back(MakeHolder<TBinarizedFloatValuesHolder>(featureId,
-                                                                                        floatFeature->GetValues().size(),
-                                                                                        borders,
-                                                                                        std::move(compressedLine),
-                                                                                        featureName));
-            }
-
-            //Free memory
-            {
-                auto emptyVec = yvector<float>();
-                line.swap(emptyVec);
             }
         }
 
@@ -239,7 +297,8 @@ public:
         DataProvider.BuildIndicesRemap();
 
         if (!IsTest) {
-            FeaturesManager.SetTargetBorders(TBordersBuilder(GridBuilder,
+            TOnCpuGridBuilderFactory gridBuilderFactory;
+            FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
                                                              DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
         }
 
@@ -255,6 +314,16 @@ public:
     }
 
 private:
+    ui32 GetThreadLimitForBordersType(EBorderSelectionType borderSelectionType) {
+        switch (borderSelectionType) {
+            case EBorderSelectionType::MinEntropy:
+            case EBorderSelectionType::MaxLogSum:
+                return 8;
+            default:
+                return 16;
+        }
+    }
+
     template <class T>
     void ApplyPermutation(const yvector<ui32>& order, yvector<T>& data) {
         if (data.size()) {
@@ -265,17 +334,26 @@ private:
         }
     }
     yvector<ui32> ComputeCatFeatureBinarization(ui32 featureId,
-                                                const ui32* hashes,
+                                                const int* hashes,
                                                 ui32 hashesSize) {
-        auto& binarization = CatFeatureBinarizations[featureId];
+        ymap<int, ui32> binarization;
+        {
+            TGuard<TAdaptiveLock> guard(CatFeatureBinarizationLock);
+            binarization.swap(CatFeatureBinarizations[featureId]);
+        }
 
         yvector<ui32> bins(hashesSize, 0);
         for (ui32 i = 0; i < hashesSize; ++i) {
-            ui32 hash = hashes[i];
+            auto hash = hashes[i];
             if (binarization.count(hash) == 0) {
                 binarization[hash] = (unsigned int)binarization.size();
             }
             bins[i] = binarization[hash];
+        }
+
+        {
+            TGuard<TAdaptiveLock> guard(CatFeatureBinarizationLock);
+            CatFeatureBinarizations[featureId].swap(binarization);
         }
         return bins;
     }
@@ -289,9 +367,10 @@ private:
     }
 
     TBinarizedFeaturesManager& FeaturesManager;
-    IFactory<IGridBuilder>& GridBuilder;
     TDataProvider& DataProvider;
     bool IsTest;
+    ui32 BuildThreads;
+    TAdaptiveLock CatFeatureBinarizationLock;
 
     bool Shuffle = true;
     ui32 Cursor = 0;

@@ -362,7 +362,6 @@ namespace NCudaLib {
             Buffers.resize(GetCudaManager().GetDeviceCount());
         }
 
-
         template <class U>
         TCudaBuffer<U, TMapping, Type> ReinterpretCast() {
             TCudaBuffer<U, TMapping, Type> buffer;
@@ -595,7 +594,8 @@ namespace NCudaLib {
             return Create(other.Mapping);
         }
 
-        void Copy(const TCudaBuffer<const T, TMapping, Type>& src, ui32 stream = 0) {
+        template <class TC, EPtrType SrcType>
+        void Copy(const TCudaBuffer<TC, TMapping, SrcType>& src, ui32 stream = 0) {
             const auto& mapping = GetMapping();
             const TMapping& srcMapping = src.GetMapping();
 

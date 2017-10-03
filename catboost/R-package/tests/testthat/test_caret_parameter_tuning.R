@@ -11,7 +11,7 @@ load_pool <- function() {
     column_description_vector[i] <- 'factor'
   }
 
-  data <- read.table(pool_path, head=F, sep="\t", colClasses=column_description_vector)
+  data <- read.table(pool_path, head=F, sep="\t", colClasses=column_description_vector, na.strings='NAN')
 
   # Transform categorical features to numeric.
   for (i in cat_features) {

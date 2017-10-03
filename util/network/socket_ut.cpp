@@ -1,5 +1,7 @@
 #include "socket.h"
 
+#include "pair.h"
+
 #include <library/unittest/registar.h>
 
 #include <util/string/builder.h>
@@ -15,6 +17,7 @@ class TSockTest: public TTestBase {
     UNIT_TEST_EXCEPTION(TestConnectionRefused, yexception);
 #endif
     UNIT_TEST(TestNetworkResolutionError);
+    UNIT_TEST(TestBrokenPipe);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -22,6 +25,7 @@ public:
     void TestTimeout();
     void TestConnectionRefused();
     void TestNetworkResolutionError();
+    void TestBrokenPipe();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSockTest);
@@ -74,6 +78,39 @@ void TSockTest::TestNetworkResolutionError() {
     if (errMsg.find(expectedErrMsg) == TString::npos) {
         UNIT_FAIL("TNetworkResolutionError contains\nInvalid msg: " + errMsg + "\nExpected msg: " + expectedErrMsg + "\n");
     }
+}
+
+class TTempEnableSigPipe
+{
+public:
+    TTempEnableSigPipe() {
+        OriginalSigHandler = signal(SIGPIPE, SIG_DFL);
+        Y_VERIFY(OriginalSigHandler != SIG_ERR);
+    }
+
+    ~TTempEnableSigPipe() {
+        auto ret = signal(SIGPIPE, OriginalSigHandler);
+        Y_VERIFY(ret != SIG_ERR);
+    }
+
+private:
+    void (*OriginalSigHandler)(int);
+};
+
+void TSockTest::TestBrokenPipe()
+{
+    TTempEnableSigPipe guard;
+
+    SOCKET socks[2];
+
+    int ret = SocketPair(socks);
+    UNIT_ASSERT_VALUES_EQUAL(ret, 0);
+
+    TSocket sender(socks[0]);
+    TSocket receiver(socks[1]);
+    receiver.ShutDown(SHUT_RDWR);
+    int sent = sender.Send("FOO", 3);
+    UNIT_ASSERT(sent < 0);
 }
 
 class TPollTest: public TTestBase {

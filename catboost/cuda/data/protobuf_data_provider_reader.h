@@ -23,7 +23,7 @@ public:
         ReadFloatColumn(input, dataProvider.Targets);
 
         if (poolStructure.GetDocIdColumn()) {
-            ReadIntColumn(input, dataProvider.DocIds);
+            ReadUnsignedIntColumn(input, dataProvider.DocIds);
         }
 
         if (poolStructure.GetQueryIdColumn()) {

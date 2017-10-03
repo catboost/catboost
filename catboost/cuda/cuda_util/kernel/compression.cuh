@@ -20,4 +20,9 @@ namespace NKernel {
 
     template <class TStorageType>
     void Compress(const ui32* src, TStorageType* dst, ui32 size, ui32 bitsPerKey, TCudaStream stream);
+
+    template <class TStorageType>
+    void GatherFromCompressed(const TStorageType* src, const ui32* map, ui32 mapMask,
+                              ui32* dst, ui32 size, ui32 bitsPerKey, TCudaStream stream);
+
 }

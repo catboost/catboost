@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    plot.cpp
     apply.cpp
     calc_fstr.cpp
     error_functions.cpp

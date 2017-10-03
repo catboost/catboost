@@ -12,23 +12,53 @@
 
 #include <limits>
 
+/* TMetric */
+
+TErrorHolder TMetric::EvalPairwise(const yvector<yvector<double>>& /*approx*/,
+                                   const yvector<TPair>& /*pairs*/,
+                                   int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is only for PairLogit and PairAccuracy");
+}
+
+EErrorType TMetric::GetErrorType() const {
+    return EErrorType::PerObjectError;
+}
+
 double TMetric::GetFinalError(const TErrorHolder& error) const {
     return error.Error / (error.Weight + 1e-38);
 }
 
-/* Logloss */
+/* TPairMetric */
 
-TLoglossMetric::TLoglossMetric(ELossFunction lossFunction)
+TErrorHolder TPairwiseMetric::Eval(const yvector<yvector<double>>& /*approx*/,
+                                   const yvector<float>& /*target*/,
+                                   const yvector<float>& /*weight*/,
+                                   int /*begin*/, int /*end*/,
+                                   NPar::TLocalExecutor& /*executor*/) const {
+    CB_ENSURE(false, "This eval is not for PairLogit");
+}
+
+EErrorType TPairwiseMetric::GetErrorType() const {
+    return EErrorType::PairwiseError;
+}
+
+double TPairwiseMetric::GetFinalError(const TErrorHolder& error) const {
+    return error.Error / (error.Weight + 1e-38);
+}
+
+/* CrossEntropy */
+
+TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction)
     : LossFunction(lossFunction)
 {
     Y_ASSERT(lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy);
 }
 
-TErrorHolder TLoglossMetric::Eval(const yvector<yvector<double>>& approx,
-                                  const yvector<float>& target,
-                                  const yvector<float>& weight,
-                                  int begin, int end,
-                                  NPar::TLocalExecutor& executor) const {
+TErrorHolder TCrossEntropyMetric::Eval(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       int begin, int end,
+                                       NPar::TLocalExecutor& executor) const {
     // p * log(1/(1+exp(-f))) + (1-p) * log(1 - 1/(1+exp(-f))) =
     // p * log(exp(f) / (exp(f) + 1)) + (1-p) * log(exp(-f)/(1+exp(-f))) =
     // p * log(exp(f) / (exp(f) + 1)) + (1-p) * log(1/(exp(f) + 1)) =
@@ -70,11 +100,11 @@ TErrorHolder TLoglossMetric::Eval(const yvector<yvector<double>>& approx,
     return error;
 }
 
-TString TLoglossMetric::GetDescription() const {
+TString TCrossEntropyMetric::GetDescription() const {
     return ToString(LossFunction);
 }
 
-bool TLoglossMetric::IsMaxOptimal() const {
+bool TCrossEntropyMetric::IsMaxOptimal() const {
     return false;
 }
 
@@ -109,48 +139,6 @@ TString TRMSEMetric::GetDescription() const {
 
 bool TRMSEMetric::IsMaxOptimal() const {
     return false;
-}
-
-/* R2 */
-
-TErrorHolder TR2Metric::Eval(const yvector<yvector<double>>& approx,
-                             const yvector<float>& target,
-                             const yvector<float>& weight,
-                             int begin, int end,
-                             NPar::TLocalExecutor& /* executor */) const {
-    CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
-
-    const auto& approxVec = approx.front();
-    Y_ASSERT(approxVec.size() == target.size());
-
-    double avrgTarget = Accumulate(approxVec.begin() + begin, approxVec.begin() + end, 0.0);
-    Y_ASSERT(begin < end);
-    avrgTarget /= end - begin;
-
-    double mse = 0;
-    double targetVariance = 0;
-
-    for (int k = begin; k < end; ++k) {
-        float w = weight.empty() ? 1 : weight[k];
-        mse += Sqr(approxVec[k] - target[k]) * w;
-        targetVariance += Sqr(target[k] - avrgTarget) * w;
-    }
-    TErrorHolder error;
-    error.Error = 1 - mse / targetVariance;
-    error.Weight = 1;
-    return error;
-}
-
-double TR2Metric::GetFinalError(const TErrorHolder& error) const {
-    return error.Error;
-}
-
-TString TR2Metric::GetDescription() const {
-    return ToString(ELossFunction::R2);
-}
-
-bool TR2Metric::IsMaxOptimal() const {
-    return true;
 }
 
 /* Quantile */
@@ -202,20 +190,20 @@ bool TQuantileMetric::IsMaxOptimal() const {
     return false;
 }
 
-/* Log-linear quantile */
+/* LogLinQuantile */
 
-TLogLinearQuantileMetric::TLogLinearQuantileMetric(double alpha)
+TLogLinQuantileMetric::TLogLinQuantileMetric(double alpha)
     : Alpha(alpha)
 {
     CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6,
               "Alpha parameter for log-linear quantile metric should be in interval (0, 1)");
 }
 
-TErrorHolder TLogLinearQuantileMetric::Eval(const yvector<yvector<double>>& approx,
-                                            const yvector<float>& target,
-                                            const yvector<float>& weight,
-                                            int begin, int end,
-                                            NPar::TLocalExecutor& /* executor */) const {
+TErrorHolder TLogLinQuantileMetric::Eval(const yvector<yvector<double>>& approx,
+                                         const yvector<float>& target,
+                                         const yvector<float>& weight,
+                                         int begin, int end,
+                                         NPar::TLocalExecutor& /* executor */) const {
     CB_ENSURE(approx.size() == 1, "Metric log-linear quantile supports only single-dimensional data");
 
     const auto& approxVec = approx.front();
@@ -233,12 +221,42 @@ TErrorHolder TLogLinearQuantileMetric::Eval(const yvector<yvector<double>>& appr
     return error;
 }
 
-TString TLogLinearQuantileMetric::GetDescription() const {
+TString TLogLinQuantileMetric::GetDescription() const {
     auto metricName = ToString(ELossFunction::LogLinQuantile);
     return Sprintf("%s:alpha=%.3lf", metricName.c_str(), Alpha);
 }
 
-bool TLogLinearQuantileMetric::IsMaxOptimal() const {
+bool TLogLinQuantileMetric::IsMaxOptimal() const {
+    return false;
+}
+
+/* MAPE */
+
+TErrorHolder TMAPEMetric::Eval(const yvector<yvector<double>>& approx,
+                               const yvector<float>& target,
+                               const yvector<float>& weight,
+                               int begin, int end,
+                               NPar::TLocalExecutor& /* executor */) const {
+    CB_ENSURE(approx.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TErrorHolder error;
+    for (int k = begin; k < end; ++k) {
+        float w = weight.empty() ? 1 : weight[k];
+        error.Error += Abs(1 - approxVec[k] / target[k]) * w;
+        error.Weight += w;
+    }
+
+    return error;
+}
+
+TString TMAPEMetric::GetDescription() const {
+    return ToString(ELossFunction::MAPE);
+}
+
+bool TMAPEMetric::IsMaxOptimal() const {
     return false;
 }
 
@@ -276,34 +294,164 @@ bool TPoissonMetric::IsMaxOptimal() const {
     return false;
 }
 
-/* MAPE */
+/* MultiClass */
 
-TErrorHolder TMAPEMetric::Eval(const yvector<yvector<double>>& approx,
-                               const yvector<float>& target,
-                               const yvector<float>& weight,
-                               int begin, int end,
-                               NPar::TLocalExecutor& /* executor */) const {
-    CB_ENSURE(approx.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
-
-    const auto& approxVec = approx.front();
-    Y_ASSERT(approxVec.size() == target.size());
+TErrorHolder TMultiClassMetric::Eval(const yvector<yvector<double>>& approx,
+                                     const yvector<float>& target,
+                                     const yvector<float>& weight,
+                                     int begin, int end,
+                                     NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+    int approxDimension = approx.ysize();
 
     TErrorHolder error;
+
     for (int k = begin; k < end; ++k) {
+        double maxApprox = std::numeric_limits<double>::min();
+        int maxApproxIndex = 0;
+        for (int dim = 1; dim < approxDimension; ++dim) {
+            if (approx[dim][k] > maxApprox) {
+                maxApprox = approx[dim][k];
+                maxApproxIndex = dim;
+            }
+        }
+
+        double sumExpApprox = 0;
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            sumExpApprox += exp(approx[dim][k] - maxApprox);
+        }
+
+        int targetClass = static_cast<int>(target[k]);
+        double targetClassApprox = approx[targetClass][k];
+
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += Abs(1 - approxVec[k] / target[k]) * w;
+        error.Error += (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
         error.Weight += w;
     }
 
     return error;
 }
 
-TString TMAPEMetric::GetDescription() const {
-    return ToString(ELossFunction::MAPE);
+TString TMultiClassMetric::GetDescription() const {
+    return ToString(ELossFunction::MultiClass);
 }
 
-bool TMAPEMetric::IsMaxOptimal() const {
+bool TMultiClassMetric::IsMaxOptimal() const {
+    return true;
+}
+
+/* MultiClassOneVsAll */
+
+TErrorHolder TMultiClassOneVsAllMetric::Eval(const yvector<yvector<double>>& approx,
+                                             const yvector<float>& target,
+                                             const yvector<float>& weight,
+                                             int begin, int end,
+                                             NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+    int approxDimension = approx.ysize();
+
+    TErrorHolder error;
+    for (int k = begin; k < end; ++k) {
+        double sumDimErrors = 0;
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            double expApprox = exp(approx[dim][k]);
+            sumDimErrors += -log(1 + expApprox);
+        }
+
+        int targetClass = static_cast<int>(target[k]);
+        sumDimErrors += approx[targetClass][k];
+
+        float w = weight.empty() ? 1 : weight[k];
+        error.Error += sumDimErrors / approxDimension * w;
+        error.Weight += w;
+    }
+    return error;
+}
+
+TString TMultiClassOneVsAllMetric::GetDescription() const {
+    return ToString(ELossFunction::MultiClassOneVsAll);
+}
+
+bool TMultiClassOneVsAllMetric::IsMaxOptimal() const {
+    return true;
+}
+
+/* PairLogit */
+
+TErrorHolder TPairLogitMetric::EvalPairwise(const yvector<yvector<double>>& approx,
+                                            const yvector<TPair>& pairs,
+                                            int begin, int end) const {
+    CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
+
+    yvector<double> approxExpShifted(end - begin);
+    for (int docId = begin; docId < end; ++docId) {
+        approxExpShifted[docId - begin] = exp(approx[0][docId]);
+    }
+
+    TErrorHolder error;
+    for (const auto& pair : pairs) {
+        if (pair.WinnerId < begin || pair.WinnerId >= end ||
+            pair.LoserId < begin || pair.LoserId >= end) {
+            continue;
+        }
+
+        float w = 1;
+        double expWinner = approxExpShifted[pair.WinnerId - begin];
+        double expLoser = approxExpShifted[pair.LoserId - begin];
+        error.Error += -log(expWinner / (expWinner + expLoser));
+        error.Weight += w;
+    }
+    return error;
+}
+
+TString TPairLogitMetric::GetDescription() const {
+    return ToString(ELossFunction::PairLogit);
+}
+
+bool TPairLogitMetric::IsMaxOptimal() const {
     return false;
+}
+
+/* R2 */
+
+TErrorHolder TR2Metric::Eval(const yvector<yvector<double>>& approx,
+                             const yvector<float>& target,
+                             const yvector<float>& weight,
+                             int begin, int end,
+                             NPar::TLocalExecutor& /* executor */) const {
+    CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    double avrgTarget = Accumulate(approxVec.begin() + begin, approxVec.begin() + end, 0.0);
+    Y_ASSERT(begin < end);
+    avrgTarget /= end - begin;
+
+    double mse = 0;
+    double targetVariance = 0;
+
+    for (int k = begin; k < end; ++k) {
+        float w = weight.empty() ? 1 : weight[k];
+        mse += Sqr(approxVec[k] - target[k]) * w;
+        targetVariance += Sqr(target[k] - avrgTarget) * w;
+    }
+    TErrorHolder error;
+    error.Error = 1 - mse / targetVariance;
+    error.Weight = 1;
+    return error;
+}
+
+double TR2Metric::GetFinalError(const TErrorHolder& error) const {
+    return error.Error;
+}
+
+TString TR2Metric::GetDescription() const {
+    return ToString(ELossFunction::R2);
+}
+
+bool TR2Metric::IsMaxOptimal() const {
+    return true;
 }
 
 /* Classification helpers */
@@ -377,16 +525,16 @@ static void GetTotalPositiveStats(const yvector<yvector<double>>& approx,
     }
 }
 
-/* ROC-AUC */
+/* AUC */
 
-TRocAUCMetric::TRocAUCMetric(int positiveClass)
+TAUCMetric::TAUCMetric(int positiveClass)
     : PositiveClass(positiveClass)
     , IsMultiClass(true)
 {
     CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
 }
 
-TErrorHolder TRocAUCMetric::Eval(const yvector<yvector<double>>& approx,
+TErrorHolder TAUCMetric::Eval(const yvector<yvector<double>>& approx,
                                  const yvector<float>& target,
                                  const yvector<float>& weight,
                                  int begin, int end,
@@ -419,7 +567,7 @@ TErrorHolder TRocAUCMetric::Eval(const yvector<yvector<double>>& approx,
     return error;
 }
 
-TString TRocAUCMetric::GetDescription() const {
+TString TAUCMetric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::AUC).c_str(), PositiveClass);
     } else {
@@ -427,7 +575,74 @@ TString TRocAUCMetric::GetDescription() const {
     }
 }
 
-bool TRocAUCMetric::IsMaxOptimal() const {
+bool TAUCMetric::IsMaxOptimal() const {
+    return true;
+}
+
+/* Accuracy */
+
+TErrorHolder TAccuracyMetric::Eval(const yvector<yvector<double>>& approx,
+                                   const yvector<float>& target,
+                                   const yvector<float>& weight,
+                                   int begin, int end,
+                                   NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+
+    TErrorHolder error;
+    for (int k = begin; k < end; ++k) {
+        int approxClass = GetApproxClass(approx, k);
+        int targetClass = static_cast<int>(target[k]);
+
+        float w = weight.empty() ? 1 : weight[k];
+        error.Error += approxClass == targetClass ? w : 0.0;
+        error.Weight += w;
+    }
+    return error;
+}
+
+TString TAccuracyMetric::GetDescription() const {
+    return ToString(ELossFunction::Accuracy);
+}
+
+bool TAccuracyMetric::IsMaxOptimal() const {
+    return true;
+}
+
+/* Precision */
+
+TPrecisionMetric::TPrecisionMetric(int positiveClass)
+    : PositiveClass(positiveClass)
+    , IsMultiClass(true)
+{
+    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+}
+
+TErrorHolder TPrecisionMetric::Eval(const yvector<yvector<double>>& approx,
+                                    const yvector<float>& target,
+                                    const yvector<float>& weight,
+                                    int begin, int end,
+                                    NPar::TLocalExecutor& /* executor */) const {
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+
+    double truePositive;
+    double targetPositive;
+    double approxPositive;
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+        &truePositive, &targetPositive, &approxPositive);
+
+    TErrorHolder error;
+    error.Error = approxPositive > 0 ? truePositive / approxPositive : 0;
+    error.Weight = 1;
+    return error;
+}
+TString TPrecisionMetric::GetDescription() const {
+    if (IsMultiClass) {
+        return Sprintf("%s:class=%d", ToString(ELossFunction::Precision).c_str(), PositiveClass);
+    } else {
+        return ToString(ELossFunction::Precision);
+    }
+}
+bool TPrecisionMetric::IsMaxOptimal() const {
     return true;
 }
 
@@ -442,7 +657,8 @@ TRecallMetric::TRecallMetric(int positiveClass)
 
 TErrorHolder TRecallMetric::Eval(const yvector<yvector<double>>& approx,
                                  const yvector<float>& target,
-                                 const yvector<float>& weight, int begin, int end,
+                                 const yvector<float>& weight,
+                                 int begin, int end,
                                  NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
@@ -468,43 +684,6 @@ bool TRecallMetric::IsMaxOptimal() const {
     return true;
 }
 
-/* Precision */
-
-TPrecisionMetric::TPrecisionMetric(int positiveClass)
-    : PositiveClass(positiveClass)
-    , IsMultiClass(true)
-{
-    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
-}
-
-TErrorHolder TPrecisionMetric::Eval(const yvector<yvector<double>>& approx,
-                                    const yvector<float>& target,
-                                    const yvector<float>& weight, int begin, int end,
-                                    NPar::TLocalExecutor& /* executor */) const {
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-
-    double truePositive;
-    double targetPositive;
-    double approxPositive;
-    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
-                     &truePositive, &targetPositive, &approxPositive);
-
-    TErrorHolder error;
-    error.Error = approxPositive > 0 ? truePositive / approxPositive : 0;
-    error.Weight = 1;
-    return error;
-}
-TString TPrecisionMetric::GetDescription() const {
-    if (IsMultiClass) {
-        return Sprintf("%s:class=%d", ToString(ELossFunction::Precision).c_str(), PositiveClass);
-    } else {
-        return ToString(ELossFunction::Precision);
-    }
-}
-bool TPrecisionMetric::IsMaxOptimal() const {
-    return true;
-}
-
 /* F1 */
 
 TF1Metric::TF1Metric(int positiveClass)
@@ -516,7 +695,8 @@ TF1Metric::TF1Metric(int positiveClass)
 
 TErrorHolder TF1Metric::Eval(const yvector<yvector<double>>& approx,
                              const yvector<float>& target,
-                             const yvector<float>& weight, int begin, int end,
+                             const yvector<float>& weight,
+                             int begin, int end,
                              NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
@@ -642,115 +822,35 @@ bool TMCCMetric::IsMaxOptimal() const {
     return true;
 }
 
+/* PairAccuracy */
 
-/* Accuracy */
-
-TErrorHolder TAccuracyMetric::Eval(const yvector<yvector<double>>& approx,
-                                   const yvector<float>& target,
-                                   const yvector<float>& weight,
-                                   int begin, int end,
-                                   NPar::TLocalExecutor& /* executor */) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+TErrorHolder TPairAccuracyMetric::EvalPairwise(const yvector<yvector<double>>& approx,
+                                               const yvector<TPair>& pairs,
+                                               int begin, int end) const {
+    CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
 
     TErrorHolder error;
-    for (int k = begin; k < end; ++k) {
-        int approxClass = GetApproxClass(approx, k);
-        int targetClass = static_cast<int>(target[k]);
-
-        float w = weight.empty() ? 1 : weight[k];
-        error.Error += approxClass == targetClass ? w : 0.0;
-        error.Weight += w;
-    }
-    return error;
-}
-
-TString TAccuracyMetric::GetDescription() const {
-    return ToString(ELossFunction::Accuracy);
-}
-
-bool TAccuracyMetric::IsMaxOptimal() const {
-    return true;
-}
-
-/* Multiclass */
-
-TErrorHolder TMulticlassLoglossMetric::Eval(const yvector<yvector<double>>& approx,
-                                            const yvector<float>& target,
-                                            const yvector<float>& weight,
-                                            int begin, int end,
-                                            NPar::TLocalExecutor& /* executor */) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
-    int approxDimension = approx.ysize();
-
-    TErrorHolder error;
-
-    for (int k = begin; k < end; ++k) {
-        double maxApprox = std::numeric_limits<double>::min();
-        int maxApproxIndex = 0;
-        for (int dim = 1; dim < approxDimension; ++dim) {
-            if (approx[dim][k] > maxApprox) {
-                maxApprox = approx[dim][k];
-                maxApproxIndex = dim;
-            }
+    for (const auto& pair : pairs) {
+        if (pair.WinnerId < begin || pair.WinnerId >= end ||
+            pair.LoserId < begin || pair.LoserId >= end) {
+            continue;
         }
 
-        double sumExpApprox = 0;
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            sumExpApprox += exp(approx[dim][k] - maxApprox);
+        float w = 1;
+        if (approx[0][pair.WinnerId] > approx[0][pair.LoserId]) {
+            error.Error += w;
         }
-
-        int targetClass = static_cast<int>(target[k]);
-        double targetClassApprox = approx[targetClass][k];
-
-        float w = weight.empty() ? 1 : weight[k];
-        error.Error += (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
         error.Weight += w;
     }
 
     return error;
 }
 
-TString TMulticlassLoglossMetric::GetDescription() const {
-    return ToString(ELossFunction::MultiClass);
+TString TPairAccuracyMetric::GetDescription() const {
+    return ToString(ELossFunction::PairAccuracy);
 }
 
-bool TMulticlassLoglossMetric::IsMaxOptimal() const {
-    return true;
-}
-
-/* MulticlassOneVsAll */
-
-TErrorHolder TMulticlassOneVsAllLoglossMetric::Eval(const yvector<yvector<double>>& approx,
-                                                    const yvector<float>& target,
-                                                    const yvector<float>& weight,
-                                                    int begin, int end,
-                                                    NPar::TLocalExecutor& /* executor */) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
-    int approxDimension = approx.ysize();
-
-    TErrorHolder error;
-    for (int k = begin; k < end; ++k) {
-        double sumDimErrors = 0;
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            double expApprox = exp(approx[dim][k]);
-            sumDimErrors += -log(1 + expApprox);
-        }
-
-        int targetClass = static_cast<int>(target[k]);
-        sumDimErrors += approx[targetClass][k];
-
-        float w = weight.empty() ? 1 : weight[k];
-        error.Error += sumDimErrors / approxDimension * w;
-        error.Weight += w;
-    }
-    return error;
-}
-
-TString TMulticlassOneVsAllLoglossMetric::GetDescription() const {
-    return ToString(ELossFunction::MultiClassOneVsAll);
-}
-
-bool TMulticlassOneVsAllLoglossMetric::IsMaxOptimal() const {
+bool TPairAccuracyMetric::IsMaxOptimal() const {
     return true;
 }
 
@@ -769,6 +869,12 @@ TErrorHolder TCustomMetric::Eval(const yvector<yvector<double>>& approx,
     return Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
 }
 
+TErrorHolder TCustomMetric::EvalPairwise(const yvector<yvector<double>>& /*approx*/,
+                                         const yvector<TPair>& /*pairs*/,
+                                         int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is only for PairLogit");
+}
+
 TString TCustomMetric::GetDescription() const {
     return Descriptor.GetDescriptionFunc(Descriptor.CustomData);
 }
@@ -777,9 +883,15 @@ bool TCustomMetric::IsMaxOptimal() const {
     return Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
 }
 
+EErrorType TCustomMetric::GetErrorType() const {
+    return EErrorType::PerObjectError;
+}
+
 double TCustomMetric::GetFinalError(const TErrorHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
+
+/* Create */
 
 yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString, float>& params, int approxDimension) {
     if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile) {
@@ -787,15 +899,12 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
     }
     yvector<THolder<IMetric>> result;
     switch (metric) {
-        case ELossFunction::R2:
-            result.emplace_back(new TR2Metric());
+        case ELossFunction::Logloss:
+            result.emplace_back(new TCrossEntropyMetric(ELossFunction::Logloss));
             return result;
 
-        case ELossFunction::Logloss:
-            result.emplace_back(new TLoglossMetric(ELossFunction::Logloss));
-            return result;
         case ELossFunction::CrossEntropy:
-            result.emplace_back(new TLoglossMetric(ELossFunction::CrossEntropy));
+            result.emplace_back(new TCrossEntropyMetric(ELossFunction::CrossEntropy));
             return result;
 
         case ELossFunction::RMSE:
@@ -815,50 +924,56 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
             }
             return result;
         }
+
         case ELossFunction::LogLinQuantile: {
             auto it = params.find("alpha");
             if (it != params.end()) {
-                result.emplace_back(new TLogLinearQuantileMetric(it->second));
+                result.emplace_back(new TLogLinQuantileMetric(it->second));
             } else {
-                result.emplace_back(new TLogLinearQuantileMetric());
+                result.emplace_back(new TLogLinQuantileMetric());
             }
             return result;
         }
-        case ELossFunction::Poisson:
-            result.emplace_back(new TPoissonMetric());
-            return result;
+
         case ELossFunction::MAPE:
             result.emplace_back(new TMAPEMetric());
             return result;
+
+        case ELossFunction::Poisson:
+            result.emplace_back(new TPoissonMetric());
+            return result;
+
+        case ELossFunction::MultiClass:
+            result.emplace_back(new TMultiClassMetric());
+            return result;
+
+        case ELossFunction::MultiClassOneVsAll:
+            result.emplace_back(new TMultiClassOneVsAllMetric());
+            return result;
+
+        case ELossFunction::PairLogit:
+            result.emplace_back(new TPairLogitMetric());
+            return result;
+
+        case ELossFunction::R2:
+            result.emplace_back(new TR2Metric());
+            return result;
+
+        case ELossFunction::AUC: {
+            if (approxDimension == 1) {
+                result.emplace_back(new TAUCMetric());
+            } else {
+                for (int i = 0; i < approxDimension; ++i) {
+                    result.emplace_back(new TAUCMetric(i));
+                }
+            }
+            return result;
+        }
+
         case ELossFunction::Accuracy:
             result.emplace_back(new TAccuracyMetric());
             return result;
-        case ELossFunction::MultiClass:
-            result.emplace_back(new TMulticlassLoglossMetric());
-            return result;
-        case ELossFunction::MultiClassOneVsAll:
-            result.emplace_back(new TMulticlassOneVsAllLoglossMetric());
-            return result;
-        case ELossFunction::AUC: {
-            if (approxDimension == 1) {
-                result.emplace_back(new TRocAUCMetric());
-            } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TRocAUCMetric(i));
-                }
-            }
-            return result;
-        }
-        case ELossFunction::Recall: {
-            if (approxDimension == 1) {
-                result.emplace_back(new TRecallMetric());
-            } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TRecallMetric(i));
-                }
-            }
-            return result;
-        }
+
         case ELossFunction::Precision: {
             if (approxDimension == 1) {
                 result.emplace_back(new TPrecisionMetric());
@@ -869,6 +984,18 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
             }
             return result;
         }
+
+        case ELossFunction::Recall: {
+            if (approxDimension == 1) {
+                result.emplace_back(new TRecallMetric());
+            } else {
+                for (int i = 0; i < approxDimension; ++i) {
+                    result.emplace_back(new TRecallMetric(i));
+                }
+            }
+            return result;
+        }
+
         case ELossFunction::F1: {
             if (approxDimension == 1) {
                 result.emplace_back(new TF1Metric());
@@ -879,12 +1006,19 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
             }
             return result;
         }
+
         case ELossFunction::TotalF1:
             result.emplace_back(new TTotalF1Metric());
             return result;
+
         case ELossFunction::MCC:
             result.emplace_back(new TMCCMetric());
             return result;
+
+        case ELossFunction::PairAccuracy:
+            result.emplace_back(new TPairAccuracyMetric());
+            return result;
+
         default:
             Y_ASSERT(false);
             return yvector<THolder<IMetric>>();

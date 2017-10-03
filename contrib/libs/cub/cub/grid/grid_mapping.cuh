@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -59,7 +59,8 @@ namespace cub {
 enum GridMappingStrategy
 {
     /**
-     * \brief An "even-share" strategy for assigning input tiles to thread blocks.
+     * \brief An a "raking" access pattern in which each thread block is
+     * assigned a consecutive sequence of input tiles
      *
      * \par Overview
      * The input is evenly partitioned into \p p segments, where \p p is
@@ -71,7 +72,24 @@ enum GridMappingStrategy
      * of which iteratively consumes a segment of <em>n</em>/<em>p</em> elements
      * in tile-size increments.
      */
-    GRID_MAPPING_EVEN_SHARE,
+    GRID_MAPPING_RAKE,
+
+    /**
+     * \brief An a "strip mining" access pattern in which the input tiles assigned
+     * to each thread block are separated by a stride equal to the the extent of
+     * the grid.
+     *
+     * \par Overview
+     * The input is evenly partitioned into \p p sets, where \p p is
+     * constant and corresponds loosely to the number of thread blocks that may
+     * actively reside on the target device. Each set is comprised of
+     * data tiles separated by stride \p tiles, where a tile is a small,
+     * constant-sized unit of input to be processed to completion before the
+     * thread block terminates or obtains more work.  The kernel invokes \p p
+     * thread blocks, each of which iteratively consumes a segment of
+     * <em>n</em>/<em>p</em> elements in tile-size increments.
+     */
+    GRID_MAPPING_STRIP_MINE,
 
     /**
      * \brief A dynamic "queue-based" strategy for assigning input tiles to thread blocks.

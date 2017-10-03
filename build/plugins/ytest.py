@@ -68,8 +68,8 @@ def validate_test(kw):
     size_timeout = collections.OrderedDict(sorted({
         "SMALL": 60,
         "MEDIUM": 600,
-        "LARGE": sys.maxint - 1,  # XXX remove -1 when size FAT is gone
-        "FAT": sys.maxint - 2,
+        "LARGE": 3600,  # XXX remove -1 when size FAT is gone
+        "FAT": 3600,
     }.items(), key=lambda t: t[1]))
 
     size = kw.get('SIZE', 'SMALL')
@@ -106,7 +106,11 @@ def validate_test(kw):
                         suggested_size = s
                         break
 
-                errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]], suggested size: [[imp]]{}[[rst]]".format(size, size_timeout[size], suggested_size))
+                if suggested_size:
+                    suggested_size = ", suggested size: [[imp]]{}[[rst]]".format(suggested_size)
+                else:
+                    suggested_size = ""
+                errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]]{}".format(size, size_timeout[size], suggested_size))
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
 

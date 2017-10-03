@@ -48,6 +48,7 @@ TTargetClassifier BuildTargetClassifier(const yvector<float>& target,
         case ELossFunction::Poisson:
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
+        case ELossFunction::PairLogit:
             return TTargetClassifier(SelectBorders(
                 target,
                 learnSampleCount,

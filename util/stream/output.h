@@ -101,7 +101,7 @@ public:
      * @param ch                        Character to write.
      */
     inline void Write(char ch) {
-        Write(&ch, 1);
+        DoWriteC(ch);
     }
 
     /**
@@ -143,6 +143,14 @@ protected:
      * @throws yexception               If IO error occurs.
      */
     virtual void DoWriteV(const TPart* parts, size_t count);
+
+
+    /**
+     * Writes a single character into this stream. Can be overridden with a faster implementation.
+     *
+     * @param ch                        Character to write.
+     */
+    virtual void DoWriteC(char ch);
 
     /**
      * Flushes this stream's buffer, if any.
