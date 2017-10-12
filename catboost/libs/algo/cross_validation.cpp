@@ -17,11 +17,11 @@ static void PrepareFolds(
     yvector<TTrainData>* folds)
 {
     folds->reserve(cvParams.FoldCount);
-    const size_t foldSize = pool.Docs.size() / cvParams.FoldCount;
+    const size_t foldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
 
     for (size_t testFoldIdx = 0; testFoldIdx < cvParams.FoldCount; ++testFoldIdx) {
         size_t foldStartIndex = testFoldIdx * foldSize;
-        size_t foldEndIndex = Min(foldStartIndex + foldSize, pool.Docs.size());
+        size_t foldEndIndex = Min(foldStartIndex + foldSize, pool.Docs.GetDocCount());
 
         yvector<size_t> docIndices;
 
@@ -32,7 +32,7 @@ static void PrepareFolds(
         };
 
         auto appendTrainIndices = [foldStartIndex, foldEndIndex, &pool, &docIndices] {
-            for (size_t idx = 0; idx < pool.Docs.size(); ++idx) {
+            for (size_t idx = 0; idx < pool.Docs.GetDocCount(); ++idx) {
                 if (idx < foldStartIndex || idx >= foldEndIndex) {
                     docIndices.push_back(idx);
                 }
@@ -44,25 +44,28 @@ static void PrepareFolds(
         if (!cvParams.Inverted) {
             appendTrainIndices();
             appendTestIndices();
-            fold.LearnSampleCount = pool.Docs.size() - foldEndIndex + foldStartIndex;
+            fold.LearnSampleCount = pool.Docs.GetDocCount() - foldEndIndex + foldStartIndex;
         } else {
             appendTestIndices();
             appendTrainIndices();
             fold.LearnSampleCount = foldEndIndex - foldStartIndex;
         }
 
-        fold.Target.reserve(pool.Docs.size());
-        fold.Weights.reserve(pool.Docs.size());
-        fold.Baseline.reserve(pool.Docs.size());
+        fold.Target.reserve(pool.Docs.GetDocCount());
+        fold.Weights.reserve(pool.Docs.GetDocCount());
 
         for (size_t idx = 0; idx < docIndices.size(); ++idx) {
-            fold.Target.push_back(pool.Docs[docIndices[idx]].Target);
-            fold.Weights.push_back(pool.Docs[docIndices[idx]].Weight);
-            fold.Baseline.push_back(pool.Docs[docIndices[idx]].Baseline);
+            fold.Target.push_back(pool.Docs.Target[docIndices[idx]]);
+            fold.Weights.push_back(pool.Docs.Weight[docIndices[idx]]);
+        }
+        for (int dim = 0; dim < pool.Docs.GetBaselineDimension(); ++dim) {
+            fold.Baseline[dim].reserve(pool.Docs.GetDocCount());
+            for (size_t idx = 0; idx < docIndices.size(); ++idx) {
+                fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][docIndices[idx]]);
+            }
         }
 
         PrepareAllFeaturesFromPermutedDocs(
-            pool.Docs,
             docIndices,
             contexts[testFoldIdx]->CatFeatures,
             contexts[testFoldIdx]->LearnProgress.Model.Borders,
@@ -71,7 +74,9 @@ static void PrepareFolds(
             fold.LearnSampleCount,
             contexts[testFoldIdx]->Params.OneHotMaxSize,
             contexts[testFoldIdx]->Params.NanMode,
+            /*allowClearPool*/ false,
             contexts[testFoldIdx]->LocalExecutor,
+            &pool.Docs,
             &fold.AllFeatures);
 
         folds->push_back(fold);
@@ -107,10 +112,10 @@ void CrossValidate(
     const TCrossValidationParams& cvParams,
     yvector<TCVResult>* results)
 {
-    CB_ENSURE(!pool.Docs.empty(), "Pool is empty");
-    CB_ENSURE(pool.Docs.size() > cvParams.FoldCount, "Pool is too small to be split into folds");
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool is empty");
+    CB_ENSURE(pool.Docs.GetDocCount() > cvParams.FoldCount, "Pool is too small to be split into folds");
 
-    const int featureCount = pool.Docs[0].Factors.ysize();
+    const int featureCount = pool.Docs.GetFactorsCount();
 
     yvector<THolder<TLearnContext>> contexts;
     contexts.reserve(cvParams.FoldCount);
@@ -140,29 +145,22 @@ void CrossValidate(
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
-    yvector<float> targets;
-    targets.reserve(pool.Docs.size());
-
-    for (const auto& doc : pool.Docs) {
-        targets.push_back(doc.Target);
-    }
-
-    float minTarget = *MinElement(targets.begin(), targets.end());
-    float maxTarget = *MaxElement(targets.begin(), targets.end());
+    float minTarget = *MinElement(pool.Docs.Target.begin(), pool.Docs.Target.end());
+    float maxTarget = *MaxElement(pool.Docs.Target.begin(), pool.Docs.Target.end());
     CB_ENSURE(minTarget != maxTarget, "All targets are equal");
 
     if (IsMultiClassError(ctx->Params.LossFunction)) {
-        CB_ENSURE(AllOf(pool.Docs, [] (const TDocInfo& doc) { return floor(doc.Target) == doc.Target && doc.Target >= 0; }),
+        CB_ENSURE(AllOf(pool.Docs.Target, [] (float target) { return floor(target) == target && target >= 0; }),
                   "Each target label should be non-negative integer for Multiclass/MultiClassOneVsAll loss function");
         for (const auto& context : contexts) {
-            context->LearnProgress.Model.ApproxDimension = GetClassesCount(targets, context->Params.ClassesCount);
+            context->LearnProgress.Model.ApproxDimension = GetClassesCount(pool.Docs.Target, context->Params.ClassesCount);
         }
         CB_ENSURE(ctx->LearnProgress.Model.ApproxDimension > 1, "All targets are equal");
     }
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    yvector<size_t> indices(pool.Docs.size(), 0);
+    yvector<size_t> indices(pool.Docs.GetDocCount(), 0);
     std::iota(indices.begin(), indices.end(), 0);
     if (cvParams.Shuffle) {
         Shuffle(indices.begin(), indices.end(), rand);

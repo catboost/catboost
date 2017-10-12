@@ -32,7 +32,6 @@ TEST_SRCS(
     gen_rodata.py
     gen_ub.py
     generate_pom.py
-    last_changed_rev.py
     link_dyn_lib.py
     link_fat_obj.py
     link_lib.py

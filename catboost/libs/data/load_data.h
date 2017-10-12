@@ -25,11 +25,13 @@ struct TPoolColumnsMetaInfo {
 
 class IPoolBuilder {
 public:
-    virtual void Start(const TPoolColumnsMetaInfo& poolMetaInfo) = 0;
+    virtual void Start(const TPoolColumnsMetaInfo& poolMetaInfo, int docCount) = 0;
     virtual void StartNextBlock(ui32 blockSize) = 0;
 
+    virtual float GetCatFeatureValue(const TStringBuf& feature) = 0;
     virtual void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) = 0;
     virtual void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) = 0;
+    virtual void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) = 0;
     virtual void AddTarget(ui32 localIdx, float value) = 0;
     virtual void AddWeight(ui32 localIdx, float value) = 0;
     virtual void AddQueryId(ui32 localIdx, const TStringBuf& queryId) = 0;
@@ -55,7 +57,7 @@ class TTargetConverter {
     yvector<TString> ClassNames;
 };
 
-void StartBuilder(const yvector<TString>& FeatureIds, const TPoolColumnsMetaInfo& PoolMetaInfo,
+void StartBuilder(const yvector<TString>& FeatureIds, const TPoolColumnsMetaInfo& PoolMetaInfo, int docCount,
                         bool hasHeader, IPoolBuilder* poolBuilder);
 void FinalizeBuilder(const yvector<TColumn>& ColumnsDescription, const TString& pairsFile, IPoolBuilder* poolBuilder);
 
@@ -65,6 +67,9 @@ public:
                 bool hasHeader, const yvector<TString>& classNames, IPoolBuilder* poolBuilder, int blockSize);
 
     bool ReadBlock();
+    int GetBlockSize() const {
+        return ParseBuffer.ysize();
+    }
     void ProcessBlock();
     TString PairsFile;
     yvector<TString> FeatureIds;

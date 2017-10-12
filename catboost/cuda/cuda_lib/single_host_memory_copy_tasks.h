@@ -10,6 +10,7 @@
 #include <future>
 
 namespace NCudaLib {
+
     class TTwoDevicesStreamSync: public IGpuStatelessKernelTask {
     private:
         NThreading::TFuture<TCudaEventPtr> SyncEvent;

@@ -4,7 +4,8 @@
 \alias{catboost.get_feature_importance}
 \title{Calculate the feature importances}
 \usage{
-catboost.get_feature_importance(model, pool = NULL, thread_count = 1)
+catboost.get_feature_importance(model, pool = NULL,
+  fstr_type = "FeatureImportance", thread_count = 1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -16,6 +17,26 @@ Default value: Required argument}
 The feature importance for the training dataset is calculated if this argument is not specified.
 
 Default value: NULL}
+
+\item{fstr_type}{The fstr type.
+
+Possible values:
+\itemize{
+  \item 'FeatureImportance'
+
+    Calculate score for every feature.
+
+  \item 'Interaction'
+
+    Calculate pairwise score between every feature.
+
+  \item 'Doc'
+
+    Calculate score for every feature in every object.
+
+}
+
+Default value: 'FeatureImportance'}
 
 \item{thread_count}{The number of threads to use when applying the model.
 

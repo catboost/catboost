@@ -12,13 +12,6 @@ static inline double UpdateApprox(double approx, double approxDelta) {
 }
 
 template<bool StoreExpApprox>
-static inline void ExpApproxIf(yvector<double>* approx) {
-    if (StoreExpApprox) {
-        FastExpInplace(approx->data(), approx->ysize());
-    }
-}
-
-template<bool StoreExpApprox>
 static inline double GetNeutralApprox() {
     return StoreExpApprox ? 1.0 : 0.0;
 }
@@ -28,7 +21,7 @@ static inline double ApplyLearningRate(double approxDelta, double learningRate) 
     return StoreExpApprox ? fast_exp(FastLogf(approxDelta) * learningRate) : approxDelta * learningRate;
 }
 
-inline double GetNeutralApprox(bool storeExpApproxes) {
+static inline double GetNeutralApprox(bool storeExpApproxes) {
     if (storeExpApproxes) {
         return GetNeutralApprox</*StoreExpApprox*/ true>();
     } else {
@@ -36,14 +29,14 @@ inline double GetNeutralApprox(bool storeExpApproxes) {
     }
 }
 
-inline void ExpApproxIf(bool storeExpApproxes, yvector<yvector<double>>* approxMulti) {
+static inline void ExpApproxIf(bool storeExpApproxes, yvector<double>* approx) {
     if (storeExpApproxes) {
-        for (auto& approx : *approxMulti) {
-            ExpApproxIf</*StoreExpApprox*/ true>(&approx);
-        }
-    } else {
-        for (auto& approx: *approxMulti) {
-            ExpApproxIf</*StoreExpApprox*/ false>(&approx);
-        }
+        FastExpInplace(approx->data(), approx->ysize());
+    }
+}
+
+static inline void ExpApproxIf(bool storeExpApproxes, yvector<yvector<double>>* approxMulti) {
+    for (auto& approx : *approxMulti) {
+        ExpApproxIf(storeExpApproxes, &approx);
     }
 }

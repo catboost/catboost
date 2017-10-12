@@ -232,7 +232,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             }
         }
 
-        const yvector<ui32>& simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetTargetCtrs().GetFeatureIds();
+        yvector<ui32> simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetPermutationFeatures().ComputeAllFeatureIds();
 
         yvector<TBinarySplit> splits;
         TBinarySplit firstSplit = {floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater};

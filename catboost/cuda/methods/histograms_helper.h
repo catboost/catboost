@@ -164,7 +164,7 @@ public:
         return *this;
     }
 
-    yvector<float> ReadHistograms() {
+    yvector<float> ReadHistograms() const {
         yvector<float> dst;
         TCudaBuffer<float, TFeaturesMapping> gatheredHistogramsByLeaves;
 

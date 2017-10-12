@@ -4,12 +4,13 @@
 #include "unidata.h"
 #include "utf8.h"
 
-#include <util/generic/string.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/string.h>
 #include <util/generic/yexception.h>
 #include <util/memory/tempbuf.h>
-#include <util/system/yassert.h>
+#include <util/system/compiler.h>
 #include <util/system/cpu_id.h>
+#include <util/system/yassert.h>
 
 #include <cstring>
 
@@ -664,8 +665,17 @@ inline void ToTitle(wchar16* s, size_t n) {
     ToTitle(s, n, s);
 }
 
-//! removes leading and trailing whitespace characters
-void Strip(TUtf16String& w);
+//! Removes leading whitespace characters
+TWtringBuf StripLeft(const TWtringBuf text) noexcept Y_WARN_UNUSED_RESULT;
+void StripLeft(TUtf16String& text);
+
+//! Removes trailing whitespace characters
+TWtringBuf StripRight(const TWtringBuf text) noexcept Y_WARN_UNUSED_RESULT;
+void StripRight(TUtf16String& text);
+
+//! Removes leading and trailing whitespace characters
+TWtringBuf Strip(const TWtringBuf text) noexcept Y_WARN_UNUSED_RESULT;
+void Strip(TUtf16String& text);
 
 //! replaces the '<', '>' and '&' characters in string with '&lt;', '&gt;' and '&amp;' respectively
 // insertBr=true - replace '\r' and '\n' with "<BR>"

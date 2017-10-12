@@ -9,6 +9,11 @@
 
 #include <ctime>
 
+#ifdef _linux_
+#include <linux/version.h>
+#include <sys/utsname.h>
+#endif
+
 class TSockTest: public TTestBase {
     UNIT_TEST_SUITE(TSockTest);
     UNIT_TEST(TestSock);
@@ -18,6 +23,7 @@ class TSockTest: public TTestBase {
 #endif
     UNIT_TEST(TestNetworkResolutionError);
     UNIT_TEST(TestBrokenPipe);
+    UNIT_TEST(TestReusePortAvailCheck);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -26,6 +32,7 @@ public:
     void TestConnectionRefused();
     void TestNetworkResolutionError();
     void TestBrokenPipe();
+    void TestReusePortAvailCheck();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSockTest);
@@ -111,6 +118,34 @@ void TSockTest::TestBrokenPipe()
     receiver.ShutDown(SHUT_RDWR);
     int sent = sender.Send("FOO", 3);
     UNIT_ASSERT(sent < 0);
+}
+
+void TSockTest::TestReusePortAvailCheck()
+{
+#if defined _linux_
+    utsname sysInfo;
+    Y_VERIFY(!uname(&sysInfo), "Error while call uname: %s", LastSystemErrorText());
+    TStringBuf release(sysInfo.release);
+    release = release.substr(0, release.find_first_not_of(".0123456789"));
+    int v1 = FromString<int>(release.NextTok('.'));
+    int v2 = FromString<int>(release.NextTok('.'));
+    int v3 = FromString<int>(release.NextTok('.'));
+    int linuxVersionCode = KERNEL_VERSION(v1, v2, v3);
+    if (linuxVersionCode >= KERNEL_VERSION(3, 9, 1)) {
+        // new kernels support SO_REUSEPORT
+        UNIT_ASSERT(true == IsReusePortAvailable());
+        UNIT_ASSERT(true == IsReusePortAvailable());
+    } else {
+        // older kernels may or may not support SO_REUSEPORT
+        // just check that it doesn't crash or throw
+        (void)IsReusePortAvailable();
+        (void)IsReusePortAvailable();
+    }
+#else
+    // check that it doesn't crash or throw
+    (void)IsReusePortAvailable();
+    (void)IsReusePortAvailable();
+#endif
 }
 
 class TPollTest: public TTestBase {

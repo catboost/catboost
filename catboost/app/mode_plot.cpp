@@ -62,9 +62,9 @@ int mode_plot(int argc, const char* argv[]) {
         SetSilentLogingMode();
     }
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName));
+    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "specify column_description file for calc mode");
+    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
     if (plotParams.LastIteration == 0) {
         plotParams.LastIteration = model.TreeStruct.size();
     }

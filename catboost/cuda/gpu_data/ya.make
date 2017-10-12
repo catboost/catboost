@@ -16,6 +16,7 @@ SRCS(
     remote_binarize.cpp
     splitter.cpp
     oblivious_tree_bin_builder.cpp
+    pinned_memory_estimation.cpp
 )
 
 PEERDIR(

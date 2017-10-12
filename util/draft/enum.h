@@ -4,6 +4,7 @@
 
 #include <util/generic/strbuf.h>
 #include <util/stream/str.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
 #include <utility>
 
@@ -127,7 +128,7 @@ inline void SetEnumFlags(TStringBuf optSpec, std::bitset<B>& flags, bool allIfEm
         flags.reset();
         for (const auto& it : StringSplitter(optSpec).Split(',')) {
             E e;
-            if (!FromString(it.Token(), e))
+            if (!TryFromString(it.Token(), e))
                 ythrow yexception() << "Unknown enum value '" << it.Token() << "'";
             flags.set((size_t)e);
         }

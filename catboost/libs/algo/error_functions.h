@@ -101,7 +101,7 @@ public:
 
     double CalcDer(double approxExp, float target) const {
         const double p = approxExp / (1 + approxExp);
-        return target > 0 ? (1 - p) : -p;
+        return target - p;
     }
 
     double CalcDer2(double approxExp, float = 0) const {
@@ -111,7 +111,7 @@ public:
 
     void CalcDers(double approxExp, float target, TDer1Der2* ders) const {
         const double p = approxExp / (1 + approxExp);
-        ders->Der1 = target > 0 ? (1 - p) : -p;
+        ders->Der1 = target - p;
         ders->Der2 = -p * (1 - p);
     }
     void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, double* ders) const;

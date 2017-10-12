@@ -42,8 +42,11 @@ namespace NCudaLib {
             TSlice objectsSlice = mapping.GetObjectsSlice();
 
             yvector<TSlice> readSlices;
-            ui64 step = FactorSlice.Size();
+            if (ReadSlice.IsEmpty()) {
+                return readSlices;
+            }
 
+            ui64 step = FactorSlice.Size();
             for (TSlice cursor = ReadSlice; cursor.Right <= objectsSlice.Right; cursor += step) {
                 readSlices.push_back(cursor);
             }

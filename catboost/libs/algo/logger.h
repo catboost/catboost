@@ -15,5 +15,5 @@ enum class EPhase {
     Test
 };
 
-THolder<TLogger> InitLogger(const yvector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest);
+THolder<TLogger> CreateLogger(const yvector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest);
 void Log(int iteration, const yvector<double>& errorsHistory, const yvector<THolder<IMetric>>& errors, TLogger* logger, const EPhase phase);

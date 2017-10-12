@@ -43,8 +43,8 @@ struct TBinarizationConfiguration {
     TBinarizationDescription DefaultCtrBinarization;
     TBinarizationDescription DefaultTreeCtrBinarization;
     TBinarizationDescription TargetBinarization;
-    TBinarizationDescription FreqTreeCtrBinarization = {EBorderSelectionType::Median, 16};
-    TBinarizationDescription FreqCtrBinarization = {EBorderSelectionType::GreedyLogSum, 16};
+    TBinarizationDescription FreqTreeCtrBinarization = {EBorderSelectionType::Median, 15};
+    TBinarizationDescription FreqCtrBinarization = {EBorderSelectionType::GreedyLogSum, 15};
 
     ymap<ui32, TBinarizationDescription> CustomBinarization;
 

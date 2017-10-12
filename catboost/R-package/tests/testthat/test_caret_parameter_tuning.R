@@ -1,6 +1,6 @@
+install.packages("caret", repos="https://cloud.r-project.org/")
 require(catboost)
 require(caret)
-require(titanic)
 
 load_pool <- function() {
   pool_path = system.file("extdata", "adult_train.1000", package="catboost")

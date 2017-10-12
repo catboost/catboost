@@ -11,4 +11,4 @@ def onbundle(unit, *args):
             target, name = args[i], os.path.basename(args[i])
             i += 1
 
-        unit.onbundle_program([target, name])
+        unit.onbundle_target([target, name])

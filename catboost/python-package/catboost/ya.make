@@ -1,4 +1,4 @@
-IF (PYTHON_CONFIG STREQUAL "python3-config")
+IF (PYTHON_CONFIG MATCHES "python3")
     PYMODULE(_catboost EXPORTS catboost3.exports PREFIX "")
 ELSE()
     PYMODULE(_catboost EXPORTS catboost.exports PREFIX "")

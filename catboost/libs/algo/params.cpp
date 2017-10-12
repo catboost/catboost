@@ -293,9 +293,6 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     TString threadCountKey = "thread_count";
     if (!tree.Has(threadCountKey)) {
         ThreadCount = Min(8, (int)NSystemInfo::CachedNumberOfCpus());
-        if (resultingParams) {
-            resultingParams->InsertValue(threadCountKey, ThreadCount);
-        }
     }
 
     TString leafEstimationMethodKey = "leaf_estimation_method";
@@ -333,12 +330,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     }
 
     if (resultingParams) {
-        (*resultingParams)[leafEstimationMethodKey] =
-            ToString<ELeafEstimation>(LeafEstimationMethod);
-        (*resultingParams)[gradientItersKey] = GradientIterations;
         (*resultingParams)["random_seed"] = RandomSeed;
-        (*resultingParams)["eval_metric"] = *EvalMetric;
-        (*resultingParams)["loss_function"] = Objective;
     }
     if (tree.Has("border")) {
         CB_ENSURE(LossFunction == ELossFunction::Logloss, "Border parameter should be set only for Logloss mode");

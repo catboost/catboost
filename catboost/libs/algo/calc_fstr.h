@@ -93,3 +93,7 @@ yvector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool& p
 yvector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 yvector<TFeatureInteraction> CalcFeatureInteraction(const yvector<TInternalFeatureInteraction>& internalFeatureInteraction,
                                                                                 const TFeaturesLayout& layout);
+
+yvector<yvector<double>> CalcFstr(const TFullModel& model, const TPool& pool, int threadCount);
+yvector<yvector<double>> CalcInteraction(const TFullModel& model, const TPool& pool);
+yvector<yvector<double>> GetFeatureImportances(const TFullModel& model, const TPool& pool, const TString& type, int threadCount);

@@ -140,7 +140,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\binarization_config.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\binarizations_manager.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\cat_feature_binarization_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\cat_feature_perfect_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\data_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\grid_creator.h"/>

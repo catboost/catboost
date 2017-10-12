@@ -6,6 +6,7 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_util/helpers.h>
 #include <catboost/cuda/cuda_util/cpu_random.h>
+#include <util/random/shuffle.h>
 
 template <class TLayout>
 class TFeaturesSplitter {
@@ -31,7 +32,7 @@ public:
                 continue;
             }
 
-            if (TGridPolicy::Accept(featuresManager.GetBinCount(id))) {
+            if (TGridPolicy::CanProceed(featuresManager.GetBinCount(id))) {
                 result.PolicyFeatures.push_back(id);
             } else {
                 result.RestFeatures.push_back(id);
@@ -48,8 +49,9 @@ public:
 
         split.FeatureIds = yvector<ui32>(featureIds.begin(), featureIds.end());
         TRandom rand(0);
-        std::random_shuffle(split.FeatureIds.begin(), split.FeatureIds.end(), rand);
+        Shuffle(split.FeatureIds.begin(), split.FeatureIds.end(), rand);
         split.Layout = NCudaLib::TStripeMapping::SplitBetweenDevices(featureIds.size());
+
         if (shuffleFeatures) {
             for (ui32 dev : split.Layout.NonEmptyDevices()) {
                 TSlice devSlice = split.Layout.DeviceSlice(dev);
@@ -252,7 +254,6 @@ public:
             }
         }
         feature.Folds = (feature.OneHotFeature && binCount != 2) ? binCount : (binCount - 1);
-
         SeenFeatures.insert(featureId);
         return *this;
     }

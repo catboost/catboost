@@ -54,7 +54,7 @@ inline TQuantileError BuildError<TQuantileError>(const TFitParams& params) {
     if (lossParams.empty()) {
         return TQuantileError(params.StoreExpApprox);
     } else {
-        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description");
+        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << params.Objective);
         return TQuantileError(lossParams["alpha"], params.StoreExpApprox);
     }
 }
@@ -65,7 +65,7 @@ inline TLogLinQuantileError BuildError<TLogLinQuantileError>(const TFitParams& p
     if (lossParams.empty()) {
         return TLogLinQuantileError(params.StoreExpApprox);
     } else {
-        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description");
+        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << params.Objective);
         return TLogLinQuantileError(lossParams["alpha"], params.StoreExpApprox);
     }
 }
@@ -332,7 +332,7 @@ void TrainOneIter(const TTrainData& data,
                 leafVal *= learningRate;
             }
             expTreeValues[dim] = treeValues[dim];
-            ExpApproxIf<TError::StoreExpApprox>(&expTreeValues[dim]);
+            ExpApproxIf(TError::StoreExpApprox, &expTreeValues[dim]);
         }
 
         profile.AddOperation("CalcApprox result leafs");
@@ -384,11 +384,10 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
 
     THolder<TLogger> logger;
 
-    if (ctx->Params.AllowWritingFiles) {
-        logger = InitLogger(metrics, *ctx, hasTest);
-    }
-
     ctx->LoadProgress();
+    if (ctx->Params.AllowWritingFiles) {
+        logger = CreateLogger(metrics, *ctx, hasTest);
+    }
 
     yvector<yvector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
     yvector<double> valuesToLog;

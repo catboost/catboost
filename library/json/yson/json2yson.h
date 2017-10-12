@@ -165,7 +165,7 @@ namespace NJson2Yson {
 
     using TJsonBuilder = TSkipAttributesProxy<TJsonBuilderImpl>;
 
-    void ConvertJson2Yson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
-    void ConvertYson2Json(IInputStream* inputStream, NJson::TJsonValue* outputValue);
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
+    void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue);
     void ConvertYson2Json(IInputStream* inputStream, IOutputStream* outputStream);
 }

@@ -86,6 +86,11 @@ namespace NArrayRef {
             Swap(a);
         }
 
+        TArrayRef<T> Slice(size_t offset) const {
+            Y_ASSERT(offset <= size());
+            return TArrayRef<T>(data() + offset, size() - offset);
+        }
+
     private:
         T* T_;
         size_t S_;

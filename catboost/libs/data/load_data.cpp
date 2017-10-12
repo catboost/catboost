@@ -13,6 +13,7 @@
 #include <util/generic/map.h>
 #include <util/generic/hash_set.h>
 #include <util/string/split.h>
+#include <util/string/iterator.h>
 #include <util/system/fs.h>
 #include <util/system/event.h>
 #include <util/stream/file.h>
@@ -25,10 +26,13 @@ public:
     {
     }
 
-    void Start(const TPoolColumnsMetaInfo& poolMetaInfo) override {
-        Pool->Docs.clear();
+    void Start(const TPoolColumnsMetaInfo& poolMetaInfo, int docCount) override {
+        Cursor = NotSet;
+        NextCursor = 0;
         FactorCount = poolMetaInfo.FactorCount;
         BaselineCount = poolMetaInfo.BaselineCount;
+
+        Pool->Docs.Resize(docCount, FactorCount, BaselineCount);
 
         if (poolMetaInfo.HasQueryIds) {
             MATRIXNET_WARNING_LOG << "We don't support query ids currently" << Endl;
@@ -38,15 +42,11 @@ public:
     }
 
     void StartNextBlock(ui32 blockSize) override {
-        Cursor = (ui32)Pool->Docs.size();
-        Pool->Docs.resize(Pool->Docs.size() + blockSize);
-        for (ui32 i = Cursor; i < Pool->Docs.size(); ++i) {
-            Pool->Docs[i].Factors.resize(FactorCount);
-            Pool->Docs[i].Baseline.resize(BaselineCount);
-        }
+        Cursor = NextCursor;
+        NextCursor = Cursor + blockSize;
     }
 
-    void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) override {
+    float GetCatFeatureValue(const TStringBuf& feature) override {
         int hashVal = CalcCatFeatureHash(feature);
         auto& curPart = LockedHashMapParts[hashVal & 0xff];
         with_lock (curPart.Lock) {
@@ -54,19 +54,31 @@ public:
                 curPart.CatFeatureHashes[hashVal] = feature;
             }
         }
-        AddFloatFeature(localIdx, featureId, ConvertCatFeatureHashToFloat(hashVal));
+        return ConvertCatFeatureHashToFloat(hashVal);
+    }
+
+    void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) override {
+        AddFloatFeature(localIdx, featureId, GetCatFeatureValue(feature));
     }
 
     void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) override {
-        GetLine(localIdx).Factors[featureId] = feature;
+        Pool->Docs.Factors[featureId][Cursor + localIdx] = feature;
+    }
+
+    void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) override {
+        CB_ENSURE(features.size() == FactorCount, "Error: number of features should be equal to factor count");
+        yvector<float>* factors = Pool->Docs.Factors.data();
+        for (ui32 featureId = 0; featureId < FactorCount; ++featureId) {
+            factors[featureId][Cursor + localIdx] = features[featureId];
+        }
     }
 
     void AddTarget(ui32 localIdx, float value) override {
-        GetLine(localIdx).Target = value;
+        Pool->Docs.Target[Cursor + localIdx] = value;
     }
 
     void AddWeight(ui32 localIdx, float value) override {
-        GetLine(localIdx).Weight = value;
+        Pool->Docs.Weight[Cursor + localIdx] = value;
     }
 
     void AddQueryId(ui32 localIdx, const TStringBuf& queryId) override {
@@ -75,11 +87,11 @@ public:
     }
 
     void AddBaseline(ui32 localIdx, ui32 offset, double value) override {
-        GetLine(localIdx).Baseline[offset] = value;
+        Pool->Docs.Baseline[offset][Cursor + localIdx] = value;
     }
 
     void AddDocId(ui32 localIdx, const TStringBuf& value) override {
-        GetLine(localIdx).Id = value;
+        Pool->Docs.Id[Cursor + localIdx] = value;
     }
 
     void SetFeatureIds(const yvector<TString>& featureIds) override {
@@ -92,15 +104,15 @@ public:
     }
 
     int GetDocCount() const override {
-        return Pool->Docs.ysize();
+        return NextCursor;
     }
 
     void Finish() override {
-        if (!Pool->Docs.empty()) {
+        if (Pool->Docs.GetDocCount() != 0) {
             for (const auto& part : LockedHashMapParts) {
                 Pool->CatFeaturesHashToString.insert(part.CatFeatureHashes.begin(), part.CatFeatureHashes.end());
             }
-            MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.size() << " " << FactorCount << Endl;
+            MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FactorCount << Endl;
         } else {
             MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
         }
@@ -111,15 +123,18 @@ private:
         TAdaptiveLock Lock;
         yhash<int, TString> CatFeatureHashes;
     };
-    TDocInfo& GetLine(ui32 localIdx) {
-        return Pool->Docs[Cursor + localIdx];
-    }
     TPool* Pool;
-    ui32 Cursor = 0;
+    static constexpr const int NotSet = -1;
+    ui32 Cursor = NotSet;
+    ui32 NextCursor = 0;
     ui32 FactorCount = 0;
     ui32 BaselineCount = 0;
     std::array<TLockedHashPart, 256> LockedHashMapParts;
 };
+
+static bool IsNan(const TStringBuf& s) {
+    return s == "nan" || s == "NaN" || s == "NAN";
+}
 
 TTargetConverter::TTargetConverter(const yvector<TString>& classNames)
     : ClassNames(classNames)
@@ -128,6 +143,7 @@ TTargetConverter::TTargetConverter(const yvector<TString>& classNames)
 
 float TTargetConverter::operator()(const TString& word) const {
     if (ClassNames.empty()) {
+        CB_ENSURE(!IsNan(word), "NaN not supported for target");
         return FromString<float>(word);
     }
 
@@ -168,13 +184,9 @@ static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
     return categFeatures;
 }
 
-static bool IsNan(const TStringBuf& s) {
-    return s == "nan" || s == "NaN" || s == "NAN";
-}
-
-void StartBuilder(const yvector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo,
+void StartBuilder(const yvector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo, int docCount,
                 bool hasHeader, IPoolBuilder* poolBuilder) {
-    poolBuilder->Start(poolMetaInfo);
+    poolBuilder->Start(poolMetaInfo, docCount);
     if (hasHeader) {
         poolBuilder->SetFeatureIds(featureIds);
     }
@@ -290,16 +302,21 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
             }
         }
     }
+    ReadBuffer.yresize(BlockSize);
+    ParseBuffer.yresize(BlockSize);
     ReadBlockAsync();
 }
 
 void TPoolReader::ReadBlockAsync() {
     auto readLineBufferLambda = [&](int) {
         TString bufReadLine;
-        ReadBuffer.clear();
-        while (ReadBuffer.size() < BlockSize && Reader.ReadLine(bufReadLine)) {
-            ReadBuffer.push_back(bufReadLine);
-            bufReadLine.clear();
+        for (size_t lineIdx = 0; lineIdx < BlockSize; ++lineIdx) {
+            if (Reader.ReadLine(bufReadLine)) {
+                ReadBuffer[lineIdx] = bufReadLine;
+            } else {
+                ReadBuffer.yresize(lineIdx);
+                break;
+            }
         }
         BlockReadCompletedEvent.Signal();
     };
@@ -321,72 +338,76 @@ bool TPoolReader::ReadBlock() {
 
 void TPoolReader::ProcessBlock() {
     PoolBuilder.StartNextBlock((ui32)ParseBuffer.size());
-    auto parseFeaturesInBlock = [&](int lineIdx) {
-        yvector<TStringBuf> words;
-        const auto& line = ParseBuffer[lineIdx];
-        SplitRangeTo<const char, yvector<TStringBuf>>(~line, ~line + line.size(), FieldDelimiter, &words);
-        CB_ENSURE(words.ysize() == ColumnsDescription.ysize(), "wrong columns number in pool line " <<
-                  lineIdx + 1 << ": expected " << ColumnsDescription.ysize() << ", found " << words.ysize());
-
+    auto parseBlock = [&](int lineIdx) {
         ui32 featureId = 0;
         ui32 baselineIdx = 0;
-        for (int i = 0; i < words.ysize(); ++i) {
-            switch (ColumnsDescription[i].Type) {
+        yvector<float> features;
+        features.yresize(PoolMetaInfo.FactorCount);
+
+        int tokenCount = 0;
+        TStringBuf token;
+        TStringBuf words(ParseBuffer[lineIdx]);
+        while (words.NextTok(FieldDelimiter, token)) {
+            switch (ColumnsDescription[tokenCount].Type) {
                 case EColumn::Categ: {
-                    PoolBuilder.AddCatFeature(lineIdx, featureId, words[i]);
+                    features[featureId] = PoolBuilder.GetCatFeatureValue(token);
                     ++featureId;
                     break;
                 }
                 case EColumn::Num: {
                     float val;
-                    CB_ENSURE(words[i] != "", "empty values not supported");
-                    if (!TryFromString<float>(words[i], val)) {
-                        if (IsNan(words[i])) {
+                    if (!TryFromString<float>(token, val)) {
+                        if (IsNan(token)) {
                             val = std::numeric_limits<float>::quiet_NaN();
                         } else {
-                            CB_ENSURE(false, "Factor " << words[i] << " in column " << i + 1 << " and row " << LinesRead + lineIdx + 1 <<
+                            CB_ENSURE(token.length() != 0, "empty values not supported");
+                            CB_ENSURE(false, "Factor " << token << " in column " << tokenCount + 1 << " and row " << LinesRead + lineIdx + 1 <<
                                       " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
                         }
                     }
-                    PoolBuilder.AddFloatFeature(lineIdx, featureId, val);
+                    features[featureId] = val;
                     ++featureId;
                     break;
                 }
                 case EColumn::Target: {
-                    CB_ENSURE(words[i] != "", "empty values not supported for target. Target should be float.");
-                    PoolBuilder.AddTarget(lineIdx, ConvertTarget(FromString<TString>(words[i])));
+                    CB_ENSURE(token.length() != 0, "empty values not supported for target. Target should be float.");
+                    PoolBuilder.AddTarget(lineIdx, ConvertTarget(FromString<TString>(token)));
                     break;
                 }
                 case EColumn::Weight: {
-                    CB_ENSURE(words[i] != "", "empty values not supported for weight");
-                    PoolBuilder.AddWeight(lineIdx, FromString<float>(words[i]));
+                    CB_ENSURE(token.length() != 0, "empty values not supported for weight");
+                    PoolBuilder.AddWeight(lineIdx, FromString<float>(token));
                     break;
                 }
                 case EColumn::Auxiliary: {
                     break;
                 }
                 case EColumn::QueryId: {
-                    PoolBuilder.AddQueryId(lineIdx, words[i]);
+                    PoolBuilder.AddQueryId(lineIdx, token);
                     break;
                 }
                 case EColumn::Baseline: {
-                    CB_ENSURE(words[i] != "", "empty values not supported for baseline");
-                    PoolBuilder.AddBaseline(lineIdx, baselineIdx, FromString<double>(words[i]));
+                    CB_ENSURE(token.length() != 0, "empty values not supported for baseline");
+                    PoolBuilder.AddBaseline(lineIdx, baselineIdx, FromString<double>(token));
                     ++baselineIdx;
                     break;
                 }
                 case EColumn::DocId: {
-                    CB_ENSURE(words[i] != "", "empty values not supported for doc id");
-                    PoolBuilder.AddDocId(lineIdx, words[i]);
+                    CB_ENSURE(token.length() != 0, "empty values not supported for doc id");
+                    PoolBuilder.AddDocId(lineIdx, token);
                     break;
                 }
                 default: {
                     CB_ENSURE(false, "wrong column type");
                 }
             }
+            ++tokenCount;
         }
+        PoolBuilder.AddAllFloatFeatures(lineIdx, features);
+        CB_ENSURE(tokenCount == ColumnsDescription.ysize(), "wrong columns number in pool line " <<
+                  LinesRead + lineIdx + 1 << ": expected " << ColumnsDescription.ysize() << ", found " << tokenCount);
     };
-    LocalExecutor.ExecRange(parseFeaturesInBlock, 0, ParseBuffer.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    LocalExecutor.ExecRange(parseBlock, NPar::TLocalExecutor::TBlockParams(0, ParseBuffer.ysize()).SetBlockCount(ThreadCount).WaitCompletion());
     LinesRead += ParseBuffer.ysize();
 }
 
@@ -422,7 +443,7 @@ void ReadPool(const TString& cdFile,
         SetSilentLogingMode();
     }
     TPoolReader poolReader(cdFile, poolFile, pairsFile, threadCount, fieldDelimiter, hasHeader, classNames, poolBuilder, 10000);
-    StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, hasHeader, poolBuilder);
+    StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, CountLines(poolFile), hasHeader, poolBuilder);
     while (poolReader.ReadBlock()) {
          poolReader.ProcessBlock();
     }
@@ -439,4 +460,3 @@ void ReadPool(const TString& cdFile,
     yvector<TString> noNames;
     ReadPool(cdFile, poolFile, pairsFile, threadCount, verbose, '\t', false, noNames, &poolBuilder);
 }
-

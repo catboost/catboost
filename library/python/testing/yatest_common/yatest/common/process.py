@@ -192,7 +192,7 @@ class _Execution(object):
             # Core dump file recovering may be disabled (for distbuild for example) - produce only bt
             store_cores = runtime._get_ya_config().collect_cores
             if store_cores:
-                new_core_path = path.get_unique_file_path(runtime.output_path(), "{}.core".format(os.path.basename(self.command[0])))
+                new_core_path = path.get_unique_file_path(runtime.output_path(), "{}.{}.core".format(os.path.basename(self.command[0]), self._process.pid))
                 # Copy core dump file, because it may be overwritten
                 yatest_logger.debug("Coping core dump file from '%s' to the '%s'", core_path, new_core_path)
                 shutil.copyfile(core_path, new_core_path)
@@ -203,7 +203,7 @@ class _Execution(object):
 
             if os.path.exists(runtime.gdb_path()):
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
-                bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.backtrace".format(os.path.basename(self.command[0])))
+                bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
                 with open(bt_filename, "w") as afile:
                     afile.write(self._backtrace)
                 # generate pretty html version of backtrace aka Tri Korochki

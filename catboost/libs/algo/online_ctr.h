@@ -67,6 +67,11 @@ inline void CalcFinalCtrs(const TModelCtrBase& ctr,
                           int targetClassesCount,
                           ui64 ctrLeafCountLimit,
                           bool storeAllSimpleCtr,
+                          ECounterCalc counterCalcMethod,
                           TCtrValueTable* result) {
-    CalcFinalCtrs(ctr, data.AllFeatures, static_cast<ui64>(data.LearnSampleCount), learnPermutation, permutedTargetClass, targetClassesCount, ctrLeafCountLimit, storeAllSimpleCtr, result);
+    ui64 sampleCount = data.LearnSampleCount;
+    if (ctr.CtrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
+        sampleCount = data.GetSampleCount();
+    }
+    CalcFinalCtrs(ctr, data.AllFeatures, sampleCount, learnPermutation, permutedTargetClass, targetClassesCount, ctrLeafCountLimit, storeAllSimpleCtr, result);
 }

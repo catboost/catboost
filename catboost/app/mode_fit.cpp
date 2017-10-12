@@ -141,8 +141,8 @@ int mode_fit(int argc, const char* argv[]) {
     MoveFiles(dataDir, &params);
 
     yvector<yvector<yvector<double>>> testApprox(1); //[evalPeriodIdx][classIdx][objectIdx]
-    TrainModelBody(trainJson, Nothing(), Nothing(), learnPool, testPool, params.ModelFileName,
-                   /*clearLearnPool*/ params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty(),
+    bool allowClearPool = params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty();
+    TrainModel(trainJson, Nothing(), Nothing(), learnPool, allowClearPool, testPool, params.ModelFileName,
                    nullptr, &testApprox[0]);
 
     SetVerboseLogingMode();

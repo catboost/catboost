@@ -90,6 +90,10 @@ public:
 
     void PrintAverages() const {
         MATRIXNET_INFO_LOG << Endl << "Average times:" << Endl;
+        if (PassedIterations == 0) {
+            MATRIXNET_INFO_LOG << Endl << "No iterations recorded" << Endl;
+            return;
+        }
 
         double time = 0;
         for (const auto& it : OperationToTimeInAllIterations) {

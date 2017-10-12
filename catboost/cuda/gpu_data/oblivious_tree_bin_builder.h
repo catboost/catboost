@@ -171,25 +171,11 @@ public:
 
     const TMirrorBuffer<ui64>& GetCompressedBits(const TBinarySplit& split) const override {
         const ui32 featureId = split.FeatureId;
-
-        if (DataSet.GetBinaryFeatures().HasFeature(featureId)) {
-            const auto& ds = DataSet.GetBinaryFeatures();
-            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
-                return BuildMirrorSplitForDataSet(ds, split);
-            });
-        } else if (DataSet.GetFeatures().HasFeature(featureId)) {
-            const auto& ds = DataSet.GetFeatures();
-            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
-                return BuildMirrorSplitForDataSet(ds, split);
-            });
-        } else if (DataSet.GetTargetCtrs().HasFeature(featureId)) {
-            const auto& ds = DataSet.GetTargetCtrs();
-            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
-                return BuildMirrorSplitForDataSet(ds,
-                                                  split,
-                                                  &DataSet.GetInverseIndices());
-            });
-        } else if (FeaturesManager.IsTreeCtr(split.FeatureId)) {
+        if (DataSet.GetFeatures().HasFeature(featureId)) {
+            return GetCompressedBitsFromGpuFeatures(DataSet.GetFeatures(), split, nullptr);
+        } else if (DataSet.GetPermutationFeatures().HasFeature(featureId)) {
+            return GetCompressedBitsFromGpuFeatures(DataSet.GetPermutationFeatures(), split, &DataSet.GetInverseIndices());
+        }  else if (FeaturesManager.IsTreeCtr(split.FeatureId)) {
             return CtrSplitBuilder.ComputeAndCacheCtrSplit(DataSet, split);
         } else {
             ythrow TCatboostException() << "Error: unknown feature";
@@ -223,9 +209,9 @@ public:
 
         const auto& mirrorCompressedBits = [&]() -> const TMirrorBuffer<ui64>& {
             if (FeaturesManager.IsPermutationDependent(ctr)) {
-                return ScopedCache.Cache(DataSet.GetTargetCtrs(), split, broadcastFunction);
+                return ScopedCache.Cache(DataSet.GetPermutationFeatures().GetFeatures(), split, broadcastFunction);
             } else {
-                return ScopedCache.Cache(DataSet.GetFeatures(), split, broadcastFunction);
+                return ScopedCache.Cache(DataSet.GetFeatures().GetFeatures(), split, broadcastFunction);
             }
         }();
 
@@ -233,6 +219,32 @@ public:
     }
 
 private:
+
+    const TMirrorBuffer<ui64>& GetCompressedBitsFromGpuFeatures(const TGpuFeatures<>& features,
+                                                                const TBinarySplit& split,
+                                                                const TMirrorBuffer<ui32>* readIndices) const {
+        const ui32 featureId = split.FeatureId;
+
+        if (features.GetBinaryFeatures().HasFeature(featureId)) {
+            const auto& ds = features.GetBinaryFeatures();
+            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
+                return BuildMirrorSplitForDataSet(ds, split, readIndices);
+            });
+        } else if (features.GetFeatures().HasFeature(featureId)) {
+            const auto& ds = features.GetFeatures();
+            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
+                return BuildMirrorSplitForDataSet(ds, split, readIndices);
+            });
+        } else if (features.GetHalfByteFeatures().HasFeature(featureId)) {
+            const auto& ds = features.GetHalfByteFeatures();
+            return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
+                return BuildMirrorSplitForDataSet(ds, split, readIndices);
+            });
+        } else {
+            CB_ENSURE(false, "Error: can't get compressed bits");
+        }
+    }
+
     template <class TBinarizedDataSet>
     TMirrorBuffer<ui64> BuildMirrorSplitForDataSet(const TBinarizedDataSet& ds,
                                                    const TBinarySplit& split,
@@ -349,9 +361,9 @@ public:
         auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
 
         if (FeaturesManager.IsPermutationDependent(ctr)) {
-            return CacheHolder.Cache(ds.GetTargetCtrs(), split, std::forward<TBuilder>(builder));
+            return CacheHolder.Cache(ds.GetPermutationFeatures().GetFeatures(), split, std::forward<TBuilder>(builder));
         } else {
-            return CacheHolder.Cache(ds.GetFeatures(), split, std::forward<TBuilder>(builder));
+            return CacheHolder.Cache(ds.GetFeatures().GetFeatures(), split, std::forward<TBuilder>(builder));
         }
     }
 

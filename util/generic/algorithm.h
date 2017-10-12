@@ -287,25 +287,25 @@ static inline T UniqueBy(T f, T l, const TGetKey& getKey) {
 template <class C>
 void SortUnique(C& c) {
     Sort(c.begin(), c.end());
-    c.resize(Unique(c.begin(), c.end()) - c.begin());
+    c.erase(Unique(c.begin(), c.end()), c.end());
 }
 
 template <class C, class Cmp>
 void SortUnique(C& c, Cmp cmp) {
     Sort(c.begin(), c.end(), cmp);
-    c.resize(Unique(c.begin(), c.end()) - c.begin());
+    c.erase(Unique(c.begin(), c.end()), c.end());
 }
 
 template <class C, class TGetKey>
 void SortUniqueBy(C& c, const TGetKey& getKey) {
     SortBy(c, getKey);
-    c.resize(UniqueBy(c.begin(), c.end(), getKey) - c.begin());
+    c.erase(UniqueBy(c.begin(), c.end(), getKey), c.end());
 }
 
 template <class C, class TGetKey>
 void StableSortUniqueBy(C& c, const TGetKey& getKey) {
     StableSortBy(c, getKey);
-    c.resize(UniqueBy(c.begin(), c.end(), getKey) - c.begin());
+    c.erase(UniqueBy(c.begin(), c.end(), getKey), c.end());
 }
 
 template <class C, class TValue>

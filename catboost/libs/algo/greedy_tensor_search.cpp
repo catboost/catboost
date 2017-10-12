@@ -324,7 +324,7 @@ void GreedyTensorSearch(const TTrainData& data,
             ctx->LocalExecutor.ExecRange([&](int oneCandidate) {
                 if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
                     const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
-                    CB_ENSURE(!fold->GetCtrRef(proj).Feature.empty());
+                    Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
                 }
                 allScores[oneCandidate] = CalcScore(data.AllFeatures,
                                                     splitCounts,
@@ -398,7 +398,9 @@ void GreedyTensorSearch(const TTrainData& data,
         int redundantIdx = GetRedundantSplitIdx(curDepth + 1, indices);
         if (redundantIdx != -1) {
             DeleteSplit(curDepth + 1, redundantIdx, &currentSplitTree, &currentTree, &indices);
-            MATRIXNET_DEBUG_LOG << "  tesor " << redundantIdx << " is redundant, remove it and stop\n";
+            if (ctx->Params.PrintTrees) {
+                MATRIXNET_INFO_LOG << "  tensor " << redundantIdx << " is redundant, remove it and stop\n";
+            }
             break;
         }
     }

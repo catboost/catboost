@@ -16,19 +16,9 @@ void TrainModel(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TPool& learnPool,
+    bool allowClearPool,
     const TPool& testPool,
     const TString& outputModelPath,
-    TFullModel* model,
-    yvector<yvector<double>>* testApprox);
-
-void TrainModelBody(
-    const NJson::TJsonValue& params,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    const TPool& testPool,
-    const TString& outputModelPath,
-    bool clearLearnPool,
     TFullModel* model,
     yvector<yvector<double>>* testApprox);
 

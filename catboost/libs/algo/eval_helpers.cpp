@@ -104,11 +104,11 @@ yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
     return result;
 }
 
-void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox, const yvector<TDocInfo>& docs,
+void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox, const TDocumentStorage& docs,
                     const bool outputTarget, TOFStream* outputStream) {
     for (int docIdx = 0; docIdx < testApprox[0][0].ysize(); ++docIdx) {
-        if (!docs[docIdx].Id.empty()) {
-            *outputStream << docs[docIdx].Id << '\t';
+        if (!docs.Id[docIdx].empty()) {
+            *outputStream << docs.Id[docIdx] << '\t';
         }
         for (int evalIteration = 0; evalIteration < testApprox.ysize(); ++evalIteration) {
             for (int dim = 0; dim < testApprox[0].ysize(); ++dim) {
@@ -118,7 +118,7 @@ void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox, const y
             }
         }
         if (outputTarget) {
-            *outputStream << docs[docIdx].Target << "\n";
+            *outputStream << docs.Target[docIdx] << "\n";
         }
     }
 }

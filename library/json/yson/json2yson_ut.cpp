@@ -77,12 +77,12 @@ SIMPLE_UNIT_TEST_SUITE(Json2Yson) {
                 TStringOutput ysonOutput(ysonString);
 
                 writeTime = Min(writeTime, Run([&]() {
-                                    NJson2Yson::ConvertJson2Yson(readedJson, &ysonOutput);
+                                    NJson2Yson::SerializeJsonValueAsYson(readedJson, &ysonOutput);
                                 }));
 
                 TStringInput ysonInput(ysonString);
                 readTime = Min(readTime, Run([&]() {
-                                   NJson2Yson::ConvertYson2Json(&ysonInput, &convertedJson);
+                                   NJson2Yson::DeserializeYsonAsJsonValue(&ysonInput, &convertedJson);
                                }));
 
                 UNIT_ASSERT_VALUES_EQUAL(

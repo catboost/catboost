@@ -74,6 +74,12 @@ public:
         return *this;
     }
 
+    template <class TContainer>
+    TPermutationDataSetBuilder& SetIgnoredFeatures(const TContainer& ids) {
+        IgnoredFeatures.insert(ids.begin(), ids.end());
+        return *this;
+    }
+
     TPermutationDataSetBuilder& UseCtrs(const yset<ECtrType>& ctrs) {
         CtrTypes.insert(ctrs.begin(), ctrs.end());
         return *this;
@@ -90,7 +96,7 @@ public:
         if (AddFloatFeatures) {
             const auto& policyFeatures = TFeaturesSplitter<NCudaLib::TStripeMapping>::ExtractFeaturesForPolicy<TGridPolicy>(FeaturesManager, featureIds);
             for (ui32 feature : policyFeatures.PolicyFeatures) {
-                FeatureIds.push_back(feature);
+                AddFeatureIdIfNotInIgnoredSet(feature);
             }
         }
         return *this;
@@ -99,8 +105,8 @@ public:
     TPermutationDataSetBuilder& SetCatFeatures(const yvector<ui32>& featureIds) {
         for (ui32 catFeature : featureIds) {
             if (AddOneHotFeatures && FeaturesManager.UseForOneHotEncoding(catFeature)) {
-                if (TGridPolicy::Accept(FeaturesManager.GetBinCount(catFeature))) {
-                    FeatureIds.push_back(catFeature);
+                if (TGridPolicy::CanProceed(FeaturesManager.GetBinCount(catFeature))) {
+                    AddFeatureIdIfNotInIgnoredSet(catFeature);
                 }
             }
 
@@ -109,8 +115,8 @@ public:
                     const auto simpleCtrsForType = FeaturesManager.CreateSimpleCtrsForType(catFeature,
                                                                                            ctr);
                     for (auto ctrFeatureId : simpleCtrsForType) {
-                        if (TGridPolicy::Accept(FeaturesManager.GetBinCount(ctrFeatureId))) {
-                            FeatureIds.push_back(ctrFeatureId);
+                        if (TGridPolicy::CanProceed(FeaturesManager.GetBinCount(ctrFeatureId))) {
+                            AddFeatureIdIfNotInIgnoredSet(ctrFeatureId);
                         }
                     }
                 }
@@ -119,8 +125,21 @@ public:
         return *this;
     }
 
+    const yvector<ui32>& GetFeatureIds() const
+    {
+        return FeatureIds;
+    }
+
+
+    bool IsTestGpuDataSetRequired() const {
+        return LinkedTest != nullptr;
+    }
+
     void Build(TGpuBinarizedDataSet<TGridPolicy>& learn,
                TGpuBinarizedDataSet<TGridPolicy>* test) {
+        if (LinkedTest) {
+            CB_ENSURE(test, "Error: provider test set ptr to build");
+        }
         const ui64 docCount = Permutation.ObservationsSlice().Size();
         auto docsMapping = NCudaLib::TMirrorMapping(docCount);
 
@@ -195,6 +214,11 @@ public:
     }
 
 private:
+    void AddFeatureIdIfNotInIgnoredSet(ui32 featureId) {
+        if (IgnoredFeatures.count(featureId) == 0) {
+            FeatureIds.push_back(featureId);
+        }
+    }
     void WriteFloatFeature(const ui32 feature,
                            const TDataProvider& dataProvider,
                            TGpuBinarizedDataSetBuilder<TGridPolicy>& builder) {
@@ -202,7 +226,7 @@ private:
 
         if (featureStorage.GetType() == EFeatureValuesType::BinarizedFloat) {
             const auto& featuresHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(featureStorage);
-            CB_ENSURE(featuresHolder.GetBorders() == FeaturesManager.GetBorders(feature), "Error: unconsistent borders");
+            CB_ENSURE(featuresHolder.GetBorders() == FeaturesManager.GetBorders(feature), "Error: unconsistent borders for feature #" << feature);
             builder.Write(feature,
                           static_cast<const ui32>(featuresHolder.GetBorders().size() + 1),
                           featuresHolder.ExtractValues());
@@ -350,6 +374,7 @@ private:
     bool AddFloatFeatures = true;
 
     yvector<ui32> FeatureIds;
+    yset<ui32> IgnoredFeatures;
     TBinarizedFeaturesManager& FeaturesManager;
 
     const TDataProvider& DataProvider;
@@ -466,30 +491,101 @@ public:
 
         BuildPermutationIndependentGpuDataSets(dataSetsHolder);
 
-        for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
-            //link common datasets
-            if (permutationId > 0) {
-                dataSetsHolder.PermutationDataSets[permutationId]->Features = dataSetsHolder.PermutationDataSets[0]->Features;
-                dataSetsHolder.PermutationDataSets[permutationId]->BinaryFeatures = dataSetsHolder.PermutationDataSets[0]->BinaryFeatures;
-                dataSetsHolder.PermutationDataSets[permutationId]->CatFeatures = dataSetsHolder.PermutationDataSets[0]->CatFeatures;
+        {
+            for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId)
+            {
+                //link common datasets
+                if (permutationId > 0)
+                {
+                    dataSetsHolder.PermutationDataSets[permutationId]->CatFeatures = dataSetsHolder.PermutationDataSets[0]->CatFeatures;
+                    dataSetsHolder.PermutationDataSets[permutationId]->PermutationIndependentFeatures = dataSetsHolder.PermutationDataSets[0]->PermutationIndependentFeatures;
+                }
+                BuildPermutationDependentGpuFeatures(dataSetsHolder, permutationId);
             }
-
-            auto ctrsBuilder = CreateBuilder<TByteFeatureGridPolicy>(dataSetsHolder,
-                                                                     permutationId,
-                                                                     false);
-
-            ctrsBuilder.SetCatFeatures(FeaturesManager.GetCatFeatureIds());
-
-            ctrsBuilder.Build(dataSetsHolder.PermutationDataSets[permutationId]->PermutationBasedFeatures,
-                              (permutationId == 0 && LinkedTest)
-                                  ? &dataSetsHolder.TestDataSet->PermutationBasedFeatures
-                                  : nullptr);
+            MATRIXNET_INFO_LOG << "Build permutation dependent datasets is done" << Endl;
         }
 
         return dataSetsHolder;
     }
 
 private:
+
+    template <class TBuilder>
+    void AddFeaturesToBuilder(TBuilder& builder,
+                              bool skipFloat,
+                              bool skipCat,
+                              yvector<ui32>& proceededFeatures) {
+        builder.SetIgnoredFeatures(proceededFeatures);
+        if (!skipFloat)
+        {
+            builder.SetFloatFeatures(FeaturesManager.GetFloatFeatureIds());
+        }
+        if (!skipCat)
+        {
+            builder.SetCatFeatures(FeaturesManager.GetCatFeatureIds());
+        }
+        const auto& features = builder.GetFeatureIds();
+        proceededFeatures.insert(proceededFeatures.end(), features.begin(), features.end());
+
+    }
+
+    TGpuFeatures<>* GetFeaturesPtr(TDataSet<CatFeaturesStoragePtrType>& dataSet, bool permutationIndependentFeatures) {
+        if (permutationIndependentFeatures) {
+            return dataSet.PermutationIndependentFeatures.Get();
+        }
+        return &dataSet.PermutationDependentFeatures;
+    }
+
+    void BuildGpuFeatures(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
+                          bool buildPermutationIndependent,
+                          ui32 permutation,
+                          bool skipFloat = false,
+                          bool skipCat = false) {
+        if (buildPermutationIndependent) {
+            CB_ENSURE(permutation == 0);
+        }
+        auto* gpuFeaturesPtr = GetFeaturesPtr(*dataSetsHolder.PermutationDataSets[permutation], buildPermutationIndependent);
+        CB_ENSURE(gpuFeaturesPtr);
+        auto* linkedTestFeaturesPtr = dataSetsHolder.TestDataSet  ? GetFeaturesPtr(*dataSetsHolder.TestDataSet, buildPermutationIndependent) : nullptr;
+
+        yvector<ui32> proceededFeatures;
+        {
+            auto commonBinFeaturesBuilder = CreateBuilder<TBinaryFeatureGridPolicy>(dataSetsHolder,
+                                                                                    permutation,
+                                                                                    buildPermutationIndependent);
+            AddFeaturesToBuilder(commonBinFeaturesBuilder, skipFloat, skipCat, proceededFeatures);
+            if (commonBinFeaturesBuilder.IsTestGpuDataSetRequired()) {
+                CB_ENSURE(linkedTestFeaturesPtr, "Provide linked test features");
+            }
+            commonBinFeaturesBuilder.Build(gpuFeaturesPtr->BinaryFeatures,
+                                           commonBinFeaturesBuilder.IsTestGpuDataSetRequired() ? &linkedTestFeaturesPtr->BinaryFeatures : nullptr);
+        }
+
+        {
+            auto commonHalfByteFeaturesBuilder = CreateBuilder<THalfByteFeatureGridPolicy>(dataSetsHolder,
+                                                                                           permutation,
+                                                                                           buildPermutationIndependent);
+            AddFeaturesToBuilder(commonHalfByteFeaturesBuilder, skipFloat, skipCat, proceededFeatures);
+            if (commonHalfByteFeaturesBuilder.IsTestGpuDataSetRequired()) {
+                CB_ENSURE(linkedTestFeaturesPtr, "Provide linked test features");
+            }
+            commonHalfByteFeaturesBuilder.Build(gpuFeaturesPtr->HalfByteFeatures,
+                                                commonHalfByteFeaturesBuilder.IsTestGpuDataSetRequired() ? &linkedTestFeaturesPtr->HalfByteFeatures : nullptr);
+        }
+
+        {
+            auto commonByteFeaturesBuilder = CreateBuilder<TByteFeatureGridPolicy>(dataSetsHolder,
+                                                                                   permutation,
+                                                                                   buildPermutationIndependent);
+            AddFeaturesToBuilder(commonByteFeaturesBuilder, skipFloat, skipCat, proceededFeatures);
+            if (commonByteFeaturesBuilder.IsTestGpuDataSetRequired()) {
+                CB_ENSURE(linkedTestFeaturesPtr, "Provide linked test features");
+            }
+            commonByteFeaturesBuilder.Build(gpuFeaturesPtr->Features,
+                                            commonByteFeaturesBuilder.IsTestGpuDataSetRequired() ? &linkedTestFeaturesPtr->Features: nullptr);
+        }
+    }
+
     void BuildPermutationIndependentGpuDataSets(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder) {
         auto& firstDataSet = dataSetsHolder.PermutationDataSets[0];
         auto& dataSet = *firstDataSet;
@@ -499,33 +595,7 @@ private:
         if (LinkedTest) {
             ResetSharedDataSets(*dataSetsHolder.TestDataSet);
         }
-
-        {
-            auto commonBinFeatures = CreateBuilder<TBinaryFeatureGridPolicy>(dataSetsHolder,
-                                                                             0,
-                                                                             true);
-
-            commonBinFeatures
-                .SetFloatFeatures(FeaturesManager.GetFloatFeatureIds())
-                .SetCatFeatures(FeaturesManager.GetCatFeatureIds());
-
-            commonBinFeatures.Build(*dataSetsHolder.PermutationDataSets[0]->BinaryFeatures,
-                                    LinkedTest ? dataSetsHolder.TestDataSet->BinaryFeatures.Get() : nullptr);
-        }
-
-        {
-            auto commonByteFeatures = CreateBuilder<TByteFeatureGridPolicy>(dataSetsHolder,
-                                                                            0,
-                                                                            true);
-
-            commonByteFeatures
-                .SetFloatFeatures(FeaturesManager.GetFloatFeatureIds())
-                .SetCatFeatures(FeaturesManager.GetCatFeatureIds());
-
-            commonByteFeatures.Build(*dataSetsHolder.PermutationDataSets[0]->Features,
-                                     LinkedTest ? dataSetsHolder.TestDataSet->Features.Get() : nullptr);
-        }
-
+        BuildGpuFeatures(dataSetsHolder, true, 0, false, false);
         {
             BuildCompressedCatFeatures(DataProvider, *dataSetsHolder.PermutationDataSets[0]->CatFeatures);
 
@@ -535,6 +605,12 @@ private:
         }
         MATRIXNET_INFO_LOG << "Build permutation independent datasets is done" << Endl;
     }
+
+    void BuildPermutationDependentGpuFeatures(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
+                                              ui32 permutationId) {
+        BuildGpuFeatures(dataSetsHolder, false, permutationId, true, false);
+    }
+
 
     void BuildTestTargetAndIndices(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
                                    const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget) {
@@ -595,7 +671,6 @@ private:
         TCompressedCatFeatureDataSetBuilder<CatFeaturesStoragePtrType> builder(dataProvider,
                                                                                FeaturesManager,
                                                                                dataset);
-
         for (ui32 catFeature : FeaturesManager.GetCatFeatureIds()) {
             if (FeaturesManager.UseForTreeCtr(catFeature)) {
                 builder.Add(catFeature);
@@ -605,8 +680,7 @@ private:
     }
 
     void ResetSharedDataSets(TDataSet<CatFeaturesStoragePtrType>& dataSet) {
-        dataSet.BinaryFeatures.Reset(new TGpuBinarizedDataSet<TBinaryFeatureGridPolicy>());
-        dataSet.Features.Reset(new TGpuBinarizedDataSet<TByteFeatureGridPolicy>());
+        dataSet.PermutationIndependentFeatures.Reset(new TGpuFeatures<>());
         dataSet.CatFeatures.Reset(new TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>());
     }
 
@@ -614,12 +688,12 @@ private:
     inline TPermutationDataSetBuilder<TPolicy> CreateBuilder(TDataSetsHolder<CatFeaturesStoragePtrType>& dataSetHolder,
                                                              ui32 permutationId,
                                                              bool buildCommon) {
-        TPermutationDataSetBuilder<TPolicy> binaryFeatureBuilder(
-            FeaturesManager,
-            DataProvider,
-            dataSetHolder.PermutationDataSets[permutationId]->Permutation,
-            dataSetHolder.PermutationDataSets[permutationId]->Indices,
-            *dataSetHolder.CtrTargets);
+        using TBuilder = TPermutationDataSetBuilder<TPolicy>;
+        TBuilder binaryFeatureBuilder(FeaturesManager,
+                                      DataProvider,
+                                      dataSetHolder.PermutationDataSets[permutationId]->Permutation,
+                                      dataSetHolder.PermutationDataSets[permutationId]->Indices,
+                                      *dataSetHolder.CtrTargets);
 
         if (LinkedTest && permutationId == 0) {
             binaryFeatureBuilder.BuildLinkedTest(*LinkedTest,

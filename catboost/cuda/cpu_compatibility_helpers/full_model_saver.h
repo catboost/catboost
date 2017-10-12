@@ -7,14 +7,14 @@
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/algo/index_hash_calcer.h>
 
-//TODO(noxoomo): correct decomposition of logic and move from app to proper place
 class TCoreModelToFullModelConverter {
 public:
     TCoreModelToFullModelConverter(const TCoreModel& coreModel,
-                                   const TPool& cpuPool)
+                                   const TPool& cpuPool,
+                                   NPar::TLocalExecutor& localExecutor)
         : CoreModel(coreModel)
         , Pool(cpuPool)
-        , LocalExecutor(NPar::LocalExecutor())
+        , LocalExecutor(localExecutor)
     {
     }
 
@@ -45,7 +45,6 @@ public:
         TAllFeatures allFeatures;
 
         PrepareAllFeatures(
-            Pool.Docs,
             catFeatures,
             CoreModel.Borders,
             CoreModel.HasNans,
@@ -53,7 +52,9 @@ public:
             sampleCount,
             GetOneHotMaxSize(CoreModel),
             NanMode,
+            /*allowClearPool*/ false,
             LocalExecutor,
+            &Pool.Docs,
             &allFeatures);
 
         yvector<int> directPermutation(targets.size());
@@ -116,7 +117,7 @@ public:
                                     yvector<yvector<int>>& learnTargetClasses,
                                     yvector<int>& targetClassesCount) {
         ui64 ctrCount = targetClassifiers.size();
-        const int sampleCount = targets.size();
+        const int sampleCount = static_cast<const int>(targets.size());
 
         learnTargetClasses.assign(ctrCount, yvector<int>(sampleCount));
         targetClassesCount.resize(ctrCount);
@@ -159,9 +160,9 @@ public:
 
     inline static yvector<float> ExtractTargetsFromPool(const TPool& pool) {
         yvector<float> target;
-        target.resize(pool.Docs.size());
-        for (ui32 i = 0; i < pool.Docs.size(); ++i) {
-            target[i] = pool.Docs[i].Target;
+        target.resize(pool.Docs.GetDocCount());
+        for (ui32 i = 0; i < pool.Docs.GetDocCount(); ++i) {
+            target[i] = pool.Docs.Target[i];
         }
         return target;
     }

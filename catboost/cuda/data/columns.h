@@ -18,8 +18,7 @@ enum class EFeatureValuesType {
 
 class IFeatureValuesHolder {
 public:
-    virtual ~IFeatureValuesHolder() {
-    }
+    virtual ~IFeatureValuesHolder() = default;
 
     IFeatureValuesHolder(EFeatureValuesType type,
                          ui32 featureId,
@@ -59,7 +58,7 @@ using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
 
 class TZeroFeature: public IFeatureValuesHolder {
 public:
-    TZeroFeature(ui32 featureId, TString featureName = "")
+    explicit TZeroFeature(ui32 featureId, TString featureName = "")
         : IFeatureValuesHolder(EFeatureValuesType::Zero, featureId, 0, featureName)
     {
     }
@@ -77,7 +76,7 @@ public:
                                 ui32 bitsPerKey,
                                 yvector<ui64>&& data,
                                 TString featureName = "")
-        : IFeatureValuesHolder(type, featureId, size, featureName)
+        : IFeatureValuesHolder(type, featureId, size, std::move(featureName))
         , Values(std::move(data))
         , IndexHelper(bitsPerKey)
     {
@@ -116,7 +115,7 @@ public:
                                       size,
                                       IntLog2(borders.size() + 1),
                                       std::move(data),
-                                      featureName)
+                                      std::move(featureName))
         , Borders(borders)
     {
     }
@@ -133,27 +132,48 @@ private:
     yvector<float> Borders;
 };
 
+
 class TFloatValuesHolder: public IFeatureValuesHolder {
 public:
     TFloatValuesHolder(ui32 featureId,
                        yvector<float>&& values,
                        TString featureName = "")
-        : IFeatureValuesHolder(EFeatureValuesType::Float, featureId, values.size(), featureName)
-        , Values(values)
+        : IFeatureValuesHolder(EFeatureValuesType::Float,
+                               featureId,
+                               values.size(),
+                               std::move(featureName))
+        , Values(MakeHolder<yvector<float>>(std::move(values)))
+        , ValuesPtr(Values->data()) {
+    }
+
+    TFloatValuesHolder(ui32 featureId,
+                       float* valuesPtr, ui64 valuesCount,
+                       TString featureName = "")
+            : IFeatureValuesHolder(EFeatureValuesType::Float,
+                                   featureId, valuesCount, std::move(featureName))
+              , ValuesPtr(valuesPtr)
     {
     }
 
     float GetValue(ui32 line) const {
-        return Values[line];
+        return ValuesPtr[line];
+    }
+
+    const float* GetValuesPtr() const {
+        return ValuesPtr;
     }
 
     const yvector<float>& GetValues() const {
-        return Values;
+        CB_ENSURE(Values, "Error: this values holder contains only reference for external features");
+        return *Values;
     }
 
 private:
-    yvector<float> Values;
+    THolder<yvector<float>> Values;
+    float* ValuesPtr;
 };
+
+
 
 class TCatFeatureValuesHolder: public IFeatureValuesHolder {
 public:
@@ -162,7 +182,7 @@ public:
                             yvector<ui64>&& compressedValues,
                             ui32 uniqueValues,
                             TString featureName = "")
-        : IFeatureValuesHolder(EFeatureValuesType::Categorical, featureId, size, featureName)
+        : IFeatureValuesHolder(EFeatureValuesType::Categorical, featureId, size, std::move(featureName))
         , UniqueValues(uniqueValues)
         , IndexHelper(IntLog2(uniqueValues))
         , Values(std::move(compressedValues))
@@ -189,11 +209,12 @@ private:
     yvector<ui64> Values;
 };
 
+
 inline TFeatureColumnPtr FloatToBinarizedColumn(const TFloatValuesHolder& floatValuesHolder,
                                                 const yvector<float>& borders) {
     if (borders.size()) {
         const ui32 bitsPerKey = IntLog2(borders.size() + 1);
-        const auto floatValues = floatValuesHolder.GetValues();
+        const auto& floatValues = floatValuesHolder.GetValues();
         auto binarizedFeature = BinarizeLine(floatValues.data(), floatValues.size(), borders);
         auto compressed = CompressVector<ui64>(binarizedFeature, bitsPerKey);
         return MakeHolder<TBinarizedFloatValuesHolder>(floatValuesHolder.GetId(),

@@ -2,8 +2,7 @@
 
 #include <library/yson/json_writer.h>
 #include <library/yson/parser.h>
-
-#include <mapreduce/yt/node/node_builder.h>
+#include <library/yson/yson2json_adapter.h>
 
 namespace NJson2Yson {
     static void WriteJsonValue(const NJson::TJsonValue& jsonValue, NYT::TYson2JsonCallbacksAdapter* adapter) {
@@ -48,13 +47,13 @@ namespace NJson2Yson {
         }
     }
 
-    void ConvertJson2Yson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream) {
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream) {
         NYT::TYsonWriter ysonWriter(outputStream, NYT::YF_BINARY, NYT::YT_NODE, false);
         NYT::TYson2JsonCallbacksAdapter adapter(&ysonWriter);
         WriteJsonValue(inputValue, &adapter);
     }
 
-    void ConvertYson2Json(IInputStream* inputStream, NJson::TJsonValue* outputValue) {
+    void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue) {
         NJson::TParserCallbacks parser(*outputValue, true);
         NJson2Yson::TJsonBuilder consumer(&parser);
         NYT::TYsonParser ysonParser(&consumer, inputStream, NYT::YT_NODE);

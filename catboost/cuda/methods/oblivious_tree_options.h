@@ -34,6 +34,11 @@ public:
         return *this;
     }
 
+    void SetMaxDepth(const ui32 maxDepth)
+    {
+        TObliviousTreeLearnerOptions::MaxDepth = maxDepth;
+    }
+
     bool IsUseNewton() const {
         return UseNewton;
     }

@@ -24,8 +24,15 @@ if __name__ == '__main__':
         cflags.append('-fopenmp')
         cflags.remove('-fopenmp=libomp')
 
-    # CUDA uses system STL library.
-    for flag in ('-nostdinc++', '-gline-tables-only'):
+    skip_list = [
+        '-nostdinc++',  # CUDA uses system STL library
+        '-gline-tables-only',
+        # clang coverage
+        '-fprofile-instr-generate',
+        '-fcoverage-mapping',
+    ]
+
+    for flag in skip_list:
         if flag in cflags:
             cflags.remove(flag)
 

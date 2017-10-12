@@ -86,6 +86,7 @@
       <ObjectFileName>$(IntDir)compile_cuda_extra1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\oblivious_tree_bin_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\pinned_memory_estimation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\remote_binarize.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\splitter.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\binarized_dataset.h"/>
@@ -98,6 +99,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_structures.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\grid_policy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\oblivious_tree_bin_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\pinned_memory_estimation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\remote_binarize.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\splitter.h"/>
   </ItemGroup>

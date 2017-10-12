@@ -70,8 +70,8 @@ inline void CalcAndOutputFstr(const TFullModel& model,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath,
                               int threadCount = 1) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
-    int featureCount = pool.Docs[0].Factors.ysize();
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+    int featureCount = pool.Docs.GetFactorsCount();
     int catFeaturesCount = pool.CatFeatures.ysize();
     int floatFeaturesCount = featureCount - catFeaturesCount;
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
@@ -91,8 +91,8 @@ inline void CalcAndOutputInteraction(const TFullModel& model,
                               const TPool& pool,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
-    int featureCount = pool.Docs[0].Factors.ysize();
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+    int featureCount = pool.Docs.GetFactorsCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     yvector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
@@ -110,8 +110,8 @@ inline void CalcAndOutputDocFstr(const TFullModel& model,
                               const TPool& pool,
                               const TString& docFstrPath,
                               int threadCount) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
-    int featureCount = pool.Docs[0].Factors.ysize();
+    CB_ENSURE(pool.Docs.GetDocCount(), "Pool should not be empty");
+    int featureCount = pool.Docs.GetFactorsCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     yvector<yvector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);

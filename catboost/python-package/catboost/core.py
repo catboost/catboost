@@ -353,6 +353,18 @@ class CatBoost(_CatBoostBase):
         """
         if params is None:
             params = {}
+
+        self._additional_params = ['calc_feature_importance']
+        kwargs = {}
+        for param in self._additional_params:
+            if param in params:
+                kwargs.update({
+                    param: params[param]
+                })
+                del params[param]
+        kwargs.update(params.get('kwargs', {}))
+        params['kwargs'] = kwargs
+
         self._check_params(params)
         params = self._params_type_cast(params)
         super(CatBoost, self).__init__(params)
@@ -378,9 +390,8 @@ class CatBoost(_CatBoostBase):
             if not isinstance(params['custom_loss'], Sequence):
                 raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
         if 'kwargs' in params:
-            allowed_kwargs = ['calc_feature_importance']
             for param in params['kwargs'].keys():
-                if param not in allowed_kwargs:
+                if param not in self._additional_params:
                     raise CatboostError("Invalid param `{}`.".format(param))
 
     def _clear_tsv_files(self, train_dir):
@@ -391,7 +402,7 @@ class CatBoost(_CatBoostBase):
 
     def _fit(self, X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot):
         params = self._get_init_train_params()
-        init_params = self.get_init_params()
+        init_params = self._get_init_params()
         calc_feature_importance = True
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
@@ -479,7 +490,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._fit(X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot)
 
-    def _predict(self, data, weight, prediction_type, ntree_start, ntree_end, verbose):
+    def _predict(self, data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -497,13 +508,13 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function = self.get_param('loss_function')
         if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
-            return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, verbose))
-        predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, verbose))
+            return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
+        predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         if prediction_type == 'Probability':
             predictions = np.transpose([1 - predictions, predictions])
         return predictions
 
-    def predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, verbose=None):
+    def predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -528,6 +539,10 @@ class CatBoost(_CatBoostBase):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
 
@@ -535,9 +550,9 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, verbose)
+        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def _staged_predict(self, data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose):
+    def _staged_predict(self, data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -555,7 +570,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+        staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         loss_function = self.get_param('loss_function')
         while True:
             predictions = staged_predict_iterator.next()
@@ -567,7 +582,7 @@ class CatBoost(_CatBoostBase):
                     predictions = np.transpose([1 - predictions, predictions])
             yield predictions
 
-    def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
+    def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -595,6 +610,10 @@ class CatBoost(_CatBoostBase):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -602,7 +621,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     @property
     def feature_importances_(self):
@@ -675,7 +694,7 @@ class CatBoost(_CatBoostBase):
             return [value[0] for value in fstr]
         elif fstr_type == 'Doc':
             return np.transpose(fstr)
-        return fstr
+        return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
     def save_model(self, fname, format="cbm", export_parameters=None):
         """
@@ -743,7 +762,7 @@ class CatBoost(_CatBoostBase):
         result : dict
             Dictionary of {param_key: param_value}.
         """
-        return self._get_params()
+        return self._get_init_params()
 
     def set_params(self, **params):
         """
@@ -1069,7 +1088,7 @@ class CatBoostClassifier(CatBoost):
             setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
-    def predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, verbose=None):
+    def predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -1094,6 +1113,10 @@ class CatBoostClassifier(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1101,9 +1124,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, verbose)
+        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, verbose=None):
+    def predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict class probability with data.
 
@@ -1122,6 +1145,10 @@ class CatBoostClassifier(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1129,9 +1156,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, 'Probability', ntree_start, ntree_end, verbose)
+        return self._predict(data, weight, 'Probability', ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
+    def staged_predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1159,6 +1186,10 @@ class CatBoostClassifier(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1166,9 +1197,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def staged_predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
+    def staged_predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict classification target at each stage for data.
 
@@ -1190,6 +1221,10 @@ class CatBoostClassifier(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1197,7 +1232,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, 'Probability', ntree_start, ntree_end, eval_period, verbose)
+        return self._staged_predict(data, weight, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def score(self, X, y):
         """
@@ -1227,7 +1262,8 @@ class CatBoostRegressor(CatBoost):
 
     Parameters
     ----------
-    Like in CatBoostClassifier, except loss_function.
+    Like in CatBoostClassifier, except loss_function, class_weights and
+    classes_count
 
     loss_function : string, [default='RMSE']
         'RMSE'
@@ -1267,8 +1303,6 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         priors=None,
         has_time=False,
-        classes_count=None,
-        class_weights=None,
         one_hot_max_size=None,
         random_strength=1,
         name='experiment',
@@ -1296,7 +1330,7 @@ class CatBoostRegressor(CatBoost):
                 params[key] = value
         super(CatBoostRegressor, self).__init__(params)
 
-    def predict(self, data, weight=None, ntree_start=0, ntree_end=0, verbose=None):
+    def predict(self, data, weight=None, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -1315,6 +1349,10 @@ class CatBoostRegressor(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1322,9 +1360,9 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, verbose)
+        return self._predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, verbose=None):
+    def staged_predict(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1346,6 +1384,10 @@ class CatBoostRegressor(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
 
@@ -1353,7 +1395,7 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, eval_period, verbose)
+        return self._staged_predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def score(self, X, y):
         """

@@ -67,7 +67,8 @@ public:
 
     double MemoryForDataSet(const TTreeCtrDataSet& dataSet) {
         ui32 binFeatureCount = 0;
-        double cindexSize = NHelpers::CeilDivide(dataSet.GetCtrs().size(), 4) * 4.0 * DocCount / MB;
+        const int featuresPerInt = 8;
+        double cindexSize = NHelpers::CeilDivide(dataSet.GetCtrs().size(), featuresPerInt) * 4.0 * DocCount / MB;
         double memoryForCtrsCalc = 0;
         if (dataSet.HasDataSet()) {
             binFeatureCount = static_cast<ui32>(dataSet.GetDataSet().GetHostBinaryFeatures().size());
@@ -84,7 +85,7 @@ public:
 
 private:
     double MemoryForCtrInOneStreamCalculation() const {
-        return 40 * DocCount * 1.0 / MB;
+        return 44 * DocCount * 1.0 / MB;
     }
 
     double MemoryForTensorMirrorCatFeaturesCache(ui32 currentDepth) const {
@@ -337,9 +338,6 @@ public:
             TreeCtrDataSet.BinarizedDataSet->CompressedIndex.Reset(TreeCtrDataSet.CompresssedIndexMapping);
         }
         FillBuffer(TreeCtrDataSet.BinarizedDataSet->CompressedIndex, 0u);
-    }
-
-    void ResetTreeCtrDataSet() {
     }
 
     void operator()(const TCtr& ctr,
@@ -645,7 +643,7 @@ private:
         return false;
     }
 
-    double GetFreeMemory(ui32 deviceId) {
+    double GetFreeMemory(ui32 deviceId) const {
         auto& manager = NCudaLib::GetCudaManager();
         return manager.FreeMemoryMb(deviceId) - PackSizeEstimators[deviceId]->GetReserveMemory(CurrentDepth);
     }
@@ -814,9 +812,9 @@ private:
         if (IsLastLevel()) {
             return true;
         }
-        auto freeMemory = NCudaLib::GetCudaManager().FreeMemoryMb(deviceId);
+        auto freeMemory = GetFreeMemory(deviceId);
 
-        if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 24.0 / 1024 / 1024)) {
+        if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 12.0 / 1024 / 1024)) {
             return true;
         }
         return false;

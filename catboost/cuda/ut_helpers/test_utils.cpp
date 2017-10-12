@@ -35,7 +35,10 @@ void GenerateTestPool(TBinarizedPool& pool,
     pool.NumFeatures = numFeatures;
     pool.Features.resize(numFeatures);
     for (ui32 f = 0; f < numFeatures; ++f) {
-        const uint binsCount = ((f % 10 == 1) ? 2 : (ui32)(2 + rand.NextUniformL() % (binarization - 1)));
+        uint binsCount = ((f % 10 == 1) ? 2 : (ui32)(2 + rand.NextUniformL() % (binarization - 1)));
+        if (f % 20 == 0 && (binsCount > 15)) {
+            binsCount = 15; //for halfByte tests
+        }
         pool.Features[f].resize(numSamples);
         for (ui32 doc = 0; doc < numSamples; ++doc) {
             ui8 bin = (ui8)(rand.NextUniformL() % binsCount);

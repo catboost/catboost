@@ -22,14 +22,14 @@ void TLoglossError::CalcFirstDerRange(int start, int count,
         for (int i = start; i < start + count; ++i) {
             const double e = approxes[i] * approxDeltas[i];
             const double p = e / (1 + e);
-            ders[i] = targets[i] > 0 ? (1 - p) : -p;
+            ders[i] = targets[i] - p;
         }
     } else {
 #pragma clang loop vectorize_width(4) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
             const double e = approxes[i];
             const double p = e / (1 + e);
-            ders[i] = targets[i] > 0 ? (1 - p) : -p;
+            ders[i] = targets[i] - p;
         }
     }
     if (weights != nullptr) {
@@ -48,14 +48,14 @@ void TLoglossError::CalcDersRange(int start, int count,
 #pragma clang loop vectorize_width(4) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
             const double p = approxExps[i] * approxDeltas[i] / (1 + approxExps[i] * approxDeltas[i]);
-            ders[i].Der1 = targets[i] > 0 ? (1 - p) : -p;
+            ders[i].Der1 = targets[i] - p;
             ders[i].Der2 = -p * (1 - p);
         }
     } else {
 #pragma clang loop vectorize_width(4) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
             const double p = approxExps[i] / (1 + approxExps[i]);
-            ders[i].Der1 = targets[i] > 0 ? (1 - p) : -p;
+            ders[i].Der1 = targets[i] - p;
             ders[i].Der2 = -p * (1 - p);
         }
     }

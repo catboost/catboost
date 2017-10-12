@@ -5,7 +5,6 @@ LIBRARY()
 PEERDIR(
     library/json
     library/yson
-    mapreduce/yt/node
 )
 
 SRCS(

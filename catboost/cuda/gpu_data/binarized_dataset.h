@@ -28,13 +28,14 @@ struct TSingleDevPoolLayout {
     using TSampleMapping = NCudaLib::TSingleMapping;
 };
 
-using TByteFeatureGridPolicy = TGridPolicy<8, 1, 1>;
-using TBinaryFeatureGridPolicy = TGridPolicy<1, 5, 0>;
+using TByteFeatureGridPolicy = TGridPolicy<8, 1>;
+using TBinaryFeatureGridPolicy = TGridPolicy<1, 8>;
+using THalfByteFeatureGridPolicy = TGridPolicy<4, 2>;
 
 template <class TGridPolicy_,
           class TLayoutPolicy = TCatBoostPoolLayout>
 class TGpuBinarizedDataSet: public TMoveOnly,
-                             public TGuidHolder {
+                            public TGuidHolder {
 public:
     using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
     using TSampleMapping = typename TLayoutPolicy::TSampleMapping;
@@ -47,6 +48,10 @@ public:
 
     ui32 GetFeatureId(TCFeature feature) const {
         return GetFeatureId(feature.Index);
+    }
+
+    bool NotEmpty() const {
+        return GetFeatureIds().size() > 0;
     }
 
     TCFeature GetFeatureByGlobalId(ui32 featureId) const {

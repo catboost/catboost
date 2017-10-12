@@ -9,6 +9,7 @@
 using namespace std;
 
 SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
+
     template <class TGridPolicy>
     void CheckDataSet(const TGpuBinarizedDataSet<TGridPolicy>& dataSet,
                       const TBinarizedFeaturesManager& featuresManager,
@@ -40,6 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
             yvector<ui32> compressedIndex;
             dataSet.GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
+
 
             for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
                 const ui32 featureId = dataSet.GetFeatureId(f);
@@ -102,10 +104,33 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     UNIT_ASSERT_VALUES_EQUAL(bins[i], (compressedIndex[feature.Offset * bins.size() + i] >> feature.Shift) & feature.Mask);
                 }
+
             }
         }
     }
 
+    void CheckDataSets(const TGpuFeatures<>& gpuFeatures,
+                       const TBinarizedFeaturesManager& featuresManager,
+                       const TDataPermutation& permutation,
+                       const TDataProvider& dataProvider) {
+
+        CheckDataSet(gpuFeatures.GetFeatures(),
+                     featuresManager,
+                     permutation,
+                     dataProvider);
+
+        CheckDataSet(gpuFeatures.GetHalfByteFeatures(),
+                     featuresManager,
+                     permutation,
+                     dataProvider);
+
+        CheckDataSet(gpuFeatures.GetBinaryFeatures(),
+                     featuresManager,
+                     permutation,
+                     dataProvider);
+    }
+
+    template <class TGridPolicy = TByteFeatureGridPolicy>
     void TestGpuDatasetBuilder(ui32 binarization,
                                ui32 permutationId) {
         TBinarizedPool pool;
@@ -140,7 +165,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         yvector<ui32> order;
         permutation.FillOrder(order);
 
-        using TGridPolicy = TGridPolicy<8, 1, 0>; //take all
         using TDataSet = TGpuBinarizedDataSet<TGridPolicy>;
         TDataSet binarizedDataSet;
         {
@@ -236,7 +260,9 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
     }
 
     void TestDatasetHolderBuilder(ui32 binarization,
-                                  ui32 permutationCount) {
+                                  ui32 permutationCount,
+                                  ui32 targetCtrBinarization=32,
+                                  ui32 freqCtrBinarization=15) {
         TBinarizedPool pool;
 
         GenerateTestPool(pool, binarization);
@@ -246,6 +272,9 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
         TBinarizationConfiguration binarizationConfiguration;
         binarizationConfiguration.DefaultFloatBinarization.Discretization = binarization;
+        binarizationConfiguration.DefaultCtrBinarization.Discretization = targetCtrBinarization;
+        binarizationConfiguration.FreqCtrBinarization.Discretization = freqCtrBinarization;
+
         TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, 0);
         TBinarizedFeaturesManager featuresManager(featureManagerOptions);
 
@@ -292,19 +321,16 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             CheckIndices(dataProvider, dataSet);
         }
 
-        CheckDataSet(dataSet.GetBinaryFeatures(),
-                     featuresManager,
-                     dataSet.GetPermutation(0),
-                     dataProvider);
+        {
+            auto& gpuFeatures = dataSet.GetPermutationIndependentFeatures();
+            CheckDataSets(gpuFeatures, featuresManager, dataSet.GetPermutation(0), dataProvider);
 
-        CheckDataSet(dataSet.GetFeatures(),
-                     featuresManager,
-                     dataSet.GetPermutation(0),
-                     dataProvider);
+        }
+
 
         for (ui32 permutation = 0; permutation < dataSet.PermutationsCount(); ++permutation) {
             //
-            CheckDataSet(dataSet.GetDataSetForPermutation(permutation).GetTargetCtrs(),
+            CheckDataSets(dataSet.GetDataSetForPermutation(permutation).GetPermutationFeatures(),
                          featuresManager,
                          dataSet.GetPermutation(permutation),
                          dataProvider);
@@ -327,6 +353,14 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         StopCudaManager();
     }
 
+    SIMPLE_UNIT_TEST(TestCreateCompressedIndexHalfByteWithPermutation) {
+        StartCudaManager();
+        {
+            TestGpuDatasetBuilder<THalfByteFeatureGridPolicy>(15, 1);
+        }
+        StopCudaManager();
+    }
+
     SIMPLE_UNIT_TEST(TestCreateDataSetsHolder) {
         StartCudaManager();
         {
@@ -335,10 +369,35 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         StopCudaManager();
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex64) {
+    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4) {
         StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4);
+        }
+        StopCudaManager();
+    }
+
+
+    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
+        StartCudaManager();
+        {
+            TestDatasetHolderBuilder(32, 4, 1, 8);
+        }
+        StopCudaManager();
+    }
+
+    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_64) {
+        StartCudaManager();
+        {
+            TestDatasetHolderBuilder(32, 4, 1, 64);
+        }
+        StopCudaManager();
+    }
+
+    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
+        StartCudaManager();
+        {
+            TestDatasetHolderBuilder(32, 4, 15, 64);
         }
         StopCudaManager();
     }

@@ -25,9 +25,9 @@ int mode_fstr(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName));
+    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "specify column_description file for fstr mode");
+    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
 
     TPool pool;
     ReadPool(params.CdFile, params.InputPath, params.PairsFile, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &pool);

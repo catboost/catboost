@@ -6,7 +6,7 @@
 struct TRandom {
     TMersenne<ui64> Rng;
 
-    TRandom(ui64 seed = 0)
+    explicit TRandom(ui64 seed = 0)
         : Rng(seed)
     {
     }
@@ -21,6 +21,10 @@ struct TRandom {
 
     double NextUniform() {
         return Rng.GenRandReal1();
+    }
+
+    ui64 Uniform(ui64 size) {
+        return Rng.Uniform(size);
     }
 
     double NextGaussian() {
@@ -76,7 +80,6 @@ struct TRandom {
         return k - 1;
     }
 
-private:
     static ui64 GenerateSeed(const ui64 from) {
         const ui32 itr = 5;
         ui64 seed = from;
@@ -85,4 +88,5 @@ private:
         }
         return seed;
     }
+
 };

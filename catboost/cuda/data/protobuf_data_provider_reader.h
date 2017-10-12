@@ -66,7 +66,7 @@ public:
         return *this;
     }
 
-    TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager)
+    explicit TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager)
         : FeaturesManager(featuresManager)
     {
     }

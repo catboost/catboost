@@ -11,7 +11,7 @@ namespace NCudaLib {
     private:
         static constexpr ui64 BandwithIterations = 5;
         static constexpr ui64 LatencyIterations = 200;
-        static constexpr ui64 DataSize = 32 * 1024 * 1024;
+        static constexpr ui64 DataSize = 16 * 1024 * 1024;
 
         TArray2D<double> LatencyTable;
         TArray2D<double> BandwidthTable;

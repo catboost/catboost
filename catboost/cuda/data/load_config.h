@@ -19,10 +19,6 @@ public:
         return ColumnDescriptionName;
     }
 
-    const TString& GetCatFeatureBinarizationTempName() const {
-        return CatFeatureBinarizationTempName;
-    }
-
     char GetDelimiter() const {
         return Delimiter;
     }
@@ -43,7 +39,6 @@ public:
     friend class TOptionsBinder;
 
 private:
-    TString CatFeatureBinarizationTempName;
     TString FeaturesName = "features.tsv";
     TString TestName = "";
     TString ColumnDescriptionName = "features.cd";

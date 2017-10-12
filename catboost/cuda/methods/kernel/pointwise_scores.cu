@@ -185,6 +185,95 @@ namespace NKernel {
     }
 
 
+    template <int BLOCK_SIZE>
+    __global__ void FindOptimalSplitCorrelationSingleFoldImpl(const TCBinFeature* bf,
+                                                              int binFeatureCount,
+                                                              const float* binSums,
+                                                              const TPartitionStatistics* parts,
+                                                              int pCount,
+                                                              double l2, bool normalize,
+                                                              double scoreStdDev, ui64 globalSeed,
+                                                              TBestSplitProperties* result)
+    {
+        float bestScore = FLT_MAX;
+        int bestIndex = 0;
+        int tid = threadIdx.x;
+        result += blockIdx.x;
+
+        TPartOffsetsHelper helper(1);
+
+        for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
+            if (i + tid >= binFeatureCount) {
+                break;
+            }
+
+            const float* current = binSums + 2 * (i + tid);
+
+            float score = 0;
+            float denumSqr = 0;
+
+            for (int leaf = 0; leaf < pCount; leaf++) {
+                TPartitionStatistics part = LdgWithFallback(parts, helper.GetDataPartitionOffset(leaf, 0));
+
+                float weightLeft = current[(size_t)binFeatureCount * helper.GetHistogramOffset(leaf, 0) * 2];
+                float weightRight = part.Weight < weightLeft ? 0 : part.Weight - weightLeft;
+
+                float sumLeft = current[(size_t)binFeatureCount * helper.GetHistogramOffset(leaf, 0) * 2 + 1];
+                float sumRight = part.Sum - sumLeft;
+
+                {
+                    double lambda = normalize ? l2 * weightLeft : l2;
+
+                    const float mu =  weightLeft > 0 ? (sumLeft / (weightLeft + lambda)) : 0;
+                    score +=  sumLeft * mu;
+                    denumSqr += weightLeft * mu * mu;
+                }
+
+                {
+                    double lambda = normalize ? l2 * weightRight : l2;
+
+                    const float mu =  weightRight > 0 ? (sumRight / (weightRight + lambda)) : 0;
+                    score += sumRight * mu;
+                    denumSqr += weightRight * mu * mu;
+                }
+            }
+
+            score = denumSqr > 0 ? -score / sqrt(denumSqr) : FLT_MAX;
+            if (scoreStdDev) {
+                ui64 seed = globalSeed + (blockIdx.x * gridDim.x * 5 + 23 * threadIdx.x) * (1.0f + log(threadIdx.x + 2.0f));
+                AdvanceSeed(&seed);
+                score += NextNormal(&seed) * scoreStdDev;
+            }
+            if (score < bestScore) {
+                bestScore = score;
+                bestIndex = i + tid;
+            }
+        }
+
+        __shared__ float scores[BLOCK_SIZE];
+        scores[tid] = bestScore;
+        __shared__ int indices[BLOCK_SIZE];
+        indices[tid] = bestIndex;
+        __syncthreads();
+
+        for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
+            if (tid < s) {
+                if ( scores[tid] > scores[tid + s] ||
+                     (scores[tid] == scores[tid + s] && indices[tid] > indices[tid + s]) ) {
+                    scores[tid] = scores[tid + s];
+                    indices[tid] = indices[tid + s];
+                }
+            }
+            __syncthreads();
+        }
+
+        if (!tid) {
+            result->FeatureId = bf[indices[0]].FeatureId;
+            result->BinId = bf[indices[0]].BinId;
+            result->Score = scores[0];
+        }
+    }
+
 
 
     template <int BLOCK_SIZE>
@@ -302,7 +391,25 @@ namespace NKernel {
             const int blockSize = 128;
 
             if (foldCount == 1) {
-                FindOptimalSplitSolarSingleFoldImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, result);
+                switch (scoreFunction)
+                {
+                    case EScoreFunction::SolarL2:
+                    {
+                        FindOptimalSplitSolarSingleFoldImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
+                                                                                                      (binaryFeatures, binaryFeatureCount, splits, parts, pCount, result);
+                        break;
+                    }
+                    case EScoreFunction::Correlation:
+                    {
+                        FindOptimalSplitCorrelationSingleFoldImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
+                                                                                                            (binaryFeatures, binaryFeatureCount, splits, parts, pCount, l2, normalize, scoreStdDev, seed, result);
+                        break;
+                    }
+                    default:
+                    {
+                        throw std::exception();
+                    }
+                }
             } else {
                 switch (scoreFunction)
                 {

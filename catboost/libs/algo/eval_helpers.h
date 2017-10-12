@@ -17,6 +17,6 @@ yvector<yvector<double>> PrepareEval(const EPredictionType predictionType,
                                      int threadCount);
 
 void OutputTestEval(const yvector<yvector<yvector<double>>>& testApprox,
-                    const yvector<TDocInfo>& docIds,
+                    const TDocumentStorage& docIds,
                     const bool outputTarget,
                     TOFStream* outputStream);

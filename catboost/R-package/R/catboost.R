@@ -1089,12 +1089,6 @@ print.catboost.Pool <- function(x, ...) {
 #' If set, the passed list of parameters overrides the default values.
 #'
 #' Default value: Required argument
-#' @param calc_importance
-#' Calculate the feature importance.
-#'
-#' If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.get_feature_importance function.
-#'
-#' Default value: FALSE
 #' @examples
 #' fit_params <- list(iterations = 100,
 #'     thread_count = 10,
@@ -1109,7 +1103,7 @@ print.catboost.Pool <- function(x, ...) {
 #' model <- catboost.train(pool, test_pool, fit_params)
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-train-docpage/}
-catboost.train <- function(learn_pool, test_pool = NULL, params = list(), calc_importance = FALSE) {
+catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (class(learn_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
@@ -1117,13 +1111,21 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), calc_i
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    calc_feature_importance = TRUE
+    if (exists('calc_feature_importance' , params)) {
+        calc_feature_importance = params['calc_feature_importance'][[1]]
+        params['calc_feature_importance'] <- NULL
+    }
+
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     model <- list(handle = handle)
     class(model) <- "catboost.Model"
-    if (calc_importance) {
+
+    if (calc_feature_importance) {
         model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
     }
+
     model$tree_count <- catboost.ntrees(model)
     return(model)
 }
@@ -1214,7 +1216,8 @@ catboost.predict <- function(model, pool,
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
 
-    prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
+    calcer <- .Call("CatBoostGetCalcer_R", model$handle)
+    prediction <- .Call("CatBoostPredictMulti_R", model$handle, calcer, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
     prediction_columns <- length(prediction) / nrow(pool)
     if (prediction_columns != 1) {
@@ -1276,12 +1279,13 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         ntree_end = model$tree_count
 
     current_tree_count <- ntree_start
+    calcer <- .Call("CatBoostGetCalcer_R", model$handle)
     approx <- 0
     preds <- function() {
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
             stop('StopIteration')
-        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, calcer, pool,
                                          verbose, 'RawFormulaVal', current_tree_count - eval_period, min(current_tree_count, ntree_end), thread_count))
         approx <<- approx + current_approx
         prediction_columns <- length(approx) / nrow(pool)
@@ -1315,6 +1319,25 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' The feature importance for the training dataset is calculated if this argument is not specified.
 #'
 #' Default value: NULL
+#' @param fstr_type The fstr type.
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'FeatureImportance'
+#'
+#'     Calculate score for every feature.
+#'
+#'   \item 'Interaction'
+#'
+#'     Calculate pairwise score between every feature.
+#'
+#'   \item 'Doc'
+#'
+#'     Calculate score for every feature in every object.
+#'
+#' }
+#'
+#' Default value: 'FeatureImportance'
 #' @param thread_count The number of threads to use when applying the model.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
@@ -1322,7 +1345,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: 1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
-catboost.get_feature_importance <- function(model, pool = NULL, thread_count = 1) {
+catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = 1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
@@ -1330,10 +1353,24 @@ catboost.get_feature_importance <- function(model, pool = NULL, thread_count = 1
     if (is.null(pool)) {
         return(model$feature_importances)
     }
-    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, thread_count)
-    names(importances) <- attr(pool, '.Dimnames')[[2]]
+    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, fstr_type, thread_count)
+
+    if (fstr_type == 'Interaction') {
+        importances <- matrix(importances, ncol = 3, byrow = TRUE)
+        colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
+    } else {
+        importances <- matrix(importances, nrow = ncol(pool), byrow = TRUE)
+        if (fstr_type == 'FeatureImportance') {
+            importances <- importances[, 1]
+            names(importances) <- attr(pool, '.Dimnames')[[2]]
+        } else {
+            importances <- t(importances)
+            colnames(importances) <- attr(pool, '.Dimnames')[[2]]
+        }
+    }
     return(importances)
 }
+
 
 #' Number of trees in the model
 #'

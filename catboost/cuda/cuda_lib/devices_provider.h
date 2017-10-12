@@ -7,6 +7,21 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
+
+    inline yset<ui32> GetEnabledDevices(const TString& deviceConfig)
+    {
+        const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
+        yset<ui32> enabledDevices;
+        if (deviceConfig == "-1") {
+            for (ui32 i = 0; i < devCount; ++i) {
+                enabledDevices.insert(i);
+            }
+        } else {
+            enabledDevices = ::NHelpers::ParseRangeString(deviceConfig);
+        }
+        return enabledDevices;
+    }
+
     struct TCudaApplicationConfig {
         constexpr static ui64 MB = 1024 * 1024;
 
@@ -32,7 +47,12 @@ namespace NCudaLib {
             Y_UNUSED(deviceMemorySize);
             return PinnedMemorySize;
         }
+
+        ui32 GetDeviceCount() const {
+            return GetEnabledDevices(DeviceConfig).size() * WorkersPerDevice;
+        }
     };
+
 
     class TSingleHostDevicesProvider {
     private:
@@ -78,14 +98,7 @@ namespace NCudaLib {
         void Initilize() {
             CB_ENSURE(!IsInitialized, "Error: Initialization could be done only once");
             const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-            yset<ui32> enabledDevices;
-            if (Config.DeviceConfig == "-1") {
-                for (ui32 i = 0; i < devCount; ++i) {
-                    enabledDevices.insert(i);
-                }
-            } else {
-                enabledDevices = ::NHelpers::ParseRangeString(Config.DeviceConfig);
-            }
+            yset<ui32> enabledDevices = GetEnabledDevices(Config.DeviceConfig);
             const ui32 workersPerDevice = Config.WorkersPerDevice;
             const ui32 freeCount = enabledDevices.size() * workersPerDevice;
 
@@ -96,7 +109,7 @@ namespace NCudaLib {
             {
                 ui32 offset = 0;
                 for (ui32 i = 0; i < workersPerDevice; ++i) {
-                    for (ui32 dev = 0; dev < freeCount; ++dev) {
+                    for (ui32 dev = 0; dev < devCount; ++dev) {
                         if (enabledDevices.count(dev)) {
                             Devices[offset++] = dev;
                         }
@@ -180,8 +193,6 @@ namespace NCudaLib {
             }
             return devices;
         }
-
-        //
 
         ui64 TotalWorkerCount() {
             return Workers.size();

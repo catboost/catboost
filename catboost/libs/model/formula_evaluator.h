@@ -99,6 +99,7 @@ namespace NCatBoost {
             return results;
         }
 
+        void CalcFlatTransposed(const yvector<NArrayRef::TConstArrayRef<float>>& transposedFeatures, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const;
         void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const;
         void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, NArrayRef::TArrayRef<double> results) const {
             CalcFlat(features, 0, BinaryTrees.size(), results);

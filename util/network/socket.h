@@ -124,6 +124,11 @@ void SetTcpFastOpen(SOCKET s, int qlen);
  **/
 bool HasLocalAddress(SOCKET socket);
 
+/**
+ * Runtime check if current kernel supports SO_REUSEPORT option.
+ **/
+bool IsReusePortAvailable();
+
 bool IsNonBlock(SOCKET fd);
 void SetNonBlock(SOCKET fd, bool nonBlock = true);
 

@@ -38,7 +38,7 @@ test_that("model: catboost.importance", {
                  loss_function = "Logloss",
                  random_seed = 12345)
 
-  model <- catboost.train(pool, NULL, params, calc_importance = TRUE)
+  model <- catboost.train(pool, NULL, params)
   expect_false(is.null(model$feature_importances))
   expect_equal(length(model$feature_importances), ncol(features))
 })

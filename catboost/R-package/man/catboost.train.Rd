@@ -4,8 +4,7 @@
 \alias{catboost.train}
 \title{Train the model}
 \usage{
-catboost.train(learn_pool, test_pool = NULL, params = list(),
-  calc_importance = FALSE)
+catboost.train(learn_pool, test_pool = NULL, params = list())
 }
 \arguments{
 \item{learn_pool}{The dataset used for training the model.
@@ -23,12 +22,6 @@ If omitted, default values are used (see The list of parameters).
 If set, the passed list of parameters overrides the default values.
 
 Default value: Required argument}
-
-\item{calc_importance}{Calculate the feature importance.
-
-If set to “TRUE” the resulting feature importance are saved as the default value for the catboost.get_feature_importance function.
-
-Default value: FALSE}
 }
 \description{
 Train the model using a CatBoost dataset.

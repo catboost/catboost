@@ -111,7 +111,7 @@ namespace NCudaLib {
                 TPtr MemoryPtr;
 
             public:
-                TRemoveObjectCommand(TPtr&& ptr)
+                explicit TRemoveObjectCommand(TPtr&& ptr)
                     : MemoryPtr(std::move(ptr))
                 {
                 }

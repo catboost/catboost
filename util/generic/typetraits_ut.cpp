@@ -300,23 +300,6 @@ SIMPLE_UNIT_TEST_SUITE(TTypeTraitsTest) {
         TestAllTypeTraitFlagsSet<TWithAllTypeTraitFlags>();
     }
 
-    SIMPLE_UNIT_TEST(TestDecayArray) {
-        ASSERT_SAME_TYPE(TDecayArray<int[5]>, int*);
-        ASSERT_SAME_TYPE(TDecayArray<const int[5]>, const int*);
-
-        ASSERT_SAME_TYPE(TDecayArray<int>, int);
-        ASSERT_SAME_TYPE(TDecayArray<int*>, int*);
-        ASSERT_SAME_TYPE(TDecayArray<int* const>, int*);
-
-        ASSERT_SAME_TYPE(TDecayArray<char>, char);
-        ASSERT_SAME_TYPE(TDecayArray<const char(&)[2]>, const char*);
-
-        using TStringLiteralDecayed = TDecayArray<decltype("42")>;
-        UNIT_ASSERT(std::is_pointer<TStringLiteralDecayed>::value);
-
-        ASSERT_SAME_TYPE(std::remove_const_t<std::remove_pointer_t<TStringLiteralDecayed>>, char);
-    }
-
     template <class T>
     using TTrySum = decltype(std::declval<T>() + std::declval<T>());
 

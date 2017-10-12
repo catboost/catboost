@@ -183,15 +183,15 @@ static void InitFromBaseline(const int beginIdx, const int endIdx,
                         yvector<yvector<double>>* approx) {
     const int learnSampleCount = learnPermutation.ysize();
     const int approxDimension = approx->ysize();
-    for (int docId = beginIdx; docId < endIdx; ++docId) {
-        int initialIdx = docId;
-        if (docId < learnSampleCount) {
-            initialIdx = learnPermutation[docId];
-        }
-        yvector<yvector<double>> tempBaseline(1, baseline[initialIdx]);
+    for (int dim = 0; dim < approxDimension; ++dim) {
+        yvector<double> tempBaseline(baseline[dim]);
         ExpApproxIf(storeExpApproxes, &tempBaseline);
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            (*approx)[dim][docId] = tempBaseline[0][dim];
+        for (int docId = beginIdx; docId < endIdx; ++docId) {
+            int initialIdx = docId;
+            if (docId < learnSampleCount) {
+                initialIdx = learnPermutation[docId];
+            }
+            (*approx)[dim][docId] = tempBaseline[initialIdx];
         }
     }
 }
@@ -244,7 +244,7 @@ inline TFold BuildLearnFold(const TTrainData& data,
         bt.BodyFinish = leftPartLen;
         bt.TailFinish = Min(ceil(leftPartLen * multiplier), ff.LearnPermutation.ysize() + 0.);
         bt.Approx.resize(approxDimension, yvector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
-        if (!data.Baseline[0].empty()) {
+        if (!data.Baseline.empty()) {
             InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
         }
         bt.Derivatives.resize(approxDimension, yvector<double>(bt.TailFinish));
@@ -284,7 +284,7 @@ inline TFold BuildAveragingFold(const TTrainData& data,
     bt.TailFinish = data.LearnSampleCount;
     bt.Approx.resize(approxDimension, yvector<double>(data.GetSampleCount(), GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDer.resize(approxDimension, yvector<double>(data.GetSampleCount()));
-    if (!data.Baseline[0].empty()) {
+    if (!data.Baseline.empty()) {
         InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }
     ff.AssignCompetitors(data.Pairs, invertPermutation, &bt);

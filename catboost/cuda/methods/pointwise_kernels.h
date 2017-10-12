@@ -126,6 +126,59 @@ namespace NKernelHost {
         }
     };
 
+    template <>
+    class TComputeHistKernel<THalfByteFeatureGridPolicy>: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const TCFeature> NbFeatures;
+        TCudaBufferPtr<const ui32> Cindex;
+        int DsSize;
+        TCudaBufferPtr<const float> Target;
+        TCudaBufferPtr<const float> Weight;
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<const TDataPartition> Partition;
+        ui32 PartCount;
+        ui32 FoldCount;
+
+        TCudaBufferPtr<float> BinSums;
+        int BinFeatureCount;
+        bool FullPass;
+
+    public:
+        TComputeHistKernel() = default;
+
+        TComputeHistKernel(TCudaBufferPtr<const TCFeature> nbFeatures,
+                           TCudaBufferPtr<const ui32> cindex, ui32 dsSize,
+                           TCudaBufferPtr<const float> target, TCudaBufferPtr<const float> weight, TCudaBufferPtr<const ui32> indices,
+                           TCudaBufferPtr<const TDataPartition> partition, ui32 partCount, ui32 foldCount,
+                           TCudaBufferPtr<float> binSums, const ui32 binFeatureCount, bool fullPass)
+                : NbFeatures(nbFeatures)
+                  , Cindex(cindex)
+                  , DsSize(dsSize)
+                  , Target(target)
+                  , Weight(weight)
+                  , Indices(indices)
+                  , Partition(partition)
+                  , PartCount(partCount)
+                  , FoldCount(foldCount)
+                  , BinSums(binSums)
+                  , BinFeatureCount(binFeatureCount)
+                  , FullPass(fullPass)
+        {
+        }
+
+        SAVELOAD(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ComputeHist2HalfByte(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
+                                           Cindex.Get(), DsSize,
+                                           Target.Get(), Weight.Get(), Indices.Get(), Partition.Get(),
+                                           PartCount, FoldCount,
+                                           BinSums.Get(), BinFeatureCount,
+                                           FullPass,
+                                           stream.GetStream());
+        }
+    };
+
     class TUpdateFoldBinsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<ui32> DstBins;

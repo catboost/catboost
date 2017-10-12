@@ -21,6 +21,60 @@ inline TCtrTargets<NCudaLib::TSingleMapping> DeviceView(const TCtrTargets<NCudaL
     return view;
 }
 
+template <class TLayoutPolicy = TCatBoostPoolLayout>
+class TGpuFeatures {
+public:
+    const TGpuBinarizedDataSet<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatures() const {
+        return BinaryFeatures;
+    }
+
+    const TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatures() const {
+        return HalfByteFeatures;
+    }
+
+    const TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy>& GetFeatures() const {
+        return Features;
+    }
+
+    bool HasFeature(ui32 featureId) const
+    {
+        if (GetBinaryFeatures().HasFeature(featureId))
+        {
+            return true;
+        }
+        if (GetHalfByteFeatures().HasFeature(featureId))
+        {
+            return true;
+        }
+        if (GetFeatures().HasFeature(featureId))
+        {
+            return true;
+        }
+        return false;
+    }
+    bool NotEmpty() const {
+        return GetBinaryFeatures().NotEmpty() || GetHalfByteFeatures().NotEmpty() || GetFeatures().NotEmpty();
+    }
+    yvector<ui32> ComputeAllFeatureIds() const {
+        yvector<ui32> result;
+        const yvector<ui32>& binaryFeatureIds = GetBinaryFeatures().GetFeatureIds();
+        result.insert(result.end(), binaryFeatureIds.begin(), binaryFeatureIds.end());
+        const yvector<ui32>& halfByteFeatureIds = GetHalfByteFeatures().GetFeatureIds();
+        result.insert(result.end(), halfByteFeatureIds.begin(), halfByteFeatureIds.end());
+        const yvector<ui32>& byteFeatureIds = GetFeatures().GetFeatureIds();
+        result.insert(result.end(), byteFeatureIds.begin(), byteFeatureIds.end());
+        return result;
+    }
+
+    template <NCudaLib::EPtrType CatFeatureStoragePtrType>
+    friend class TDataSetHoldersBuilder;
+
+private:
+    TGpuBinarizedDataSet<TBinaryFeatureGridPolicy, TLayoutPolicy> BinaryFeatures;
+    TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TLayoutPolicy> HalfByteFeatures;
+    TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy> Features;
+};
+
 template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
 class TDataSet: public TGuidHolder {
 public:
@@ -34,38 +88,29 @@ public:
              ui32 permutationId,
              ui32 blockSize)
         : DataProvider(&dataProvider)
-        , Permutation(::GetPermutation(dataProvider, permutationId, blockSize))
-    {
+        , Permutation(::GetPermutation(dataProvider, permutationId, blockSize)) {
     }
 
-    //binary features
-    const TGpuBinarizedDataSet<TBinaryFeatureGridPolicy>& GetBinaryFeatures() const {
-        return *BinaryFeatures;
+    const TGpuFeatures<>& GetFeatures() const {
+        CB_ENSURE(PermutationIndependentFeatures);
+        return *PermutationIndependentFeatures;
     }
 
-    //float and one-hot features + simple freq-ctr_type
-    const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& GetFeatures() const {
-        return *Features;
-    }
-
-    //target-ctr_type
-    const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& GetTargetCtrs() const {
-        return PermutationBasedFeatures;
+    const TGpuFeatures<>& GetPermutationFeatures() const {
+        return PermutationDependentFeatures;
     }
 
     //target-ctr_type
     const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const {
+        CB_ENSURE(CatFeatures);
         return *CatFeatures;
     }
 
     bool HasFeature(ui32 featureId) const {
-        if (GetBinaryFeatures().HasFeature(featureId)) {
+        if (PermutationIndependentFeatures->HasFeature(featureId)) {
             return true;
         }
-        if (GetFeatures().HasFeature(featureId)) {
-            return true;
-        }
-        return GetTargetCtrs().HasFeature(featureId);
+        return GetPermutationFeatures().HasFeature(featureId);
     }
 
     const TDataProvider& GetDataProvider() const {
@@ -127,12 +172,10 @@ private:
     const TDataProvider* DataProvider;
     TDataPermutation Permutation;
 
-    TSimpleSharedPtr<TGpuBinarizedDataSet<TByteFeatureGridPolicy>> Features;
-    TSimpleSharedPtr<TGpuBinarizedDataSet<TBinaryFeatureGridPolicy>> BinaryFeatures;
+    TSimpleSharedPtr<TGpuFeatures<>> PermutationIndependentFeatures;
+    TGpuFeatures<> PermutationDependentFeatures;
+
     TSimpleSharedPtr<TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>> CatFeatures;
-
-    TGpuBinarizedDataSet<TByteFeatureGridPolicy> PermutationBasedFeatures;
-
     TSimpleSharedPtr<TCtrTargets<NCudaLib::TMirrorMapping>> CtrTargets;
     TSimpleSharedPtr<TDataSet> LinkedHistoryForCtrs;
 
@@ -148,7 +191,9 @@ public:
     }
 
     const TDataSet<CatFeaturesStoragePtrType>& GetDataSetForPermutation(ui32 permutationId) const {
-        return *PermutationDataSets.at(permutationId);
+        const auto* dataSetPtr = PermutationDataSets.at(permutationId).Get();
+        CB_ENSURE(dataSetPtr);
+        return *dataSetPtr;
     }
 
     const TDataProvider& GetDataProvider() const {
@@ -165,16 +210,14 @@ public:
         return PermutationDataSets[0]->GetCatFeatures();
     }
 
-    const TGpuBinarizedDataSet<TBinaryFeatureGridPolicy>& GetBinaryFeatures() const {
-        return PermutationDataSets[0]->GetBinaryFeatures();
-    }
-
-    const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& GetFeatures() const {
+    const TGpuFeatures<>& GetPermutationIndependentFeatures() const {
+        CB_ENSURE(PermutationDataSets[0]);
         return PermutationDataSets[0]->GetFeatures();
     }
 
-    const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& GetPermutationDependentFeatures(ui32 permutationId) const {
-        return PermutationDataSets[permutationId]->GetTargetCtrs();
+    const TGpuFeatures<>& GetPermutationDependentFeatures(ui32 permutationId) const {
+        CB_ENSURE(PermutationDataSets[permutationId]);
+        return PermutationDataSets[permutationId]->GetPermutationFeatures();
     }
 
     ui32 PermutationsCount() const {

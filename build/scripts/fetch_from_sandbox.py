@@ -155,7 +155,7 @@ def _query(url):
         except urllib2.HTTPError as e:
             logging.error(e)
 
-            if e.code not in (500, 503):
+            if e.code not in (500, 503, 504):
                 raise
 
         except Exception as e:

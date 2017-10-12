@@ -92,5 +92,13 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         checkAdl2(a);
         checkAdl2(b);
     }
+
+    SIMPLE_UNIT_TEST(TestSlice) {
+        TArrayRef<const int> r({ 1, 2, 3 });
+        TArrayRef<const int> s = r.Slice(2);
+
+        UNIT_ASSERT_VALUES_EQUAL(s.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(s[0], 3);
+    }
 }
 

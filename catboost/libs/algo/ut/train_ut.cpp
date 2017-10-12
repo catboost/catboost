@@ -13,22 +13,15 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
         const size_t FactorCount = 10;
 
         TReallyFastRng32 rng(123);
-        yvector<TDocInfo> documents;
-        for (size_t i = 0; i < TestDocCount; ++i) {
-            TDocInfo doc;
-            doc.Target = (float)rng.GenRandReal2();
-            doc.Factors.resize(FactorCount);
-            for (size_t j = 0; j < FactorCount; ++j) {
-                doc.Factors[j] = (float)rng.GenRandReal2();
-            }
-            documents.emplace_back(std::move(doc));
-        }
-
         TPool pool;
-        pool.Docs = documents;
+        pool.Docs.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0);
+        for (size_t i = 0; i < TestDocCount; ++i) {
+            pool.Docs.Target[i] = rng.GenRandReal2();
+            for (size_t j = 0; j < FactorCount; ++j) {
+                pool.Docs.Factors[j][i] = rng.GenRandReal2();
+            }
+        }
         TPool poolCopy(pool);
-
-        TPool testPool;
 
         NJson::TJsonValue fitParams;
         fitParams.InsertValue("random_seed", 5);
@@ -37,21 +30,21 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
         std::vector<int> emptyCatFeatures;
 
         yvector<yvector<double>> testApprox;
+        TPool testPool;
         TFullModel model;
-        TrainModel(fitParams, Nothing(), Nothing(), pool, testPool, "", &model, &testApprox);
+        TrainModel(fitParams, Nothing(), Nothing(), pool, false, testPool, "", &model, &testApprox);
         {
-            TrainModel(fitParams, Nothing(), Nothing(), pool, testPool, "model_for_test.cbm", nullptr, &testApprox);
+            TrainModel(fitParams, Nothing(), Nothing(), pool, false, testPool, "model_for_test.cbm", nullptr, &testApprox);
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }
-        UNIT_ASSERT_EQUAL(pool.Docs.size(), poolCopy.Docs.size());
-        for (size_t i = 0; i < pool.Docs.size(); ++i) {
-            const auto& doc1 = pool.Docs[i];
-            const auto& doc2 = poolCopy.Docs[i];
-            UNIT_ASSERT_EQUAL(doc1.Target, doc2.Target);
-            UNIT_ASSERT_EQUAL(doc1.Factors.size(), doc2.Factors.size());
-            for (size_t j = 0; j < doc1.Factors.size(); ++j) {
-                UNIT_ASSERT_EQUAL(doc1.Factors[j], doc2.Factors[j]);
+        UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), poolCopy.Docs.GetDocCount());
+        UNIT_ASSERT_EQUAL(pool.Docs.GetFactorsCount(), poolCopy.Docs.GetFactorsCount());
+        for (int j = 0; j < pool.Docs.GetFactorsCount(); ++j) {
+            const auto& factors = pool.Docs.Factors[j];
+            const auto& factorsCopy = poolCopy.Docs.Factors[j];
+            for (size_t i = 0; i < pool.Docs.GetDocCount(); ++i) {
+                UNIT_ASSERT_EQUAL(factors[i], factorsCopy[i]);
             }
         }
     }

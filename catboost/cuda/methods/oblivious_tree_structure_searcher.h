@@ -20,7 +20,8 @@ template <class TGridPolicy,
           class TLayoutPolicy>
 inline THolder<TScoreHelper<TGridPolicy, TLayoutPolicy>> CreateScoreHelper(const TGpuBinarizedDataSet<TGridPolicy, TLayoutPolicy>& dataSet,
                                                                            ui32 foldCount,
-                                                                           const TObliviousTreeLearnerOptions& treeConfig) {
+                                                                           const TObliviousTreeLearnerOptions& treeConfig,
+                                                                           bool requestStream = false) {
     using TFeatureScoresHelper = TScoreHelper<TGridPolicy, TLayoutPolicy>;
     return MakeHolder<TFeatureScoresHelper>(dataSet,
                                             foldCount,
@@ -28,12 +29,122 @@ inline THolder<TScoreHelper<TGridPolicy, TLayoutPolicy>> CreateScoreHelper(const
                                             treeConfig.GetScoreFunction(),
                                             treeConfig.GetL2Reg(),
                                             treeConfig.IsNormalize(),
-                                            false);
+                                            requestStream);
+};
+
+
+template <class TLayoutPolicy = TCatBoostPoolLayout>
+class TGpuFeaturesScoreCalcer {
+public:
+    TGpuFeaturesScoreCalcer(const TGpuFeatures<>& features,
+                            const TObliviousTreeLearnerOptions& treeConfig,
+                            ui32 foldCount,
+                            bool requestStream)
+            : Features(features)
+            , TreeConfig(treeConfig)
+            , FoldCount(foldCount) {
+        if (Features.GetBinaryFeatures().NotEmpty())
+        {
+            BinaryFeatureHelper = CreateScoreHelper(Features.GetBinaryFeatures(), foldCount, TreeConfig, requestStream);
+        }
+        if (Features.GetHalfByteFeatures().NotEmpty())
+        {
+            HalfByteFeatureHelper = CreateScoreHelper(Features.GetHalfByteFeatures(), foldCount, TreeConfig, requestStream);
+        }
+        if (Features.GetFeatures().NotEmpty())
+        {
+            ByteFeatureHelper = CreateScoreHelper(Features.GetFeatures(), foldCount, TreeConfig, requestStream);
+        }
+    }
+
+    bool HasByteFeatureHelper() const
+    {
+        return ByteFeatureHelper != nullptr;
+    }
+
+    bool  HasBinaryFeatureHelper() const
+    {
+        return BinaryFeatureHelper  != nullptr;
+    }
+
+    bool  HasHalfByteFeatureHelper() const {
+        return HalfByteFeatureHelper  != nullptr;
+    }
+
+
+    const TScoreHelper<TByteFeatureGridPolicy, TLayoutPolicy>& GetByteFeatureHelper() const
+    {
+        return *ByteFeatureHelper;
+    }
+
+    const TScoreHelper<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatureHelper() const
+    {
+        return *BinaryFeatureHelper;
+    }
+
+    const TScoreHelper<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatureHelper() const
+    {
+        return *HalfByteFeatureHelper;
+    }
+
+    TGpuFeaturesScoreCalcer& SubmitCompute(const TOptimizationSubsets& newSubsets,
+                                            const TMirrorBuffer<ui32>& docs) {
+        if (BinaryFeatureHelper) {
+            BinaryFeatureHelper->SubmitCompute(newSubsets, docs);
+        }
+        if (HalfByteFeatureHelper) {
+            HalfByteFeatureHelper->SubmitCompute(newSubsets, docs);
+        }
+        if (ByteFeatureHelper) {
+            ByteFeatureHelper->SubmitCompute(newSubsets, docs);
+        }
+        return *this;
+
+    }
+
+    TGpuFeaturesScoreCalcer& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& partStats,
+                                                 double scoreStdDev = 0,
+                                                 ui64 seed = 0) {
+        if (BinaryFeatureHelper) {
+            BinaryFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+        }
+        if (HalfByteFeatureHelper) {
+            HalfByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+        }
+        if (ByteFeatureHelper) {
+            ByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+        }
+        return *this;
+    }
+
+    TBestSplitProperties ReadAndRemapOptimalSplit() {
+        TBestSplitProperties best = {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity()};
+        if (BinaryFeatureHelper) {
+            best = TakeBest(BinaryFeatureHelper->ReadAndRemapOptimalSplit(), best);
+        }
+        if (HalfByteFeatureHelper) {
+            best = TakeBest(HalfByteFeatureHelper->ReadAndRemapOptimalSplit(), best);
+        }
+        if (ByteFeatureHelper) {
+            best = TakeBest(ByteFeatureHelper->ReadAndRemapOptimalSplit(), best);
+        }
+        return best;
+    }
+
+private:
+    const TGpuFeatures<>& Features;
+    const TObliviousTreeLearnerOptions& TreeConfig;
+    ui32 FoldCount;
+
+
+    THolder<TScoreHelper<TBinaryFeatureGridPolicy, TLayoutPolicy>> BinaryFeatureHelper;
+    THolder<TScoreHelper<THalfByteFeatureGridPolicy, TLayoutPolicy>> HalfByteFeatureHelper;
+    THolder<TScoreHelper<TByteFeatureGridPolicy, TLayoutPolicy>> ByteFeatureHelper;
 };
 
 class TTreeCtrDataSetVisitor {
 public:
-    using TFeatureScoresHelper = TScoreHelper<TByteFeatureGridPolicy, TSingleDevPoolLayout>;
+    using TFeatureScoresHelper = TScoreHelper<THalfByteFeatureGridPolicy, TSingleDevPoolLayout>;
 
     TTreeCtrDataSetVisitor(TBinarizedFeaturesManager& featuresManager,
                            const ui32 foldCount,
@@ -269,15 +380,15 @@ public:
 
         auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
         TMirrorBuffer<ui32> directObservationIndices;
-        if (DataSet.GetTargetCtrs().GetHostFeatures().size()) {
+        if (DataSet.GetPermutationFeatures().NotEmpty()) {
             directObservationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
         }
         const ui32 foldCount = subsets.FoldCount;
 
         //score helpers will do all their job in own stream, so don't forget device-sync for the
-        auto featuresScoreHelperPtr = CreateScoreHelper(DataSet.GetFeatures(), foldCount, TreeConfig);
-        auto binFeaturesScoreHelperPtr = CreateScoreHelper(DataSet.GetBinaryFeatures(), foldCount, TreeConfig);
-        auto ctrScoreHelperPtr = CreateScoreHelper(DataSet.GetTargetCtrs(), foldCount, TreeConfig);
+        TGpuFeaturesScoreCalcer<> featuresScoreCalcer(DataSet.GetFeatures(), TreeConfig, foldCount, true);
+        TGpuFeaturesScoreCalcer<> simpleCtrScoreCalcer(DataSet.GetPermutationFeatures(), TreeConfig, foldCount, true);
+
 
         TObliviousTreeStructure result;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -295,7 +406,7 @@ public:
                 MakeDocIndices(docIndices);
                 Gather(observationIndices, docIndices, subsets.Indices);
             }
-            if (DataSet.GetTargetCtrs().GetHostFeatures().size()) {
+            if (DataSet.GetPermutationFeatures().NotEmpty()) {
                 auto guard = profiler.Profile("Make and gather direct observation indices");
 
                 TMirrorBuffer<ui32> directDocIndices;
@@ -310,28 +421,19 @@ public:
             {
                 auto guard = profiler.Profile(TStringBuilder() << "Compute best splits " << depth);
                 {
-                    binFeaturesScoreHelperPtr->SubmitCompute(subsets,
-                                                             observationIndices);
-
-                    featuresScoreHelperPtr->SubmitCompute(subsets,
-                                                          observationIndices);
-
-                    ctrScoreHelperPtr->SubmitCompute(subsets,
-                                                     directObservationIndices);
+                    featuresScoreCalcer.SubmitCompute(subsets, observationIndices);
+                    simpleCtrScoreCalcer.SubmitCompute(subsets, directObservationIndices);
                 }
-
                 {
-                    binFeaturesScoreHelperPtr->ComputeOptimalSplit(partitionsStats, ScoreStdDev, GetRandom().NextUniformL());
-                    featuresScoreHelperPtr->ComputeOptimalSplit(partitionsStats, ScoreStdDev, GetRandom().NextUniformL());
-                    ctrScoreHelperPtr->ComputeOptimalSplit(partitionsStats, ScoreStdDev, GetRandom().NextUniformL());
+                    featuresScoreCalcer.ComputeOptimalSplit(partitionsStats, ScoreStdDev, GetRandom().NextUniformL());
+                    simpleCtrScoreCalcer.ComputeOptimalSplit(partitionsStats, ScoreStdDev, GetRandom().NextUniformL());
                 }
 
                 manager.WaitComplete();
             }
 
-            auto bestSplitProp = TakeBest(featuresScoreHelperPtr->ReadAndRemapOptimalSplit(),
-                                          binFeaturesScoreHelperPtr->ReadAndRemapOptimalSplit(),
-                                          ctrScoreHelperPtr->ReadAndRemapOptimalSplit());
+            auto bestSplitProp = TakeBest(featuresScoreCalcer.ReadAndRemapOptimalSplit(),
+                                          simpleCtrScoreCalcer.ReadAndRemapOptimalSplit());
 
             TSingleBuffer<const ui64> treeCtrSplitBits;
             bool isTreeCtrSplit = false;
@@ -701,6 +803,11 @@ private:
             target.Weights.Reset(SingleTaskTarget->GetTarget().GetMapping());
             SingleTaskTarget->GradientAtZero(target.WeightedTarget);
             target.Weights.Copy(SingleTaskTarget->GetWeights());
+            if (RandomStrength) {
+                const double sum2 = DotProduct(target.WeightedTarget, target.WeightedTarget, (decltype(&target.WeightedTarget)) nullptr);
+                const double count = target.WeightedTarget.GetObjectsSlice().Size();
+                ScoreStdDev = RandomStrength * sqrt(sum2 / (count + 1e-100));
+            }
         }
 
         //TODO: two bootstrap type: docs and gathered target

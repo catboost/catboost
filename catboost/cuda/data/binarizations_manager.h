@@ -2,6 +2,7 @@
 
 #include "feature.h"
 #include "binarization_config.h"
+#include "cat_feature_perfect_hash.h"
 #include <library/binsaver/bin_saver.h>
 
 class TFeatureManagerOptions {
@@ -55,11 +56,16 @@ public:
     void DisableCtrType(ECtrType ctrType) {
         EnabledCtrTypes.erase(ctrType);
     }
+    const TString& GetCatFeatureBinarizationTempName() const {
+        return CatFeatureBinarizationTempName;
+    }
+
 
     template <class TConfig>
     friend class TOptionsBinder;
 
-    SAVELOAD(BinarizationConfiguration, OneHotLimit);
+    SAVELOAD(BinarizationConfiguration, OneHotLimit, MaxTensorComplexity,
+             EnabledCtrTypes, CustomCtrTypes, CatFeatureBinarizationTempName);
 
 private:
     TBinarizationConfiguration BinarizationConfiguration;
@@ -67,13 +73,18 @@ private:
     ui32 MaxTensorComplexity = 1; //tensor complexity is number  of catFeatures, which could be used in one ctr
     yset<ECtrType> EnabledCtrTypes;
     bool CustomCtrTypes = false;
+    TString CatFeatureBinarizationTempName;
+
 };
+
+
 
 //stores expression for binarized features calculations and mapping from this expression to unique ids
 class TBinarizedFeaturesManager {
 public:
-    TBinarizedFeaturesManager(const TFeatureManagerOptions& options)
+    explicit TBinarizedFeaturesManager(const TFeatureManagerOptions& options)
         : FeatureManagerOptions(options)
+        , CatFeaturesPerfectHash(options.GetCatFeatureBinarizationTempName())
     {
     }
 
@@ -88,19 +99,17 @@ public:
     template <class TBuilder>
     const yvector<float>& GetOrCreateFloatFeatureBorders(const TFloatValuesHolder& feature,
                                                          TBuilder&& builder) {
-        ui32 featureId = -1;
-
-        if (!IsKnown(feature)) {
-            featureId = AddFloatFeature(feature,
-                                        builder(GetDefaultFloatFeatureBinarizationDescription()));
-        } else {
-            featureId = GetId(feature);
-            if (Borders[featureId].size() == 0) {
-                Borders[featureId] = builder(GetDefaultFloatFeatureBinarizationDescription());
-            }
+        CB_ENSURE(IsKnown(feature));
+        const ui32 featureId = GetFeatureManagerId(feature);
+        if (!Borders.has(featureId)) {
+            Borders[featureId] = builder(GetDefaultFloatFeatureBinarizationDescription());
         }
-
         return Borders[featureId];
+    }
+
+
+    bool HasFloatFeatureBorders(const TFloatValuesHolder& feature) const {
+        return Borders.has(GetId(feature));
     }
 
     const yvector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const {
@@ -154,17 +163,17 @@ public:
 
     bool UseForOneHotEncoding(ui32 featureId) const {
         CB_ENSURE(IsCat(featureId));
-        return CatFeatureUniqueValues.at(featureId) <= FeatureManagerOptions.GetOneHotLimit();
+        return GetUniqueValues(featureId) <= FeatureManagerOptions.GetOneHotLimit();
     }
 
     bool UseForCtr(ui32 featureId) const {
         CB_ENSURE(IsCat(featureId));
-        return CatFeatureUniqueValues.at(featureId) > FeatureManagerOptions.GetOneHotLimit();
+        return GetUniqueValues(featureId) > FeatureManagerOptions.GetOneHotLimit();
     }
 
     bool UseForTreeCtr(ui32 featureId) const {
         CB_ENSURE(IsCat(featureId));
-        return CatFeatureUniqueValues.at(featureId) > FeatureManagerOptions.GetOneHotLimit() && (FeatureManagerOptions.GetMaxTensorComplexity() > 1);
+        return GetUniqueValues(featureId) > FeatureManagerOptions.GetOneHotLimit() && (FeatureManagerOptions.GetMaxTensorComplexity() > 1);
     }
 
     bool IsTreeCtrsEnabled() const {
@@ -214,58 +223,67 @@ public:
         return Cursor;
     }
 
-    ui32 AddFloatFeature(const TBinarizedFloatValuesHolder& feature) {
-        CB_ENSURE(!IsKnown(feature));
-
-        const ui32 id = RequestNewId();
-        Borders[id] = feature.GetBorders();
-        UpdateFloatFeatureIndex(feature.GetId(), id);
-        return id;
-    }
-
-    ui32 AddEmptyFloatFeature(const ui32 floatFeatureFeatureManagerId) {
-        CB_ENSURE(!IsKnown(floatFeatureFeatureManagerId));
-
-        const ui32 id = RequestNewId();
-        Borders[id] = yvector<float>();
-        UpdateFloatFeatureIndex(floatFeatureFeatureManagerId, id);
-        return id;
-    }
-
-    ui32 AddFloatFeature(const TFloatValuesHolder& feature,
-                         yvector<float>&& borders) {
-        CB_ENSURE(!IsKnown(feature));
-
-        const ui32 id = RequestNewId();
-        Borders[id] = std::move(borders);
-        UpdateFloatFeatureIndex(feature.GetId(), id);
-        return id;
-    }
-
-    ui32 UpdateUniqueValues(const TCatFeatureValuesHolder& catFeature) {
-        CB_ENSURE(IsKnown(catFeature));
-        const ui32 id = DataProviderCatFeatureIdToFeatureManagerId[catFeature.GetId()];
-        CB_ENSURE(CatFeatureUniqueValues[id] <= catFeature.GetUniqueValues());
-        CatFeatureUniqueValues[id] = catFeature.GetUniqueValues();
-        return id;
-    }
-
-    ui32 AddCatFeature(const TCatFeatureValuesHolder& catFeature) {
-        CB_ENSURE(!IsKnown(catFeature));
-        const ui32 id = RequestNewId();
-        DataProviderCatFeatureIdToFeatureManagerId[catFeature.GetId()] = id;
-        FeatureManagerIdToDataProviderId[id] = catFeature.GetId();
-        CatFeatureUniqueValues[id] = catFeature.GetUniqueValues();
-        return id;
-    }
-
-    ui32 AddEmptyCatFeature(ui32 featureId) {
+    ui32 RegisterDataProviderCatFeature(ui32 featureId) {
         CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.has(featureId));
         const ui32 id = RequestNewId();
         DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
         FeatureManagerIdToDataProviderId[id] = featureId;
-        CatFeatureUniqueValues[id] = 0;
         return id;
+    }
+
+
+    ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
+        CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.has(featureId));
+        const ui32 id = RequestNewId();
+        DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
+        FeatureManagerIdToDataProviderId[id] = featureId;
+        return id;
+    }
+
+    bool HasFloatFeatureBordersForDataProviderFeature(const ui32 dataProviderId) {
+        const ui32 featureId = GetFeatureManagerIdForFloatFeature(dataProviderId);
+        return Borders.has(featureId);
+    }
+
+    ui32 SetFloatFeatureBordersForDataProviderId(ui32 dataProviderId,
+                                                 yvector<float>&& borders) {
+        const ui32 id = GetFeatureManagerIdForFloatFeature(dataProviderId);
+        Borders[id] = std::move(borders);
+        return id;
+    }
+
+    ui32 SetFloatFeatureBorders(const TFloatValuesHolder& feature,
+                                yvector<float>&& borders) {
+        CB_ENSURE(IsKnown(feature));
+
+        const ui32 id = GetFeatureManagerId(feature);
+        Borders[id] = std::move(borders);
+        return id;
+    }
+
+    ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const  {
+        CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.has(dataProviderId), "Error: feature #" << dataProviderId <<  " is not categorical");
+        return DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderId);
+    }
+
+    ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const  {
+        CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.has(dataProviderId), "Error: feature #" << dataProviderId <<  " is not categorical");
+        return DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderId);
+    }
+
+    ui32 GetFeatureManagerId(const IFeatureValuesHolder& feature) const  {
+        switch (feature.GetType()) {
+            case EFeatureValuesType::BinarizedFloat:
+            case EFeatureValuesType::Float: {
+               return GetFeatureManagerIdForFloatFeature(feature.GetId());
+            }
+            case EFeatureValuesType::Categorical: {
+                return GetFeatureManagerIdForCatFeature(feature.GetId());
+            }
+            default: {
+                ythrow TCatboostException() << "Unknown feature id " << feature.GetId();
+            }
+        }
     }
 
     ui32 GetDataProviderId(ui32 featureId) const {
@@ -306,8 +324,8 @@ public:
     ui32 GetBinCount(ui32 localId) const {
         if (Borders.has(localId)) {
             return Borders.at(localId).size() + 1;
-        } else if (CatFeatureUniqueValues.has(localId)) {
-            return CatFeatureUniqueValues.at(localId);
+        } else if (IsCat(localId)) {
+            return GetUniqueValues(localId);
         } else if (InverseCtrs.has(localId)) {
             return GetBinarizationDescription(InverseCtrs[localId]).Discretization + 1;
         } else {
@@ -420,23 +438,17 @@ public:
 
     ui64 GetMaxUniqueValues(const TFeatureTensor& tensor) const {
         ui64 uniqueValues = 1;
-        for (auto& cat : tensor.GetCatFeatures()) {
+        for (const auto& cat : tensor.GetCatFeatures()) {
             uniqueValues *= GetBinCount(cat);
         }
         uniqueValues <<= tensor.GetSplits().size();
         return uniqueValues;
     }
 
-    TBinarySplit CreateSplit(const ui32 featureId,
-                             ui32 takenFolds,
-                             EBinSplitType type = EBinSplitType::TakeGreater) const {
-        return {featureId, takenFolds, type};
-    }
-
     yvector<ui32> GetCatFeatureIds() const {
         yvector<ui32> featureIds;
 
-        for (auto& feature : DataProviderCatFeatureIdToFeatureManagerId) {
+        for (const auto& feature : DataProviderCatFeatureIdToFeatureManagerId) {
             if (GetBinCount(feature.second)) {
                 featureIds.push_back(feature.second);
             }
@@ -448,7 +460,7 @@ public:
     yvector<ui32> GetFloatFeatureIds() const {
         yvector<ui32> featureIds;
 
-        for (auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
+        for (const auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
             if (GetBinCount(feature.second)) {
                 featureIds.push_back(feature.second);
             }
@@ -461,7 +473,7 @@ public:
     }
 
     bool HasTargetBinarization() const {
-        return GetTargetBorders().size();
+        return static_cast<bool>(!GetTargetBorders().empty());
     }
 
     TBinarizedFeaturesManager& SetTargetBorders(yvector<float>&& borders) {
@@ -539,14 +551,26 @@ public:
         return *this;
     }
 
+    //store perfect hash by featureManager id
+    const ymap<int, ui32>& GetCategoricalFeaturesPerfectHash(const ui32 featureId) const {
+        CB_ENSURE(CatFeaturesPerfectHash.HasFeature(featureId));
+        return CatFeaturesPerfectHash.GetFeatureIndex(featureId);
+    };
+
+    void UnloadCatFeaturePerfectHashFromRam() const {
+        CatFeaturesPerfectHash.FreeRam();
+    }
+
     SAVELOAD(KnownCtrs, InverseCtrs,
-             DataProviderFloatFeatureIdToFeatureManagerId, DataProviderCatFeatureIdToFeatureManagerId, FeatureManagerIdToDataProviderId, Cursor, FeatureManagerOptions,
-             DefaultCtrConfigsForType, Borders, CatFeatureUniqueValues, TargetBorders);
+             DataProviderFloatFeatureIdToFeatureManagerId, DataProviderCatFeatureIdToFeatureManagerId,
+             FeatureManagerIdToDataProviderId, Cursor, FeatureManagerOptions,
+             DefaultCtrConfigsForType, Borders, CatFeaturesPerfectHash, TargetBorders);
 
 private:
-    void UpdateFloatFeatureIndex(ui32 floatFeatureFeatureManagerId, ui32 id) {
-        DataProviderFloatFeatureIdToFeatureManagerId[floatFeatureFeatureManagerId] = id;
-        FeatureManagerIdToDataProviderId[id] = floatFeatureFeatureManagerId;
+
+    ui32 GetUniqueValues(ui32 featureId) const {
+        CB_ENSURE(IsCat(featureId));
+        return CatFeaturesPerfectHash.GetUniqueValues(featureId);
     }
 
     ui32 RequestNewId() {
@@ -563,25 +587,25 @@ private:
         return FeatureManagerOptions.GetBinarizationConfiguration();
     }
 
+    friend class TCatFeaturesPerfectHashHelper;
+
 private:
     mutable ymap<TCtr, ui32> KnownCtrs;
     mutable ymap<ui32, TCtr> InverseCtrs;
 
     mutable ymap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
     mutable ymap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
-
     mutable ymap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
     mutable ui32 Cursor = 0;
 
     TFeatureManagerOptions FeatureManagerOptions;
-
     ymap<ECtrType, yvector<TCtrConfig>> DefaultCtrConfigsForType;
 
     //float and ctr features
     ymap<ui32, yvector<float>> Borders;
-    ymap<ui32, ui32> CatFeatureUniqueValues;
+    TCatFeaturesPerfectHash CatFeaturesPerfectHash;
     yset<ECtrType> EnabledCtrTypes;
-
     yvector<float> TargetBorders;
 };
+

@@ -138,27 +138,27 @@ SIMPLE_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
 
         // XXX: For 1000 <= x < 1024, Prec(x, 3) falls back to exponential form
 
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll, SF_BYTES)), "1e+03B");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll, SF_BYTES)), "1.01e+03B");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024, SF_BYTES)), "1e+03KiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024, SF_BYTES)), "1.01e+03KiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024, SF_BYTES)), "1e+03MiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024, SF_BYTES)), "1.01e+03MiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024 * 1024, SF_BYTES)), "1e+03GiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024 * 1024, SF_BYTES)), "1.01e+03GiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "1e+03TiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "1.01e+03TiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll, SF_BYTES)), "1000B");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll, SF_BYTES)), "1010B");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024, SF_BYTES)), "1000KiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024, SF_BYTES)), "1010KiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024, SF_BYTES)), "1000MiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024, SF_BYTES)), "1010MiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024 * 1024, SF_BYTES)), "1000GiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024 * 1024, SF_BYTES)), "1010GiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1000ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "1000TiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(1010ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "1010TiB");
 
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll, SF_BYTES)), "-1e+03B");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll, SF_BYTES)), "-1.01e+03B");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024, SF_BYTES)), "-1e+03KiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024, SF_BYTES)), "-1.01e+03KiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024, SF_BYTES)), "-1e+03MiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024, SF_BYTES)), "-1.01e+03MiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024 * 1024, SF_BYTES)), "-1e+03GiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024 * 1024, SF_BYTES)), "-1.01e+03GiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "-1e+03TiB");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "-1.01e+03TiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll, SF_BYTES)), "-1000B");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll, SF_BYTES)), "-1010B");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024, SF_BYTES)), "-1000KiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024, SF_BYTES)), "-1010KiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024, SF_BYTES)), "-1000MiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024, SF_BYTES)), "-1010MiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024 * 1024, SF_BYTES)), "-1000GiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024 * 1024, SF_BYTES)), "-1010GiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1000ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "-1000TiB");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadableSize(-1010ll * 1024 * 1024 * 1024 * 1024, SF_BYTES)), "-1010TiB");
     }
 
     SIMPLE_UNIT_TEST(TestHumanReadableDuration) {

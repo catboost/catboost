@@ -235,7 +235,7 @@ bool NUnitTest::ITestSuiteProcessor::CheckAccessTest(TString /*suite*/, const ch
     return true;
 }
 
-void NUnitTest::ITestSuiteProcessor::Run(std::function<void()> f, const TString /*suite*/, const char* /*name*/, const bool /*forceFork*/) {
+void NUnitTest::ITestSuiteProcessor::Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, const bool /*forceFork*/) {
     f();
 }
 

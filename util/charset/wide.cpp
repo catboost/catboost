@@ -38,32 +38,55 @@ size_t Collapse(wchar16* s, size_t n) {
     return CollapseImpl(s, n, IsWhitespace);
 }
 
-void Strip(TUtf16String& w) {
-    const wchar16* p = w.c_str();
-    const wchar16* pe = p + w.size();
+TWtringBuf StripLeft(const TWtringBuf text) noexcept {
+    const auto* p = text.data();
+    const auto* const pe = text.data() + text.size();
 
-    while (p != pe) {
-        if (!IsWhitespace(*p)) {
-            if (p != w.c_str()) {
-                w.erase(w.c_str(), p);
-            }
-
-            pe = w.c_str() - 1;
-            p = pe + w.size();
-            while (p != pe) {
-                if (!IsWhitespace(*p))
-                    break;
-                --p;
-            }
-
-            w.remove(p - pe); // it will not change the string if (p - pe) is not less than size
-            return;
-        }
-        ++p;
+    for (; p != pe && IsWhitespace(*p); ++p) {
     }
 
-    // all characters are spaces
-    w.clear();
+    return {p, pe};
+}
+
+void StripLeft(TUtf16String& text) {
+    const auto stripped = StripLeft(TWtringBuf(text));
+    if (stripped.size() == text.size()) {
+        return;
+    }
+
+    text = stripped;
+}
+
+TWtringBuf StripRight(const TWtringBuf text) noexcept {
+    if (!text) {
+        return {};
+    }
+
+    const auto* const pe = text.data() - 1;
+    const auto* p = text.data() + text.size() - 1;
+
+    for (; p != pe && IsWhitespace(*p); --p) {
+    }
+
+    return {pe + 1, p + 1};
+}
+
+void StripRight(TUtf16String& text) {
+    const auto stripped = StripRight(TWtringBuf(text));
+    if (stripped.size() == text.size()) {
+        return;
+    }
+
+    text.resize(stripped.size());
+}
+
+TWtringBuf Strip(const TWtringBuf text) noexcept {
+    return StripRight(StripLeft(text));
+}
+
+void Strip(TUtf16String& text) {
+    StripLeft(text);
+    StripRight(text);
 }
 
 template <bool insertBr>

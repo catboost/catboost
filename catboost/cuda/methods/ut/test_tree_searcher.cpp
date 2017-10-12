@@ -9,6 +9,7 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/methods/histograms_helper.h>
+#include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
 
 using namespace std;
 
@@ -274,6 +275,57 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
     }
 
+    void CheckResultsForGpuFeatures(const TGpuFeatures<>& features,
+                                    TGpuFeaturesScoreCalcer<>& calcer,
+                                    const TMirrorBuffer<const TDataPartition>& partitionStats,
+                                    const TMirrorBuffer<float>& weightedTarget,
+                                    const TMirrorBuffer<float>& weights,
+                                    const TMirrorBuffer<ui32>& indices,
+                                    ui32 depth,
+                                    ui32 foldCount) {
+
+        if (calcer.HasBinaryFeatureHelper())
+        {
+            auto& scoreHelper = calcer.GetBinaryFeatureHelper();
+            auto histogram  = scoreHelper.ReadHistograms();
+
+            CheckResults(&features.GetBinaryFeatures(),
+                         weightedTarget, weights,
+                         indices,
+                         partitionStats,
+                         depth,
+                         foldCount,
+                         histogram);
+        }
+        if (calcer.HasByteFeatureHelper())
+        {
+            auto& scoreHelper = calcer.GetByteFeatureHelper();
+            auto histogram  = scoreHelper.ReadHistograms();
+
+            CheckResults(&features.GetFeatures(),
+                         weightedTarget, weights,
+                         indices,
+                         partitionStats,
+                         depth,
+                         foldCount,
+                         histogram);
+        }
+        if (calcer.HasHalfByteFeatureHelper())
+        {
+            auto& scoreHelper = calcer.GetHalfByteFeatureHelper();
+            auto histogram  = scoreHelper.ReadHistograms();
+
+            CheckResults(&features.GetHalfByteFeatures(),
+                         weightedTarget, weights,
+                         indices,
+                         partitionStats,
+                         depth,
+                         foldCount,
+                         histogram);
+        }
+
+    }
+
     void TestPointwiseHistogramForDataSet(const TDataSet<>& dataSet,
                                           const TBinarizedFeaturesManager& featuresManager) {
         TRandom rand(10);
@@ -333,18 +385,13 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
         auto directObservationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
 
-        //score helpers will do all their job in own stream, so don't forget device-sync for the
-        TScoreHelper<TByteFeatureGridPolicy> featuresScoreHelper(dataSet.GetFeatures(),
-                                                                 foldCount,
-                                                                 maxDepth);
+        TObliviousTreeLearnerOptions treeConfig;
+        treeConfig.SetMaxDepth(maxDepth);
 
-        TScoreHelper<TBinaryFeatureGridPolicy> binFeaturesScoreHelper(dataSet.GetBinaryFeatures(),
-                                                                      foldCount,
-                                                                      maxDepth);
+        TGpuFeaturesScoreCalcer<> featuresScoreCalcer(dataSet.GetFeatures(), treeConfig, foldCount, true);
+        TGpuFeaturesScoreCalcer<> simpleCtrScoreCalcer(dataSet.GetPermutationFeatures(), treeConfig, foldCount, true);
 
-        TScoreHelper<TByteFeatureGridPolicy> ctrScoreHelper(dataSet.GetTargetCtrs(),
-                                                            foldCount,
-                                                            maxDepth);
+
 
         TObliviousTreeStructure result;
 
@@ -375,57 +422,43 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             manager.WaitComplete();
 
             {
-                featuresScoreHelper.SubmitCompute(subsets, observationIndices);
-                binFeaturesScoreHelper.SubmitCompute(subsets, observationIndices);
-                ctrScoreHelper.SubmitCompute(subsets, directObservationIndices);
+                featuresScoreCalcer.SubmitCompute(subsets, observationIndices);
+                simpleCtrScoreCalcer.SubmitCompute(subsets, directObservationIndices);
             }
-
             manager.WaitComplete();
 
-            auto binFeatureHistograms = binFeaturesScoreHelper.ReadHistograms();
-            binFeaturesScoreHelper.ComputeOptimalSplit(partitionStats);
+            CheckResultsForGpuFeatures(dataSet.GetFeatures(),
+                                       featuresScoreCalcer,
+                                       subsets.CurrentPartsView(),
+                                       subsets.GatheredTarget.WeightedTarget,
+                                       subsets.GatheredTarget.Weights,
+                                       observationIndices,
+                                       depth,
+                                       foldCount);
 
-            CheckResults(&dataSet.GetBinaryFeatures(),
-                         subsets.GatheredTarget.WeightedTarget, subsets.GatheredTarget.Weights,
-                         observationIndices,
-                         subsets.CurrentPartsView(),
-                         depth,
-                         foldCount,
-                         binFeatureHistograms);
-
-            auto byteFeatureHistograms = featuresScoreHelper.ReadHistograms();
-            CheckResults(&dataSet.GetFeatures(),
-                         subsets.GatheredTarget.WeightedTarget, subsets.GatheredTarget.Weights,
-                         observationIndices,
-                         subsets.CurrentPartsView(),
-                         depth,
-                         foldCount,
-                         byteFeatureHistograms);
-
-            if (dataSet.GetTargetCtrs().FeatureCount()) {
-                auto ctrFeatureHistograms = ctrScoreHelper.ReadHistograms();
-                CheckResults(&dataSet.GetTargetCtrs(),
-                             subsets.GatheredTarget.WeightedTarget, subsets.GatheredTarget.Weights,
-                             directObservationIndices,
-                             subsets.CurrentPartsView(),
-                             depth, foldCount,
-                             ctrFeatureHistograms);
-            }
+            CheckResultsForGpuFeatures(dataSet.GetPermutationFeatures(),
+                                       simpleCtrScoreCalcer,
+                                       subsets.CurrentPartsView(),
+                                       subsets.GatheredTarget.WeightedTarget,
+                                       subsets.GatheredTarget.Weights,
+                                       directObservationIndices,
+                                       depth,
+                                       foldCount);
 
             {
-                binFeaturesScoreHelper.ComputeOptimalSplit(partitionStats);
-                featuresScoreHelper.ComputeOptimalSplit(partitionStats);
-                ctrScoreHelper.ComputeOptimalSplit(partitionStats);
+                featuresScoreCalcer.ComputeOptimalSplit(partitionStats);
+                simpleCtrScoreCalcer.ComputeOptimalSplit(partitionStats);
             }
 
             TBinarySplit bestSplit;
             {
-                const yvector<TCFeature>& features = dataSet.GetFeatures().GetHostFeatures();
-                auto localIdx = rand.NextUniformL() % features.size();
-                const auto& feature = features[localIdx];
-                bestSplit.FeatureId = dataSet.GetFeatures().GetFeatureId(feature);
-                bestSplit.BinIdx = feature.Folds / 2;
-                bestSplit.SplitType = EBinSplitType::TakeGreater;
+//                const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& byteFeatures
+                auto featureIds = dataSet.GetFeatures().ComputeAllFeatureIds();
+//                yvector<TCFeature> features = byteFeatures.GetHostFeatures();
+                auto localIdx = rand.NextUniformL() % featureIds.size();
+                bestSplit.FeatureId = featureIds[localIdx];
+                bestSplit.BinIdx =  featuresManager.GetBinCount(bestSplit.FeatureId) / 2;
+                bestSplit.SplitType = featuresManager.IsCat(localIdx) ? EBinSplitType::TakeBin : EBinSplitType::TakeGreater;
 
                 treeUpdater.AddSplit(bestSplit);
 

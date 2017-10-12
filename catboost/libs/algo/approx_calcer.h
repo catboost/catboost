@@ -57,7 +57,7 @@ inline void UpdateApproxDeltas(const yvector<TIndexType>& indices,
                                TLearnContext* ctx,
                                yvector<double>* leafValues,
                                yvector<double>* resArr) {
-    ExpApproxIf<StoreExpApprox>(leafValues);
+    ExpApproxIf(StoreExpApprox, leafValues);
 
     double* resArrData = resArr->data();
     const TIndexType* indicesData = indices.data();
@@ -220,7 +220,7 @@ void CalcApproxDeltaIterationSimple(const yvector<TIndexType>& indices,
             double w = weightData == nullptr || error.GetErrorType() == EErrorType::PairwiseError ? 1 : weightData[z];
             UpdateBucket<LeafEstimationType>(scratchDersData[z - bt.BodyFinish], w, iteration, &bucket);
             avrg[0] = CalcModel<LeafEstimationType>(bucket, iteration, l2Regularizer);
-            ExpApproxIf<TError::StoreExpApprox>(&avrg);
+            ExpApproxIf(TError::StoreExpApprox, &avrg);
             resArrData[z] = UpdateApprox<TError::StoreExpApprox>(resArrData[z], avrg[0]);
         }
     }

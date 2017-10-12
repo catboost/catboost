@@ -23,8 +23,7 @@ struct TAllFeatures {
 
 const int LearnNotSet = -1;
 
-void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
-                                        const yvector<size_t>& docIndices,
+void PrepareAllFeaturesFromPermutedDocs(const yvector<size_t>& docIndices,
                                         const yhash_set<int>& categFeatures,
                                         const yvector<yvector<float>>& allBorders,
                                         const yvector<bool>& hasNans,
@@ -32,16 +31,19 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                                         int learnSampleCount,
                                         size_t oneHotMaxSize,
                                         ENanMode NanMode,
+                                        bool allowClearPool,
                                         NPar::TLocalExecutor& localExecutor,
+                                        TDocumentStorage* docStorage,
                                         TAllFeatures* allFeatures);
 
-void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
-                        const yhash_set<int>& categFeatures,
+void PrepareAllFeatures(const yhash_set<int>& categFeatures,
                         const yvector<yvector<float>>& allBorders,
                         const yvector<bool>& hasNans,
                         const yvector<int>& ignoredFeatures,
                         int learnSampleCount,
                         size_t oneHotMaxSize,
                         ENanMode nanMode,
+                        bool allowClearPool,
                         NPar::TLocalExecutor& localExecutor,
+                        TDocumentStorage* docStorage,
                         TAllFeatures* allFeatures);

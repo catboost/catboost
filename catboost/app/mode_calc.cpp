@@ -17,15 +17,16 @@
 
 // Returns approx[evalPeriodIdx][classIdx][objectIdx]
 static yvector<yvector<yvector<double>>> Apply(const TFullModel& model, const NCatBoost::TFormulaEvaluator& calcer,
-                                               const TPool& pool, bool verbose,
+                                               const TPool& pool,
                                                const EPredictionType predictionType, int begin, int end,
-                                               int evalPeriod, int threadCount)
+                                               int evalPeriod,
+                                               NPar::TLocalExecutor* executor)
 {
     yvector<yvector<double>> currentApprox; // [classIdx][objectIdx]
     yvector<yvector<yvector<double>>> resultApprox; // [evalPeriodIdx][classIdx][objectIdx]
     for (; begin < end; begin += evalPeriod) {
-        yvector<yvector<double>> approx = ApplyModelMulti(model, calcer, pool, verbose, EPredictionType::RawFormulaVal,
-                                                          begin, Min(begin + evalPeriod, end), threadCount);
+        yvector<yvector<double>> approx = ApplyModelMulti(model, calcer, pool, EPredictionType::RawFormulaVal,
+                                                          begin, Min(begin + evalPeriod, end), *executor);
         if (currentApprox.empty()) {
             currentApprox.swap(approx);
         } else {
@@ -35,7 +36,7 @@ static yvector<yvector<yvector<double>>> Apply(const TFullModel& model, const NC
                 }
             }
         }
-        resultApprox.push_back(PrepareEval(predictionType, currentApprox, threadCount));
+        resultApprox.push_back(PrepareEval(predictionType, currentApprox, executor));
     }
     return resultApprox;
 }
@@ -60,10 +61,9 @@ int mode_calc(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName));
+    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(),
-              "specify column_description file for calc mode");
+    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.TreeStruct.ysize();
@@ -75,13 +75,17 @@ int mode_calc(int argc, const char* argv[]) {
     }
     evalPeriod = Min(evalPeriod, model.TreeStruct.ysize());
 
-    const ui32 blockSize = Max(32., 10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ApproxDimension);
+    const int blockSize = Max(32., 10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ApproxDimension);
     TOFStream outputStream(params.OutputPath);
     NCatBoost::TFormulaEvaluator calcer(model);
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(params.ThreadCount - 1);
 
+    SetVerboseLogingMode();
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
-        yvector<yvector<yvector<double>>> approx = Apply(model, calcer, poolPart, true, params.PredictionType,
-                                                         0, iterationsLimit, evalPeriod, params.ThreadCount);
+        yvector<yvector<yvector<double>>> approx = Apply(model, calcer, poolPart, params.PredictionType,
+                                                         0, iterationsLimit, evalPeriod, &executor);
+        SetSilentLogingMode();
         OutputTestEval(approx, poolPart.Docs, false, &outputStream);
     });
 

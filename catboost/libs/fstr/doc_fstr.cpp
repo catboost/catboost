@@ -105,18 +105,18 @@ static yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullMo
 yvector<yvector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                             const TPool& pool,
                                                             const int threadCount) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     CB_ENSURE(!model.TreeStruct.empty(), "Model is empty. Did you fit the model?");
-    int featureCount = pool.Docs[0].Factors.ysize();
+    int featureCount = pool.Docs.GetFactorsCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams.InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     TAllFeatures allFeatures;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, model.HasNans, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
+    PrepareAllFeatures(ctx.CatFeatures, model.Borders, model.HasNans, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, /*clear leran pool*/ false, ctx.LocalExecutor, &pool.Docs, &allFeatures);
 
     const int approxDimension = model.ApproxDimension;
-    const int docCount = pool.Docs.ysize();
+    const int docCount = pool.Docs.GetDocCount();
 
     int treeCount = model.TreeStruct.ysize();
     yvector<yvector<yvector<double>>> approx(treeCount,

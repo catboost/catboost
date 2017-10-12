@@ -6,13 +6,13 @@
 #include <util/generic/algorithm.h>
 #include <util/system/mem_info.h>
 
-void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvector<yvector<float>>* borders, yvector<bool>* hasNans) {
+void GenerateBorders(const TDocumentStorage& docStorage, TLearnContext* ctx, yvector<yvector<float>>* borders, yvector<bool>* hasNans) {
 
     const yhash_set<int>& categFeatures = ctx->CatFeatures;
     const int borderCount = ctx->Params.BorderCount;
     const EBorderSelectionType borderType = ctx->Params.FeatureBorderType;
 
-    size_t reasonCount = docInfos[0].Factors.size() - categFeatures.size();
+    size_t reasonCount = docStorage.GetFactorsCount() - categFeatures.size();
     borders->resize(reasonCount);
     hasNans->resize(reasonCount);
     if (reasonCount == 0) {
@@ -20,7 +20,7 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
     }
 
     yvector<int> floatIndexes;
-    for (int i = 0; i < docInfos[0].Factors.ysize(); ++i) {
+    for (int i = 0; i < docStorage.GetFactorsCount(); ++i) {
         if (!categFeatures.has(i)) {
             floatIndexes.push_back(i);
         }
@@ -28,22 +28,28 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
     // Estimate how many threads can generate borders
     const size_t bytes1M = 1024 * 1024, bytesThreadStack = 2 * bytes1M;
     const size_t bytesUsed = NMemInfo::GetMemInfo().RSS;
-    const size_t bytesBestSplit = (sizeof(float) + (borderCount - 1) * sizeof(size_t) + 2 * sizeof(double) + 2 * sizeof(size_t) + 2 * sizeof(double)) * docInfos.ysize();
-    const size_t bytesGenerateBorders = sizeof(float) * docInfos.ysize();
+    const size_t bytesBestSplit = (sizeof(float) + (borderCount - 1) * sizeof(size_t) + 2 * sizeof(double) + 2 * sizeof(size_t) + 2 * sizeof(double)) * docStorage.GetDocCount();
+    const size_t bytesGenerateBorders = sizeof(float) * docStorage.GetDocCount();
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
     const size_t threadCount = Min(reasonCount, (ctx->Params.UsedRAMLimit - bytesUsed) / bytesRequiredPerThread);
-    CB_ENSURE(ctx->Params.UsedRAMLimit >= bytesUsed && threadCount > 0, "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders");
+    if (!(ctx->Params.UsedRAMLimit >= bytesUsed && threadCount > 0)) {
+        MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
+    }
 
     TAtomic taskFailedBecauseOfNans = 0;
+    yhash_set<int> ignoredFeatureIndexes(ctx->Params.IgnoredFeatures.begin(), ctx->Params.IgnoredFeatures.end());
     auto calcOneFeatureBorder = [&](int idx) {
         const auto floatFeatureIdx = floatIndexes[idx];
+        if (ignoredFeatureIndexes.has(floatFeatureIdx)) {
+            return;
+        }
 
         yvector<float> vals;
 
         (*hasNans)[idx] = false;
-        for (int i = 0; i < docInfos.ysize(); ++i) {
-            if (!IsNan(docInfos[i].Factors[floatFeatureIdx])) {
-                vals.push_back(docInfos[i].Factors[floatFeatureIdx]);
+        for (size_t i = 0; i < docStorage.GetDocCount(); ++i) {
+            if (!IsNan(docStorage.Factors[floatFeatureIdx][i])) {
+                vals.push_back(docStorage.Factors[floatFeatureIdx][i]);
             } else {
                 (*hasNans)[idx] = true;
             }
@@ -78,13 +84,13 @@ void GenerateBorders(const yvector<TDocInfo>& docInfos, TLearnContext* ctx, yvec
 }
 
 void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool) {
-    Y_VERIFY(permutation.ysize() == pool->Docs.ysize());
+    Y_VERIFY(pool->Docs.GetDocCount() == 0 || permutation.size() == pool->Docs.GetDocCount());
 
     yvector<size_t> toIndices(permutation);
-    for (size_t i = 0; i < permutation.size(); ++i) {
+    for (size_t i = 0; i < pool->Docs.GetDocCount(); ++i) {
         while (toIndices[i] != i) {
             auto destinationIndex = toIndices[i];
-            DoSwap(pool->Docs[i], pool->Docs[destinationIndex]);
+            pool->Docs.SwapDoc(i, destinationIndex);
             DoSwap(toIndices[i], toIndices[destinationIndex]);
         }
     }

@@ -17,38 +17,35 @@ SIMPLE_UNIT_TEST_SUITE(TDataLoadTest) {
         TReallyFastRng32 rng(1);
         const size_t TestDocCount = 20000;
         const size_t FactorCount = 250;
-        yvector<TDocInfo> documents;
+        TDocumentStorage documents;
+        documents.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0);
         for (size_t i = 0; i < TestDocCount; ++i) {
-            TDocInfo doc;
-            doc.Target = (float)rng.GenRandReal2();
-            doc.Factors.resize(FactorCount);
+            documents.Target[i] = rng.GenRandReal2();
             for (size_t j = 0; j < FactorCount; ++j) {
-                doc.Factors[j] = (float)rng.GenRandReal2();
+                documents.Factors[j][i] = rng.GenRandReal2();
             }
-            documents.emplace_back(std::move(doc));
         }
         TString TestFileName = "sample_pool.tsv";
         {
             TOFStream writer(TestFileName);
-            for (const auto& doc : documents) {
-                writer << doc.Target;
-                for (const auto& factor : doc.Factors) {
-                    writer << "\t" << factor;
+            for (size_t docIdx = 0; docIdx < documents.GetDocCount(); ++docIdx) {
+                writer << documents.Target[docIdx];
+                for (const auto& factor : documents.Factors) {
+                    writer << "\t" << factor[docIdx];
                 }
                 writer << Endl;
             }
         }
         TPool pool;
         ReadPool("", TestFileName, "", 2, false, '\t', false, yvector<TString>(), &pool);
-        yvector<TDocInfo>& readTestDocuments = pool.Docs;
-        UNIT_ASSERT_EQUAL(readTestDocuments.size(), documents.size());
-        for (size_t i = 0; i < documents.size(); ++i) {
-            const auto& doc1 = documents[i];
-            const auto& doc2 = readTestDocuments[i];
-            UNIT_ASSERT_DOUBLES_EQUAL(doc1.Target, doc2.Target, 1e-5);
-            UNIT_ASSERT_EQUAL(doc1.Factors.size(), doc2.Factors.size());
-            for (size_t j = 0; j < doc1.Factors.size(); ++j) {
-                UNIT_ASSERT_DOUBLES_EQUAL(doc1.Factors[j], doc2.Factors[j], 1e-5);
+        UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), documents.GetDocCount());
+        UNIT_ASSERT_EQUAL(pool.Docs.GetFactorsCount(), documents.GetFactorsCount());
+        for (int j = 0; j < documents.GetFactorsCount(); ++j) {
+            const auto& redFactors = pool.Docs.Factors[j];
+            const auto& factors = documents.Factors[j];
+            for (size_t i = 0; i < documents.GetDocCount(); ++i) {
+                UNIT_ASSERT_DOUBLES_EQUAL(pool.Docs.Target[i], documents.Target[i], 1e-5);
+                UNIT_ASSERT_DOUBLES_EQUAL(factors[i], redFactors[i], 1e-5);
             }
         }
     }

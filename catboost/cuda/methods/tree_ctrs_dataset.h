@@ -16,7 +16,7 @@
  */
 class TTreeCtrDataSet: public TGuidHolder {
 public:
-    using TGpuDataSet = TGpuBinarizedDataSet<TByteFeatureGridPolicy, TSingleDevPoolLayout>;
+    using TGpuDataSet = TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TSingleDevPoolLayout>;
     using TFeaturesMapping = typename TSingleDevPoolLayout::TFeaturesMapping;
     using TSampleMapping = typename TSingleDevPoolLayout::TSampleMapping;
     using TVec = TCudaBuffer<float, TFeaturesMapping>;
@@ -151,6 +151,8 @@ private:
                 const ui32 idx = static_cast<const ui32>(InverseCtrIndex.size());
                 InverseCtrIndex[ctr] = idx;
                 Ctrs.push_back(ctr);
+                CB_ENSURE(FeaturesManager.GetCtrBinarization(ctr).Discretization <= 15,
+                          "Error: maximum tree-ctrs border count is compile-time constant and currently set to 15 for optimal performance");
                 const ui32 bordersSize = 1 + FeaturesManager.GetCtrBinarization(ctr).Discretization;
                 const ui32 offset = static_cast<const ui32>(CtrBorderSlices.size() ? CtrBorderSlices.back().Right : 0);
                 const TSlice bordersSlice = TSlice(offset, offset + bordersSize);

@@ -81,7 +81,7 @@ namespace NPrivate {
  */
 template <class T>
 inline TString ToString(const T& t) {
-    using TR = typename TTypeTraits<T>::TNonQualified;
+    using TR = std::remove_cv_t<T>;
 
     return ::NPrivate::TToString<TR, std::is_arithmetic<TR>::value>::Cvt((const TR&)t);
 }
@@ -305,7 +305,7 @@ size_t IntToString(T t, char* buf, size_t len);
 
 template <int base, class T>
 inline TString IntToString(T t) {
-    static_assert(std::is_arithmetic<typename TTypeTraits<T>::TNonQualified>::value, "expect std::is_arithmetic<typename TTypeTraits<T>::TNonQualified>::value");
+    static_assert(std::is_arithmetic<std::remove_cv_t<T>>::value, "expect std::is_arithmetic<std::remove_cv_t<T>>::value");
 
     char buf[256];
 

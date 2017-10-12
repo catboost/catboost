@@ -17,7 +17,13 @@ TEST_SRCS(
 )
 
 DEPENDS(
-    catboost/R-package/src
+    catboost/R-package/
+    src
+
 )
 
 END()
+
+RECURSE(
+    src
+)

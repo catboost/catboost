@@ -13,6 +13,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
     switch (description.GetFeatureType()) {
         case ::NCompressedPool::TFeatureType::Float: {
             auto values = MakeHolder<TFloatValuesHolder>(featureId, FromProtoToVector(FeatureColumn.GetFloatColumn().GetValues()));
+            FeaturesManager.RegisterDataProviderFloatFeature(featureId);
             auto borders = FeaturesManager.GetOrCreateFloatFeatureBorders(*values, TBordersBuilder(*GridBuilderFactory, values->GetValues()));
             features.push_back(FloatToBinarizedColumn(*values, borders));
             break;
@@ -23,7 +24,11 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
             auto values = FromProtoToVector(binarizedData);
             CB_ENSURE(borders.size(), "Error: binarization should be positive");
             auto feature = MakeHolder<TBinarizedFloatValuesHolder>(featureId, docCount, borders, std::move(values), featureName);
-            FeaturesManager.AddFloatFeature(*feature);
+            FeaturesManager.RegisterDataProviderFloatFeature(feature->GetId());
+            if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(feature->GetId()))
+            {
+                FeaturesManager.SetFloatFeatureBordersForDataProviderId(feature->GetId(), std::move(borders));
+            }
             features.push_back(feature.Release());
 
             break;
@@ -31,7 +36,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
         case ::NCompressedPool::TFeatureType::Categorical: {
             const auto& binarizedData = FeatureColumn.GetBinarizedColumn().GetData();
             auto values = MakeHolder<TCatFeatureValuesHolder>(featureId, docCount, FromProtoToVector(binarizedData), FeatureColumn.GetUniqueValues(), featureName);
-            FeaturesManager.AddCatFeature(*values);
+            FeaturesManager.RegisterDataProviderFloatFeature(featureId);
             features.push_back(values.Release());
             break;
         }

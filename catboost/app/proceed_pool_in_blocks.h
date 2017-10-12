@@ -15,10 +15,9 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
                            blockSize);
 
     while (poolReader.ReadBlock()) {
-        StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, false, poolBuilder.Get());
+        StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, poolReader.GetBlockSize(), false, poolBuilder.Get());
         poolReader.ProcessBlock();
         FinalizeBuilder(poolReader.ColumnsDescription, poolReader.PairsFile, poolBuilder.Get());
-        const TPool& poolConstRef = pool;
-        poolConsumer(poolConstRef);
+        poolConsumer(pool);
     }
 }

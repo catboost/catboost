@@ -4,15 +4,38 @@
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/models/additive_model.h>
-#include <catboost/cuda/data/cat_feature_binarization_helpers.h>
+#include <catboost/cuda/data/cat_feature_perfect_hash.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/target_classifier.h>
+
+
+//store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
+inline yvector<yvector<int>> MakeInverseCatFeatureIndexForDataProviderIds(const TBinarizedFeaturesManager& featuresManager,
+                                                                          const yvector<ui32>& catFeaturesDataProviderIds,
+                                                                          bool clearFeatureManagerRamCache = true) {
+    yvector<yvector<int>> result(catFeaturesDataProviderIds.size());
+    for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i) {
+
+        const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForCatFeature(catFeaturesDataProviderIds[i]);
+        const auto& perfectHash = featuresManager.GetCategoricalFeaturesPerfectHash(featureManagerId);
+
+        if (!perfectHash.empty()) {
+            result[i].resize(perfectHash.size());
+            for (const auto& entry : perfectHash) {
+                result[i][entry.second] = entry.first;
+            }
+        }
+    }
+    if (clearFeatureManagerRamCache) {
+        featuresManager.UnloadCatFeaturePerfectHashFromRam();
+    }
+    return result;
+}
 
 class TModelConverter {
 public:
     TModelConverter(const TBinarizedFeaturesManager& manager,
-                    const TDataProvider& dataProvider,
-                    const TString& catFeatureBinarizationFilename)
+                    const TDataProvider& dataProvider)
         : FeaturesManager(manager)
         , DataProvider(dataProvider)
     {
@@ -35,8 +58,7 @@ public:
         }
         {
             yvector<ui32> catFeatureVec(catFeatureIds.begin(), catFeatureIds.end());
-            CatFeatureBinToHashIndex = TCatFeatureBinarizationHelpers::MakeInverseCatFeatureIndex(catFeatureVec,
-                                                                                                  catFeatureBinarizationFilename);
+            CatFeatureBinToHashIndex = MakeInverseCatFeatureIndexForDataProviderIds(manager, catFeatureVec);
         }
     }
 
@@ -46,7 +68,7 @@ public:
         TCoreModel coreModel;
         coreModel.Borders = Borders;
         coreModel.ModelInfo["params"] = "{}"; //TODO(noxoomo): something meaningful here
-        coreModel.FeatureCount = featureNames.size();
+        coreModel.FeatureCount = static_cast<int>(featureNames.size());
         coreModel.CatFeatures = yvector<int>(DataProvider.GetCatFeatureIds().begin(),
                                              DataProvider.GetCatFeatureIds().end());
         coreModel.FeatureIds = featureNames;
@@ -182,8 +204,7 @@ private:
 
 TCoreModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
                               const TDataProvider& dataProvider,
-                              const TString& catFeatureBinarizationTempName,
                               const TAdditiveModel<TObliviousTreeModel>& treeModel) {
-    TModelConverter converter(manager, dataProvider, catFeatureBinarizationTempName);
+    TModelConverter converter(manager, dataProvider);
     return converter.Convert(treeModel);
 }

@@ -126,12 +126,8 @@ void TLearnContext::InitData(const TTrainData& data) {
                                                      Rand);
 
     LearnProgress.AvrgApprox.resize(LearnProgress.Model.ApproxDimension, yvector<double>(sampleCount));
-    if (!data.Baseline[0].empty()) {
-        for (int dim = 0; dim < LearnProgress.Model.ApproxDimension; ++dim) {
-            for (int docId = 0; docId < sampleCount; ++docId) {
-                LearnProgress.AvrgApprox[dim][docId] = data.Baseline[docId][dim];
-            }
-        }
+    if (!data.Baseline.empty()) {
+        LearnProgress.AvrgApprox = data.Baseline;
     }
 }
 
@@ -214,7 +210,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
 void TLearnProgress::Load(IInputStream* s) {
     ui64 foldCount;
     ::Load(s, foldCount);
-    CB_ENSURE(foldCount == Folds.size());
+    CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
     for (ui64 i = 0; i < foldCount; ++i) {
         Folds[i].LoadApproxes(s);
     }

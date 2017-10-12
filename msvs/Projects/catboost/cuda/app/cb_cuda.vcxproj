@@ -77,7 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\app\mode_fit.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\app\application_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\app\modes.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\app\options_binding.h"/>
   </ItemGroup>

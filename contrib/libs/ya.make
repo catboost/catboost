@@ -20,6 +20,7 @@ RECURSE(
     openssl
     openssl/apps
     openssl/dynamic
+    platform
     protobuf
     protobuf/python
     protobuf/java

@@ -33,10 +33,11 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ProcessException()
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
-    cdef yvector[yvector[double]] GetFeatureImportances(const TFullModel& model,
-                                                        const TPool& pool,
-                                                        const TString& type,
-                                                        int threadCount) nogil except +ProcessException
+
+cdef extern from "catboost/libs/data/pair.h":
+    cdef cppclass TPair:
+        int WinnerId
+        int LoserId
 
 cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocInfo:
@@ -46,11 +47,30 @@ cdef extern from "catboost/libs/data/pool.h":
         yvector[double] Baseline
         void Swap(TDocInfo& other) except +ProcessException
 
+    cdef cppclass TDocumentStorage:
+        yvector[yvector[float]] Factors
+        yvector[yvector[double]] Baseline
+        yvector[float] Target
+        yvector[float] Weight
+        yvector[TString] Id
+        void Swap(TDocumentStorage& other) except +ProcessException
+        int GetBaselineDimension() except +ProcessException const
+        int GetFactorsCount() except +ProcessException const
+        size_t GetDocCount() except +ProcessException const
+        float GetFeatureValue(int docIdx, int featureIdx) except +ProcessException const
+        void Swap(TDocumentStorage& other) except +ProcessException
+        void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
+        void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
+        void Resize(int docCount, int featureCount, int approxDim) except +ProcessException
+        void Clear() except +ProcessException
+        void Append(const TDocumentStorage& documents) except +ProcessException
+
     cdef cppclass TPool:
-        yvector[TDocInfo] Docs
+        TDocumentStorage Docs
         yvector[int] CatFeatures
         yvector[TString] FeatureId
         yhash[int, TString] CatFeaturesHashToString
+        yvector[TPair] Pairs
 
 cdef extern from "catboost/libs/data/load_data.h":
     cdef void ReadPool(const TString& cdFile,
@@ -89,6 +109,10 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel ReadModel(const TString& modelFile) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
+
+cdef extern from "catboost/libs/model/formula_evaluator.h":
+    cdef cppclass TFormulaEvaluator "NCatBoost::TFormulaEvaluator":
+        TFormulaEvaluator(const TFullModel& model) nogil except +ProcessException
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
@@ -152,6 +176,7 @@ cdef extern from "catboost/libs/algo/train_model.h":
                          const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
                          const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
                          TPool& learnPool,
+                         bool_t allowClearPool,
                          const TPool& testPool,
                          const TString& outputModelPath,
                          TFullModel* model,
@@ -189,14 +214,32 @@ cdef extern from "catboost/libs/algo/apply.h":
                                                   int end,
                                                   int threadCount) nogil except +ProcessException
 
+    cdef yvector[yvector[double]] ApplyModelMulti(const TFullModel& model,
+                                                  const TFormulaEvaluator& calcer,
+                                                  const TPool& pool,
+                                                  bool_t verbose,
+                                                  const EPredictionType predictionType,
+                                                  int begin,
+                                                  int end,
+                                                  int threadCount) nogil except +ProcessException
+
 cdef extern from "catboost/libs/algo/eval_helpers.h":
     cdef yvector[yvector[double]] PrepareEval(const EPredictionType predictionType,
                                               const yvector[yvector[double]]& approx,
                                               int threadCount) nogil except +ProcessException
 
+cdef extern from "catboost/libs/algo/calc_fstr.h":
+    cdef yvector[yvector[double]] GetFeatureImportances(const TFullModel& model,
+                                                        const TPool& pool,
+                                                        const TString& type,
+                                                        int threadCount) nogil except +ProcessException
+
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
-    return TString(<const char*>metricObject.__class__.__name__)
+    name = metricObject.__class__.__name__
+    if PY3:
+        name = name.encode()
+    return TString(<const char*>name)
 
 cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
     cdef metricObject = <object>customData
@@ -398,6 +441,9 @@ cdef class _PoolBase:
     def __dealloc__(self):
         del self.__pool
 
+    def __deepcopy__(self, _):
+        raise CatboostError('Can\'t deepcopy _PoolBase object')
+
     cpdef _init_cat_features(self, cat_features):
         self.__pool.CatFeatures.clear()
         for feature in cat_features:
@@ -416,7 +462,7 @@ cdef class _PoolBase:
                  has_header,
                  emptyVec,
                  self.__pool)
-        if len(set([doc.Target for doc in self.__pool.Docs])) > 1:
+        if len(set([target for target in self.__pool.Docs.Target])) > 1:
             self.has_label_ = True
 
     cpdef _init_pool(self, data, label, weight, baseline, feature_names):
@@ -434,8 +480,10 @@ cdef class _PoolBase:
             self._set_feature_names(feature_names)
 
     cpdef _set_data(self, data):
-        self.__pool.Docs.clear()
-        cdef TDocInfo doc
+        self.__pool.Docs.Clear()
+        if len(data) == 0:
+            return
+        self.__pool.Docs.Resize(len(data), len(data[0]), 0)
         cdef TString factor_str
         cat_features = set(self.get_cat_feature_indices())
         for i in range(len(data)):
@@ -450,28 +498,26 @@ cdef class _PoolBase:
                     factor = CalcCatFeatureHash(factor_str)
                     self.__pool.CatFeaturesHashToString[factor] = factor_str
                     factor = ConvertCatFeatureHashToFloat(factor)
-                doc.Factors.push_back(float(factor))
-            self.__pool.Docs.push_back(doc)
-            doc.Factors.clear()
+                self.__pool.Docs.Factors[j][i] = float(factor)
 
     cpdef _set_label(self, label):
         rows = self.num_row()
         for i in range(rows):
-            self.__pool.Docs[i].Target = float(label[i])
+            self.__pool.Docs.Target[i] = float(label[i])
 
     cpdef _set_weight(self, weight):
         rows = self.num_row()
         for i in range(rows):
-            self.__pool.Docs[i].Weight = float(weight[i])
+            self.__pool.Docs.Weight[i] = float(weight[i])
 
     cpdef _set_baseline(self, baseline):
         rows = self.num_row()
-        cdef yvector[double] cbaseline
+        if rows == 0:
+            return
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]))
         for i in range(rows):
-            for value in baseline[i]:
-                cbaseline.push_back(float(value))
-            self.__pool.Docs[i].Baseline = cbaseline
-            cbaseline.clear()
+            for j, value in enumerate(baseline[i]):
+                self.__pool.Docs.Baseline[j][i] = float(value)
 
     cpdef _set_feature_names(self, feature_names):
         self.__pool.FeatureId.clear()
@@ -498,7 +544,7 @@ cdef class _PoolBase:
         number of rows : int
         """
         if not self.is_empty_:
-            return self.__pool.Docs.size()
+            return self.__pool.Docs.GetDocCount()
         return None
 
     cpdef num_col(self):
@@ -510,9 +556,7 @@ cdef class _PoolBase:
         number of cols : int
         """
         if not self.is_empty_:
-            row = self.num_row()
-            if row > 0:
-                return self.__pool.Docs[0].Factors.size()
+            return self.__pool.Docs.GetFactorsCount()
         return None
 
     @property
@@ -539,10 +583,10 @@ cdef class _PoolBase:
         """
         if not self.is_empty_:
             data = []
-            for doc in self.__pool.Docs:
+            for doc in range(self.__pool.Docs.GetDocCount()):
                 factors = []
-                for factor in doc.Factors:
-                    factors.append(factor)
+                for factor in self.__pool.Docs.Factors:
+                    factors.append(factor[doc])
                 data.append(factors)
             return data
         return None
@@ -556,7 +600,7 @@ cdef class _PoolBase:
         labels : list
         """
         if self.has_label_:
-            return [doc.Target for doc in self.__pool.Docs]
+            return [target for target in self.__pool.Docs.Target]
         return None
 
     cpdef get_cat_feature_indices(self):
@@ -578,7 +622,7 @@ cdef class _PoolBase:
         weight : list
         """
         if not self.is_empty_:
-            return [doc.Weight for doc in self.__pool.Docs]
+            return [weight for weight in self.__pool.Docs.Weight]
         return None
 
     cpdef get_baseline(self):
@@ -591,10 +635,10 @@ cdef class _PoolBase:
         """
         if not self.is_empty_:
             baseline = []
-            for doc in self.__pool.Docs:
+            for doc in range(self.__pool.Docs.GetDocCount()):
                 doc_approxes = []
-                for approx in doc.Baseline:
-                    doc_approxes.append(approx)
+                for approx in self.__pool.Docs.Baseline:
+                    doc_approxes.append(approx[doc])
                 baseline.append(doc_approxes)
             return baseline
         return None
@@ -608,7 +652,7 @@ cdef class _PoolBase:
         -------
         is_empty_ : bool
         """
-        return self.__pool.Docs.empty()
+        return self.__pool.Docs.GetDocCount() == 0
 
 
 cdef class _CatBoost:
@@ -632,6 +676,7 @@ cdef class _CatBoost:
                        prep_params.customObjectiveDescriptor,
                        prep_params.customMetricDescriptor,
                        dereference(train_pool.__pool),
+                       False,
                        dereference(test_pool.__pool),
                        TString(<const char*>""),
                        self.__model,
@@ -656,30 +701,32 @@ cdef class _CatBoost:
     cpdef _get_cat_feature_indices(self):
         return [feature for feature in self.__model.CatFeatures]
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, verbose):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
         cdef yvector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         pred = ApplyModel(dereference(self.__model),
-                            dereference(pool.__pool),
-                            verbose,
-                            predictionType,
-                            ntree_start,
-                            ntree_end, 1)
+                          dereference(pool.__pool),
+                          verbose,
+                          predictionType,
+                          ntree_start,
+                          ntree_end,
+                          thread_count)
         return [value for value in pred]
 
-    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, verbose):
+    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
         cdef yvector[yvector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         pred = ApplyModelMulti(dereference(self.__model),
-                                dereference(pool.__pool),
-                                verbose,
-                                predictionType,
-                                ntree_start,
-                                ntree_end, 1)
+                               dereference(pool.__pool),
+                               verbose,
+                               predictionType,
+                               ntree_start,
+                               ntree_end,
+                               thread_count)
         return [[value for value in vec] for vec in pred]
 
-    cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
-        stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+    cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
@@ -721,12 +768,20 @@ cdef class _CatBoost:
         params = {}
         if params_json:
             for key, value in loads(params_json).iteritems():
-                if key not in params:
+                if key != 'random_seed':
                     params[str(key)] = value
         return params
 
     def _get_tree_count(self):
         return self.__model.TreeStruct.size()
+
+    def _get_random_seed(self):
+        cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
+        cdef bytes py_params_json = c_params_json
+        params_json = to_native_str(py_params_json)
+        if params_json:
+            return loads(params_json).get('random_seed', 0)
+        return 0
 
 class _CatBoostBase(object):
     def __init__(self, params):
@@ -735,7 +790,7 @@ class _CatBoostBase(object):
         self._check_train_params(self._get_init_train_params())
 
     def __getstate__(self):
-        params = self.get_init_params()
+        params = self._get_init_params()
         test_evals = self.get_test_eval()
         if test_evals:
             if test_evals[0]:
@@ -755,6 +810,7 @@ class _CatBoostBase(object):
         if '__model' in state:
             self._deserialize_model(state['__model'])
             setattr(self, '_is_fitted', True)
+            setattr(self, '_random_seed', self._object._get_random_seed())
             del state['__model']
         if '_test_eval' in state:
             self._set_test_eval(state['_test_eval'])
@@ -786,6 +842,7 @@ class _CatBoostBase(object):
     def _train(self, train_pool, test_pool, params):
         self._object._train(train_pool, test_pool, params)
         setattr(self, '_is_fitted', True)
+        setattr(self, '_random_seed', self._object._get_random_seed())
 
     def _set_test_eval(self, test_eval):
         self._object._set_test_eval(test_eval)
@@ -796,14 +853,14 @@ class _CatBoostBase(object):
     def _get_cat_feature_indices(self):
         return self._object._get_cat_feature_indices()
 
-    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, verbose):
-        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, verbose)
+    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
+        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def _base_predict_multi(self, pool, prediction_type, ntree_start, ntree_end, verbose):
-        return self._object._base_predict_multi(pool, prediction_type, ntree_start, ntree_end, verbose)
+    def _base_predict_multi(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
+        return self._object._base_predict_multi(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
-        return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, verbose)
+    def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
+        return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
@@ -819,6 +876,9 @@ class _CatBoostBase(object):
     def _load_model(self, model_file):
         self._object._load_model(model_file)
         setattr(self, '_is_fitted', True)
+        setattr(self, '_random_seed', self._object._get_random_seed())
+        for key, value in iteritems(self._get_params()):
+            self._set_param(key, value)
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -826,7 +886,7 @@ class _CatBoostBase(object):
     def _deserialize_model(self, dump_model_str):
         self._object._deserialize_model(dump_model_str)
 
-    def get_init_params(self):
+    def _get_init_params(self):
         init_params = self._init_params.copy()
         if "kwargs" in init_params:
             init_params.update(init_params["kwargs"])
@@ -841,7 +901,7 @@ class _CatBoostBase(object):
 
     def _get_params(self):
         params = self._object._get_params()
-        init_params = self.get_init_params()
+        init_params = self._get_init_params()
         for key, value in iteritems(init_params):
             if key not in params:
                 params[key] = value
@@ -860,6 +920,10 @@ class _CatBoostBase(object):
     @property
     def is_fitted_(self):
         return getattr(self, '_is_fitted', False)
+
+    @property
+    def random_seed_(self):
+        return getattr(self, '_random_seed', 0)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
           bool_t shuffle):
@@ -887,7 +951,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 
     result = defaultdict(list)
     for metric_idx in xrange(results.size()):
-        metric_name = str(results[metric_idx].Metric)
+        metric_name = to_native_str(results[metric_idx].Metric.c_str())
         for it in xrange(results[metric_idx].AverageTrain.size()):
             result[metric_name + "_train_avg"].append(results[metric_idx].AverageTrain[it])
             result[metric_name + "_train_stddev"].append(results[metric_idx].StdDevTrain[it])
@@ -901,20 +965,29 @@ cdef class _StagedPredictIterator:
     cdef yvector[yvector[double]] __approx
     cdef TFullModel* __model
     cdef _PoolBase pool
+    cdef TFormulaEvaluator* __calcer
     cdef str prediction_type
-    cdef int ntree_start, ntree_end, eval_period
+    cdef int ntree_start, ntree_end, eval_period, thread_count
     cdef bool_t verbose
 
     cdef set_model(self, TFullModel* model):
         self.__model = model
+        self.__calcer = new TFormulaEvaluator(dereference(self.__model))
 
-    def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, verbose):
+    def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         self.pool = pool
         self.prediction_type = prediction_type
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
         self.eval_period = eval_period
+        self.thread_count = thread_count
         self.verbose = verbose
+
+    def __dealloc__(self):
+        del self.__calcer
+
+    def __deepcopy__(self, _):
+        raise CatboostError('Can\'t deepcopy _StagedPredictIterator object')
 
     def next(self):
         if self.ntree_start >= self.ntree_end:
@@ -923,11 +996,13 @@ cdef class _StagedPredictIterator:
         cdef yvector[yvector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
         pred = ApplyModelMulti(dereference(self.__model),
+                               dereference(self.__calcer),
                                dereference(self.pool.__pool),
                                self.verbose,
                                PyPredictionType('RawFormulaVal').predictionType,
                                self.ntree_start,
-                               min(self.ntree_start + self.eval_period, self.ntree_end), 1)
+                               min(self.ntree_start + self.eval_period, self.ntree_end),
+                               self.thread_count)
         if self.__approx.empty():
             self.__approx = pred
         else:

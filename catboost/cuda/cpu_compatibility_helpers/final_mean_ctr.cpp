@@ -12,7 +12,7 @@ void CalcTargetMeanFinalCtrs(const TModelCtrBase& ctr,
     yvector<ui64> hashArr;
     CalcHashes(ctr.Projection, data, sampleCount, learnPermutation, &hashArr);
 
-    const ui64 topSize = Max<ui64>();
+    const auto topSize = Max<ui64>();
 
     auto leafCount = ReindexHash(
                          sampleCount,

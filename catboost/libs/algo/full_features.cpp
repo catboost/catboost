@@ -5,7 +5,7 @@
 #include <library/threading/local_executor/local_executor.h>
 
 static void AddReason(yvector<ui8>* hist,
-                      const yvector<TDocInfo>& docInfos,
+                      const TDocumentStorage& docStorage,
                       const yvector<size_t>& docIndices,
                       int idx,
                       ENanMode nanMode,
@@ -17,21 +17,21 @@ static void AddReason(yvector<ui8>* hist,
     const float* featureBorderData = featureBorder.data();
     const yssize_t featureBorderSize = featureBorder.ysize();
     bool hasNans = false;
-    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, &hasNans, idx, nanMode, &docInfos, &docIndices] (int i) {
-        const auto& featureVal = docInfos[docIndices[i]].Factors[idx];
+    localExecutor->ExecRange([histData, featureBorderData, featureBorderSize, &hasNans, idx, nanMode, &docStorage, &docIndices] (int i) {
+        const auto& featureVal = docStorage.Factors[idx][docIndices[i]];
         if (IsNan(featureVal)) {
             hasNans = true;
             histData[i] = nanMode == ENanMode::Min ? 0 : featureBorderSize;
         } else {
             histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
         }
-    }, NPar::TLocalExecutor::TBlockParams(0, docInfos.ysize()).SetBlockSize(1000).WaitCompletion());
+    }, NPar::TLocalExecutor::TBlockParams(0, docStorage.GetDocCount()).SetBlockSize(1000).WaitCompletion());
     CB_ENSURE(!hasNans || nanInLearn, "There are nans in test dataset (feature number " << idx << ") but there were not nans in learn dataset");
 }
 
-static bool IsRedundantFeature(const yvector<TDocInfo>& docInfos, const yvector<size_t>& docIndices, int learnSampleCount, int featureIdx) {
+static bool IsRedundantFeature(const TDocumentStorage& docStorage, const yvector<size_t>& docIndices, int learnSampleCount, int featureIdx) {
     for (int i = 1; i < learnSampleCount; ++i) {
-        if (docInfos[docIndices[i]].Factors[featureIdx] != docInfos[docIndices[0]].Factors[featureIdx]) {
+        if (docStorage.Factors[featureIdx][docIndices[i]] != docStorage.Factors[featureIdx][docIndices[0]]) {
             return false;
         }
     }
@@ -43,8 +43,7 @@ static void ClearVector(yvector<int>* dst) {
     dst->shrink_to_fit();
 }
 
-static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
-                                    const yvector<size_t>& docIndices,
+static void ExtractBoolsFromDocInfo(const yvector<size_t>& docIndices,
                                     const yhash_set<int>& categFeatures,
                                     const yvector<yvector<float>>& allBorders,
                                     const yvector<bool>& hasNans,
@@ -52,14 +51,16 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                                     int learnSampleCount,
                                     size_t oneHotMaxSize,
                                     ENanMode nanMode,
+                                    bool allowClearPool,
                                     NPar::TLocalExecutor& localExecutor,
+                                    TDocumentStorage* docStorage,
                                     yvector<yvector<ui8>>* hist,
                                     yvector<yvector<int>>* catFeatures,
                                     yvector<yvector<int>>* catFeaturesRemapped,
                                     yvector<yvector<int>>* oneHotValues,
                                     yvector<bool>* isOneHot) {
     yhash_set<int> ignoredFeaturesSet(ignoredFeatures.begin(), ignoredFeatures.end());
-    const auto featureCount = docInfos[0].Factors.ysize();
+    const auto featureCount = docStorage->GetFactorsCount();
     yvector<size_t> reasonTargetIdx(featureCount);
     size_t catFeatureIdx = 0;
     size_t floatFeatureIdx = 0;
@@ -73,11 +74,11 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
         }
     }
 
-    catFeatures->resize(catFeatureIdx, yvector<int>(docInfos.size()));
-    catFeaturesRemapped->resize(catFeatureIdx, yvector<int>(docInfos.size()));
+    catFeatures->resize(catFeatureIdx, yvector<int>(docStorage->GetDocCount()));
+    catFeaturesRemapped->resize(catFeatureIdx, yvector<int>(docStorage->GetDocCount()));
     oneHotValues->resize(catFeatureIdx);
     isOneHot->resize(catFeatureIdx, false);
-    hist->resize(floatFeatureIdx, yvector<ui8>(docInfos.size()));
+    hist->resize(floatFeatureIdx, yvector<ui8>(docStorage->GetDocCount()));
 
     const int BlockSize = 10;
     auto calcHistogramsInFeatureBlock = [&](int blockId) {
@@ -91,7 +92,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
 
                 bool isRedundantFeature = false;
                 if (learnSampleCount != LearnNotSet) {
-                    isRedundantFeature = IsRedundantFeature(docInfos, docIndices, learnSampleCount, featureIdx);
+                    isRedundantFeature = IsRedundantFeature(*docStorage, docIndices, learnSampleCount, featureIdx);
                     if (isRedundantFeature) {
                         MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
                     }
@@ -102,8 +103,8 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                     ClearVector(&dstRemapped);
                     ClearVector(&dstValues);
                 } else {
-                    for (size_t i = 0; i < docInfos.size(); ++i) {
-                        dst[i] = ConvertFloatCatFeatureToIntHash(docInfos[docIndices[i]].Factors[featureIdx]);
+                    for (size_t i = 0; i < docStorage->GetDocCount(); ++i) {
+                        dst[i] = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
                     }
 
                     yhash_set<int> uniqueFeatures;
@@ -116,7 +117,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                         dstValues.assign(uniqueFeatures.begin(), uniqueFeatures.end());
                         Sort(dstValues.begin(), dstValues.end());
 
-                        for (int i = 0; i < docInfos.ysize(); ++i) {
+                        for (size_t i = 0; i < docStorage->GetDocCount(); ++i) {
                             dstRemapped[i] = LowerBound(dstValues.begin(), dstValues.end(), dst[i]) - dstValues.begin();
                             if (dstRemapped[i] < dstValues.ysize() && dst[i] != dstValues[dstRemapped[i]]) {
                                 dstRemapped[i] = dstValues.ysize();
@@ -136,13 +137,17 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
                 } else {
                     AddReason(
                         &hist->at(reasonTargetIdx[featureIdx]),
-                        docInfos,
+                        *docStorage,
                         docIndices,
                         featureIdx,
                         nanMode,
                         hasNans.empty() ? false : hasNans[reasonIdx],
                         allBorders[reasonIdx],
                         &localExecutor);
+                    if (allowClearPool) {
+                        docStorage->Factors[featureIdx].clear();
+                        docStorage->Factors[featureIdx].shrink_to_fit();
+                    }
                 }
             }
         }
@@ -154,8 +159,7 @@ static void ExtractBoolsFromDocInfo(const yvector<TDocInfo>& docInfos,
     DumpMemUsage("Extract bools done");
 }
 
-void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
-                                        const yvector<size_t>& docIndices,
+void PrepareAllFeaturesFromPermutedDocs(const yvector<size_t>& docIndices,
                                         const yhash_set<int>& categFeatures,
                                         const yvector<yvector<float>>& allBorders,
                                         const yvector<bool>& hasNans,
@@ -163,14 +167,15 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                                         int learnSampleCount,
                                         size_t oneHotMaxSize,
                                         ENanMode nanMode,
+                                        bool allowClearPool,
                                         NPar::TLocalExecutor& localExecutor,
+                                        TDocumentStorage* docStorage,
                                         TAllFeatures* allFeatures) {
-    if (docInfos.empty()) {
+    if (docStorage->GetDocCount() == 0) {
         return;
     }
 
-    ExtractBoolsFromDocInfo(docInfos,
-                            docIndices,
+    ExtractBoolsFromDocInfo(docIndices,
                             categFeatures,
                             allBorders,
                             hasNans,
@@ -178,7 +183,9 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                             learnSampleCount,
                             oneHotMaxSize,
                             nanMode,
+                            allowClearPool,
                             localExecutor,
+                            docStorage,
                             &allFeatures->FloatHistograms,
                             &allFeatures->CatFeatures,
                             &allFeatures->CatFeaturesRemapped,
@@ -186,26 +193,26 @@ void PrepareAllFeaturesFromPermutedDocs(const yvector<TDocInfo>& docInfos,
                             &allFeatures->IsOneHot);
 
     for (const auto& cf : allFeatures->CatFeatures) {
-        Y_ASSERT(cf.empty() || cf.size() == docInfos.size());
+        Y_ASSERT(cf.empty() || cf.size() == docStorage->GetDocCount());
     }
 }
 
-void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
-                        const yhash_set<int>& categFeatures,
+void PrepareAllFeatures(const yhash_set<int>& categFeatures,
                         const yvector<yvector<float>>& allBorders,
                         const yvector<bool>& hasNans,
                         const yvector<int>& ignoredFeatures,
                         int learnSampleCount,
                         size_t oneHotMaxSize,
                         ENanMode nanMode,
+                        bool allowClearPool,
                         NPar::TLocalExecutor& localExecutor,
+                        TDocumentStorage* docStorage,
                         TAllFeatures* allFeatures)
 {
-    yvector<size_t> indices(docInfos.size(), 0);
+    yvector<size_t> indices(docStorage->GetDocCount(), 0);
     std::iota(indices.begin(), indices.end(), 0);
 
     PrepareAllFeaturesFromPermutedDocs(
-        docInfos,
         indices,
         categFeatures,
         allBorders,
@@ -214,6 +221,8 @@ void PrepareAllFeatures(const yvector<TDocInfo>& docInfos,
         learnSampleCount,
         oneHotMaxSize,
         nanMode,
+        allowClearPool,
         localExecutor,
+        docStorage,
         allFeatures);
 }

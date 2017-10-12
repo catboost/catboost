@@ -68,9 +68,11 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !pool.CatFeatures.empty(), "if model has cat-features pool should also have them");
 
-    const int featureCount = pool.Docs[0].Factors.ysize();
-    const int docCount = pool.Docs.size();
+    const int featureCount = pool.Docs.GetFactorsCount();
+    const int docCount = pool.Docs.GetDocCount();
     CB_ENSURE(featureCount >= model.FeatureCount, "Test dataset has not enough features");
 
     yvector<double> approxFlat(static_cast<unsigned long>(docCount * model.ApproxDimension));
@@ -88,12 +90,11 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
         yvector<NArrayRef::TConstArrayRef<float>> repackedFeatures;
         const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
-        for (int i = blockFirstId; i < blockLastId; ++i) {
-            const auto& doc = pool.Docs[i];
-            repackedFeatures.emplace_back(MakeArrayRef(doc.Factors));
+        for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
+            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
         }
-        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * model.ApproxDimension, repackedFeatures.size() * model.ApproxDimension);
-        calcer.CalcFlat(repackedFeatures, begin, end, resultRef);
+        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * model.ApproxDimension, (blockLastId - blockFirstId) * model.ApproxDimension);
+        calcer.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     yvector<yvector<double>> approx(model.ApproxDimension, yvector<double>(docCount));

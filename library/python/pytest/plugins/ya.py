@@ -12,6 +12,11 @@ import py
 import pytest
 import _pytest
 
+try:
+    import resource
+except ImportError:
+    resource = None
+
 import yatest_tools as tools
 import yatest_lib.tools
 
@@ -213,7 +218,48 @@ def pytest_configure(config):
         configure_pdb_on_demand()
 
 
+def _get_rusage():
+    return resource and resource.getrusage(resource.RUSAGE_SELF)
+
+
+def _collect_test_rusage(item):
+    if resource and hasattr(item, "rusage"):
+        finish_rusage = _get_rusage()
+        if item.nodeid not in pytest.config.test_metrics:
+            pytest.config.test_metrics[item.nodeid] = {}
+        metrics = pytest.config.test_metrics[item.nodeid]
+
+        def add_metric(attr_name, metric_name=None, modifier=None):
+            if not metric_name:
+                metric_name = attr_name
+            if not modifier:
+                modifier = lambda x: x
+            if hasattr(item.rusage, attr_name):
+                metrics[metric_name] = modifier(getattr(finish_rusage, attr_name) - getattr(item.rusage, attr_name))
+
+        for args in [
+            ("ru_maxrss", "ru_rss", lambda x: x*1024),  # to be the same as in util/system/rusage.cpp
+            ("ru_utime",),
+            ("ru_stime",),
+            ("ru_ixrss", None, lambda x: x*1024),
+            ("ru_idrss", None, lambda x: x*1024),
+            ("ru_isrss", None, lambda x: x*1024),
+            ("ru_majflt", "ru_major_pagefaults"),
+            ("ru_minflt", "ru_minor_pagefaults"),
+            ("ru_nswap",),
+            ("ru_inblock",),
+            ("ru_oublock",),
+            ("ru_msgsnd",),
+            ("ru_msgrcv",),
+            ("ru_nsignals",),
+            ("ru_nvcsw",),
+            ("ru_nivcsw",),
+        ]:
+            add_metric(*args)
+
+
 def pytest_runtest_setup(item):
+    item.rusage = _get_rusage()
     pytest.config.test_cores_count = 0
     pytest.config.current_item_nodeid = item.nodeid
     class_name, test_name = tools.split_node_id(item.nodeid)
@@ -375,6 +421,7 @@ def pytest_runtest_makereport(item, call):
     def logreport(report, result):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
         if report.when == "call":
+            _collect_test_rusage(item)
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
             pytest.config.ya_trace_reporter.on_start_test_class(test_item)

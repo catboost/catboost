@@ -5,6 +5,7 @@
 #include <util/generic/vector.h>
 #include <catboost/cuda/cuda_lib/slice.h>
 #include <numeric>
+#include <util/random/shuffle.h>
 #include "data_provider.h"
 
 class TDataPermutation {
@@ -33,12 +34,12 @@ public:
         if (Index != IdentityPermutationId()) {
             TRandom rng(1664525 * GetPermutationId() + 1013904223);
             if (BlockSize == 1) {
-                std::random_shuffle(order.begin(), order.begin() + Size, rng);
+                Shuffle(order.begin(), order.begin() + Size, rng);
             } else {
-                const ui32 blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), BlockSize));
+                const auto blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), BlockSize));
                 yvector<ui32> blocks(blocksCount);
                 std::iota(blocks.begin(), blocks.end(), 0);
-                std::random_shuffle(blocks.begin(), blocks.end(), rng);
+                Shuffle(blocks.begin(), blocks.end(), rng);
 
                 ui32 cursor = 0;
                 for (ui32 i = 0; i < blocksCount; ++i) {

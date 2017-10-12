@@ -76,5 +76,5 @@ TString NResource::Decompress(const TStringBuf& data) {
 }
 
 IStore* NResource::CommonStore() {
-    return Singleton<TStore>();
+    return SingletonWithPriority<TStore, 0>();
 }

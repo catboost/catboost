@@ -165,6 +165,25 @@ namespace NCatBoost {
         );
     }
 
+    void TFormulaEvaluator::CalcFlatTransposed(const yvector<NArrayRef::TConstArrayRef<float>>& transposedFeatures,
+                                size_t treeStart,
+                                size_t treeEnd,
+                                NArrayRef::TArrayRef<double> results) const {
+        CB_ENSURE(!transposedFeatures.empty(), "Features should not be empty");
+        CalcGeneric(
+            [&](const TFloatFeature& floatFeature, size_t index) {
+                return transposedFeatures[FloatFeatureFlatIndex[floatFeature.FeatureIndex]][index];
+            },
+            [&](size_t catFeatureIdx, size_t index) {
+                return ConvertFloatCatFeatureToIntHash(transposedFeatures[CatFeatureFlatIndex[catFeatureIdx]][index]);
+            },
+            transposedFeatures[0].Size(),
+            treeStart,
+            treeEnd,
+            results
+        );
+    }
+
     void TFormulaEvaluator::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
                             const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
                             size_t treeStart,

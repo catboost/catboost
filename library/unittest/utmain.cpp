@@ -458,7 +458,7 @@ private:
         return EnabledTests_.find(name) != EnabledTests_.end();
     }
 
-    void Run(std::function<void()> f, TString suite, const char* name, const bool forceFork) override {
+    void Run(std::function<void()> f, const TString& suite, const char* name, const bool forceFork) override {
         if (!(ForkTests || forceFork) || GetIsForked()) {
             return f();
         }

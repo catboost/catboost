@@ -1,4 +1,4 @@
-from _common import iterpair, listid, pathid, rootrel_arc_src
+from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir
 
 
 def split(lst, limit):
@@ -74,7 +74,8 @@ def onro_resource(unit, *args):
         if ro_gen:
             output = listid(part_args) + '.asm'
             unit.onbuiltin_python(['build/scripts/gen_rodata.py', '--out-file', output, '--yasm', '${tool:"contrib/tools/yasm"}'] + gen_ro_flags(unit) + ro_gen +
-                                  ['IN'] + ro_gen + ['OUTPUT_INCLUDES'] + ro_gen + ['OUT', output])
+                                  ['IN'] + ro_gen + ['OUTPUT_INCLUDES'] + ro_gen + ['OUT_NOAUTO', output])
+            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + output)])
         if srcs_gen:
             output = listid(part_args) + '.cpp'
             unit.onrun_program(['tools/rorescompiler', output] + srcs_gen + ['OUT_NOAUTO', output])

@@ -81,7 +81,7 @@ def validate_test(kw):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
             if req_name not in valid_requirements:
-                errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(valid_requirements)))
+                errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(valid_requirements))))
             elif req_name in memory_requirements:
                 if not resolve_size_metric(req_value.lower()):
                     errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
@@ -486,6 +486,7 @@ def onjava_test(unit, *args):
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TAG': serialize_list(get_values_list(unit, 'TEST_TAGS_VALUE')),
         'SIZE': unit.get('TEST_SIZE_NAME') or '',
+        'REQUIREMENTS': serialize_list(get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),

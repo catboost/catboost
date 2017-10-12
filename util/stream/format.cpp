@@ -1,9 +1,8 @@
 #include "format.h"
 #include "output.h"
 
+#include <util/generic/ymath.h>
 #include <util/string/cast.h>
-
-#include <cmath>
 
 namespace NFormatPrivate {
     static inline i64 Round(double value) {
@@ -13,8 +12,27 @@ namespace NFormatPrivate {
     }
 
     static inline IOutputStream& PrintDoubleShortly(IOutputStream& os, const double& d) {
-        os << Prec(d, 3);
-        return os;
+        // General case: request 3 significant digits
+        // Side-effect: allows exponential representation
+        EFloatToStringMode mode = PREC_NDIGITS;
+        int ndigits = 3;
+
+        if (IsValidFloat(d) && Abs(d) < 1e12) {
+            // For reasonably-sized finite values, it's better to avoid
+            // exponential representation.
+            // Use compact fixed representation and determine
+            // precision based on magnitude.
+            mode = PREC_POINT_DIGITS_STRIP_ZEROES;
+            if (i64(Abs(d) * 100) < 1000) {
+                ndigits = 2;
+            } else if (i64(Abs(d) * 10) < 1000) {
+                ndigits = 1;
+            } else {
+                ndigits = 0;
+            }
+        }
+
+        return os << Prec(d, mode, ndigits);
     }
 } //NFormatPrivate
 

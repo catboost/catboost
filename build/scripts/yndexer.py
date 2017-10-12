@@ -12,8 +12,8 @@ if __name__ == '__main__':
     arc_root = args[2]
     build_root = args[3]
     input_file = args[4]
-    output_file = args[5]
-    tail_args = args[6:]
+    output_file = args[-1]
+    tail_args = args[5:-1]
 
     subprocess.check_call(tail_args)
 

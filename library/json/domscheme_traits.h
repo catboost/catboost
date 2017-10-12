@@ -2,6 +2,7 @@
 
 #include "json_value.h"
 #include "json_reader.h"
+#include "json_writer.h"
 #include <util/generic/algorithm.h>
 
 struct TJsonTraits {
@@ -12,6 +13,10 @@ struct TJsonTraits {
     // common ops
     static inline bool IsNull(TConstValueRef v) {
         return v->GetType() == NJson::JSON_UNDEFINED || v->IsNull();
+    }
+
+    static inline TString ToJson(TConstValueRef v) {
+        return NJson::WriteJson(v, false);
     }
 
     // struct ops

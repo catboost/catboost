@@ -3,9 +3,9 @@
 #include <util/system/types.h>
 
 template <ui32 BITS_PER_FEATURE,
-          ui32 FEATURES_PER_BYTE,
-          ui32 LOWER_BITS_PER_FEATURE>
+          ui32 FEATURES_PER_BYTE>
 struct TGridPolicy {
+
     static constexpr ui32 BitsPerFeature() {
         return BITS_PER_FEATURE;
     }
@@ -18,8 +18,8 @@ struct TGridPolicy {
         return FEATURES_PER_BYTE;
     }
 
-    static constexpr ui32 Accept(ui32 binCount) {
-        return (binCount > (1 << LOWER_BITS_PER_FEATURE)) && (binCount <= BinCount());
+    static constexpr ui32 CanProceed(ui32 binCount) {
+        return (binCount <= BinCount()) && binCount > 1;
     }
 };
 

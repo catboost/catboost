@@ -20,7 +20,7 @@ inline ui32 IntLog2(ui32 values) {
 template <class TStorageType>
 class TIndexHelper {
 public:
-    TIndexHelper(ui32 bitsPerKey)
+    explicit TIndexHelper(ui32 bitsPerKey)
         : BitsPerKey(bitsPerKey)
     {
         CB_ENSURE(bitsPerKey < 32, "Too many bits in key");

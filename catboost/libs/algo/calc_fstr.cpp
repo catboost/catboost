@@ -4,6 +4,7 @@
 #include "learn_context.h"
 
 #include <catboost/libs/fstr/feature_str.h>
+#include <catboost/libs/fstr/doc_fstr.h>
 
 #include <util/generic/xrange.h>
 #include <util/generic/set.h>
@@ -72,7 +73,7 @@ static yvector<yvector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
         leavesStatistics[index].resize(model.LeafValues[index][0].size());
     }
 
-    const int documentsCount = pool.Docs.ysize();
+    const int documentsCount = pool.Docs.GetDocCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         yvector<TIndexType> indices = BuildIndices(
             model.TreeStruct[treeIdx],
@@ -92,17 +93,17 @@ static yvector<yvector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
 }
 
 yvector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount/*= 1*/) {
-    CB_ENSURE(!pool.Docs.empty(), "Pool should not be empty");
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     if (model.TreeStruct.empty()) {
         return yvector<std::pair<double, TFeature>>();
     }
-    int featureCount = pool.Docs[0].Factors.ysize();
+    int featureCount = pool.Docs.GetFactorsCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams.InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     TAllFeatures allFeatures;
-    PrepareAllFeatures(pool.Docs, ctx.CatFeatures, model.Borders, model.HasNans, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, ctx.LocalExecutor, &allFeatures);
+    PrepareAllFeatures(ctx.CatFeatures, model.Borders, model.HasNans, yvector<int>(), LearnNotSet, ctx.Params.OneHotMaxSize, ctx.Params.NanMode, /*clear learn pool*/ false, ctx.LocalExecutor, &pool.Docs, &allFeatures);
 
 
     CB_ENSURE(!model.TreeStruct.empty(), "model should not be empty");
@@ -192,7 +193,7 @@ yvector<TFeatureEffect> CalcRegularFeatureEffect(const yvector<std::pair<double,
 }
 
 yvector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount/*= 1*/) {
-    int featureCount = pool.Docs[0].Factors.ysize();
+    int featureCount = pool.Docs.GetFactorsCount();
     CB_ENSURE(featureCount == model.FeatureCount, "train and test datasets should have the same feature count");
     int catFeaturesCount = pool.CatFeatures.ysize();
     int floatFeaturesCount = featureCount - catFeaturesCount;
@@ -312,4 +313,45 @@ TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
         result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Categorical);
     }
     return result;
+}
+
+yvector<yvector<double>> CalcFstr(const TFullModel& model, const TPool& pool, int threadCount){
+    yvector<double> regularEffect = CalcRegularFeatureEffect(model, pool, threadCount);
+    yvector<yvector<double>> result;
+    for (const auto& value : regularEffect){
+        yvector<double> vec = {value};
+        result.push_back(vec);
+    }
+    return result;
+}
+
+yvector<yvector<double>> CalcInteraction(const TFullModel& model, const TPool& pool){
+    int featureCount = pool.Docs.GetFactorsCount();
+    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
+
+    yvector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
+    yvector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
+    yvector<yvector<double>> result;
+    for (const auto& value : interaction){
+        int featureIdxFirst = layout.GetFeature(value.FirstFeature.Index, value.FirstFeature.Type);
+        int featureIdxSecond = layout.GetFeature(value.SecondFeature.Index, value.SecondFeature.Type);
+        yvector<double> vec = {static_cast<double>(featureIdxFirst), static_cast<double>(featureIdxSecond), value.Score};
+        result.push_back(vec);
+    }
+    return result;
+}
+
+yvector<yvector<double>> GetFeatureImportances(const TFullModel& model, const TPool& pool, const TString& type, int threadCount){
+    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+    EFstrType FstrType = FromString<EFstrType>(type);
+    switch (FstrType) {
+        case EFstrType::FeatureImportance:
+            return CalcFstr(model, pool, threadCount);
+        case EFstrType::Interaction:
+            return CalcInteraction(model, pool);
+        case EFstrType::Doc:
+            return CalcFeatureImportancesForDocuments(model, pool, threadCount);
+        default:
+            Y_UNREACHABLE();
+    }
 }

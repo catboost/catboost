@@ -287,6 +287,7 @@ def append(key, *value):
 
 def emit_big(text):
     prefix = None
+    first = True
     for line in text.split('\n'):
         if prefix is None:
             if not line:
@@ -295,6 +296,10 @@ def emit_big(text):
             prefix = 0
             while prefix < len(line) and line[prefix] == ' ':
                 prefix += 1
+
+        if first:  # Be pretty, prepend an empty line before the output
+            print
+            first = False
 
         print line[prefix:]
 
@@ -896,6 +901,13 @@ class ToolchainOptions(object):
         logger.debug('c_compiler=%s', self.c_compiler)
         logger.debug('cxx_compiler=%s', self.cxx_compiler)
 
+    def version_at_least(self, *args):
+        return args <= tuple(self.compiler_version_list)
+
+    @property
+    def is_clang(self):
+        return self.type == 'clang'
+
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
         r = {}
@@ -1120,14 +1132,13 @@ class GnuCompiler(Compiler):
         append('USER_CFLAGS_GLOBAL', '')
         append('USER_CFLAGS_GLOBAL', '')
 
-        emit_big('''\
+        emit_big('''
             when ($PIC && $PIC == "yes") {
                 PICFLAGS=-fPIC
             }
             otherwise {
                 PICFLAGS=
-            }
-            ''')
+            }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
                '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
@@ -1148,7 +1159,7 @@ class GnuCompiler(Compiler):
         if platform_projects:
             emit('COMPILER_PLATFORM', platform_projects)
 
-        emit_big('''\
+        emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
                 CFLAGS+= -w
             }
@@ -1167,14 +1178,13 @@ class GnuCompiler(Compiler):
             macro MSVC_FLAGS(Flags...) {
                 # TODO: FIXME
                 ENABLE(UNUSED_MACRO)
-            }
-            ''')
+            }''')
 
         append('C_WARNING_OPTS', '-Wno-deprecated')
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
-        if self.tc.type == 'clang' and self.tc.compiler_version_list >= [3, 9]:
+        if self.tc.is_clang and self.tc.version_at_least(3, 9):
             append('CXX_WARNING_OPTS', '-Wno-undefined-var-template')
 
         # TODO(somov): Check whether this specific architecture is needed.
@@ -1189,7 +1199,7 @@ class GnuCompiler(Compiler):
         emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output:SRC%s.o}' % self.cross_suffix, '${input:SRC} ${pre=-I:INCLUDE}')
         emit('EXTRA_C_FLAGS')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide:SRC%s.gcno}' % self.cross_suffix)
-        emit('YNDEXER_OUTPUT', '${output;noauto:SRC%s.ydx.pb2}' % self.cross_suffix)
+        emit('YNDEXER_OUTPUT_FILE', '${output;noauto:SRC%s.ydx.pb2}' % self.cross_suffix)  # should be the last output
 
         if is_positive('DUMP_COMPILER_DEPS'):
             emit('DUMP_DEPS', '-MD', '${output;hide;noauto:SRC.o.d}')
@@ -1204,8 +1214,8 @@ class GnuCompiler(Compiler):
         append('EXTRA_OUTPUT')
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
-        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV'] + style
-        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV'] + style
+        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
+        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
 
         print 'macro _SRC_cpp(SRC, OPTIONS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
         print 'macro _SRC_c(SRC, OPTIONS...) {\n .CMD=%s\n}' % ' '.join(c_args)
@@ -1217,7 +1227,7 @@ class GCC(GnuCompiler):
     def __init__(self, tc, build):
         super(GCC, self).__init__(tc, build, 'GCC')
 
-        if self.tc.compiler_version_list >= [4, 9]:
+        if self.tc.version_at_least(4, 9):
             self.c_flags.append('-fno-delete-null-pointer-checks')
             self.c_flags.append('-fabi-version=8')
 
@@ -1228,13 +1238,61 @@ class Clang(GnuCompiler):
 
         self.sfdl_flags.append('-Qunused-arguments')
 
-        if self.tc.compiler_version_list >= [3, 6]:
+        if self.tc.version_at_least(3, 6):
             self.c_flags.append('-Wno-inconsistent-missing-override')
 
 
 class Linker(object):
+    def __init__(self, tc, build):
+        """
+        :type tc: ToolchainOptions
+        :type build: Build
+        """
+        self.tc = tc
+        self.build = build
+
     def print_linker(self):
-        raise NotImplementedError()
+        self._print_linker_selector()
+
+    def _print_linker_selector(self):
+        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux:
+            default_linker = 'lld'
+            if is_positive('USE_LTO'):
+                default_linker = 'gold'
+
+            emit_big('''
+                macro USE_LINKER() {
+                    DEFAULT(_LINKER_ID %(default_linker)s)
+
+                    when ($NOPLATFORM != "yes") {
+                        when ($_LINKER_ID == "bfd") {
+                            PEERDIR+=contrib/libs/platform/tools/linkers/bfd
+                        }
+                        when ($_LINKER_ID == "gold") {
+                            PEERDIR+=contrib/libs/platform/tools/linkers/gold
+                        }
+                        when ($_LINKER_ID == "lld") {
+                            PEERDIR+=contrib/libs/platform/tools/linkers/lld
+                        }
+                    }
+                }''' % {'default_linker': default_linker})
+
+        else:
+            emit_big('''
+                macro USE_LINKER() {
+                    ENABLE(UNUSED_MACRO)
+                }''')
+
+        emit_big('''
+            macro USE_LINKER_BFD() {
+                SET(_LINKER_ID bfd)
+            }
+            macro USE_LINKER_GOLD() {
+                SET(_LINKER_ID gold)
+            }
+            macro USE_LINKER_LLD() {
+                SET(_LINKER_ID lld)
+            }''')
 
 
 class LD(Linker):
@@ -1243,7 +1301,7 @@ class LD(Linker):
         :type tc: GnuToolchainOptions
         :type build: Build
         """
-        super(LD, self).__init__()
+        super(LD, self).__init__(tc, build)
 
         self.build = build
         self.host = self.build.host
@@ -1254,13 +1312,13 @@ class LD(Linker):
 
         self.ar = preset('AR') or self.tc.ar
 
-        self.ld_flags = list(preset('LDFLAGS') or [])
+        self.ld_flags = filter(None, [preset('LDFLAGS')])
 
         if target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
         if target.is_android:
             self.ld_flags.extend(['-ldl', '-lsupc++', '-Wl,--no-as-needed'])
-        if target.is_macos and self.tc.type != 'clang':
+        if target.is_macos and not self.tc.is_clang:
             self.ld_flags.append('-Wl,-no_compact_unwind')
 
         self.link_pie_executables = target.is_android
@@ -1293,7 +1351,7 @@ class LD(Linker):
             self.use_stdlib = '-nodefaultlibs'
             self.soname_option = '-install_name'
             if not preset('NO_DEBUGINFO'):
-                self.dwarf_command = '&& $DWARF_TOOL $TARGET -o ${output;pre=$REALPRJNAME.dSYM/Contents/Resources/DWARF/:REALPRJNAME}'
+                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$REALPRJNAME.dSYM/Contents/Resources/DWARF/:REALPRJNAME}'
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
@@ -1312,6 +1370,8 @@ class LD(Linker):
             self.ar = 'libtool'
 
     def print_linker(self):
+        super(LD, self).print_linker()
+
         emit('AR_TOOL', self.ar)
         emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
 
@@ -1330,10 +1390,10 @@ class LD(Linker):
         emit('OBJADDE')
 
         emit_big('''
-        EXPORTS_VALUE=
-        when ($EXPORTS_FILE) {
-            EXPORTS_VALUE=-Wl,--version-script=${input:EXPORTS_FILE}
-        }''')
+            EXPORTS_VALUE=
+            when ($EXPORTS_FILE) {
+                EXPORTS_VALUE=-Wl,--version-script=${input:EXPORTS_FILE}
+            }''')
 
         exe_flags = [
             '$C_FLAGS_PLATFORM', '${rootrel:SRCS_GLOBAL}', self.start_group, '${rootrel:PEERS}', self.end_group,
@@ -1348,18 +1408,26 @@ class LD(Linker):
 
         # Program
 
-        emit('LINK_EXE',
+        emit('REAL_LINK_EXE',
              '$GCCFILTER',
              '$CXX_COMPILER $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
-             self.dwarf_command, ld_env_style)
+             ld_env_style)
 
         # Shared Library
 
         emit('LINK_DYN_LIB_FLAGS')
-        emit('LINK_DYN_LIB',
+        emit('REAL_LINK_DYN_LIB',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET', arch_flag, '$LINK_DYN_LIB_FLAGS',
              '$CXX_COMPILER $AUTO_INPUT -o $TARGET', shared_flag, exe_flags,
-             self.dwarf_command, ld_env_style)
+             ld_env_style)
+
+        if self.dwarf_command == None:
+            emit('LINK_EXE', '$REAL_LINK_EXE')
+            emit('LINK_DYN_LIB', '$REAL_LINK_DYN_LIB')
+        else:
+            emit('DWARF_TOOL_COMMAND', self.dwarf_command, ld_env_style)
+            emit('LINK_EXE', '$REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
+            emit('LINK_DYN_LIB', '$REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
 
@@ -1611,11 +1679,14 @@ macro _SRC_masm(SRC, OPTIONS...) {
         return ['/D{}'.format(s) for s in defines]
 
 
-class MSVCLinker(Linker, MSVC):
+class MSVCLinker(MSVC, Linker):
     def __init__(self, tc, build):
-        super(MSVCLinker, self).__init__(tc, build)
+        MSVC.__init__(self, tc, build)
+        Linker.__init__(self, tc, build)
 
     def print_linker(self):
+        super(MSVCLinker, self).print_linker()
+
         target = self.build.target
 
         linker = self.tc.link

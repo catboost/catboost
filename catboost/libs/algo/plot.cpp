@@ -75,22 +75,14 @@ void TMetricsPlotCalcer::Append(const yvector<yvector<double>>& approx,
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
     EnsureCorrectParams();
-    yvector<float> targets;
-    yvector<float> weights;
-    targets.resize(pool.Docs.size());
-    weights.resize(pool.Docs.size());
-    for (ui32 i = 0; i < targets.size(); ++i) {
-        targets[i] = pool.Docs[i].Target;
-        weights[i] = pool.Docs[i].Weight;
-    }
-    const ui32 docCount = targets.size();
+    const ui32 docCount = pool.Docs.GetDocCount();
 
     yvector<yvector<double>> cursor(Model.ApproxDimension, yvector<double>(docCount));
     ui32 currentIter = 0;
     ui32 idx = 0;
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
-        ProceedMetrics(cursor, pool, targets, weights, idx, currentIter);
+        ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
         auto nextBatchApprox = ApplyModelMulti(Model,
                                                FormulaEvaluator,
                                                pool,
@@ -102,7 +94,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
         currentIter = nextBatchEnd;
         ++idx;
     }
-    ProceedMetrics(cursor, pool, targets, weights, idx, currentIter);
+    ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
     return *this;
 }
 

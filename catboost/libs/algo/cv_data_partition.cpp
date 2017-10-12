@@ -1,5 +1,6 @@
 #include "cv_data_partition.h"
 
+#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -16,26 +17,37 @@ void BuildCvPools(
 {
     CB_ENSURE(foldIdx >= 0 && foldIdx < foldCount);
     TFastRng64 rand(seed);
-    Shuffle(learnPool->Docs.begin(), learnPool->Docs.end(), rand);
+    yvector<size_t> permutation;
+    permutation.yresize(learnPool->Docs.GetDocCount());
+    std::iota(permutation.begin(), permutation.end(), /*starting value*/ 0);
+    Shuffle(permutation.begin(), permutation.end(), rand);
+    ApplyPermutation(InvertPermutation(permutation), learnPool);
     testPool->CatFeatures = learnPool->CatFeatures;
 
     foldIdx = foldIdx % foldCount;
-    TPool allDocs;
-    allDocs.Docs.swap(learnPool->Docs);
+    TDocumentStorage allDocs;
+    allDocs.Swap(learnPool->Docs);
+    const size_t docCount = allDocs.GetDocCount();
+    const size_t testCount = (docCount - 1 - foldIdx) / foldCount + 1; // number of foldIdx + n*foldCount in [0, docCount)
+    const size_t learnCount = docCount - testCount;
+    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension());
+    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension());
 
-    for (int i = 0; i < allDocs.Docs.ysize(); ++i) {
+    size_t learnIdx = 0;
+    size_t testIdx = 0;
+    for (size_t i = 0; i < docCount; ++i) {
         if (i % foldCount == foldIdx) {
-            testPool->Docs.emplace_back();
-            testPool->Docs.back().Swap(allDocs.Docs[i]);
+            testPool->Docs.AssignDoc(testIdx, allDocs, i);
+            ++testIdx;
         } else {
-            learnPool->Docs.emplace_back();
-            learnPool->Docs.back().Swap(allDocs.Docs[i]);
+            learnPool->Docs.AssignDoc(learnIdx, allDocs, i);
+            ++learnIdx;
         }
     }
 
     if (reverseCv) {
-        swap(learnPool->Docs, testPool->Docs);
+        learnPool->Docs.Swap(testPool->Docs);
     }
-    MATRIXNET_INFO_LOG << "Learn docs: " << learnPool->Docs.ysize()
-                       << ", test docs: " << testPool->Docs.ysize() << Endl;
+    MATRIXNET_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
+                       << ", test docs: " << testPool->Docs.GetDocCount() << Endl;
 }

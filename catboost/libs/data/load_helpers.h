@@ -87,3 +87,15 @@ inline int ReadColumnsCount(const TStr& poolFile, char fieldDelimiter = '\t') {
     return words.ysize();
 }
 
+template <class TStr>
+inline int CountLines(const TStr& poolFile) {
+    CB_ENSURE(NFs::Exists(TString(poolFile)), "pool file '" << TString(poolFile) << "' is not found");
+    TIFStream reader(poolFile.c_str());
+    size_t count = 0;
+    TString buffer;
+    while (reader.ReadLine(buffer)) {
+        ++count;
+    }
+    return count;
+}
+

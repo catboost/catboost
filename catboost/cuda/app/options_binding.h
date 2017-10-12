@@ -1,16 +1,17 @@
 #pragma once
 
+#include <catboost/cuda/train_lib/application_options.h>
 #include <catboost/cuda/data/binarization_config.h>
 #include <catboost/cuda/data/load_config.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/methods/oblivious_tree.h>
 #include <catboost/cuda/methods/boosting.h>
 #include <catboost/cuda/targets/target_options.h>
+#include <cstdio>
 #include <library/getopt/small/last_getopt_opts.h>
 #include <sys/time.h>
 #include <util/string/iterator.h>
 #include <util/charset/utf8.h>
-#include <cstdio>
 
 inline double GetTime() {
     timeval tv;
@@ -37,6 +38,59 @@ inline TFoldOption FromString(const TStringBuf& folding) {
 };
 
 template <>
+class TOptionsBinder<TApplicationOptions> {
+public:
+    static void Bind(TApplicationOptions& applicationOptions, NLastGetopt::TOpts& options) {
+        options
+            .AddLongOption('T', "thread-count")
+            .RequiredArgument("int")
+            .Help("Enable threads")
+            .StoreResult(&applicationOptions.NumThreads);
+
+        options
+            .AddLongOption("gpu-ram-part")
+            .RequiredArgument("double")
+            .Help("Part of gpu ram to use")
+            .DefaultValue("0.95")
+            .StoreResult(&applicationOptions.ApplicationConfig.GpuMemoryPartByWorker);
+
+        options
+            .AddLongOption("pinned-memory-size")
+            .RequiredArgument("int")
+            .Help("Part of gpu ram to use")
+            .DefaultValue("67108864")
+            .StoreResult(&applicationOptions.ApplicationConfig.PinnedMemorySize);
+
+        options
+            .AddLongOption("devices")
+            .RequiredArgument("int")
+            .Help("Devices to use")
+            .DefaultValue("-1")
+            .StoreResult(&applicationOptions.ApplicationConfig.DeviceConfig);
+
+        if (options.HasLongOption("random-seed")) {
+            options
+                .GetLongOption("random-seed")
+                .StoreResult(&applicationOptions.Seed);
+        } else {
+            options
+                .AddLongOption('r', "random-seed")
+                .RequiredArgument("INT")
+                .Help("Sets random generators seed.")
+                .DefaultValue(ToString<long>(GetTime()))
+                .StoreResult(&applicationOptions.Seed);
+        }
+
+        options
+            .AddLongOption("detailed-profile")
+            .RequiredArgument("FLAG")
+            .Help("Enables profiling")
+            .SetFlag(&applicationOptions.Profile)
+            .NoArgument();
+    }
+};
+
+template <>
 class TOptionsBinder<TPoolLoadOptions> {
 public:
     static void Bind(TPoolLoadOptions& poolLoadOptions,
@@ -54,12 +108,6 @@ public:
             .RequiredArgument("FILE")
             .Help("Column description path")
             .StoreResult(&poolLoadOptions.ColumnDescriptionName);
-
-        options.AddLongOption("dev-catfeature-binarization-temp-file")
-            .RequiredArgument("FILE")
-            .Help("Temp file to store cat feature index")
-            .DefaultValue(TStringBuilder() << "/tmp/cat_feature_index." << CreateGuidAsString() << ".tmp")
-            .StoreResult(&poolLoadOptions.CatFeatureBinarizationTempName);
 
         options.AddLongOption("delimiter", "Learning and training sets delimiter")
             .RequiredArgument("SYMBOL")
@@ -118,8 +166,8 @@ public:
         options
             .AddLongOption("ctr-border-count")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
-            .DefaultValue("16")
+            .Help("Sets number of conditions per float feature. Default is 15.")
+            .DefaultValue("15")
             .Handler1T<ui32>([&](ui32 discretization) {
                 if (discretization > 255) {
                     ythrow TCatboostException() << "Maximum supported binarization is -x 255";
@@ -131,7 +179,7 @@ public:
         options
             .AddLongOption("dev-ctr-border-type")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
+            .Help("Sets crt border type.")
             .DefaultValue("UniformAndQuantiles")
             .Handler1T<EBorderSelectionType>([&](EBorderSelectionType type) {
                 binarizationConfiguration.DefaultCtrBinarization.BorderSelectionType = type;
@@ -140,11 +188,11 @@ public:
         options
             .AddLongOption("dev-tree-ctr-border-count")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
-            .DefaultValue("16")
+            .Help("Sets number of conditions per float feature. Default is 15.")
+            .DefaultValue("15")
             .Handler1T<ui32>([&](ui32 discretization) {
-                if (discretization > 255) {
-                    ythrow TCatboostException() << "Maximum supported binarization is -x 255";
+                if (discretization > 15) {
+                    ythrow TCatboostException() << "Maximum supported binarization is -x 15";
                 }
                 binarizationConfiguration.DefaultTreeCtrBinarization.Discretization = discretization;
             });
@@ -152,8 +200,8 @@ public:
         options
             .AddLongOption("dev-freq-ctr-border-count")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
-            .DefaultValue("16")
+            .Help("Sets number of conditions per float feature. Default is 15.")
+            .DefaultValue("15")
             .Handler1T<ui32>([&](ui32 discretization) {
                 binarizationConfiguration.FreqCtrBinarization.Discretization = discretization;
             });
@@ -161,7 +209,7 @@ public:
         options
             .AddLongOption("dev-freq-ctr-border-type")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
+            .Help("Sets freq ctr border type.")
             .DefaultValue("GreedyLogSum")
             .Handler1T<EBorderSelectionType>([&](EBorderSelectionType type) {
                 binarizationConfiguration.FreqCtrBinarization.BorderSelectionType = type;
@@ -170,9 +218,12 @@ public:
         options
             .AddLongOption("dev-freq-tree-ctr-border-count")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per float feature. Default is 16.")
-            .DefaultValue("16")
+            .Help("Sets number of conditions per float feature. Default is 15.")
+            .DefaultValue("15")
             .Handler1T<ui32>([&](ui32 discretization) {
+                if (discretization > 15) {
+                    ythrow TCatboostException() << "Maximum supported binarization is -x 15";
+                }
                 binarizationConfiguration.FreqTreeCtrBinarization.Discretization = discretization;
             });
 
@@ -186,8 +237,8 @@ public:
         options
             .AddLongOption("dev-target-binarization")
             .RequiredArgument("INT")
-            .Help("Sets number of conditions per target. Default is 16.")
-            .DefaultValue("16")
+            .Help("Sets number of conditions per target. Default is 15.")
+            .DefaultValue("15")
             .Handler1T<ui32>([&](ui32 discretization) {
                 if (discretization > 255) {
                     ythrow TCatboostException() << "Maximum supported binarization is -x 255";
@@ -235,6 +286,12 @@ public:
                 }
                 featureManagerOptions.CustomCtrTypes = true;
             });
+
+        options.AddLongOption("dev-catfeature-binarization-temp-file")
+            .RequiredArgument("FILE")
+            .Help("Temp file to store cat feature index")
+            .DefaultValue(TStringBuilder() << "/tmp/cat_feature_index." << CreateGuidAsString() << ".tmp")
+            .StoreResult(&featureManagerOptions.CatFeatureBinarizationTempName);
     }
 };
 
@@ -281,7 +338,8 @@ public:
 template <>
 class TOptionsBinder<TObliviousTreeLearnerOptions> {
 public:
-    static void Bind(TObliviousTreeLearnerOptions& treeOptions, NLastGetopt::TOpts& options) {
+    static void Bind(TObliviousTreeLearnerOptions& treeOptions,
+                     NLastGetopt::TOpts& options) {
         TOptionsBinder<TBootstrapConfig>::Bind(treeOptions.BootstrapConfig, options);
 
         options

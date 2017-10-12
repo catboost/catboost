@@ -720,22 +720,52 @@ public:
 
         Strip(s);
         UNIT_ASSERT(s == TUtf16String());
+        StripLeft(s);
+        UNIT_ASSERT(s == TUtf16String());
+        StripRight(s);
+        UNIT_ASSERT(s == TUtf16String());
 
         s = ASCIIToWide(" \t\r\n");
         Strip(s);
+        UNIT_ASSERT(s == TUtf16String());
+        s = ASCIIToWide(" \t\r\n");
+        StripLeft(s);
+        UNIT_ASSERT(s == TUtf16String());
+        s = ASCIIToWide(" \t\r\n");
+        StripRight(s);
         UNIT_ASSERT(s == TUtf16String());
 
         s = ASCIIToWide("\t\f\va \r\n");
         Strip(s);
         UNIT_ASSERT(s == ASCIIToWide("a"));
+        s = ASCIIToWide("\t\f\va \r\n");
+        StripLeft(s);
+        UNIT_ASSERT(s == ASCIIToWide("a \r\n"));
+        s = ASCIIToWide("\t\f\va \r\n");
+        StripRight(s);
+        UNIT_ASSERT(s == ASCIIToWide("\t\f\va"));
 
         s = ASCIIToWide("\r\na\r\nb\t\tc\r\n");
         Strip(s);
         UNIT_ASSERT(s == ASCIIToWide("a\r\nb\t\tc"));
+        s = ASCIIToWide("\r\na\r\nb\t\tc\r\n");
+        StripLeft(s);
+        UNIT_ASSERT(s == ASCIIToWide("a\r\nb\t\tc\r\n"));
+        s = ASCIIToWide("\r\na\r\nb\t\tc\r\n");
+        StripRight(s);
+        UNIT_ASSERT(s == ASCIIToWide("\r\na\r\nb\t\tc"));
 
         const TUtf16String w(ASCIIToWide("a  b"));
         s = w;
         Strip(s);
+        UNIT_ASSERT(s == w);
+        UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        s = w;
+        StripLeft(s);
+        UNIT_ASSERT(s == w);
+        UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        s = w;
+        StripRight(s);
         UNIT_ASSERT(s == w);
         UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
     }

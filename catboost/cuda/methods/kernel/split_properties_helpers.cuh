@@ -50,6 +50,23 @@ namespace NKernel {
         }
 
 
+        __forceinline__ __device__ void ShiftPartAndBinSumsPtr(const TDataPartition*& partition, float*& binSums, ui32 totalFeatureCount, bool fullPass) {
+            if (fullPass) {
+                partition += GetDataPartitionOffset(blockIdx.y, blockIdx.z);
+                binSums +=  GetHistogramOffset(blockIdx.y, blockIdx.z) * 2 * totalFeatureCount;
+            } else
+            {
+                const ui64 leftPartOffset = GetDataPartitionOffset(blockIdx.y, blockIdx.z);
+                const ui64 rightPartOffset = GetDataPartitionOffset(gridDim.y | blockIdx.y, blockIdx.z);
+                const int leftPartSize = partition[leftPartOffset].Size;
+                const int rightPartSize = partition[rightPartOffset].Size;
+
+                partition += (leftPartSize < rightPartSize) ? leftPartOffset : rightPartOffset;
+                binSums += 2 * totalFeatureCount * GetHistogramOffset(gridDim.y | blockIdx.y, blockIdx.z);
+            }
+        }
+
+
     };
 
 

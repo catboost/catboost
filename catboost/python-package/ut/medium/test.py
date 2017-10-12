@@ -218,19 +218,7 @@ def test_zero_baseline():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     baseline = np.zeros((pool.num_row(), 2))
     pool.set_baseline(baseline)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
-    model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
-
-
-def test_non_zero_bazeline():
-    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    base_model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
-    base_model.fit(pool)
-    baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
-    pool.set_baseline(baseline)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)

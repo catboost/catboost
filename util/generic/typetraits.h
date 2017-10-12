@@ -77,39 +77,28 @@ class TTypeTraitsBase {
     };
 
 public:
-    /*
-     * qualifier traits
-     */
-
-    /*
-     * type without 'volatile' qualifier
-     */
-    using TNonVolatile = typename TVolatileTraits<T>::TResult;
-
-    /*
-     * type without qualifiers
-     */
-    using TNonQualified = typename TConstTraits<TNonVolatile>::TResult;
 
     /*
      * traits too
      */
 
     enum {
-        IsPod = TPodTraits<TNonQualified>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
-                TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod
+        IsPod = TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
+                TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod,
+        IsStdPod = std::is_pod<std::remove_cv_t<T>>::value,
+        TypeTraitFlags = ::NPrivate::TUserTypeTrait<std::remove_cv_t<T>>::TypeTraitFlags
     };
 
     enum {
-        IsBitwiseComparable = ::NPrivate::TUserTypeTrait<TNonQualified>::TypeTraitFlags & NTypeTrait::BITWISE_COMPARABLE || std::is_pod<TNonQualified>::value
+        IsBitwiseComparable = TypeTraitFlags & NTypeTrait::BITWISE_COMPARABLE || IsStdPod
     };
 
     enum {
-        IsBitwiseCopyable = ::NPrivate::TUserTypeTrait<TNonQualified>::TypeTraitFlags & NTypeTrait::BITWISE_COPYABLE || std::is_pod<TNonQualified>::value
+        IsBitwiseCopyable = TypeTraitFlags & NTypeTrait::BITWISE_COPYABLE || IsStdPod
     };
 
     enum {
-        IsBitwiseSerializable = ::NPrivate::TUserTypeTrait<TNonQualified>::TypeTraitFlags & NTypeTrait::BITWISE_SERIALIZABLE || std::is_pod<TNonQualified>::value
+        IsBitwiseSerializable = TypeTraitFlags & NTypeTrait::BITWISE_SERIALIZABLE || IsStdPod
     };
 };
 
@@ -306,20 +295,6 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
  * @endcode
  */
 #define Y_HAS_SUBTYPE(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_HAS_SUBTYPE_IMPL_2, Y_HAS_SUBTYPE_IMPL_1)(__VA_ARGS__))
-
-template <class T>
-struct TDecayArrayImpl {
-    using U = std::remove_reference_t<T>;
-    using UTraits = TTypeTraits<U>;
-
-    using TResult = std::conditional_t<
-        std::is_array<U>::value,
-        std::remove_extent_t<U>*,
-        std::remove_cv_t<U>>;
-};
-
-template <class T>
-using TDecayArray = typename TDecayArrayImpl<T>::TResult;
 
 template <class T1, class T2>
 struct TPodTraits<std::pair<T1, T2>> {

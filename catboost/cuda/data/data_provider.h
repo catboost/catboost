@@ -6,8 +6,7 @@
 
 class TDataProvider: public TMoveOnly {
 public:
-    TDataProvider() {
-    }
+    TDataProvider() = default;
 
     bool IsEmpty() const {
         return GetSampleCount() == 0;
@@ -22,6 +21,9 @@ public:
     }
 
     const IFeatureValuesHolder& GetFeatureById(ui32 featureId) const {
+        if (!IndicesToLocalIndicesRemap.has(featureId)) {
+            ythrow TCatboostException() << "No feature with feature id #" << featureId << " found";
+        }
         const ui32 localId = IndicesToLocalIndicesRemap.at(featureId);
         CB_ENSURE(Features[localId], "Error: nullptr feature found. something wrong");
         return *Features[localId];

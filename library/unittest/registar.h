@@ -120,7 +120,7 @@ namespace NUnitTest {
         // Should execute a test whitin suite?
         virtual bool CheckAccessTest(TString /*suite*/, const char* /*name*/);
 
-        virtual void Run(std::function<void()> f, const TString /*suite*/, const char* /*name*/, const bool /*forceFork*/);
+        virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, const bool /*forceFork*/);
 
         // This process is forked for current test
         virtual bool GetIsForked() const;

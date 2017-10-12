@@ -19,31 +19,19 @@ static void PrepareTargetBinary(float border, yvector<float>* target) {
 }
 
 void TrainModel(const NJson::TJsonValue& jsonParams,
-                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                TPool& learnPool,
-                const TPool& testPool,
-                const TString& outputModelPath,
-                TFullModel* modelPtr,
-                yvector<yvector<double>>* testApprox) {
-    TrainModelBody(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, testPool, outputModelPath, /*clearLearnPool*/ false, modelPtr, testApprox);
-}
-
-void TrainModelBody(const NJson::TJsonValue& jsonParams,
                     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                     TPool& learnPool,
+                    bool allowClearPool,
                     const TPool& testPool,
                     const TString& outputModelPath,
-                    bool clearLearnPool,
                     TFullModel* modelPtr,
                     yvector<yvector<double>>* testApprox) {
-    CB_ENSURE(!learnPool.Docs.empty(), "Train dataset is empty");
+    CB_ENSURE(learnPool.Docs.GetDocCount() != 0, "Train dataset is empty");
 
     auto sortedCatFeatures = learnPool.CatFeatures;
     Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
-
-    if (!testPool.Docs.empty()) {
+    if (testPool.Docs.GetDocCount() != 0) {
         auto catFeaturesTest = testPool.CatFeatures;
         Sort(catFeaturesTest.begin(), catFeaturesTest.end());
 
@@ -56,7 +44,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
             ythrow TCatboostException() << "Both modelPtr != nullptr and outputModelPath non empty";
         }
     }
-    const int featureCount = learnPool.Docs[0].Factors.ysize();
+    const int featureCount = learnPool.Docs.GetFactorsCount();
 
     TLearnContext ctx(
         jsonParams,
@@ -74,7 +62,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
-    yvector<size_t> indices(learnPool.Docs.size());
+    yvector<size_t> indices(learnPool.Docs.GetDocCount());
     std::iota(indices.begin(), indices.end(), 0);
     if (!ctx.Params.HasTime) {
         Shuffle(indices.begin(), indices.end(), ctx.Rand);
@@ -85,9 +73,9 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
     auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool); });
 
     TTrainData trainData;
-    trainData.LearnSampleCount = learnPool.Docs.ysize();
+    trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
 
-    trainData.Target.reserve(learnPool.Docs.size() + testPool.Docs.size());
+    trainData.Target.reserve(learnPool.Docs.GetDocCount() + testPool.Docs.GetDocCount());
 
     trainData.Pairs.reserve(learnPool.Pairs.size() + testPool.Pairs.size());
     trainData.Pairs.insert(trainData.Pairs.end(), learnPool.Pairs.begin(), learnPool.Pairs.end());
@@ -97,10 +85,10 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         trainData.Pairs[pairInd].LoserId += trainData.LearnSampleCount;
     }
 
-    bool trainHasBaseline = !learnPool.Docs[0].Baseline.empty();
+    bool trainHasBaseline = learnPool.Docs.GetBaselineDimension() != 0;
     bool testHasBaseline = trainHasBaseline;
-    if (!testPool.Docs.empty()) {
-        testHasBaseline = !testPool.Docs[0].Baseline.empty();
+    if (testPool.Docs.GetDocCount() != 0) {
+        testHasBaseline = testPool.Docs.GetBaselineDimension() != 0;
     }
     if (trainHasBaseline && !testHasBaseline) {
         CB_ENSURE(false, "Baseline for test is not provided");
@@ -108,27 +96,24 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
     if (testHasBaseline && !trainHasBaseline) {
         CB_ENSURE(false, "Baseline for train is not provided");
     }
-    if (trainHasBaseline && testHasBaseline && !testPool.Docs.empty()) {
-        CB_ENSURE(learnPool.Docs[0].Baseline.ysize() == testPool.Docs[0].Baseline.ysize(), "Baseline dimensions differ.");
+    if (trainHasBaseline && testHasBaseline && testPool.Docs.GetDocCount() != 0) {
+        CB_ENSURE(learnPool.Docs.GetBaselineDimension() == testPool.Docs.GetBaselineDimension(), "Baseline dimensions differ.");
     }
 
-    bool nonZero = false;
-    for (const auto& doc : learnPool.Docs) {
-        trainData.Target.push_back(doc.Target);
-        trainData.Baseline.push_back(doc.Baseline);
-        trainData.Weights.push_back(doc.Weight);
-        nonZero |= doc.Weight != 0;
-    }
+    bool nonZero = !AllOf(learnPool.Docs.Weight, [] (float weight) { return weight == 0; });
+    trainData.Target = learnPool.Docs.Target;
+    trainData.Weights = learnPool.Docs.Weight;
+    trainData.Baseline = learnPool.Docs.Baseline;
     CB_ENSURE(nonZero, "All documents have zero weights");
 
     float minTarget = *MinElement(trainData.Target.begin(), trainData.Target.end());
     float maxTarget = *MaxElement(trainData.Target.begin(), trainData.Target.end());
     CB_ENSURE(minTarget != maxTarget || IsPairwiseError(ctx.Params.LossFunction), "All targets are equal");
 
-    for (const auto& doc : testPool.Docs) {
-        trainData.Target.push_back(doc.Target);
-        trainData.Baseline.push_back(doc.Baseline);
-        trainData.Weights.push_back(doc.Weight);
+    trainData.Target.insert(trainData.Target.end(), testPool.Docs.Target.begin(), testPool.Docs.Target.end());
+    trainData.Weights.insert(trainData.Weights.end(), testPool.Docs.Weight.begin(), testPool.Docs.Weight.end());
+    for (int dim = 0; dim < testPool.Docs.GetBaselineDimension(); ++dim) {
+        trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
     }
 
     if (ctx.Params.LossFunction == ELossFunction::Logloss) {
@@ -139,6 +124,9 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         CB_ENSURE(maxTarget == 1, "All targets are smaller than border");
     }
 
+    if (trainHasBaseline) {
+        CB_ENSURE((trainData.Baseline.ysize() > 1) == IsMultiClassError(ctx.Params.LossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+    }
     if (IsMultiClassError(ctx.Params.LossFunction)) {
         CB_ENSURE(AllOf(trainData.Target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
         ctx.LearnProgress.Model.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
@@ -159,15 +147,21 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
 
     GenerateBorders(learnPool.Docs, &ctx, &ctx.LearnProgress.Model.Borders, &ctx.LearnProgress.Model.HasNans);
 
-    learnPool.Docs.insert(learnPool.Docs.end(), testPool.Docs.begin(), testPool.Docs.end());
+    if (testPool.Docs.GetDocCount() != 0) {
+        CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
+        CB_ENSURE(testPool.Docs.GetBaselineDimension() == learnPool.Docs.GetBaselineDimension(), "train pool baseline dimension == " << learnPool.Docs.GetBaselineDimension() << " and test pool baseline dimension == " << testPool.Docs.GetBaselineDimension());
+    }
+    learnPool.Docs.Append(testPool.Docs);
+    const int factorsCount = learnPool.Docs.GetFactorsCount();
+    const int approxDim = learnPool.Docs.GetBaselineDimension();
 
     auto learnPoolGuard = Finally([&] {
-        learnPool.Docs.resize(trainData.LearnSampleCount);
-        learnPool.Docs.shrink_to_fit();
+        if (!allowClearPool) {
+            learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim);
+        }
     });
 
     PrepareAllFeatures(
-        learnPool.Docs,
         ctx.CatFeatures,
         ctx.LearnProgress.Model.Borders,
         ctx.LearnProgress.Model.HasNans,
@@ -175,12 +169,13 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
         trainData.LearnSampleCount,
         ctx.Params.OneHotMaxSize,
         ctx.Params.NanMode,
+        allowClearPool,
         ctx.LocalExecutor,
+        &learnPool.Docs,
         &trainData.AllFeatures);
 
-    if (clearLearnPool) {
-        learnPool.Docs.clear();
-        learnPool.Docs.shrink_to_fit();
+    if (allowClearPool) {
+        learnPool.Docs.Clear();
     }
 
     float minWeight = *MinElement(trainData.Weights.begin(), trainData.Weights.begin() + trainData.LearnSampleCount);
@@ -281,6 +276,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
                 ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
                 ctx.Params.CtrLeafCountLimit,
                 ctx.Params.StoreAllSimpleCtr,
+                ctx.Params.CounterCalcMethod,
                 resTable);
         }, 0, ctrsForModelCalcTasks.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
@@ -308,6 +304,7 @@ void TrainModelBody(const NJson::TJsonValue& jsonParams,
                 ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
                 ctx.Params.CtrLeafCountLimit,
                 ctx.Params.StoreAllSimpleCtr,
+                ctx.Params.CounterCalcMethod,
                 &resTable);
             saver.SaveOneCtr(ctr, resTable);
         }, 0, usedCtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);

@@ -425,7 +425,6 @@ private:
 
                 iteration++;
             }
-            NCudaLib::GetCudaManager().DumpFreeMemory(TStringBuilder() << "Free gpu memory after iteration #" << iteration);
         }
         MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
 
@@ -446,8 +445,7 @@ public:
     {
     }
 
-    virtual ~TDontLookAheadBoosting() {
-    }
+    virtual ~TDontLookAheadBoosting() = default;
 
     TDontLookAheadBoosting& SetDataProvider(const TDataProvider& learnData,
                                             const TDataProvider* testData = nullptr) {

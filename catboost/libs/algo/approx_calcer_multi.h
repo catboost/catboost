@@ -2,6 +2,7 @@
 
 #include "approx_util.h"
 #include "index_calcer.h"
+#include "online_predictor.h"
 
 template <bool StoreExpApprox>
 inline void UpdateApproxDeltasMulti(const yvector<TIndexType>& indices,
@@ -9,7 +10,7 @@ inline void UpdateApproxDeltasMulti(const yvector<TIndexType>& indices,
                                     yvector<yvector<double>>* leafValues, //leafValues[dimension][bucketId]
                                     yvector<yvector<double>>* resArr) {
     for (int dim = 0; dim < leafValues->ysize(); ++dim) {
-        ExpApproxIf<StoreExpApprox>(&(*leafValues)[dim]);
+        ExpApproxIf(StoreExpApprox, &(*leafValues)[dim]);
         for (int z = 0; z < docCount; ++z) {
             (*resArr)[dim][z] = UpdateApprox<StoreExpApprox>((*resArr)[dim][z], (*leafValues)[dim][indices[z]]);
         }
@@ -80,7 +81,7 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
         AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
 
         CalcModel(bucket, iteration, l2Regularizer, &avrg);
-        ExpApproxIf<TError::StoreExpApprox>(&avrg);
+        ExpApproxIf(TError::StoreExpApprox, &avrg);
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*resArr)[dim][z] = UpdateApprox<TError::StoreExpApprox>((*resArr)[dim][z], avrg[dim]);
         }
@@ -122,7 +123,7 @@ void CalcApproxDeltaMulti(const TFold& ff,
                                               indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
             } else {
-                CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
+                Y_ASSERT(estimationMethod == ELeafEstimation::Gradient);
                 CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
                                               indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
@@ -198,7 +199,7 @@ void CalcLeafValuesMulti(const TTrainData& data,
                                          indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
                                          &buckets, &approx);
         } else {
-            CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
+            Y_ASSERT(estimationMethod == ELeafEstimation::Gradient);
             CalcLeafValuesIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
                                          indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
                                          &buckets, &approx);
