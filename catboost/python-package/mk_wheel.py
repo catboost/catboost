@@ -187,7 +187,7 @@ def build(arc_root, out_root, tail_args):
 
     shutil.make_archive(wheel_name, 'zip', 'catboost')
     os.rename(wheel_name + '.zip', wheel_name)
-    shutil.move(wheel_name, os.path.join(py_trait.arc_root, 'catboost', 'python-package'))
+    shutil.move(wheel_name, os.path.join(py_trait.arc_root, 'catboost', 'python-package', wheel_name))
 
     return wheel_name
 
