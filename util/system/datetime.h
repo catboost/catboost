@@ -45,8 +45,14 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
 #if defined(_MSC_VER)
     // Generates the rdtscp instruction, which returns the processor time stamp.
     // The processor time stamp records the number of clock cycles since the last reset.
-    unsigned int aux;
-    return __rdtscp(&aux);
+    extern const bool HaveRdtscp;
+
+    if (HaveRdtscp) {
+        unsigned int aux;
+        return __rdtscp(&aux);
+    } else {
+        return __rdtsc();
+    }
 #elif defined(_x86_64_)
     extern const bool HaveRdtscp;
 
