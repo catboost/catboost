@@ -23,8 +23,8 @@ namespace NKernel {
 
     void Filter(const float* weights, const ui32 size, ui32* result, TCudaStream stream) {
         if (size > 0) {
-            const uint blockSize = 512;
-            const uint numBlocks = (size + blockSize - 1) / (blockSize);
+            const ui32 blockSize = 512;
+            const ui32 numBlocks = (size + blockSize - 1) / (blockSize);
             FilterImpl << <numBlocks, blockSize, 0, stream>>>(weights, size, result);
         }
     }

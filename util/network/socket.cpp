@@ -257,6 +257,7 @@ bool GetRemoteAddr(SOCKET Socket, char* str, socklen_t size) {
 
         return true;
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 
     return false;
@@ -494,6 +495,20 @@ size_t writev(SOCKET sock, const struct iovec* iov, int iovcnt) {
     }
     return numberOfBytesSent;
 }
+
+static ssize_t DoSendMsg(SOCKET sock, const struct iovec* iov, int iovcnt) {
+    return writev(sock, iov, iovcnt);
+}
+#else
+static ssize_t DoSendMsg(SOCKET sock, const struct iovec* iov, int iovcnt) {
+    struct msghdr message;
+
+    Zero(message);
+    message.msg_iov = const_cast<struct iovec*>(iov);
+    message.msg_iovlen = iovcnt;
+
+    return sendmsg(sock, &message, MSG_NOSIGNAL);
+}
 #endif
 
 void TSocketHolder::Close() noexcept {
@@ -645,7 +660,7 @@ static inline SOCKET DoConnect(const struct addrinfo* res, const TInstant& deadL
 static inline ssize_t DoSendV(SOCKET fd, const struct iovec* iov, size_t count) {
     ssize_t ret = -1;
     do {
-        ret = (ssize_t)writev(fd, iov, (int)count);
+        ret = DoSendMsg(fd, iov, (int)count);
     } while (ret == -1 && errno == EINTR);
 
     if (ret < 0) {
@@ -843,6 +858,7 @@ TSocketOutput::~TSocketOutput() {
     try {
         Finish();
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 }
 

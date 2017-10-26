@@ -10,6 +10,7 @@
 
 using namespace std;
 using namespace NCudaLib;
+using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
     template <class T>

@@ -768,6 +768,13 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT_EQUAL("(empty maybe)", s);
     }
 
+    SIMPLE_UNIT_TEST(TestOutputStreamNothing) {
+        TString s;
+        TStringOutput output(s);
+        output << Nothing();
+        UNIT_ASSERT_VALUES_EQUAL("(empty maybe)", s);
+    }
+
     SIMPLE_UNIT_TEST(TestOutputStreamDefinedMaybe) {
         TString s;
         TStringOutput output(s);
@@ -779,7 +786,8 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         struct TestStruct {
             TestStruct(int value)
                 : Value_(value)
-            {}
+            {
+            }
 
             operator int() const {
                 return Value_;
@@ -804,7 +812,8 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         struct TestStruct {
             explicit TestStruct(int value)
                 : Value_(value)
-            {}
+            {
+            }
             int Value_;
         };
 
@@ -821,7 +830,8 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         struct TestStruct {
             explicit TestStruct(int value)
                 : Value_(value)
-            {}
+            {
+            }
             TestStruct& operator=(int value) {
                 Value_ = value;
                 return *this;
@@ -853,11 +863,13 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
             TestStruct(int value)
                 : Value_(value)
                 , From_(FromValue)
-            {}
+            {
+            }
             TestStruct(TMaybe<int> value)
                 : Value_(value.Defined() ? value.GetRef() : 0)
                 , From_(FromMaybe)
-            {}
+            {
+            }
             int Value_;
             int From_;
         };
@@ -888,11 +900,13 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
             TestStruct(int value)
                 : Value_(value)
                 , From_(FromValue)
-            {}
+            {
+            }
             TestStruct(TMaybe<int> value)
                 : Value_(value.Defined() ? value.GetRef() : 0)
                 , From_(FromMaybe)
-            {}
+            {
+            }
             TestStruct& operator=(int value) {
                 Value_ = value;
                 From_ = FromValue;

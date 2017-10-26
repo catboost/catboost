@@ -258,7 +258,7 @@ namespace NCudaLib {
 
             ui64 total = 0;
 
-            for (uint i = 0; i < devCount; ++i) {
+            for (ui32 i = 0; i < devCount; ++i) {
                 const ui64 devSize = (i + 1 != devCount ? objectPerDevice : (objectCount - total));
                 slices[i] = TSlice(total, total + devSize);
                 total += devSize;

@@ -1,7 +1,7 @@
 #include "pinned_memory_estimation.h"
 
 
-ui32 EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider& dataProvider,
+ui32 NCatboostCuda::EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider& dataProvider,
                                               const TDataProvider* testProvider,
                                               const TBinarizedFeaturesManager& featuresManager,
                                               ui32 deviceCount) {

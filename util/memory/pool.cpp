@@ -13,6 +13,12 @@ void TMemoryPool::AddChunk(size_t hint) {
     const size_t dataLen = Max(BlockSize_, hint);
     TBlock nb = Alloc_->Allocate(FastClp2(dataLen + sizeof(TChunk)));
 
+    // Add previous chunk's stats
+    if (Current_ != &Empty_) {
+        MemoryAllocatedBeforeCurrent_ += Current_->Used();
+        MemoryWasteBeforeCurrent_ += Current_->Left();
+    }
+
     BlockSize_ = GrowPolicy_->Next(dataLen);
     Current_ = new (nb.Data) TChunk(nb.Len - sizeof(TChunk));
     Chunks_.PushBack(Current_);
@@ -27,6 +33,8 @@ void TMemoryPool::DoClear(bool keepfirst) noexcept {
             Chunks_.PushBack(c);
             Current_ = c;
             BlockSize_ = c->BlockLength() - sizeof(TChunk);
+            MemoryAllocatedBeforeCurrent_ = 0;
+            MemoryWasteBeforeCurrent_ = 0;
             return;
         }
 
@@ -38,4 +46,6 @@ void TMemoryPool::DoClear(bool keepfirst) noexcept {
 
     Current_ = &Empty_;
     BlockSize_ = Origin_;
+    MemoryAllocatedBeforeCurrent_ = 0;
+    MemoryWasteBeforeCurrent_ = 0;
 }

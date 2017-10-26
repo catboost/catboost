@@ -36,9 +36,18 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
     SIMPLE_UNIT_TEST(Write) {
         TBuffer buffer;
         TBufferOutput output(buffer);
-        output << "1" << "22" << "333" << "4444" << "55555";
+        output << "1"
+               << "22"
+               << "333"
+               << "4444"
+               << "55555";
 
-        UNIT_ASSERT(0 == memcmp(~buffer, "1" "22" "333" "4444" "55555", +buffer));
+        UNIT_ASSERT(0 == memcmp(~buffer, "1"
+                                         "22"
+                                         "333"
+                                         "4444"
+                                         "55555",
+                                +buffer));
     }
 
     SIMPLE_UNIT_TEST(WriteChars) {

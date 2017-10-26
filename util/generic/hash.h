@@ -28,13 +28,6 @@ struct TSelect1st {
     }
 };
 
-struct TSelect2nd {
-    template <class TPair>
-    inline const typename TPair::second_type& operator()(const TPair& x) const {
-        return x.second;
-    }
-};
-
 struct TIdentity {
     template <class T>
     inline const T& operator()(const T& x) const noexcept {
@@ -54,7 +47,8 @@ struct __yhashtable_node {
 
     /** Value stored in a node. */
     Value val;
-    __yhashtable_node& operator=(const __yhashtable_node&);
+
+    __yhashtable_node& operator=(const __yhashtable_node&) = delete;
 };
 
 template <class Value, class Key, class HashFcn,

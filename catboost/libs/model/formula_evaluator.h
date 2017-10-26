@@ -158,21 +158,42 @@ namespace NCatBoost {
         void InitFromFullModel(const TFullModel& fullModel);
         void InitFromFullModel(TFullModel&& fullModel);
 
-        size_t FloatFeaturesUsed() const {
+        size_t GetFloatFeaturesUsed() const {
             return FloatFeaturesCount;
         }
 
-        size_t CatFeaturesUsed() const {
+        size_t GetCatFeaturesUsed() const {
             return CatFeaturesCount;
         }
 
-        size_t FlatFeatureVectorExpectedSize() const {
+        size_t GetFlatFeatureVectorExpectedSize() const {
             return CatFeaturesCount + FloatFeaturesCount;
         }
 
-        size_t BinFeaturesCount() const {
+        size_t GetBinFeaturesCount() const {
             return UsedBinaryFeaturesCount;
         }
+        size_t GetModelClassCount() const {
+            return ModelClassCount;
+        }
+        int GetTreeCount() const {
+            return static_cast<int>(BinaryTrees.size());
+        }
+
+        bool HasCategoricalFeatures() const {
+            return CatFeaturesCount > 0;
+        }
+        // if no ctr features present it'll return false
+        bool HasValidCtrProvider() const {
+            if (!CtrProvider) {
+                return false;
+            }
+            return CtrProvider->HasNeededCtrs(UsedModelCtrs);
+        }
+
+        TFormulaEvaluator CopyTreeRange(const size_t begin, const size_t end) const;
+
+        void TruncateModel(const size_t begin, const size_t end);
 
     private:
         void InitBinTreesFromCoreModel(const TCoreModel& model);
@@ -360,8 +381,10 @@ namespace NCatBoost {
         yvector<TFloatFeature> UsedFloatFeatures;
         yvector<TOHEFeature> UsedOHEFeatures;
         yvector<TCtrFeature> UsedCtrFeatures;
+        // contains unpacked unique TModelCtr from UsedCtrFeatures, duplicated for ctr calculation speed
         yvector<TModelCtr> UsedModelCtrs;
         size_t UsedBinaryFeaturesCount = 0;
+        // ApproxDimension from TFullModel
         size_t ModelClassCount = 0;
 
         size_t FloatFeaturesCount = 0;
@@ -370,6 +393,6 @@ namespace NCatBoost {
         // oblivious bin features trees
         yvector<yvector<int>> BinaryTrees;
         yvector<yvector<double>> LeafValues; // [numTree][bucketId * classCount + classId]
-        THolder<ICtrProvider> CtrProvider;
+        TIntrusivePtr<ICtrProvider> CtrProvider;
     };
 }

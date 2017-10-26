@@ -301,6 +301,7 @@ TZLibCompress::~TZLibCompress() {
     try {
         Finish();
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 }
 

@@ -40,6 +40,7 @@ extern "C" int LLVMFuzzerTestOneInput(const ui8* data, size_t size) {
             }
         }
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 
     return 0; // Non-zero return values are reserved for future use.

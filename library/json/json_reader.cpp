@@ -497,4 +497,26 @@ bool ReadJson(IInputStream *in, const TJsonReaderConfig *config, TJsonCallbacks 
     return cbs->OnEnd();
 }
 
+
+
+TJsonValue ReadJsonTree(IInputStream* in, bool throwOnError) {
+    TJsonValue out;
+    ReadJsonTree(in, &out, throwOnError);
+    return out;
+}
+
+
+TJsonValue ReadJsonTree(IInputStream* in, bool allowComments, bool throwOnError) {
+    TJsonValue out;
+    ReadJsonTree(in, allowComments, &out, throwOnError);
+    return out;
+}
+
+
+TJsonValue ReadJsonTree(IInputStream *in, const TJsonReaderConfig *config, bool throwOnError) {
+    TJsonValue out;
+    ReadJsonTree(in, config, &out, throwOnError);
+    return out;
+}
+
 }   // namespace NJson

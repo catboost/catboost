@@ -3,8 +3,7 @@ LIBRARY()
 
 
 PY_SRCS(
-    TOP_LEVEL
-    __main__.py
+    main.py
     yatest_tools.py
 )
 

@@ -141,6 +141,14 @@ struct TProjection {
         return std::tie(CatFeatures, BinFeatures, OneHotFeatures) <
                std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
     }
+
+    size_t GetFullProjectionLength() const {
+        size_t addition = 0;
+        if (BinFeatures.size() + OneHotFeatures.size() > 0) {
+            addition = 1;
+        }
+        return CatFeatures.size() + addition;
+    }
 };
 
 template <>

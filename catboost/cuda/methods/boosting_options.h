@@ -10,153 +10,226 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <catboost/cuda/targets/target_options.h>
 
-class TOutputFilesOptions {
-public:
-    const TString& GetLearnErrorLogPath() const {
-        return LearnErrorLogPath;
-    }
+namespace NCatboostCuda
+{
+    enum EBoostingType {
+        Dynamic,
+        Plain
+    };
 
-    const TString& GetTestErrorLogPath() const {
-        return TestErrorLogPath;
-    }
 
-    const TString& GetTimeLeftLog() const {
-        return TimeLeftLog;
-    }
+    class TOutputFilesOptions
+    {
+    public:
+        TString GetLearnErrorLogPath() const
+        {
+            return GetPath(LearnErrorLogPath);
+        }
 
-    const TString& GetMetaFile() const {
-        return MetaFile;
-    }
+        TString GetTestErrorLogPath() const
+        {
+            return GetPath(TestErrorLogPath);
+        }
 
-    const TString& GetName() const {
-        return Name;
-    }
+        TString GetTimeLeftLog() const
+        {
+            return GetPath(TimeLeftLog);
+        }
 
-    const TString& GetResultModelPath() const {
-        return ResultModelPath;
-    }
+        TString GetMetaFile() const
+        {
+            return GetPath(MetaFile);
+        }
 
-    template <class TConfig>
-    friend class TOptionsBinder;
+        const TString& GetName() const
+        {
+            return Name;
+        }
 
-private:
-    TString Name = "experiment";
-    TString LearnErrorLogPath = "learn_error.tsv";
-    TString TestErrorLogPath = "test_error.tsv";
-    TString TimeLeftLog = "time_left.tsv";
-    TString MetaFile = "meta.tsv";
-    TString ResultModelPath = "catboost.bin";
-};
+        const TString& GetResultModelPath() const
+        {
+            return ResultModelPath;
+        }
 
-class TOverfittingDetectorOptions {
-public:
-    float GetAutoStopPval() const {
-        return AutoStopPValue;
-    }
+        template<class TConfig>
+        friend
+        class TOptionsBinder;
 
-    EOverfittingDetectorType GetDetectorType() const {
-        return OverfittingDetectorType;
-    }
+        template<class TConfig>
+        friend
+        class TOptionsJsonConverter;
 
-    ui32 GetIterationsWait() const {
-        return IterationsWait;
-    }
+    private:
 
-    inline THolder<IOverfittingDetector> CreateOverfittingDetector(bool maxIsOptimal) const {
-        switch (OverfittingDetectorType) {
-            case EOverfittingDetectorType::IncToDec: {
-                return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, AutoStopPValue, IterationsWait, true);
-            }
-            case EOverfittingDetectorType::Iter: {
-                return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, 1.0, IterationsWait, true);
-            }
-            case EOverfittingDetectorType::Wilcoxon: {
-                return MakeHolder<TOverfittingDetectorWilcoxon>(maxIsOptimal, AutoStopPValue, IterationsWait, true);
+        TString GetPath(const TString& fileName) const
+        {
+            TFsPath filePath(fileName);
+            if (TrainDir.Empty() || filePath.IsAbsolute())
+            {
+                return fileName;
+            } else
+            {
+                return JoinFsPaths(TrainDir, filePath);
             }
         }
-    }
 
-    template <class TConfig>
-    friend class TOptionsBinder;
+    private:
+        TString Name = "experiment";
+        TString TrainDir = "";
+        TString LearnErrorLogPath = "learn_error.tsv";
+        TString TestErrorLogPath = "test_error.tsv";
+        TString TimeLeftLog = "time_left.tsv";
+        TString MetaFile = "meta.tsv";
+        TString ResultModelPath = "catboost.bin";
+    };
 
-private:
-    float AutoStopPValue = 0;
-    EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
-    int IterationsWait = 20;
-};
+    class TOverfittingDetectorOptions
+    {
+    public:
+        float GetAutoStopPval() const
+        {
+            return AutoStopPValue;
+        }
 
-class TBoostingOptions {
-public:
-    ui32 GetPermutationCount() const {
-        return HasTimeFlag ? 1 : PermutationCount;
-    }
+        EOverfittingDetectorType GetDetectorType() const
+        {
+            return OverfittingDetectorType;
+        }
 
-    void SetPermutationCount(ui32 count) {
-        PermutationCount = count;
-    }
+        ui32 GetIterationsWait() const
+        {
+            return IterationsWait;
+        }
 
-    double GetGrowthRate() const {
-        return GrowthRate;
-    }
+        inline THolder<IOverfittingDetector> CreateOverfittingDetector(bool maxIsOptimal) const
+        {
+            switch (OverfittingDetectorType)
+            {
+                case EOverfittingDetectorType::IncToDec:
+                {
+                    return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, AutoStopPValue, IterationsWait, true);
+                }
+                case EOverfittingDetectorType::Iter:
+                {
+                    return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, 1.0, IterationsWait, true);
+                }
+                case EOverfittingDetectorType::Wilcoxon:
+                {
+                    return MakeHolder<TOverfittingDetectorWilcoxon>(maxIsOptimal, AutoStopPValue, IterationsWait, true);
+                }
+                default: {
+                    Y_VERIFY(false, "Unknown OD type");
+                }
+            }
+        }
 
-    bool DisableDontLookAhead() const {
-        return DisableDontLookAheadFlag;
-    }
+        template<class TConfig>
+        friend
+        class TOptionsBinder;
 
-    ui32 GetPermutationBlockSize() const {
-        return PermutationBlockSize;
-    }
+        template<class TConfig>
+        friend
+        class TOptionsJsonConverter;
 
-    bool UseCpuRamForCatFeaturesDataSet() const {
-        return UseCpuRamForCatFeaturesFlag;
-    }
+    private:
+        float AutoStopPValue = 0;
+        EOverfittingDetectorType OverfittingDetectorType = EOverfittingDetectorType::IncToDec;
+        int IterationsWait = 20;
+    };
 
-    TLearningRate GetLearningRate() const {
-        return TLearningRate(Regularization);
-    }
+    class TBoostingOptions
+    {
+    public:
+        ui32 GetPermutationCount() const
+        {
+            return HasTimeFlag ? 1 : PermutationCount;
+        }
 
-    bool UseBestModel() const {
-        return UseBestModelFlag;
-    }
+        void SetPermutationCount(ui32 count)
+        {
+            PermutationCount = count;
+        }
 
-    bool IsCalcScores() const {
-        return CalcScores;
-    }
-    ui32 GetIterationCount() const {
-        return IterationCount;
-    }
+        double GetGrowthRate() const
+        {
+            return GrowthRate;
+        }
 
-    ui32 GetMinFoldSize() const {
-        return MinFoldSize;
-    }
+        EBoostingType GetBoostingType() const {
+            return BoostingType;
+        }
 
-    const TOverfittingDetectorOptions& GetOverfittingDetectorOptions() const {
-        return OverfittingDetectorOptions;
-    }
+        ui32 GetPermutationBlockSize() const
+        {
+            return PermutationBlockSize;
+        }
 
-    double GetRandomStrength() const {
-        return RandomStrength;
-    }
+        bool UseCpuRamForCatFeaturesDataSet() const
+        {
+            return UseCpuRamForCatFeaturesFlag;
+        }
 
-    bool HasTime() const {
-        return HasTimeFlag;
-    }
+        TLearningRate GetLearningRate() const
+        {
+            return TLearningRate(Regularization);
+        }
 
-    template <class TConfig>
-    friend class TOptionsBinder;
+        bool UseBestModel() const
+        {
+            return UseBestModelFlag;
+        }
 
-private:
-    ui32 PermutationCount = 4;
-    bool HasTimeFlag = false;
-    double GrowthRate = 2.0;
-    bool DisableDontLookAheadFlag = false;
-    ui32 PermutationBlockSize = 1;
-    bool UseCpuRamForCatFeaturesFlag = false;
-    ui32 IterationCount = 1000;
-    ui32 MinFoldSize = 1024;
-    double RandomStrength = 1.0;
-    double Regularization = 0.5;
-    bool CalcScores = true;
-    bool UseBestModelFlag;
-    TOverfittingDetectorOptions OverfittingDetectorOptions;
-};
+        bool IsCalcScores() const
+        {
+            return CalcScores;
+        }
+
+        ui32 GetIterationCount() const
+        {
+            return IterationCount;
+        }
+
+        ui32 GetMinFoldSize() const
+        {
+            return MinFoldSize;
+        }
+
+        const TOverfittingDetectorOptions& GetOverfittingDetectorOptions() const
+        {
+            return OverfittingDetectorOptions;
+        }
+
+        double GetRandomStrength() const
+        {
+            return RandomStrength;
+        }
+
+        bool HasTime() const
+        {
+            return HasTimeFlag;
+        }
+
+        template<class TConfig>
+        friend
+        class TOptionsBinder;
+
+        template<class TConfig>
+        friend
+        class TOptionsJsonConverter;
+
+    private:
+        ui32 PermutationCount = 4;
+        bool HasTimeFlag = false;
+        double GrowthRate = 2.0;
+        EBoostingType BoostingType = EBoostingType::Dynamic;
+        ui32 PermutationBlockSize = 32;
+        bool UseCpuRamForCatFeaturesFlag = false;
+        ui32 IterationCount = 1000;
+        ui32 MinFoldSize = 1024;
+        double RandomStrength = 1.0;
+        double Regularization = 0.5;
+        bool CalcScores = true;
+        bool UseBestModelFlag;
+        TOverfittingDetectorOptions OverfittingDetectorOptions;
+    };
+}

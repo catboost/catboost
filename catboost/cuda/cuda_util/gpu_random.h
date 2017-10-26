@@ -7,14 +7,14 @@
 namespace NKernelHost {
     class TPoissonKernel: public TStatelessKernel {
     private:
-        TCudaBufferPtr<ulong> Seeds;
+        TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<const float> Alphas;
         TCudaBufferPtr<int> Result;
 
     public:
         TPoissonKernel() = default;
 
-        TPoissonKernel(TCudaBufferPtr<ulong> seeds,
+        TPoissonKernel(TCudaBufferPtr<ui64> seeds,
                        TCudaBufferPtr<const float> alphas,
                        TCudaBufferPtr<int> result)
             : Seeds(seeds)
@@ -24,7 +24,7 @@ namespace NKernelHost {
         }
 
         void Run(const TCudaStream& stream) const {
-            Y_ASSERT(Result.Size() < (1L << 32));
+            Y_ASSERT(Result.Size() < (static_cast<ui64>(1) << 32));
             Y_ASSERT(Result.Size() == Result.ObjectCount());
             NKernel::PoissonRand(Seeds.Get(), Result.Size(), Alphas.Get(), Result.Get(), stream.GetStream());
         }
@@ -34,13 +34,13 @@ namespace NKernelHost {
 
     class TGaussianRandKernel {
     private:
-        TCudaBufferPtr<ulong> Seeds;
+        TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<float> Result;
 
     public:
         TGaussianRandKernel() = default;
 
-        TGaussianRandKernel(TCudaBufferPtr<ulong> seeds,
+        TGaussianRandKernel(TCudaBufferPtr<ui64> seeds,
                             TCudaBufferPtr<float> result)
             : Seeds(seeds)
             , Result(result)
@@ -50,7 +50,7 @@ namespace NKernelHost {
         SAVELOAD(Seeds, Result);
 
         void Run(const TCudaStream& stream) const {
-            Y_ASSERT(Result.Size() < (1L << 32));
+            Y_ASSERT(Result.Size() < (static_cast<ui64>(1) << 32));
             Y_ASSERT(Result.Size() == Result.ObjectCount());
             NKernel::GaussianRand(Seeds.Get(), Result.Size(), Result.Get(), stream.GetStream());
         }
@@ -58,13 +58,13 @@ namespace NKernelHost {
 
     class TUniformRandKernel {
     private:
-        TCudaBufferPtr<ulong> Seeds;
+        TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<float> Result;
 
     public:
         TUniformRandKernel() = default;
 
-        TUniformRandKernel(TCudaBufferPtr<ulong> seeds,
+        TUniformRandKernel(TCudaBufferPtr<ui64> seeds,
                            TCudaBufferPtr<float> result)
             : Seeds(seeds)
             , Result(result)
@@ -74,7 +74,7 @@ namespace NKernelHost {
         SAVELOAD(Seeds, Result);
 
         void Run(const TCudaStream& stream) const {
-            Y_ASSERT(Result.Size() < (1L << 32));
+            Y_ASSERT(Result.Size() < (static_cast<ui64>(1) << 32));
             Y_ASSERT(Result.Size() == Result.ObjectCount());
             NKernel::UniformRand(Seeds.Get(), Result.Size(), Result.Get(), stream.GetStream());
         }
@@ -82,20 +82,20 @@ namespace NKernelHost {
 }
 
 template <class TMapping>
-inline void PoissonRand(TCudaBuffer<ulong, TMapping>& seeds, const TCudaBuffer<float, TMapping>& alphas,
+inline void PoissonRand(TCudaBuffer<ui64,  TMapping>& seeds, const TCudaBuffer<float, TMapping>& alphas,
                         TCudaBuffer<int, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TPoissonKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, alphas, result);
 }
 
 template <class TMapping>
-inline void GaussianRand(TCudaBuffer<ulong, TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
+inline void GaussianRand(TCudaBuffer<ui64,  TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TGaussianRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }
 
 template <class TMapping>
-inline void UniformRand(TCudaBuffer<ulong, TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
+inline void UniformRand(TCudaBuffer<ui64,  TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TUniformRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }

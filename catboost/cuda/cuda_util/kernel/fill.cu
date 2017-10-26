@@ -20,7 +20,7 @@ namespace NKernel
     {
         if (size > 0)
         {
-            const uint blockSize = 512;
+            const ui32 blockSize = 512;
             const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                          (ui64)TArchProps::MaxBlockCount());
             FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size);
@@ -42,7 +42,7 @@ namespace NKernel
     {
         if (size > 0)
         {
-            const uint blockSize = 512;
+            const ui32 blockSize = 512;
             const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                          (ui64)TArchProps::MaxBlockCount());
             MakeSequenceImpl<T> << < numBlocks, blockSize, 0, stream >> > (buffer, size);
@@ -63,7 +63,7 @@ namespace NKernel
     {
         if (size > 0)
         {
-            const uint blockSize = 512;
+            const ui32 blockSize = 512;
             const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                        (ui64)TArchProps::MaxBlockCount());
             InversePermutationImpl<T> << < numBlocks, blockSize, 0, stream >> > (order, inverseOrder, size);
@@ -78,11 +78,11 @@ namespace NKernel
 
     template void FillBuffer<short>(short* buffer, short value, ui64  size, TCudaStream stream);
 
-    template void FillBuffer<ushort>(ushort* buffer, ushort value, ui64  size, TCudaStream stream);
+    template void FillBuffer<ui16>(ui16* buffer, ui16 value, ui64  size, TCudaStream stream);
 
     template void FillBuffer<int>(int* buffer, int value, ui64  size, TCudaStream stream);
 
-    template void FillBuffer<uint>(uint* buffer, uint value, ui64  size, TCudaStream stream);
+    template void FillBuffer<ui32>(ui32* buffer, ui32 value, ui64  size, TCudaStream stream);
 
     template void FillBuffer<float>(float* buffer, float value, ui64  size, TCudaStream stream);
 
@@ -94,7 +94,7 @@ namespace NKernel
 
     template void MakeSequence<int>(int* buffer, ui64  size, TCudaStream stream);
 
-    template void MakeSequence<uint>(uint* buffer, ui64  size, TCudaStream stream);
+    template void MakeSequence<ui32>(ui32* buffer, ui64  size, TCudaStream stream);
 
     template void InversePermutation<ui32>(const ui32* order, ui32* inverseOrder, ui64 size, TCudaStream stream);
 }

@@ -83,8 +83,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
         ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
-        auto nextBatchApprox = ApplyModelMulti(Model,
-                                               FormulaEvaluator,
+        auto nextBatchApprox = ApplyModelMulti(FormulaEvaluator,
                                                pool,
                                                EPredictionType::RawFormulaVal,
                                                nextBatchStart,

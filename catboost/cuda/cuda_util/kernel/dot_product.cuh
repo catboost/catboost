@@ -3,7 +3,7 @@
 
 namespace NKernel {
 
-    inline constexpr uint GetDotProductBlockSize() {
+    inline constexpr ui32 GetDotProductBlockSize() {
         return 512;
     }
 

@@ -13,7 +13,7 @@ SIMPLE_UNIT_TEST_SUITE(TTempFileHandle) {
             path = tmp.Name();
             tmp.Write("hello world\n", 12);
             tmp.FlushData();
-            UNIT_ASSERT_STRINGS_EQUAL(TFileInput(tmp.Name()).ReadAll(), "hello world\n");
+            UNIT_ASSERT_STRINGS_EQUAL(TUnbufferedFileInput(tmp.Name()).ReadAll(), "hello world\n");
         }
         UNIT_ASSERT(!NFs::Exists(path));
     }

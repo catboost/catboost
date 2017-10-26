@@ -74,27 +74,37 @@ namespace NCudaLib {
 
     template <EPtrType From, EPtrType To>
     struct TMemoryCopyKind {
-        static const cudaMemcpyKind Kind = cudaMemcpyDefault;
+        static constexpr cudaMemcpyKind Kind() {
+            return cudaMemcpyDefault;
+        }
     };
 
     template <>
     struct TMemoryCopyKind<CudaDevice, CudaDevice> {
-        static const cudaMemcpyKind Kind = cudaMemcpyDeviceToDevice;
+        static constexpr cudaMemcpyKind Kind() {
+            return cudaMemcpyDeviceToDevice;
+        }
     };
 
     template <>
     struct TMemoryCopyKind<CudaDevice, CudaHost> {
-        static const cudaMemcpyKind Kind = cudaMemcpyDeviceToHost;
+        static constexpr cudaMemcpyKind Kind() {
+            return cudaMemcpyDeviceToHost;
+        }
     };
 
     template <>
     struct TMemoryCopyKind<CudaHost, CudaDevice> {
-        static const cudaMemcpyKind Kind = cudaMemcpyHostToDevice;
+        static constexpr cudaMemcpyKind Kind() {
+            return cudaMemcpyHostToDevice;
+        }
     };
 
     template <>
     struct TMemoryCopyKind<CudaHost, CudaHost> {
-        static const cudaMemcpyKind Kind = cudaMemcpyHostToHost;
+        static constexpr cudaMemcpyKind Kind() {
+            return cudaMemcpyHostToHost;
+        }
     };
 
     template <EPtrType>
@@ -151,13 +161,13 @@ namespace NCudaLib {
     public:
         template <class T>
         static void CopyMemoryAsync(const T* from, T* to, ui64 size, const TCudaStream& stream) {
-            CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, TMemoryCopyKind<From, To>::Kind, stream.GetStream()));
+            CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, TMemoryCopyKind<From, To>::Kind(), stream.GetStream()));
         }
 
         template <class T>
-        static void CopyMemory(T* from, T* to, ui64 size) {
+        static void CopyMemorySync(T* from, T* to, ui64 size) {
             TCudaStream& stream = GetDefaultStream();
-            TMemoryCopier<From, To>::CopyMemoryAsync(from, to, size, stream);
+            CopyMemoryAsync<T>(from, to, size, stream);
             stream.Synchronize();
         }
     };
@@ -189,7 +199,7 @@ namespace NCudaLib {
     public:
         TCudaDeviceProperties(const TCudaDeviceProperties& other) = default;
 
-        TCudaDeviceProperties(cudaDeviceProp props)
+        explicit TCudaDeviceProperties(cudaDeviceProp props)
             : Props(props)
         {
         }

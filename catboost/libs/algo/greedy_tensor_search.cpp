@@ -96,6 +96,9 @@ struct TCandidatesInfoList {
     explicit TCandidatesInfoList(const TCandidateInfo& oneCandidate) {
         Candidates.emplace_back(oneCandidate);
     }
+    // All candidates here are either float or one-hot, or have the same
+    // projection.
+    // TODO(annaveronika): put projection out, because currently it's not clear.
     yvector<TCandidateInfo> Candidates;
     bool ShouldDropCtrAfterCalc = false;
 };
@@ -208,7 +211,7 @@ static void AddTreeCtrs(const TTrainData& data,
             TProjection proj = baseProj;
             proj.AddCatFeature(cf);
 
-            if (proj.IsRedundant() || proj.CatFeatures.ysize() > ctx->Params.CtrParams.MaxCtrComplexity) {
+            if (proj.IsRedundant() || proj.GetFullProjectionLength() > (size_t)ctx->Params.CtrParams.MaxCtrComplexity) {
                 continue;
             }
 
@@ -241,6 +244,47 @@ static double CalcScoreStDevMult(int learnSampleCount, double modelLength) {
     return modelLeft / (1 + modelLeft);
 }
 
+static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
+                                      int sampleCount,
+                                      int threadCount,
+                                      const std::function<bool(const TProjection&)>& IsInCache,
+                                      TCandidateList* candList) {
+    size_t maxMemoryForOneCtr = 0;
+    size_t fullNeededMemoryForCtrs = 0;
+    for (auto& candSubList : *candList) {
+        const auto firstSubCandidate = candSubList.Candidates[0].SplitCandidate;
+        if (firstSubCandidate.Type != ESplitType::OnlineCtr ||!IsInCache(firstSubCandidate.Ctr.Projection)) {
+            candSubList.ShouldDropCtrAfterCalc = false;
+            continue;
+        }
+        const size_t neededMem = sampleCount * candSubList.Candidates.size();
+        maxMemoryForOneCtr = Max<size_t>(neededMem, maxMemoryForOneCtr);
+        fullNeededMemoryForCtrs += neededMem;
+    }
+
+    auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
+    if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
+        MATRIXNET_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
+        const float GB = (ui64)1024 * 1024 * 1024;
+        MATRIXNET_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
+        size_t currentNonDroppableMemory = currentMemoryUsage;
+        size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
+        for (auto& candSubList : *candList) {
+            const auto firstSubCandidate = candSubList.Candidates[0].SplitCandidate;
+            if (firstSubCandidate.Type != ESplitType::OnlineCtr || !IsInCache(firstSubCandidate.Ctr.Projection)) {
+                candSubList.ShouldDropCtrAfterCalc = false;
+                continue;
+            }
+            candSubList.ShouldDropCtrAfterCalc = true;
+            const size_t neededMem = sampleCount * candSubList.Candidates.size();
+            if (currentNonDroppableMemory + neededMem + maxMemForOtherThreadsApprox <= memoryLimit) {
+                candSubList.ShouldDropCtrAfterCalc = false;
+                currentNonDroppableMemory += neededMem;
+            }
+        }
+    }
+}
+
 void GreedyTensorSearch(const TTrainData& data,
                         const yvector<int>& splitCounts,
                         double modelLength,
@@ -261,46 +305,14 @@ void GreedyTensorSearch(const TTrainData& data,
         MATRIXNET_INFO_LOG << "\n";
     }
     for (int curDepth = 0; curDepth < ctx->Params.Depth; ++curDepth) {
-        auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
         TCandidateList candList;
         AddFloatFeatures(data, ctx, &candList);
         AddOneHotFeatures(data, ctx, &candList);
         AddSimpleCtrs(data, fold, ctx, &candList);
         AddTreeCtrs(data, currentTree, fold, ctx, &candList);
 
-        size_t maxMemoryForOneCtr = 0;
-        size_t fullNeededMemoryForCtrs = 0;
-        for (auto& candSubList : candList) {
-            const auto firstSubCandidate = candSubList.Candidates[0].SplitCandidate;
-            if (firstSubCandidate.Type != ESplitType::OnlineCtr || !fold->GetCtrRef(firstSubCandidate.Ctr.Projection).Feature.empty()) {
-                candSubList.ShouldDropCtrAfterCalc = false;
-                continue;
-            }
-            const size_t neededMem = data.GetSampleCount() * candSubList.Candidates.size();
-            maxMemoryForOneCtr = Max<size_t>(neededMem, maxMemoryForOneCtr);
-            fullNeededMemoryForCtrs += neededMem;
-        }
-
-        if (fullNeededMemoryForCtrs + currentMemoryUsage > ctx->Params.UsedRAMLimit) {
-            MATRIXNET_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
-            const float GB = (ui64)1024 * 1024 * 1024;
-            MATRIXNET_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
-            size_t currentNonDroppableMemory = currentMemoryUsage;
-            size_t maxMemForOtherThreadsApprox = (ui64)(ctx->Params.ThreadCount - 1) * maxMemoryForOneCtr;
-            for (auto& candSubList : candList) {
-                const auto firstSubCandidate = candSubList.Candidates[0].SplitCandidate;
-                if (firstSubCandidate.Type != ESplitType::OnlineCtr || !fold->GetCtrRef(firstSubCandidate.Ctr.Projection).Feature.empty()) {
-                    candSubList.ShouldDropCtrAfterCalc = false;
-                    continue;
-                }
-                candSubList.ShouldDropCtrAfterCalc = true;
-                const size_t neededMem = data.GetSampleCount() * candSubList.Candidates.size();
-                if (currentNonDroppableMemory + neededMem + maxMemForOtherThreadsApprox <= ctx->Params.UsedRAMLimit) {
-                    candSubList.ShouldDropCtrAfterCalc = false;
-                    currentNonDroppableMemory += neededMem;
-                }
-            }
-        }
+        auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
+        SelectCtrsToDropAfterCalc(ctx->Params.UsedRAMLimit, data.GetSampleCount(), ctx->Params.ThreadCount, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation
         AssignRandomWeights(data.LearnSampleCount, ctx, fold);

@@ -99,7 +99,7 @@ void Out<TUtf16String>(IOutputStream& o, const TUtf16String& w) {
 #define DEF_CONV_CHR(type)                      \
     template <>                                 \
     void Out<type>(IOutputStream & o, type p) { \
-        o.Write((char)p);            \
+        o.Write((char)p);                       \
     }
 
 #define DEF_CONV_NUM(type, len)                                   \

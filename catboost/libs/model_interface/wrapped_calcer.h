@@ -20,7 +20,7 @@ public:
 
     double CalcFlat(const std::vector<float>& features) {
         double result;
-        const float* ptr = &features[0];
+        const float* ptr = features.data();
         if (!CalcModelPredictionFlat(CalcerHolder.get(), 1, &ptr, features.size(), &result, 1)) {
             throw std::runtime_error(GetErrorString());
         }

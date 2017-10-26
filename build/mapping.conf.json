@@ -7,48 +7,48 @@
             "cygwin": "173608101", 
             "linux": "173608153"
         }, 
+        "165154198": {
+            "win32": "381014512", 
+            "darwin": "381014469", 
+            "linux": "381014579"
+        }, 
         "123001907": {
             "Darwin-14.5.0-x86_64-i386-64bit": "289123862", 
             "Linux-4.4.52-25-x86_64-with-Ubuntu-10.04-lucid": "289123926"
         }, 
-        "127828138": {
-            "Darwin-14.5.0-x86_64-i386-64bit": "300008394"
-        }, 
         "48027726": {
             "linux": "103177511"
         }, 
-        "160175767": {
-            "win32": "370455097", 
-            "darwin": "370454997", 
-            "linux": "370455160"
+        "127828138": {
+            "Darwin-14.5.0-x86_64-i386-64bit": "300008394"
+        }, 
+        "166133829": {
+            "win32": "383138114", 
+            "darwin": "383138073", 
+            "linux": "383138158"
         }, 
         "153033679": {
             "Linux-4.4.52-25-x86_64-with-Ubuntu-12.04-precise": "354857069"
         }, 
-        "160112146": {
-            "win32": "370305379", 
-            "darwin": "370305311", 
-            "linux": "370305457"
-        }, 
         "70007402": {}
     }, 
     "resources": {
-        "370305311": "https://storage.mds.yandex.net/get-devtools-opensource/233854/370305311", 
-        "370305457": "https://storage.mds.yandex.net/get-devtools-opensource/233854/370305457", 
-        "289123926": "https://storage.mds.yandex.net/get-devtools-opensource/233854/289123926", 
-        "103177511": "https://storage.mds.yandex.net/get-devtools-opensource/250854/103177511", 
+        "381014579": "https://storage.mds.yandex.net/get-devtools-opensource/479623/381014579", 
+        "173608136": "https://storage.mds.yandex.net/get-devtools-opensource/250854/173608136", 
+        "289123926": "https://storage.mds.yandex.net/get-devtools-opensource/479623/289123926", 
+        "103177511": "https://storage.mds.yandex.net/get-devtools-opensource/233854/103177511", 
+        "381014469": "https://storage.mds.yandex.net/get-devtools-opensource/373962/381014469", 
+        "354857069": "https://storage.mds.yandex.net/get-devtools-opensource/250854/354857069", 
+        "383138114": "https://storage.mds.yandex.net/get-devtools-opensource/250854/383138114", 
+        "173608153": "https://storage.mds.yandex.net/get-devtools-opensource/250854/173608153", 
+        "300008394": "https://storage.mds.yandex.net/get-devtools-opensource/233854/300008394", 
+        "383138073": "https://storage.mds.yandex.net/get-devtools-opensource/250854/383138073", 
+        "173608101": "https://storage.mds.yandex.net/get-devtools-opensource/479623/173608101", 
+        "173608113": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608113", 
+        "289123862": "https://storage.mds.yandex.net/get-devtools-opensource/250854/289123862", 
+        "383138158": "https://storage.mds.yandex.net/get-devtools-opensource/250854/383138158", 
         "173608117": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608117", 
-        "370454997": "https://storage.mds.yandex.net/get-devtools-opensource/233854/370454997", 
-        "354857069": "https://storage.mds.yandex.net/get-devtools-opensource/373962/354857069", 
-        "173608153": "https://storage.mds.yandex.net/get-devtools-opensource/471749/173608153", 
-        "300008394": "https://storage.mds.yandex.net/get-devtools-opensource/471749/300008394", 
-        "173608113": "https://storage.mds.yandex.net/get-devtools-opensource/373962/173608113", 
-        "173608101": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608101", 
-        "370455097": "https://storage.mds.yandex.net/get-devtools-opensource/250854/370455097", 
-        "370305379": "https://storage.mds.yandex.net/get-devtools-opensource/233854/370305379", 
-        "173608136": "https://storage.mds.yandex.net/get-devtools-opensource/373962/173608136", 
-        "370455160": "https://storage.mds.yandex.net/get-devtools-opensource/250854/370455160", 
-        "289123862": "https://storage.mds.yandex.net/get-devtools-opensource/250854/289123862",
+        "381014512": "https://storage.mds.yandex.net/get-devtools-opensource/233854/381014512", 
         "360800403": "https://storage.mds.yandex.net/get-devtools-opensource/479623/360800403"
     }
 }

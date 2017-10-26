@@ -3,7 +3,7 @@
 #include <util/memory/blob.h>
 #include <util/generic/yexception.h>
 
-TFileInput::TFileInput(const TString& path)
+TUnbufferedFileInput::TUnbufferedFileInput(const TString& path)
     : File_(path, OpenExisting | RdOnly | Seq)
 {
     if (!File_.IsOpen()) {
@@ -11,7 +11,7 @@ TFileInput::TFileInput(const TString& path)
     }
 }
 
-TFileInput::TFileInput(const TFile& file)
+TUnbufferedFileInput::TUnbufferedFileInput(const TFile& file)
     : File_(file)
 {
     if (!File_.IsOpen()) {
@@ -19,11 +19,11 @@ TFileInput::TFileInput(const TFile& file)
     }
 }
 
-size_t TFileInput::DoRead(void* buf, size_t len) {
+size_t TUnbufferedFileInput::DoRead(void* buf, size_t len) {
     return File_.Read(buf, len);
 }
 
-size_t TFileInput::DoSkip(size_t len) {
+size_t TUnbufferedFileInput::DoSkip(size_t len) {
     if (len < 384) {
         /* Base implementation calls DoRead, which results in one system call
          * instead of three as in fair skip implementation. For small sizes
@@ -42,7 +42,7 @@ size_t TFileInput::DoSkip(size_t len) {
     return newPos - oldPos;
 }
 
-TFileOutput::TFileOutput(const TString& path)
+TUnbufferedFileOutput::TUnbufferedFileOutput(const TString& path)
     : File_(path, CreateAlways | WrOnly | Seq)
 {
     if (!File_.IsOpen()) {
@@ -50,7 +50,7 @@ TFileOutput::TFileOutput(const TString& path)
     }
 }
 
-TFileOutput::TFileOutput(const TFile& file)
+TUnbufferedFileOutput::TUnbufferedFileOutput(const TFile& file)
     : File_(file)
 {
     if (!File_.IsOpen()) {
@@ -58,13 +58,13 @@ TFileOutput::TFileOutput(const TFile& file)
     }
 }
 
-TFileOutput::~TFileOutput() = default;
+TUnbufferedFileOutput::~TUnbufferedFileOutput() = default;
 
-void TFileOutput::DoWrite(const void* buf, size_t len) {
+void TUnbufferedFileOutput::DoWrite(const void* buf, size_t len) {
     File_.Write(buf, len);
 }
 
-void TFileOutput::DoFlush() {
+void TUnbufferedFileOutput::DoFlush() {
     if (File_.IsOpen()) {
         File_.Flush();
     }

@@ -31,7 +31,7 @@ namespace NKernelHost {
 
 template <class TMapping>
 inline void BootstrapPointsFilter(const TCudaBuffer<float, TMapping>& weights,
-                                  TCudaBuffer<uint, TMapping>& status,
+                                  TCudaBuffer<ui32, TMapping>& status,
                                   ui64 stream) {
     using TKernel = NKernelHost::TFilterKernel;
     LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status);

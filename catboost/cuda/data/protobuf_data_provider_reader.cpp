@@ -1,5 +1,8 @@
 #include "protobuf_data_provider_reader.h"
 
+using namespace NCatboostCuda;
+
+
 void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
                                                 yvector<TFeatureColumnPtr>& features,
                                                 ui32 docCount) {

@@ -95,7 +95,7 @@ inline TString JoinRange(const TStringBuf delim, const TIter beg, const TIter en
     TString out;
     if (beg != end) {
         size_t total = ::NPrivate::GetLength(*beg);
-        for (TIter pos = beg; ++pos != end; ) {
+        for (TIter pos = beg; ++pos != end;) {
             total += delim.length() + ::NPrivate::GetLength(*pos);
         }
         if (total > 0) {
@@ -103,7 +103,7 @@ inline TString JoinRange(const TStringBuf delim, const TIter beg, const TIter en
         }
 
         AppendToString(out, *beg);
-        for (TIter pos = beg; ++pos != end; ) {
+        for (TIter pos = beg; ++pos != end;) {
             AppendJoinNoReserve(out, delim, *pos);
         }
     }
@@ -128,11 +128,9 @@ TString JoinSeq(const TStringBuf delim, const TContainer& data) {
 */
 
 template <typename T>
-inline
-std::enable_if_t<
-       !std::is_same<std::decay_t<T>, TString>::value
-    && !std::is_same<std::decay_t<T>, const char*>::value,
-TString>
+inline std::enable_if_t<
+    !std::is_same<std::decay_t<T>, TString>::value && !std::is_same<std::decay_t<T>, const char*>::value,
+    TString>
 JoinSeq(const TStringBuf delim, const std::initializer_list<T>& data) {
     return JoinRange(delim, data.begin(), data.end());
 }

@@ -11,10 +11,12 @@ public:
     virtual int GetBinFeatureIdx(const TOneHotFeature& feature) const = 0;
 };
 
-class ICtrProvider {
+class ICtrProvider : public TThrRefBase {
 public:
     virtual ~ICtrProvider() {
     }
+
+    virtual bool HasNeededCtrs(const yvector<TModelCtr>& neededCtrs) const = 0;
 
     virtual void CalcCtrs(
         const yvector<TModelCtr>& neededCtrs,

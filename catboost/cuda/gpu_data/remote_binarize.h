@@ -10,14 +10,14 @@ namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Feature;
-        TBinarizationDescription BinarizationDescription;
+        NCatboostCuda::TBinarizationDescription BinarizationDescription;
         TCudaBufferPtr<float> Dst;
 
     public:
         TFindBordersKernel() = default;
 
         TFindBordersKernel(TCudaBufferPtr<const float> feature,
-                           TBinarizationDescription description,
+                           NCatboostCuda::TBinarizationDescription description,
                            TCudaBufferPtr<float> dst)
             : Feature(feature)
             , BinarizationDescription(description)
@@ -81,7 +81,7 @@ namespace NKernelHost {
 
 template <class TFloat, class TMapping>
 inline void ComputeBordersOnDevice(const TCudaBuffer<TFloat, TMapping>& feature,
-                                   const TBinarizationDescription& description,
+                                   const NCatboostCuda::TBinarizationDescription& description,
                                    TCudaBuffer<float, TMapping>& dst,
                                    ui32 stream = 0) {
     LaunchKernels<NKernelHost::TFindBordersKernel>(feature.NonEmptyDevices(), stream, feature, description, dst);

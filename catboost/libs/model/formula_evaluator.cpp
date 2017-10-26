@@ -41,7 +41,9 @@ namespace NCatBoost {
         for (int i = prevCatFeatureIdx + 1; i < featureCount; ++i) {
             FloatFeatureFlatIndex.push_back(i);
         }
-        ModelClassCount = RepackLeaves(model.LeafValues, &LeafValues);
+        ModelClassCount = static_cast<size_t>(model.ApproxDimension);
+        auto realClassCount = RepackLeaves(model.LeafValues, &LeafValues);
+        CB_ENSURE(realClassCount == ModelClassCount, "ApproxDimension != real model class count: " << realClassCount << " != " << ModelClassCount);
         yvector<TModelSplit> usedSplits;
         {
             std::set<TModelSplit> allSplits;
@@ -145,7 +147,7 @@ namespace NCatBoost {
                                 size_t treeStart,
                                 size_t treeEnd,
                                 NArrayRef::TArrayRef<double> results) const {
-        const auto expectedFlatVecSize = FlatFeatureVectorExpectedSize();
+        const auto expectedFlatVecSize = GetFlatFeatureVectorExpectedSize();
         for (const auto& flatFeaturesVec : features) {
             CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
                       "insufficient flat features vector size: " << flatFeaturesVec.size()
@@ -277,7 +279,7 @@ namespace NCatBoost {
     yvector<yvector<double>> TFormulaEvaluator::CalcTreeIntervalsFlat(
         const yvector<NArrayRef::TConstArrayRef<float>>& features,
         size_t incrementStep) const {
-        const auto expectedFlatVecSize = FlatFeatureVectorExpectedSize();
+        const auto expectedFlatVecSize = GetFlatFeatureVectorExpectedSize();
         for (const auto& flatFeaturesVec : features) {
             CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
                       "insufficient flat features vector size: " << flatFeaturesVec.size()
@@ -293,5 +295,28 @@ namespace NCatBoost {
             features.size(),
             incrementStep
         );
+    }
+
+    TFormulaEvaluator TFormulaEvaluator::CopyTreeRange(const size_t begin, const size_t end) const {
+        TFormulaEvaluator result = *this;
+        result.TruncateModel(begin, end);
+        return result;
+    }
+
+    namespace {
+        template<typename T>
+        void TruncateVector(const size_t begin, const size_t end, yvector<T>* vector) {
+            yvector<T> tmp;
+            tmp.reserve(end - begin);
+            for (auto iter = vector->begin() + begin; iter != vector->begin() + end; ++iter) {
+                tmp.emplace_back(std::move(*iter));
+            }
+            vector->swap(tmp);
+        }
+    }
+
+    void TFormulaEvaluator::TruncateModel(const size_t begin, const size_t end) {
+        TruncateVector(begin, end, &BinaryTrees);
+        TruncateVector(begin, end, &LeafValues);
     }
 }

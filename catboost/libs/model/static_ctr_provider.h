@@ -13,6 +13,8 @@ public:
         : CtrData(ctrData)
     {}
 
+    virtual bool HasNeededCtrs(const yvector<TModelCtr>& neededCtrs) const;
+
     void CalcCtrs(
         const yvector<TModelCtr>& neededCtrs,
         const NArrayRef::TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features

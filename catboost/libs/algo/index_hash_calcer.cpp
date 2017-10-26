@@ -58,7 +58,7 @@ std::pair<size_t, size_t> ReindexHash(size_t learnSize,
         for (const auto& it : reindexHash) {
             freqValList.emplace_back(it.Key(), it.Value());
         }
-        reindexHash.Clear();
+        reindexHash.MakeEmpty();
         std::nth_element(freqValList.begin(), freqValList.begin() + topSize, freqValList.end(),
                          [](const TFreqPair& a, const TFreqPair& b) {
                              return a.second > b.second;

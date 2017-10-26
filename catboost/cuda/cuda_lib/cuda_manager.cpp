@@ -8,7 +8,7 @@ void TCudaManager::CreateProfiler() {
 }
 
 TCudaManager::~TCudaManager() {
-    CB_ENSURE(Profiler == nullptr);
+    Y_VERIFY(Profiler == nullptr, "Reset profile before stopping cuda manager");
 }
 
 void TCudaManager::ResetProfiler(bool printInfo) {

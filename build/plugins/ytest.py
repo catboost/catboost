@@ -64,6 +64,10 @@ def validate_test(kw):
         project_path = kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith("maps") and not project_path.startswith("devtools"):
             errors.append("BOOSTTEST is not allowed here")
+    elif kw.get('SCRIPT-REL-PATH') == 'ytest.py':
+        project_path = kw.get('BUILD-FOLDER-PATH', "")
+        if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools") and not project_path.startswith("robot/gemini/pygemini/test"):
+            errors.append("FLEUR test is not allowed here")
 
     size_timeout = collections.OrderedDict(sorted({
         "SMALL": 60,
@@ -148,6 +152,16 @@ def validate_test(kw):
     if kw.get("USE_ARCADIA_PYTHON") == "yes" and kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
 
+    if kw.get('SPLIT-FACTOR'):
+        if kw.get('FORK-MODE') == 'none':
+            errors.append('SPLIT_FACTOR must be use with FORK_TESTS() or FORK_SUBTESTS() macro')
+        try:
+            value = int(kw.get('SPLIT-FACTOR'))
+            if value <= 0:
+                raise ValueError("must be > 0")
+        except ValueError as e:
+            errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
+
     return errors
 
 
@@ -231,6 +245,7 @@ def onadd_ytest(unit, *args):
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
+        'BLOB': unit.get('TEST_BLOB_DATA') or '',
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
 
@@ -402,7 +417,7 @@ def onadd_pytest_bin(unit, *args):
     add_test_to_dart(unit, "pytest.bin")
 
 
-def add_test_to_dart(unit, test_type):
+def add_test_to_dart(unit, test_type, binary_path=None):
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
     if timeout:
@@ -420,7 +435,8 @@ def add_test_to_dart(unit, test_type):
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
-    binary_path = os.path.join(unit.path(), unit.filename())
+    if not binary_path:
+        binary_path = os.path.join(unit.path(), unit.filename())
     _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd)
 
 
@@ -594,6 +610,8 @@ def _dump_test(
             'PYTHON-PATHS': serialize_list(python_paths),
             'TEST-CWD': test_cwd or '',
             'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
+            'BUILD-FOLDER-PATH': strip_roots(unit.path()),
+            'BLOB': unit.get('TEST_BLOB_DATA') or '',
         }
         if binary_path:
             test_record['BINARY-PATH'] = strip_roots(binary_path)
@@ -606,6 +624,7 @@ def _dump_test(
 def onsetup_pytest_bin(unit, *args):
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON') == "yes"
     if use_arcadia_python:
+        unit.onresource(['-', 'PY_MAIN={}'.format("library.python.pytest.main:main")])  # XXX
         unit.onadd_pytest_bin()
     else:
         unit.onno_platform()
@@ -619,7 +638,5 @@ def onrun(unit, *args):
 
 
 def onsetup_exectest(unit, *args):
-    unit.onresource([
-        "-", "/exectest/commands={}".format(base64.b64encode(unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", "")))
-    ])
-    add_test_to_dart(unit, "pytest.exectest")
+    unit.set(["TEST_BLOB_DATA", base64.b64encode(unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", ""))])
+    add_test_to_dart(unit, "exectest", binary_path=os.path.join(unit.path(), unit.filename()).replace(".pkg", ""))

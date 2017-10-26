@@ -75,10 +75,14 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
     class A {};
     class B {};
 
-    void checkAdl1(TArrayRef<A>) {}
-    void checkAdl1(TArrayRef<B>) {}
-    void checkAdl2(TArrayRef<const A>) {}
-    void checkAdl2(TArrayRef<const B>) {}
+    void checkAdl1(TArrayRef<A>) {
+    }
+    void checkAdl1(TArrayRef<B>) {
+    }
+    void checkAdl2(TArrayRef<const A>) {
+    }
+    void checkAdl2(TArrayRef<const B>) {
+    }
 
     SIMPLE_UNIT_TEST(TestArrayRefCtorAdl) {
         /* No checks here, the code should simply compile. */
@@ -94,11 +98,16 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
     }
 
     SIMPLE_UNIT_TEST(TestSlice) {
-        TArrayRef<const int> r({ 1, 2, 3 });
-        TArrayRef<const int> s = r.Slice(2);
+        TArrayRef<const int> r0({1, 2, 3});
+        TArrayRef<const int> s0 = r0.Slice(2);
 
-        UNIT_ASSERT_VALUES_EQUAL(s.size(), 1);
-        UNIT_ASSERT_VALUES_EQUAL(s[0], 3);
+        UNIT_ASSERT_VALUES_EQUAL(s0.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(s0[0], 3);
+
+        TArrayRef<const int> r1({1, 2, 3, 4});
+        TArrayRef<const int> s1 = r1.Slice(2, 1);
+
+        UNIT_ASSERT_VALUES_EQUAL(s1.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(s1[0], 3);
     }
 }
-

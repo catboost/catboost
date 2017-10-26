@@ -28,7 +28,7 @@ def split(lst, limit):
         yield bucket
 
 
-def onresource(unit, *args):
+def onfat_resource(unit, *args):
     unit.onpeerdir(['library/resource'])
 
     # Since the maximum length of lpCommandLine string for CreateProcess is 8kb (windows) characters,
@@ -50,32 +50,49 @@ def gen_ro_flags(unit):
     return []
 
 
-def onro_resource(unit, *args):
+def onresource(unit, *args):
     unit.onpeerdir(['library/resource'])
 
     for part_args in split(args, 8000):
         srcs_gen = []
         raw_gen = []
         raw_inputs = []
-        ro_gen = []
+        compressed = []
+        compressed_input = []
+        compressed_output = []
         for p, n in iterpair(part_args):
-            if p == '-':
-                raw_gen += [p, n]
-                continue
             if unit.enabled('ARCH_AARCH64') or unit.enabled('ARCH_ARM') or unit.enabled('ARCH_PPC64LE'):
                 raw_gen += [p, n]
-                raw_inputs.append(p)
+                if p != '-':
+                    raw_inputs.append(p)
                 continue
             lid = '_' + pathid(p + n + unit.path())
-            srcs_gen.append('{}={}'.format(n, lid))
-            output = lid + '.roresource'
-            unit.onrun_program(['tools/rescompressor', p, output, 'IN', p, 'OUT_NOAUTO', output])
-            ro_gen.append(output)
-        if ro_gen:
-            output = listid(part_args) + '.asm'
-            unit.onbuiltin_python(['build/scripts/gen_rodata.py', '--out-file', output, '--yasm', '${tool:"contrib/tools/yasm"}'] + gen_ro_flags(unit) + ro_gen +
-                                  ['IN'] + ro_gen + ['OUTPUT_INCLUDES'] + ro_gen + ['OUT_NOAUTO', output])
-            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + output)])
+            output = lid + '.rodata'
+            if p == '-':
+                n, p = n.split('=', 1)
+                compressed += ['-', p, output]
+            else:
+                compressed += [p, output]
+                compressed_input.append(p)
+                compressed_output.append(output)
+            srcs_gen.append('{}={}'.format(lid, n))
+        if compressed:
+            lid = listid(part_args)
+            fake_yasm = '_' + lid + '.yasm'
+            cmd = ['tools/rescompressor', fake_yasm] + gen_ro_flags(unit) + compressed
+            if compressed_input:
+                cmd += ['IN'] + compressed_input
+            cmd += ['OUT_NOAUTO', fake_yasm] + compressed_output
+            unit.onrun_program(cmd)
+            if compressed_output:
+                fake_out = lid + '.yasm'
+                cmd = ['build/scripts/fs_tools.py', 'link_or_copy', fake_yasm, fake_out] + ['IN', fake_yasm]
+                cmd += ['OUTPUT_INCLUDES'] + compressed_output
+                cmd += ['OUT_NOAUTO', fake_out]
+                unit.onbuiltin_python(cmd)
+            else:
+                fake_out = fake_yasm
+            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + fake_out)])
         if srcs_gen:
             output = listid(part_args) + '.cpp'
             unit.onrun_program(['tools/rorescompiler', output] + srcs_gen + ['OUT_NOAUTO', output])

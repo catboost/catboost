@@ -4,10 +4,10 @@
 
 namespace NKernel {
 
-    __global__ void PoissonRandImpl(ui64* seeds, uint seedSize,
+    __global__ void PoissonRandImpl(ui64* seeds, ui32 seedSize,
                                     const float* alpha, int* result)
     {
-        uint i = blockIdx.x * blockDim.x + threadIdx.x;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
             ui64 s = seeds[i];
             result[i] = NextPoisson(&s, alpha[i]);
@@ -16,17 +16,17 @@ namespace NKernel {
         }
     }
 
-    void PoissonRand(ui64* seeds, uint size, const float* alphas, int* result, TCudaStream stream)
+    void PoissonRand(ui64* seeds, ui32 size, const float* alphas, int* result, TCudaStream stream)
     {
-        const uint blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
                                    TArchProps::MaxBlockCount());
         PoissonRandImpl<<<numBlocks,blockSize, 0, stream>>>(seeds, size, alphas, result);
     }
 
-    __global__ void GaussianRandImpl(ui64* seeds, uint seedSize, float* result)
+    __global__ void GaussianRandImpl(ui64* seeds, ui32 seedSize, float* result)
     {
-        uint i = blockIdx.x * blockDim.x + threadIdx.x;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
             ui64 s = seeds[i];
             result[i] = NextNormal(&s);
@@ -35,17 +35,17 @@ namespace NKernel {
         }
     }
 
-    void GaussianRand(ui64* seeds, uint size, float* result, TCudaStream stream)
+    void GaussianRand(ui64* seeds, ui32 size, float* result, TCudaStream stream)
     {
-        const uint blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
                                    TArchProps::MaxBlockCount());
         GaussianRandImpl<<<numBlocks,blockSize, 0, stream>>>(seeds, size, result);
     }
 
-    __global__ void UniformRandImpl(ui64* seeds, uint seedSize, float* result)
+    __global__ void UniformRandImpl(ui64* seeds, ui32 seedSize, float* result)
     {
-        uint i = blockIdx.x * blockDim.x + threadIdx.x;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
             ui64 s = seeds[i];
             result[i] = NextUniform(&s);
@@ -54,18 +54,18 @@ namespace NKernel {
         }
     }
 
-    void UniformRand(ui64* seeds, uint size, float* result, TCudaStream stream)
+    void UniformRand(ui64* seeds, ui32 size, float* result, TCudaStream stream)
     {
-        const uint blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
                                    TArchProps::MaxBlockCount());
         UniformRandImpl<<<numBlocks, blockSize, 0, stream>>>(seeds, size, result);
     }
 
     __global__ void GammaRandImpl(ui64* seeds, const float* alphas,
-                                  const float* scale, uint seedSize, float* result)
+                                  const float* scale, ui32 seedSize, float* result)
     {
-        uint i = blockIdx.x * blockDim.x + threadIdx.x;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
             ui64 s = seeds[i];
             result[i] = NextGamma(&s, alphas[i], scale[i]);
@@ -75,18 +75,18 @@ namespace NKernel {
     }
 
     void GammaRand(ui64* seeds, const float* alphas, const float* scale,
-                   uint size, float* result, TCudaStream stream)
+                   ui32 size, float* result, TCudaStream stream)
     {
-        const uint blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
                                    TArchProps::MaxBlockCount());
         GammaRandImpl<<<numBlocks, blockSize, 0, stream>>>(seeds, alphas, scale, size, result);
     }
 
     __global__ void BetaRandImpl(ui64* seeds, const float* alphas,
-                                 const float* betas, uint seedSize, float* result)
+                                 const float* betas, ui32 seedSize, float* result)
     {
-        uint i = blockIdx.x * blockDim.x + threadIdx.x;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
             ui64 s = seeds[i];
             result[i] = NextBeta(&s, alphas[i], betas[i]);
@@ -96,10 +96,10 @@ namespace NKernel {
     }
 
     void BetaRand(ui64* seeds, const float* alphas, const float* betas,
-                  uint size, float* result, TCudaStream stream)
+                  ui32 size, float* result, TCudaStream stream)
     {
-        const uint blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
                                    TArchProps::MaxBlockCount());
         BetaRandImpl<<<numBlocks, blockSize, 0, stream>>>(seeds, alphas, betas, size, result);
     }

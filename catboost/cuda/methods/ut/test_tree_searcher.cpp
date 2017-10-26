@@ -12,6 +12,7 @@
 #include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
 
 using namespace std;
+using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     template <class TGridPolicy>
@@ -29,7 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         yvector<TDataPartition> parts;
         partitioning.Read(parts);
 
-        yvector<uint> cindex;
+        yvector<ui32> cindex;
         ui32 numLeaves = 1 << depth;
         ui32 bitsPerFold = IntLog2(foldCount);
         ui32 foldsStripe = 1 << bitsPerFold;
@@ -74,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             ui32 idx = inds[part.Offset + i];
                             UNIT_ASSERT(idx < dsSize);
                             UNIT_ASSERT((feature.Offset * dsSize + idx) < compressedIndex.size());
-                            uint ci = cindexPtr[idx];
+                            ui32 ci = cindexPtr[idx];
 
                             if (((ci >> feature.Shift) & feature.Mask) > s1.size()) {
                                 Cout << "Feature  " << f << " " << dev << " " << dataSet->FeatureCount() << " " << Endl;

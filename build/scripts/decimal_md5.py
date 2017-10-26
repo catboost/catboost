@@ -51,7 +51,9 @@ def main():
 
     if args.fixed_output:
         try:
-            checksum=int(args.fixed_output)
+            bitmask = (1 << args.lower_bits) - 1
+            fmt = '{:0%dd}' % len(str(bitmask))
+            checksum = fmt.format(int(args.fixed_output) & bitmask)
         except ValueError:
             raise ValueError("decimal_md5: bad value passed via --fixed-output: %s" % args.fixed_output)
         print_code(str(checksum))

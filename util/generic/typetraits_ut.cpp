@@ -68,12 +68,6 @@ namespace {
         TEmptyClass Base;
     };
 
-    class TWithBitwiseComparableFlag {
-    public:
-        TWithBitwiseComparableFlag() = default;
-        TWithBitwiseComparableFlag(const TWithBitwiseComparableFlag&) = default;
-    };
-
     class TWithBitwiseCopyableFlag {
     public:
         TWithBitwiseCopyableFlag() = default;
@@ -93,10 +87,9 @@ namespace {
     };
 }
 
-Y_DECLARE_TYPE_FLAGS(TWithBitwiseComparableFlag, NTypeTrait::BITWISE_COMPARABLE);
 Y_DECLARE_TYPE_FLAGS(TWithBitwiseCopyableFlag, NTypeTrait::BITWISE_COPYABLE);
 Y_DECLARE_TYPE_FLAGS(TWithBitwiseSerializableFlag, NTypeTrait::BITWISE_SERIALIZABLE);
-Y_DECLARE_TYPE_FLAGS(TWithAllTypeTraitFlags, NTypeTrait::BITWISE_SERIALIZABLE | NTypeTrait::BITWISE_COPYABLE | NTypeTrait::BITWISE_COMPARABLE);
+Y_DECLARE_TYPE_FLAGS(TWithAllTypeTraitFlags, NTypeTrait::BITWISE_SERIALIZABLE | NTypeTrait::BITWISE_COPYABLE);
 
 #define ASSERT_SAME_TYPE(x, y)                     \
     {                                              \
@@ -161,11 +154,6 @@ SIMPLE_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_arithmetic<T&>::value);
         UNIT_ASSERT(!std::is_arithmetic<T&&>::value);
         UNIT_ASSERT(!std::is_arithmetic<T*>::value);
-
-        UNIT_ASSERT(TTypeTraits<T>::IsValueType);
-        UNIT_ASSERT(TTypeTraits<const T>::IsValueType);
-        UNIT_ASSERT(TTypeTraits<volatile T>::IsValueType);
-        UNIT_ASSERT(TTypeTraits<const volatile T>::IsValueType);
 
         bool a;
 
@@ -276,7 +264,6 @@ SIMPLE_UNIT_TEST_SUITE(TTypeTraitsTest) {
 
     template <typename T>
     void TestAllTypeTraitFlagsSet() {
-        UNIT_ASSERT(TTypeTraits<T>::IsBitwiseComparable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
         UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
     }
@@ -289,11 +276,9 @@ SIMPLE_UNIT_TEST_SUITE(TTypeTraitsTest) {
         TestAllTypeTraitFlagsSet<long>();
         TestAllTypeTraitFlagsSet<TPodClass>();
 
-        UNIT_ASSERT(TTypeTraits<TWithBitwiseComparableFlag>::IsBitwiseComparable);
         UNIT_ASSERT(TTypeTraits<TWithBitwiseSerializableFlag>::IsBitwiseSerializable);
         UNIT_ASSERT(TTypeTraits<TWithBitwiseCopyableFlag>::IsBitwiseCopyable);
 
-        UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseComparable);
         UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseSerializable);
         UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseCopyable);
 

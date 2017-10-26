@@ -262,6 +262,7 @@ namespace NCudaLib {
             FreeDevices();
             ResetProfiler(true);
             State = nullptr;
+            GetDevicesProvider().Reset();
         }
 
         void StopChild();

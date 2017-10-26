@@ -12,7 +12,7 @@ namespace NElf {
 const TStringBuf Magic = AsStringBuf("\x7f""ELF");
 
 bool IsElf(const TString& path) {
-    TFileInput in(path);
+    TUnbufferedFileInput in(path);
     char buffer[Magic.size()];
     in.Read(buffer, Magic.size());
     return Magic == TStringBuf(buffer, Magic.size());

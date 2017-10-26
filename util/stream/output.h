@@ -144,7 +144,6 @@ protected:
      */
     virtual void DoWriteV(const TPart* parts, size_t count);
 
-
     /**
      * Writes a single character into this stream. Can be overridden with a faster implementation.
      *

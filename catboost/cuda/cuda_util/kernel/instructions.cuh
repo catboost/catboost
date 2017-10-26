@@ -2,16 +2,16 @@
 #include <contrib/libs/cub/cub/thread/thread_load.cuh>
 
 
-__forceinline__ __device__ uint bfe(uint a, uint start, uint length)
+__forceinline__ __device__ ui32 bfe(ui32 a, ui32 start, ui32 length)
 {
-    uint res;
+    ui32 res;
     asm("bfe.u32 %0, %1, %2, %3;" : "=r"(res) : "r"(a), "r"(start), "r"(length));
     return res;
 }
 
-__forceinline__ __device__ uint load_noncached(const uint * ptr)
+__forceinline__ __device__ ui32 load_noncached(const ui32 * ptr)
 {
-    uint res;
+    ui32 res;
     asm("ld.global.cg.u32 %0, [%1];" : "=r"(res) : "l"(ptr));
     return res;
 }

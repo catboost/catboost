@@ -13,7 +13,12 @@ def onllvm_bc(unit, *args):
     for x in free_args:
         rel_path = rootrel_arc_src(x, unit)
         bc_path = '${ARCADIA_BUILD_ROOT}/' + skip_build_root(rel_path) + '.bc'
-        llvm_compile = unit.onllvm_compile_c if x.endswith('.c') else unit.onllvm_compile_cxx
+        if x.endswith('.c'):
+            llvm_compile = unit.onllvm_compile_c
+        elif x.endswith('.ll'):
+            llvm_compile = unit.onllvm_compile_ll
+        else:
+            llvm_compile = unit.onllvm_compile_cxx
         llvm_compile([rel_path, bc_path])
         bcs.append(bc_path)
     unit.onllvm_link([merged_bc] + bcs)

@@ -7,8 +7,8 @@ namespace NKernel {
     __forceinline__ __device__
 
     ui64 AdvanceSeed(ui64* seed) {
-        uint v = *seed >> 32;
-        uint u = *seed & 0xFFFFFFFF;
+        ui32 v = *seed >> 32;
+        ui32 u = *seed & 0xFFFFFFFF;
         v = 36969 * (v & 0xFFFF) + (v >> 16);
         u = 18000 * (u & 0xFFFF) + (u >> 16);
         *seed = ((ui64) v << 32) | (ui64) u;
@@ -17,16 +17,16 @@ namespace NKernel {
 
     __forceinline__ __device__ double NextUniform(ui64* seed) {
         ui64 x = AdvanceSeed(seed);
-        uint v = x >> 32;
-        uint u = x & 0xFFFFFFFF;
+        ui32 v = x >> 32;
+        ui32 u = x & 0xFFFFFFFF;
 
         return ((v << 16) + u) * 2.328306435996595e-10;
     }
 
     __forceinline__ __device__ float NextUniformF(ui64* seed) {
         ui64 x = AdvanceSeed(seed);
-        uint v = x >> 32;
-        uint u = x & 0xFFFFFFFF;
+        ui32 v = x >> 32;
+        ui32 u = x & 0xFFFFFFFF;
 
         return ((v << 16) + u) * 2.328306435996595e-10f;
     }

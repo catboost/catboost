@@ -182,35 +182,6 @@ namespace NKernelHost {
             NKernel::Reverse<T>(Data.Get(), Data.Size(), stream.GetStream());
         }
     };
-
-    //
-    //
-    //    template <typename T>
-    //    class TReduceKernel {
-    //    private:
-    //        T* Data;
-    //        ui64 BlockSize;
-    //        ui64 BlockCount;
-    //
-    //    public:
-    //        TReduceKernel() = default;
-    //
-    //        TReduceKernel(T* data, ui64 blockSize, ui64 blockCount)
-    //            : Data(data)
-    //            , BlockSize(blockSize)
-    //            , BlockCount(blockCount)
-    //        {
-    //        }
-    //
-    //        SAVELOAD(Data, BlockSize, BlockCount);
-    //
-    //        void Run(cudaStream_t streamId = nullptr) const {
-    //            (void)streamId;
-    //            Reduce<T>(Data, (ui32)BlockSize, (ui32)BlockCount);
-    //        }
-    //    };
-    //
-    //
 }
 
 template <typename T, class TMapping>

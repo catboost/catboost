@@ -318,7 +318,7 @@ public:
      */
     TMaybe<int> GetExitCode() const;
 
-/**
+    /**
      * @brief get id of underlying process
      * @note depends on os: pid_t on UNIX, HANDLE on win
      *

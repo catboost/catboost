@@ -28,8 +28,7 @@ yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
                                             int resultDimension,
                                             TCommonContext* ctx);
 
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const NCatBoost::TFormulaEvaluator& calcer,
+yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
                                          const TPool& pool,
                                          const EPredictionType predictionType,
                                          int begin,
@@ -37,16 +36,7 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
                                          NPar::TLocalExecutor& executor);
 
 
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const NCatBoost::TFormulaEvaluator& calcer,
-                                         const TPool& pool,
-                                         bool verbose = false,
-                                         const EPredictionType predictionType = EPredictionType::RawFormulaVal,
-                                         int begin = 0,
-                                         int end = 0,
-                                         int threadCount = 1);
-
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
+yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
                                          const TPool& pool,
                                          bool verbose = false,
                                          const EPredictionType predictionType = EPredictionType::RawFormulaVal,

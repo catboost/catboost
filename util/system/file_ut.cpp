@@ -43,7 +43,7 @@ public:
             f2.Write("67890", 5);
         }
 
-        UNIT_ASSERT_EQUAL(TFileInput(tmp2.Name()).ReadAll(), "1234567890");
+        UNIT_ASSERT_EQUAL(TUnbufferedFileInput(tmp2.Name()).ReadAll(), "1234567890");
     }
 
     inline void TestAppend() {
@@ -62,7 +62,7 @@ public:
             f.Write("89", 2);
         }
 
-        UNIT_ASSERT_EQUAL(TFileInput(tmp.Name()).ReadAll(), "123456786789");
+        UNIT_ASSERT_EQUAL(TUnbufferedFileInput(tmp.Name()).ReadAll(), "123456786789");
     }
 
     inline void TestReWrite() {
@@ -80,7 +80,7 @@ public:
             f.Write("6789", 4);
         }
 
-        UNIT_ASSERT_EQUAL(TFileInput(tmp.Name()).ReadAll(), "67895678");
+        UNIT_ASSERT_EQUAL(TUnbufferedFileInput(tmp.Name()).ReadAll(), "67895678");
     }
 
     inline void TestResize() {
@@ -101,7 +101,7 @@ public:
             UNIT_ASSERT_EQUAL(file.GetPosition(), 3);
         }
 
-        const TString data = TFileInput(tmp.Name()).ReadAll();
+        const TString data = TUnbufferedFileInput(tmp.Name()).ReadAll();
         UNIT_ASSERT_EQUAL(data.length(), 12);
         UNIT_ASSERT(data.StartsWith("12345"));
     }

@@ -101,10 +101,10 @@ namespace NPrivate {
     };
 }
 
-#define Y_DECLARE_SINGLETON_FRIEND()            \
-    template <class T, size_t P>                \
-    friend T* ::NPrivate::SingletonInt();       \
-    template <class T, size_t P>                \
+#define Y_DECLARE_SINGLETON_FRIEND()      \
+    template <class T, size_t P>          \
+    friend T* ::NPrivate::SingletonInt(); \
+    template <class T, size_t P>          \
     friend T* ::NPrivate::SingletonBase(T*&);
 
 template <class T>

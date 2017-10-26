@@ -115,3 +115,12 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
         }
     }
 }
+
+bool TStaticCtrProvider::HasNeededCtrs(const yvector<TModelCtr>& neededCtrs) const {
+    for (const auto& ctr : neededCtrs) {
+        if (!CtrData.LearnCtrs.has(ctr)) {
+            return false;
+        }
+    }
+    return true;
+}

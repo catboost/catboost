@@ -589,6 +589,14 @@ class TWideUtilTest: public TTestBase {
     UNIT_TEST(TestCountWideChars);
     UNIT_TEST(TestIsValidUTF16);
     UNIT_TEST(TestIsStringASCII);
+    UNIT_TEST(TestIsLowerWordStr);
+    UNIT_TEST(TestIsUpperWordStr);
+    UNIT_TEST(TestIsTitleStr);
+    UNIT_TEST(TestIsLowerStr);
+    UNIT_TEST(TestIsUpperStr);
+    UNIT_TEST(TestToLowerStr);
+    UNIT_TEST(TestToUpperStr);
+    UNIT_TEST(TestToTitleStr);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -960,6 +968,718 @@ public:
                     }
                 }
             }
+        }
+    }
+
+    void TestIsLowerWordStr() {
+        UNIT_ASSERT(IsLowerWord(TWtringBuf()));
+        UNIT_ASSERT(IsLowerWord(UTF8ToWide("")));
+        UNIT_ASSERT(IsLowerWord(UTF8ToWide("test")));
+        UNIT_ASSERT(IsLowerWord(UTF8ToWide("тест"))); // "тест" is "test" in russian (cyrrilic)
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("тест тест")));
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("тест100500")));
+
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("Test")));
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("tesT")));
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("tEst")));
+
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("Тест")));
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("теСт")));
+        UNIT_ASSERT(!IsLowerWord(UTF8ToWide("тесТ")));
+    }
+
+    void TestIsUpperWordStr() {
+        UNIT_ASSERT(IsUpperWord(TWtringBuf()));
+        UNIT_ASSERT(IsUpperWord(UTF8ToWide("")));
+        UNIT_ASSERT(IsUpperWord(UTF8ToWide("TEST")));
+        UNIT_ASSERT(IsUpperWord(UTF8ToWide("ТЕСТ")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("тест тест")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("тест100500")));
+
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("Test")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("tesT")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("tEst")));
+
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("Тест")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("теСт")));
+        UNIT_ASSERT(!IsUpperWord(UTF8ToWide("тесТ")));
+    }
+
+    void TestIsTitleStr() {
+        UNIT_ASSERT(!IsTitleWord(TWtringBuf()));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("t")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("й")));
+        UNIT_ASSERT(IsTitleWord(UTF8ToWide("T")));
+        UNIT_ASSERT(IsTitleWord(UTF8ToWide("Й")));
+        UNIT_ASSERT(IsTitleWord(UTF8ToWide("Test")));
+        UNIT_ASSERT(IsTitleWord(UTF8ToWide("Тест")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("тест тест")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("тест100500")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("Тест тест")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("Тест100500")));
+
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("tesT")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("tEst")));
+
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("теСт")));
+        UNIT_ASSERT(!IsTitleWord(UTF8ToWide("тесТ")));
+    }
+
+    void TestIsLowerStr() {
+        UNIT_ASSERT(IsLower(TWtringBuf()));
+        UNIT_ASSERT(IsLower(UTF8ToWide("")));
+        UNIT_ASSERT(IsLower(UTF8ToWide("test")));
+        UNIT_ASSERT(IsLower(UTF8ToWide("тест"))); // "тест" is "test" in russian (cyrrilic)
+        UNIT_ASSERT(IsLower(UTF8ToWide("тест тест")));
+        UNIT_ASSERT(IsLower(UTF8ToWide("тест100500")));
+
+        UNIT_ASSERT(!IsLower(UTF8ToWide("Test")));
+        UNIT_ASSERT(!IsLower(UTF8ToWide("tesT")));
+        UNIT_ASSERT(!IsLower(UTF8ToWide("tEst")));
+
+        UNIT_ASSERT(!IsLower(UTF8ToWide("Тест")));
+        UNIT_ASSERT(!IsLower(UTF8ToWide("теСт")));
+        UNIT_ASSERT(!IsLower(UTF8ToWide("тесТ")));
+    }
+
+    void TestIsUpperStr() {
+        UNIT_ASSERT(IsUpper(TWtringBuf()));
+        UNIT_ASSERT(IsUpper(UTF8ToWide("")));
+        UNIT_ASSERT(IsUpper(UTF8ToWide("TEST")));
+        UNIT_ASSERT(IsUpper(UTF8ToWide("ТЕСТ")));
+        UNIT_ASSERT(IsUpper(UTF8ToWide("ТЕСТ ТЕСТ")));
+        UNIT_ASSERT(IsUpper(UTF8ToWide("ТЕСТ100500")));
+
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("Test")));
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("tesT")));
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("tEst")));
+
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("Тест")));
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("теСт")));
+        UNIT_ASSERT(!IsUpper(UTF8ToWide("тесТ")));
+    }
+
+    void TestToLowerStr() {
+        // In these test and test for `ToUpper` and `ToTitle` we are checking that string keep
+        // pointing to the same piece of memory we are doing it the following way:
+        //
+        // TUtf16String s = ...
+        // const auto copy = s;
+        // ...
+        // UNIT_ASSERT(s.data() == copy.data())
+        //
+        // It saves us a couple lines (we are reusing `copy` later) and if one day `TString` will
+        // become non-refcounted we'll need to rewrite it to something like:
+        //
+        // TUtf16String s = ...
+        // const auto* const data = s.data();
+        // const auto length = s.length();
+        // ...
+        // UNIT_ASSERT(s.data() == data);
+        // UNIT_ASSERT(s.length() == length);
+        {
+            TUtf16String s;
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String lower;
+
+            UNIT_ASSERT(!ToLower(s));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(!ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            TUtf16String s = UTF8ToWide("");
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String lower;
+
+            UNIT_ASSERT(!ToLower(s));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(!ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            TUtf16String s;
+            const auto copy = s;
+            const TUtf16String lower;
+
+            UNIT_ASSERT(!ToLower(s, 100500));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToLowerRet(copy, 100500) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 100500) == lower);
+        }
+        {
+            TUtf16String s;
+            const auto copy = s;
+            const TUtf16String lower;
+
+            UNIT_ASSERT(!ToLower(s, 100500, 1111));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToLowerRet(copy, 100500, 1111) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 100500, 1111) == lower);
+        }
+        {
+            auto s = UTF8ToWide("Й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto lower = UTF8ToWide("й");
+
+            UNIT_ASSERT(ToLower(s));
+            UNIT_ASSERT(s == lower);
+
+            UNIT_ASSERT(ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            auto s = UTF8ToWide("й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto lower = UTF8ToWide("й");
+
+            UNIT_ASSERT(!ToLower(s));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(!ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            auto s = UTF8ToWide("тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto lower = UTF8ToWide("тест");
+
+            UNIT_ASSERT(!ToLower(s));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(!ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            auto s = UTF8ToWide("Тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto lower = UTF8ToWide("тест");
+
+            UNIT_ASSERT(ToLower(s));
+            UNIT_ASSERT(s == lower);
+
+            UNIT_ASSERT(ToLower(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLower(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            TUtf16String s = UTF8ToWide("тЕст");
+            const auto copy = s;
+            const auto lower = UTF8ToWide("тест");
+
+            UNIT_ASSERT(ToLower(s));
+            UNIT_ASSERT(s == UTF8ToWide("тест"));
+
+            UNIT_ASSERT(ToLowerRet(copy) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy)) == lower);
+        }
+        {
+            auto s = UTF8ToWide("тЕст");
+            const auto copy = s;
+            const auto lower = UTF8ToWide("тЕст");
+
+            UNIT_ASSERT(!ToLower(s, 2));
+            UNIT_ASSERT(s == lower);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToLowerRet(copy, 2) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 2) == lower);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto lower = UTF8ToWide("тест");
+
+            UNIT_ASSERT(ToLower(s, 2));
+            UNIT_ASSERT(s == lower);
+
+            UNIT_ASSERT(ToLowerRet(copy, 2) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 2) == lower);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto lower = UTF8ToWide("теСт");
+
+            UNIT_ASSERT(!ToLower(s, 3, 1));
+            UNIT_ASSERT(s == copy);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToLowerRet(copy, 3, 1) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 3, 1) == lower);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto lower = UTF8ToWide("теСт");
+
+            UNIT_ASSERT(!ToLower(s, 3, 100500));
+            UNIT_ASSERT(s == copy);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToLowerRet(copy, 3, 100500) == lower);
+            UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 3, 100500) == lower);
+        }
+    }
+
+    void TestToUpperStr() {
+        {
+            TUtf16String s;
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String upper;
+
+            UNIT_ASSERT(!ToUpper(s));
+            UNIT_ASSERT(s == upper);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(!ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("");
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String upper;
+
+            UNIT_ASSERT(!ToUpper(s));
+            UNIT_ASSERT(s == upper);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(!ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            TUtf16String s;
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String upper;
+
+            UNIT_ASSERT(!ToUpper(s, 100500));
+            UNIT_ASSERT(s == upper);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(!ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy, 100500) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 100500) == upper);
+        }
+        {
+            TUtf16String s;
+            const auto copy = s;
+            const TUtf16String upper;
+
+            UNIT_ASSERT(!ToUpper(s, 100500, 1111));
+            UNIT_ASSERT(s == upper);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToUpperRet(copy, 100500, 1111) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 100500, 1111) == upper);
+        }
+        {
+            auto s = UTF8ToWide("й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto upper = UTF8ToWide("Й");
+
+            UNIT_ASSERT(ToUpper(s));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("Й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto upper = UTF8ToWide("Й");
+
+            UNIT_ASSERT(!ToUpper(s));
+            UNIT_ASSERT(s == copy);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(!ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto upper = UTF8ToWide("ТЕСТ");
+
+            UNIT_ASSERT(ToUpper(s));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("Тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto upper = UTF8ToWide("ТЕСТ");
+
+            UNIT_ASSERT(ToUpper(s));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("тЕст");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto upper = UTF8ToWide("ТЕСТ");
+
+            UNIT_ASSERT(ToUpper(s));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpper(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpper(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy)) == upper);
+        }
+        {
+            auto s = UTF8ToWide("тЕст");
+            const auto copy = s;
+            const auto upper = UTF8ToWide("тЕСТ");
+
+            UNIT_ASSERT(ToUpper(s, 2));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy, 2) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 2) == upper);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto upper = UTF8ToWide("теСТ");
+
+            UNIT_ASSERT(ToUpper(s, 2));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy, 2) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 2) == upper);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto upper = UTF8ToWide("теСТ");
+
+            UNIT_ASSERT(ToUpper(s, 3, 1));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy, 3, 1) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 3, 1) == upper);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto upper = UTF8ToWide("теСТ");
+
+            UNIT_ASSERT(ToUpper(s, 3, 100500));
+            UNIT_ASSERT(s == upper);
+
+            UNIT_ASSERT(ToUpperRet(copy, 3, 100500) == upper);
+            UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 3, 100500) == upper);
+        }
+    }
+
+    void TestToTitleStr() {
+        {
+            TUtf16String s;
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String title;
+
+            UNIT_ASSERT(!ToTitle(s));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(!ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("");
+            auto writableCopy = s;
+            const auto copy = s;
+            const TUtf16String title;
+
+            UNIT_ASSERT(!ToTitle(s));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(!ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            TUtf16String s;
+            const auto copy = s;
+            const TUtf16String title;
+
+            UNIT_ASSERT(!ToTitle(s, 100500));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            TUtf16String s;
+            const auto copy = s;
+            const TUtf16String title;
+
+            UNIT_ASSERT(!ToTitle(s, 100500, 1111));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto title = UTF8ToWide("Й");
+
+            UNIT_ASSERT(ToTitle(s));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("Й");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto title = UTF8ToWide("Й");
+
+            UNIT_ASSERT(!ToTitle(s));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(!ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto title = UTF8ToWide("Тест");
+
+            UNIT_ASSERT(ToTitle(s));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("Тест");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto title = UTF8ToWide("Тест");
+
+            UNIT_ASSERT(!ToTitle(s));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(!ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("тЕст");
+            auto writableCopy = s;
+            const auto copy = s;
+            const auto title = UTF8ToWide("Тест");
+
+            UNIT_ASSERT(ToTitle(s));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitle(writableCopy.Detach(), writableCopy.size()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitle(copy.data(), copy.size(), writableCopy.Detach()));
+            UNIT_ASSERT(writableCopy == title);
+
+            UNIT_ASSERT(ToTitleRet(copy) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
+        }
+        {
+            auto s = UTF8ToWide("тЕст");
+            const auto copy = s;
+            const auto title = UTF8ToWide("тЕСт");
+
+            UNIT_ASSERT(ToTitle(s, 2));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitleRet(copy, 2) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy), 2) == title);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto title = UTF8ToWide("теСт");
+
+            UNIT_ASSERT(!ToTitle(s, 2));
+            UNIT_ASSERT(s == title);
+            UNIT_ASSERT(s.data() == copy.data());
+
+            UNIT_ASSERT(ToTitleRet(copy, 2) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy), 2) == title);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto title = UTF8ToWide("теСТ");
+
+            UNIT_ASSERT(ToTitle(s, 3, 1));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitleRet(copy, 3, 1) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy), 3, 1) == title);
+        }
+        {
+            auto s = UTF8ToWide("теСт");
+            const auto copy = s;
+            const auto title = UTF8ToWide("теСТ");
+
+            UNIT_ASSERT(ToTitle(s, 3, 100500));
+            UNIT_ASSERT(s == title);
+
+            UNIT_ASSERT(ToTitleRet(copy, 3, 100500) == title);
+            UNIT_ASSERT(ToTitleRet(TWtringBuf(copy), 3, 100500) == title);
         }
     }
 };

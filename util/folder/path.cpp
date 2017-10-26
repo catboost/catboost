@@ -171,14 +171,6 @@ TFsPath::TFsPath(const TStringBuf path)
     VerifyPath(Path_);
 }
 
-TFsPath::TFsPath(const TString& path, const TString& realPath)
-    : Path_(path)
-    , RealPath_(realPath)
-{
-    CheckDefined();
-    Y_ASSERT(RealPath_.length() > 0);
-}
-
 TFsPath::TFsPath(const char* path)
     : Path_(path)
 {
@@ -255,18 +247,12 @@ void TFsPath::Touch() const {
 // XXX: move implementation to util/somewhere.
 TFsPath TFsPath::RealPath() const {
     CheckDefined();
-    if (RealPath_)
-        return RealPath_;
-    RealPath_ = ::RealPath(*this);
-    return TFsPath(RealPath_, RealPath_);
+    return ::RealPath(*this);
 }
 
 TFsPath TFsPath::RealLocation() const {
     CheckDefined();
-    if (RealPath_)
-        return RealPath_;
-    RealPath_ = ::RealLocation(*this);
-    return TFsPath(RealPath_, RealPath_);
+    return ::RealLocation(*this);
 }
 
 TFsPath TFsPath::ReadLink() const {
@@ -313,13 +299,15 @@ void TFsPath::DeleteIfExists() const {
 
 void TFsPath::MkDir(const int mode) const {
     CheckDefined();
-    int r = Mkdir(~*this, mode);
-    if (r != 0)
-        ythrow TIoSystemError() << "could not create directory " << Path_;
+    if (!Exists()) {
+        int r = Mkdir(~*this, mode);
+        if (r != 0)
+            ythrow TIoSystemError() << "could not create directory " << Path_;
+    }
 }
 
 void TFsPath::MkDirs(const int mode) const {
-    // TODO: must check if it is a directory
+    CheckDefined();
     if (!Exists()) {
         Parent().MkDirs(mode);
         MkDir(mode);

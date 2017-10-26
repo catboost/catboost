@@ -48,7 +48,8 @@
 struct ITrampoLine {
     virtual ~ITrampoLine() = default;
 
-    virtual void DoRun() = 0;
+    virtual void DoRun();
+    virtual void DoRunNaked();
 };
 
 struct TContClosure {

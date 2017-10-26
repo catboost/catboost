@@ -35,7 +35,7 @@ struct TBinarizedPool {
     ui32 SamplesPerQuery;
     ui32 NumFeatures;
     ui32 NumCatFeatures = 1;
-    yvector<uint> CompressedIndex;
+    yvector<ui32> CompressedIndex;
     //
     //
 
@@ -57,29 +57,29 @@ struct TBinarizedPool {
         }
     }
 
-    void Add(yvector<ui8> bins, uint i) {
-        uint mask = GetMask(i);
-        uint offset = NumSamples * (i / 4);
+    void Add(yvector<ui8> bins, ui32 i) {
+        ui32 mask = GetMask(i);
+        ui32 offset = NumSamples * (i / 4);
         for (ui32 doc = 0; doc < NumSamples; ++doc) {
-            uint& x = CompressedIndex[offset + doc];
+            ui32& x = CompressedIndex[offset + doc];
             Binarize(mask, bins[doc], x);
         }
     }
 
-    inline uint GetMask(int i) {
-        uint shift = (uint)(24 - ((8 * i) % 32));
-        uint mask = (uint)(0xFF << shift);
+    inline ui32 GetMask(int i) {
+        ui32 shift = (ui32)(24 - ((8 * i) % 32));
+        ui32 mask = (ui32)(0xFF << shift);
         return mask;
     }
 
-    inline void Binarize(const uint mask, const ui8 bin, uint& x) {
+    inline void Binarize(const ui32 mask, const ui8 bin, ui32& x) {
         x &= ~mask;
-        uint shift = CountTrailingZeroBits(mask);
+        ui32 shift = CountTrailingZeroBits(mask);
         x |= bin << shift;
     }
 };
 
-void GenerateTestPool(TBinarizedPool& pool, const uint binarization, ui32 catFeatures = 1, ui32 seed = 0);
+void GenerateTestPool(TBinarizedPool& pool, const ui32 binarization, ui32 catFeatures = 1, ui32 seed = 0);
 void SavePoolToFile(TBinarizedPool& pool, const char* filename);
 void SavePoolCDToFile(const char* filename, ui32 catFeatures = 1);
 

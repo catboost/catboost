@@ -4,7 +4,7 @@
 namespace NKernel {
 
     void WriteCompressedSplit(TCFeature feature, ui32 binIdx,
-                              const uint* compressedIndex, ui32 dataSetSize,
+                              const ui32* compressedIndex, ui32 dataSetSize,
                               const ui32* indices, int size,
                               ui64* compressedBits,
                               TCudaStream stream);

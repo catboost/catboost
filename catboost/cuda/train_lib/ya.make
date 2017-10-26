@@ -1,6 +1,5 @@
 LIBRARY()
 
-
 NO_WERROR()
 
 
@@ -8,7 +7,8 @@ NO_WERROR()
 SRCS(
     train.cpp
     application_options.cpp
-   )
+    json_options.cpp
+)
 
 PEERDIR(
     catboost/cuda/cuda_lib
@@ -27,7 +27,6 @@ PEERDIR(
     library/grid_creator
 )
 
-ALLOCATOR(LF)
 
 CUDA_NVCC_FLAGS(
     --expt-relaxed-constexpr
@@ -38,3 +37,5 @@ CUDA_NVCC_FLAGS(
     -gencode arch=compute_61,code=compute_61
     --ptxas-options=-v
 )
+
+END()

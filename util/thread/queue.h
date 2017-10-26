@@ -97,6 +97,7 @@ public:
             try {
                 Q_->DestroyThreadSpecificResource(Data_);
             } catch (...) {
+                // ¯\_(ツ)_/¯
             }
         }
 
@@ -266,6 +267,7 @@ public:
         try {
             this->Stop();
         } catch (...) {
+            // ¯\_(ツ)_/¯
         }
     }
 

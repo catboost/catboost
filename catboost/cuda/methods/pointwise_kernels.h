@@ -16,7 +16,7 @@ namespace NKernelHost {
     class TComputeHistKernel;
 
     template <>
-    class TComputeHistKernel<TBinaryFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::TBinaryFeatureGridPolicy>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> BFeatures;
         TCudaBufferPtr<const ui32> Cindex;
@@ -74,7 +74,7 @@ namespace NKernelHost {
     };
 
     template <>
-    class TComputeHistKernel<TByteFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::TByteFeatureGridPolicy>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> NbFeatures;
         TCudaBufferPtr<const ui32> Cindex;
@@ -127,7 +127,7 @@ namespace NKernelHost {
     };
 
     template <>
-    class TComputeHistKernel<THalfByteFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::THalfByteFeatureGridPolicy>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> NbFeatures;
         TCudaBufferPtr<const ui32> Cindex;

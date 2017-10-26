@@ -7,6 +7,7 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 
 using namespace std;
+using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 

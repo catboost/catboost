@@ -34,6 +34,7 @@ TFullModel MultiValueFloatModel() {
             {10., 11., 12., 13.},
             {20., 21., 22., 23.},
         };
+        model.ApproxDimension = 3;
         model.LeafValues.emplace_back(std::move(leafs));
     }
     return model;

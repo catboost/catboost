@@ -1217,7 +1217,7 @@ catboost.predict <- function(model, pool,
         stop("Expected catboost.Pool, got: ", class(pool))
 
     calcer <- .Call("CatBoostGetCalcer_R", model$handle)
-    prediction <- .Call("CatBoostPredictMulti_R", model$handle, calcer, pool,
+    prediction <- .Call("CatBoostPredictMulti_R", calcer, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
     prediction_columns <- length(prediction) / nrow(pool)
     if (prediction_columns != 1) {
@@ -1285,7 +1285,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
             stop('StopIteration')
-        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, calcer, pool,
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", calcer, pool,
                                          verbose, 'RawFormulaVal', current_tree_count - eval_period, min(current_tree_count, ntree_end), thread_count))
         approx <<- approx + current_approx
         prediction_columns <- length(approx) / nrow(pool)

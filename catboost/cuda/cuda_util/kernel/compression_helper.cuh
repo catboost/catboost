@@ -61,7 +61,7 @@ namespace NKernel {
             return CeilDivide<ui32>(key, KeysPerBlock());
         }
 
-        __forceinline__ __device__ ui32 Read(const __restrict__ TStorageType* data,
+        __forceinline__ __device__ ui32 Read(const TStorageType* __restrict data,
                                              ui32 key) const {
             const ui32 blockOffset = key / KeysPerBlock();
             key %= KeysPerBlock();

@@ -150,6 +150,12 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     if (testPool.Docs.GetDocCount() != 0) {
         CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
         CB_ENSURE(testPool.Docs.GetBaselineDimension() == learnPool.Docs.GetBaselineDimension(), "train pool baseline dimension == " << learnPool.Docs.GetBaselineDimension() << " and test pool baseline dimension == " << testPool.Docs.GetBaselineDimension());
+
+        if (!IsPairwiseError(ctx.Params.LossFunction)) {
+            float minTestTarget = *MinElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
+            float maxTestTarget = *MaxElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
+            CB_ENSURE(minTestTarget != maxTestTarget, "All targets in test are equal.");
+        }
     }
     learnPool.Docs.Append(testPool.Docs);
     const int factorsCount = learnPool.Docs.GetFactorsCount();
@@ -265,7 +271,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
                 ctrsForModelCalcTasks.emplace_back(ctr);
             }
         }
-
+        MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << ctrsForModelCalcTasks.size() << " unique ctrs" << Endl;
         ctx.LocalExecutor.ExecRange([&](int i) {
             auto& ctr = ctrsForModelCalcTasks[i];
             TCtrValueTable* resTable = &modelPtr->CtrCalcerData.LearnCtrs.at(ctr);
@@ -279,6 +285,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
                 ctx.Params.CounterCalcMethod,
                 resTable);
         }, 0, ctrsForModelCalcTasks.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
     } else {
         yvector<TModelCtrBase> usedCtrs;
         {
@@ -294,6 +301,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
             usedCtrs.assign(ctrsSet.begin(), ctrsSet.end());
         }
         TStreamedFullModelSaver saver(outputModelPath, usedCtrs.size(), ctx.LearnProgress.Model, oneHotFeaturesInfo);
+        MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrs.size() << " unique ctrs started" << Endl;
         ctx.LocalExecutor.ExecRange([&](int i) {
             auto& ctr = usedCtrs[i];
             TCtrValueTable resTable;
@@ -307,6 +315,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
                 ctx.Params.CounterCalcMethod,
                 &resTable);
             saver.SaveOneCtr(ctr, resTable);
+            MATRIXNET_DEBUG_LOG << "Finished CTR number: " << i << Endl;
         }, 0, usedCtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }

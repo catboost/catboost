@@ -4,7 +4,7 @@
 using namespace std;
 
 void GenerateTestPool(TBinarizedPool& pool,
-                      const uint binarization,
+                      const ui32 binarization,
                       ui32 catFeatures, ui32 seed) {
     TRandom rand(seed);
     const ui32 numSamples = 25527;
@@ -35,7 +35,7 @@ void GenerateTestPool(TBinarizedPool& pool,
     pool.NumFeatures = numFeatures;
     pool.Features.resize(numFeatures);
     for (ui32 f = 0; f < numFeatures; ++f) {
-        uint binsCount = ((f % 10 == 1) ? 2 : (ui32)(2 + rand.NextUniformL() % (binarization - 1)));
+        ui32 binsCount = ((f % 10 == 1) ? 2 : (ui32)(2 + rand.NextUniformL() % (binarization - 1)));
         if (f % 20 == 0 && (binsCount > 15)) {
             binsCount = 15; //for halfByte tests
         }

@@ -16,6 +16,11 @@ namespace NLastGetoptPrivate {
        TString ts = GetProgramSvnVersion();
        ts += "\n";
        ts += GetBuildInfo();
+       TString sandboxTaskId = GetSandboxTaskId();
+       if (sandboxTaskId != TString("0")) {
+           ts += "\nSandbox task id: ";
+           ts += sandboxTaskId;
+       }
        return ts;
     }
 

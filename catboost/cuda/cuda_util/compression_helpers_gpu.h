@@ -100,7 +100,7 @@ template <typename TStorageType>
 inline ui32 CompressedSize(ui32 count, ui32 uniqueValues) {
     const ui32 bitsPerKey = IntLog2(uniqueValues);
     const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
-    return NHelpers::CeilDivide(count, keysPerBlock) * NKernel::CompressCudaBlockSize();
+    return ::NHelpers::CeilDivide(count, keysPerBlock) * NKernel::CompressCudaBlockSize();
 }
 
 template <typename TStorageType, typename TMapping>
@@ -109,7 +109,7 @@ inline TMapping CompressedSize(const TCudaBuffer<ui32, TMapping>& src, ui32 uniq
 
     return src.GetMapping().Transform([&](const TSlice& devSlice) -> ui64 {
         const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
-        return NHelpers::CeilDivide((ui32)devSlice.Size(), keysPerBlock) * NKernel::CompressCudaBlockSize();
+        return ::NHelpers::CeilDivide((ui32)devSlice.Size(), keysPerBlock) * NKernel::CompressCudaBlockSize();
     });
 };
 

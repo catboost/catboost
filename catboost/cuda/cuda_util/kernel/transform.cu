@@ -20,7 +20,7 @@ namespace NKernel {
 
     template<typename T>
     void AddVector(T *x, const T *y, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         AddVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
@@ -40,7 +40,7 @@ namespace NKernel {
 
     template<typename T>
     void AddVector(T *x, const T y, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         AddVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
@@ -60,7 +60,7 @@ namespace NKernel {
 
     template<typename T>
     void SubtractVector(T *x, const T *y, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
@@ -81,7 +81,7 @@ namespace NKernel {
 
     template<typename T>
     void MultiplyVector(T *x, const T *y, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         MultiplyVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
@@ -100,7 +100,7 @@ namespace NKernel {
 
     template<typename T>
     void MultiplyVector(T *x, const T c, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         MultiplyVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, c, size);
@@ -121,7 +121,7 @@ namespace NKernel {
 
     template<typename T>
     void DivideVector(T *x, const T *y, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
         DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
@@ -139,7 +139,7 @@ namespace NKernel {
 
     template<typename T>
     void ExpVector(T *x, ui64 size, TCudaStream stream) {
-        const uint blockSize = 512;
+        const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         ExpVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, size);
     }
@@ -198,7 +198,7 @@ namespace NKernel {
 
     template<typename T, typename Index>
     void Scatter(T *dst, const T *src, const Index* map, ui64 size, TCudaStream stream) {
-        const uint blockSize = 256;
+        const ui32 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         if (numBlocks) {
             ScatterImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size);
@@ -218,7 +218,7 @@ namespace NKernel {
 
     template<typename T, typename Index>
     void ScatterWithMask(T *dst, const T *src, const Index* map, ui64 size, Index mask, TCudaStream stream) {
-        const uint blockSize = 256;
+        const ui32 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         if (numBlocks) {
             ScatterWithMaskImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, mask);
@@ -240,7 +240,7 @@ namespace NKernel {
 
     template<typename T>
     void Reverse(T* data, ui64 size, TCudaStream stream) {
-        const uint blockSize = 256;
+        const ui32 blockSize = 256;
         const ui64 numBlocks = min(((size + 1) / 2 + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         ReverseImpl<T> << < numBlocks, blockSize, 0, stream >> > (data, size);
     }
@@ -256,55 +256,55 @@ namespace NKernel {
 
     template void AddVector<ui32>(ui32 *x, const ui32 y, ui64 size, TCudaStream stream);
 
-    template void AddVector<uint>(uint *x, const uint *y, ui64 size, TCudaStream stream);
+    template void AddVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
 
     template void SubtractVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
 
     template void SubtractVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
 
-    template void SubtractVector<uint>(uint *x, const uint *y, ui64 size, TCudaStream stream);
+    template void SubtractVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
 
     template void MultiplyVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
 
     template void MultiplyVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
 
-    template void MultiplyVector<uint>(uint *x, const uint *y, ui64 size, TCudaStream stream);
+    template void MultiplyVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
 
     template void MultiplyVector<float>(float *x, const float y, ui64 size, TCudaStream stream);
 
     template void MultiplyVector<int>(int *x, const int y, ui64 size, TCudaStream stream);
 
-    template void MultiplyVector<uint>(uint *x, const uint y, ui64 size, TCudaStream stream);
+    template void MultiplyVector<ui32>(ui32 *x, const ui32 y, ui64 size, TCudaStream stream);
 
     template void DivideVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
 
     template void DivideVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
 
-    template void DivideVector<uint>(uint *x, const uint *y, ui64 size, TCudaStream stream);
+    template void DivideVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
 
-//    template void Reduce<float>(float *data, ui64 size, uint partCount, TCudaStream stream);
+//    template void Reduce<float>(float *data, ui64 size, ui32 partCount, TCudaStream stream);
 
     template void ExpVector<float>(float *x, ui64 size, TCudaStream stream);
 
     template void ExpVector<double>(double *x, ui64 size, TCudaStream stream);
 
-    template void Gather<int, uint>(int *dst, const int *src, const uint* map, ui64 size, TCudaStream stream);
-    template void Gather<ui8, uint>(ui8 *dst, const ui8 *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Gather<int, ui32>(int *dst, const int *src, const ui32* map, ui64 size, TCudaStream stream);
+    template void Gather<ui8, ui32>(ui8 *dst, const ui8 *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Gather<uint, uint>(uint *dst, const uint *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Gather<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Gather<uint2, uint>(uint2 *dst, const uint2 *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Gather<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Gather<float, uint>(float *dst, const float *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Gather<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Scatter<int, uint>(int *dst, const int *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Scatter<int, ui32>(int *dst, const int *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Scatter<uint, uint>(uint *dst, const uint *src, const uint* map, ui64 size, TCudaStream stream);
-    template void Scatter<ui8, uint>(ui8 *dst, const ui8 *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Scatter<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, TCudaStream stream);
+    template void Scatter<ui8, ui32>(ui8 *dst, const ui8 *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Scatter<uint2, uint>(uint2 *dst, const uint2 *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Scatter<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, TCudaStream stream);
 
-    template void Scatter<float, uint>(float *dst, const float *src, const uint* map, ui64 size, TCudaStream stream);
+    template void Scatter<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, TCudaStream stream);
 
     template void GatherWithMask<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
 
@@ -331,11 +331,11 @@ namespace NKernel {
 
     template void Reverse<short>(short *data, ui64 size, TCudaStream stream);
 
-    template void Reverse<ushort>(ushort *data, ui64 size, TCudaStream stream);
+    template void Reverse<ui16>(ui16 *data, ui64 size, TCudaStream stream);
 
     template void Reverse<int>(int *data, ui64 size, TCudaStream stream);
 
-    template void Reverse<uint>(uint *data, ui64 size, TCudaStream stream);
+    template void Reverse<ui32>(ui32 *data, ui64 size, TCudaStream stream);
 
     template void Reverse<float>(float *data, ui64 size, TCudaStream stream);
 

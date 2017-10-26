@@ -4,6 +4,8 @@
 #include <library/getopt/opt.h>
 #include <library/threading/local_executor/local_executor.h>
 
+using namespace NCatboostCuda;
+
 struct TPoolConvertConfig {
     TString FeaturesPath;
     TString ColumnDescriptionPath;

@@ -7,99 +7,103 @@
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 
-template <class TDocLayout, class TDataSet>
-class TL2: public TPointwiseTarget<TDocLayout, TDataSet> {
-public:
-    using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
-    using TStat = TAdditiveStatistic;
-    using TMapping = TDocLayout;
-    CB_DEFINE_CUDA_TARGET_BUFFERS();
+namespace NCatboostCuda {
 
-    TL2(const TDataSet& dataSet,
-        TRandom& random,
-        TSlice slice,
-        const TTargetOptions& targetOptions)
-        : TParent(dataSet,
-                  random,
-                  slice,
-                  targetOptions) {
-    }
+    template <class TDocLayout, class TDataSet>
+    class TL2: public TPointwiseTarget<TDocLayout, TDataSet> {
+    public:
+        using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
+        using TStat = TAdditiveStatistic;
+        using TMapping = TDocLayout;
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
 
-    TL2(const TL2& target,
-        const TSlice& slice)
-        : TParent(target,
-                  slice) {
-    }
+        TL2(const TDataSet& dataSet,
+            TRandom& random,
+            TSlice slice,
+            const TTargetOptions& targetOptions)
+            : TParent(dataSet,
+                      random,
+                      slice,
+                      targetOptions) {
+        }
 
-    TL2(const TDataSet& dataSet,
-        TRandom& random,
-        TCudaBuffer<const float, TMapping>&& target,
-        TCudaBuffer<const float, TMapping>&& weights,
-        TCudaBuffer<const ui32, TMapping>&& indices,
-        const TTargetOptions& targetOptions)
-        : TParent(dataSet,
-                  random,
-                  std::move(target),
-                  std::move(weights),
-                  std::move(indices),
-                  targetOptions) {
-    }
+        TL2(const TL2& target,
+            const TSlice& slice)
+            : TParent(target,
+                      slice) {
+        }
 
-    TL2(TL2&& other)
-        : TParent(std::move(other))
-    {
-    }
+        TL2(const TDataSet& dataSet,
+            TRandom& random,
+            TCudaBuffer<const float, TMapping>&& target,
+            TCudaBuffer<const float, TMapping>&& weights,
+            TCudaBuffer<const ui32, TMapping>&& indices,
+            const TTargetOptions& targetOptions)
+            : TParent(dataSet,
+                      random,
+                      std::move(target),
+                      std::move(weights),
+                      std::move(indices),
+                      targetOptions) {
+        }
 
-    using TParent::GetWeights;
-    using TParent::GetTarget;
-    using TParent::GetTotalWeight;
+        TL2(TL2&& other)
+            : TParent(std::move(other))
+        {
+        }
 
-    TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-        TVec tmp = TVec::CopyMapping(point);
-        tmp.Copy(point);
-        SubtractVector(tmp, GetTarget());
-        auto& weights = GetWeights();
-        const double sum2 = DotProduct(tmp, tmp, &weights);
-        const double weight = GetTotalWeight();
+        using TParent::GetWeights;
+        using TParent::GetTarget;
+        using TParent::GetTotalWeight;
 
-        return TAdditiveStatistic(sum2, weight);
-    }
+        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+            TVec tmp = TVec::CopyMapping(point);
+            tmp.Copy(point);
+            SubtractVector(tmp, GetTarget());
+            auto& weights = GetWeights();
+            const double sum2 = DotProduct(tmp, tmp, &weights);
+            const double weight = GetTotalWeight();
 
-    static double Score(const TAdditiveStatistic& score) {
-        return sqrt(score.Sum / score.Weight);
-    }
+            return TAdditiveStatistic(sum2, weight);
+        }
 
-    double Score(const TConstVec& point) {
-        return Score(ComputeStats(point));
-    }
+        static double Score(const TAdditiveStatistic& score) {
+            return sqrt(score.Sum / score.Weight);
+        }
 
-    void GradientAt(const TConstVec& point,
-                    TVec& dst,
-                    ui32 stream = 0) const {
-        Approximate(GetTarget(),
-                    GetWeights(),
-                    point,
-                    nullptr,
-                    &dst,
-                    nullptr,
-                    stream);
-    }
+        double Score(const TConstVec& point) {
+            return Score(ComputeStats(point));
+        }
 
-    void Approximate(const TConstVec& target,
-                     const TConstVec& weights,
-                     const TConstVec& point,
-                     TVec* value,
-                     TVec* der,
-                     TVec* der2,
-                     ui32 stream = 0) const {
-        ApproximateMse(target, weights, point, value, der, der2, stream);
-    }
+        void GradientAt(const TConstVec& point,
+                        TVec& dst,
+                        ui32 stream = 0) const {
+            Approximate(GetTarget(),
+                        GetWeights(),
+                        point,
+                        nullptr,
+                        &dst,
+                        nullptr,
+                        stream);
+        }
 
-    static constexpr bool IsMinOptimal() {
-        return true;
-    }
+        void Approximate(const TConstVec& target,
+                         const TConstVec& weights,
+                         const TConstVec& point,
+                         TVec* value,
+                         TVec* der,
+                         TVec* der2,
+                         ui32 stream = 0) const {
+            ApproximateMse(target, weights, point, value, der, der2, stream);
+        }
 
-    static constexpr TStringBuf TargetName() {
-        return "RMSE";
-    }
-};
+        static constexpr bool IsMinOptimal() {
+            return true;
+        }
+
+        static constexpr TStringBuf TargetName() {
+            return "RMSE";
+        }
+    };
+}
+

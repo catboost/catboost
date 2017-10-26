@@ -17,7 +17,7 @@ namespace NHPTimer {
 }
 
 struct THPTimer {
-    THPTimer()  noexcept{
+    THPTimer() noexcept {
         Reset();
     }
     void Reset() noexcept {

@@ -518,6 +518,11 @@ inline const T& TFuture<T>::GetValue(TDuration timeout) const
 }
 
 template <typename T>
+inline const T& TFuture<T>::GetValueSync() const {
+    return GetValue(TDuration::Max());;
+}
+
+template <typename T>
 inline bool TFuture<T>::HasException() const
 {
     return State && State->HasException();
@@ -628,6 +633,10 @@ inline void TFuture<void>::GetValue(TDuration timeout) const
 {
     EnsureInitialized();
     State->GetValue(timeout);
+}
+
+inline void TFuture<void>::GetValueSync() const {
+    GetValue(TDuration::Max());
 }
 
 inline bool TFuture<void>::HasException() const

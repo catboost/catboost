@@ -63,12 +63,6 @@ IF (OS_LINUX)
 )
 ENDIF()
 
-IF (OS_LINUX AND NOT OS_ANDROID)
-    RECURSE(
-    
-)
-ENDIF()
-
 IF (OS_WINDOWS)
     RECURSE(
     

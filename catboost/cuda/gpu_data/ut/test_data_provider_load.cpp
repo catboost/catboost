@@ -4,6 +4,7 @@
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
     //

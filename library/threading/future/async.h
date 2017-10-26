@@ -2,7 +2,6 @@
 
 #include "future.h"
 
-#include <util/generic/ptr.h>
 #include <util/generic/function.h>
 #include <util/thread/queue.h>
 

@@ -63,22 +63,41 @@ namespace NKernel {
         }
     }
 
+    template <int BLOCK_SIZE, int DOCS_PER_THREAD>
     __global__ void NonWeightedBinFreqCtrsImpl(const ui32* writeIndices,
                                                const ui32* bins, const ui32* binOffsets, ui32 size,
                                                float prior, float priorObservations,
                                                float* dst) {
-        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        const ui32 i = blockIdx.x * BLOCK_SIZE * DOCS_PER_THREAD  + threadIdx.x;
 
-        if (i < size) {
-            ui32 dstIdx = writeIndices ? TIndexWrapper(writeIndices[i]).Index() : i;
-            const ui32 bin = bins[i];
+        int dstIndices[DOCS_PER_THREAD];
+        ui32 binsLocal[DOCS_PER_THREAD];
+
+        #pragma unroll DOCS_PER_THREAD
+        for (int j = 0; j < DOCS_PER_THREAD; ++j) {
+            const ui32 idx = i + BLOCK_SIZE * j;
+            dstIndices[j] = idx < size ? (int)(writeIndices ? TIndexWrapper(writeIndices[idx]).Index() : idx) : -1;
+            binsLocal[j] =  idx < size ? bins[idx] : 0;
+        }
+
+        #pragma unroll DOCS_PER_THREAD
+        for (int j = 0; j < DOCS_PER_THREAD; ++j)
+        {
+            const ui32 bin = binsLocal[j];
             const ui32 currentBinOffset = LdgWithFallback(binOffsets + bin, 0);
             const ui32 nextBinOffset = bin < size ? LdgWithFallback(binOffsets + bin + 1, 0) : size;
-            const ui32 binSize = (nextBinOffset - currentBinOffset);
-            dst[dstIdx] = (binSize + prior) / (size + priorObservations);
+            binsLocal[j] = (nextBinOffset - currentBinOffset);
+        }
+
+        #pragma unroll DOCS_PER_THREAD
+        for (int j = 0; j < DOCS_PER_THREAD; ++j)
+        {
+            if (dstIndices[j] != -1)
+            {
+                WriteThrough(dst + dstIndices[j], (binsLocal[j] + prior) / (size + priorObservations));
+            }
         }
     }
-
 
 
     void ComputeWeightedBinFreqCtr(const ui32* writeIdx, const ui32* bins,
@@ -98,11 +117,11 @@ namespace NKernel {
                                       const ui32* binOffsets, ui32 size,
                                       float prior, float priorObservations,
                                       float* dst, TCudaStream stream) {
-
         const ui32 blockSize = 256;
-        const ui32 numBlocks = CeilDivide(size, blockSize);
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide(size, blockSize * elementsPerThreads);
         if (numBlocks) {
-            NonWeightedBinFreqCtrsImpl <<<numBlocks, blockSize, 0, stream>>>(writeIdx, bins, binOffsets, size, prior, priorObservations, dst);
+            NonWeightedBinFreqCtrsImpl<blockSize, elementsPerThreads> <<<numBlocks, blockSize, 0, stream>>>(writeIdx, bins, binOffsets, size, prior, priorObservations, dst);
         }
     }
 
@@ -119,7 +138,9 @@ namespace NKernel {
             }
             if (!mask) {
                 TIndexWrapper prevIndex(indices[i - 1]);
-                mask |= LdgWithFallback(prevBins, currentIndex.Index()) != LdgWithFallback(prevBins, prevIndex.Index());
+                const ui32 currentBin = LdgWithFallback(prevBins, currentIndex.Index());
+                const ui32 prevBin = LdgWithFallback(prevBins, prevIndex.Index());
+                mask |=  currentBin != prevBin;
             }
             currentIndex.UpdateMask(mask);
             indices[i] = currentIndex.Value();

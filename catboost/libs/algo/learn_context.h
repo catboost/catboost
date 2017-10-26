@@ -99,7 +99,7 @@ public:
     void OutputMeta();
     void InitData(const TTrainData& data);
     void SaveProgress();
-    void LoadProgress();
+    bool TryLoadProgress();
 
 public:
     TRestorableFastRng64 Rand;

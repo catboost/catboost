@@ -87,8 +87,7 @@ void TSockTest::TestNetworkResolutionError() {
     }
 }
 
-class TTempEnableSigPipe
-{
+class TTempEnableSigPipe {
 public:
     TTempEnableSigPipe() {
         OriginalSigHandler = signal(SIGPIPE, SIG_DFL);
@@ -104,8 +103,7 @@ private:
     void (*OriginalSigHandler)(int);
 };
 
-void TSockTest::TestBrokenPipe()
-{
+void TSockTest::TestBrokenPipe() {
     TTempEnableSigPipe guard;
 
     SOCKET socks[2];
@@ -118,10 +116,16 @@ void TSockTest::TestBrokenPipe()
     receiver.ShutDown(SHUT_RDWR);
     int sent = sender.Send("FOO", 3);
     UNIT_ASSERT(sent < 0);
+
+    IOutputStream::TPart parts[] = {
+        {"foo", 3},
+        {"bar", 3},
+    };
+    sent = sender.SendV(parts, 2);
+    UNIT_ASSERT(sent < 0);
 }
 
-void TSockTest::TestReusePortAvailCheck()
-{
+void TSockTest::TestReusePortAvailCheck() {
 #if defined _linux_
     utsname sysInfo;
     Y_VERIFY(!uname(&sysInfo), "Error while call uname: %s", LastSystemErrorText());

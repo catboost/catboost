@@ -23,3 +23,26 @@ static inline int VALGRIND_PRINTF(...) {
 }
 #define VALGRIND_DO_LEAK_CHECK
 #endif
+
+namespace NValgrind {
+    inline constexpr static bool ValgrindIsOn() noexcept {
+#if defined(WITH_VALGRIND)
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    // Returns valgrinded if running under Valgrind and plain otherwise
+    // Ment to be used in test code for constants (timeouts, etc)
+    template <typename T>
+    inline constexpr static T PlainOrUnderValgrind(T plain, T valgrinded) noexcept {
+#if defined(WITH_VALGRIND)
+        Y_UNUSED(plain);
+        return valgrinded;
+#else
+        Y_UNUSED(valgrinded);
+        return plain;
+#endif
+    }
+}

@@ -193,4 +193,36 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_EXCEPTION(StringSplitter("1").Split(' ').CollectInto(&a, &a), yexception);
         UNIT_ASSERT_EXCEPTION(StringSplitter("1 2 3").Split(' ').CollectInto(&a, &a), yexception);
     }
+
+    SIMPLE_UNIT_TEST(TestOwningSplit1) {
+        int sum = 0;
+
+        for (const auto& it : StringSplitter(TString("1,2,3")).Split(',')) {
+            sum += FromString<int>(it.Token());
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+    }
+
+    SIMPLE_UNIT_TEST(TestOwningSplit2) {
+        int sum = 0;
+
+        TString str("1,2,3");
+        for (const auto& it : StringSplitter(str).Split(',')) {
+            sum += FromString<int>(it.Token());
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+    }
+
+    SIMPLE_UNIT_TEST(TestOwningSplit3) {
+        int sum = 0;
+
+        const TString str("1,2,3");
+        for (const auto& it : StringSplitter(str).Split(',')) {
+            sum += FromString<int>(it.Token());
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+    }
 }

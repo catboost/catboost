@@ -1,13 +1,14 @@
+#include <util/system/types.h>
 #include "unique.cuh"
 
 namespace NKernelHost {
 
 template <typename T>
-__global__ void GatherUnique2TmpImpl(T* keys, uint* masks, uint* map, uint size,  uint uniqueSize, T* tmp)
+__global__ void GatherUnique2TmpImpl(T* keys, ui32* masks, ui32* map, ui32 size,  ui32 uniqueSize, T* tmp)
 {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < size) {
-        const uint mask = masks[i];
+        const ui32 mask = masks[i];
         if (mask) {
             tmp[map[i]-1] = keys[i];
         }
@@ -16,7 +17,7 @@ __global__ void GatherUnique2TmpImpl(T* keys, uint* masks, uint* map, uint size,
 }
 
 template <typename T>
-__global__ void GatherUniqueImpl(T* keys, uint uniqueSize, T* tmp)
+__global__ void GatherUniqueImpl(T* keys, ui32 uniqueSize, T* tmp)
 {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < uniqueSize) {
@@ -25,32 +26,32 @@ __global__ void GatherUniqueImpl(T* keys, uint uniqueSize, T* tmp)
 }
 
 
-template <typename T> void GatherUnique(T* keys, uint* masks, uint* prefixSum, uint size, uint uniqSize, T* tmp)
+template <typename T> void GatherUnique(T* keys, ui32* masks, ui32* prefixSum, ui32 size, ui32 uniqSize, T* tmp)
 {
     if (size > 0) {
         {
-            const uint blockSize = 512;
-            const uint numBlocks = (size + blockSize - 1) / (blockSize);
+            const ui32 blockSize = 512;
+            const ui32 numBlocks = (size + blockSize - 1) / (blockSize);
             GatherUnique2TmpImpl << <numBlocks, blockSize>>>(keys, masks, prefixSum, size, uniqSize,tmp);
         }
-        
+
         {
-            const uint blockSize = 512;
-            const uint numBlocks = (uniqSize + blockSize - 1) / (blockSize);
+            const ui32 blockSize = 512;
+            const ui32 numBlocks = (uniqSize + blockSize - 1) / (blockSize);
             GatherUniqueImpl<< <numBlocks, blockSize>>>(keys, uniqSize, tmp);
         }
     }
 }
-    
+
 template <typename T>
-__global__ void CreateUniqueMasksImpl(const T* keys, uint size, uint* result)
+__global__ void CreateUniqueMasksImpl(const T* keys, ui32 size, ui32* result)
 {
-    const uint tid = threadIdx.x;
+    const ui32 tid = threadIdx.x;
     const int i = blockIdx.x * blockDim.x + tid;
-    
-    
+
+
     __shared__ T local[513];
-      
+
     if (i < size) {
         const T val = keys[i];
         local[tid+1] = val;
@@ -59,28 +60,28 @@ __global__ void CreateUniqueMasksImpl(const T* keys, uint size, uint* result)
         local[0] = i > 0 ? keys[i-1] : 0;
     }
     __syncthreads();
-    
+
     if (i == 0) {
         result[i] = 1;
     } else if (i < size) {
-        const uint cur = local[tid+1];
-        const uint prev = local[tid];
+        const ui32 cur = local[tid+1];
+        const ui32 prev = local[tid];
         result[i] = (cur == prev ? 0 : 1);
     }
-    
+
 }
 
-template <typename T> void CreateUniqueMasks(const T* keys, uint* masks, const uint size)
+template <typename T> void CreateUniqueMasks(const T* keys, ui32* masks, const ui32 size)
 {
     if (size > 0) {
-        const uint blockSize = 512;
-        const uint numBlocks = (size + blockSize - 1) / (blockSize);
+        const ui32 blockSize = 512;
+        const ui32 numBlocks = (size + blockSize - 1) / (blockSize);
         CreateUniqueMasksImpl << <numBlocks, blockSize>>>(keys, size, masks);
     }
 }
 
 
-template void CreateUniqueMasks<uint>(const uint* keys, uint* masks, const uint size);
-template void GatherUnique<uint>(uint* keys, uint* masks, uint* prefixSum, uint size, uint uniqSize,uint* tmp);
+template void CreateUniqueMasks<ui32>(const ui32* keys, ui32* masks, const ui32 size);
+template void GatherUnique<ui32>(ui32* keys, ui32* masks, ui32* prefixSum, ui32 size, ui32 uniqSize,ui32* tmp);
 
 }

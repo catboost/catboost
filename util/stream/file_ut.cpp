@@ -18,13 +18,13 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         }
 
         {
-            TFileInput input(TmpFileName);
+            TUnbufferedFileInput input(TmpFileName);
             TString s = input.ReadAll();
             UNIT_ASSERT_VALUES_EQUAL(s, TmpFileContents);
         }
 
         {
-            TFileInput input(TmpFileName);
+            TUnbufferedFileInput input(TmpFileName);
             input.Skip(TmpFileSubstring - TmpFileContents);
             TString s = input.ReadAll();
             UNIT_ASSERT_VALUES_EQUAL(s, "chivalrous plan");
@@ -36,7 +36,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         }
 
         {
-            TFileInput input(TmpFileName);
+            TUnbufferedFileInput input(TmpFileName);
             TString s = input.ReadAll();
             UNIT_ASSERT_VALUES_EQUAL(s, TString::Join(TmpFileContents, TmpFileContents));
         }

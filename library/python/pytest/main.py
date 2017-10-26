@@ -1,7 +1,7 @@
 import sys
 
 
-if __name__ == '__main__':
+def main():
     profile = None
     if '--profile-pytest' in sys.argv:
         sys.argv.remove('--profile-pytest')
@@ -57,3 +57,7 @@ if __name__ == '__main__':
         ps.print_stats()
 
     sys.exit(rc)
+
+
+if __name__ == '__main__':
+    main()

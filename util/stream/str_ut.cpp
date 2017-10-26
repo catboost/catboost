@@ -100,9 +100,17 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
     SIMPLE_UNIT_TEST(Write) {
         TString str;
         TStringOutput output(str);
-        output << "1" << "22" << "333" << "4444" << "55555";
+        output << "1"
+               << "22"
+               << "333"
+               << "4444"
+               << "55555";
 
-        UNIT_ASSERT_STRINGS_EQUAL(str, "1" "22" "333" "4444" "55555");
+        UNIT_ASSERT_STRINGS_EQUAL(str, "1"
+                                       "22"
+                                       "333"
+                                       "4444"
+                                       "55555");
     }
 
     SIMPLE_UNIT_TEST(WriteChars) {

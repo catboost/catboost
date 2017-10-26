@@ -1,8 +1,8 @@
 #pragma once
 
 namespace NKernel {
-    template<typename T, uint BLOCK_SIZE>
-    __forceinline__ __device__ void InplaceInclusiveScan(T *data, uint tid) {
+    template<typename T, ui32 BLOCK_SIZE>
+    __forceinline__ __device__ void InplaceInclusiveScan(T *data, ui32 tid) {
         T val = data[tid];
         __syncthreads();
         // assume n <= 2048
@@ -74,7 +74,7 @@ namespace NKernel {
         }
     }
 
-    template<uint BLOCK_SIZE, typename TFlag, typename T>
+    template<ui32 BLOCK_SIZE, typename TFlag, typename T>
     __forceinline__ __device__ void InplaceInclusiveSegScan(TFlag *flags, T *data) {
         TFlag flg = flags[threadIdx.x];
         T val = data[threadIdx.x];
@@ -216,7 +216,7 @@ namespace NKernel {
     template<typename T>
     __forceinline__ __device__
 
-    void InplaceInclusiveScanN(T *data, uint n, uint tid) {
+    void InplaceInclusiveScanN(T *data, ui32 n, ui32 tid) {
         T val = data[tid];
         __syncthreads();
         // assume n <= 2048
@@ -302,7 +302,7 @@ namespace NKernel {
 
 //warning: works only for warp, no sync
     template<typename T>
-    __forceinline__ __device__ void InclusiveScanInWarp(volatile T *data, uint tid) {
+    __forceinline__ __device__ void InclusiveScanInWarp(volatile T *data, ui32 tid) {
         T val = data[tid];
         if (tid >= 1) {
             val += data[tid - 1];

@@ -206,22 +206,14 @@ cdef extern from "catboost/libs/algo/apply.h":
                                     int end,
                                     int threadCount) nogil except +ProcessException
 
-    cdef yvector[yvector[double]] ApplyModelMulti(const TFullModel& model,
-                                                  const TPool& pool,
-                                                  bool_t verbose,
-                                                  const EPredictionType predictionType,
-                                                  int begin,
-                                                  int end,
-                                                  int threadCount) nogil except +ProcessException
+    cdef yvector[yvector[double]] ApplyModelMulti(const TFormulaEvaluator& calcer,
+                                                      const TPool& pool,
+                                                      bool_t verbose,
+                                                      const EPredictionType predictionType,
+                                                      int begin,
+                                                      int end,
+                                                      int threadCount) nogil except +ProcessException
 
-    cdef yvector[yvector[double]] ApplyModelMulti(const TFullModel& model,
-                                                  const TFormulaEvaluator& calcer,
-                                                  const TPool& pool,
-                                                  bool_t verbose,
-                                                  const EPredictionType predictionType,
-                                                  int begin,
-                                                  int end,
-                                                  int threadCount) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/eval_helpers.h":
     cdef yvector[yvector[double]] PrepareEval(const EPredictionType predictionType,
@@ -716,13 +708,15 @@ cdef class _CatBoost:
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
         cdef yvector[yvector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
-        pred = ApplyModelMulti(dereference(self.__model),
+        cdef TFormulaEvaluator* calcer = new TFormulaEvaluator(dereference(self.__model))
+        pred = ApplyModelMulti(dereference(calcer),
                                dereference(pool.__pool),
                                verbose,
                                predictionType,
                                ntree_start,
                                ntree_end,
                                thread_count)
+        del calcer
         return [[value for value in vec] for vec in pred]
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
@@ -995,8 +989,7 @@ cdef class _StagedPredictIterator:
 
         cdef yvector[yvector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
-        pred = ApplyModelMulti(dereference(self.__model),
-                               dereference(self.__calcer),
+        pred = ApplyModelMulti(dereference(self.__calcer),
                                dereference(self.pool.__pool),
                                self.verbose,
                                PyPredictionType('RawFormulaVal').predictionType,

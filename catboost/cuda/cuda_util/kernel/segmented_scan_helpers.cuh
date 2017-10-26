@@ -44,13 +44,13 @@ namespace NKernel
         struct TReference
         {
             TValueType* Ptr;
-            const __restrict ui32* Index;
-            const __restrict ui32* End;
+            const ui32* __restrict  Index;
+            const ui32* __restrict  End;
 
             /// Constructor
             __host__ __device__ __forceinline__ TReference(TValueType* ptr,
-                                                           const __restrict ui32* index,
-                                                           const __restrict ui32* end)
+                                                           const ui32* __restrict  index,
+                                                           const ui32* __restrict  end)
                     : Ptr(ptr)
                     , Index(index)
                     , End(end) {
@@ -76,8 +76,8 @@ namespace NKernel
 
     private:
         TValueType* Ptr;
-        const __restrict ui32* Index;
-        const __restrict ui32* End;
+        const ui32* __restrict Index;
+        const ui32* __restrict End;
     public:
         // Required iterator traits
         typedef TNonNegativeSegmentedScanOutputIterator self_type;              ///< My own type
@@ -93,8 +93,8 @@ namespace NKernel
         /// Constructor
         template<class TQualifiedValueType>
         __host__ __device__ __forceinline__ TNonNegativeSegmentedScanOutputIterator(TQualifiedValueType* ptr,
-                                                                                    const __restrict ui32* index,
-                                                                                    const __restrict ui32* end
+                                                                                    const ui32* __restrict index,
+                                                                                    const ui32* __restrict end
         )
         : Ptr(const_cast<typename cub::RemoveQualifiers<TQualifiedValueType>::Type*>(ptr))
         , Index(index)

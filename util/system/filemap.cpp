@@ -508,6 +508,7 @@ TFileMap::~TFileMap() {
         // explicit Unmap() is required because in oNotGreedy mode the Map_ object doesn't own the mapped area
         Unmap();
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 }
 

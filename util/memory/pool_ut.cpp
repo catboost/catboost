@@ -125,6 +125,12 @@ private:
                 UNIT_ASSERT(m);
                 memset(m, 0, i);
             }
+
+            pool.Clear();
+
+            UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryAllocated());
+            UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryWaste());
+            UNIT_ASSERT_VALUES_EQUAL(0, pool.Available());
         }
 
         alloc.CheckAtEnd();
@@ -172,6 +178,14 @@ private:
         void* aligned256 = pool.Allocate(3, 256);
         void* aligned8 = pool.Allocate(3, 8);
         void* aligned1024 = pool.Allocate(3, 1024);
+
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned16, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned2, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned128, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned4, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned256, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned8, nullptr);
+        UNIT_ASSERT_VALUES_UNEQUAL(aligned1024, nullptr);
 
         UNIT_ASSERT_VALUES_EQUAL(reinterpret_cast<uintptr_t>(aligned2) & 1, 0);
         UNIT_ASSERT_VALUES_EQUAL(reinterpret_cast<uintptr_t>(aligned4) & 3, 0);

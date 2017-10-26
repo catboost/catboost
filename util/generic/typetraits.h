@@ -17,9 +17,8 @@ struct TPodTraits {
 
 namespace NTypeTrait {
     enum ETypeFlag {
-        BITWISE_COMPARABLE = 0x1,
-        BITWISE_COPYABLE = 0x2,
-        BITWISE_SERIALIZABLE = 0x4
+        BITWISE_COPYABLE = 0x1,
+        BITWISE_SERIALIZABLE = 0x2
     };
 }
 
@@ -32,65 +31,12 @@ namespace NPrivate {
 
 template <class T>
 class TTypeTraitsBase {
-    /*
-     * some helpers
-     */
-
-    template <class C>
-    struct TConstTraits {
-        using TResult = C;
-    };
-
-    template <class C>
-    struct TConstTraits<const C> {
-        using TResult = C;
-    };
-
-    template <class C>
-    struct TVolatileTraits {
-        using TResult = C;
-    };
-
-    template <class C>
-    struct TVolatileTraits<volatile C> {
-        using TResult = C;
-    };
-
-    template <class C, bool isConst, bool isVolatile>
-    struct TApplyQualifiers {
-        using TResult = C;
-    };
-
-    template <class C>
-    struct TApplyQualifiers<C, false, true> {
-        using TResult = volatile C;
-    };
-
-    template <class C>
-    struct TApplyQualifiers<C, true, false> {
-        using TResult = const C;
-    };
-
-    template <class C>
-    struct TApplyQualifiers<C, true, true> {
-        using TResult = const volatile C;
-    };
-
 public:
-
-    /*
-     * traits too
-     */
-
     enum {
         IsPod = TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
                 TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod,
         IsStdPod = std::is_pod<std::remove_cv_t<T>>::value,
         TypeTraitFlags = ::NPrivate::TUserTypeTrait<std::remove_cv_t<T>>::TypeTraitFlags
-    };
-
-    enum {
-        IsBitwiseComparable = TypeTraitFlags & NTypeTrait::BITWISE_COMPARABLE || IsStdPod
     };
 
     enum {
@@ -112,7 +58,6 @@ template <class T>
 class TTypeTraits: public TTypeTraitsBase<T> {
     using TBase = TTypeTraitsBase<T>;
 
-public:
     /*
      * can be effectively passed to function as value
      */
@@ -125,6 +70,7 @@ public:
                                              std::false_type,
                                              ::NPrivate::TIsSmall<T>>::value);
 
+public:
     /*
      * can be used in function templates for effective parameters passing
      */

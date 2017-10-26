@@ -22,8 +22,6 @@ class TFsPath {
 private:
     struct TSplit;
 
-    TFsPath(const TString& path, const TString& realPath);
-
 public:
     TFsPath();
     TFsPath(const TString& path);
@@ -109,6 +107,8 @@ public:
      * @brief create this directory
      *
      * @param mode specifies permissions to use as described in mkdir(2), makes sense only on Unix-like systems.
+     *
+     * Nothing to do if dir exists.
      */
     void MkDir(const int mode = MODE0777) const;
 
@@ -164,7 +164,6 @@ public:
 
     inline void Swap(TFsPath& p) noexcept {
         DoSwap(Path_, p.Path_);
-        DoSwap(RealPath_, p.RealPath_);
         Split_.Swap(p.Split_);
     }
 
@@ -174,8 +173,7 @@ private:
 
 private:
     TString Path_;
-    /// caches
-    mutable TString RealPath_;
+    /// cache
     mutable TSimpleIntrusivePtr<TSplit> Split_;
 };
 

@@ -16,217 +16,250 @@
     using TVec = TBuffer<float>;              \
     using TConstVec = TBuffer<const float>;
 
-template <class TMapping,
-          class TDataSet>
-class TPointwiseTarget: public TMoveOnly {
-public:
-    CB_DEFINE_CUDA_TARGET_BUFFERS();
-
-    ~TPointwiseTarget() {
-    }
-
-    TPointwiseTarget(const TDataSet& dataSet,
-                     TRandom& random,
-                     const TSlice& slice,
-                     const TTargetOptions& targetOptions)
-        : DataSet(&dataSet)
-        , TargetOptions(&targetOptions)
-        , Target(dataSet.GetTarget().SliceView(slice))
-        , Weights(dataSet.GetWeights().SliceView(slice))
-        , Indices(dataSet.GetIndices().SliceView(slice))
-        , Random(&random)
+namespace NCatboostCuda
+{
+    template<class TMapping,
+            class TDataSet>
+    class TPointwiseTarget: public TMoveOnly
     {
-    }
+    public:
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
 
-    TPointwiseTarget(const TDataSet& dataSet,
-                     TRandom& random,
-                     TCudaBuffer<const float, TMapping>&& target,
-                     TCudaBuffer<const float, TMapping>&& weights,
-                     TCudaBuffer<const ui32, TMapping>&& indices,
-                     const TTargetOptions& targetOptions)
-        : DataSet(&dataSet)
-        , TargetOptions(&targetOptions)
-        , Target(std::move(target))
-        , Weights(std::move(weights))
-        , Indices(std::move(indices))
-        , Random(&random)
+        ~TPointwiseTarget()
+        {
+        }
 
-    {
-    }
+        TPointwiseTarget(const TDataSet& dataSet,
+                         TRandom& random,
+                         const TSlice& slice,
+                         const TTargetOptions& targetOptions)
+                : DataSet(&dataSet)
+                  , TargetOptions(&targetOptions)
+                  , Target(dataSet.GetTarget().SliceView(slice))
+                  , Weights(dataSet.GetWeights().SliceView(slice))
+                  , Indices(dataSet.GetIndices().SliceView(slice))
+                  , Random(&random)
+        {
+        }
 
-    TPointwiseTarget(const TPointwiseTarget& target,
-                     const TSlice& slice)
-        : DataSet(&target.GetDataSet())
-        , TargetOptions(&target.GetTargetOptions())
-        , Target(target.GetTarget().SliceView(slice))
-        , Weights(target.GetWeights().SliceView(slice))
-        , Indices(target.GetIndices().SliceView(slice))
-        , Random(target.Random)
-    {
-    }
+        TPointwiseTarget(const TDataSet& dataSet,
+                         TRandom& random,
+                         TCudaBuffer<const float, TMapping>&& target,
+                         TCudaBuffer<const float, TMapping>&& weights,
+                         TCudaBuffer<const ui32, TMapping>&& indices,
+                         const TTargetOptions& targetOptions)
+                : DataSet(&dataSet)
+                  , TargetOptions(&targetOptions)
+                  , Target(std::move(target))
+                  , Weights(std::move(weights))
+                  , Indices(std::move(indices))
+                  , Random(&random)
+        {
+        }
 
-    TPointwiseTarget(TPointwiseTarget&& other) = default;
+        TPointwiseTarget(const TPointwiseTarget& target,
+                         const TSlice& slice)
+                : DataSet(&target.GetDataSet())
+                  , TargetOptions(&target.GetTargetOptions())
+                  , Target(target.GetTarget().SliceView(slice))
+                  , Weights(target.GetWeights().SliceView(slice))
+                  , Indices(target.GetIndices().SliceView(slice))
+                  , Random(target.Random)
+        {
+        }
 
-    const TConstVec& GetTarget() const {
-        return Target;
-    }
+        TPointwiseTarget(TPointwiseTarget&& other) = default;
 
-    const TConstVec& GetWeights() const {
-        return Weights;
-    }
+        const TConstVec& GetTarget() const
+        {
+            return Target;
+        }
 
-    const TBuffer<const ui32>& GetIndices() const {
-        return Indices;
-    }
+        const TConstVec& GetWeights() const
+        {
+            return Weights;
+        }
 
-    const TTargetOptions& GetTargetOptions() const {
-        return *TargetOptions;
-    }
+        const TBuffer<const ui32>& GetIndices() const
+        {
+            return Indices;
+        }
 
-    template <class T>
-    TCudaBuffer<T, TMapping> CreateGpuBuffer() const {
-        return TCudaBuffer<T, TMapping>::CopyMapping(Target);
+        const TTargetOptions& GetTargetOptions() const
+        {
+            return *TargetOptions;
+        }
+
+        template<class T>
+        TCudaBuffer<T, TMapping> CreateGpuBuffer() const
+        {
+            return TCudaBuffer<T, TMapping>::CopyMapping(Target);
+        };
+
+        const TDataSet& GetDataSet() const
+        {
+            return *DataSet;
+        }
+
+        TRandom& GetRandom() const
+        {
+            return *Random;
+        }
+
+        inline double GetTotalWeight() const
+        {
+            if (TotalWeight <= 0)
+            {
+                auto tmp = TVec::CopyMapping(Weights);
+                FillBuffer(tmp, 1.0f);
+                TotalWeight = DotProduct(tmp, Weights);
+                if (TotalWeight <= 0)
+                {
+                    ythrow yexception()
+                            << "Observation weights should be greater or equal zero. Total weight should be greater, than zero";
+                }
+            }
+            return TotalWeight;
+        }
+
+    private:
+        const TDataSet* DataSet;
+        const TTargetOptions* TargetOptions;
+        TConstVec Target;
+        TConstVec Weights;
+        TBuffer<const ui32> Indices;
+        TRandom* Random;
+
+        mutable double TotalWeight = 0;
     };
 
-    const TDataSet& GetDataSet() const {
-        return *DataSet;
+    template<template<class TMapping, class> class TTarget, class TDataSet>
+    inline TTarget<NCudaLib::TStripeMapping, TDataSet>
+    MakeStripeTarget(const TTarget<NCudaLib::TMirrorMapping, TDataSet>& mirrorTarget)
+    {
+        NCudaLib::TStripeMapping stripeMapping = NCudaLib::TStripeMapping::SplitBetweenDevices(
+                mirrorTarget.GetIndices().GetObjectsSlice().Size());
+
+        return TTarget<NCudaLib::TStripeMapping, TDataSet>(mirrorTarget.GetDataSet(),
+                                                           mirrorTarget.GetRandom(),
+                                                           NCudaLib::StripeView(mirrorTarget.GetTarget(),
+                                                                                stripeMapping),
+                                                           NCudaLib::StripeView(mirrorTarget.GetWeights(),
+                                                                                stripeMapping),
+                                                           NCudaLib::StripeView(mirrorTarget.GetIndices(),
+                                                                                stripeMapping),
+                                                           mirrorTarget.GetTargetOptions());
     }
 
-    TRandom& GetRandom() const {
-        return *Random;
+    template<class TTarget>
+    inline TTarget TargetSlice(const TTarget& src,
+                               const TSlice& slice)
+    {
+        return TTarget(src, slice);
     }
 
-    inline double GetTotalWeight() const {
-        if (TotalWeight <= 0) {
-            auto tmp = TVec::CopyMapping(Weights);
-            FillBuffer(tmp, 1.0f);
-            TotalWeight = DotProduct(tmp, Weights);
-            if (TotalWeight <= 0) {
-                ythrow yexception() << "Observation weights should be greater or equal zero. Total weight should be greater, than zero";
-            }
+    template<class TTarget>
+    class TPermutationDerCalcer: public TMoveOnly
+    {
+    public:
+        using TMapping = typename TTarget::TMapping;
+        template<class T>
+        using TBuffer = TCudaBuffer<T, TMapping>;
+        using TVec = TBuffer<float>;
+
+        TPermutationDerCalcer(TTarget&& target,
+                              const TBuffer<const ui32>& indices)
+                : Parent(new TTarget(std::move(target)))
+        {
+            Target = TVec::CopyMapping(indices);
+            Gather(Target, Parent->GetTarget(), indices);
+
+            Weights = TVec::CopyMapping(indices);
+            Gather(Weights, Parent->GetWeights(), indices);
         }
-        return TotalWeight;
-    }
 
-private:
-    const TDataSet* DataSet;
-    const TTargetOptions* TargetOptions;
-    TConstVec Target;
-    TConstVec Weights;
-    TBuffer<const ui32> Indices;
-    TRandom* Random;
+        TPermutationDerCalcer() = default;
 
-    mutable double TotalWeight = 0;
-};
+        void ApproximateAt(const TVec& point,
+                           TVec* value,
+                           TVec* der,
+                           TVec* der2,
+                           ui32 stream = 0
+        ) const
+        {
+            Parent->Approximate(Target,
+                                Weights,
+                                point,
+                                value,
+                                der,
+                                der2,
+                                stream);
+        }
 
-template <template <class TMapping, class> class TTarget, class TDataSet>
-inline TTarget<NCudaLib::TStripeMapping, TDataSet> MakeStripeTarget(const TTarget<NCudaLib::TMirrorMapping, TDataSet>& mirrorTarget) {
-    NCudaLib::TStripeMapping stripeMapping = NCudaLib::TStripeMapping::SplitBetweenDevices(mirrorTarget.GetIndices().GetObjectsSlice().Size());
+        const TVec& GetWeights() const
+        {
+            return Weights;
+        }
 
-    return TTarget<NCudaLib::TStripeMapping, TDataSet>(mirrorTarget.GetDataSet(),
-                                                       mirrorTarget.GetRandom(),
-                                                       NCudaLib::StripeView(mirrorTarget.GetTarget(), stripeMapping),
-                                                       NCudaLib::StripeView(mirrorTarget.GetWeights(), stripeMapping),
-                                                       NCudaLib::StripeView(mirrorTarget.GetIndices(), stripeMapping),
-                                                       mirrorTarget.GetTargetOptions());
-}
+    private:
+        THolder<TTarget> Parent;
+        TVec Target;
+        TVec Weights;
+    };
 
-template <class TTarget>
-inline TTarget TargetSlice(const TTarget& src,
-                           const TSlice& slice) {
-    return TTarget(src, slice);
-}
-
-template <class TTarget>
-class TPermutationDerCalcer: public TMoveOnly {
-public:
-    using TMapping = typename TTarget::TMapping;
-    template <class T>
-    using TBuffer = TCudaBuffer<T, TMapping>;
-    using TVec = TBuffer<float>;
-
-    TPermutationDerCalcer(TTarget&& target,
-                          const TBuffer<const ui32>& indices)
-        : Parent(new TTarget(std::move(target)))
+    template<class TTarget>
+    inline TPermutationDerCalcer<TTarget> CreateDerCalcer(TTarget&& target,
+                                                          const TCudaBuffer<const ui32, typename TTarget::TMapping>& indices)
     {
-        Target = TVec::CopyMapping(indices);
-        Gather(Target, Parent->GetTarget(), indices);
-
-        Weights = TVec::CopyMapping(indices);
-        Gather(Weights, Parent->GetWeights(), indices);
+        return TPermutationDerCalcer<TTarget>(std::move(target), indices);
     }
 
-    TPermutationDerCalcer() = default;
+    template<class TTarget>
+    class TShiftedTargetSlice: public TMoveOnly
+    {
+    public:
+        using TMapping = typename TTarget::TMapping;
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
 
-    void ApproximateAt(const TVec& point,
-                       TVec* value,
-                       TVec* der,
-                       TVec* der2,
-                       ui32 stream = 0
-    ) const {
-        Parent->Approximate(Target,
-                            Weights,
-                            point,
-                            value,
-                            der,
-                            der2,
-                            stream);
-    }
+        TShiftedTargetSlice(const TTarget& target,
+                            const TSlice& slice,
+                            TConstVec&& sliceShift)
+                : Parent(target, slice)
+                  , Shift(std::move(sliceShift))
+        {
+            CB_ENSURE(Parent.GetTarget().GetObjectsSlice() == sliceShift.GetObjectsSlice());
+        }
 
-    const TVec& GetWeights() const {
-        return Weights;
-    }
+        TShiftedTargetSlice(TShiftedTargetSlice&& other) = default;
 
-private:
-    THolder<TTarget> Parent;
-    TVec Target;
-    TVec Weights;
-};
+        void GradientAtZero(TVec& der, ui32 stream = 0) const
+        {
+            Parent.GradientAt(Shift, der, stream);
+        }
 
-template <class TTarget>
-inline TPermutationDerCalcer<TTarget> CreateDerCalcer(TTarget&& target,
-                                                      const TCudaBuffer<const ui32, typename TTarget::TMapping>& indices) {
-    return TPermutationDerCalcer<TTarget>(std::move(target), indices);
+        const TConstVec& GetTarget() const
+        {
+            return Parent.GetTarget();
+        }
+
+        const TBuffer<const ui32>& GetIndices() const
+        {
+            return Parent.GetIndices();
+        }
+
+        const TConstVec& GetWeights() const
+        {
+            return Parent.GetWeights();
+        }
+
+        TRandom& GetRandom() const
+        {
+            return Parent.GetRandom();
+        }
+
+    private:
+        TTarget Parent;
+        TConstVec Shift;
+    };
 }
 
-template <class TTarget>
-class TShiftedTargetSlice: public TMoveOnly {
-public:
-    using TMapping = typename TTarget::TMapping;
-    CB_DEFINE_CUDA_TARGET_BUFFERS();
-
-    TShiftedTargetSlice(const TTarget& target,
-                        const TSlice& slice,
-                        TConstVec&& sliceShift)
-        : Parent(target, slice)
-        , Shift(std::move(sliceShift))
-    {
-        CB_ENSURE(Parent.GetTarget().GetObjectsSlice() == sliceShift.GetObjectsSlice());
-    }
-
-    TShiftedTargetSlice(TShiftedTargetSlice&& other) = default;
-
-    void GradientAtZero(TVec& der, ui32 stream = 0) const {
-        Parent.GradientAt(Shift, der, stream);
-    }
-
-    const TConstVec& GetTarget() const {
-        return Parent.GetTarget();
-    }
-
-    const TBuffer<const ui32>& GetIndices() const {
-        return Parent.GetIndices();
-    }
-
-    const TConstVec& GetWeights() const {
-        return Parent.GetWeights();
-    }
-
-    TRandom& GetRandom() const {
-        return Parent.GetRandom();
-    }
-
-private:
-    TTarget Parent;
-    TConstVec Shift;
-};

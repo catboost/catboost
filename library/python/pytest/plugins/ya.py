@@ -17,7 +17,12 @@ try:
 except ImportError:
     resource = None
 
-import yatest_tools as tools
+try:
+    import library.python.pytest.yatest_tools as tools
+except ImportError:
+    # fallback for pytest script mode
+    import yatest_tools as tools
+
 import yatest_lib.tools
 
 import yatest_lib.external as canon

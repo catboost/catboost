@@ -14,22 +14,22 @@ namespace NKernelHost {
 
     template <>
     struct TValueConversion<char> {
-        using TValue = uchar;
+        using TValue = unsigned char;
     };
 
     template <>
     struct TValueConversion<short> {
-        using TValue = ushort;
+        using TValue = unsigned short;
     };
 
     template <>
     struct TValueConversion<int> {
-        using TValue = uint;
+        using TValue = ui32;
     };
 
     template <>
     struct TValueConversion<float> {
-        using TValue = uint;
+        using TValue = ui32;
     };
 
     template <typename K, typename V>
@@ -112,7 +112,7 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const {
             CB_ENSURE(Keys.Size() == Keys.ObjectCount());
-            CB_ENSURE(Keys.Size() < (1L << 32));
+            CB_ENSURE(Keys.Size() < (static_cast<ui64>(1) << 32));
 
             const ui32 size = Keys.Size();
             const ui32 valueSize = Values.Size() ? sizeof(V) : 0;

@@ -35,7 +35,7 @@ public:
     }
 
     size_type size() const {
-        return std::distance(Begin_, End_);
+        return End_ - Begin_;
     }
 
 private:

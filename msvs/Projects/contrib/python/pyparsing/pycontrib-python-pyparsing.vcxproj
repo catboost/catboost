@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3181195 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3181195 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3215009 /DTFileOutput=TUnbufferedFileOutput /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3215009 /DTFileOutput=TUnbufferedFileOutput /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -77,6 +77,36 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\h2vow4vzlqlxwis3lrjv6ger64.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\h2vow4vzlqlxwis3lrjv6ger64.yasm">
+      <ObjectFileName>$(IntDir)h2vow4vzlqlxwis3lrjv6ger64_extra1.obj</ObjectFileName>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\h2vow4vzlqlxwis3lrjv6ger64.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
@@ -108,7 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.cpp" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "/py_modules/pyparsing" "-" "resfs/src//py_modules/pyparsing=contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_nabcipdr7c5m3xcauoce7vi32m.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_ymkqphezajydeee655iz4h53he.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6z5vywhuk6hshpql4ooxom3uua.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -119,7 +149,34 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompiler/rescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.cpp" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "/py_modules/pyparsing" "-" "resfs/src//py_modules/pyparsing=contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_nabcipdr7c5m3xcauoce7vi32m.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_ymkqphezajydeee655iz4h53he.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6z5vywhuk6hshpql4ooxom3uua.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_nabcipdr7c5m3xcauoce7vi32m.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_6z5vywhuk6hshpql4ooxom3uua.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="[_no_inputs_]">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.cpp" "_nabcipdr7c5m3xcauoce7vi32m=/py_modules/pyparsing" "_ymkqphezajydeee655iz4h53he=resfs/src//py_modules/pyparsing" "_6z5vywhuk6hshpql4ooxom3uua=/py_code/pyparsing"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.cpp" "_nabcipdr7c5m3xcauoce7vi32m=/py_modules/pyparsing" "_ymkqphezajydeee655iz4h53he=resfs/src//py_modules/pyparsing" "_6z5vywhuk6hshpql4ooxom3uua=/py_code/pyparsing"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,7 +185,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/h2vow4vzlqlxwis3lrjv6ger64.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;</AdditionalInputs>
+      <AdditionalInputs/>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\h2vow4vzlqlxwis3lrjv6ger64.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
@@ -207,8 +264,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompiler\rescompiler.vcxproj">
-      <Project>A0201048-2AC1-B189-065A-E3A41D4119A9</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
       <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>

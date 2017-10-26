@@ -4,7 +4,6 @@
 #include <cmath>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
-#include <sys/time.h>
 
 namespace NCudaLib {
     enum class EProfileMode {
@@ -39,9 +38,7 @@ namespace NCudaLib {
         }
 
         ~TLabeledInterval() {
-            if (Active) {
-                ythrow yexception() << "Exit application before stopping LabelInterval";
-            }
+            Y_VERIFY(!Active, "Exit application before stopping LabelInterval");
         }
 
         void Add(const TLabeledInterval& other) {

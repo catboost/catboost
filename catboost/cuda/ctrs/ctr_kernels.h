@@ -337,96 +337,109 @@ namespace NKernelHost {
     };
 }
 
-template <class TMapping, class TUint32>
+template<class TMapping, class TUint32>
 inline void GatherTrivialWeights(TCudaBuffer<float, TMapping>& dst,
                                  const TCudaBuffer<TUint32, TMapping>& indices,
                                  ui32 firstZeroIndex,
                                  bool writeSegmentStartFloatMask,
-                                 ui32 stream = 0) {
+                                 ui32 stream = 0)
+{
     using TKernel = NKernelHost::TGatherTrivialWeightsKernel;
-    LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst, firstZeroIndex, writeSegmentStartFloatMask);
+    LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst, firstZeroIndex,
+                           writeSegmentStartFloatMask);
 }
 
-template <class TMapping, class TUint32>
+template<class TMapping, class TUint32>
 inline void WriteFloatMask(const TCudaBuffer<TUint32, TMapping>& indices,
                            TCudaBuffer<float, TMapping>& dst,
-                           ui32 stream = 0) {
+                           ui32 stream = 0)
+{
     using TKernel = NKernelHost::TWriteMaskKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst);
 }
 
-template <class TMapping, class TUint32>
+template<class TMapping, class TUint32>
 inline void ExtractMask(const TCudaBuffer<TUint32, TMapping>& indices,
                         TCudaBuffer<ui32, TMapping>& dst,
                         bool startSegment = true, //mark segment start as 1; otherwise segment end
-                        ui32 stream = 0) {
+                        ui32 stream = 0)
+{
     using TKernel = NKernelHost::TExtractBorderMasksKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, indices, dst, startSegment);
 }
 
-template <class TMapping>
-inline void UpdateBordersMask(const TCudaBuffer<ui32, TMapping>& bins, TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0) {
+template<class TMapping>
+inline void
+UpdateBordersMask(const TCudaBuffer<ui32, TMapping>& bins, TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0)
+{
     using TKernel = NKernelHost::TUpdateBordersMaskKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, bins, indices);
 }
 
-template <class TMapping>
+template<class TMapping>
 inline void UpdateBordersMask(const TCudaBuffer<ui32, TMapping>& bins,
                               const TCudaBuffer<ui32, TMapping>& prevBins,
-                              TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0) {
+                              TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0)
+{
     using TKernel = NKernelHost::TUpdateBordersMaskKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, bins, prevBins, indices);
 }
 
-template <class TMapping>
+template<class TMapping>
 inline void UpdateCtrBins(TCudaBuffer<ui32, TMapping>& bins,
                           const TCudaBuffer<ui32, TMapping>& prevBins,
                           ui32 bits,
-                          ui32 stream = 0) {
+                          ui32 stream = 0)
+{
     using TKernel = NKernelHost::TMergeBitsKernel;
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, prevBins, bits);
 }
 
-template <class TMapping, class TUi8>
+template<class TMapping, class TUi8>
 inline void FillBinarizedTargetsStats(const TCudaBuffer<TUi8, TMapping>& target,
                                       const TCudaBuffer<float, TMapping>& weights,
                                       TCudaBuffer<float, TMapping>& dst,
-                                      ui32 binIndex, ECtrType type, ui32 stream = 0) {
-    Y_ENSURE(IsBinarizedTargetCtr(type));
+                                      ui32 binIndex, ECtrType type, ui32 stream = 0)
+{
+    CB_ENSURE(NCatboostCuda::IsBinarizedTargetCtr(type));
     using TKernel = NKernelHost::TFillBinarizedTargetsStatsKernel;
-    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, target, weights, dst, binIndex, IsBordersBasedCtr(type));
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, target, weights, dst, binIndex, NCatboostCuda::IsBordersBasedCtr(type));
 }
 
-template <class TMapping>
+template<class TMapping>
 inline void DivideWithPriors(TCudaBuffer<float, TMapping>& sums,
                              const TCudaBuffer<float, TMapping>& weights,
-                             float sumPrior, float weightPrior, ui32 stream = 0) {
+                             float sumPrior, float weightPrior, ui32 stream = 0)
+{
     using TKernel = NKernelHost::TMakeMeanKernel;
     LaunchKernels<TKernel>(sums.NonEmptyDevices(), stream, sums, weights, sumPrior, weightPrior);
 }
 
-template <class TMapping>
+template<class TMapping>
 inline void DivideWithPriorsAndScatter(const TCudaBuffer<float, TMapping>& sums,
                                        const TCudaBuffer<float, TMapping>& weights,
                                        float sumPrior, float weightPrior,
                                        const TCudaBuffer<const ui32, TMapping>& indices, ui32 mask,
                                        TCudaBuffer<float, TMapping>& dst,
-                                       ui32 stream = 0) {
+                                       ui32 stream = 0)
+{
     using TKernel = NKernelHost::TMakeMeanAndScatterKernel;
-    LaunchKernels<TKernel>(sums.NonEmptyDevices(), stream, sums, weights, sumPrior, weightPrior, indices, mask, dst);
+    LaunchKernels<TKernel>(sums.NonEmptyDevices(), stream, sums, weights, sumPrior, weightPrior, indices, mask,
+                           dst);
 }
 
-template <class TMapping>
+template<class TMapping>
 inline void DivideWithPriors(const TCudaBuffer<float, TMapping>& sums,
                              const TCudaBuffer<float, TMapping>& weights,
                              float sumPrior, float weightPrior,
                              TCudaBuffer<float, TMapping>& dst,
-                             ui32 stream = 0) {
+                             ui32 stream = 0)
+{
     using TKernel = NKernelHost::TMakeMeanAndScatterKernel;
     LaunchKernels<TKernel>(sums.NonEmptyDevices(), stream, sums, weights, sumPrior, weightPrior, dst);
 }
 
-template <class TMapping, class TUi32>
+template<class TMapping, class TUi32>
 inline void ComputeWeightedBinFreqCtr(const TCudaBuffer<TUi32, TMapping>& indices,
                                       const TCudaBuffer<ui32, TMapping>& bins,
                                       const TCudaBuffer<float, TMapping>& binWeights,
@@ -434,31 +447,37 @@ inline void ComputeWeightedBinFreqCtr(const TCudaBuffer<TUi32, TMapping>& indice
                                       float prior,
                                       float priorObservations,
                                       TCudaBuffer<float, TMapping>& dst,
-                                      ui32 stream = 0) {
+                                      ui32 stream = 0)
+{
     using TKernel = NKernelHost::TComputeWeightedBinFreqCtrKernel;
-    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, indices, bins, binWeights, totalWeight, prior, priorObservations, dst);
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, indices, bins, binWeights, totalWeight, prior,
+                           priorObservations, dst);
 }
 
-template <class TMapping, class TUi32>
+template<class TMapping, class TUi32>
 inline void ComputeNonWeightedBinFreqCtr(const TCudaBuffer<TUi32, TMapping>& indices,
                                          const TCudaBuffer<ui32, TMapping>& bins,
                                          const TCudaBuffer<ui32, TMapping>& offsets,
                                          float prior,
                                          float priorObservations,
                                          TCudaBuffer<float, TMapping>& dst,
-                                         ui32 stream = 0) {
+                                         ui32 stream = 0)
+{
     using TKernel = NKernelHost::TComputeNonWeightedBinFreqCtrKernel;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, indices, bins, offsets, prior, priorObservations, dst);
 }
 
-template <class TMapping, class TUi32>
+template<class TMapping, class TUi32>
 inline void ComputeBinFreqCtr(const TCudaBuffer<ui32, TMapping>& bins,
                               const TCudaBuffer<float, TMapping>& binWeights,
                               float totalWeight,
                               float prior,
                               float priorObservations,
                               TCudaBuffer<float, TMapping>& dst,
-                              ui32 stream = 0) {
+                              ui32 stream = 0)
+{
     using TKernel = NKernelHost::TComputeWeightedBinFreqCtrKernel;
-    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, bins, binWeights, totalWeight, prior, priorObservations, dst);
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, bins, binWeights, totalWeight, prior, priorObservations,
+                           dst);
 }
+

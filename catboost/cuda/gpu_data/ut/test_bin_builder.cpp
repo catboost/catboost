@@ -10,6 +10,7 @@
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
     struct TTreeCtrSplit {
@@ -235,8 +236,8 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         yvector<ui32> simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetPermutationFeatures().ComputeAllFeatureIds();
 
         yvector<TBinarySplit> splits;
-        TBinarySplit firstSplit = {floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater};
-        TBinarySplit secondSplit = {binaryIds[random.NextUniformL() % binaryIds.size()], 0, EBinSplitType::TakeGreater};
+        TBinarySplit firstSplit = TBinarySplit(floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater);
+        TBinarySplit secondSplit = TBinarySplit(binaryIds[random.NextUniformL() % binaryIds.size()], 0, EBinSplitType::TakeGreater);
         splits.push_back(firstSplit);
         splits.push_back(secondSplit);
 
@@ -261,14 +262,14 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             featuresManager.AddCtr(treeCtr, std::move(naiveBorders));
         }
 
-        TBinarySplit thirdSplit = {featuresManager.GetId(treeCtr), 4, EBinSplitType::TakeGreater};
+        TBinarySplit thirdSplit = TBinarySplit(featuresManager.GetId(treeCtr), 4, EBinSplitType::TakeGreater);
         splits.push_back(thirdSplit);
 
         ui32 simpleCtr = simpleCtrIds[random.NextUniformL() % simpleCtrIds.size()];
-        TBinarySplit forthSplit = {simpleCtr, 4, EBinSplitType::TakeGreater};
+        TBinarySplit forthSplit = TBinarySplit(simpleCtr, 4, EBinSplitType::TakeGreater);
         splits.push_back(forthSplit);
 
-        TBinarySplit fifthSplit = {oneHotIds[random.NextUniformL() % oneHotIds.size()], 2, EBinSplitType::TakeBin};
+        TBinarySplit fifthSplit = TBinarySplit(oneHotIds[random.NextUniformL() % oneHotIds.size()], 2, EBinSplitType::TakeBin);
         splits.push_back(fifthSplit);
 
         TScopedCacheHolder cacheHolder;

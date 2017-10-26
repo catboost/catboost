@@ -238,6 +238,7 @@ public:
             try {
                 DoFinish();
             } catch (...) {
+                // ¯\_(ツ)_/¯
             }
 
             throw;
@@ -344,6 +345,7 @@ TBufferedOutputBase::~TBufferedOutputBase() {
     try {
         Finish();
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 }
 

@@ -94,7 +94,7 @@ public:
     }
 
     void ReplaceUnescaped(const TStringBuf key, const TStringBuf value) {
-        ReplaceUnescaped(key, { value });
+        ReplaceUnescaped(key, {value});
     }
 
     // join multiple values into a single one using a separator
@@ -120,18 +120,18 @@ void TCgiParameters::ReplaceUnescaped(const TStringBuf key, TIter valuesBegin, c
     auto current = oldRange.first;
 
     // reuse as many existing nodes as possible (probably none)
-    for ( ; valuesBegin != valuesEnd && current != oldRange.second; ++valuesBegin, ++current) {
+    for (; valuesBegin != valuesEnd && current != oldRange.second; ++valuesBegin, ++current) {
         current->second = *valuesBegin;
     }
 
     // if there were more nodes than we need to insert then erase remaining ones
-    for ( ; current != oldRange.second; erase(current++)) {
+    for (; current != oldRange.second; erase(current++)) {
     }
 
     // if there were less nodes than we need to insert then emplace the rest of the range
     if (valuesBegin != valuesEnd) {
         const TString keyStr = TString(key);
-        for ( ; valuesBegin != valuesEnd; ++valuesBegin) {
+        for (; valuesBegin != valuesEnd; ++valuesBegin) {
             emplace_hint(oldRange.second, keyStr, TString(*valuesBegin));
         }
     }

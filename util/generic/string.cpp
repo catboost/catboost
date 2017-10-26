@@ -100,100 +100,14 @@ TUtf16String& TUtf16String::AppendAscii(const ::TFixedString<char>& s) {
     return *this;
 }
 
-#define POS_RANGE(pos, len) pos = ((pos) < (len) ? (pos) : (len))
-#define NUM_RANGE(num, len, pos) num = ((num) < ((len) - (pos)) ? (num) : ((len) - (pos)))
-
 bool TUtf16String::to_lower(size_t pos, size_t n) {
-    bool changed = false;
-    size_t len = length();
-    POS_RANGE(pos, len);
-    NUM_RANGE(n, len, pos);
-
-    wchar16* begin = Data_ + pos;
-    wchar16* end = begin + n;
-    for (wchar16* i = begin; i != end;) {
-        wchar32 s = ReadSymbol(i, end);
-        wchar32 c = ToLower(s);
-        if (c != s) {
-            if (Y_UNLIKELY(!changed)) {
-                Detach();
-                end = Data_ + pos + n;
-                i = Data_ + pos + (i - begin);
-                changed = true;
-            }
-            WriteSymbol(c, i); // also skipping symbol
-        } else {
-            i = SkipSymbol(i, end);
-        }
-    }
-    return changed;
+    return ToLower(*this, pos, n);
 }
 
 bool TUtf16String::to_upper(size_t pos, size_t n) {
-    bool changed = false;
-    size_t len = length();
-    POS_RANGE(pos, len);
-    NUM_RANGE(n, len, pos);
-
-    wchar16* begin = Data_ + pos;
-    wchar16* end = begin + n;
-    for (wchar16* i = begin; i != end;) {
-        wchar32 s = ReadSymbol(i, end);
-        wchar32 c = ToUpper(s);
-        if (c != s) {
-            if (Y_UNLIKELY(!changed)) {
-                Detach();
-                end = Data_ + pos + n;
-                i = Data_ + pos + (i - begin);
-                changed = true;
-            }
-            WriteSymbol(c, i); // also skipping symbol
-        } else {
-            i = SkipSymbol(i, end);
-        }
-    }
-    return changed;
+    return ToUpper(*this, pos, n);
 }
 
 bool TUtf16String::to_title() {
-    size_t len = length();
-    if (len == 0)
-        return false;
-
-    bool changed = false;
-
-    wchar16* begin = Data_;
-    wchar16* end = Data_ + len;
-    wchar16* i = Data_;
-
-    wchar32 s = ReadSymbol(i, end);
-    wchar32 c = ::ToTitle(s);
-    if (c != s) {
-        Y_ASSERT(!changed);
-        Detach();
-        end = Data_ + len;
-        i = Data_ + (i - begin);
-        changed = true;
-        WriteSymbol(c, i); // also skipping symbol
-    } else {
-        i = SkipSymbol(i, end);
-    }
-    Y_ASSERT(i <= end);
-
-    while (i != end) {
-        s = ReadSymbol(i, end);
-        c = ToLower(s);
-        if (c != s) {
-            if (Y_UNLIKELY(!changed)) {
-                Detach();
-                end = Data_ + len;
-                i = Data_ + (i - begin);
-                changed = true;
-            }
-            WriteSymbol(c, i); // also skipping symbol
-        } else {
-            i = SkipSymbol(i, end);
-        }
-    }
-    return changed;
+    return ToTitle(*this);
 }

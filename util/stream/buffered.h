@@ -164,12 +164,12 @@ namespace NPrivate {
  * A mixin class that turns unbuffered stream into a buffered one.
  *
  * Note that using this mixin with a stream that is already buffered won't
- * result in double buffering, e.g. `TBuffered<TBuffered<TFileInput>>` and
- * `TBuffered<TFileInput>` are basically the same types.
+ * result in double buffering, e.g. `TBuffered<TBuffered<TUnbufferedFileInput>>` and
+ * `TBuffered<TUnbufferedFileInput>` are basically the same types.
  *
  * Example usage:
  * @code
- * TBuffered<TFileInput> file_input(1024, "/path/to/file");
+ * TBuffered<TUnbufferedFileInput> file_input(1024, "/path/to/file");
  * TBuffered<TFileOutput> file_output(1024, "/path/to/file");
  * @endcode
  * Here 1024 is the size of the buffer.

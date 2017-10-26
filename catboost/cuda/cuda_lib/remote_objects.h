@@ -98,7 +98,7 @@ namespace NCudaLib {
         NHelpers::THandleCache Cache;
 
     public:
-        THandleBasedPointer(ui64 handle)
+        explicit THandleBasedPointer(ui64 handle)
             : Handle(handle)
         {
         }
@@ -136,8 +136,6 @@ namespace NCudaLib {
         using TRawDataPtr = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;
         ui64 Handle;
         ui64 Offset;
-
-        template friend class THandleBasedMemoryPointer;
 
     public:
         THandleBasedMemoryPointer()

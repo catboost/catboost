@@ -38,7 +38,7 @@ namespace {
                 TThread::CurrentThreadSetName(~p.Name);
             }
         } catch (...) {
-            //just ignore it
+            // ¯\_(ツ)_/¯
         }
     }
 
@@ -387,7 +387,7 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackLength = pthread_get_stacksize_np(pthread_self());
 #elif defined(_MSC_VER)
 
-#   if _WIN32_WINNT >= _WIN32_WINNT_WIN8
+#if _WIN32_WINNT >= _WIN32_WINNT_WIN8
     ULONG_PTR b = 0;
     ULONG_PTR e = 0;
 
@@ -396,7 +396,7 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackBegin = (const void*)b;
     StackLength = e - b;
 
-#   else
+#else
     // Copied from https://github.com/llvm-mirror/compiler-rt/blob/release_40/lib/sanitizer_common/sanitizer_win.cc#L91
     void* place_on_stack = alloca(16);
     MEMORY_BASIC_INFORMATION memory_info;
@@ -405,7 +405,7 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     StackBegin = memory_info.AllocationBase;
     StackLength = static_cast<const char*>(memory_info.BaseAddress) + memory_info.RegionSize - static_cast<const char*>(StackBegin);
 
-#   endif
+#endif
 
 #else
 #error port me

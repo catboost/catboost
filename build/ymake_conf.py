@@ -62,13 +62,13 @@ class Platform(object):
         return self
 
     @staticmethod
-    def create(name, os, arch):
+    def create(name, os_, arch):
         """
         :rtype: Platform
         """
         self = Platform()
         self.name = name
-        self.os = os
+        self.os = os_
         self.arch = arch
         return self
 
@@ -117,8 +117,16 @@ class Platform(object):
         return self.arch in ('i386', 'i686', 'x86', 'x86_64')
 
     @property
+    def is_x86_64(self):
+        return self.arch == 'x86_64'
+
+    @property
     def is_arm(self):
         return self.arch == 'arm'
+
+    @property
+    def is_aarch64(self):
+        return self.arch == 'aarch64'
 
     @property
     def os_variables(self):
@@ -271,7 +279,9 @@ def to_strings(o):
                 yield ss
     else:
         if o is not None:
-            if isinstance(o, (str, int)):
+            if isinstance(o, bool):
+                yield 'yes' if o else 'no'
+            elif isinstance(o, (str, int)):
                 yield str(o)
             else:
                 raise ConfigureError('Unexpected value {} {}'.format(type(o), o))
@@ -317,7 +327,8 @@ class Variables(dict):
 
     def reset_if_any(self, value_check=None, reset_value=None):
         if value_check is None:
-            value_check = lambda v_: v_ is None
+            def value_check(v_):
+                return v_ is None
 
         if any(map(value_check, self.itervalues())):
             for k in self.iterkeys():
@@ -441,6 +452,8 @@ class Build(object):
         if self.is_ide_build_type(self.build_type):
             self.ignore_local_files = True
 
+        self.pic = not is_positive('FORCE_NO_PIC')
+
     def print_build(self):
         self._print_build_settings()
 
@@ -450,7 +463,7 @@ class Build(object):
         target_os = System(self.target)
         target_os.print_target_settings()
 
-        if not is_positive('FORCE_NO_PIC'):
+        if self.pic:
             emit('PIC', 'yes')
 
         emit('COMPILER_ID', self.tc.type.upper())
@@ -527,16 +540,16 @@ class Build(object):
         return build_type == 'nobuild'
 
     def _get_toolchain_options(self):
-        type = self.params['params']['type']
+        type_ = self.params['params']['type']
 
-        if type == 'system_cxx':
+        if type_ == 'system_cxx':
             detector = CompilerDetector()
             detector.detect(self.params['params'].get('c_compiler'), self.params['params'].get('cxx_compiler'))
-            type = detector.type
+            type_ = detector.type
         else:
             detector = None
 
-        if type == 'msvc':
+        if type_ == 'msvc':
             return MSVCToolchainOptions(self, detector)
         else:
             return GnuToolchainOptions(self, detector)
@@ -554,11 +567,18 @@ class Build(object):
         perl.configure_local()
         perl.print_variables('LOCAL_')
 
+        yasm = Yasm(self.target)
+        yasm.configure()
+        yasm.print_variables()
+
         if host.is_linux or host.is_freebsd or host.is_macos or host.is_cygwin:
             if is_negative('USE_ARCADIA_PYTHON'):
                 python = Python()
                 python.configure_posix()
                 python.print_variables()
+
+        cuda = Cuda(self)
+        cuda.print_variables()
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
@@ -638,10 +658,6 @@ class System(object):
         emit('UNIX', 'yes')
         emit('REALPRJNAME')
         emit('SONAME')
-        emit('USE_CUDA', 'no')
-        emit('CUDA_NVCC_FLAGS', preset('CUDA_NVCC_FLAGS') or '')
-        emit('NVCCOPTS', '--compiler-options', '-fno-strict-aliasing', '-I${ARCADIA_ROOT}', '-I.',
-             '-I${CUDA_ROOT}/SDK/common/inc', '-I${CUDA_ROOT}/include', '-DUNIX', '-O3', '$CUDA_NVCC_FLAGS')
 
     @staticmethod
     def print_nix_host_const():
@@ -650,20 +666,7 @@ class System(object):
         print '''
 when ($USE_PYTHON) {
     C_DEFINES+= -DUSE_PYTHON
-}
-
-when ($USE_CUDA == "yes") {
-    CFLAGS+= -fno-strict-aliasing -I${CUDA_ROOT}/SDK/common/inc -I${CUDA_ROOT}/include -DUNIX
-}
-CUDART=-lcudart_static
-when ($PIC) {
-    CUDART=-lcudart
-}
-when ($USE_CUDA == "yes") {
-    C_LIBRARY_PATH+=-L${CUDA_ROOT}/lib64
-    C_SYSTEM_LIBRARIES+=$CUDART
-}
-'''
+}'''
 
     @staticmethod
     def print_freebsd_const():
@@ -712,21 +715,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
     # Misc target arch-related shortcuts
     def print_target_shortcuts(self):
-        if preset('HAVE_CUDA') is None:
-            print 'HAVE_CUDA=no'
-            if self.platform.is_linux:
-                print '''
-  when ($ARCH_X86_64 && !$SANITIZER_TYPE && !$PIC) {
-      HAVE_CUDA=yes
-  }
-'''
-            if self.platform.is_linux or self.platform.is_android:
-                print '''
-  when ($ARCH_AARCH64 && $ARM_CUDA) {
-      HAVE_CUDA=yes
-  }
-'''
-
         if preset('HAVE_MKL') is None:
             print 'HAVE_MKL=no'
             if self.platform.is_linux:
@@ -783,16 +771,16 @@ class CompilerDetector(object):
         if stdout is None:
             return None
 
-        vars = {}
+        vars_ = {}
         for line in stdout.split('\n'):
             parts = line.split('=', 1)
             if len(parts) == 2 and parts[0].startswith(prefix):
                 name, value = parts[0][len(prefix):], parts[1]
                 if value == name:
                     continue  # Preprocessor variable was not substituted
-                vars[name] = value
+                vars_[name] = value
 
-        return vars
+        return vars_
 
     def detect(self, c_compiler=None, cxx_compiler=None):
         c_compiler = c_compiler or os.environ.get('CC')
@@ -1141,7 +1129,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-DTFileOutput=TUnbufferedFileOutput')
         append('CXXFLAGS', '$CXX_WARNING_OPTS', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1421,7 +1409,7 @@ class LD(Linker):
              '$CXX_COMPILER $AUTO_INPUT -o $TARGET', shared_flag, exe_flags,
              ld_env_style)
 
-        if self.dwarf_command == None:
+        if self.dwarf_command is None:
             emit('LINK_EXE', '$REAL_LINK_EXE')
             emit('LINK_DYN_LIB', '$REAL_LINK_DYN_LIB')
         else:
@@ -1477,6 +1465,10 @@ class MSVCToolchain(Toolchain, MSVC):
 
     def print_toolchain(self):
         emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=';'))
+
+        # TODO(somov): Заглушка для тех мест, где C_FLAGS_PLATFORM используется
+        # для любых платформ. Нужно унифицировать с GnuToolchain.
+        emit('C_FLAGS_PLATFORM')
 
 
 class MSVCCompiler(Compiler, MSVC):
@@ -1551,7 +1543,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/DTFileOutput=TUnbufferedFileOutput']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1708,7 +1700,7 @@ class MSVCLinker(MSVC, Linker):
         libpaths = []
         if self.tc.kit_libs:
             libpaths.extend([os.path.join(self.tc.kit_libs, name, kit_lib_arch) for name in ('um', 'ucrt')])
-        libpaths.append(os.path.join(self.tc.vc_root, 'lib', vc_lib_arch))
+        libpaths.append(os.path.join(*filter(None, [self.tc.vc_root, 'lib', vc_lib_arch])))
         if is_positive('USE_UWP'):
             libpaths.append(os.path.join(self.tc.vc_root, 'lib', 'store', 'references'))
 
@@ -1941,6 +1933,105 @@ class Perl(object):
                 break
             yield match.group('key', 'value')
             start = match.end()
+
+
+class Cuda(object):
+    def __init__(self, build):
+        """
+        :type build: Build
+        """
+        self.build = build
+
+    def print_variables(self):
+        have_cuda = is_positive('HAVE_CUDA') or self._have_cuda()
+
+        if preset('HAVE_CUDA') is None:
+            emit('HAVE_CUDA', have_cuda)
+
+        use_arcadia_cuda = preset('CUDA_ROOT') is None
+        emit('_USE_ARCADIA_CUDA', use_arcadia_cuda)
+
+        nvcc_flags = []
+
+        if use_arcadia_cuda:
+            emit('CUDA_ROOT', '$(CUDA)')
+            target = self.build.target
+            if target.is_linux:
+                if target.is_x86_64:
+                    nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/g++-4.9')
+                elif target.is_aarch64:
+                    nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/aarch64-linux-g++')
+            if target.is_macos:
+                if target.is_x86_64:
+                    nvcc_flags.append('--compiler-bindir=$(CUDA_XCODE)/usr/bin')
+
+        emit('NVCC', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+
+        if preset('CUDA_NVCC_FLAGS') is None:
+            emit('CUDA_NVCC_FLAGS')
+
+        nvcc_flags.append('$CUDA_NVCC_FLAGS')
+        emit('NVCC_FLAGS', nvcc_flags)
+
+    def _have_cuda(self):
+        if preset('CUDA_ROOT') is not None:
+            return True
+
+        host = self.build.host
+        target = self.build.target
+
+        if host.is_linux and host.is_x86_64:
+            if target.is_linux:
+                return target.is_x86_64 or target.is_aarch64
+
+        if host.is_macos and host.is_x86_64:
+            if target.is_macos:
+                return target.is_x86_64
+
+        return False
+
+
+class Yasm(object):
+    def __init__(self, target):
+        self.yasm_tool = '${tool:"contrib/tools/yasm"}'
+        self.fmt = None
+        self.platform = None
+        self.target = target
+        self.flags = []
+
+    def configure(self):
+        if self.target.is_ios or self.target.is_macos:
+            self.platform = ['DARWIN', 'UNIX']
+            self.fmt = 'macho'
+        elif (self.target.is_windows and self.target.is_64_bit) or self.target.is_cygwin:
+            self.platform = ['WIN64']
+            self.fmt = 'win'
+        elif self.target.is_windows and self.target.is_32_bit:
+            self.platform = ['WIN32']
+            self.fmt = 'win'
+        else:
+            self.platform = ['UNIX']
+            self.fmt = 'elf'
+
+        if self.fmt == 'elf':
+            self.flags += ['-g', 'dwarf2']
+
+    def print_variables(self):
+        print '''\
+when ($ASM_PREFIX) {
+    ASM_PREFIX_VALUE=--prefix=$ASM_PREFIX
+}
+otherwise {
+    ASM_PREFIX_VALUE=
+}
+'''
+        d_platform = ' '.join([('-D ' + i) for i in self.platform])
+        output = '${{output;noext:SRC.{}}}'.format('o' if self.fmt != 'win' else 'obj')
+        print '''\
+macro _SRC_yasm(SRC) {{
+    .CMD={} -f {}$HARDWARE_ARCH {} -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} -o {} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+}}
+'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)
 
 
 def main():

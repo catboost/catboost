@@ -129,14 +129,14 @@ TString NFs::ReadLink(const TString& path) {
 }
 
 void NFs::Cat(const TString& dstPath, const TString& srcPath) {
-    TFileInput src(srcPath);
+    TUnbufferedFileInput src(srcPath);
     TFileOutput dst(TFile(dstPath, ForAppend | WrOnly | Seq));
 
     TransferData(&src, &dst);
 }
 
 void NFs::Copy(const TString& existingPath, const TString& newPath) {
-    TFileInput src(existingPath);
+    TUnbufferedFileInput src(existingPath);
     TFileOutput dst(TFile(newPath, CreateAlways | WrOnly | Seq));
 
     TransferData(&src, &dst);

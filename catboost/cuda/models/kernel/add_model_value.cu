@@ -49,7 +49,7 @@ namespace NKernel {
                           const ui32* readIndices, const ui32* writeIndices,
                           float* cursor, ui32 size,
                           TCudaStream stream) {
-        const uint blockSize = 256;
+        const ui32 blockSize = 256;
         const ui32 elementsPerThreads = 10;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize * elementsPerThreads);
         AddBinModelValueImpl<blockSize, elementsPerThreads> << <numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursor);

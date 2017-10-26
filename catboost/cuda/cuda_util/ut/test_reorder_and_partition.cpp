@@ -30,7 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
                 for (ui32 dev = 0; dev < devCount; ++dev) {
                     TSlice deviceSlice = binsMapping.DeviceSlice(dev);
 
-                    for (uint i = deviceSlice.Left; i < deviceSlice.Right; ++i) {
+                    for (ui32 i = deviceSlice.Left; i < deviceSlice.Right; ++i) {
                         binsCpu[i] = (ui32)(rand.NextUniformL() % binCount);
                         sizes[dev * binCount + binsCpu[i]]++;
                     }
@@ -58,7 +58,7 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
             partsGpu.Read(partsCpu);
 
             for (ui32 dev = 0; dev < devCount; ++dev) {
-                for (uint i = 0; i < binCount; ++i) {
+                for (ui32 i = 0; i < binCount; ++i) {
                     UNIT_ASSERT_VALUES_EQUAL(partsCpu[dev * binCount + i].Offset, offsets[dev * binCount + i]);
                     UNIT_ASSERT_VALUES_EQUAL(partsCpu[dev * binCount + i].Size, sizes[dev * binCount + i]);
                 }

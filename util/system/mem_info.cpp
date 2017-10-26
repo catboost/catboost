@@ -111,7 +111,7 @@ namespace NMemInfo {
 
 #if defined(_linux_) || defined(_cygwin_)
         const TString path = TStringBuilder() << STRINGBUF("/proc/") << pid << STRINGBUF("/statm");
-        const TString stats = TFileInput(path).ReadAll();
+        const TString stats = TUnbufferedFileInput(path).ReadAll();
 
         TStringBuf statsiter(stats);
 

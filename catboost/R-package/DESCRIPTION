@@ -1,6 +1,6 @@
 Package: catboost
 Title: R package for catboost
-Version: 0.2.4
+Version: 0.2.5
 Date: 2017-08-22
 RoxygenNote: 6.0.1
 Imports: jsonlite

@@ -69,6 +69,7 @@ namespace {
                 try {
                     return new TDynamicLibrary(lib);
                 } catch (...) {
+                    // ¯\_(ツ)_/¯
                 }
             }
 

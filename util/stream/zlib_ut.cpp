@@ -24,7 +24,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         TTempFile tmpFile(ZDATA);
 
         {
-            TFileInput i(ZDATA);
+            TUnbufferedFileInput i(ZDATA);
             TZLibDecompress d(&i);
 
             UNIT_ASSERT_EQUAL(d.ReadLine(), data);
@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
             o.Finish();
         }
         {
-            TFileInput i(ZDATA);
+            TUnbufferedFileInput i(ZDATA);
             TZLibDecompress d(&i);
 
             UNIT_ASSERT_EQUAL(d.ReadLine(), data + data2);
@@ -66,7 +66,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
             o.Finish();
         }
         {
-            TFileInput i(ZDATA);
+            TUnbufferedFileInput i(ZDATA);
             TZLibDecompress d(&i);
             d.SetAllowMultipleStreams(false);
 

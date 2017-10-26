@@ -31,6 +31,17 @@ namespace NCudaLib {
                 THolder<NKernel::IKernelContext> KernelContext = nullptr;
                 TCudaStream* Stream;
 
+                TKernelTask() = default;
+
+                TKernelTask(THolder<IGpuKernelTask>&& task,
+                            THolder<NKernel::IKernelContext>&& kernelContext,
+                            TCudaStream* stream)
+                        : Task(std::move(task))
+                        , KernelContext(std::move(kernelContext))
+                        , Stream(stream)
+                {
+                }
+
                 bool IsRunning() const {
                     return !IsEmpty() && !Task->ReadyToSubmitNext(*Stream, KernelContext.Get());
                 }
@@ -63,7 +74,7 @@ namespace NCudaLib {
             void AddTask(THolder<IGpuKernelTask>&& task,
                          THolder<NKernel::IKernelContext>&& taskData) {
                 IsActiveFlag = true;
-                WaitingTasks.push({std::move(task), std::move(taskData), &Stream});
+                WaitingTasks.push(TKernelTask(std::move(task), std::move(taskData), &Stream));
                 TryProceedTask();
             }
 

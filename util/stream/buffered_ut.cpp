@@ -73,7 +73,6 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "123");
     }
 
-
     SIMPLE_UNIT_TEST(TestInput) {
         TString s("0123456789abcdefghijklmn");
         TBuffered<TStringInput> in(5, s);

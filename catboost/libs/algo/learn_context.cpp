@@ -181,9 +181,9 @@ void TLearnContext::SaveProgress() {
     }
 }
 
-void TLearnContext::LoadProgress() {
+bool TLearnContext::TryLoadProgress() {
     if (!Params.SaveSnapshot || !NFs::Exists(Files.SnapshotFile)) {
-        return;
+        return false;
     }
     try {
         TIFStream in(Files.SnapshotFile);
@@ -192,8 +192,11 @@ void TLearnContext::LoadProgress() {
         LearnProgress = std::move(LearnProgressRestored);
         LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams); // substitute real
         Profile.SetInitIterations(LearnProgress.Model.TreeStruct.ysize());
+        MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.Model.TreeStruct.size() << " trees" << Endl;
+        return true;
     } catch (...) {
         MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: " << CurrentExceptionMessage() << Endl;
+        return false;
     }
 }
 

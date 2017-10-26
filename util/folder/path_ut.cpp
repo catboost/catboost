@@ -50,6 +50,45 @@ namespace {
 }
 
 SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
+    SIMPLE_UNIT_TEST(TestMkDirs) {
+        const TFsPath path = "a/b/c/d/e/f";
+        path.ForceDelete();
+        TFsPath current = path;
+        ui32 checksCounter = 0;
+        while (current != ".") {
+            UNIT_ASSERT(!path.Exists());
+            ++checksCounter;
+            current = current.Parent();
+        }
+        UNIT_ASSERT_EQUAL(checksCounter, 6);
+
+        path.MkDirs();
+        UNIT_ASSERT(path.Exists());
+
+        current = path;
+        while (current != ".") {
+            UNIT_ASSERT(path.Exists());
+            current = current.Parent();
+        }
+    }
+
+    SIMPLE_UNIT_TEST(MkDirFreak) {
+        TFsPath path;
+        try {
+            path.MkDir();
+            UNIT_FAIL("freak case not excepted");
+        } catch (...) {
+        }
+        try {
+            path.MkDirs();
+            UNIT_FAIL("freak case not excepted");
+        } catch (...) {
+        }
+        path = ".";
+        path.MkDir();
+        path.MkDirs();
+    }
+
     SIMPLE_UNIT_TEST(Parent) {
 #ifdef _win_
         UNIT_ASSERT_EQUAL(TFsPath("\\etc/passwd").Parent(), TFsPath("\\etc"));
@@ -143,6 +182,18 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 
     SIMPLE_UNIT_TEST(TestRealPath) {
         UNIT_ASSERT(TFsPath(".").RealPath().IsDirectory());
+
+        TTestDirectory td("TestRealPath");
+        TFsPath link = td.Child("link");
+        TFsPath target1 = td.Child("target1");
+        target1.Touch();
+        TFsPath target2 = td.Child("target2");
+        target2.Touch();
+        UNIT_ASSERT(NFs::SymLink(target1.RealPath(), link.GetPath()));
+        UNIT_ASSERT_EQUAL(link.RealPath(), target1.RealPath());
+        UNIT_ASSERT(NFs::Remove(link.GetPath()));
+        UNIT_ASSERT(NFs::SymLink(target2.RealPath(), link.GetPath()));
+        UNIT_ASSERT_EQUAL(link.RealPath(), target2.RealPath()); // must not cache old value
     }
 
     SIMPLE_UNIT_TEST(TestSlashesAndBasename) {

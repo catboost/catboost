@@ -384,11 +384,15 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
 
     THolder<TLogger> logger;
 
-    ctx->LoadProgress();
+    if (ctx->TryLoadProgress()) {
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            (*testMultiApprox)[dim].assign(
+                    ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
+        }
+    }
     if (ctx->Params.AllowWritingFiles) {
         logger = CreateLogger(metrics, *ctx, hasTest);
     }
-
     yvector<yvector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
     yvector<double> valuesToLog;
     for (int i = 0; i < errorsHistory.ysize(); ++i) {

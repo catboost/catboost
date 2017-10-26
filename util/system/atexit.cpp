@@ -52,6 +52,7 @@ namespace {
                     try {
                         c->Func(c->Ctx);
                     } catch (...) {
+                        // ¯\_(ツ)_/¯
                     }
                 }
             }

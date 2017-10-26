@@ -381,7 +381,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
 
         ui64 total = 0;
 
-        for (uint i = 0; i < devCount; ++i) {
+        for (ui32 i = 0; i < devCount; ++i) {
             const ui64 devSize = Min(objectCount - total, objectPerDevice);
             slices[i] = TSlice(total, total + devSize);
             total += devSize;

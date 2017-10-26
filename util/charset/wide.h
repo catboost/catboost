@@ -615,56 +615,6 @@ void Collapse(TUtf16String& w);
 //! @return new length
 size_t Collapse(wchar16* s, size_t n);
 
-inline void ToLower(const wchar16* from, size_t len, wchar16* to) {
-    const wchar16* const end = from + len;
-
-    for (const wchar16* i = from; i != end;) {
-        wchar32 c = ToLower(ReadSymbolAndAdvance(i, end));
-
-        WriteSymbol(c, to);
-    }
-}
-
-inline void ToLower(wchar16* s, size_t n) {
-    ToLower(s, n, s);
-}
-
-inline void ToUpper(const wchar16* from, size_t len, wchar16* to) {
-    const wchar16* const end = from + len;
-
-    for (const wchar16* i = from; i != end;) {
-        wchar32 c = ToUpper(ReadSymbolAndAdvance(i, end));
-
-        WriteSymbol(c, to);
-    }
-}
-
-inline void ToUpper(wchar16* s, size_t n) {
-    ToUpper(s, n, s);
-}
-
-inline void ToTitle(const wchar16* from, size_t len, wchar16* to) {
-    if (len == 0)
-        return;
-
-    const wchar16* const end = from + len;
-    const wchar16* i = from;
-
-    wchar32 c = ToTitle(ReadSymbolAndAdvance(i, end));
-    WriteSymbol(c, to);
-    Y_ASSERT(i <= end);
-
-    while (i != end) {
-        c = ToLower(ReadSymbolAndAdvance(i, end));
-
-        WriteSymbol(c, to);
-    }
-}
-
-inline void ToTitle(wchar16* s, size_t n) {
-    ToTitle(s, n, s);
-}
-
 //! Removes leading whitespace characters
 TWtringBuf StripLeft(const TWtringBuf text) noexcept Y_WARN_UNUSED_RESULT;
 void StripLeft(TUtf16String& text);
@@ -676,6 +626,85 @@ void StripRight(TUtf16String& text);
 //! Removes leading and trailing whitespace characters
 TWtringBuf Strip(const TWtringBuf text) noexcept Y_WARN_UNUSED_RESULT;
 void Strip(TUtf16String& text);
+
+/* Check if given word is lowercase/uppercase. Will return false if string contains any
+ * non-alphabetical symbols. It is expected that `text` is a correct UTF-16 string.
+ *
+ * For example `IsLowerWord("hello")` will return `true`, when `IsLowerWord("hello there")` will
+ * return false because of the space in the middle of the string. Empty string is also considered
+ * lowercase.
+ */
+bool IsLowerWord(const TWtringBuf text) noexcept;
+bool IsUpperWord(const TWtringBuf text) noexcept;
+
+/* Will check if given word starts with capital letter and the rest of the word is lowercase. Will
+ * return `false` for empty string. See also `IsLowerWord`.
+ */
+bool IsTitleWord(const TWtringBuf text) noexcept;
+
+/* Check if given string is lowercase/uppercase. Will return `true` if all alphabetic symbols are
+ * in proper case, all other symbols are ignored. It is expected that `text` is a correct UTF-16
+ * string.
+ *
+ * For example `IsLowerWord("hello")` will return `true` and `IsLowerWord("hello there")` will
+ * also return true because. Empty string is also considered lowercase.
+ *
+ * NOTE: for any case where `IsLowerWord` returns `true` `IsLower` will also return `true`.
+ */
+bool IsLower(const TWtringBuf text) noexcept;
+bool IsUpper(const TWtringBuf text) noexcept;
+
+/* Lowercase/uppercase given string inplace. Any alphabetic symbol will be converted to a proper
+ * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
+ * UTF-16 string.
+ *
+ * For example `ToLower("heLLo")` will return `"hello"`.
+ *
+ * @param text      String to modify
+ * @param pos       Position of the first character to modify
+ * @param count     Length of the substring
+ * @returns         `true` if `text` was changed
+ *
+ * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
+ */
+bool ToLower(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
+bool ToUpper(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
+
+/* Titlecase first symbol and lowercase the rest, see `ToLower` for more details.
+ */
+bool ToTitle(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
+
+/* @param text      Pointer to the string to modify
+ * @param length    Length of the string to modify
+ * @param out       Pointer to the character array to write to
+ *
+ * NOTE: [text, text+length) and [out, out+length) should not interleave.
+ *
+ * TODO(yazevnul): replace these functions with `bool(const TWtringBuf, const TArrayRef<wchar16>)`
+ * overload.
+ */
+bool ToLower(const wchar16* text, size_t length, wchar16* out) noexcept;
+bool ToUpper(const wchar16* text, size_t length, wchar16* out) noexcept;
+bool ToTitle(const wchar16* text, size_t length, wchar16* out) noexcept;
+
+/* @param text      Pointer to the string to modify
+ * @param length    Length of the string to modify
+ *
+ * TODO(yazevnul): replace these functions with `bool(const TArrayRef<wchar16>)` overload.
+ */
+bool ToLower(wchar16* text, size_t length) noexcept;
+bool ToUpper(wchar16* text, size_t length) noexcept;
+bool ToTitle(wchar16* text, size_t length) noexcept;
+
+/* Convenience wrappers for `ToLower`, `ToUpper` and `ToTitle`.
+ */
+TUtf16String ToLowerRet(TUtf16String text, size_t pos = 0, size_t count = TUtf16String::npos) Y_WARN_UNUSED_RESULT;
+TUtf16String ToUpperRet(TUtf16String text, size_t pos = 0, size_t count = TUtf16String::npos) Y_WARN_UNUSED_RESULT;
+TUtf16String ToTitleRet(TUtf16String text, size_t pos = 0, size_t count = TUtf16String::npos) Y_WARN_UNUSED_RESULT;
+
+TUtf16String ToLowerRet(const TWtringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
+TUtf16String ToUpperRet(const TWtringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
+TUtf16String ToTitleRet(const TWtringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
 
 //! replaces the '<', '>' and '&' characters in string with '&lt;', '&gt;' and '&amp;' respectively
 // insertBr=true - replace '\r' and '\n' with "<BR>"

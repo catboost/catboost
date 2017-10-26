@@ -39,8 +39,8 @@ namespace NCudaLib {
         TCudaApplicationConfig(const TCudaApplicationConfig& other) = default;
         TCudaApplicationConfig() = default;
 
-        ui64 GetGpuMemoryToUse(ui64 deviceMemorySize) const {
-            return (ui64)(deviceMemorySize * GpuMemoryPartByWorker / WorkersPerDevice);
+        ui64 GetGpuMemoryToUse(ui64 freeMemoryToUse) const {
+            return (ui64)(freeMemoryToUse * GpuMemoryPartByWorker / WorkersPerDevice);
         }
 
         ui64 GetPinnedMemoryToUse(ui64 deviceMemorySize) const {
@@ -90,7 +90,15 @@ namespace NCudaLib {
 
         THolder<TGpuOneDeviceWorker> CreateWorker(int dev) {
             auto props = NCudaHelpers::GetDeviceProps(dev);
-            ui64 gpuMemoryToUse = Config.GetGpuMemoryToUse(props.GetDeviceMemory());
+            ui64 free = 0;
+            ui64 total = 0;
+            NCudaLib::SetDevice(dev);
+            CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
+            if (free * 1.0 / props.GetDeviceMemory() < 0.75) {
+                MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: "<< free * 1.0 / 1024 / 1024 << Endl;
+            }
+            ui64 gpuMemoryToUse = Config.GetGpuMemoryToUse(free);
+
             ui64 pinnedMemoryToUse = Config.GetPinnedMemoryToUse(props.GetDeviceMemory());
             return MakeHolder<TGpuOneDeviceWorker>(dev, gpuMemoryToUse, pinnedMemoryToUse);
         }
@@ -158,7 +166,7 @@ namespace NCudaLib {
 
             switch (Config.UsageType) {
                 case TCudaApplicationConfig::EDevicesUsageType::Single: {
-                    for (uint i = 0; i < Workers.size(); ++i) {
+                    for (ui32 i = 0; i < Workers.size(); ++i) {
                         if (Workers[i] == nullptr) {
                             ResetDevice(i);
                             devices.push_back(SingleDevices[i].Get());
@@ -169,7 +177,7 @@ namespace NCudaLib {
                     break;
                 }
                 case TCudaApplicationConfig::EDevicesUsageType::All: {
-                    for (uint i = 0; i < Workers.size(); ++i) {
+                    for (ui32 i = 0; i < Workers.size(); ++i) {
                         CB_ENSURE(Workers[i] == nullptr, "Error: device already used, can't return device");
                         ResetDevice(i);
                         devices.push_back(SingleDevices[i].Get());
@@ -192,6 +200,14 @@ namespace NCudaLib {
                 }
             }
             return devices;
+        }
+
+        void Reset() {
+            IsInitialized = false;
+            Workers.clear();
+            SingleDevices.clear();
+            Devices.clear();
+            PeerDevices.clear();
         }
 
         ui64 TotalWorkerCount() {

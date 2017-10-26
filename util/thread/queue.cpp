@@ -52,6 +52,7 @@ public:
         try {
             Stop();
         } catch (...) {
+            // ¯\_(ツ)_/¯
         }
 
         TAtforkQueueRestarter::Get().UnregisterObject(this);
@@ -183,6 +184,7 @@ private:
                         Cdbg << "[mtp queue] " << CurrentExceptionMessage() << Endl;
                     }
                 } catch (...) {
+                    // ¯\_(ツ)_/¯
                 }
             } else {
                 job->Process(*tsr);
@@ -334,6 +336,7 @@ public:
                             Cdbg << Impl_->Name() << " " << CurrentExceptionMessage() << Endl;
                         }
                     } catch (...) {
+                        // ¯\_(ツ)_/¯
                     }
                 }
             }
@@ -521,6 +524,7 @@ TSimpleMtpQueue::~TSimpleMtpQueue() {
     try {
         Stop();
     } catch (...) {
+        // ¯\_(ツ)_/¯
     }
 }
 
@@ -657,6 +661,7 @@ namespace {
                     try {
                         Func_->Execute();
                     } catch (...) {
+                        // ¯\_(ツ)_/¯
                     }
 
                     CompleteEvent_.Signal();

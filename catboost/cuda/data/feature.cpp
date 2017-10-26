@@ -1,5 +1,7 @@
 #include "feature.h"
 
+using namespace NCatboostCuda;
+
 template <>
 void Out<TFeatureTensor>(IOutputStream& out, const TFeatureTensor& featureTensor) {
     out << "[";

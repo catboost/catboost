@@ -51,7 +51,7 @@ void ::NPrivate::Panic(const TStaticBuf& file, int line, const char* function, c
         PrintBackTrace();
 #endif
     } catch (...) {
-        //nothing we can do here
+        // ¯\_(ツ)_/¯
     }
 
     abort();

@@ -61,29 +61,26 @@ yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
     return result[0];
 }
 
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const NCatBoost::TFormulaEvaluator& calcer,
+yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
                                          const TPool& pool,
                                          const EPredictionType predictionType,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !pool.CatFeatures.empty(), "if model has cat-features pool should also have them");
-
-    const int featureCount = pool.Docs.GetFactorsCount();
-    const int docCount = pool.Docs.GetDocCount();
-    CB_ENSURE(featureCount >= model.FeatureCount, "Test dataset has not enough features");
-
-    yvector<double> approxFlat(static_cast<unsigned long>(docCount * model.ApproxDimension));
+    CB_ENSURE(pool.CatFeatures.size() >= calcer.GetCatFeaturesUsed(), "Insufficient categorical features count");
+    CB_ENSURE((pool.Docs.Factors.size() - pool.CatFeatures.size()) >= calcer.GetFloatFeaturesUsed(), "Insufficient float features count");
+    const int docCount = (int)pool.Docs.GetDocCount();
+    auto approxDimension = calcer.GetModelClassCount();
+    yvector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
     NPar::TLocalExecutor::TBlockParams blockParams(0, docCount);
     const int threadCount = executor.GetThreadCount() + 1; //one for current thread
     blockParams.SetBlockCount(threadCount);
 
     if (end == 0) {
-        end = model.TreeStruct.ysize();
+        end = calcer.GetTreeCount();
     } else {
-        end = Min(end, model.TreeStruct.ysize());
+        end = Min<int>(end, calcer.GetTreeCount());
     }
 
     executor.ExecRange([&](int blockId) {
@@ -93,17 +90,17 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
         for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
             repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
         }
-        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * model.ApproxDimension, (blockLastId - blockFirstId) * model.ApproxDimension);
+        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
         calcer.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
-    yvector<yvector<double>> approx(model.ApproxDimension, yvector<double>(docCount));
-    if (model.ApproxDimension == 1) { //shortcut
+    yvector<yvector<double>> approx(approxDimension, yvector<double>(docCount));
+    if (approxDimension == 1) { //shortcut
         approx[0].swap(approxFlat);
     } else {
-        for (int dim = 0; dim < model.ApproxDimension; ++dim) {
+        for (size_t dim = 0; dim < approxDimension; ++dim) {
             for (int doc = 0; doc < docCount; ++doc) {
-                approx[dim][doc] = approxFlat[model.ApproxDimension * doc + dim];
+                approx[dim][doc] = approxFlat[approxDimension * doc + dim];
             };
         }
     }
@@ -117,8 +114,7 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
 }
 
 
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const NCatBoost::TFormulaEvaluator& calcer,
+yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
                                          const TPool& pool,
                                          bool verbose,
                                          const EPredictionType predictionType,
@@ -133,22 +129,10 @@ yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    yvector<yvector<double>> result = ApplyModelMulti(model, calcer, pool, predictionType, begin, end, executor);
+    yvector<yvector<double>> result = ApplyModelMulti(calcer, pool, predictionType, begin, end, executor);
     SetSilentLogingMode();
     return result;
 }
-
-yvector<yvector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const TPool& pool,
-                                         bool verbose,
-                                         const EPredictionType predictionType,
-                                         int begin,
-                                         int end,
-                                         int threadCount) {
-    NCatBoost::TFormulaEvaluator calcer(model);
-    return ApplyModelMulti(model, calcer, pool, verbose, predictionType, begin, end, threadCount);
-}
-
 
 yvector<double> ApplyModel(const TFullModel& model,
                            const TPool& pool,

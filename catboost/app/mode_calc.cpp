@@ -16,7 +16,7 @@
 #include <algorithm>
 
 // Returns approx[evalPeriodIdx][classIdx][objectIdx]
-static yvector<yvector<yvector<double>>> Apply(const TFullModel& model, const NCatBoost::TFormulaEvaluator& calcer,
+static yvector<yvector<yvector<double>>> Apply(const NCatBoost::TFormulaEvaluator& calcer,
                                                const TPool& pool,
                                                const EPredictionType predictionType, int begin, int end,
                                                int evalPeriod,
@@ -25,7 +25,7 @@ static yvector<yvector<yvector<double>>> Apply(const TFullModel& model, const NC
     yvector<yvector<double>> currentApprox; // [classIdx][objectIdx]
     yvector<yvector<yvector<double>>> resultApprox; // [evalPeriodIdx][classIdx][objectIdx]
     for (; begin < end; begin += evalPeriod) {
-        yvector<yvector<double>> approx = ApplyModelMulti(model, calcer, pool, EPredictionType::RawFormulaVal,
+        yvector<yvector<double>> approx = ApplyModelMulti(calcer, pool, EPredictionType::RawFormulaVal,
                                                           begin, Min(begin + evalPeriod, end), *executor);
         if (currentApprox.empty()) {
             currentApprox.swap(approx);
@@ -62,28 +62,33 @@ int mode_calc(int argc, const char* argv[]) {
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
-    TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
+    NCatBoost::TFormulaEvaluator calcer(ReadModel(params.ModelFileName));
+    if (calcer.HasCategoricalFeatures()) {
+        CB_ENSURE(!params.CdFile.empty(),
+                  "Model has categorical features. Specify column_description file with correct categorical features.");
+        CB_ENSURE(calcer.HasValidCtrProvider(),
+                  "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
+    }
 
     if (iterationsLimit == 0) {
-        iterationsLimit = model.TreeStruct.ysize();
+        iterationsLimit = calcer.GetTreeCount();
     }
-    iterationsLimit = Min(iterationsLimit, model.TreeStruct.ysize());
+    iterationsLimit = Min(iterationsLimit, calcer.GetTreeCount());
 
     if (evalPeriod == 0) {
-        evalPeriod = model.TreeStruct.ysize();
+        evalPeriod = calcer.GetTreeCount();
+    } else {
+        evalPeriod = Min(evalPeriod, calcer.GetTreeCount());
     }
-    evalPeriod = Min(evalPeriod, model.TreeStruct.ysize());
 
-    const int blockSize = Max(32., 10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ApproxDimension);
+    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / calcer.GetModelClassCount()));
     TOFStream outputStream(params.OutputPath);
-    NCatBoost::TFormulaEvaluator calcer(model);
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     SetVerboseLogingMode();
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
-        yvector<yvector<yvector<double>>> approx = Apply(model, calcer, poolPart, params.PredictionType,
+        yvector<yvector<yvector<double>>> approx = Apply(calcer, poolPart, params.PredictionType,
                                                          0, iterationsLimit, evalPeriod, &executor);
         SetSilentLogingMode();
         OutputTestEval(approx, poolPart.Docs, false, &outputStream);

@@ -6,6 +6,7 @@ from util.generic.hash_ut import TestHash
 from util.generic.maybe_ut import TestMaybe
 from util.generic.string_ut import TestStroka
 from util.generic.vector_ut import TestVector
+from util.string.cast_ut import TestToString
 
 # Test discovery does not work in cython modules.
 # Reexporting test classes here to satisfy pylint and pytest.
@@ -15,4 +16,5 @@ __all__ = [
     'TestMaybe',
     'TestStroka',
     'TestVector',
+    'TestToString',
 ]

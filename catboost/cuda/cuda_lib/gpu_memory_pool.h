@@ -229,14 +229,14 @@ namespace NCudaLib {
                         ui64 copySize = std::min(tempBufferFreeSpace, cursor->Size - movedSize);
                         Y_ASSERT((temp + tempBufferUsed - cursor->Ptr - movedSize - copySize) >= 0);
                         Y_ASSERT((temp + tempBufferUsed + copySize) <= (temp + tempBufferSize));
-                        TMemoryCopier<PtrType, PtrType>::CopyMemory(cursor->Ptr + movedSize, temp + tempBufferUsed, copySize);
+                        TMemoryCopier<PtrType, PtrType>::CopyMemorySync(cursor->Ptr + movedSize, temp + tempBufferUsed, copySize);
 
                         movedSize += copySize;
                         tempBufferUsed += copySize;
                         Y_ASSERT(tempBufferUsed <= tempBufferSize);
 
                         if (tempBufferUsed == tempBufferSize) {
-                            TMemoryCopier<PtrType, PtrType>::CopyMemory(temp, startPtr + writeOffset, tempBufferUsed);
+                            TMemoryCopier<PtrType, PtrType>::CopyMemorySync(temp, startPtr + writeOffset, tempBufferUsed);
                             DeviceSynchronize();
                             CheckLastError();
                             writeOffset += tempBufferUsed;
@@ -255,7 +255,7 @@ namespace NCudaLib {
             }
 
             if (tempBufferUsed) {
-                TMemoryCopier<PtrType, PtrType>::CopyMemory(temp, startPtr + writeOffset, tempBufferUsed);
+                TMemoryCopier<PtrType, PtrType>::CopyMemorySync(temp, startPtr + writeOffset, tempBufferUsed);
                 writeOffset += tempBufferUsed;
                 tempBufferUsed = 0;
             }

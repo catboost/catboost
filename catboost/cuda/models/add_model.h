@@ -1,5 +1,7 @@
 #pragma once
-
-template <class TModel,
-          class TDataSet>
-class TAddModelValue;
+namespace NCatboostCuda
+{
+    template<class TModel,
+            class TDataSet>
+    class TAddModelValue;
+}

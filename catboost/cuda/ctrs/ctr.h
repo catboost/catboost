@@ -11,6 +11,7 @@
 #include <util/generic/set.h>
 #include <util/generic/map.h>
 #include <library/binsaver/bin_saver.h>
+namespace NCatboostCuda {
 
 inline bool IsBinarizedTargetCtr(ECtrType type) {
     return type == ECtrType::Buckets || type == ECtrType::Borders;
@@ -42,7 +43,7 @@ inline bool IsSupportedCtrType(ECtrType type) {
     }
 }
 
-constexpr inline bool IsPermutationDependentCtrType(const ECtrType& ctrType) {
+inline bool IsPermutationDependentCtrType(const ECtrType& ctrType) {
     switch (ctrType) {
         case ECtrType::Buckets:
         case ECtrType::Borders:
@@ -195,3 +196,5 @@ inline ui32 SufficientSpaceDim(const TCtrConfig& config) {
         }
     }
 }
+}
+

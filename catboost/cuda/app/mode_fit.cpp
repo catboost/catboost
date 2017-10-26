@@ -5,8 +5,9 @@
 #include <catboost/cuda/train_lib/model_helpers.h>
 #include <library/getopt/small/last_getopt.h>
 
+using namespace NCatboostCuda;
 
-int mode_fit(const int argc, const char** argv) {
+int mode_fit(const int argc, const char* argv[]) {
     TTrainCatBoostOptions catBoostOptions;
     TPoolLoadOptions poolLoadOptions;
 
@@ -37,7 +38,7 @@ int mode_fit(const int argc, const char** argv) {
                                                      numThreads);
 
             dataProviderBuilder
-                .AddIgnoredFeatures(poolLoadOptions.GetIgnoredFeatures())
+                .AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
                 .SetShuffleFlag(!catBoostOptions.BoostingOptions.HasTime());
 
             {
@@ -60,7 +61,7 @@ int mode_fit(const int argc, const char** argv) {
                                                  true,
                                                  numThreads);
                 testBuilder
-                    .AddIgnoredFeatures(poolLoadOptions.GetIgnoredFeatures())
+                    .AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
                     .SetShuffleFlag(false);
 
                 ReadPool(poolLoadOptions.GetColumnDescriptionName(),

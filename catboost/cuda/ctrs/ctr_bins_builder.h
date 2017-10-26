@@ -10,6 +10,8 @@
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 
+namespace NCatboostCuda {
+
 template <class TMapping>
 class TCtrBinBuilder {
 public:
@@ -284,3 +286,4 @@ inline TCtrBinBuilder<NCudaLib::TSingleMapping> CreateBinBuilderForSingleDevice(
 //stripe mapping can't be used for bin-tracking
 template <>
 class TCtrBinBuilder<NCudaLib::TStripeMapping>;
+}

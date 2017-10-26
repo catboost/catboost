@@ -267,17 +267,16 @@ SEXP CatBoostGetCalcer_R(SEXP modelParam) {
     return result;
 }
 
-SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP calcerParam, SEXP poolParam, SEXP verboseParam,
+SEXP CatBoostPredictMulti_R(SEXP calcerParam, SEXP poolParam, SEXP verboseParam,
                             SEXP typeParam, SEXP treeCountStartParam, SEXP treeCountEndParam, SEXP threadCountParam) {
     SEXP result = NULL;
     R_API_BEGIN();
-    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     const NCatBoost::TFormulaEvaluator* calcer = reinterpret_cast<NCatBoost::TFormulaEvaluator*>(R_ExternalPtrAddr(calcerParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     EPredictionType predictionType;
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
-    yvector<yvector<double>> prediction = ApplyModelMulti(*model, *calcer, *pool,
+    yvector<yvector<double>> prediction = ApplyModelMulti(*calcer, *pool,
                                                           asLogical(verboseParam),
                                                           predictionType,
                                                           asInteger(treeCountStartParam),

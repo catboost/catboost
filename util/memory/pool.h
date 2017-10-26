@@ -127,6 +127,8 @@ public:
         , GrowPolicy_(grow)
         , Alloc_(alloc)
         , Origin_(initial)
+        , MemoryAllocatedBeforeCurrent_(0)
+        , MemoryWasteBeforeCurrent_(0)
     {
     }
 
@@ -233,23 +235,11 @@ public:
     }
 
     inline size_t MemoryAllocated() const noexcept {
-        size_t acc = 0;
-
-        for (TChunkList::TConstIterator i = Chunks_.Begin(); i != Chunks_.End(); ++i) {
-            acc += i->Used();
-        }
-
-        return acc;
+        return MemoryAllocatedBeforeCurrent_ + (Current_ != &Empty_ ? Current_->Used() : 0);
     }
 
     inline size_t MemoryWaste() const noexcept {
-        size_t wst = 0;
-
-        for (TChunkList::TConstIterator i = Chunks_.Begin(); i != Chunks_.End(); ++i) {
-            wst += i->Left();
-        }
-
-        return wst;
+        return MemoryWasteBeforeCurrent_ + (Current_ != &Empty_ ? Current_->Left() : 0);
     }
 
     template <class TOp>
@@ -277,13 +267,14 @@ protected:
     }
 
     inline void* RawAllocate(size_t len, size_t align) {
+        Y_ASSERT(align > 0);
         void* ret = Current_->Allocate(len, align);
 
         if (ret) {
             return ret;
         }
 
-        AddChunk(len + align);
+        AddChunk(len + align - 1);
 
         return Current_->Allocate(len, align);
     }
@@ -300,6 +291,8 @@ private:
     IAllocator* Alloc_;
     TChunkList Chunks_;
     const size_t Origin_;
+    size_t MemoryAllocatedBeforeCurrent_;
+    size_t MemoryWasteBeforeCurrent_;
 };
 
 template <typename TPool>

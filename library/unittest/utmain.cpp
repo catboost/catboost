@@ -573,12 +573,13 @@ public:
         SetConsoleOutputCP(CP_UTF8);
 
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    }
+    ~TWinEnvironment() {
         if (!IsDebuggerPresent()) {
             _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
             _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
         }
-    }
-    ~TWinEnvironment() {
+
         SetConsoleOutputCP(OutputCP); // restore original output CP at program exit
     }
 

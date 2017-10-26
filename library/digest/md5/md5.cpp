@@ -29,7 +29,7 @@ namespace {
 
 char* MD5::File(const char* filename, char* buf) {
     try {
-        TFileInput fi(filename);
+        TUnbufferedFileInput fi(filename);
 
         return Stream(&fi, buf);
     } catch (...) {

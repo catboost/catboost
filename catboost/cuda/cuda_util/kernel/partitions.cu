@@ -111,7 +111,7 @@ namespace NKernel {
                                    TCudaStream stream)
     {
         const ui32 blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
         if (numBlocks)
         {
             UpdatePartitionOffsets<TPartitionOffsetWriter, false> << < numBlocks, blockSize, 0, stream >> > (parts, partCount, (int*)sortedBins, size);
@@ -126,7 +126,7 @@ namespace NKernel {
                                 const ui32* sortedBins, ui32 size, TCudaStream stream)
     {
         const ui32 blockSize = 256;
-        const uint numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
         //partOffsets are copyMapping of bins, usually with empty tail
         bool skipSuffixBins = false;
 

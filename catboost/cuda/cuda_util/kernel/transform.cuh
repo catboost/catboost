@@ -40,7 +40,7 @@ namespace NKernel {
 
 //
 //    template<typename T>
-//    void Reduce(T* data, ui64 size, uint partCount, TCudaStream stream);
+//    void Reduce(T* data, ui64 size, ui32 partCount, TCudaStream stream);
 //
 //
 

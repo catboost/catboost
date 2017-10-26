@@ -245,8 +245,9 @@ public:
     *  sets <default value>
     *  @return self
     */
-    TOpt& DefaultValue(const TString& val) {
-        DefaultValue_ = val;
+    template <typename T>
+    TOpt& DefaultValue(const T& val) {
+        DefaultValue_ = ToString(val);
         return *this;
     }
 

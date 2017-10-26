@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             dataCpu.resize(beforeReduceMapping.MemorySize());
             reducedDataCpu.resize(partCount * partSize);
 
-            for (uint i = 0; i < dataCpu.size(); ++i) {
+            for (ui32 i = 0; i < dataCpu.size(); ++i) {
                 dataCpu[i] = (float)rand.NextUniform();
                 reducedDataCpu[i % reducedDataCpu.size()] += dataCpu[i];
             }
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             yvector<float> reducedGpu;
             data.Read(reducedGpu);
 
-            for (uint i = 0; i < reducedDataCpu.size(); ++i) {
+            for (ui32 i = 0; i < reducedDataCpu.size(); ++i) {
                 UNIT_ASSERT_DOUBLES_EQUAL(reducedDataCpu[i], reducedGpu[i], 1e-5);
             }
         }

@@ -66,7 +66,7 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const {
             CB_ENSURE(Keys.Size() == Keys.ObjectCount());
-            CB_ENSURE(Keys.Size() < (1L << 32));
+            CB_ENSURE(Keys.Size() < (static_cast<ui64>(1) << 32));
 
             const ui32 size = static_cast<const ui32>(Keys.Size());
             auto context = MakeHolder<TKernelContext>(FirstBit, LastBit, CompareGreater);

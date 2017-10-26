@@ -6,23 +6,22 @@
 #include <util/stream/file.h>
 #include <util/generic/buffer.h>
 
-SIMPLE_UNIT_TEST_SUITE(TBlobTest) {
+SIMPLE_UNIT_TEST_SUITE(TBlobTest){
+    SIMPLE_UNIT_TEST(TestSubBlob){
+        TBlob child;
+const char* p = nullptr;
 
-SIMPLE_UNIT_TEST(TestSubBlob) {
-    TBlob child;
-    const char* p = nullptr;
+{
+    TBlob parent = TBlob::CopySingleThreaded("0123456789", 10);
+    UNIT_ASSERT_EQUAL(parent.Length(), 10);
+    p = parent.AsCharPtr();
+    UNIT_ASSERT_EQUAL(memcmp(p, "0123456789", 10), 0);
+    child = parent.SubBlob(2, 5);
+} // Don't worry about parent
 
-    {
-        TBlob parent = TBlob::CopySingleThreaded("0123456789", 10);
-        UNIT_ASSERT_EQUAL(parent.Length(), 10);
-        p = parent.AsCharPtr();
-        UNIT_ASSERT_EQUAL(memcmp(p, "0123456789", 10), 0);
-        child = parent.SubBlob(2, 5);
-    } // Don't worry about parent
-
-    UNIT_ASSERT_EQUAL(child.Length(), 3);
-    UNIT_ASSERT_EQUAL(memcmp(child.AsCharPtr(), "234", 3), 0);
-    UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
+UNIT_ASSERT_EQUAL(child.Length(), 3);
+UNIT_ASSERT_EQUAL(memcmp(child.AsCharPtr(), "234", 3), 0);
+UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
 }
 
 SIMPLE_UNIT_TEST(TestFromStream) {
@@ -66,5 +65,5 @@ SIMPLE_UNIT_TEST(TestFromFile) {
     testMode(TBlob::PrechargedFromFile(path));
     testMode(TBlob::LockedFromFile(path));
 }
-
-};
+}
+;

@@ -4,11 +4,11 @@
 
 namespace NKernel {
 
-    inline constexpr uint GetScanBlockSize() {
+    inline constexpr ui32 GetScanBlockSize() {
         return 768;
     }
 
-    inline constexpr uint GetScanMaxBlocks() {
+    inline constexpr ui32 GetScanMaxBlocks() {
         return GetScanBlockSize();
     }
 
@@ -24,7 +24,7 @@ namespace NKernel {
 
 
     template <typename T>
-    cudaError_t ScanVector(const T* input, T* output, uint size, bool inclusive, TScanKernelContext<T>& context, TCudaStream stream);
+    cudaError_t ScanVector(const T* input, T* output, ui32 size, bool inclusive, TScanKernelContext<T>& context, TCudaStream stream);
 
     template <typename T>
     cudaError_t SegmentedScanNonNegativeVector(const T* input, T* output, ui32 size, bool inclusive, TScanKernelContext<T>& context, TCudaStream stream);

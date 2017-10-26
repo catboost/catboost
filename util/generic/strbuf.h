@@ -59,6 +59,11 @@ public:
         Skip(pos).Trunc(n);
     }
 
+    inline TStringBufImpl(const TBaseStr& src, size_t pos) noexcept
+        : TStringBufImpl(src, pos, TBase::npos)
+    {
+    }
+
 public: // required by TStringBase
     constexpr inline const TChar* data() const noexcept {
         return Start;

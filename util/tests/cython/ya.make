@@ -12,6 +12,7 @@ PY_SRCS(
     generic/string_ut.pyx
     generic/vector_ut.pyx
     generic/hash_ut.pyx
+    string/cast_ut.pyx
     system/types_ut.pyx
     digest/multi_ut.pyx
 )

@@ -15,14 +15,21 @@
 #define FROM_CONTEXT_IMPL
 #include "context.h"
 
-static inline void Run(void* arg) {
+void ITrampoLine::DoRun() {
+}
+
+void ITrampoLine::DoRunNaked() {
     try {
-        ((ITrampoLine*)arg)->DoRun();
+        DoRun();
     } catch (...) {
         Cerr << "Uncaught exception in coroutine: " << CurrentExceptionMessage() << "\n";
     }
 
     abort();
+}
+
+static inline void Run(void* arg) {
+    ((ITrampoLine*)arg)->DoRunNaked();
 }
 
 #if defined(USE_JUMP_CONT)

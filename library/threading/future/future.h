@@ -2,11 +2,7 @@
 
 #include <util/datetime/base.h>
 #include <util/generic/function.h>
-#include <util/generic/maybe.h> // TODO: remove
 #include <util/generic/ptr.h>
-#include <util/generic/singleton.h>
-#include <util/generic/string.h>
-#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/system/event.h>
@@ -85,6 +81,7 @@ public:
 
     bool HasValue() const;
     const T& GetValue(TDuration timeout = TDuration::Zero()) const;
+    const T& GetValueSync() const;
 
     bool HasException() const;
 
@@ -125,6 +122,7 @@ public:
 
     bool HasValue() const;
     void GetValue(TDuration timeout = TDuration::Zero()) const;
+    void GetValueSync() const;
 
     bool HasException() const;
 

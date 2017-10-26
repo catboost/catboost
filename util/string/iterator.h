@@ -3,9 +3,10 @@
 #include "split.h"
 
 #include <util/generic/iterator.h>
-#include <utility>
 #include <util/generic/typetraits.h>
 #include <util/generic/store_policy.h>
+
+#include <utility>
 
 //
 // Provides convenient way to split strings.
@@ -109,7 +110,82 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     }
 };
 
-template <class It>
+template <class TIt>
+class TExternalOwnerPolicy {
+public:
+    TExternalOwnerPolicy(TIt b, TIt e)
+        : B_(b)
+        , E_(e)
+    {
+    }
+
+    template <class T>
+    TExternalOwnerPolicy(T&& t)
+        : B_(std::cbegin(t))
+        , E_(std::cend(t))
+    {
+    }
+
+    TIt Begin() const {
+        return B_;
+    }
+
+    TIt End() const {
+        return E_;
+    }
+
+private:
+    TIt B_;
+    TIt E_;
+};
+
+template <class TStr>
+class TCopyOwnerPolicy {
+    using TIt = decltype(std::cbegin(TStr()));
+
+public:
+    TCopyOwnerPolicy(TIt b, TIt e)
+        : B_(b)
+        , E_(e)
+    {
+    }
+
+    TCopyOwnerPolicy(TStr s)
+        : S_(std::move(s))
+        , B_(std::cbegin(S_))
+        , E_(std::cend(S_))
+    {
+    }
+
+    TCopyOwnerPolicy(const TCopyOwnerPolicy& o)
+        : S_(o.S_)
+        , B_(std::cbegin(S_))
+        , E_(std::cend(S_))
+    {
+    }
+
+    TCopyOwnerPolicy(TCopyOwnerPolicy&& o)
+        : S_(std::move(o.S_))
+        , B_(std::cbegin(S_))
+        , E_(std::cend(S_))
+    {
+    }
+
+    TIt Begin() const {
+        return B_;
+    }
+
+    TIt End() const {
+        return E_;
+    }
+
+private:
+    TStr S_;
+    TIt B_;
+    TIt E_;
+};
+
+template <class It, class TOwnerPolicy = TExternalOwnerPolicy<It>>
 class TStringSplitter {
     using TCVChar = std::remove_reference_t<decltype(*std::declval<It>())>;
     using TChar = std::remove_cv_t<TCVChar>;
@@ -117,8 +193,9 @@ class TStringSplitter {
 
     struct TIteratorState {
         inline TIteratorState(const TStringSplitter* s) noexcept
-            : B(s->B_)
-            , E(s->E_)
+            : Base(s->Base)
+            , B(Base.Begin())
+            , E(Base.End())
             , TokS()
             , TokD()
         {
@@ -147,6 +224,8 @@ class TStringSplitter {
         inline TStrBuf Delim() const noexcept {
             return {TokenDelim(), TokenEnd()};
         }
+
+        TOwnerPolicy Base;
 
         It B;
         It E;
@@ -287,8 +366,12 @@ class TStringSplitter {
 
 public:
     inline TStringSplitter(It b, It e)
-        : B_(b)
-        , E_(e)
+        : Base(b, e)
+    {
+    }
+
+    explicit inline TStringSplitter(TOwnerPolicy o)
+        : Base(std::move(o))
     {
     }
 
@@ -338,8 +421,7 @@ public:
     }
 
 private:
-    It B_;
-    It E_;
+    TOwnerPolicy Base;
 };
 
 template <class It>
@@ -352,13 +434,15 @@ static inline TStringSplitter<It> StringSplitter(It begin, size_t len) {
     return {begin, begin + len};
 }
 
-/*
- * should not be used with temporaries and range-based for loop, see http://pg.at.yandex-team.ru/3580
- * consider StringSplitter(SomeFunc()).Split(...).Consume([...](...) {...});
- */
 template <class Str>
-static inline auto StringSplitter(const Str& s) {
-    return StringSplitter(s.begin(), s.end());
+static inline auto StringSplitter(Str& s) {
+    return TStringSplitter<decltype(std::cbegin(s))>(std::cbegin(s), std::cend(s));
+}
+
+template <class Str>
+static inline auto StringSplitter(Str&& s) {
+    using TRes = TStringSplitter<decltype(std::cbegin(s)), TCopyOwnerPolicy<std::remove_cv_t<std::remove_reference_t<Str>>>>;
+    return TRes(std::move(s));
 }
 
 template <class TChar>

@@ -1686,7 +1686,7 @@ template <class TChar>
 using TGenericString = typename TCharToString<TChar>::TResult;
 
 namespace std {
-    template<>
+    template <>
     struct hash<TString> {
         using argument_type = TString;
         using result_type = size_t;
