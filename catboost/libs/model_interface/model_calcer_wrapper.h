@@ -37,6 +37,9 @@ EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* calcer, 
 
 EXPORT int GetStringCatFeatureHash(const char* data, size_t size);
 EXPORT int GetIntegerCatFeatureHash(long long val);
+
+EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* calcer);
+EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* calcer);
 #if defined(__cplusplus)
 }
 #endif

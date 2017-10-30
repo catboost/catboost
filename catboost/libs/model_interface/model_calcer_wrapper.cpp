@@ -110,4 +110,12 @@ EXPORT int GetIntegerCatFeatureHash(long long val) {
     return CalcCatFeatureHash(valStr);
 }
 
+EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* calcer) {
+    return CALCER(calcer)->GetFloatFeaturesUsed();
+}
+
+EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* calcer) {
+    return CALCER(calcer)->GetCatFeaturesUsed();
+}
+
 }
