@@ -10,3 +10,5 @@ C CalcModelPredictionWithHashedCatFeatures
 
 C GetStringCatFeatureHash
 C GetIntegerCatFeatureHash
+C GetFloatFeaturesCount
+C GetCatFeaturesCount
