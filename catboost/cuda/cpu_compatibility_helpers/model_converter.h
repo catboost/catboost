@@ -242,9 +242,9 @@ namespace NCatboostCuda
         yvector<yvector<float>> Borders;
     };
 
-    TCoreModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
-                                  const TDataProvider& dataProvider,
-                                  const TAdditiveModel<TObliviousTreeModel>& treeModel)
+    inline TCoreModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
+                                         const TDataProvider& dataProvider,
+                                         const TAdditiveModel<TObliviousTreeModel>& treeModel)
     {
         TModelConverter converter(manager, dataProvider);
         return converter.Convert(treeModel);

@@ -18,9 +18,9 @@
 #include "index_hash_calcer.h"
 #include "greedy_tensor_search.h"
 #include "metric.h"
-#include "interrupt.h"
 #include "logger.h"
 
+#include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/model/hash.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/projection.h>
@@ -157,7 +157,7 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                     errors[i]->EvalPairwise(avrgApprox, pairs, 0, learnSampleCount):
                     errors[i]->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, 0, learnSampleCount));
         if (i == 0) {
-            MATRIXNET_NOTICE_LOG << "learn " << learnErr;
+            MATRIXNET_NOTICE_LOG << "learn: " << Prec(learnErr, 7);
         }
         learnErrorsHistory->back().push_back(learnErr);
     }
@@ -196,7 +196,8 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
             errorTracker.AddError(testErr, iteration, &valuesToLog);
             double bestErr = errorTracker.GetBestError();
 
-            MATRIXNET_NOTICE_LOG << "\ttest " << testErr << "\tbestTest " << bestErr << "\t";
+            MATRIXNET_NOTICE_LOG << "\ttest: " << Prec(testErr, 7) << "\tbestTest: " << Prec(bestErr, 7)
+                                 << " (" << errorTracker.GetBestIteration() << ")";
         }
         testErrorsHistory->back().push_back(testErr);
     }
@@ -227,7 +228,7 @@ void TrainOneIter(const TTrainData& data,
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.Model.TreeStruct.ysize();
 
-    MATRIXNET_NOTICE_LOG << currentIteration << ":\t";
+    MATRIXNET_NOTICE_LOG << currentIteration << ": ";
     profile.StartNextIteration();
 
     CheckInterrupted(); // check after long-lasting operation

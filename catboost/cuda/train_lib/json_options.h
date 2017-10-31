@@ -70,7 +70,6 @@ namespace NCatboostCuda
             GET_FIELD(gpu_ram_part, options.ApplicationConfig.GpuMemoryPartByWorker, Double)
             GET_FIELD(pinned_memory_size, options.ApplicationConfig.PinnedMemorySize, Integer)
             GET_FIELD(device_config, options.ApplicationConfig.DeviceConfig, String)
-            GET_FIELD(calcer_type, options.ApplicationConfig.CalcerType, String)
 
             bool verboseFlag = false;
             GET_FIELD(verbose, verboseFlag, Boolean)
@@ -88,7 +87,6 @@ namespace NCatboostCuda
             dst["gpu_ram_part"] = options.ApplicationConfig.GpuMemoryPartByWorker;
             dst["pinned_memory_size"] = options.ApplicationConfig.PinnedMemorySize;
             dst["device_config"] = options.ApplicationConfig.DeviceConfig;
-            dst["calcer_type"] = options.ApplicationConfig.CalcerType;
         }
     };
 
@@ -286,7 +284,6 @@ namespace NCatboostCuda
             GET_ENUM_FIELD(loss_function, options.TargetType, ETargetFunction);
             if (options.TargetType == ETargetFunction::Logloss)
             {
-                options.UseBorderForClassification = true;
                 GET_FIELD(border, options.BinClassBorder, Double);
             }
             return validKeys;
@@ -297,8 +294,7 @@ namespace NCatboostCuda
         {
 
             dst["loss_function"] = ToString<ETargetFunction>(options.TargetType);
-            if (options.TargetType == ETargetFunction::Logloss)
-            {
+            if (options.TargetType == ETargetFunction::Logloss) {
                 dst["border"] = options.BinClassBorder;
             }
         }
@@ -400,6 +396,10 @@ namespace NCatboostCuda
                          TTrainCatBoostOptions& trainCatboostOptions)
         {
             yset<TString> seenKeys;
+
+            CB_ENSURE(!src.Has("calcer_type") || (src["calcer_type"] == "GPU"), "calcer_type is CPU in GPU calcer");
+            seenKeys.insert("calcer_type");
+
             Insert(TOptionsJsonConverter<TApplicationOptions>::Load(src, trainCatboostOptions.ApplicationOptions),
                    seenKeys);
             Insert(TOptionsJsonConverter<TFeatureManagerOptions>::Load(src, trainCatboostOptions.FeatureManagerOptions),

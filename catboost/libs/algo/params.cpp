@@ -197,6 +197,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     validKeys.insert("pinned_memory_size");
     validKeys.insert("permutation_count");
     validKeys.insert("device_config");
+    validKeys.insert("calcer_type");
     // ====================================
 
 #define GET_FIELD(json_name, target_name, type)           \
@@ -258,7 +259,6 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_ENUM_FIELD(feature_border_type, FeatureBorderType, EBorderSelectionType)
     GET_ENUM_FIELD(prediction_type, PredictionType, EPredictionType)
     GET_ENUM_FIELD(nan_mode, NanMode, ENanMode)
-    GET_ENUM_FIELD(calcer_type, CalcerType, ECalcerType)
 #undef GET_ENUM_FIELD
 
 #define GET_VECTOR_FIELD(json_name, target_name, type)                  \

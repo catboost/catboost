@@ -18,15 +18,18 @@ namespace NCatboostCuda
         using TMapping = TDocLayout;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        virtual ~TCrossEntropy() {
+
+        }
+
         TCrossEntropy(const TDataSet& dataSet,
                       TRandom& random,
                       TSlice slice,
                       const TTargetOptions& targetOptions)
                 : TParent(dataSet,
                           random,
-                          slice,
-                          targetOptions)
-        {
+                          slice) {
+            Y_UNUSED(targetOptions);
         }
 
         TCrossEntropy(const TCrossEntropy& target,
@@ -36,18 +39,16 @@ namespace NCatboostCuda
         {
         }
 
-        TCrossEntropy(const TDataSet& dataSet,
-                      TRandom& random,
+        template <class TLayout>
+        TCrossEntropy(const TCrossEntropy<TLayout, TDataSet>& basedOn,
                       TCudaBuffer<const float, TMapping>&& target,
                       TCudaBuffer<const float, TMapping>&& weights,
-                      TCudaBuffer<const ui32, TMapping>&& indices,
-                      const TTargetOptions& targetOptions)
-                : TParent(dataSet,
-                          random,
+                      TCudaBuffer<const ui32, TMapping>&& indices)
+                : TParent(basedOn.GetDataSet(),
+                          basedOn.GetRandom(),
                           std::move(target),
                           std::move(weights),
-                          std::move(indices),
-                          targetOptions)
+                          std::move(indices))
         {
         }
 
@@ -58,7 +59,6 @@ namespace NCatboostCuda
 
         using TParent::GetWeights;
         using TParent::GetTarget;
-        using TParent::GetTargetOptions;
         using TParent::GetTotalWeight;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const
@@ -77,6 +77,7 @@ namespace NCatboostCuda
                     .SetFactorSlice(TSlice(0, 1))
                     .SetReadSlice(TSlice(0, 1))
                     .ReadReduce(result);
+
             const double weight = GetTotalWeight();
 
             return TAdditiveStatistic(result[0], weight);
@@ -84,7 +85,7 @@ namespace NCatboostCuda
 
         static double Score(const TAdditiveStatistic& score)
         {
-            return score.Sum / score.Weight;
+            return -score.Sum / score.Weight;
         }
 
         double Score(const TConstVec& point)
@@ -119,8 +120,8 @@ namespace NCatboostCuda
                                     value,
                                     der,
                                     der2,
-                                    GetTargetOptions().IsUseBorderForClassification(),
-                                    GetTargetOptions().GetBinClassBorder(),
+                                    UseBorder(),
+                                    GetBorder(),
                                     stream);
         }
 
@@ -131,7 +132,84 @@ namespace NCatboostCuda
 
         static constexpr bool IsMinOptimal()
         {
+            return true;
+        }
+
+        virtual bool UseBorder() const {
             return false;
         }
+
+        virtual double GetBorder() const {
+            return 0;
+        }
+    };
+
+    template<class TDocLayout, class TDataSet>
+    class TLogloss: public TCrossEntropy<TDocLayout, TDataSet>
+    {
+    public:
+        using TParent = TCrossEntropy<TDocLayout, TDataSet>;
+        using TStat = TAdditiveStatistic;
+        using TMapping = TDocLayout;
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
+
+        TLogloss(const TDataSet& dataSet,
+                  TRandom& random,
+                  TSlice slice,
+                  const TTargetOptions& targetOptions)
+                : TParent(dataSet,
+                          random,
+                          slice,
+                          targetOptions)
+                , Border(targetOptions.GetBinClassBorder()) {
+            CB_ENSURE(targetOptions.GetTargetType() == ETargetFunction::Logloss);
+        }
+
+        TLogloss(const TLogloss& target,
+                 const TSlice& slice)
+                : TParent(target,
+                          slice)
+                , Border(target.GetBorder())
+        {
+        }
+
+        template <class TLayout>
+        TLogloss(const TLogloss<TLayout, TDataSet>& basedOn,
+                 TCudaBuffer<const float, TMapping>&& target,
+                 TCudaBuffer<const float, TMapping>&& weights,
+                 TCudaBuffer<const ui32, TMapping>&& indices)
+                : TParent(basedOn,
+                          std::move(target),
+                          std::move(weights),
+                          std::move(indices))
+                , Border(basedOn.GetBorder()) {
+        }
+
+        TLogloss(TLogloss&& other)
+                : TParent(std::move(other))
+                , Border(other.GetBorder()) {
+        }
+
+
+
+        static constexpr TStringBuf TargetName()
+        {
+            return "Logloss";
+        }
+
+        static constexpr bool IsMinOptimal()
+        {
+            return true;
+        }
+
+        bool UseBorder() const override {
+            return  true;
+        }
+
+        double GetBorder() const override {
+            return Border;
+        }
+    private:
+        double Border = 0.5;
     };
 }

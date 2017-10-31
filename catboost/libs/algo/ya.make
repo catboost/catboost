@@ -14,7 +14,6 @@ SRCS(
     greedy_tensor_search.cpp
     index_calcer.cpp
     index_hash_calcer.cpp
-    interrupt.cpp
     learn_context.cpp
     logger.cpp
     online_ctr.cpp

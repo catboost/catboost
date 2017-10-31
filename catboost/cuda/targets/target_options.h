@@ -18,11 +18,6 @@ namespace NCatboostCuda
             return TargetType;
         }
 
-        bool IsUseBorderForClassification() const
-        {
-            return UseBorderForClassification;
-        }
-
         float GetBinClassBorder() const
         {
             return BinClassBorder;
@@ -38,7 +33,6 @@ namespace NCatboostCuda
         class TOptionsJsonConverter;
 
         ETargetFunction TargetType = ETargetFunction::RMSE;
-        bool UseBorderForClassification = false;
         float BinClassBorder = 0.5;
     };
 }

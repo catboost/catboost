@@ -76,12 +76,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>

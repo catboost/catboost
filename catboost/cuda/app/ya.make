@@ -11,6 +11,7 @@ SRCS(
 
 PEERDIR(
     library/getopt
+    catboost/cuda/train_lib
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
     catboost/cuda/data

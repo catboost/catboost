@@ -216,8 +216,6 @@ public:
     TString TrainDir;
     EPredictionType PredictionType = EPredictionType::RawFormulaVal;
 
-    ECalcerType CalcerType = ECalcerType::CPU;
-
     float FoldLenMultiplier = 2;
     ui64 CtrLeafCountLimit = Max<ui64>();
     ui64 UsedRAMLimit = Max<ui64>();

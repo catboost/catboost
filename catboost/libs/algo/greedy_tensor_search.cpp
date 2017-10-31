@@ -2,7 +2,7 @@
 #include "error_functions.h"
 #include "index_calcer.h"
 #include "tree_print.h"
-#include "interrupt.h"
+#include <catboost/libs/helpers/interrupt.h>
 #include <library/dot_product/dot_product.h>
 #include <library/fast_log/fast_log.h>
 #include <util/string/builder.h>

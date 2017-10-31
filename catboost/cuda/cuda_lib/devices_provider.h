@@ -35,7 +35,6 @@ namespace NCudaLib {
         double GpuMemoryPartByWorker = 0.95;
 
         TString DeviceConfig = "-1";
-        TString CalcerType = "CPU";
 
         TCudaApplicationConfig(const TCudaApplicationConfig& other) = default;
         TCudaApplicationConfig() = default;

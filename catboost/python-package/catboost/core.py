@@ -1422,7 +1422,7 @@ class CatBoostRegressor(CatBoost):
 
     def score(self, X, y):
         """
-        Calculate MSE.
+        Calculate RMSE.
 
         Parameters
         ----------
@@ -1433,14 +1433,14 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        MSE : float
+        RMSE : float
         """
 
         error = []
         y = np.array(y)
         for i, val in enumerate(self.predict(X)):
             error.append(pow(y[i] - val, 2))
-        return np.mean(error)
+        return np.sqrt(np.mean(error))
 
 
 def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True):

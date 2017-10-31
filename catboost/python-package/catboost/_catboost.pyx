@@ -688,6 +688,8 @@ cdef class _CatBoost:
         test_eval = []
         for i in range(self.__test_eval.size()):
             test_eval.append([value for value in dereference(self.__test_eval)[i]])
+        if (len(test_eval) == 1):
+            return test_eval[0]
         return test_eval
 
     cpdef _get_cat_feature_indices(self):

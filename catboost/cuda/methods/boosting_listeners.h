@@ -53,15 +53,13 @@ namespace NCatboostCuda
                   , BestPrefix(bestPrefix)
                   , NoticeLogSuffix(std::move(noticeLogSuffix))
         {
-            if (OutputPath)
-            {
+            if (OutputPath) {
                 Out.Reset(new TOFStream(outputPath));
                 (*Out) << "iter\t" << TTarget::TargetName() << Endl;
             }
         }
 
-        static TStringBuf GetMetricName()
-        {
+        static TStringBuf GetMetricName() {
             return TTarget::TargetName();
         }
 
@@ -73,6 +71,10 @@ namespace NCatboostCuda
         ui32 GetBestIteration() const
         {
             return BestEnsembleSize;
+        }
+
+        double GetBestScore() const {
+            return TTarget::Score(BestStat);
         }
 
         void RegisterOdDetector(IOverfittingDetector* odDetector)
@@ -95,7 +97,7 @@ namespace NCatboostCuda
 
             MATRIXNET_NOTICE_LOG << MessagePrefix << metricHelper.Score();
             if (BestPrefix.Size()) {
-                MATRIXNET_NOTICE_LOG << BestPrefix <<  metricHelper.Score(BestStat) << "\t(" << BestEnsembleSize << ")";
+                MATRIXNET_NOTICE_LOG << BestPrefix <<  metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")";
             }
             MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
 
@@ -108,8 +110,6 @@ namespace NCatboostCuda
                 OdDetector->AddError(metricHelper.Score());
             }
         }
-
-
     private:
         ui32 BestEnsembleSize = 0;
         TTargetStat BestStat;
@@ -128,7 +128,7 @@ namespace NCatboostCuda
     public:
        using TConstVec = typename TTarget::TConstVec;
 
-        TIterationLogger(TString suffix = ":\t")
+        explicit TIterationLogger(TString suffix = ":\t")
                 : Suffix(std::move(suffix)) {
 
         }
@@ -170,7 +170,6 @@ namespace NCatboostCuda
             Y_UNUSED(target);
             Y_UNUSED(point);
             StartTime = Now();
-            PrevIteration = StartTime;
             FirstIteration = model.Size();
         }
 
@@ -183,20 +182,14 @@ namespace NCatboostCuda
             const ui32 passedIterations = newEnsemble.Size();
 
             auto passedTime = (Now() - StartTime).GetValue();
-            auto currentIteration = (Now() - PrevIteration).GetValue();
-
-            auto remainingTime =
-                    passedTime * (TotalIterations - passedIterations) / (passedIterations - FirstIteration);
+            auto remainingTime = passedTime * (TotalIterations - passedIterations) / (passedIterations - FirstIteration);
 
             Output << newEnsemble.Size() - 1 << "\t" << TDuration(remainingTime).MilliSeconds() << "\t"
                    << TDuration(passedTime).MilliSeconds() << Endl;
 
             MATRIXNET_NOTICE_LOG << "total: " << HumanReadable(TDuration(passedTime));
             MATRIXNET_NOTICE_LOG << "\tremaining: " << HumanReadable(TDuration(remainingTime));
-            MATRIXNET_NOTICE_LOG << "\tcurrent: " << HumanReadable(TDuration(currentIteration));
             MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
-
-            PrevIteration = Now();
         }
 
     private:
@@ -205,7 +198,6 @@ namespace NCatboostCuda
         ui32 Iteration = 0;
         ui32 FirstIteration = 0;
         TInstant StartTime;
-        TInstant PrevIteration;
         TString NoticeLogSuffix;
     };
 }

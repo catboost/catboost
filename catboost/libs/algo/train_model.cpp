@@ -374,7 +374,7 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     yvector<yvector<double>>* testApprox)
 {
     THolder<IModelTrainer> modelTrainerHolder;
-    bool isGpuCalcerType = jsonParams.Has("calcer_type") && FromString<ECalcerType>(jsonParams["calcer_type"].GetStringSafe()) == ECalcerType::GPU;
+    bool isGpuCalcerType = jsonParams["calcer_type"].GetStringSafe("CPU") == "GPU";
     if (isGpuCalcerType && TTrainerFactory::Has(ECalcerType::GPU)) {
         modelTrainerHolder = TTrainerFactory::Construct(ECalcerType::GPU);
     } else {

@@ -4,6 +4,7 @@
 #include "train_options.h"
 #include "json_options.h"
 #include "model_helpers.h"
+
 #include <catboost/cuda/data/load_config.h>
 #include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/methods/boosting.h>
@@ -55,9 +56,8 @@ namespace NCatboostCuda
             options.TreeConfig.SetLeavesEstimationIterations(1);
         }
 
-        if (options.TargetOptions.GetTargetType() == ETargetFunction::CrossEntropy)
-        {
-            options.FeatureManagerOptions.SetTargetBinarization(2);
+        if (options.TargetOptions.GetTargetType() == ETargetFunction::CrossEntropy || options.TargetOptions.GetTargetType() == ETargetFunction::Logloss) {
+            options.FeatureManagerOptions.SetTargetBinarization(1);
         }
         if (options.FeatureManagerOptions.IsCtrTypeEnabled(ECtrType::FeatureFreq))
         {
@@ -131,17 +131,18 @@ namespace NCatboostCuda
                                                               const TTargetOptions& targetOptions,
                                                               const TDataProvider& learn,
                                                               const TDataProvider* test,
-                                                              TRandom& random) {
+                                                              TRandom& random)
+    {
         using TTaskDataSet = TDataSet<CatFeaturesStoragePtrType>;
         using TTarget = TTargetTemplate<NCudaLib::TMirrorMapping, TTaskDataSet>;
 
         TObliviousTree tree(featureManager, treeOptions);
         TDynamicBoosting<TTargetTemplate, TObliviousTree, CatFeaturesStoragePtrType> boosting(featureManager,
-                                                                                                    boostingOptions,
-                                                                                                    targetOptions,
-                                                                                                    snapshotOptions,
-                                                                                                    random,
-                                                                                                    tree);
+                                                                                              boostingOptions,
+                                                                                              targetOptions,
+                                                                                              snapshotOptions,
+                                                                                              random,
+                                                                                              tree);
         boosting.SetDataProvider(learn, test);
 
         using TMetricPrinter = TMetricLogger<TTarget, TObliviousTreeModel>;
@@ -159,12 +160,13 @@ namespace NCatboostCuda
 
         if (boostingOptions.IsCalcScores())
         {
-            learnPrinter.Reset(new TMetricPrinter("learn:\t", logOptions.GetLearnErrorLogPath(), "\t",""));
+            learnPrinter.Reset(new TMetricPrinter("learn: ", logOptions.GetLearnErrorLogPath(), "\t", ""));
             //output log files path relative to trainDirectory
             meta << "learnErrorLog\t" << logOptions.GetLearnErrorLogPath() << Endl;
             if (test)
             {
-                testPrinter.Reset(new TMetricPrinter("test:\t", logOptions.GetTestErrorLogPath(), "\t", "\tbestTest:\t"));
+                testPrinter.Reset(
+                        new TMetricPrinter("test: ", logOptions.GetTestErrorLogPath(), "\t", "\tbestTest:\t"));
                 meta << "testErrorLog\t" << logOptions.GetTestErrorLogPath() << Endl;
 
                 const auto& odOptions = boostingOptions.GetOverfittingDetectorOptions();
@@ -196,9 +198,11 @@ namespace NCatboostCuda
         TTimeWriter<TTarget, TObliviousTreeModel> timeWriter(boostingOptions.GetIterationCount(),
                                                              logOptions.GetTimeLeftLog(),
                                                              "\n");
-        if (testPrinter) {
+        if (testPrinter)
+        {
             boosting.RegisterTestListener(timeWriter);
-        } else {
+        } else
+        {
             boosting.RegisterLearnListener(timeWriter);
         }
 
@@ -214,6 +218,11 @@ namespace NCatboostCuda
                 const ui32 bestIter = testPrinter->GetBestIteration();
                 model->Shrink(bestIter);
             }
+        }
+        if (testPrinter != nullptr)
+        {
+            MATRIXNET_NOTICE_LOG << "bestTest = " << testPrinter->GetBestScore() << Endl;
+            MATRIXNET_NOTICE_LOG << "bestIteration = " << testPrinter->GetBestIteration() << Endl;
         }
         return model;
     }
@@ -243,131 +252,16 @@ namespace NCatboostCuda
         }
     };
 
-    TCoreModel TrainModel(const TTrainCatBoostOptions trainCatBoostOptions,
+
+    TCoreModel TrainModel(const TTrainCatBoostOptions& trainCatBoostOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
-                          TBinarizedFeaturesManager& featuresManager)
-    {
-        SetLogingLevel(trainCatBoostOptions.ApplicationOptions.GetLoggingLevel());
-        TCoreModel result;
-        NCudaLib::SetApplicationConfig(trainCatBoostOptions.ApplicationOptions.GetCudaApplicationConfig());
-        StartCudaManager(trainCatBoostOptions.ApplicationOptions.GetLoggingLevel());
-        {
-            if (NCudaLib::GetCudaManager().GetDeviceCount() > 1)
-            {
-                NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaHost>();
-                NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaDevice>();
-                NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaHost, NCudaLib::CudaDevice>();
-            }
-            auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
-
-            if (trainCatBoostOptions.ApplicationOptions.IsProfile())
-            {
-                profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
-            } else
-            {
-                profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::NoProfile);
-            }
-            TRandom random(trainCatBoostOptions.TreeConfig.GetBootstrapConfig().GetSeed());
-
-            THolder<TAdditiveModel<TObliviousTreeModel>> model;
-            const bool storeCatFeaturesInPinnedMemory = trainCatBoostOptions.BoostingOptions.UseCpuRamForCatFeaturesDataSet();
-
-            switch (trainCatBoostOptions.TargetOptions.GetTargetType())
-            {
-                case ETargetFunction::RMSE:
-                {
-                    model = Train<TL2>(featuresManager,
-                                       trainCatBoostOptions.BoostingOptions,
-                                       trainCatBoostOptions.OutputFilesOptions,
-                                       trainCatBoostOptions.SnapshotOptions,
-                                       trainCatBoostOptions.TreeConfig,
-                                       trainCatBoostOptions.TargetOptions,
-                                       dataProvider,
-                                       testProvider,
-                                       random,
-                                       storeCatFeaturesInPinnedMemory);
-                    break;
-                }
-                case ETargetFunction::CrossEntropy:
-                case ETargetFunction::Logloss:
-                {
-                    model = Train<TCrossEntropy>(featuresManager,
-                                                 trainCatBoostOptions.BoostingOptions,
-                                                 trainCatBoostOptions.OutputFilesOptions,
-                                                 trainCatBoostOptions.SnapshotOptions,
-                                                 trainCatBoostOptions.TreeConfig,
-                                                 trainCatBoostOptions.TargetOptions,
-                                                 dataProvider, testProvider, random,
-                                                 storeCatFeaturesInPinnedMemory);
-                    break;
-                }
-            }
-
-            result = ConvertToCoreModel(featuresManager,
-                                        dataProvider,
-                                        *model);
-            {
-                NJson::TJsonValue options(NJson::EJsonValueType::JSON_MAP);
-                TOptionsJsonConverter<TTrainCatBoostOptions>::Save(trainCatBoostOptions, options);
-                result.ModelInfo["params"] = ToString(options);
-            }
-        }
-        StopCudaManager();
-        return result;
-    }
+                          TBinarizedFeaturesManager& featuresManager);
 
 
     void TrainModel(const NJson::TJsonValue& params,
                     TPool& learnPool,
                     const TPool& testPool,
                     const TString& outputModelPath,
-                    TFullModel* model)
-    {
-
-        TTrainCatBoostOptions catBoostOptions;
-        TDataProvider dataProvider;
-        THolder<TDataProvider> testData;
-        if (testPool.Docs.GetDocCount())
-        {
-            testData = MakeHolder<TDataProvider>();
-        }
-
-        TOptionsJsonConverter<TTrainCatBoostOptions>::Load(params, catBoostOptions);
-        TBinarizedFeaturesManager featuresManager(catBoostOptions.FeatureManagerOptions);
-
-        {
-
-            CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, learnPool, false, dataProvider);
-            builder.AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
-                    .Finish(catBoostOptions.ApplicationOptions.GetNumThreads());
-        }
-        if (testData != nullptr)
-        {
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, testPool, true, *testData);
-            builder.AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
-                    .Finish(catBoostOptions.ApplicationOptions.GetNumThreads());
-        }
-
-        UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
-        UpdateOptionsAndEnableCtrTypes(catBoostOptions, featuresManager);
-
-        auto coreModel = TrainModel(catBoostOptions, dataProvider, testData.Get(), featuresManager);
-
-        if (model == nullptr)
-        {
-            CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            MakeFullModel(coreModel,
-                          learnPool,
-                          catBoostOptions.ApplicationOptions.GetNumThreads(),
-                          outputModelPath);
-        } else
-        {
-            MakeFullModel(coreModel,
-                          learnPool,
-                          catBoostOptions.ApplicationOptions.GetNumThreads(),
-                          model);
-        }
-    }
+                    TFullModel* model);
 }

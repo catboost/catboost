@@ -31,10 +31,8 @@ namespace NCatboostCuda
 
         TPointwiseTarget(const TDataSet& dataSet,
                          TRandom& random,
-                         const TSlice& slice,
-                         const TTargetOptions& targetOptions)
+                         const TSlice& slice)
                 : DataSet(&dataSet)
-                  , TargetOptions(&targetOptions)
                   , Target(dataSet.GetTarget().SliceView(slice))
                   , Weights(dataSet.GetWeights().SliceView(slice))
                   , Indices(dataSet.GetIndices().SliceView(slice))
@@ -46,10 +44,8 @@ namespace NCatboostCuda
                          TRandom& random,
                          TCudaBuffer<const float, TMapping>&& target,
                          TCudaBuffer<const float, TMapping>&& weights,
-                         TCudaBuffer<const ui32, TMapping>&& indices,
-                         const TTargetOptions& targetOptions)
+                         TCudaBuffer<const ui32, TMapping>&& indices)
                 : DataSet(&dataSet)
-                  , TargetOptions(&targetOptions)
                   , Target(std::move(target))
                   , Weights(std::move(weights))
                   , Indices(std::move(indices))
@@ -60,12 +56,10 @@ namespace NCatboostCuda
         TPointwiseTarget(const TPointwiseTarget& target,
                          const TSlice& slice)
                 : DataSet(&target.GetDataSet())
-                  , TargetOptions(&target.GetTargetOptions())
-                  , Target(target.GetTarget().SliceView(slice))
-                  , Weights(target.GetWeights().SliceView(slice))
-                  , Indices(target.GetIndices().SliceView(slice))
-                  , Random(target.Random)
-        {
+                , Target(target.GetTarget().SliceView(slice))
+                , Weights(target.GetWeights().SliceView(slice))
+                , Indices(target.GetIndices().SliceView(slice))
+                , Random(target.Random) {
         }
 
         TPointwiseTarget(TPointwiseTarget&& other) = default;
@@ -85,10 +79,6 @@ namespace NCatboostCuda
             return Indices;
         }
 
-        const TTargetOptions& GetTargetOptions() const
-        {
-            return *TargetOptions;
-        }
 
         template<class T>
         TCudaBuffer<T, TMapping> CreateGpuBuffer() const
@@ -124,7 +114,6 @@ namespace NCatboostCuda
 
     private:
         const TDataSet* DataSet;
-        const TTargetOptions* TargetOptions;
         TConstVec Target;
         TConstVec Weights;
         TBuffer<const ui32> Indices;
@@ -140,15 +129,13 @@ namespace NCatboostCuda
         NCudaLib::TStripeMapping stripeMapping = NCudaLib::TStripeMapping::SplitBetweenDevices(
                 mirrorTarget.GetIndices().GetObjectsSlice().Size());
 
-        return TTarget<NCudaLib::TStripeMapping, TDataSet>(mirrorTarget.GetDataSet(),
-                                                           mirrorTarget.GetRandom(),
+        return TTarget<NCudaLib::TStripeMapping, TDataSet>(mirrorTarget,
                                                            NCudaLib::StripeView(mirrorTarget.GetTarget(),
                                                                                 stripeMapping),
                                                            NCudaLib::StripeView(mirrorTarget.GetWeights(),
                                                                                 stripeMapping),
                                                            NCudaLib::StripeView(mirrorTarget.GetIndices(),
-                                                                                stripeMapping),
-                                                           mirrorTarget.GetTargetOptions());
+                                                                                stripeMapping));
     }
 
     template<class TTarget>

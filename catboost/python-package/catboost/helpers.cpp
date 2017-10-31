@@ -2,7 +2,7 @@
 
 #include "helpers.h"
 #include "catboost/libs/helpers/exception.h"
-#include "catboost/libs/algo/interrupt.h"
+#include <catboost/libs/helpers/interrupt.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 

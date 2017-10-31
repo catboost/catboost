@@ -7,6 +7,7 @@ SRCS(
     power_hash.cpp
     progress_helper.cpp
     matrix.cpp
+    interrupt.cpp
 )
 
 PEERDIR(

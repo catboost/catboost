@@ -616,7 +616,6 @@ namespace NCatboostCuda
         {
             options.AddLongOption("learn-err-log", "file to log error function on train")
                     .RequiredArgument("file")
-                    .DefaultValue("learn")
                     .Handler1T<TString>([&](const TString& log)
                                         {
                                             outputFiles.LearnErrorLogPath = log;
@@ -660,10 +659,6 @@ namespace NCatboostCuda
                     .Handler1T<ETargetFunction>([&](ETargetFunction target)
                                                 {
                                                     targetOptions.TargetType = target;
-                                                    if (target == ETargetFunction::Logloss)
-                                                    {
-                                                        targetOptions.UseBorderForClassification = true;
-                                                    }
                                                 });
 
             options
@@ -673,7 +668,6 @@ namespace NCatboostCuda
                     .Handler1T<float>([&](float border)
                                       {
                                           targetOptions.BinClassBorder = border;
-                                          targetOptions.UseBorderForClassification = true;
                                       });
         }
     };

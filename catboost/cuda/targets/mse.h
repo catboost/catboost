@@ -20,11 +20,12 @@ namespace NCatboostCuda {
         TL2(const TDataSet& dataSet,
             TRandom& random,
             TSlice slice,
-            const TTargetOptions& targetOptions)
+            const TTargetOptions& targetOptions
+        )
             : TParent(dataSet,
                       random,
-                      slice,
-                      targetOptions) {
+                      slice) {
+            CB_ENSURE(targetOptions.GetTargetType() == ETargetFunction::RMSE);
         }
 
         TL2(const TL2& target,
@@ -33,18 +34,16 @@ namespace NCatboostCuda {
                       slice) {
         }
 
-        TL2(const TDataSet& dataSet,
-            TRandom& random,
+        template <class TLayout>
+        TL2(const TL2<TLayout, TDataSet>& basedOn,
             TCudaBuffer<const float, TMapping>&& target,
             TCudaBuffer<const float, TMapping>&& weights,
-            TCudaBuffer<const ui32, TMapping>&& indices,
-            const TTargetOptions& targetOptions)
-            : TParent(dataSet,
-                      random,
+            TCudaBuffer<const ui32, TMapping>&& indices)
+            : TParent(basedOn.GetDataSet(),
+                      basedOn.GetRandom(),
                       std::move(target),
                       std::move(weights),
-                      std::move(indices),
-                      targetOptions) {
+                      std::move(indices)) {
         }
 
         TL2(TL2&& other)

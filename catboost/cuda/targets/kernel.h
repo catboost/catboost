@@ -91,7 +91,8 @@ inline void ApproximateCrossEntropy(const TCudaBuffer<const float, TMapping>& ta
                                     TCudaBuffer<float, TMapping>* score,
                                     TCudaBuffer<float, TMapping>* weightedDer,
                                     TCudaBuffer<float, TMapping>* weightedDer2,
-                                    bool useBorder, float border,
+                                    bool useBorder,
+                                    float border,
                                     ui32 stream = 0) {
     using TKernel = NKernelHost::TCrossEntropyTargetKernelKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, score, weightedDer, weightedDer2, border, useBorder);

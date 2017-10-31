@@ -13,8 +13,8 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <catboost/cuda/targets/target_options.h>
-#include <util/stream/format.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <util/stream/format.h>
 
 namespace NCatboostCuda
 {

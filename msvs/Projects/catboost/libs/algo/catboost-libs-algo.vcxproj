@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\logger.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\logger.h_serialized.cpp"/>
@@ -208,7 +207,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
