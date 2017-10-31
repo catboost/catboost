@@ -191,7 +191,7 @@ class Pool(_PoolBase):
                     data_shape = tuple(data_shape + tuple([len(data[0])]))
                 else:
                     data_shape = tuple(data_shape + tuple([1]))
-            if not len(data_shape) == 2 or not sum(data_shape) > 2:
+            if not len(data_shape) == 2 or not min(data_shape) > 2:
                 raise CatboostError("Input data has invalid shape or empty: {}. Must be 2 dimensional".format(data_shape))
 
     def _check_label_type(self, label):
