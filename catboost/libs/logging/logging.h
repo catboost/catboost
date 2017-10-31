@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logging_level.h"
 #include <library/logger/global/global.h>
 #include <util/generic/singleton.h>
 
@@ -23,13 +24,40 @@ struct TMatrixnetMessageFormater {
     static TSimpleSharedPtr<TLogElement> StartRecord(TLog& logger, const TLogRecordContext& context, TSimpleSharedPtr<TLogElement> earlier);
 };
 
-inline void SetVerboseLogingMode() {
-    TMatrixnetLogSettings::GetRef().LogPriority = TLOG_INFO;
+
+inline void SetLogingLevel(ELoggingLevel level) {
+    switch (level) {
+        case ELoggingLevel::Silent:{
+            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_WARNING;
+            break;
+        }
+        case ELoggingLevel::Verbose: {
+            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_NOTICE;
+            break;
+        }
+        case ELoggingLevel::Info: {
+            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_INFO;
+            break;
+        }
+        case ELoggingLevel::Debug: {
+            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_DEBUG;
+            break;
+        }
+        default:{
+            ythrow yexception() << "Unknown logging level " << level;
+        }
+    }
 }
 
 inline void SetSilentLogingMode() {
-    TMatrixnetLogSettings::GetRef().LogPriority = TLOG_WARNING;
+    SetLogingLevel(ELoggingLevel::Silent);
 }
+
+inline void SetVerboseLogingMode() {
+    SetLogingLevel(ELoggingLevel::Verbose);
+}
+
+
 
 using TCustomLoggingFunction = void(*)(const char*, size_t len);
 

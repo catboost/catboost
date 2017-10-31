@@ -33,6 +33,7 @@ currentTest;
 ::NUnitTest::TRaiseErrorHandler RaiseErrorHandler;
 
 void ::NUnitTest::NPrivate::RaiseError(const char* what, const TString& msg, bool fatalFailure) {
+    Y_VERIFY(UnittestThread, "%s in non-unittest thread with message:\n%s", what, ~msg);
     Y_VERIFY(GetCurrentTest());
 
     if (RaiseErrorHandler) {
@@ -47,11 +48,7 @@ void ::NUnitTest::NPrivate::RaiseError(const char* what, const TString& msg, boo
     if (::NUnitTest::ContinueOnFail || !fatalFailure) {
         return;
     }
-    if (UnittestThread) {
-        throw TAssertException();
-    } else {
-        Y_FAIL("%s in non-unittest thread with message:\n%s", what, ~msg);
-    }
+    throw TAssertException();
 }
 
 void ::NUnitTest::SetRaiseErrorHandler(::NUnitTest::TRaiseErrorHandler handler) {
@@ -86,15 +83,15 @@ struct TDiffColorizer {
         return Colors.YellowColor().ToString() + str;
     }
 
-    TString Common(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Common(const TConstArrayRef<const char>& str) const {
         return Colors.OldColor().ToString() + TString(str.begin(), str.end());
     }
 
-    TString Left(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Left(const TConstArrayRef<const char>& str) const {
         return GetLeftColor().ToString() + TString(str.begin(), str.end());
     }
 
-    TString Right(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Right(const TConstArrayRef<const char>& str) const {
         return GetRightColor().ToString() + TString(str.begin(), str.end());
     }
 
@@ -119,17 +116,17 @@ struct TTraceDiffFormatter {
         return str.ToString();
     }
 
-    TString Common(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Common(const TConstArrayRef<const char>& str) const {
         return TString(str.begin(), str.end());
     }
 
-    TString Left(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Left(const TConstArrayRef<const char>& str) const {
         return NUnitTest::GetFormatTag("good") +
                TString(str.begin(), str.end()) +
                NUnitTest::GetResetTag();
     }
 
-    TString Right(const NArrayRef::TConstArrayRef<const char>& str) const {
+    TString Right(const TConstArrayRef<const char>& str) const {
         return NUnitTest::GetFormatTag("bad") +
                TString(str.begin(), str.end()) +
                NUnitTest::GetResetTag();

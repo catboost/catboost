@@ -78,6 +78,13 @@ namespace NCatboostCuda
 
 
             options
+                    .AddLongOption("logging-level")
+                    .RequiredArgument("Level")
+                    .Help("Logging level: one of (Silent, Verbose, Info, Debug)")
+                    .DefaultValue("Silent")
+                    .StoreResult(&applicationOptions.LoggingLevel);
+
+            options
                     .AddLongOption("detailed-profile")
                     .RequiredArgument("FLAG")
                     .Help("Enables profiling")
@@ -128,6 +135,25 @@ namespace NCatboostCuda
                         .Help("TestPool file name.")
                         .StoreResult(&poolLoadOptions.TestName);
             }
+        }
+    };
+
+    template<>
+    class TOptionsBinder<TSnapshotOptions> {
+    public:
+        static void Bind(TSnapshotOptions& snapshotOptions,
+                         NLastGetopt::TOpts& options)
+        {
+            options.AddLongOption("snapshot-file", "use progress file for restoring progress after crashes")
+                    .RequiredArgument("PATH")
+                    .Handler1T<TString>([&](const TString& path) {
+                        snapshotOptions.Path = path;
+                        snapshotOptions.Enabled = true;
+                    });
+
+            options.AddLongOption("snapshot-save-interval", "Save interval in seconds")
+                    .RequiredArgument("INT")
+                    .StoreResult(&snapshotOptions.SaveInterval);
         }
     };
 
@@ -243,8 +269,8 @@ namespace NCatboostCuda
             options
                     .AddLongOption("dev-target-binarization")
                     .RequiredArgument("INT")
-                    .Help("Sets number of conditions per target. Default is 15.")
-                    .DefaultValue("15")
+                    .Help("Sets number of conditions per target. Default is 1.")
+                    .DefaultValue("1")
                     .Handler1T<ui32>([&](ui32 discretization)
                                      {
                                          if (discretization > 255)
@@ -377,6 +403,7 @@ namespace NCatboostCuda
                     .Handler1T<ui32>([&](ui32 iter) mutable
                                      {
                                          treeOptions.LeavesEstimationIters = iter;
+                                         treeOptions.IsDefaultLeavesEstimationIters = false;
                                      });
 
             options
@@ -571,6 +598,11 @@ namespace NCatboostCuda
                     .StoreResult(&boostingOptions.CalcScores, false)
                     .NoArgument();
 
+            options.AddLongOption("print-period", "Period to print to logs")
+                    .RequiredArgument("INT")
+                    .DefaultValue("1")
+                    .StoreResult(&boostingOptions.PrintPeriod);
+
             TOptionsBinder<TOverfittingDetectorOptions>::Bind(boostingOptions.OverfittingDetectorOptions, options);
         }
     };
@@ -589,6 +621,7 @@ namespace NCatboostCuda
                                         {
                                             outputFiles.LearnErrorLogPath = log;
                                         });
+
 
             options.AddLongOption("test-err-log", "file to log error function on test")
                     .RequiredArgument("file")
@@ -657,6 +690,7 @@ namespace NCatboostCuda
             TOptionsBinder<TBoostingOptions>::Bind(trainCatboostOptions.BoostingOptions, options);
             TOptionsBinder<TTargetOptions>::Bind(trainCatboostOptions.TargetOptions, options);
             TOptionsBinder<TOutputFilesOptions>::Bind(trainCatboostOptions.OutputFilesOptions, options);
+            TOptionsBinder<TSnapshotOptions>::Bind(trainCatboostOptions.SnapshotOptions, options);
         }
     };
 }

@@ -38,7 +38,8 @@ public:
     typedef yhash<TString, TJsonValue> TMap;
     typedef ydeque<TJsonValue> TArray;
 
-    TJsonValue(EJsonValueType type = JSON_UNDEFINED);
+    TJsonValue() noexcept = default;
+    TJsonValue(EJsonValueType type);
     TJsonValue(bool value) noexcept;
     TJsonValue(int value) noexcept;
     TJsonValue(unsigned int value) noexcept;
@@ -50,6 +51,8 @@ public:
     TJsonValue(const TString& value);
     TJsonValue(TString&& value);
     TJsonValue(const char* value);
+    template<class T>
+    TJsonValue(const T*) = delete;
     TJsonValue(TStringBuf value);
     TJsonValue(const TJsonValue& vval);
     TJsonValue(TJsonValue&& vval) noexcept;
@@ -184,12 +187,16 @@ private:
         long long Integer;
         unsigned long long UInteger;
         double Double;
-        TString* String;
+        TString String;
         TMap* Map;
         TArray* Array;
+
+        TValueUnion() noexcept {}
+        ~TValueUnion() noexcept {}
     };
     TValueUnion Value;
     void DoScan(const TString& path, TJsonValue* parent, IScanCallback& callback);
+    void SwapWithUndefined(TJsonValue& output) noexcept;
 };
 
 

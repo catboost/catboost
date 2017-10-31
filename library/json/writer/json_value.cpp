@@ -68,26 +68,25 @@ AreJsonArraysEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {
 
 namespace NJson {
 
-const TJsonValue TJsonValue::UNDEFINED;
+const TJsonValue TJsonValue::UNDEFINED{};
 
 TJsonValue::TJsonValue(const EJsonValueType type) {
     SetType(type);
 }
 
 TJsonValue::TJsonValue(TJsonValue&& vval) noexcept
-     : Type(vval.Type)
-     , Value(std::move(vval.Value))
+    : Type(JSON_UNDEFINED)
 {
-    vval.Type = JSON_UNDEFINED;
+    vval.SwapWithUndefined(*this);
     Zero(vval.Value);
 }
 
 TJsonValue::TJsonValue(const TJsonValue &val)
+     : Type(val.Type)
 {
-    Type = val.Type;
     switch (Type) {
     case JSON_STRING:
-        Value.String = new TString(val.GetString());
+        new (&Value.String) TString(val.GetString());
         break;
     case JSON_MAP:
         Value.Map = new TMap(val.GetMap());
@@ -101,7 +100,7 @@ TJsonValue::TJsonValue(const TJsonValue &val)
     case JSON_INTEGER:
     case JSON_UINTEGER:
     case JSON_DOUBLE:
-        Value = val.Value;
+        std::memcpy(&Value, &val.Value, sizeof(Value));
         break;
     }
 }
@@ -164,22 +163,22 @@ TJsonValue::TJsonValue(const double value) noexcept {
 
 TJsonValue::TJsonValue(const TString& value) {
     SetType(JSON_STRING);
-    *Value.String = value;
+    Value.String = value;
 }
 
 TJsonValue::TJsonValue(TString&& value) {
     SetType(JSON_STRING);
-    *Value.String = std::move(value);
+    Value.String = std::move(value);
 }
 
 TJsonValue::TJsonValue(const TStringBuf value) {
     SetType(JSON_STRING);
-    *Value.String = value;
+    Value.String = value;
 }
 
 TJsonValue::TJsonValue(const char* value) {
     SetType(JSON_STRING);
-    *Value.String = value;
+    Value.String = value;
 }
 
 EJsonValueType TJsonValue::GetType() const noexcept {
@@ -195,7 +194,7 @@ TJsonValue& TJsonValue::SetType(const EJsonValueType type) {
 
     switch (Type) {
     case JSON_STRING:
-        Value.String = new TString();
+        new (&Value.String) TString();
         break;
     case JSON_MAP:
         Value.Map = new TMap();
@@ -295,10 +294,9 @@ void TJsonValue::EraseValue(const size_t index) {
 }
 
 void TJsonValue::Clear() noexcept {
-
     switch (Type) {
     case JSON_STRING:
-        delete Value.String;
+        Value.String.~TString();
         break;
     case JSON_MAP:
         delete Value.Map;
@@ -333,10 +331,10 @@ TJsonValue &TJsonValue::operator[] (const TStringBuf& key) {
 
 namespace {
     struct TDefaultsHolder {
-        const TString String;
-        const TJsonValue::TMap Map;
-        const TJsonValue::TArray Array;
-        const TJsonValue Value;
+        const TString String{};
+        const TJsonValue::TMap Map{};
+        const TJsonValue::TArray Array{};
+        const TJsonValue Value{};
     };
 }
 
@@ -421,7 +419,7 @@ double TJsonValue::GetDouble() const {
 }
 
 const TString& TJsonValue::GetString() const {
-    return Type != JSON_STRING ? Singleton<TDefaultsHolder>()->String : *Value.String;
+    return Type != JSON_STRING ? Singleton<TDefaultsHolder>()->String : Value.String;
 }
 
 const TJsonValue::TMap& TJsonValue::GetMap() const {
@@ -464,7 +462,7 @@ const TString& TJsonValue::GetStringSafe() const {
     if (Type != JSON_STRING)
         ythrow TJsonException() << "Not a string";
 
-    return *Value.String;
+    return Value.String;
 }
 
 bool TJsonValue::GetBooleanSafe(const bool defaultValue) const {
@@ -535,7 +533,7 @@ bool TJsonValue::GetBooleanRobust() const noexcept {
     case JSON_DOUBLE:
         return GetIntegerRobust();
     case JSON_STRING:
-        return GetIntegerRobust() || IsTrue(*Value.String);
+        return GetIntegerRobust() || IsTrue(Value.String);
     case JSON_NULL:
     case JSON_UNDEFINED:
     default:
@@ -558,7 +556,7 @@ long long TJsonValue::GetIntegerRobust() const noexcept {
     case JSON_STRING:
         try {
             i64 res = 0;
-            if (Value.String && TryFromString(*Value.String, res)) {
+            if (Value.String && TryFromString(Value.String, res)) {
                 return res;
             }
         } catch (const yexception&) {}
@@ -586,7 +584,7 @@ unsigned long long TJsonValue::GetUIntegerRobust() const noexcept {
     case JSON_STRING:
         try {
             ui64 res = 0;
-            if (Value.String && TryFromString(*Value.String, res)) {
+            if (Value.String && TryFromString(Value.String, res)) {
                 return res;
             }
         } catch (const yexception&) {}
@@ -616,7 +614,7 @@ double TJsonValue::GetDoubleRobust() const noexcept {
     case JSON_STRING:
         try {
             double res = 0;
-            if (Value.String && TryFromString(*Value.String, res)) {
+            if (Value.String && TryFromString(Value.String, res)) {
                 return res;
             }
         } catch (const yexception&) {}
@@ -645,7 +643,7 @@ TString TJsonValue::GetStringRobust() const {
         sout.WriteJsonValue(this);
         return sout.Str();
     } case JSON_STRING:
-        return *Value.String;
+        return Value.String;
     }
 }
 
@@ -685,7 +683,7 @@ bool TJsonValue::GetString(TString *value) const {
     if (Type != JSON_STRING)
         return false;
 
-    *value = *Value.String;
+    *value = Value.String;
     return true;
 }
 
@@ -959,9 +957,7 @@ bool TJsonValue::operator== (const TJsonValue& rhs) const {
     }
 
     case JSON_STRING: {
-        return (rhs.IsString()
-                && !!Value.String && !!rhs.Value.String
-                && *Value.String == *rhs.Value.String);
+        return (rhs.IsString() && Value.String == rhs.Value.String);
     }
 
     case JSON_DOUBLE: {
@@ -981,13 +977,24 @@ bool TJsonValue::operator== (const TJsonValue& rhs) const {
     }
 }
 
-void TJsonValue::Swap(TJsonValue& rhs) noexcept {
-    ::DoSwap(Type, rhs.Type);
 
-    // DoSwap does not support unions
-    TValueUnion tmp = Value;
-    Value = rhs.Value;
-    rhs.Value = tmp;
+void TJsonValue::SwapWithUndefined(TJsonValue& output) noexcept {
+    if (Type == JSON_STRING) {
+        static_assert(std::is_nothrow_move_constructible<TString>::value, "noexcept violation! Add some try {} catch (...) logic");
+        new (&output.Value.String) TString(std::move(Value.String));
+        Value.String.~TString();
+    } else {
+        std::memcpy(&output.Value, &Value, sizeof(Value));
+    }
+
+    output.Type = Type;
+    Type = JSON_UNDEFINED;
+}
+
+void TJsonValue::Swap(TJsonValue& rhs) noexcept {
+    TJsonValue tmp(std::move(*this));
+    rhs.SwapWithUndefined(*this);
+    tmp.SwapWithUndefined(rhs);
 }
 
 //****************************************************************

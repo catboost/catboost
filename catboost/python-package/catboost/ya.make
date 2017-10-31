@@ -4,9 +4,17 @@ ELSE()
     PYMODULE(_catboost EXPORTS catboost.exports PREFIX "")
 ENDIF()
 
+USE_LINKER_GOLD()
+
 
 
 PYTHON_ADDINCL()
+
+IF(HAVE_CUDA)
+    PEERDIR(
+        catboost/cuda/train_lib
+    )
+ENDIF()
 
 PEERDIR(
     catboost/libs/algo

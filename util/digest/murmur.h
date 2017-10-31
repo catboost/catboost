@@ -48,7 +48,7 @@ struct TMurmurHash {
     }
 
     template <typename ElementType>
-    TOut operator()(const NArrayRef::TArrayRef<ElementType>& data) const {
+    TOut operator()(const TArrayRef<ElementType>& data) const {
         return operator()(data.data(), data.size() * sizeof(ElementType));
     }
 };

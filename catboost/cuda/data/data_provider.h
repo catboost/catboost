@@ -74,7 +74,7 @@ namespace NCatboostCuda
             return Weights;
         }
 
-        const yvector<int>& GetQueryIds() const
+        const yvector<ui32>& GetQueryIds() const
         {
             if (QueryIds.size() != Targets.size())
             {
@@ -123,7 +123,7 @@ namespace NCatboostCuda
         yvector<TFeatureColumnPtr> Features;
 
         yvector<ui32> Order;
-        yvector<int> QueryIds;
+        yvector<ui32> QueryIds;
         yvector<yvector<ui32>> Queries;
 
         yvector<ui32> DocIds;

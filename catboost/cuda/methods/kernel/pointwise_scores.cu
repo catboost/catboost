@@ -240,8 +240,8 @@ namespace NKernel {
 
             score = denumSqr > 0 ? -score / sqrt(denumSqr) : FLT_MAX;
             if (scoreStdDev) {
-                ui64 seed = globalSeed + (blockIdx.x * gridDim.x * 5 + 23 * threadIdx.x) * (1.0f + log(threadIdx.x + 2.0f));
-                AdvanceSeed(&seed);
+                ui64 seed = globalSeed + bf[i + tid].FeatureId;
+                AdvanceSeed(&seed, 4);
                 score += NextNormal(&seed) * scoreStdDev;
             }
             if (score < bestScore) {
@@ -289,9 +289,7 @@ namespace NKernel {
         result += blockIdx.x;
         TPartOffsetsHelper helper(foldCount);
 
-        //not statistically correct, but pretty fast way of generating random vars in parallel
-        ui64 seed = globalSeed + (blockIdx.x * gridDim.x * 5 + 23 * threadIdx.x) * (1.0f + log(threadIdx.x + 2.0f));
-        AdvanceSeed(&seed);
+
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -346,6 +344,9 @@ namespace NKernel {
             score = denumSqr > 0 ? -score / sqrt(denumSqr) : FLT_MAX;
             float tmp = score;
             if (scoreStdDev) {
+                ui64 seed = globalSeed + bf[i + tid].FeatureId;
+                AdvanceSeed(&seed, 4);
+
                 tmp += NextNormal(&seed) * scoreStdDev;
             }
             if (tmp < bestScore) {

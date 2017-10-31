@@ -17,6 +17,7 @@ SRCS(
     boosting_options.cpp
     bootstrap.cpp
     tree_ctrs.cpp
+    serialization_helper.cpp
 )
 
 PEERDIR(

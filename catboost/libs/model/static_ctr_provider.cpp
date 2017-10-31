@@ -7,10 +7,10 @@ struct TCompressedModelCtr {
 };
 
 void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
-                                  const NArrayRef::TConstArrayRef<ui8>& binarizedFeatures,
-                                  const NArrayRef::TConstArrayRef<int>& hashedCatFeatures,
+                                  const TConstArrayRef<ui8>& binarizedFeatures,
+                                  const TConstArrayRef<int>& hashedCatFeatures,
                                   const IFeatureIndexProvider& binFeatureIndexProvider, size_t docCount,
-                                  NArrayRef::TArrayRef<float> result) {
+                                  TArrayRef<float> result) {
     if (neededCtrs.empty()) {
         return;
     }
@@ -51,7 +51,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                     }
                 }
             } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
-                NArrayRef::TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
+                TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
                 const int denominator = learnCtr.CounterDenominator;
                 auto emptyVal = ctr.Calc(0, denominator);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {

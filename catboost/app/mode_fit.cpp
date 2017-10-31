@@ -156,7 +156,7 @@ int mode_fit(int argc, const char* argv[]) {
     profile.AddOperation("Train model");
 
     if (trainJson.Has("detailed_profile") || trainJson.Has("developer_mode")) {
-        profile.PrintState();
+        profile.LogState();
     }
 
     if (!params.FstrRegularFileName.empty() || !params.FstrInternalFileName.empty()) {

@@ -48,6 +48,7 @@ namespace NCatboostCuda
         }
 
         SAVELOAD(Splits);
+        Y_SAVELOAD_DEFINE(Splits);
     };
 
     class TObliviousTreeModel
@@ -96,6 +97,7 @@ namespace NCatboostCuda
         }
 
         SAVELOAD(ModelStructure, LeafValues);
+        Y_SAVELOAD_DEFINE(ModelStructure, LeafValues);
 
     private:
         TObliviousTreeStructure ModelStructure;

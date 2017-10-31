@@ -16,6 +16,7 @@
 #include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/algo/train_model.h>
 #include <util/system/fs.h>
 
 namespace NCatboostCuda
@@ -125,6 +126,7 @@ namespace NCatboostCuda
     inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                               const TBoostingOptions& boostingOptions,
                                                               const TOutputFilesOptions& logOptions,
+                                                              const TSnapshotOptions& snapshotOptions,
                                                               const TObliviousTreeLearnerOptions& treeOptions,
                                                               const TTargetOptions& targetOptions,
                                                               const TDataProvider& learn,
@@ -134,23 +136,20 @@ namespace NCatboostCuda
         using TTarget = TTargetTemplate<NCudaLib::TMirrorMapping, TTaskDataSet>;
 
         TObliviousTree tree(featureManager, treeOptions);
-        TDontLookAheadBoosting<TTargetTemplate, TObliviousTree, CatFeaturesStoragePtrType> boosting(featureManager,
+        TDynamicBoosting<TTargetTemplate, TObliviousTree, CatFeaturesStoragePtrType> boosting(featureManager,
                                                                                                     boostingOptions,
                                                                                                     targetOptions,
+                                                                                                    snapshotOptions,
                                                                                                     random,
                                                                                                     tree);
         boosting.SetDataProvider(learn, test);
 
         using TMetricPrinter = TMetricLogger<TTarget, TObliviousTreeModel>;
         TOFStream meta(logOptions.GetMetaFile());
-        TIterationLogger<TTarget, TObliviousTreeModel> iterationPrinter;
-        TTimeWriter<TTarget, TObliviousTreeModel> timeWriter(boostingOptions.GetIterationCount(),
-                                                             logOptions.GetTimeLeftLog());
+        TIterationLogger<TTarget, TObliviousTreeModel> iterationPrinter(":\t");
 
         THolder<IOverfittingDetector> overfitDetector;
-
         boosting.RegisterLearnListener(iterationPrinter);
-        boosting.RegisterLearnListener(timeWriter);
 
         THolder<TMetricPrinter> learnPrinter;
         THolder<TMetricPrinter> testPrinter;
@@ -160,12 +159,12 @@ namespace NCatboostCuda
 
         if (boostingOptions.IsCalcScores())
         {
-            learnPrinter.Reset(new TMetricPrinter("Learn score: ", logOptions.GetLearnErrorLogPath()));
+            learnPrinter.Reset(new TMetricPrinter("learn:\t", logOptions.GetLearnErrorLogPath(), "\t",""));
             //output log files path relative to trainDirectory
             meta << "learnErrorLog\t" << logOptions.GetLearnErrorLogPath() << Endl;
             if (test)
             {
-                testPrinter.Reset(new TMetricPrinter("Test score: ", logOptions.GetTestErrorLogPath()));
+                testPrinter.Reset(new TMetricPrinter("test:\t", logOptions.GetTestErrorLogPath(), "\t", "\tbestTest:\t"));
                 meta << "testErrorLog\t" << logOptions.GetTestErrorLogPath() << Endl;
 
                 const auto& odOptions = boostingOptions.GetOverfittingDetectorOptions();
@@ -193,6 +192,16 @@ namespace NCatboostCuda
         {
             boosting.AddOverfitDetector(*overfitDetector);
         }
+
+        TTimeWriter<TTarget, TObliviousTreeModel> timeWriter(boostingOptions.GetIterationCount(),
+                                                             logOptions.GetTimeLeftLog(),
+                                                             "\n");
+        if (testPrinter) {
+            boosting.RegisterTestListener(timeWriter);
+        } else {
+            boosting.RegisterLearnListener(timeWriter);
+        }
+
         auto model = boosting.Run();
         if (boostingOptions.UseBestModel())
         {
@@ -213,6 +222,7 @@ namespace NCatboostCuda
     inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                               const TBoostingOptions& boostingOptions,
                                                               const TOutputFilesOptions& outputFilesOptions,
+                                                              const TSnapshotOptions& snapshotOptions,
                                                               const TObliviousTreeLearnerOptions& treeOptions,
                                                               const TTargetOptions& targetOptions,
                                                               const TDataProvider& learn,
@@ -223,10 +233,12 @@ namespace NCatboostCuda
         if (storeCatFeaturesInPinnedMemory)
         {
             return Train<TTargetTemplate, NCudaLib::CudaHost>(featureManager, boostingOptions, outputFilesOptions,
+                                                              snapshotOptions,
                                                               treeOptions, targetOptions, learn, test, random);
         } else
         {
             return Train<TTargetTemplate, NCudaLib::CudaDevice>(featureManager, boostingOptions, outputFilesOptions,
+                                                                snapshotOptions,
                                                                 treeOptions, targetOptions, learn, test, random);
         }
     };
@@ -236,9 +248,10 @@ namespace NCatboostCuda
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager)
     {
+        SetLogingLevel(trainCatBoostOptions.ApplicationOptions.GetLoggingLevel());
         TCoreModel result;
         NCudaLib::SetApplicationConfig(trainCatBoostOptions.ApplicationOptions.GetCudaApplicationConfig());
-        StartCudaManager();
+        StartCudaManager(trainCatBoostOptions.ApplicationOptions.GetLoggingLevel());
         {
             if (NCudaLib::GetCudaManager().GetDeviceCount() > 1)
             {
@@ -267,6 +280,7 @@ namespace NCatboostCuda
                     model = Train<TL2>(featuresManager,
                                        trainCatBoostOptions.BoostingOptions,
                                        trainCatBoostOptions.OutputFilesOptions,
+                                       trainCatBoostOptions.SnapshotOptions,
                                        trainCatBoostOptions.TreeConfig,
                                        trainCatBoostOptions.TargetOptions,
                                        dataProvider,
@@ -281,6 +295,7 @@ namespace NCatboostCuda
                     model = Train<TCrossEntropy>(featuresManager,
                                                  trainCatBoostOptions.BoostingOptions,
                                                  trainCatBoostOptions.OutputFilesOptions,
+                                                 trainCatBoostOptions.SnapshotOptions,
                                                  trainCatBoostOptions.TreeConfig,
                                                  trainCatBoostOptions.TargetOptions,
                                                  dataProvider, testProvider, random,
@@ -340,14 +355,15 @@ namespace NCatboostCuda
 
         auto coreModel = TrainModel(catBoostOptions, dataProvider, testData.Get(), featuresManager);
 
-        if (outputModelPath.Size()) {
+        if (model == nullptr)
+        {
+            CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
             MakeFullModel(coreModel,
                           learnPool,
                           catBoostOptions.ApplicationOptions.GetNumThreads(),
                           outputModelPath);
         } else
         {
-            CB_ENSURE(model, "Error: Model and output path are empty");
             MakeFullModel(coreModel,
                           learnPool,
                           catBoostOptions.ApplicationOptions.GetNumThreads(),

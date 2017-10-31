@@ -46,7 +46,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
                     # https://github.com/torvalds/linux/blob/master/fs/coredump.c#L274
                     return os.path.basename(binary_path)[:15]
                 elif text == "%E":
-                    return binary_path.repalce("/", "!")
+                    return binary_path.replace("/", "!")
                 elif text == "%%":
                     return "%"
                 elif text.startswith("%"):

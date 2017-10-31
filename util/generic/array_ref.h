@@ -2,6 +2,7 @@
 
 #include "vector_ops.h"
 
+#include <util/generic/fwd.h>
 #include <util/generic/utility.h>
 
 #include <algorithm>
@@ -101,9 +102,6 @@ private:
     size_t S_;
 };
 
-template <class T>
-using TConstArrayRef = TArrayRef<const T>;
-
 template <class Range>
 TArrayRef<const typename Range::value_type> MakeArrayRef(const Range& range) {
     return TArrayRef<const typename Range::value_type>(range);
@@ -117,10 +115,4 @@ TArrayRef<typename Range::value_type> MakeArrayRef(Range& range) {
 template <class T>
 TArrayRef<T> MakeArrayRef(T* data, size_t size) {
     return TArrayRef<T>(data, size);
-}
-
-/* Compatibility layer. TODO: DROP! */
-namespace NArrayRef {
-    using ::TArrayRef;
-    using ::TConstArrayRef;
 }

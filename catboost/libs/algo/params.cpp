@@ -122,6 +122,10 @@ void CheckValues(const TFitParams& params) {
         CB_ENSURE(IsClassificationLoss(params.LossFunction) == IsClassificationLoss(customLoss));
         CB_ENSURE(customLoss != ELossFunction::Custom, "User-defined custom metrics are not yet supported");
     }
+    CB_ENSURE(!(IsQuerywiseError(params.LossFunction) && params.LeafEstimationMethod == ELeafEstimation::Newton),
+              "This leaf estimation method is not supported for querywise error");
+    CB_ENSURE(!(IsPairwiseError(params.LossFunction) && params.LeafEstimationMethod == ELeafEstimation::Newton),
+              "This leaf estimation method is not supported for pairwise error");
 }
 
 template <class TInputIterator>
@@ -139,17 +143,6 @@ yvector<std::pair<int, yvector<float>>> GetPriors(const yvector<NJson::TJsonValu
         Y_ASSERT(jsonArray.ysize() > 1);
         int index = jsonArray[0].GetIntegerSafe();
         result.emplace_back(index, ParsePriors(begin(jsonArray) + 1, end(jsonArray)));
-    }
-    return result;
-}
-
-yvector<std::pair<std::pair<int, int>, yvector<float>>> GetFeatureCtrPriors(const yvector<NJson::TJsonValue::TArray>& priors) {
-    yvector<std::pair<std::pair<int, int>, yvector<float>>> result;
-    for (const auto& jsonArray : priors) {
-        Y_ASSERT(jsonArray.ysize() > 2);
-        int feature = jsonArray[0].GetIntegerSafe();
-        int ctr = jsonArray[1].GetIntegerSafe();
-        result.emplace_back(std::make_pair(feature, ctr), ParsePriors(begin(jsonArray) + 2, end(jsonArray)));
     }
     return result;
 }
@@ -198,6 +191,14 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
         *resultingParams = tree;
     }
     yset<TString> validKeys;
+
+    // ============ GPU params ============
+    validKeys.insert("gpu_ram_part");
+    validKeys.insert("pinned_memory_size");
+    validKeys.insert("permutation_count");
+    validKeys.insert("device_config");
+    // ====================================
+
 #define GET_FIELD(json_name, target_name, type)           \
     validKeys.insert(#json_name);                         \
     if (tree.Has(#json_name)) {                           \
@@ -257,6 +258,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     GET_ENUM_FIELD(feature_border_type, FeatureBorderType, EBorderSelectionType)
     GET_ENUM_FIELD(prediction_type, PredictionType, EPredictionType)
     GET_ENUM_FIELD(nan_mode, NanMode, ENanMode)
+    GET_ENUM_FIELD(calcer_type, CalcerType, ECalcerType)
 #undef GET_ENUM_FIELD
 
 #define GET_VECTOR_FIELD(json_name, target_name, type)                  \
@@ -272,22 +274,18 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
                 tree[#json_name].Get##type##Safe());                    \
         }                                                               \
     }
-    yvector<NJson::TJsonValue::TArray> ctrPriors, featurePriors, featureCtrPriors;
+    yvector<NJson::TJsonValue::TArray> featurePriors;
     GET_VECTOR_FIELD(ignored_features, IgnoredFeatures, Integer)
     GET_VECTOR_FIELD(priors, CtrParams.DefaultPriors, Double)
     GET_VECTOR_FIELD(custom_loss, CustomLoss, String)
     GET_VECTOR_FIELD(class_weights, ClassWeights, Double)
     GET_VECTOR_FIELD(class_names, ClassNames, String)
-    GET_VECTOR_FIELD(ctr_priors, ctrPriors, Array)
     GET_VECTOR_FIELD(feature_priors, featurePriors, Array)
-    GET_VECTOR_FIELD(feature_ctr_priors, featureCtrPriors, Array)
 
 #undef GET_VECTOR_FIELD
 
     LossFunction = GetLossType(Objective);
-    CtrParams.PerCtrPriors = GetPriors(ctrPriors);
     CtrParams.PerFeaturePriors = GetPriors(featurePriors);
-    CtrParams.PerFeatureCtrPriors = GetFeatureCtrPriors(featureCtrPriors);
     ParseCtrDescription(tree, LossFunction, &validKeys);
 
     TString threadCountKey = "thread_count";

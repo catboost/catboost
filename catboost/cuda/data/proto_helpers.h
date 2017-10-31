@@ -24,14 +24,6 @@ namespace NCatboostCuda
         std::copy(column.GetValues().begin(), column.GetValues().end(), dst.begin());
     }
 
-    inline void ReadIntColumn(TIFStream& input, yvector<i32>& dst)
-    {
-        NCompressedPool::TIntegerColumn column;
-        ReadMessage(input, column);
-        dst.resize((unsigned long) column.GetValues().size());
-        std::copy(column.GetValues().begin(), column.GetValues().end(), dst.begin());
-    }
-
     inline void ReadFloatColumn(TIFStream& input, yvector<float>& dst)
     {
         NCompressedPool::TFloatColumn column;

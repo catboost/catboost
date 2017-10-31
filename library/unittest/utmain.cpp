@@ -55,11 +55,11 @@ public:
     inline TTraceWriterProcessor(const char* traceFilePath, EOpenMode mode)
         : PrevTime(TInstant::Now())
     {
-        TraceFile = new TFileOutput(TFile(traceFilePath, mode | WrOnly | Seq));
+        TraceFile = new TUnbufferedFileOutput(TFile(traceFilePath, mode | WrOnly | Seq));
     }
 
 private:
-    TAutoPtr<TFileOutput> TraceFile;
+    TAutoPtr<TUnbufferedFileOutput> TraceFile;
     TString TraceFilePath;
     TInstant PrevTime;
     yvector<TString> ErrorMessages;
@@ -692,7 +692,7 @@ int UTMAIN(int argc, char** argv) {
                     processor.SetTraceProcessor(new TTraceWriterProcessor(argv[i], OpenAlways | ForAppend));
                 } else if (strcmp(name, "--list-path") == 0) {
                     ++i;
-                    listFile = new TBufferedFileOutput(argv[i]);
+                    listFile = new TFixedBufferFileOutput(argv[i]);
                     listStream = listFile.Get();
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;

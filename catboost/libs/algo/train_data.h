@@ -10,6 +10,8 @@ public:
     yvector<yvector<double>> Baseline;
     yvector<float> Target;
     yvector<float> Weights;
+    yvector<ui32> QueryId;
+    yhash<ui32, ui32> QuerySize;
     yvector<TPair> Pairs;
 
     ssize_t GetSampleCount() const {

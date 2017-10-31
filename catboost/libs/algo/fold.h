@@ -22,8 +22,26 @@ static yvector<int> InvertPermutation(const yvector<int>& permutation) {
     return result;
 }
 
-static int SelectMinBatchSize(int sampleCount) {
-    return sampleCount > 500 ? Min<int>(100, sampleCount / 50) : 1;
+static int UpdateSizeForQueries(int size, const yvector<int>& queriesFinishIndex) {
+    if (!queriesFinishIndex.empty()) {
+        double meanQuerySize = queriesFinishIndex.back() / (queriesFinishIndex.ysize() + 1);
+        int queryIndex = Min(static_cast<int>(ceil(size / meanQuerySize)) - 1, queriesFinishIndex.ysize() - 1);
+        while (queriesFinishIndex[queryIndex] < size && queryIndex < queriesFinishIndex.ysize() - 1) {
+            ++queryIndex;
+        }
+        size = queriesFinishIndex[queryIndex];
+    }
+    return size;
+}
+
+static int SelectMinBatchSize(const int sampleCount, const yvector<int>& queriesFinishIndex) {
+    int size = sampleCount > 500 ? Min<int>(100, sampleCount / 50) : 1;
+    return UpdateSizeForQueries(size, queriesFinishIndex);
+}
+
+static double SelectTailSize(const int oldSize, const double multiplier, const yvector<int>& queriesFinishIndex) {
+    int size = ceil(oldSize * multiplier);
+    return UpdateSizeForQueries(size, queriesFinishIndex);
 }
 
 struct TFold {
@@ -45,6 +63,8 @@ struct TFold {
     };
 
     yvector<float> LearnWeights;
+    yvector<ui32> LearnQueryId;
+    yhash<ui32, ui32> LearnQuerySize;
     yvector<int> LearnPermutation; // index in original array
     yvector<TBodyTail> BodyTailArr;
     yvector<float> LearnTarget;
@@ -102,9 +122,10 @@ struct TFold {
         }
     }
 
-    void AssignPermuted(const yvector<float>& source, yvector<float>* dest) const {
+    template <typename T>
+    void AssignPermuted(const yvector<T>& source, yvector<T>* dest) const {
         int learnSampleCount = LearnPermutation.ysize();
-        yvector<float>& destination = *dest;
+        yvector<T>& destination = *dest;
         destination.resize(learnSampleCount);
         for (int z = 0; z < learnSampleCount; ++z) {
             int i = LearnPermutation[z];
@@ -196,6 +217,18 @@ static void InitFromBaseline(const int beginIdx, const int endIdx,
     }
 }
 
+static yvector<int> CalcQueriesFinishIndex(const yvector<ui32>& queriesId) {
+    yvector<int> queriesFinishIndex;
+    ui32 lastQueryId = queriesId[0];
+    for (int docId = 0; docId < queriesId.ysize(); ++docId) {
+        if (queriesId[docId] != lastQueryId) {
+            queriesFinishIndex.push_back(docId);
+            lastQueryId = queriesId[docId];
+        }
+    }
+    queriesFinishIndex.push_back(queriesId.ysize());
+    return queriesFinishIndex;
+}
 
 inline TFold BuildLearnFold(const TTrainData& data,
                             const yvector<TTargetClassifier>& targetClassifiers,
@@ -204,6 +237,7 @@ inline TFold BuildLearnFold(const TTrainData& data,
                             int approxDimension,
                             double multiplier,
                             bool storeExpApproxes,
+                            bool isQuerywiseError,
                             TRestorableFastRng64& rand) {
     TFold ff;
     ff.LearnPermutation.resize(data.LearnSampleCount);
@@ -234,15 +268,27 @@ inline TFold BuildLearnFold(const TTrainData& data,
     if (!data.Weights.empty()) {
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
+
+    if (!data.QueryId.empty()) {
+        ff.AssignPermuted(data.QueryId, &ff.LearnQueryId);
+        ff.LearnQuerySize = data.QuerySize;
+    }
+
+    yvector<int> queriesFinishIndex;
+    if (isQuerywiseError) {
+        CB_ENSURE(!ff.LearnQueryId.empty(), "If loss-function is Querywise then pool should have column with QueryId");
+        queriesFinishIndex = CalcQueriesFinishIndex(ff.LearnQueryId);
+    }
+
     ff.EffectiveDocCount = data.LearnSampleCount;
 
     yvector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
-    int leftPartLen = SelectMinBatchSize(data.LearnSampleCount);
-    while (leftPartLen < data.LearnSampleCount) {
+    int leftPartLen = SelectMinBatchSize(data.LearnSampleCount, queriesFinishIndex);
+    while (ff.BodyTailArr.empty() || leftPartLen < data.LearnSampleCount) {
         TFold::TBodyTail bt;
         bt.BodyFinish = leftPartLen;
-        bt.TailFinish = Min(ceil(leftPartLen * multiplier), ff.LearnPermutation.ysize() + 0.);
+        bt.TailFinish = Min(SelectTailSize(leftPartLen, multiplier, queriesFinishIndex), ff.LearnPermutation.ysize() + 0.);
         bt.Approx.resize(approxDimension, yvector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
         if (!data.Baseline.empty()) {
             InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
@@ -275,6 +321,12 @@ inline TFold BuildAveragingFold(const TTrainData& data,
     if (!data.Weights.empty()) {
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
+
+    if (!data.QueryId.empty()) {
+        ff.AssignPermuted(data.QueryId, &ff.LearnQueryId);
+        ff.LearnQuerySize = data.QuerySize;
+    }
+
     ff.EffectiveDocCount = data.GetSampleCount();
 
     yvector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);

@@ -10,6 +10,7 @@ SRCS(
 PEERDIR(
     library/getopt
     catboost/cuda/data
+    catboost/libs/column_description
 )
 
 ALLOCATOR(LF)

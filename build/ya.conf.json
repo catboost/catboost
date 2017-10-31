@@ -1939,7 +1939,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 166133829,
+                "sandbox_id": 166285130,
                 "match": "YMake"
             },
             "executable": {
@@ -2213,7 +2213,7 @@
         },
         "deploy": {
             "formula": {
-                "sandbox_id": 165016688,
+                "sandbox_id": 166687292,
                 "match": "DEPLOY"
             },
             "executable": {

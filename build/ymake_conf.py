@@ -1129,7 +1129,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-DTFileOutput=TUnbufferedFileOutput')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
         append('CXXFLAGS', '$CXX_WARNING_OPTS', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1394,9 +1394,16 @@ class LD(Linker):
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 
+        emit("GENERATE_MF",
+             '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
+             '$ARCADIA_BUILD_ROOT $REALPRJNAME ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME} $MODULE_SUFFIX -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
+             '${kv;hide:"p MF"} ${kv;hide:"pc light-green"}'
+             )
+
         # Program
 
         emit('REAL_LINK_EXE',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
              '$GCCFILTER',
              '$CXX_COMPILER $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
              ld_env_style)
@@ -1410,24 +1417,26 @@ class LD(Linker):
              ld_env_style)
 
         if self.dwarf_command is None:
-            emit('LINK_EXE', '$REAL_LINK_EXE')
-            emit('LINK_DYN_LIB', '$REAL_LINK_DYN_LIB')
+            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE')
+            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB')
+            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD')
         else:
             emit('DWARF_TOOL_COMMAND', self.dwarf_command, ld_env_style)
-            emit('LINK_EXE', '$REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
-            emit('LINK_DYN_LIB', '$REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
+            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
+            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
+            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD', '&&', '$DWARF_TOOL_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
 
         # Static Library
 
-        emit('LINK_LIB', archiver, '$TARGET $AUTO_INPUT ${kv;hide:"p AR"}',
+        emit('LINK_LIB', '$GENERATE_MF &&', archiver, '$TARGET $AUTO_INPUT ${kv;hide:"p AR"}',
              '$TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}')
 
         # "Fat Object" : pre-linked global objects and static library with all dependencies
 
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
-        emit('LINK_FAT_OBJECT',
+        emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
              '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
              '-Ya,input $AUTO_INPUT -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM -Ya,archiver', archiver,
@@ -1543,7 +1552,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/DTFileOutput=TUnbufferedFileOutput']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1789,24 +1798,30 @@ class MSVCLinker(MSVC, Linker):
         emit('LINK_WRAPPER_DYNLIB', '${YMAKE_PYTHON}', '${input:"build/scripts/link_dyn_lib.py"}', '--arch', 'WINDOWS', '--target', '$TARGET')
         emit('EXPORTS_VALUE')
 
+        emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
+             '$ARCADIA_BUILD_ROOT $REALPRJNAME',
+             '${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME} $REALPRJNAME $MODULE_SUFFIX -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
+             '${kv;hide:"p MF"} ${kv;hide:"pc light-green"}'
+             )
+
         print '''\
 when ($EXPORTS_FILE) {
     EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
 }
 
-LINK_LIB=${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
+LINK_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
 ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
 
-LINK_EXE=${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} \
+LINK_EXE=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} \
 ${LINK_EXTRA_OUTPUT} ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
 ${qe;rootrel:PEERS} ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
-LINK_DYN_LIB=${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+LINK_DYN_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
 /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
 ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
 $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
-LINK_FAT_OBJECT=$YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}
+LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}
 '''
 
 
@@ -1965,7 +1980,8 @@ class Cuda(object):
                 if target.is_x86_64:
                     nvcc_flags.append('--compiler-bindir=$(CUDA_XCODE)/usr/bin')
 
-        emit('NVCC', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC', '${quo:NVCC_UNQUOTED}')
 
         if preset('CUDA_NVCC_FLAGS') is None:
             emit('CUDA_NVCC_FLAGS')
@@ -1976,6 +1992,8 @@ class Cuda(object):
     def _have_cuda(self):
         if preset('CUDA_ROOT') is not None:
             return True
+        if is_negative('USE_ARCADIA_CUDA'):
+            return False
 
         host = self.build.host
         target = self.build.target

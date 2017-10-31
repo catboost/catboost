@@ -10,6 +10,23 @@
 #include <util/generic/maybe.h>
 
 #include <library/json/json_reader.h>
+#include <library/object_factory/object_factory.h>
+
+class IModelTrainer {
+public:
+    virtual void TrainModel(
+        const NJson::TJsonValue& params,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        TPool& learnPool,
+        bool allowClearPool,
+        const TPool& testPool,
+        const TString& outputModelPath,
+        TFullModel* model,
+        yvector<yvector<double>>* testApprox) const = 0;
+
+    virtual ~IModelTrainer() = default;
+};
 
 void TrainModel(
     const NJson::TJsonValue& params,
@@ -25,3 +42,5 @@ void TrainModel(
 void TrainOneIteration(
     const TTrainData& trainData,
     TLearnContext* ctx);
+
+using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ECalcerType>;

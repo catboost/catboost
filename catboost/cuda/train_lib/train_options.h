@@ -19,6 +19,7 @@ namespace NCatboostCuda
         TBoostingOptions BoostingOptions;
         TOutputFilesOptions OutputFilesOptions;
         TTargetOptions TargetOptions;
+        TSnapshotOptions SnapshotOptions;
     };
 }
 

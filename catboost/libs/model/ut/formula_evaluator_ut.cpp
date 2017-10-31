@@ -44,7 +44,7 @@ SIMPLE_UNIT_TEST_SUITE(TFormulaEvaluator) {
     SIMPLE_UNIT_TEST(TestFlatCalcFloat) {
         NCatBoost::TFormulaEvaluator modelCalcer(SimpleFloatModel());
         yvector<double> result(8);
-        yvector<NArrayRef::TConstArrayRef<float>> features = {
+        yvector<TConstArrayRef<float>> features = {
             {0.f, 0.f, 0.f},
             {3.f, 0.f, 0.f},
             {0.f, 1.f, 0.f},
@@ -65,7 +65,7 @@ SIMPLE_UNIT_TEST_SUITE(TFormulaEvaluator) {
 
     SIMPLE_UNIT_TEST(TestFlatCalcMultiVal) {
         NCatBoost::TFormulaEvaluator modelCalcer(MultiValueFloatModel());
-        yvector<NArrayRef::TConstArrayRef<float>> features = {
+        yvector<TConstArrayRef<float>> features = {
             {0.f, 0.f},
             {1.f, 0.f},
             {0.f, 1.f},

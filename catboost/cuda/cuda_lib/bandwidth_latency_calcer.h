@@ -6,7 +6,8 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCudaLib {
-    template <EPtrType From = EPtrType::CudaDevice, EPtrType To = EPtrType::CudaDevice>
+    template <EPtrType From = EPtrType::CudaDevice,
+              EPtrType To = EPtrType::CudaDevice>
     class TLatencyAndBandwidthStats {
     private:
         static constexpr ui64 BandwithIterations = 5;
@@ -54,9 +55,10 @@ namespace NCudaLib {
         }
 
         void BuildBandwidthTable() {
-            auto& manager = GetCudaManager();
 
+            auto& manager = GetCudaManager();
             auto deviceCount = manager.GetDeviceCount();
+
             BandwidthTable.SetSizes(deviceCount, deviceCount);
             BandwidthTable.FillZero();
 

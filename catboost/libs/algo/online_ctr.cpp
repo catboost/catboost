@@ -21,11 +21,11 @@ struct TCtrCalcer {
         memset(Storage.data(), 0, neededSize);
         return (T*)Storage.data();
     }
-    static inline NArrayRef::TArrayRef<TCtrMeanHistory> GetCtrMeanHistoryArr(size_t maxCount) {
-        return NArrayRef::TArrayRef<TCtrMeanHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrMeanHistory>(maxCount), maxCount);
+    static inline TArrayRef<TCtrMeanHistory> GetCtrMeanHistoryArr(size_t maxCount) {
+        return TArrayRef<TCtrMeanHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrMeanHistory>(maxCount), maxCount);
     }
-    static inline NArrayRef::TArrayRef<TCtrHistory> GetCtrHistoryArr(size_t maxCount) {
-        return NArrayRef::TArrayRef<TCtrHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrHistory>(maxCount), maxCount);
+    static inline TArrayRef<TCtrHistory> GetCtrHistoryArr(size_t maxCount) {
+        return TArrayRef<TCtrHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrHistory>(maxCount), maxCount);
     }
     static inline int* GetCtrArrTotal(size_t maxCount) {
         return FastTlsSingleton<TCtrCalcer>()->Alloc<int>(maxCount);
@@ -50,9 +50,9 @@ struct TBucketsView {
         Y_ASSERT(i < MaxElem);
         return *(Data + i);
     }
-    inline NArrayRef::TArrayRef<int> GetBorders(size_t i) {
+    inline TArrayRef<int> GetBorders(size_t i) {
         Y_ASSERT(i < MaxElem);
-        return NArrayRef::TArrayRef<int>(BucketData + BorderCount * i, BorderCount);
+        return TArrayRef<int>(BucketData + BorderCount * i, BorderCount);
     }
 };
 
@@ -333,8 +333,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
         &hashArr,
         rehashHashTlsVal.GetPtr());
 
+    const yvector<float>& priors = ctx->Priors.GetPriors(proj);
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
-        const yvector<float>& priors = ctx->Priors.GetPriors(proj, ctrIdx);
         int targetClassesCount = fold.TargetClassesCount[ctrIdx];
         ECtrType ctrType = ctx->Params.CtrParams.Ctrs[ctrIdx].CtrType;
         auto borderCount = GetCtrBorderCount(targetClassesCount, ctrType);
@@ -438,8 +438,8 @@ void CalcFinalCtrs(const TModelCtrBase& ctr,
         topSize,
         &hashArr,
         &result->Hash).first;
-    NArrayRef::TArrayRef<int> ctrIntArray;
-    NArrayRef::TArrayRef<TCtrMeanHistory> ctrMean;
+    TArrayRef<int> ctrIntArray;
+    TArrayRef<TCtrMeanHistory> ctrMean;
     if (ctrType == ECtrType::BinarizedTargetMeanValue) {
         ctrMean = result->AllocateBlobAndGetArrayRef<TCtrMeanHistory>(leafCount);
     } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
@@ -460,7 +460,7 @@ void CalcFinalCtrs(const TModelCtrBase& ctr,
         } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
             ++ctrIntArray[elemId];
         } else {
-            NArrayRef::TArrayRef<int> elem = MakeArrayRef(ctrIntArray.data() + targetClassesCount * elemId, targetClassesCount);
+            TArrayRef<int> elem = MakeArrayRef(ctrIntArray.data() + targetClassesCount * elemId, targetClassesCount);
             ++elem[permutedTargetClass[z]];
         }
     }

@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/split.h>
+#include <catboost/libs/column_description/cd_parser.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -33,10 +34,6 @@ public:
         BaselineCount = poolMetaInfo.BaselineCount;
 
         Pool->Docs.Resize(docCount, FactorCount, BaselineCount);
-
-        if (poolMetaInfo.HasQueryIds) {
-            MATRIXNET_WARNING_LOG << "We don't support query ids currently" << Endl;
-        }
 
         Pool->CatFeatures = poolMetaInfo.CatFeatureIds;
     }
@@ -81,9 +78,8 @@ public:
         Pool->Docs.Weight[Cursor + localIdx] = value;
     }
 
-    void AddQueryId(ui32 localIdx, const TStringBuf& queryId) override {
-        Y_UNUSED(localIdx);
-        Y_UNUSED(queryId);
+    void AddQueryId(ui32 localIdx, ui32 value) override {
+        Pool->Docs.QueryId[Cursor + localIdx] = value;
     }
 
     void AddBaseline(ui32 localIdx, ui32 offset, double value) override {
@@ -212,6 +208,16 @@ void FinalizeBuilder(const yvector<TColumn>& columnsDescription, const TString& 
      }
 }
 
+static void CheckTargetCount(const yvector<TColumn>& columns) {
+    int targetCount = 0;
+    for (const auto& column : columns) {
+        if (column.Type == EColumn::Target) {
+            targetCount++;
+        }
+    }
+    CB_ENSURE(targetCount <= 1, "Target count > 1 not supported");
+}
+
 TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, int threadCount, char fieldDelimiter,
                          bool hasHeader, const yvector<TString>& classNames, IPoolBuilder* poolBuilder, int blockSize)
     : PairsFile(pairsFile)
@@ -229,11 +235,12 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
     const int columnsCount = ReadColumnsCount(poolFile, FieldDelimiter);
 
     if (!cdFile.empty()) {
-        ColumnsDescription = ReadCD(cdFile, columnsCount);
+        ColumnsDescription = ReadCD(cdFile, TCdParserDefaults(EColumn::Num, columnsCount));
     } else {
         ColumnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
         ColumnsDescription[0].Type = EColumn::Target;
     }
+    CheckTargetCount(ColumnsDescription);
     const int weightColumns = (const int)CountIf(ColumnsDescription.begin(),
                                                  ColumnsDescription.end(),
                                                  [](const auto x) -> bool {
@@ -383,7 +390,7 @@ void TPoolReader::ProcessBlock() {
                     break;
                 }
                 case EColumn::QueryId: {
-                    PoolBuilder.AddQueryId(lineIdx, token);
+                    PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;
                 }
                 case EColumn::Baseline: {

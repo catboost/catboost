@@ -6,6 +6,10 @@ import unittest
 
 
 class TestStroka(unittest.TestCase):
+    def test_unicode(self):
+        cdef TString x = "привет"
+        self.assertEquals(x, "привет")
+
 
     def test_ctor1(self):
         cdef TString tmp = TString()

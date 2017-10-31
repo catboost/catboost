@@ -33,8 +33,10 @@ CUDA_NVCC_FLAGS(
     -gencode arch=compute_35,code=sm_35
     -gencode arch=compute_52,code=sm_52
     -gencode arch=compute_60,code=sm_60
+    -gencode arch=compute_60,code=sm_60
     -gencode arch=compute_61,code=compute_61
     --ptxas-options=-v
 )
+
 
 END()

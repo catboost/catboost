@@ -351,7 +351,7 @@ TEnumParser::TEnumParser(const TString& fileName) {
     IInputStream* in = nullptr;
     if (fileName != "-") {
         SourceFileName = fileName;
-        hIn.Reset(new TBufferedFileInput(fileName));
+        hIn.Reset(new TFileInput(fileName));
         in = hIn.Get();
     } else {
         in = &Cin;

@@ -46,7 +46,7 @@ SIMPLE_UNIT_TEST(TestRealLocation) {
 
     path = base + GetDirectorySeparatorS() + "file";
     {
-        TBufferedFileOutput file(path);
+        TFixedBufferFileOutput file(path);
     }
     UNIT_ASSERT(NFs::Exists(GetDirName(path)));
     UNIT_ASSERT(NFs::Exists(path));
@@ -91,7 +91,7 @@ SIMPLE_UNIT_TEST(TestResolvePathRelative) {
     // File
     TString path = base + GetDirectorySeparatorS() + "file";
     {
-        TBufferedFileOutput file(path);
+        TFixedBufferFileOutput file(path);
     }
     ResolvePath("file", ~base, tempBuf.Data(), false);
     UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
@@ -121,7 +121,7 @@ SIMPLE_UNIT_TEST(TestStripFileComponent) {
     MakeDirIfNotExist(~tmpDir);
     MakeDirIfNotExist(~tmpSubDir);
     {
-        TBufferedFileOutput file(tmpFile);
+        TFixedBufferFileOutput file(tmpFile);
     }
 
     UNIT_ASSERT_EQUAL(StripFileComponent(tmpDir), tmpDir + GetDirectorySeparatorS());

@@ -163,3 +163,9 @@ struct TGUID;
 
 template <class... Ts>
 class TVariant;
+
+template <class T>
+class TArrayRef;
+
+template <class T>
+using TConstArrayRef = TArrayRef<const T>;

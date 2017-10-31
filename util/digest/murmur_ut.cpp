@@ -52,7 +52,7 @@ private:
     }
 
     template <class E, class T>
-    inline void TestWrapper(const NArrayRef::TArrayRef<E>& array, T expected) {
+    inline void TestWrapper(const TArrayRef<E>& array, T expected) {
         auto val = TMurmurHash<T>()(array);
         UNIT_ASSERT_EQUAL(val, expected);
     }

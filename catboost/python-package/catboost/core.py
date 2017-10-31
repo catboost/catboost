@@ -4,6 +4,14 @@ import os
 from collections import Iterable, Sequence, Mapping, MutableMapping
 import warnings
 import numpy as np
+import ctypes
+import platform
+
+if platform.system() == 'Linux':
+    try:
+        ctypes.CDLL('librt.so')
+    except:
+        pass
 
 try:
     from pandas import DataFrame, Series
@@ -15,9 +23,12 @@ except ImportError:
         pass
 
 try:
-    from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+    from gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
 except ImportError:
-    from ._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+    try:
+        from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+    except ImportError:
+        from ._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
 
 from contextlib import contextmanager
 
@@ -975,6 +986,14 @@ class CatBoostClassifier(CatBoost):
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
         If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
+    calcer_type : string, [default=None]
+        The calcer type used to train the model.
+        Possible values:
+            - 'CPU'
+            - 'GPU'
+    device_config : string, [default=None]
+        GPU devices to use.
+        Format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
     """
     def __init__(
         self,
@@ -1023,6 +1042,8 @@ class CatBoostClassifier(CatBoost):
         feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        calcer_type=None,
+        device_config=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
@@ -1318,6 +1339,8 @@ class CatBoostRegressor(CatBoost):
         feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        calcer_type=None,
+        device_config=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):

@@ -20,18 +20,18 @@ public:
 
     virtual void CalcCtrs(
         const yvector<TModelCtr>& neededCtrs,
-        const NArrayRef::TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
-        const NArrayRef::TConstArrayRef<int>& hashedCatFeatures,
+        const TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
+        const TConstArrayRef<int>& hashedCatFeatures,
         const IFeatureIndexProvider& binFeatureIndexProvider,
         size_t docCount,
-        NArrayRef::TArrayRef<float> result) = 0;
+        TArrayRef<float> result) = 0;
 };
 
 // slow reference realization
 inline ui64 CalcHash(
     const TProjection& proj,
-    const NArrayRef::TConstArrayRef<ui8>& binarizedFeatures,
-    const NArrayRef::TConstArrayRef<int>& hashedCatFeatures,
+    const TConstArrayRef<ui8>& binarizedFeatures,
+    const TConstArrayRef<int>& hashedCatFeatures,
     const IFeatureIndexProvider& binFeatureIndexProvider) {
     ui64 result = 0;
     for (const int featureIdx : proj.CatFeatures) {
@@ -48,8 +48,8 @@ inline ui64 CalcHash(
 
 inline void CalcHashes(
     const TProjection& proj,
-    const NArrayRef::TConstArrayRef<ui8>& binarizedFeatures,
-    const NArrayRef::TConstArrayRef<int>& hashedCatFeatures,
+    const TConstArrayRef<ui8>& binarizedFeatures,
+    const TConstArrayRef<int>& hashedCatFeatures,
     const IFeatureIndexProvider& binFeatureIndexProvider,
     size_t docCount,
     yvector<ui64>* result) {

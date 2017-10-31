@@ -158,13 +158,22 @@ def build(arc_root, out_root, tail_args):
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
     ver = get_version()
-    cmd = py_trait.gen_cmd()
-    print(' '.join(cmd), file=sys.stderr)
-    subprocess.check_call(cmd)
 
     shutil.rmtree('catboost', ignore_errors=True)
     os.makedirs('catboost/catboost')
+
+    gpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=yes']
+    print(' '.join(gpu_cmd), file=sys.stderr)
+    subprocess.check_call(gpu_cmd)
+    os.makedirs('catboost/catboost/gpu')
+    open('catboost/catboost/gpu/__init__.py', 'w').close()
+    shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/gpu/_catboost' + py_trait.dll_ext())
+
+    cpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=no']
+    print(' '.join(cpu_cmd), file=sys.stderr)
+    subprocess.check_call(cpu_cmd)
     shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/_catboost' + py_trait.dll_ext())
+
     shutil.copy('__init__.py', 'catboost/catboost/__init__.py')
     shutil.copy('version.py', 'catboost/catboost/version.py')
     shutil.copy('core.py', 'catboost/catboost/core.py')

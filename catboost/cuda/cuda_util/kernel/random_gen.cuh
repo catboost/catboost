@@ -15,6 +15,12 @@ namespace NKernel {
         return *seed;
     }
 
+    __forceinline__ __device__ ui64 AdvanceSeed(ui64* seed, int k) {
+        for (int i = 0; i < k; ++i) {
+            AdvanceSeed(seed);
+        }
+    }
+
     __forceinline__ __device__ double NextUniform(ui64* seed) {
         ui64 x = AdvanceSeed(seed);
         ui32 v = x >> 32;

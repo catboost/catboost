@@ -20,12 +20,13 @@ namespace NCatboostCuda
         using TConstVec = typename TTarget::TConstVec;
 
         virtual ~IBoostingListener()
-        {
-        }
+        = default;
 
-        virtual void Init(const TTarget& target,
+        virtual void Init(const TAdditiveModel<TWeakModel>& newEnsemble,
+                          const TTarget& target,
                           const TConstVec& point)
         {
+            Y_UNUSED(newEnsemble);
             Y_UNUSED(target);
             Y_UNUSED(point);
         }
@@ -34,9 +35,6 @@ namespace NCatboostCuda
                                     const TTarget& target,
                                     const TConstVec& point) = 0;
 
-        virtual void SetProgress(const TAdditiveModel<TWeakModel>& newEnsemble,
-                                 const TTarget& target,
-                                 const TConstVec& point) = 0;
     };
 
     template<class TTarget, class TWeakModel>
@@ -47,9 +45,13 @@ namespace NCatboostCuda
         using TTargetStat = typename TMetricHelper<TTarget>::TTargetStat;
 
         explicit TMetricLogger(const TString& messagePrefix,
-                               TString outputPath = "")
+                               TString outputPath = "",
+                               TString noticeLogSuffix = "\t",
+                               TString bestPrefix = "")
                 : MessagePrefix(messagePrefix)
                   , OutputPath(outputPath)
+                  , BestPrefix(bestPrefix)
+                  , NoticeLogSuffix(std::move(noticeLogSuffix))
         {
             if (OutputPath)
             {
@@ -91,9 +93,12 @@ namespace NCatboostCuda
                 BestEnsembleSize = static_cast<ui32>(newEnsemble.Size());
             }
 
-            MATRIXNET_INFO_LOG
-            << MessagePrefix << metricHelper.ToTsv() << " best: " << metricHelper.Score(BestStat) << " ("
-            << BestEnsembleSize << ")" << Endl;
+            MATRIXNET_NOTICE_LOG << MessagePrefix << metricHelper.Score();
+            if (BestPrefix.Size()) {
+                MATRIXNET_NOTICE_LOG << BestPrefix <<  metricHelper.Score(BestStat) << "\t(" << BestEnsembleSize << ")";
+            }
+            MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
+
             if (Out)
             {
                 (*Out) << newEnsemble.Size() << "\t" << metricHelper.Score() << Endl;
@@ -104,18 +109,14 @@ namespace NCatboostCuda
             }
         }
 
-        void SetProgress(const TAdditiveModel<TWeakModel>& model,
-                         const TTarget& target,
-                         const TConstVec& point) override
-        {
-            UpdateEnsemble(model, target, point);
-        }
 
     private:
         ui32 BestEnsembleSize = 0;
         TTargetStat BestStat;
         TString MessagePrefix;
         TString OutputPath;
+        TString BestPrefix;
+        TString NoticeLogSuffix;
         THolder<TOFStream> Out;
         IOverfittingDetector* OdDetector = nullptr;
     };
@@ -125,7 +126,12 @@ namespace NCatboostCuda
     class TIterationLogger: public IBoostingListener<TTarget, TWeakModel>
     {
     public:
-        using TConstVec = typename TTarget::TConstVec;
+       using TConstVec = typename TTarget::TConstVec;
+
+        TIterationLogger(TString suffix = ":\t")
+                : Suffix(std::move(suffix)) {
+
+        }
 
         void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
@@ -134,19 +140,10 @@ namespace NCatboostCuda
             Y_UNUSED(newEnsemble);
             Y_UNUSED(target);
             Y_UNUSED(point);
-            MATRIXNET_INFO_LOG
-            << "Iteration #" << Iteration++ << " (ensemble size " << newEnsemble.Size() << ")" << Endl;
+            MATRIXNET_NOTICE_LOG << newEnsemble.Size() - 1 << Suffix;
         }
-
-        void SetProgress(const TAdditiveModel<TWeakModel>& model,
-                         const TTarget& target,
-                         const TConstVec& point) override
-        {
-            UpdateEnsemble(model, target, point);
-        }
-
     private:
-        ui32 Iteration = 0;
+        TString Suffix;
     };
 
     template<class TTarget,
@@ -157,19 +154,24 @@ namespace NCatboostCuda
         using TConstVec = typename TTarget::TConstVec;
 
         TTimeWriter(const ui32 totalIterations,
-                    const TString& outputFile)
+                    const TString& outputFile,
+                    TString noticeLogSuffix)
                 : TotalIterations(totalIterations)
                   , Output(outputFile)
                   , StartTime(Now())
+                  , NoticeLogSuffix(std::move(noticeLogSuffix))
         {
         }
 
-        void Init(const TTarget& target,
+        void Init(const TAdditiveModel<TWeakModel>& model,
+                  const TTarget& target,
                   const TConstVec& point) override
         {
             Y_UNUSED(target);
             Y_UNUSED(point);
             StartTime = Now();
+            PrevIteration = StartTime;
+            FirstIteration = model.Size();
         }
 
         void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
@@ -182,27 +184,19 @@ namespace NCatboostCuda
 
             auto passedTime = (Now() - StartTime).GetValue();
             auto currentIteration = (Now() - PrevIteration).GetValue();
-            MATRIXNET_INFO_LOG << "Iteration time\tcurrent: " << HumanReadable(TDuration(currentIteration));
-            MATRIXNET_INFO_LOG << "\ttotal: " << HumanReadable(TDuration(passedTime));
+
             auto remainingTime =
                     passedTime * (TotalIterations - passedIterations) / (passedIterations - FirstIteration);
-            if (newEnsemble.Size() != TotalIterations)
-            {
-                MATRIXNET_INFO_LOG << "\tremaining: " << HumanReadable(TDuration(remainingTime));
-            }
+
             Output << newEnsemble.Size() - 1 << "\t" << TDuration(remainingTime).MilliSeconds() << "\t"
                    << TDuration(passedTime).MilliSeconds() << Endl;
-            MATRIXNET_INFO_LOG << Endl;
-            PrevIteration = Now();
-        }
 
-        void SetProgress(const TAdditiveModel<TWeakModel>& model,
-                         const TTarget& target,
-                         const TConstVec& point) override
-        {
-            Y_UNUSED(target);
-            Y_UNUSED(point);
-            FirstIteration = model.Size();
+            MATRIXNET_NOTICE_LOG << "total: " << HumanReadable(TDuration(passedTime));
+            MATRIXNET_NOTICE_LOG << "\tremaining: " << HumanReadable(TDuration(remainingTime));
+            MATRIXNET_NOTICE_LOG << "\tcurrent: " << HumanReadable(TDuration(currentIteration));
+            MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
+
+            PrevIteration = Now();
         }
 
     private:
@@ -212,5 +206,6 @@ namespace NCatboostCuda
         ui32 FirstIteration = 0;
         TInstant StartTime;
         TInstant PrevIteration;
+        TString NoticeLogSuffix;
     };
 }

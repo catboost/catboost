@@ -24,12 +24,12 @@ SRCS(
     score_calcer.cpp
     target_classifier.cpp
     train.cpp
-    train_model.cpp
     tree_print.cpp
     metric.cpp
     cross_validation.cpp
     helpers.cpp
     cv_data_partition.cpp
+    GLOBAL train_model.cpp
 )
 
 PEERDIR(

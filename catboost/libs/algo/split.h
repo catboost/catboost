@@ -32,9 +32,6 @@ struct TCtr {
     size_t GetHash() const {
         return MultiHash(Projection.GetHash(), CtrIdx, TargetBorderIdx, PriorIdx);
     }
-    bool operator<(const TCtr& other) const {
-        return std::tie(Projection, CtrIdx, TargetBorderIdx, PriorIdx) < std::tie(other.Projection, other.CtrIdx, other.TargetBorderIdx, other.PriorIdx);
-    }
 };
 
 template<>

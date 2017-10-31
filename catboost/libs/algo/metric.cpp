@@ -17,7 +17,16 @@
 TErrorHolder TMetric::EvalPairwise(const yvector<yvector<double>>& /*approx*/,
                                    const yvector<TPair>& /*pairs*/,
                                    int /*begin*/, int /*end*/) const {
-    CB_ENSURE(false, "This eval is only for PairLogit and PairAccuracy");
+    CB_ENSURE(false, "This eval is only for Pairwise");
+}
+
+TErrorHolder TMetric::EvalQuerywise(const yvector<yvector<double>>& /*approx*/,
+                                    const yvector<float>& /*target*/,
+                                    const yvector<float>& /*weight*/,
+                                    const yvector<ui32>& /*queriesId*/,
+                                    const yhash<ui32, ui32>& /*queriesSize*/,
+                                    int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is only for Querywise");
 }
 
 EErrorType TMetric::GetErrorType() const {
@@ -35,7 +44,16 @@ TErrorHolder TPairwiseMetric::Eval(const yvector<yvector<double>>& /*approx*/,
                                    const yvector<float>& /*weight*/,
                                    int /*begin*/, int /*end*/,
                                    NPar::TLocalExecutor& /*executor*/) const {
-    CB_ENSURE(false, "This eval is not for PairLogit");
+    CB_ENSURE(false, "This eval is not for Pairwise");
+}
+
+TErrorHolder TPairwiseMetric::EvalQuerywise(const yvector<yvector<double>>& /*approx*/,
+                                            const yvector<float>& /*target*/,
+                                            const yvector<float>& /*weight*/,
+                                            const yvector<ui32>& /*queriesId*/,
+                                            const yhash<ui32, ui32>& /*queriesSize*/,
+                                            int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is not for Pairwise");
 }
 
 EErrorType TPairwiseMetric::GetErrorType() const {
@@ -43,6 +61,30 @@ EErrorType TPairwiseMetric::GetErrorType() const {
 }
 
 double TPairwiseMetric::GetFinalError(const TErrorHolder& error) const {
+    return error.Error / (error.Weight + 1e-38);
+}
+
+/* TQueryMetric */
+
+TErrorHolder TQuerywiseMetric::Eval(const yvector<yvector<double>>& /*approx*/,
+                                    const yvector<float>& /*target*/,
+                                    const yvector<float>& /*weight*/,
+                                    int /*begin*/, int /*end*/,
+                                    NPar::TLocalExecutor& /*executor*/) const {
+    CB_ENSURE(false, "This eval is not for Querywise");
+}
+
+TErrorHolder TQuerywiseMetric::EvalPairwise(const yvector<yvector<double>>& /*approx*/,
+                                   const yvector<TPair>& /*pairs*/,
+                                   int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is not for Querywise");
+}
+
+EErrorType TQuerywiseMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+double TQuerywiseMetric::GetFinalError(const TErrorHolder& error) const {
     return error.Error / (error.Weight + 1e-38);
 }
 
@@ -409,6 +451,61 @@ TString TPairLogitMetric::GetDescription() const {
 }
 
 bool TPairLogitMetric::IsMaxOptimal() const {
+    return false;
+}
+
+/* QueryRMSE */
+
+TErrorHolder TQueryRMSEMetric::EvalQuerywise(const yvector<yvector<double>>& approx,
+                                         const yvector<float>& target,
+                                         const yvector<float>& weight,
+                                         const yvector<ui32>& queriesId,
+                                         const yhash<ui32, ui32>& queriesSize,
+                                         int begin, int end) const {
+    CB_ENSURE(approx.size() == 1, "Metric QueryRMSE supports only single-dimensional data");
+
+    int offset = 0;
+    TErrorHolder error;
+    while (begin + offset < end) {
+        ui32 querySize = queriesSize.find(queriesId[begin + offset])->second;
+        double queryAvrg = CalcQueryAvrg(begin + offset, querySize, approx[0], target, weight);
+        double queryAvrgSqr = Sqr(queryAvrg);
+
+        for (ui32 docId = begin + offset; docId < begin + offset + querySize; ++docId) {
+            float w = weight.empty() ? 1 : weight[docId];
+            error.Error += (Sqr(target[docId] - approx[0][docId]) - queryAvrgSqr) * w;
+            error.Weight += w;
+        }
+        offset += querySize;
+    }
+
+    return error;
+}
+
+double TQueryRMSEMetric::CalcQueryAvrg(int start, int count,
+                     const yvector<double>& approxes,
+                     const yvector<float>& targets,
+                     const yvector<float>& weights) const {
+    double qsum = 0;
+    double qcount = 0;
+    for (int docId = start; docId < start + count; ++docId) {
+        double w = weights.empty() ? 1 : weights[docId];
+        qsum += (targets[docId] - approxes[docId]) * w;
+        qcount += w;
+    }
+
+    double qavrg = 0;
+    if (qcount > 0) {
+        qavrg = qsum / qcount;
+    }
+    return qavrg;
+}
+
+TString TQueryRMSEMetric::GetDescription() const {
+    return ToString(ELossFunction::QueryRMSE);
+}
+
+bool TQueryRMSEMetric::IsMaxOptimal() const {
     return false;
 }
 
@@ -875,6 +972,15 @@ TErrorHolder TCustomMetric::EvalPairwise(const yvector<yvector<double>>& /*appro
     CB_ENSURE(false, "This eval is only for PairLogit");
 }
 
+TErrorHolder TCustomMetric::EvalQuerywise(const yvector<yvector<double>>& /*approx*/,
+                                          const yvector<float>& /*target*/,
+                                          const yvector<float>& /*weight*/,
+                                          const yvector<ui32>& /*queriesId*/,
+                                          const yhash<ui32, ui32>& /*queriesSize*/,
+                                          int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "This eval is only for QueryRMSE");
+}
+
 TString TCustomMetric::GetDescription() const {
     return Descriptor.GetDescriptionFunc(Descriptor.CustomData);
 }
@@ -953,6 +1059,10 @@ yvector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString
 
         case ELossFunction::PairLogit:
             result.emplace_back(new TPairLogitMetric());
+            return result;
+
+        case ELossFunction::QueryRMSE:
+            result.emplace_back(new TQueryRMSEMetric());
             return result;
 
         case ELossFunction::R2:

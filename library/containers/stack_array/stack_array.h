@@ -23,10 +23,10 @@ namespace NStackArray {
      * as those might be called from a loop, and then stack overflow is in the cards.
      */
     template <class T>
-    class TStackArray: public NArrayRef::TArrayRef<T> {
+    class TStackArray: public TArrayRef<T> {
     public:
         inline TStackArray(void* data, size_t len)
-            : NArrayRef::TArrayRef<T>((T*)data, len)
+            : TArrayRef<T>((T*)data, len)
         {
             NRangeOps::InitializeRange(this->Begin(), this->End());
         }

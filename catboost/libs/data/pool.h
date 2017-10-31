@@ -32,6 +32,7 @@ struct TDocumentStorage {
     yvector<float> Target; // [docIdx]
     yvector<float> Weight; // [docIdx]
     yvector<TString> Id; // [docIdx]
+    yvector<ui32> QueryId; // [docIdx]
 
     inline int GetBaselineDimension() const {
         return Baseline.ysize();
@@ -51,6 +52,7 @@ struct TDocumentStorage {
         Target.swap(other.Target);
         Weight.swap(other.Weight);
         Id.swap(other.Id);
+        QueryId.swap(other.QueryId);
     }
 
     inline void SwapDoc(size_t doc1Idx, size_t doc2Idx) {
@@ -63,6 +65,7 @@ struct TDocumentStorage {
         DoSwap(Target[doc1Idx], Target[doc2Idx]);
         DoSwap(Weight[doc1Idx], Weight[doc2Idx]);
         DoSwap(Id[doc1Idx], Id[doc2Idx]);
+        DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
     }
 
     inline void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) {
@@ -77,6 +80,7 @@ struct TDocumentStorage {
         Target[destinationIdx] = sourceDocs.Target[sourceIdx];
         Weight[destinationIdx] = sourceDocs.Weight[sourceIdx];
         Id[destinationIdx] = sourceDocs.Id[sourceIdx];
+        QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
     }
 
     inline void Resize(int docCount, int featureCount, int approxDim) {
@@ -91,6 +95,7 @@ struct TDocumentStorage {
         Target.resize(docCount);
         Weight.resize(docCount, 1.0f);
         Id.resize(docCount);
+        QueryId.resize(docCount);
     }
 
     inline void Clear() {
@@ -108,6 +113,8 @@ struct TDocumentStorage {
         Weight.shrink_to_fit();
         Id.clear();
         Id.shrink_to_fit();
+        QueryId.clear();
+        QueryId.shrink_to_fit();
     }
 
     inline void Append(const TDocumentStorage& documents) {
@@ -126,6 +133,7 @@ struct TDocumentStorage {
         Target.insert(Target.end(), documents.Target.begin(), documents.Target.end());
         Weight.insert(Weight.end(), documents.Weight.begin(), documents.Weight.end());
         Id.insert(Id.end(), documents.Id.begin(), documents.Id.end());
+        QueryId.insert(QueryId.end(), documents.QueryId.begin(), documents.QueryId.end());
     }
 };
 

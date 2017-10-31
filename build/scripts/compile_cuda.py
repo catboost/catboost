@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import os
+import collections
 
 
 def is_clang(command):
@@ -10,7 +11,8 @@ def is_clang(command):
 
     return False
 
-if __name__ == '__main__':
+
+def main():
     spl = sys.argv.index('--cflags')
     command = sys.argv[1: spl]
     cflags = sys.argv[spl + 1:]
@@ -30,13 +32,32 @@ if __name__ == '__main__':
         # clang coverage
         '-fprofile-instr-generate',
         '-fcoverage-mapping',
+        '/Zc:inline',  # disable unreferenced functions (kernel registrators) remove
     ]
 
     for flag in skip_list:
         if flag in cflags:
             cflags.remove(flag)
 
-    command += ['--compiler-options', ','.join(cflags)]
-    proc = subprocess.Popen(command, shell=False, stderr=sys.stderr, stdout=sys.stdout)
-    proc.communicate()
-    sys.exit(proc.returncode)
+    include_args = []
+    compiler_args = []
+
+    cflags_queue = collections.deque(cflags)
+    while cflags_queue:
+        arg = cflags_queue.popleft()
+        if arg[:2].upper() in ('-I', '/I'):
+            value = arg[2:]
+            if not value:
+                value = cflags_queue.popleft()
+            include_args.append('-I{}'.format(value))
+        else:
+            compiler_args.append(arg)
+
+    command += include_args
+    command += ['--compiler-options', ','.join(compiler_args)]
+
+    sys.exit(subprocess.Popen(command).wait())
+
+
+if __name__ == '__main__':
+    main()

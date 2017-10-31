@@ -82,6 +82,8 @@ namespace NCatboostCuda
                 value += (double) WeakModels[i].Value(point);
             return value;
         }
+
+        Y_SAVELOAD_DEFINE(WeakModels);
     };
 }
 

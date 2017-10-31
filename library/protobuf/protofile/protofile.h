@@ -248,7 +248,7 @@ public:
             return;
         }
 
-        TBufferedFileInput fi(path);
+        TFileInput fi(path);
         if (forceOpen) {
             if (!::google::protobuf::TextFormat::ParseFromString(fi.ReadAll(), &Proto)) {
                 path.ForceDelete();
@@ -288,7 +288,7 @@ public:
             VERIFY_WITH_LOG(::google::protobuf::TextFormat::PrintToString(Proto, &out), "Error while serializing %s", ~Path.GetPath());
             TFsPath tmpPath = Path.Parent() / ("~" + Path.GetName());
             {
-                TFileOutput fo(tmpPath);
+                TUnbufferedFileOutput fo(tmpPath);
                 fo.Write(~out, +out);
             }
             tmpPath.ForceRenameTo(Path);

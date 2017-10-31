@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dynamic_boosting_progress.h"
 #include "boosting_listeners.h"
 #include "boosting_options.h"
 #include "learning_rate.h"
@@ -13,13 +14,14 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <catboost/cuda/targets/target_options.h>
 #include <util/stream/format.h>
+#include <catboost/libs/helpers/progress_helper.h>
 
 namespace NCatboostCuda
 {
     template<template<class TMapping, class> class TTargetTemplate,
-            class TWeakLearner,
-            NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
-    class TDontLookAheadBoosting
+             class TWeakLearner,
+             NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    class TDynamicBoosting
     {
     public:
         using TTarget = TTargetTemplate<NCudaLib::TMirrorMapping, TDataSet<CatFeaturesStoragePtrType>>;
@@ -39,10 +41,14 @@ namespace NCatboostCuda
         TWeakLearner& Weak;
         const TBoostingOptions& Config;
         const TTargetOptions& TargetOptions;
+        const TSnapshotOptions& SnapshotOptions;
 
         yvector<IListener*> LearnListeners;
         yvector<IListener*> TestListeners;
         IOverfittingDetector* Detector = nullptr;
+
+        const char* const GpuProgressLabel = "GPU";
+
 
         inline bool Stop(const ui32 iteration)
         {
@@ -61,7 +67,7 @@ namespace NCatboostCuda
         public:
             TPermutationTarget() = default;
 
-            TPermutationTarget(yvector<THolder<TTarget>>&& targets)
+            explicit TPermutationTarget(yvector<THolder<TTarget>>&& targets)
                     : Targets(std::move(targets))
             {
             }
@@ -78,9 +84,7 @@ namespace NCatboostCuda
         template<class TData>
         struct TFoldAndPermutationStorage
         {
-            TFoldAndPermutationStorage()
-            {
-            }
+            TFoldAndPermutationStorage() = default;
 
             TFoldAndPermutationStorage(yvector<yvector<TData>>&& foldData,
                                        TData&& estimationData)
@@ -112,6 +116,7 @@ namespace NCatboostCuda
         };
 
     private:
+
         ui32 GetPermutationBlockSize(ui32 sampleCount) const
         {
             ui32 suggestedBlockSize = Config.GetPermutationBlockSize();
@@ -211,8 +216,7 @@ namespace NCatboostCuda
 
         inline yvector<TFold> CreateFolds(const TTarget& target,
                                           const TDataSet<CatFeaturesStoragePtrType>& dataSet,
-                                          double growthRate) const
-        {
+                                          double growthRate) const {
             //TODO: support query-based folds
             Y_UNUSED(target);
             return CreateFolds(static_cast<ui32>(dataSet.GetDataProvider().GetSampleCount()), growthRate);
@@ -220,17 +224,17 @@ namespace NCatboostCuda
 
         using TCursor = TFoldAndPermutationStorage<TVec>;
 
+
         //don't look ahead boosting
-        THolder<TResultModel> Fit(const TDataSetsHolder<CatFeaturesStoragePtrType>& dataSet,
-                                  const TPermutationTarget& target,
-                                  const ui32 offset,
-                                  const yvector<yvector<TFold>>& permutationFolds,
-                                  TCursor& cursor,
-                                  const TTarget* testTarget,
-                                  TVec* testCursor)
+        void Fit(const TDataSetsHolder<CatFeaturesStoragePtrType>& dataSet,
+                 const TPermutationTarget& target,
+                 const yvector<yvector<TFold>>& permutationFolds,
+                 TCursor& cursor,
+                 const TTarget* testTarget,
+                 TVec* testCursor,
+                 TResultModel* result)
         {
-            auto result = MakeHolder<TResultModel>();
-            ui32 iteration = offset;
+            ui32 iteration = result->Size();
             auto& profiler = NCudaLib::GetProfiler();
 
             const ui32 permutationCount = dataSet.PermutationsCount();
@@ -241,11 +245,13 @@ namespace NCatboostCuda
             auto learningRate = Config.GetLearningRate();
 
             auto startTimeBoosting = Now();
+            auto lastSnapshotTime = Now();
 
             {
                 for (auto& listener : LearnListeners)
                 {
-                    listener->Init(target.GetTarget(estimationPermutation),
+                    listener->Init(*result,
+                                   target.GetTarget(estimationPermutation),
                                    cursor.Estimation);
                 }
             }
@@ -254,7 +260,8 @@ namespace NCatboostCuda
             {
                 for (auto& listener : TestListeners)
                 {
-                    listener->Init(*testTarget,
+                    listener->Init(*result,
+                                   *testTarget,
                                    *testCursor);
                 }
             }
@@ -272,10 +279,9 @@ namespace NCatboostCuda
                         auto weakModelStructure = [&]() -> TWeakModelStructure
                         {
                             auto guard = profiler.Profile("Search for weak model structure");
-                            const ui32 learnPermutationId =
-                                    learnPermutationCount > 1 ? static_cast<const ui32>(Random.NextUniformL() %
-                                                                                        (learnPermutationCount - 1))
-                                                              : 0;
+                            const ui32 learnPermutationId = learnPermutationCount > 1
+                                                            ? static_cast<const ui32>(Random.NextUniformL() % (learnPermutationCount - 1))
+                                                            : 0;
 
                             const auto& taskTarget = target.GetTarget(learnPermutationId);
                             const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
@@ -298,8 +304,7 @@ namespace NCatboostCuda
                                                                            cursor.Get(learnPermutationId,
                                                                                       0).ConstCopyView());
                                 optimizer.SetTarget(std::move(shiftedTarget));
-                            } else
-                            {
+                            } else {
                                 for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId)
                                 {
                                     const auto& fold = taskFolds[foldId];
@@ -461,92 +466,95 @@ namespace NCatboostCuda
                         result->AddWeakModel(models.Estimation);
                     }
 
+                    if (iteration % Config.GetPrintPeriod() == 0)
                     {
-                        auto learnListenerTimeGuard = profiler.Profile("Boosting learn listeners time: Learn");
-
-                        for (auto& listener : LearnListeners)
                         {
-                            listener->UpdateEnsemble(*result,
-                                                     target.GetTarget(estimationPermutation),
-                                                     cursor.Estimation);
+                            auto learnListenerTimeGuard = profiler.Profile("Boosting listeners time: Learn");
+
+                            for (auto& listener : LearnListeners)
+                            {
+                                listener->UpdateEnsemble(*result,
+                                                         target.GetTarget(estimationPermutation),
+                                                         cursor.Estimation);
+                            }
                         }
-                    }
 
-                    if (dataSet.HasTestDataSet())
-                    {
-                        auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
-
-                        for (auto& listener : TestListeners)
+                        if (dataSet.HasTestDataSet())
                         {
-                            listener->UpdateEnsemble(*result,
-                                                     *testTarget,
-                                                     *testCursor);
+                            auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
+
+                            for (auto& listener : TestListeners)
+                            {
+                                listener->UpdateEnsemble(*result,
+                                                         *testTarget,
+                                                         *testCursor);
+                            }
                         }
                     }
 
                     iteration++;
+                    if (SnapshotOptions.IsSnapshotEnabled() && ((Now() - lastSnapshotTime).SecondsFloat() > SnapshotOptions.TimeBetweenWritesSec())) {
+                        auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
+                        TProgressHelper(GpuProgressLabel).Write(SnapshotOptions.GetSnapshotPath(), [&](IOutputStream* out) {
+                            ::Save(out, progress);
+                        });
+                        lastSnapshotTime = Now();
+                    }
                 }
             }
             MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
-
-            return result;
         }
 
     public:
-        TDontLookAheadBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
-                               const TBoostingOptions& config,
-                               const TTargetOptions& targetOptions,
-                               TRandom& random,
-                               TWeakLearner& weak)
+        TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
+                         const TBoostingOptions& config,
+                         const TTargetOptions& targetOptions,
+                         const TSnapshotOptions& snapshotOptions,
+                         TRandom& random,
+                         TWeakLearner& weak)
                 : FeaturesManager(binarizedFeaturesManager)
                   , Random(random)
                   , Weak(weak)
                   , Config(config)
                   , TargetOptions(targetOptions)
-        {
+                  , SnapshotOptions(snapshotOptions) {
+
         }
 
-        virtual ~TDontLookAheadBoosting() = default;
+        virtual ~TDynamicBoosting() = default;
 
-        TDontLookAheadBoosting& SetDataProvider(const TDataProvider& learnData,
-                                                const TDataProvider* testData = nullptr)
+        TDynamicBoosting& SetDataProvider(const TDataProvider& learnData,
+                                          const TDataProvider* testData = nullptr)
         {
             DataProvider = &learnData;
             TestDataProvider = testData;
             return *this;
         }
 
-        TDontLookAheadBoosting& RegisterLearnListener(IListener& listener)
+        TDynamicBoosting& RegisterLearnListener(IListener& listener)
         {
             LearnListeners.push_back(&listener);
             return *this;
         }
 
-        TDontLookAheadBoosting& RegisterTestListener(IListener& listener)
+        TDynamicBoosting& RegisterTestListener(IListener& listener)
         {
             Y_ENSURE(TestDataProvider, "Error: need test set for test listener");
             TestListeners.push_back(&listener);
             return *this;
         }
 
-        TDontLookAheadBoosting& AddOverfitDetector(IOverfittingDetector& detector)
+        TDynamicBoosting& AddOverfitDetector(IOverfittingDetector& detector)
         {
             Detector = &detector;
-            return *this;
-        }
-
-        TDontLookAheadBoosting& LoadProgress(TIStream& input)
-        {
-            Y_UNUSED(input);
-            ythrow TCatboostException() << "unsupported yet";
             return *this;
         }
 
         struct TBoostingState
         {
             TDataSetsHolder<CatFeaturesStoragePtrType> DataSets;
-            TPermutationTarget Targets;
 
+            TPermutationTarget Targets;
             TCursor Cursor;
 
             TVec TestCursor;
@@ -558,8 +566,6 @@ namespace NCatboostCuda
             {
                 return DataSets.PermutationsCount() - 1;
             }
-
-            ui32 CurrentIteration = 0;
         };
 
         THolder<TBoostingState> CreateState() const
@@ -634,13 +640,29 @@ namespace NCatboostCuda
         THolder<TResultModel> Run()
         {
             auto state = CreateState();
-            return Fit(state->DataSets,
-                       state->Targets,
-                       state->CurrentIteration,
-                       state->PermutationFolds,
-                       state->Cursor,
-                       state->TestTarget.Get(),
-                       TestDataProvider ? &state->TestCursor : nullptr);
+            THolder<TResultModel> resultModel = MakeHolder<TResultModel>();
+
+            if (SnapshotOptions.IsSnapshotEnabled() && NFs::Exists(SnapshotOptions.GetSnapshotPath())) {
+                TDynamicBoostingProgress<TResultModel> progress;
+                TProgressHelper(GpuProgressLabel).CheckedLoad(SnapshotOptions.GetSnapshotPath(), [&](TIFStream* in) {
+                    ::Load(in, progress);
+                });
+                WriteProgressToGpu(progress,
+                                   FeaturesManager,
+                                   *resultModel,
+                                   state->Cursor,
+                                   TestDataProvider ? &state->TestCursor : nullptr);
+            }
+
+            Fit(state->DataSets,
+                state->Targets,
+                state->PermutationFolds,
+                state->Cursor,
+                state->TestTarget.Get(),
+                TestDataProvider ? &state->TestCursor : nullptr,
+                resultModel.Get()
+            );
+            return resultModel;
         }
 
         double CalcScoreStDevMult(const double sampleCount, double modelSize)

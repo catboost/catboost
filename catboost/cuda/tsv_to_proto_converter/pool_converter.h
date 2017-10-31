@@ -8,6 +8,7 @@
 #include <catboost/libs/data/load_helpers.h>
 #include <catboost/cuda/data/pool_proto/pool.pb.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/column_description/cd_parser.h>
 
 #include <library/protobuf/protofile/protofile.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -361,8 +362,8 @@ namespace NCatboostCuda
         TCatBoostProtoPoolConverter(const TString& pool,
                                     const TString& poolCd,
                                     TString tempDir = "tmp")
-                : ColumnsDescription(ReadCD(poolCd, ReadColumnsCount(pool)))
-                  , SplittedPool(tempDir, pool, ColumnsDescription)
+                : ColumnsDescription(ReadCD(poolCd, TCdParserDefaults(EColumn::Num, ReadColumnsCount(pool))))
+                , SplittedPool(tempDir, pool, ColumnsDescription)
         {
         }
 

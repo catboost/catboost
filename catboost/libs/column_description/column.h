@@ -11,11 +11,13 @@ enum class EColumn {
     Baseline,
     Weight,
     DocId,
-    QueryId
+    QueryId,
+    Timestamp,
+    Sparse
 };
 
 inline bool IsFactorColumn(EColumn column) {
-    return column == EColumn::Num || column == EColumn::Categ;
+    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse;
 }
 
 struct TColumn {

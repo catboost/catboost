@@ -147,9 +147,9 @@ namespace NCatboostCuda
             DataProvider.Weights[GetLineIdx(localIdx)] = value;
         }
 
-        void AddQueryId(ui32 localIdx, const TStringBuf& queryId) override
+        void AddQueryId(ui32 localIdx, ui32 queryId) override
         {
-            DataProvider.QueryIds[GetLineIdx(localIdx)] = StringToIntHash(queryId);
+            DataProvider.QueryIds[GetLineIdx(localIdx)] = queryId;
         }
 
         void AddBaseline(ui32 localIdx, ui32 baselineIdx, double value) override
@@ -285,7 +285,7 @@ namespace NCatboostCuda
                     }
                     if (borders.ysize() == 0)
                     {
-                        MATRIXNET_WARNING_LOG << "Float Feature #" << featureId << " is empty" << Endl;
+                        MATRIXNET_INFO_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                         return;
                     }
 
@@ -313,7 +313,7 @@ namespace NCatboostCuda
                 {
                     if (featureColumns[featureId] == nullptr && (!IsTest))
                     {
-                        MATRIXNET_WARNING_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
+                        MATRIXNET_INFO_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                     }
                 } else
                 {

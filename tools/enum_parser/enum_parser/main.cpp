@@ -463,15 +463,15 @@ int main(int argc, char** argv) {
 
         if (outputFileName) {
             NFs::Remove(outputFileName);
-            hOut.Reset(new TAdaptiveFileOutput(outputFileName));
+            hOut.Reset(new TFileOutput(outputFileName));
             out = hOut.Get();
 
             if (outputHeaderFileName) {
-                headerOut.Reset(new TAdaptiveFileOutput(outputHeaderFileName));
+                headerOut.Reset(new TFileOutput(outputHeaderFileName));
             }
 
             if (outputJsonFileName) {
-                jsonOut.Reset(new TAdaptiveFileOutput(outputJsonFileName));
+                jsonOut.Reset(new TFileOutput(outputJsonFileName));
             }
         }
 

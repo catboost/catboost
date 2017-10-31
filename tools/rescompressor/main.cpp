@@ -41,7 +41,7 @@ private:
 
     void WriteIncBin(TStringBuf constname, TStringBuf filename, const TString& data) {
         AsmOut << AsmPrefix << constname << ":\nincbin \"" << Basename(filename) << "\"\n";
-        TBufferedFileOutput out(~filename);
+        TFixedBufferFileOutput out(~filename);
         out << data;
     }
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     }
 
     argv++;
-    TBufferedFileOutput asmout(*argv);
+    TFixedBufferFileOutput asmout(*argv);
     argv++;
     TString prefix;
     if (TStringBuf(*argv) == "--prefix") {

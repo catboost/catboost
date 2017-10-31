@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(ProtoFileTest) {
 
     void Write() {
         TProtoTest message;
-        TBufferedFileOutput output(TempFileName);
+        TFixedBufferFileOutput output(TempFileName);
         NFastTier::TBinaryProtoWriter<TProtoTest> writer;
         writer.Open(&output);
         TString randomCrap = "Lorem ipsum dot sir amet, и съешь ещё этих мягких французских булок! ";
@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(ProtoFileTest) {
 
     void Read() {
         TProtoTest message;
-        TBufferedFileInput input(TempFileName);
+        TFileInput input(TempFileName);
         NFastTier::TBinaryProtoReader<TProtoTest> reader;
         reader.Open(&input);
         TString randomCrap = "Lorem ipsum dot sir amet, и съешь ещё этих мягких французских булок! ";

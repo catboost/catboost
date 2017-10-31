@@ -15,7 +15,15 @@ namespace NCatboostCuda
 
         ui32 GetLeavesEstimationIters() const
         {
-            return LeavesEstimationIters;
+            if (!IsDefaultLeavesEstimationIters) {
+                return LeavesEstimationIters;
+            }
+            if (UseNewton) {
+                return 10;
+            } else
+            {
+                return 100;
+            }
         }
 
         double GetL2Reg() const
@@ -92,8 +100,9 @@ namespace NCatboostCuda
     private:
         ui32 MaxDepth = 6;
         ui32 LeavesEstimationIters = 10;
+        bool IsDefaultLeavesEstimationIters = true;
         ui32 MaxCtrComplexityForBordersCaching = 1;
-        double L2Reg = 0.00001;
+        double L2Reg = 3;
         bool DumpFreeMemoryFlag = false;
         bool UseNewton = true;
         EScoreFunction ScoreFunction = EScoreFunction::Correlation;

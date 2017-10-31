@@ -1,6 +1,6 @@
 #include "data_utils.h"
 
-void NCatboostCuda::GroupQueries(const yvector<int>& qid, yvector<yvector<ui32>>* qdata) {
+void NCatboostCuda::GroupQueries(const yvector<ui32>& qid, yvector<yvector<ui32>>* qdata) {
     for (ui32 i = 0; i < qid.size(); ++i) {
         auto current = qid[i];
         qdata->resize(qdata->size() + 1);

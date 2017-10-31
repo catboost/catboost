@@ -10,7 +10,7 @@
 
 namespace NCatboostCuda
 {
-    void GroupQueries(const yvector<int>& qid, yvector<yvector<ui32>>* qdata);
+    void GroupQueries(const yvector<ui32>& qid, yvector<yvector<ui32>>* qdata);
 
     template<class T>
     yvector<T> SampleVector(const yvector<T>& vec,

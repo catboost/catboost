@@ -3,6 +3,7 @@
 #include "approx_calcer_helpers.h"
 #include "approx_calcer_multi.h"
 #include "approx_calcer_pairwise.h"
+#include "approx_calcer_querywise.h"
 #include "params.h"
 #include "fold.h"
 #include "bin_tracker.h"
@@ -169,6 +170,8 @@ template <ELeafEstimation LeafEstimationType, typename TError>
 void CalcApproxDeltaIterationSimple(const yvector<TIndexType>& indices,
                                     const yvector<float>& target,
                                     const yvector<float>& weight,
+                                    const yvector<ui32>& queriesId,
+                                    const yhash<ui32, ui32>& queriesSize,
                                     const TFold::TBodyTail& bt,
                                     const TError& error,
                                     int iteration,
@@ -182,11 +185,15 @@ void CalcApproxDeltaIterationSimple(const yvector<TIndexType>& indices,
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcApproxDersRange<LeafEstimationType>(indices.data(), target.data(), weight.data(), bt.Approx[0].data(), resArr->data(),
                                                 error, bt.BodyFinish, iteration, ctx, buckets, scratchDers->data());
-    } else {
-        Y_ASSERT(error.GetErrorType() == EErrorType::PairwiseError);
+    } else if (error.GetErrorType() == EErrorType::PairwiseError) {
         Y_ASSERT(LeafEstimationType == ELeafEstimation::Gradient);
         CalcApproxDersRangePairs(indices, bt.Approx[0], *resArr, bt.Competitors, error,
                                  bt.BodyFinish, bt.TailFinish, iteration, buckets, scratchDers);
+    } else {
+        Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError);
+        Y_ASSERT(LeafEstimationType == ELeafEstimation::Gradient);
+        CalcApproxDersQueriesRange(indices, bt.Approx[0], *resArr, target, weight, queriesId, queriesSize, error,
+                                   bt.BodyFinish, bt.TailFinish, iteration, buckets, scratchDers);
     }
 
     // compute mixed model
@@ -203,8 +210,11 @@ void CalcApproxDeltaIterationSimple(const yvector<TIndexType>& indices,
 
         if (error.GetErrorType() == EErrorType::PerObjectError) {
             CalcShiftedApproxDers(bt.Approx[0], *resArr, target, weight, error, bt.BodyFinish, bt.TailFinish, scratchDers, ctx);
-        } else {
+        } else if (error.GetErrorType() == EErrorType::PairwiseError) {
             CalcShiftedApproxDersPairs(bt.Approx[0], *resArr, bt.Competitors, error, bt.BodyFinish, bt.TailFinish, scratchDers);
+        } else {
+            Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError);
+            CalcShiftedApproxDersQueries(bt.Approx[0], *resArr, target, weight, queriesId, queriesSize, error, bt.BodyFinish, bt.TailFinish, scratchDers);
         }
 
         TSum* bucketsData = buckets->data();
@@ -259,11 +269,11 @@ void CalcApproxDeltaSimple(const TFold& ff,
 
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeafEstimation::Newton) {
-                CalcApproxDeltaIterationSimple<ELeafEstimation::Newton>(indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer, ctx,
+                CalcApproxDeltaIterationSimple<ELeafEstimation::Newton>(indices, ff.LearnTarget, ff.LearnWeights, ff.LearnQueryId, ff.LearnQuerySize, bt, error, it, l2Regularizer, ctx,
                                                                         &buckets, &resArr[0], &scratchDers);
             } else {
                 CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
-                CalcApproxDeltaIterationSimple<ELeafEstimation::Gradient>(indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer, ctx,
+                CalcApproxDeltaIterationSimple<ELeafEstimation::Gradient>(indices, ff.LearnTarget, ff.LearnWeights, ff.LearnQueryId, ff.LearnQuerySize, bt, error, it, l2Regularizer, ctx,
                                                                           &buckets, &resArr[0], &scratchDers);
             }
         }
@@ -292,6 +302,8 @@ template <ELeafEstimation LeafEstimationType, typename TError>
 void CalcLeafValuesIterationSimple(const yvector<TIndexType>& indices,
                                    const yvector<float>& target,
                                    const yvector<float>& weight,
+                                   const yvector<ui32>& queriesId,
+                                   const yhash<ui32, ui32>& queriesSize,
                                    const yvector<yvector<TCompetitor>>& competitors,
                                    const TError& error,
                                    int iteration,
@@ -306,11 +318,15 @@ void CalcLeafValuesIterationSimple(const yvector<TIndexType>& indices,
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcApproxDersRange<LeafEstimationType>(indices.data(), target.data(), weight.data(), approx->data(), /*resArr*/ nullptr,
                                                 error, learnSampleCount, iteration, ctx, buckets, scratchDers->data());
-    } else {
-        Y_ASSERT(error.GetErrorType() == EErrorType::PairwiseError);
+    } else if (error.GetErrorType() == EErrorType::PairwiseError) {
         Y_ASSERT(LeafEstimationType == ELeafEstimation::Gradient);
         CalcApproxDersRangePairs(indices, *approx, /*approxDelta*/ yvector<double>(), competitors, error,
                                  learnSampleCount, learnSampleCount, iteration, buckets, scratchDers);
+    } else {
+        Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError);
+        Y_ASSERT(LeafEstimationType == ELeafEstimation::Gradient);
+        CalcApproxDersQueriesRange(indices, *approx, /*approxDelta*/ yvector<double>(), target, weight, queriesId, queriesSize, error,
+                                   learnSampleCount, learnSampleCount, iteration, buckets, scratchDers);
     }
 
     yvector<double> curLeafValues;
@@ -351,12 +367,12 @@ void CalcLeafValuesSimple(const TTrainData& data,
 
     for (int it = 0; it < gradientIterations; ++it) {
         if (estimationMethod == ELeafEstimation::Newton) {
-            CalcLeafValuesIterationSimple<ELeafEstimation::Newton>(indices, ff.LearnTarget, ff.LearnWeights, bt.Competitors,
+            CalcLeafValuesIterationSimple<ELeafEstimation::Newton>(indices, ff.LearnTarget, ff.LearnWeights, ff.LearnQueryId, ff.LearnQuerySize, bt.Competitors,
                                                                    error, it, l2Regularizer, ctx,
                                                                    &buckets, &approx[0], &scratchDers);
         } else {
             CB_ENSURE(estimationMethod == ELeafEstimation::Gradient);
-            CalcLeafValuesIterationSimple<ELeafEstimation::Gradient>(indices, ff.LearnTarget, ff.LearnWeights, bt.Competitors,
+            CalcLeafValuesIterationSimple<ELeafEstimation::Gradient>(indices, ff.LearnTarget, ff.LearnWeights, ff.LearnQueryId, ff.LearnQuerySize, bt.Competitors,
                                                                      error, it, l2Regularizer, ctx,
                                                                      &buckets, &approx[0], &scratchDers);
         }

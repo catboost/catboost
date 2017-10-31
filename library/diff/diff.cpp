@@ -3,7 +3,6 @@
 #include <util/generic/hash.h>
 #include <util/digest/fnv.h>
 
-using NArrayRef::TConstArrayRef;
 
 template <typename T>
 struct TCollectionImpl {

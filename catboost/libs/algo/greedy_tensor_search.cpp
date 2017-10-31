@@ -74,7 +74,7 @@ struct TCandidateInfo {
         } else {
             Y_ASSERT(SplitCandidate.Type == ESplitType::OnlineCtr);
             split.OnlineCtr.Ctr.Projection = SplitCandidate.Ctr.Projection;
-            const yvector<float>& priors = ctx.Priors.GetPriors(split.OnlineCtr.Ctr.Projection, SplitCandidate.Ctr.CtrIdx);
+            const yvector<float>& priors = ctx.Priors.GetPriors(split.OnlineCtr.Ctr.Projection);
             yvector<float> shift;
             yvector<float> norm;
             CalcNormalization(priors, &shift, &norm);
@@ -143,8 +143,8 @@ static void AddCtrsToCandList(const TFold& fold,
                               const TProjection& proj,
                               TCandidateList* candList) {
     TCandidatesInfoList ctrSplits;
+    int priorsCount = ctx.Priors.GetPriors(proj).ysize();
     for (int ctrIdx = 0; ctrIdx < ctx.Params.CtrParams.Ctrs.ysize(); ++ctrIdx) {
-        int priorsCount = ctx.Priors.GetPriors(proj, ctrIdx).ysize();
         ECtrType ctrType = ctx.Params.CtrParams.Ctrs[ctrIdx].CtrType;
         int borderCount = GetCtrBorderCount(fold.TargetClassesCount[ctrIdx], ctrType);
         for (int border = 0; border < borderCount; ++border) {

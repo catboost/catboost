@@ -227,7 +227,7 @@
     ],
     "test.test_custom_priors": [
         {
-            "checksum": "59eadfe3c49b2684ff25a86eb6660fcf",
+            "checksum": "56a3d9ed17fdb798b04ac99bdbdba4a6",
             "uri": "file://test.test_custom_priors/test.eval"
         }
     ],
@@ -549,6 +549,18 @@
         {
             "checksum": "6a73abf1d3da231703bdeb98621fcbdd",
             "uri": "file://test.test_quantile_targets_Quantile_/test.eval"
+        }
+    ],
+    "test.test_queryrmse": [
+        {
+            "checksum": "8c59c42bcd9c69c8ef5adaaed59d67c8",
+            "uri": "file://test.test_queryrmse/test.eval"
+        }
+    ],
+    "test.test_queryrmse_approx_on_full_history": [
+        {
+            "checksum": "44378a4fcd397c8b7b84dfe7469e6c63",
+            "uri": "file://test.test_queryrmse_approx_on_full_history/test.eval"
         }
     ],
     "test.test_random_strength": [

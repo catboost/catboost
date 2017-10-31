@@ -284,7 +284,7 @@ yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
                 }
             } else if (ctrType == ECtrType::FeatureFreq || ctrType == ECtrType::Counter) {
                 int denominator = learnCtr.CounterDenominator;
-                NArrayRef::TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
+                TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
                 for (int doc = 0; doc < samplesCount; ++doc) {
                     const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
                     int currentBucket = 0;

@@ -69,9 +69,10 @@ namespace NPrivate {
     template <class T>
     struct TToString<T, false> {
         static inline TString Cvt(const T& t) {
-            TStringStream s;
-            s << t;
-            return s.Str();
+            TString s;
+            TStringOutput o(s);
+            o << t;
+            return s;
         }
     };
 }

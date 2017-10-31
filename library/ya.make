@@ -42,6 +42,8 @@ RECURSE(
     logger/global
     logger/global/ut
     malloc
+    object_factory
+    object_factory/ut
     protobuf
     python
     resource

@@ -9,6 +9,49 @@ from catboost_pytest_lib import data_file, local_canonical_file
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
 
+def test_queryrmse():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '-t', data_file('querywise_pool', 'test3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_queryrmse_approx_on_full_history():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '-t', data_file('querywise_pool', 'test3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '--approx-on-full-history',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_pairlogit():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -584,9 +627,7 @@ def test_custom_priors():
         '-r', '0',
         '-m', output_model_path,
         '--priors', '-2:0:8:1:-1:3',
-        '--ctr-priors', '0:0.111,1:0.222',
         '--feature-priors', '4:0.444,6:0.666,8:-0.888:0.888',
-        '--feature-ctr-priors', '4:0:0.4040,8:1:0.8181',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)

@@ -20,7 +20,7 @@ public:
 
 
     template<typename T>
-    NArrayRef::TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
+    TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
         return MakeArrayRef(
             reinterpret_cast<const T*>(CTRBlob.data()),
             CTRBlob.size() / sizeof(T)
@@ -28,7 +28,7 @@ public:
     }
 
     template<typename T>
-    NArrayRef::TArrayRef<T> AllocateBlobAndGetArrayRef(size_t elementCount) {
+    TArrayRef<T> AllocateBlobAndGetArrayRef(size_t elementCount) {
         CTRBlob.resize(elementCount * sizeof(T));
         std::fill(CTRBlob.begin(), CTRBlob.end(), 0);
         return MakeArrayRef(

@@ -33,7 +33,7 @@ namespace NCatboostCuda
 
             if (poolStructure.GetQueryIdColumn())
             {
-                ReadIntColumn(input, dataProvider.QueryIds);
+                ReadUnsignedIntColumn(input, dataProvider.QueryIds);
                 GroupQueries(dataProvider.QueryIds, &dataProvider.Queries);
             }
 

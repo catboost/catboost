@@ -2,6 +2,7 @@
 #include "learn_context.h"
 #include "metric.h"
 
+#include <catboost/libs/helpers/progress_helper.h>
 #include <library/digest/md5/md5.h>
 #include <util/generic/guid.h>
 #include <util/folder/path.h>
@@ -97,7 +98,7 @@ void TLearnContext::InitData(const TTrainData& data) {
     }
 
     const auto sampleCount = data.GetSampleCount();
-    const int foldCount = Params.HasTime ? 1 : 3;
+    const int foldCount = Params.HasTime || IsQuerywiseError(Params.LossFunction) ? 1 : 3;
     LearnProgress.Folds.reserve(foldCount);
 
     int foldPermutationBlockSize = Params.FoldPermutationBlockSize;
@@ -115,12 +116,13 @@ void TLearnContext::InitData(const TTrainData& data) {
                 LearnProgress.Model.ApproxDimension,
                 Params.FoldLenMultiplier,
                 Params.StoreExpApprox,
+                IsQuerywiseError(Params.LossFunction),
                 Rand));
     }
 
     LearnProgress.AveragingFold = BuildAveragingFold(data,
                                                      LearnProgress.Model.TargetClassifiers,
-                                                     !Params.HasTime,
+                                                     !(Params.HasTime || IsQuerywiseError(Params.LossFunction)),
                                                      LearnProgress.Model.ApproxDimension,
                                                      Params.StoreExpApprox,
                                                      Rand);
@@ -131,54 +133,16 @@ void TLearnContext::InitData(const TTrainData& data) {
     }
 }
 
-namespace {
-    class TMD5Output : public IOutputStream {
-    public:
-        explicit inline TMD5Output(IOutputStream* slave) noexcept
-            : Slave_(slave) {
-        }
-
-        inline const char* Sum(char* buf) {
-            return MD5Sum_.End(buf);
-        }
-
-    private:
-        void DoWrite(const void* buf, size_t len) override {
-            Slave_->Write(buf, len);
-            MD5Sum_.Update(buf, len);
-        }
-
-        /* Note that default implementation of DoSkip works perfectly fine here as
-         * it's implemented in terms of DoRead. */
-
-    private:
-        IOutputStream* Slave_;
-        MD5 MD5Sum_;
-    };
-} // namespace
+//TODO: to enum
+static const TString CpuProgressLabel = "CPU";
 
 void TLearnContext::SaveProgress() {
     if (!Params.SaveSnapshot) {
         return;
     }
-    // actually not so safe, but better then overwriting
-    TFsPath myFileName(Files.SnapshotFile);
-    TString path = myFileName.Dirname();
-
-    TString tempName = JoinFsPaths(path, CreateGuidAsString()) + ".tmp";
-    try {
-        {
-            TOFStream out(tempName);
-            TMD5Output md5out(&out);
-            ::SaveMany(&md5out, Rand, LearnProgress);
-            char md5buf[33];
-            MATRIXNET_INFO_LOG << "Saved progress (md5sum: " << md5out.Sum(md5buf) << " )" << Endl;
-        }
-        NFs::Rename(tempName, Files.SnapshotFile);
-    } catch (...) {
-        MATRIXNET_WARNING_LOG << "Can't save progress to file, got exception: " << CurrentExceptionMessage() << Endl;
-        NFs::Remove(tempName);
-    }
+    TProgressHelper(CpuProgressLabel).Write(Files.SnapshotFile, [&](IOutputStream* out) {
+        ::SaveMany(out, Rand, LearnProgress, Profile.DumpProfileInfo());
+    });
 }
 
 bool TLearnContext::TryLoadProgress() {
@@ -186,13 +150,16 @@ bool TLearnContext::TryLoadProgress() {
         return false;
     }
     try {
-        TIFStream in(Files.SnapshotFile);
-        TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
-        ::LoadMany(&in, Rand, LearnProgressRestored); // fail here does nothing with real LearnProgress
-        LearnProgress = std::move(LearnProgressRestored);
-        LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams); // substitute real
-        Profile.SetInitIterations(LearnProgress.Model.TreeStruct.ysize());
-        MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.Model.TreeStruct.size() << " trees" << Endl;
+        TProgressHelper(CpuProgressLabel).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
+        {
+            TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
+            TProfileInfoData ProfileRestored;
+            ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
+            LearnProgress = std::move(LearnProgressRestored);
+            Profile.InitProfileInfo(std::move(ProfileRestored));
+            LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams); // substitute real
+            MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.Model.TreeStruct.size() << " trees" << Endl;
+        });
         return true;
     } catch (...) {
         MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: " << CurrentExceptionMessage() << Endl;

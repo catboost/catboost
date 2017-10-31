@@ -10,6 +10,7 @@
 #include <util/generic/set.h>
 #include <catboost/libs/model/hash.h>
 #include <util/digest/multi.h>
+#include <util/ysaveload.h>
 #include <util/generic/algorithm.h>
 
 namespace NCatboostCuda
@@ -56,6 +57,8 @@ namespace NCatboostCuda
         {
             return MultiHash(FeatureId, BinIdx, SplitType);
         }
+
+        Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
 
 
@@ -95,6 +98,16 @@ namespace NCatboostCuda
         {
             Sort(Splits.begin(), Splits.end());
             Unique(Splits);
+        }
+
+        TFeatureTensor& AddCatFeature(const yvector<ui32>& featureIds)
+        {
+            for (auto feature : featureIds)
+            {
+                CatFeatures.push_back(feature);
+            }
+            SortUniqueCatFeatures();
+            return *this;
         }
 
         TFeatureTensor& AddCatFeature(ui32 featureId)
@@ -170,7 +183,12 @@ namespace NCatboostCuda
             return CatFeatures;
         }
 
+        ui64 GetComplexity() const {
+            return CatFeatures.size() + std::min<ui64>(Splits.size(), 1);
+        }
+
         SAVELOAD(Splits, CatFeatures);
+        Y_SAVELOAD_DEFINE(Splits, CatFeatures);
 
     private:
         yvector<TBinarySplit> Splits;
@@ -219,6 +237,7 @@ namespace NCatboostCuda
         }
 
         SAVELOAD(FeatureTensor, Configuration);
+        Y_SAVELOAD_DEFINE(FeatureTensor, Configuration);
     };
 
 }

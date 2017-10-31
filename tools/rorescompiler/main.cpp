@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    TBufferedFileOutput out(argv[1]);
+    TFixedBufferFileOutput out(argv[1]);
 
     argv = argv + 2;
     out << "#include <library/resource/registry.h>\n\n";

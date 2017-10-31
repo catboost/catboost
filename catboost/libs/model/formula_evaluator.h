@@ -41,7 +41,7 @@ namespace NCatBoost {
         }
 
         template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
-        void CalcGeneric(TFloatFeatureAccessor floatFeatureAccessor, TCatFeatureAccessor catFeaturesAccessor, size_t docCount, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const {
+        void CalcGeneric(TFloatFeatureAccessor floatFeatureAccessor, TCatFeatureAccessor catFeaturesAccessor, size_t docCount, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
             size_t blockSize;
             if (UsedCtrFeatures.empty()) {
                 blockSize = 128;
@@ -79,7 +79,7 @@ namespace NCatBoost {
             yvector<int> transposedHash(blockSize * CatFeatureFlatIndex.size());
             yvector<float> ctrs(UsedModelCtrs.size() * blockSize);
             yvector<double> tmpResult(docCount);
-            NArrayRef::TArrayRef<double> tmpResultRef(tmpResult);
+            TArrayRef<double> tmpResultRef(tmpResult);
             for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
                 const auto docCountInBlock = Min(blockSize, docCount - blockStart);
                 BinarizeFeatures(floatFeatureAccessor, catFeaturesAccessor, blockStart, blockStart + docCountInBlock, binFeatures, transposedHash, ctrs);
@@ -99,53 +99,53 @@ namespace NCatBoost {
             return results;
         }
 
-        void CalcFlatTransposed(const yvector<NArrayRef::TConstArrayRef<float>>& transposedFeatures, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const;
-        void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, NArrayRef::TArrayRef<double> results) const;
-        void CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features, NArrayRef::TArrayRef<double> results) const {
+        void CalcFlatTransposed(const yvector<TConstArrayRef<float>>& transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+        void CalcFlat(const yvector<TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+        void CalcFlat(const yvector<TConstArrayRef<float>>& features, TArrayRef<double> results) const {
             CalcFlat(features, 0, BinaryTrees.size(), results);
         }
-        void CalcFlat(NArrayRef::TConstArrayRef<float> features, NArrayRef::TArrayRef<double> result) const {
-            yvector<NArrayRef::TConstArrayRef<float>> featuresVec = {features};
+        void CalcFlat(TConstArrayRef<float> features, TArrayRef<double> result) const {
+            yvector<TConstArrayRef<float>> featuresVec = {features};
             CalcFlat(featuresVec, result);
         }
 
         yvector<yvector<double>> CalcTreeIntervals(
-            const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-            const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+            const yvector<TConstArrayRef<float>>& floatFeatures,
+            const yvector<TConstArrayRef<int>>& catFeatures,
             size_t incrementStep) const;
 
         yvector<yvector<double>> CalcTreeIntervalsFlat(
-            const yvector<NArrayRef::TConstArrayRef<float>>& mixedFeatures,
+            const yvector<TConstArrayRef<float>>& mixedFeatures,
             size_t incrementStep) const;
 
-        void Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-                  const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+        void Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
+                  const yvector<TConstArrayRef<int>>& catFeatures,
                   size_t treeStart,
                   size_t treeEnd,
-                  NArrayRef::TArrayRef<double> results) const;
-        void Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-                  const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
-                  NArrayRef::TArrayRef<double> results) const {
+                  TArrayRef<double> results) const;
+        void Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
+                  const yvector<TConstArrayRef<int>>& catFeatures,
+                  TArrayRef<double> results) const {
             Calc(floatFeatures, catFeatures, 0, BinaryTrees.size(), results);
         }
 
-        void Calc(NArrayRef::TConstArrayRef<float> floatFeatures,
-                    NArrayRef::TConstArrayRef<int> catFeatures,
-                  NArrayRef::TArrayRef<double> result) const {
-            yvector<NArrayRef::TConstArrayRef<float>> floatFeaturesVec = {floatFeatures};
-            yvector<NArrayRef::TConstArrayRef<int>> catFeaturesVec = {catFeatures};
+        void Calc(TConstArrayRef<float> floatFeatures,
+                    TConstArrayRef<int> catFeatures,
+                  TArrayRef<double> result) const {
+            yvector<TConstArrayRef<float>> floatFeaturesVec = {floatFeatures};
+            yvector<TConstArrayRef<int>> catFeaturesVec = {catFeatures};
             Calc(floatFeaturesVec, catFeaturesVec, result);
         }
 
-        void Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+        void Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
                   const yvector<yvector<TStringBuf>>& catFeatures,
                   size_t treeStart,
                   size_t treeEnd,
-                  NArrayRef::TArrayRef<double> results) const;
+                  TArrayRef<double> results) const;
 
-        void Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+        void Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
                   const yvector<yvector<TStringBuf>>& catFeatures,
-                  NArrayRef::TArrayRef<double> results) const {
+                  TArrayRef<double> results) const {
             Calc(floatFeatures, catFeatures, 0, BinaryTrees.size(), results);
         }
 
@@ -318,7 +318,7 @@ namespace NCatBoost {
                        yvector<ui32>& indexesVec,
                        size_t treeStart,
                        size_t treeEnd,
-                       NArrayRef::TArrayRef<double>& results) const {
+                       TArrayRef<double>& results) const {
             const auto docCountInBlock4 = (docCountInBlock | 0x3) ^0x3;
             for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
                 memset(indexesVec.data(), 0, sizeof(ui32) * docCountInBlock);

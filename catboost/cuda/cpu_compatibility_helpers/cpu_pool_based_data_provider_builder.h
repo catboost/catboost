@@ -113,8 +113,7 @@ namespace NCatboostCuda
                                                                                               docCount);
                         Y_UNUSED(bins);
                     }
-                } else
-                {
+                } else {
                     if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId))
                     {
                         const auto& config = FeaturesManager.GetDefaultFloatFeatureBinarizationDescription();

@@ -9,7 +9,8 @@
 
 enum EErrorType {
     PerObjectError,
-    PairwiseError
+    PairwiseError,
+    QuerywiseError
 };
 
 struct IMetric {
@@ -22,6 +23,13 @@ struct IMetric {
     virtual TErrorHolder EvalPairwise(const yvector<yvector<double>>& approx,
                                       const yvector<TPair>& pairs,
                                       int begin, int end) const = 0;
+
+    virtual TErrorHolder EvalQuerywise(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       const yvector<ui32>& queriesId,
+                                       const yhash<ui32, ui32>& queriesSize,
+                                       int begin, int end) const = 0;
 
     virtual TString GetDescription() const = 0;
     virtual bool IsMaxOptimal() const = 0;
@@ -36,6 +44,12 @@ struct TMetric: public IMetric {
     virtual TErrorHolder EvalPairwise(const yvector<yvector<double>>& approx,
                                       const yvector<TPair>& pairs,
                                       int begin, int end) const override;
+    virtual TErrorHolder EvalQuerywise(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       const yvector<ui32>& queriesId,
+                                       const yhash<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TErrorHolder& error) const override;
 };
@@ -58,11 +72,36 @@ struct TPairwiseMetric : public IMetric {
                               const yvector<float>& weight,
                               int begin, int end,
                               NPar::TLocalExecutor& executor) const override;
+    virtual TErrorHolder EvalQuerywise(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       const yvector<ui32>& queriesId,
+                                       const yhash<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TErrorHolder& error) const override;
 };
 
 struct TPairwiseAdditiveMetric : public TPairwiseMetric {
+    bool IsAdditiveMetric() const final {
+        return true;
+    }
+};
+
+struct TQuerywiseMetric : public IMetric {
+    virtual TErrorHolder Eval(const yvector<yvector<double>>& approx,
+                              const yvector<float>& target,
+                              const yvector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TErrorHolder EvalPairwise(const yvector<yvector<double>>& approx,
+                                      const yvector<TPair>& pairs,
+                                      int begin, int end) const override;
+    virtual EErrorType GetErrorType() const override;
+    virtual double GetFinalError(const TErrorHolder& error) const override;
+};
+
+struct TQuerywiseAdditiveMetric : public TQuerywiseMetric {
     bool IsAdditiveMetric() const final {
         return true;
     }
@@ -172,6 +211,22 @@ struct TPairLogitMetric : public TPairwiseAdditiveMetric {
                                       int begin, int end) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
+};
+
+struct TQueryRMSEMetric : public TQuerywiseAdditiveMetric {
+    virtual TErrorHolder EvalQuerywise(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       const yvector<ui32>& queriesId,
+                                       const yhash<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+private:
+    double CalcQueryAvrg(int start, int count,
+                         const yvector<double>& approxes,
+                         const yvector<float>& targets,
+                         const yvector<float>& weights) const;
 };
 
 struct TR2Metric: public TNonAdditiveMetric {
@@ -300,6 +355,13 @@ public:
     virtual TErrorHolder EvalPairwise(const yvector<yvector<double>>& approx,
                                       const yvector<TPair>& pairs,
                                       int begin, int end) const override;
+
+    virtual TErrorHolder EvalQuerywise(const yvector<yvector<double>>& approx,
+                                       const yvector<float>& target,
+                                       const yvector<float>& weight,
+                                       const yvector<ui32>& queriesId,
+                                       const yhash<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
 
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;

@@ -1,14 +1,16 @@
 #pragma once
 
 #include "pool.h"
-#include "column.h"
 #include "pair.h"
+
+#include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/column_description/column.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/system/event.h>
 #include <util/stream/file.h>
 #include <util/string/vector.h>
-#include <catboost/libs/cat_feature/cat_feature.h>
-#include <library/threading/local_executor/local_executor.h>
 
 #include <string>
 
@@ -34,7 +36,7 @@ public:
     virtual void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) = 0;
     virtual void AddTarget(ui32 localIdx, float value) = 0;
     virtual void AddWeight(ui32 localIdx, float value) = 0;
-    virtual void AddQueryId(ui32 localIdx, const TStringBuf& queryId) = 0;
+    virtual void AddQueryId(ui32 localIdx, ui32 value) = 0;
     virtual void AddBaseline(ui32 localIdx, ui32 offset, double value) = 0;
     virtual void AddDocId(ui32 localIdx, const TStringBuf& value) = 0;
     virtual void SetFeatureIds(const yvector<TString>& featureIds) = 0;

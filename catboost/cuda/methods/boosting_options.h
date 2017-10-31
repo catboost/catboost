@@ -17,6 +17,30 @@ namespace NCatboostCuda
         Plain
     };
 
+    class TSnapshotOptions {
+    public:
+        bool IsSnapshotEnabled() const {
+            return !Path.empty();
+        }
+
+        const TString& GetSnapshotPath() const {
+            return Path;
+        }
+
+        ui32 TimeBetweenWritesSec() const {
+            return SaveInterval;
+
+        }
+
+        template<class TConfig>
+        friend
+        class TOptionsBinder;
+
+    private:
+        TString Path = "";
+        bool Enabled = false;
+        ui32 SaveInterval = 10 * 60; //every 10 minutes
+    };
 
     class TOutputFilesOptions
     {
@@ -209,6 +233,11 @@ namespace NCatboostCuda
             return HasTimeFlag;
         }
 
+        int GetPrintPeriod() const
+        {
+            return PrintPeriod;
+        }
+
         template<class TConfig>
         friend
         class TOptionsBinder;
@@ -230,6 +259,7 @@ namespace NCatboostCuda
         double Regularization = 0.5;
         bool CalcScores = true;
         bool UseBestModelFlag;
+        int PrintPeriod = 1;
         TOverfittingDetectorOptions OverfittingDetectorOptions;
     };
 }

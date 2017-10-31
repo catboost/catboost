@@ -125,6 +125,9 @@ TBufferedInput::TBufferedInput(IInputStream* slave, size_t buflen)
 {
 }
 
+TBufferedInput::TBufferedInput(TBufferedInput&&) noexcept = default;
+TBufferedInput& TBufferedInput::operator=(TBufferedInput&&) noexcept = default;
+
 TBufferedInput::~TBufferedInput() = default;
 
 size_t TBufferedInput::DoRead(void* buf, size_t len) {
@@ -340,6 +343,9 @@ TBufferedOutputBase::TBufferedOutputBase(IOutputStream* slave, size_t buflen)
     : Impl_(new (buflen) TSimpleImpl(slave))
 {
 }
+
+TBufferedOutputBase::TBufferedOutputBase(TBufferedOutputBase&&) noexcept = default;
+TBufferedOutputBase& TBufferedOutputBase::operator=(TBufferedOutputBase&&) noexcept = default;
 
 TBufferedOutputBase::~TBufferedOutputBase() {
     try {

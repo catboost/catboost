@@ -403,7 +403,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 
         const TString originFile = TFsPath(originDir).Child("data");
         {
-            TBufferedFileOutput out(originFile);
+            TFixedBufferFileOutput out(originFile);
             out << "data111!!!";
         }
 
@@ -426,7 +426,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 
         const TString originFile = TFsPath(originDir).Child("data");
         {
-            TBufferedFileOutput out(originFile);
+            TFixedBufferFileOutput out(originFile);
             out << "data111!!!";
         }
 
@@ -452,7 +452,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 
         const TString originFile = TFsPath(originDir).Child("data");
         {
-            TBufferedFileOutput out(originFile);
+            TFixedBufferFileOutput out(originFile);
             out << "data111!!!";
         }
 
@@ -479,7 +479,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 
         const TString originFile = TFsPath(originDir).Child("data");
         {
-            TBufferedFileOutput out(originFile);
+            TFixedBufferFileOutput out(originFile);
             out << "data111!!!";
         }
 

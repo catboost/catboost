@@ -3,7 +3,6 @@
 #include <library/unittest/registar.h>
 
 SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
-    using namespace NArrayRef;
 
     SIMPLE_UNIT_TEST(Test1) {
         TConstArrayRef<char> a("123", 3);

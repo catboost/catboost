@@ -84,13 +84,13 @@ yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& cal
     }
 
     executor.ExecRange([&](int blockId) {
-        yvector<NArrayRef::TConstArrayRef<float>> repackedFeatures;
+        yvector<TConstArrayRef<float>> repackedFeatures;
         const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
         for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
             repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
         }
-        NArrayRef::TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
+        TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
         calcer.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 

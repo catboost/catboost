@@ -119,17 +119,18 @@ namespace NCatboostCuda
                                                      double scoreStdDev = 0,
                                                      ui64 seed = 0)
         {
+            TRandom rand(seed);
             if (BinaryFeatureHelper)
             {
-                BinaryFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+                BinaryFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             if (HalfByteFeatureHelper)
             {
-                HalfByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+                HalfByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             if (ByteFeatureHelper)
             {
-                ByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, seed);
+                ByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             return *this;
         }
@@ -195,9 +196,10 @@ namespace NCatboostCuda
                                                       ui64 seed)
         {
             ScoreStdDev = scoreStdDev;
+            TRandom random(seed);
             for (ui32 i = 0; i < Seeds.size(); ++i)
             {
-                Seeds[i] = seed + 664525 * i + 1013904223;
+                Seeds[i] = random.NextUniformL();
             }
             return *this;
         }

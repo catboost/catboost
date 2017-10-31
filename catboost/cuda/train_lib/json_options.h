@@ -70,6 +70,14 @@ namespace NCatboostCuda
             GET_FIELD(gpu_ram_part, options.ApplicationConfig.GpuMemoryPartByWorker, Double)
             GET_FIELD(pinned_memory_size, options.ApplicationConfig.PinnedMemorySize, Integer)
             GET_FIELD(device_config, options.ApplicationConfig.DeviceConfig, String)
+            GET_FIELD(calcer_type, options.ApplicationConfig.CalcerType, String)
+
+            bool verboseFlag = false;
+            GET_FIELD(verbose, verboseFlag, Boolean)
+            if (verboseFlag) {
+                options.LoggingLevel = ELoggingLevel::Verbose;
+            }
+
             return validKeys;
         }
 
@@ -80,6 +88,7 @@ namespace NCatboostCuda
             dst["gpu_ram_part"] = options.ApplicationConfig.GpuMemoryPartByWorker;
             dst["pinned_memory_size"] = options.ApplicationConfig.PinnedMemorySize;
             dst["device_config"] = options.ApplicationConfig.DeviceConfig;
+            dst["calcer_type"] = options.ApplicationConfig.CalcerType;
         }
     };
 
@@ -277,6 +286,7 @@ namespace NCatboostCuda
             GET_ENUM_FIELD(loss_function, options.TargetType, ETargetFunction);
             if (options.TargetType == ETargetFunction::Logloss)
             {
+                options.UseBorderForClassification = true;
                 GET_FIELD(border, options.BinClassBorder, Double);
             }
             return validKeys;
@@ -306,6 +316,9 @@ namespace NCatboostCuda
             GET_FIELD(depth, options.MaxDepth, Integer)
             GET_FIELD(l2_leaf_reg, options.L2Reg, Double)
             GET_FIELD(gradient_iterations, options.LeavesEstimationIters, Integer)
+            if (src.Has("gradient_iterations")) {
+                options.IsDefaultLeavesEstimationIters = false;
+            }
 
             TString method = "Newton";
             GET_FIELD(leaf_estimation_method, method, String)

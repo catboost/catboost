@@ -12,7 +12,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
     static const TString data2 = "cn8wk2bd9vb3vdfif83g1ks94bfiovtwv";
 
     SIMPLE_UNIT_TEST(Compress) {
-        TFileOutput o(ZDATA);
+        TUnbufferedFileOutput o(ZDATA);
         TZLibCompress c(&o, ZLib::ZLib);
 
         c.Write(~data, +data);
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         // Check that Decompress(Compress(X) + Compress(Y)) == X + Y
         TTempFile tmpFile(ZDATA);
         {
-            TFileOutput o(ZDATA);
+            TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
             c1.Write(~data, +data);
             c1.Finish();
@@ -56,7 +56,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         // Check that Decompress(Compress(X) + Compress(Y)) == X when single stream is allowed
         TTempFile tmpFile(ZDATA);
         {
-            TFileOutput o(ZDATA);
+            TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
             c1.Write(~data, +data);
             c1.Finish();

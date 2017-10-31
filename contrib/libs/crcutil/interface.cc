@@ -28,7 +28,7 @@ static size_t kAlign = 4 * 1024;
 
 using namespace crcutil;
 
-#if defined(__GNUC__)
+#if (!defined(__clang__) && defined(__GNUC__))
 // Suppress 'invalid access to non-static data member ...  of NULL object'
 #undef offsetof
 #define offsetof(TYPE, MEMBER) (reinterpret_cast <size_t> \

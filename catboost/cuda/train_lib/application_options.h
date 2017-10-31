@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/logging/logging_level.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <util/system/types.h>
 
@@ -34,6 +35,11 @@ namespace NCatboostCuda
             return ApplicationConfig.GetDeviceCount();
         }
 
+        ELoggingLevel GetLoggingLevel() const
+        {
+            return LoggingLevel;
+        }
+
         template<class TConfig>
         friend
         class TOptionsBinder;
@@ -45,6 +51,7 @@ namespace NCatboostCuda
     private:
         ui32 NumThreads = 16;
         bool Profile = false;
+        ELoggingLevel LoggingLevel = ELoggingLevel::Silent;
         NCudaLib::TCudaApplicationConfig ApplicationConfig;
     };
 }

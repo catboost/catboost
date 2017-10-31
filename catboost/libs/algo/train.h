@@ -87,12 +87,20 @@ template <typename TError>
 inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
                                     const yvector<float>& target,
                                     const yvector<float>& weight,
+                                    const yvector<ui32>& queriesId,
+                                    const yhash<ui32, ui32>& queriesSize,
                                     const yvector<yvector<TCompetitor>>& competitors,
                                     const TError& error,
                                     int tailFinish,
                                     TLearnContext* ctx,
                                     yvector<yvector<double>>* derivatives) {
-    if (error.GetErrorType() == EErrorType::PairwiseError) {
+    if (error.GetErrorType() == EErrorType::QuerywiseError) {
+        yvector<TDer1Der2> ders((*derivatives)[0].ysize());
+        error.CalcDersForQueries(0, tailFinish, approx[0], target, weight, queriesId, queriesSize, &ders);
+        for (int docId = 0; docId < ders.ysize(); ++docId) {
+            (*derivatives)[0][docId] = ders[docId].Der1;
+        }
+    } else if (error.GetErrorType() == EErrorType::PairwiseError) {
         error.CalcDersPairs(approx[0], competitors, 0, tailFinish, &(*derivatives)[0]);
     } else {
         int approxDimension = approx.ysize();
@@ -131,6 +139,8 @@ inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
 inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
                                   const yvector<float>& target,
                                   const yvector<float>& weight,
+                                  const yvector<ui32>& queryId,
+                                  const yhash<ui32, ui32>& queriesSize,
                                   const yvector<TPair>& pairs,
                                   const yvector<THolder<IMetric>>& errors,
                                   int learnSampleCount,
@@ -143,9 +153,11 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
         double learnErr = errors[i]->GetFinalError(
             errors[i]->GetErrorType() == EErrorType::PerObjectError ?
                 errors[i]->Eval(avrgApprox, target, weight, 0, learnSampleCount, *localExecutor) :
-                errors[i]->EvalPairwise(avrgApprox, pairs, 0, learnSampleCount));
+                errors[i]->GetErrorType() == EErrorType::PairwiseError ?
+                    errors[i]->EvalPairwise(avrgApprox, pairs, 0, learnSampleCount):
+                    errors[i]->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, 0, learnSampleCount));
         if (i == 0) {
-            MATRIXNET_INFO_LOG << "learn " << learnErr;
+            MATRIXNET_NOTICE_LOG << "learn " << learnErr;
         }
         learnErrorsHistory->back().push_back(learnErr);
     }
@@ -158,6 +170,8 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
 inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
                                  const yvector<float>& target,
                                  const yvector<float>& weight,
+                                 const yvector<ui32>& queryId,
+                                 const yhash<ui32, ui32>& queriesSize,
                                  const yvector<TPair>& pairs,
                                  const yvector<THolder<IMetric>>& errors,
                                  int learnSampleCount,
@@ -174,13 +188,15 @@ inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
         double testErr = errors[i]->GetFinalError(
             errors[i]->GetErrorType() == EErrorType::PerObjectError ?
                 errors[i]->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor) :
-                errors[i]->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount));
+                errors[i]->GetErrorType() == EErrorType::PairwiseError ?
+                    errors[i]->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount):
+                    errors[i]->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, learnSampleCount, sampleCount));
 
         if (i == 0) {
             errorTracker.AddError(testErr, iteration, &valuesToLog);
             double bestErr = errorTracker.GetBestError();
 
-            MATRIXNET_INFO_LOG << "\ttest " << testErr << "\tbestTest " << bestErr << "\t";
+            MATRIXNET_NOTICE_LOG << "\ttest " << testErr << "\tbestTest " << bestErr << "\t";
         }
         testErrorsHistory->back().push_back(testErr);
     }
@@ -211,7 +227,7 @@ void TrainOneIter(const TTrainData& data,
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.Model.TreeStruct.ysize();
 
-    MATRIXNET_INFO_LOG << currentIteration << ":\t";
+    MATRIXNET_NOTICE_LOG << currentIteration << ":\t";
     profile.StartNextIteration();
 
     CheckInterrupted(); // check after long-lasting operation
@@ -228,6 +244,8 @@ void TrainOneIter(const TTrainData& data,
             CalcWeightedDerivatives<TError>(bt.Approx,
                                             takenFold->LearnTarget,
                                             takenFold->LearnWeights,
+                                            takenFold->LearnQueryId,
+                                            takenFold->LearnQuerySize,
                                             bt.Competitors,
                                             error,
                                             bt.TailFinish,
@@ -411,6 +429,8 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
             ctx->LearnProgress.AvrgApprox,
             data.Target,
             data.Weights,
+            data.QueryId,
+            data.QuerySize,
             data.Pairs,
             metrics,
             data.LearnSampleCount,
@@ -426,6 +446,8 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
                 ctx->LearnProgress.AvrgApprox,
                 data.Target,
                 data.Weights,
+                data.QueryId,
+                data.QuerySize,
                 data.Pairs,
                 metrics,
                 data.LearnSampleCount,
@@ -458,7 +480,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
         }
 
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_INFO_LOG << "Stopped by overfitting detector "
+            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
                                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
@@ -467,10 +489,10 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
     ctx->LearnProgress.Folds.clear();
 
     if (hasTest) {
-        MATRIXNET_INFO_LOG << "\n";
-        MATRIXNET_INFO_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
-        MATRIXNET_INFO_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
-        MATRIXNET_INFO_LOG << "\n";
+        MATRIXNET_NOTICE_LOG << "\n";
+        MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
+        MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
+        MATRIXNET_NOTICE_LOG << "\n";
     }
 
     if (ctx->Params.DetailedProfile || ctx->Params.DeveloperMode) {
@@ -479,7 +501,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
 
     if (ctx->Params.UseBestModel && ctx->Params.Iterations > 0) {
         const int itCount = errorTracker.GetBestIteration() + 1;
-        MATRIXNET_INFO_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
+        MATRIXNET_NOTICE_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
         ShrinkModel(itCount, &ctx->LearnProgress.Model);
     }
 }

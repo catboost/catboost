@@ -57,10 +57,10 @@ namespace NCatboostCuda
 
     struct TBinarizationConfiguration
     {
-        TBinarizationDescription DefaultFloatBinarization;
-        TBinarizationDescription DefaultCtrBinarization;
-        TBinarizationDescription DefaultTreeCtrBinarization;
-        TBinarizationDescription TargetBinarization;
+        TBinarizationDescription DefaultFloatBinarization = TBinarizationDescription(EBorderSelectionType::MinEntropy, 128);
+        TBinarizationDescription DefaultCtrBinarization = TBinarizationDescription(EBorderSelectionType::Uniform, 15);
+        TBinarizationDescription DefaultTreeCtrBinarization = TBinarizationDescription(EBorderSelectionType::Uniform, 15);
+        TBinarizationDescription TargetBinarization = TBinarizationDescription(EBorderSelectionType::GreedyLogSum, 1);
         TBinarizationDescription FreqTreeCtrBinarization = TBinarizationDescription(EBorderSelectionType::Median, 15);
         TBinarizationDescription FreqCtrBinarization = TBinarizationDescription(EBorderSelectionType::GreedyLogSum, 15);
 

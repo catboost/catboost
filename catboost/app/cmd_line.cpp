@@ -49,13 +49,13 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("verbose", true);
         });
 
-    parser.AddLongOption("loss-function", "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit. A loss might have params, then params should be written in format Loss:paramName=value.")
+    parser.AddLongOption("loss-function", "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE. A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
         .Handler1T<TString>([&trainJson](const TString& target) {
             trainJson->InsertValue("loss_function", target);
         });
 
-    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
+    parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
         .RequiredArgument("comma separated list of loss functions")
         .Handler1T<TString>([&trainJson](const TString& lossFunctionsLine) {
             for (const auto& t : StringSplitter(lossFunctionsLine).Split(',')) {
@@ -310,15 +310,6 @@ void ParseCommandLine(int argc, const char* argv[],
             (*trainJson)["priors"] = ParsePriors(0, priorsLineBuf);
         });
 
-    parser.AddLongOption("ctr-priors")
-        .RequiredArgument("priors-line")
-        .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
-        for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
-            TStringBuf priorsLineBuf(t.Token());
-            (*trainJson)["ctr_priors"].AppendValue(ParsePriors(1, priorsLineBuf));
-        } })
-        .Help("You might provide custom priors for some ctr. They will be used instead of default ones. Format is: c1Idx:prior1:prior2:prior3,c2Idx:prior1");
-
     parser.AddLongOption("feature-priors")
         .RequiredArgument("priors-line")
         .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
@@ -327,15 +318,6 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*trainJson)["feature_priors"].AppendValue(ParsePriors(1, priorsLineBuf));
         } })
         .Help("You might provide custom priors for some features. They will be used instead of default ones or ones given in ctr-priors. Format is: f1Idx:prior1:prior2:prior3,f2Idx:prior1");
-
-    parser.AddLongOption("feature-ctr-priors")
-        .RequiredArgument("priors-line")
-        .Handler1T<TString>([&trainJson](const TString& priorsDesctiption) {
-            for (const auto& t : StringSplitter(priorsDesctiption).Split(',')) {
-                TStringBuf priorsLineBuf(t.Token());
-                (*trainJson)["feature_ctr_priors"].AppendValue(ParsePriors(2, priorsLineBuf));
-            } })
-        .Help("You might provide custom priors for some pairs of feature and ctr. They will be used instead of default ones or given in ctr-priors or feature-priors. Format is: f1Idx:c1Idx:prior1:prior2:prior3,f2Idx:c2Idx:prior1");
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
         .RequiredArgument("name")

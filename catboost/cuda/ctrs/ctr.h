@@ -106,6 +106,7 @@ struct TCtrConfig {
     }
 
     SAVELOAD(Type, Prior, ParamId);
+    Y_SAVELOAD_DEFINE(Type, Prior, ParamId);
 };
 
 inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {

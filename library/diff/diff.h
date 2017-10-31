@@ -9,7 +9,6 @@
 #include <util/string/split.h>
 
 namespace NDiff {
-    using NArrayRef::TConstArrayRef;
 
     template <typename T>
     struct TChunk {

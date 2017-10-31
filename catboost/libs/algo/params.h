@@ -37,6 +37,7 @@ enum class ELossFunction {
     LogLinQuantile,
     MAPE,
     Poisson,
+    QueryRMSE,
 
     /* multiclassification errors */
 
@@ -85,6 +86,11 @@ enum class ECounterCalc {
     SkipTest
 };
 
+enum class ECalcerType {
+    CPU,
+    GPU
+};
+
 constexpr int CB_THREAD_LIMIT = 56;
 
 struct TCtrDescription {
@@ -104,9 +110,7 @@ struct TCtrParams {
     int CtrBorderCount = 16;
     int MaxCtrComplexity = 4;
     yvector<float> DefaultPriors = {0, 0.5, 1};
-    yvector<std::pair<int, yvector<float>>> PerCtrPriors;
     yvector<std::pair<int, yvector<float>>> PerFeaturePriors;
-    yvector<std::pair<std::pair<int, int>, yvector<float>>> PerFeatureCtrPriors;
     yvector<TCtrDescription> Ctrs = {TCtrDescription(), TCtrDescription(ECtrType::Counter)};
 };
 
@@ -212,6 +216,8 @@ public:
     TString TrainDir;
     EPredictionType PredictionType = EPredictionType::RawFormulaVal;
 
+    ECalcerType CalcerType = ECalcerType::CPU;
+
     float FoldLenMultiplier = 2;
     ui64 CtrLeafCountLimit = Max<ui64>();
     ui64 UsedRAMLimit = Max<ui64>();
@@ -303,6 +309,10 @@ inline bool IsMultiClassError(ELossFunction lossFunction) {
 
 inline bool IsPairwiseError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::PairLogit);
+}
+
+inline bool IsQuerywiseError(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::QueryRMSE);
 }
 
 ELossFunction GetLossType(const TString& lossDescription);

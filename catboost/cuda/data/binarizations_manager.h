@@ -16,9 +16,14 @@ namespace NCatboostCuda
                 : BinarizationConfiguration(binarizationConfiguration)
                   , OneHotLimit(oneHotLimit)
         {
+            EnabledCtrTypes.insert(ECtrType::Borders);
+            EnabledCtrTypes.insert(ECtrType::FeatureFreq);
         }
 
-        TFeatureManagerOptions() = default;
+        TFeatureManagerOptions() {
+            EnabledCtrTypes.insert(ECtrType::Borders);
+            EnabledCtrTypes.insert(ECtrType::FeatureFreq);
+        }
 
         const TBinarizationConfiguration& GetBinarizationConfiguration() const
         {
@@ -102,11 +107,11 @@ namespace NCatboostCuda
         TBinarizationConfiguration BinarizationConfiguration;
 
         ui32 OneHotLimit = 0;
-        ui32 MaxTensorComplexity = 1; //tensor complexity is number  of catFeatures, which could be used in one ctr
+        ui32 MaxTensorComplexity = 4; //tensor complexity is number  of catFeatures, which could be used in one ctr
         yset<ui32> IgnoredFeatures;
         yset<ECtrType> EnabledCtrTypes;
         bool CustomCtrTypes = false;
-        TString CatFeatureBinarizationTempName = TStringBuilder() << "/tmp/cat_feature_index." << CreateGuidAsString() << ".tmp";
+        TString CatFeatureBinarizationTempName = TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp";
 
     };
 
@@ -235,18 +240,16 @@ namespace NCatboostCuda
 
         bool IsTreeCtrsEnabled() const
         {
-            return DataProviderCatFeatureIdToFeatureManagerId.size() &&
+            return !DataProviderCatFeatureIdToFeatureManagerId.empty() &&
                    (FeatureManagerOptions.GetMaxTensorComplexity() > 1);
         }
 
-        bool UseAsBaseTensorForTreeCtr(const TFeatureTensor& tensor) const
-        {
-            return (tensor.GetCatFeatures().size() < FeatureManagerOptions.GetMaxTensorComplexity());
+        bool UseAsBaseTensorForTreeCtr(const TFeatureTensor& tensor) const {
+            return (tensor.GetComplexity() < FeatureManagerOptions.GetMaxTensorComplexity());
         }
 
-        bool UseForTreeCtr(const TFeatureTensor& tensor) const
-        {
-            return (tensor.GetCatFeatures().size() <= FeatureManagerOptions.GetMaxTensorComplexity());
+        bool UseForTreeCtr(const TFeatureTensor& tensor) const {
+            return (tensor.GetComplexity() <= FeatureManagerOptions.GetMaxTensorComplexity());
         }
 
         bool IsCtr(ui32 featureId) const
@@ -723,6 +726,8 @@ namespace NCatboostCuda
                  DataProviderFloatFeatureIdToFeatureManagerId, DataProviderCatFeatureIdToFeatureManagerId,
                  FeatureManagerIdToDataProviderId, Cursor, FeatureManagerOptions,
                  DefaultCtrConfigsForType, Borders, CatFeaturesPerfectHash, TargetBorders);
+
+
 
     private:
 

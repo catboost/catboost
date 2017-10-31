@@ -74,6 +74,16 @@ public:
         CB_ENSURE(false, "Not implemented");
     }
 
+    void CalcDersForQueries(int /*start*/, int /*count*/,
+                            const yvector<double>& /*approx*/,
+                            const yvector<float>& /*target*/,
+                            const yvector<float>& /*weight*/,
+                            const yvector<ui32>& /*queriesId*/,
+                            const yhash<ui32, ui32>& /*queriesSize*/,
+                            yvector<TDer1Der2>* /*ders*/) const {
+        CB_ENSURE(false, "Not implemented");
+    }
+
     EErrorType GetErrorType() const {
         return EErrorType::PerObjectError;
     }
@@ -387,6 +397,66 @@ public:
             }
             (*ders)[docId - start] = curDer;
         }
+    }
+};
+
+class TQueryRmseError : public IDerCalcer<TQueryRmseError, /*StoreExpApproxParam*/ false> {
+public:
+    explicit TQueryRmseError(bool storeExpApprox) {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
+    double CalcDer(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for QueryRMSE error.");
+    }
+
+    double CalcDer2(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for QueryRMSE error.");
+    }
+
+    EErrorType GetErrorType() const {
+        return EErrorType::QuerywiseError;
+    }
+
+    void CalcDersForQueries(int start, int count,
+                            const yvector<double>& approxes,
+                            const yvector<float>& targets,
+                            const yvector<float>& weights,
+                            const yvector<ui32>& queriesId,
+                            const yhash<ui32, ui32>& queriesSize,
+                            yvector<TDer1Der2>* ders) const {
+        int offset = 0;
+        while (offset < count) {
+            ui32 querySize = queriesSize.find(queriesId[start + offset])->second;
+            double queryAvrg = CalcQueryAvrg(start + offset, querySize, approxes, targets, weights);
+            for (ui32 docId = start + offset; docId < start + offset + querySize; ++docId) {
+                (*ders)[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
+                if (!weights.empty()) {
+                    (*ders)[docId - start].Der1 *= weights[docId];
+                }
+            }
+            offset += querySize;
+        }
+    }
+private:
+    double CalcQueryAvrg(int start, int count,
+                         const yvector<double>& approxes,
+                         const yvector<float>& targets,
+                         const yvector<float>& weights) const
+    {
+        double querySum = 0;
+        double queryCount = 0;
+        for (int docId = start; docId < start + count; ++docId) {
+            double w = weights.empty() ? 1 : weights[docId];
+            querySum += (targets[docId] - approxes[docId]) * w;
+            queryCount += w;
+        }
+
+        double queryAvrg = 0;
+        if (queryCount > 0) {
+            queryAvrg = querySum / queryCount;
+        }
+        return queryAvrg;
     }
 };
 

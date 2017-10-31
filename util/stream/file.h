@@ -74,45 +74,45 @@ private:
  *
  * @see TBuffered
  */
-class TBufferedFileInput: public TBuffered<TUnbufferedFileInput> {
+class TFileInput: public TBuffered<TUnbufferedFileInput> {
 public:
     template <class T>
-    inline TBufferedFileInput(T&& t, size_t buf = 1 << 13)
+    inline TFileInput(T&& t, size_t buf = 1 << 13)
         : TBuffered<TUnbufferedFileInput>(buf, std::forward<T>(t))
     {
     }
 
-    ~TBufferedFileInput() override = default;
+    ~TFileInput() override = default;
 };
 
-using TIFStream = TBufferedFileInput;
+using TIFStream = TFileInput;
 
 /**
  * Buffered file output stream.
  *
- * Currently deprecated, please use TAdaptiveFileOutput in new code.
+ * Currently deprecated, please use TFileOutput in new code.
  *
  * @deprecated
  * @see TBuffered
  */
-class TBufferedFileOutput: public TBuffered<TUnbufferedFileOutput> {
+class TFixedBufferFileOutput: public TBuffered<TUnbufferedFileOutput> {
 public:
     template <class T>
-    inline TBufferedFileOutput(T&& t, size_t buf = 1 << 13)
+    inline TFixedBufferFileOutput(T&& t, size_t buf = 1 << 13)
         : TBuffered<TUnbufferedFileOutput>(buf, std::forward<T>(t))
     {
     }
 
-    ~TBufferedFileOutput() override = default;
+    ~TFixedBufferFileOutput() override = default;
 };
 
-using TOFStream = TBufferedFileOutput;
+using TOFStream = TFixedBufferFileOutput;
 
 /**
  * Adaptively buffered file output stream.
  *
  * @see TAdaptivelyBuffered
  */
-using TAdaptiveFileOutput = TAdaptivelyBuffered<TUnbufferedFileOutput>;
+using TFileOutput = TAdaptivelyBuffered<TUnbufferedFileOutput>;
 
 /** @} */

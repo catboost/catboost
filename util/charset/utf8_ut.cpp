@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
     }
 
     SIMPLE_UNIT_TEST(TestUTF8ToWide) {
-        TBufferedFileInput in(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/test1.txt"));
+        TFileInput in(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/test1.txt"));
 
         TString text = in.ReadAll();
         UNIT_ASSERT(WideToUTF8(UTF8ToWide(text)) == text);
@@ -61,7 +61,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
 
     SIMPLE_UNIT_TEST(TestInvalidUTF8) {
         yvector<TString> testData;
-        TBufferedFileInput input(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/invalid_UTF8.bin"));
+        TFileInput input(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/invalid_UTF8.bin"));
         Load(&input, testData);
 
         for (const auto& text : testData) {
@@ -70,7 +70,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
     }
 
     SIMPLE_UNIT_TEST(TestUTF8ToWideScalar) {
-        TBufferedFileInput in(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/test1.txt"));
+        TFileInput in(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/test1.txt"));
 
         TString text = in.ReadAll();
         TUtf16String wtextSSE = UTF8ToWide(text);

@@ -61,7 +61,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
 
         for (size_t i = 0; i < pool.Qids.size(); ++i) {
             auto qid = dataProvider.GetQueryIds()[i];
-            UNIT_ASSERT_VALUES_EQUAL(StringToIntHash(ToString(pool.Qids[i])), qid);
+            UNIT_ASSERT_VALUES_EQUAL(pool.Qids[i], qid);
         }
 
         for (size_t i = 0; i < pool.Queries.size(); ++i) {

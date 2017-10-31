@@ -488,8 +488,8 @@ inline void LaunchKernel(ui32 device,
     manager.LaunchKernel<TKernel>(std::move(kernel), device, streamId);
 }
 
-inline void StartCudaManager() {
-    SetVerboseLogingMode();
+inline void StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Info) {
+    SetLogingLevel(loggingLevel);
     auto& manager = NCudaLib::GetCudaManager();
     manager.Start();
     manager.WaitComplete();

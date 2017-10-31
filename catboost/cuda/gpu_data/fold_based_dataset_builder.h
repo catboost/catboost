@@ -124,8 +124,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TPermutationDataSetBuilder& SetCatFeatures(const yvector<ui32>& featureIds)
-        {
+        TPermutationDataSetBuilder& SetCatFeatures(const yvector<ui32>& featureIds) {
             for (ui32 catFeature : featureIds)
             {
                 if (AddOneHotFeatures && FeaturesManager.UseForOneHotEncoding(catFeature))
@@ -235,8 +234,7 @@ namespace NCatboostCuda
                 }
             }
 
-            std::sort(ctrs.begin(), ctrs.end(), [&](ui32 left, ui32 right) -> bool
-            {
+            std::sort(ctrs.begin(), ctrs.end(), [&](ui32 left, ui32 right) -> bool {
                 return FeaturesManager.GetCtr(left).FeatureTensor < FeaturesManager.GetCtr(right).FeatureTensor;
             });
 
@@ -816,8 +814,7 @@ namespace NCatboostCuda
                         .UseFloatFeatures(true)
                         .UseOneHot(true)
                         .UseCtrs(TakePermutationIndependent(FeaturesManager.GetEnabledCtrTypes()));
-            } else
-            {
+            } else {
                 yset<ECtrType> ctrs = TakePermutationDependent(FeaturesManager.GetEnabledCtrTypes());
 
                 binaryFeatureBuilder

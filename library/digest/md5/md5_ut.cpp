@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(TMD5Test) {
         const TString tmpFile = "tmp";
 
         {
-            TBufferedFileOutput fo(tmpFile);
+            TFixedBufferFileOutput fo(tmpFile);
             fo.Write(~s, +s);
         }
 

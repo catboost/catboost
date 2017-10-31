@@ -42,7 +42,7 @@ public:
     }
 
     template <typename ElementType>
-    auto operator()(const NArrayRef::TArrayRef<ElementType>& data) const {
+    auto operator()(const TArrayRef<ElementType>& data) const {
         return TBase<ElementType>()(data);
     }
 };

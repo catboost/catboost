@@ -13,7 +13,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         TTempFile tmp(TmpFileName);
 
         {
-            TFileOutput output(TmpFileName);
+            TUnbufferedFileOutput output(TmpFileName);
             output.Write(TmpFileContents, strlen(TmpFileContents));
         }
 
@@ -31,7 +31,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         }
 
         {
-            TFileOutput output(TFile::ForAppend(TmpFileName));
+            TUnbufferedFileOutput output(TFile::ForAppend(TmpFileName));
             output.Write(TmpFileContents, strlen(TmpFileContents));
         }
 
@@ -46,7 +46,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         TTempFile tmp(TmpFileName);
 
         {
-            TFileOutput output(TmpFileName);
+            TUnbufferedFileOutput output(TmpFileName);
             /* Write nothing. */
         }
 

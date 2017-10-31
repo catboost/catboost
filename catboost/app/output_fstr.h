@@ -9,7 +9,7 @@
 inline void OutputFstr(const TFeaturesLayout& layout,
                        const yvector<std::pair<double, TFeature>>& effect,
                        const TString& path) {
-    TAdaptiveFileOutput out(path);
+    TFileOutput out(path);
     for (const auto& effectWithSplit : effect) {
         out << effectWithSplit.first << "\t" << effectWithSplit.second.BuildDescription(layout) << Endl;
     }
@@ -18,7 +18,7 @@ inline void OutputFstr(const TFeaturesLayout& layout,
 inline void OutputRegularFstr(const TFeaturesLayout& layout,
                               const yvector<TFeatureEffect>& regularEffect,
                               const TString& path) {
-    TAdaptiveFileOutput out(path);
+    TFileOutput out(path);
     for (const auto& initialFeatureScore : regularEffect) {
         out << initialFeatureScore.Score << "\t" <<
                BuildFeatureDescription(layout,
@@ -30,7 +30,7 @@ inline void OutputRegularFstr(const TFeaturesLayout& layout,
 inline void OutputInteraction(const TFeaturesLayout& layout,
                        const yvector<TInternalFeatureInteraction>& interactionValues,
                        const TString& path) {
-    TAdaptiveFileOutput out(path);
+    TFileOutput out(path);
     for (const auto& interaction : interactionValues) {
         out << interaction.Score << "\t" << interaction.FirstFeature.BuildDescription(layout) <<
             "\t" << interaction.SecondFeature.BuildDescription(layout) << Endl;
@@ -40,7 +40,7 @@ inline void OutputInteraction(const TFeaturesLayout& layout,
 inline void OutputRegularInteraction(const TFeaturesLayout& layout,
                               const yvector<TFeatureInteraction>& interactionValues,
                               const TString& path) {
-    TAdaptiveFileOutput out(path);
+    TFileOutput out(path);
     for (const auto& interaction : interactionValues) {
         out << interaction.Score << "\t" <<
             BuildFeatureDescription(layout,
@@ -55,7 +55,7 @@ inline void OutputRegularInteraction(const TFeaturesLayout& layout,
 inline void OutputFeatureImportanceMatrix(const yvector<yvector<double>>& featureImportance,
                                           const TString& path) {
     Y_ASSERT(!featureImportance.empty());
-    TAdaptiveFileOutput out(path);
+    TFileOutput out(path);
     const int docCount = featureImportance[0].ysize();
     const int featureCount = featureImportance.ysize();
     for (int docId = 0; docId < docCount; ++docId) {

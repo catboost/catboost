@@ -23,6 +23,10 @@
 class TBufferedInput: public IZeroCopyInput {
 public:
     TBufferedInput(IInputStream* slave, size_t buflen = 8192);
+
+    TBufferedInput(TBufferedInput&&) noexcept;
+    TBufferedInput& operator=(TBufferedInput&&) noexcept;
+
     ~TBufferedInput() override;
 
     /**
@@ -75,8 +79,8 @@ public:
      */
     TBufferedOutputBase(IOutputStream* slave, size_t buflen);
 
-    TBufferedOutputBase(TBufferedOutputBase&&) noexcept = default;
-    TBufferedOutputBase& operator=(TBufferedOutputBase&&) noexcept = default;
+    TBufferedOutputBase(TBufferedOutputBase&&) noexcept;
+    TBufferedOutputBase& operator=(TBufferedOutputBase&&) noexcept;
 
     ~TBufferedOutputBase() override;
 
@@ -170,7 +174,7 @@ namespace NPrivate {
  * Example usage:
  * @code
  * TBuffered<TUnbufferedFileInput> file_input(1024, "/path/to/file");
- * TBuffered<TFileOutput> file_output(1024, "/path/to/file");
+ * TBuffered<TUnbufferedFileOutput> file_output(1024, "/path/to/file");
  * @endcode
  * Here 1024 is the size of the buffer.
  */
@@ -200,7 +204,7 @@ public:
  *
  * Example usage:
  * @code
- * TAdaptivelyBuffered<TFileOutput> file_output("/path/to/file");
+ * TAdaptivelyBuffered<TUnbufferedFileOutput> file_output("/path/to/file");
  * @endcode
  */
 template <class TSlave>

@@ -143,10 +143,10 @@ namespace NCatBoost {
         CtrProvider.Reset(new TStaticCtrProvider(std::move(fullModel.CtrCalcerData)));
     }
 
-    void TFormulaEvaluator::CalcFlat(const yvector<NArrayRef::TConstArrayRef<float>>& features,
+    void TFormulaEvaluator::CalcFlat(const yvector<TConstArrayRef<float>>& features,
                                 size_t treeStart,
                                 size_t treeEnd,
-                                NArrayRef::TArrayRef<double> results) const {
+                                TArrayRef<double> results) const {
         const auto expectedFlatVecSize = GetFlatFeatureVectorExpectedSize();
         for (const auto& flatFeaturesVec : features) {
             CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
@@ -167,10 +167,10 @@ namespace NCatBoost {
         );
     }
 
-    void TFormulaEvaluator::CalcFlatTransposed(const yvector<NArrayRef::TConstArrayRef<float>>& transposedFeatures,
+    void TFormulaEvaluator::CalcFlatTransposed(const yvector<TConstArrayRef<float>>& transposedFeatures,
                                 size_t treeStart,
                                 size_t treeEnd,
-                                NArrayRef::TArrayRef<double> results) const {
+                                TArrayRef<double> results) const {
         CB_ENSURE(!transposedFeatures.empty(), "Features should not be empty");
         CalcGeneric(
             [&](const TFloatFeature& floatFeature, size_t index) {
@@ -186,11 +186,11 @@ namespace NCatBoost {
         );
     }
 
-    void TFormulaEvaluator::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-                            const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+    void TFormulaEvaluator::Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
+                            const yvector<TConstArrayRef<int>>& catFeatures,
                             size_t treeStart,
                             size_t treeEnd,
-                            NArrayRef::TArrayRef<double> results) const {
+                            TArrayRef<double> results) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
@@ -218,9 +218,9 @@ namespace NCatBoost {
         );
     }
 
-    void TFormulaEvaluator::Calc(const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
+    void TFormulaEvaluator::Calc(const yvector<TConstArrayRef<float>>& floatFeatures,
                             const yvector<yvector<TStringBuf>>& catFeatures, size_t treeStart, size_t treeEnd,
-                            NArrayRef::TArrayRef<double> results) const {
+                            TArrayRef<double> results) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
         }
@@ -249,8 +249,8 @@ namespace NCatBoost {
     }
 
     yvector<yvector<double>> TFormulaEvaluator::CalcTreeIntervals(
-        const yvector<NArrayRef::TConstArrayRef<float>>& floatFeatures,
-        const yvector<NArrayRef::TConstArrayRef<int>>& catFeatures,
+        const yvector<TConstArrayRef<float>>& floatFeatures,
+        const yvector<TConstArrayRef<int>>& catFeatures,
         size_t incrementStep) const {
         if (!floatFeatures.empty() && !catFeatures.empty()) {
             CB_ENSURE(catFeatures.size() == floatFeatures.size());
@@ -277,7 +277,7 @@ namespace NCatBoost {
         );
     }
     yvector<yvector<double>> TFormulaEvaluator::CalcTreeIntervalsFlat(
-        const yvector<NArrayRef::TConstArrayRef<float>>& features,
+        const yvector<TConstArrayRef<float>>& features,
         size_t incrementStep) const {
         const auto expectedFlatVecSize = GetFlatFeatureVectorExpectedSize();
         for (const auto& flatFeaturesVec : features) {
