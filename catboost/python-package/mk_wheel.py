@@ -161,17 +161,23 @@ def build(arc_root, out_root, tail_args):
 
     shutil.rmtree('catboost', ignore_errors=True)
     os.makedirs('catboost/catboost')
+    try:
+        print('Trying to build GPU version', file=sys.stderr)
+        gpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=yes']
+        print(' '.join(gpu_cmd), file=sys.stderr)
+        subprocess.check_call(gpu_cmd)
+        print('Build GPU version: OK', file=sys.stderr)
+        os.makedirs('catboost/catboost/gpu')
+        open('catboost/catboost/gpu/__init__.py', 'w').close()
+        shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/gpu/_catboost' + py_trait.dll_ext())
+    except Exception:
+        print('GPU version build failed', file=sys.stderr)
 
-    gpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=yes']
-    print(' '.join(gpu_cmd), file=sys.stderr)
-    subprocess.check_call(gpu_cmd)
-    os.makedirs('catboost/catboost/gpu')
-    open('catboost/catboost/gpu/__init__.py', 'w').close()
-    shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/gpu/_catboost' + py_trait.dll_ext())
-
+    print('Building CPU version', file=sys.stderr)
     cpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=no']
     print(' '.join(cpu_cmd), file=sys.stderr)
     subprocess.check_call(cpu_cmd)
+    print('Building CPU version: OK', file=sys.stderr)
     shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/_catboost' + py_trait.dll_ext())
 
     shutil.copy('__init__.py', 'catboost/catboost/__init__.py')
