@@ -43,4 +43,4 @@ void TrainOneIteration(
     const TTrainData& trainData,
     TLearnContext* ctx);
 
-using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ECalcerType>;
+using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, EDeviceType>;

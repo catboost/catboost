@@ -493,6 +493,11 @@ inline void StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::I
     auto& manager = NCudaLib::GetCudaManager();
     manager.Start();
     manager.WaitComplete();
+
+    ui32 devCount = manager.GetDeviceCount();
+    for (ui32 dev = 0; dev < devCount; ++dev) {
+        MATRIXNET_INFO_LOG << "Free memory for device #" << dev << " " << manager.FreeMemoryMb(dev) << "MB" << Endl;
+    }
 }
 
 inline ui32 GetDeviceCount() {

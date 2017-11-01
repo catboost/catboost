@@ -193,6 +193,7 @@ template <class _CharT,             // for <stdexcept>
     class _LIBCPP_TEMPLATE_VIS basic_string;
 typedef basic_string<char, char_traits<char>, allocator<char> > string;
 typedef basic_string<wchar_t, char_traits<wchar_t>, allocator<wchar_t> > wstring;
+typedef basic_string<char16_t, char_traits<char16_t>, allocator<char16_t> > u16string;
 
 
 // Include other forward declarations here

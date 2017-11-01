@@ -27,7 +27,8 @@ if __name__ == '__main__':
         if os.path.exists(args[0]):
             shutil.move(args[0], args[1])
     elif mode == 'rename':
-        if not os.path.exists(os.path.dirname(args[1])):
+        targetdir = os.path.dirname(args[1])
+        if targetdir and not os.path.exists(targetdir):
             os.makedirs(os.path.dirname(args[1]))
         shutil.move(args[0], args[1])
     elif mode == 'remove':

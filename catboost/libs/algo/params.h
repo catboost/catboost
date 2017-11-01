@@ -86,7 +86,7 @@ enum class ECounterCalc {
     SkipTest
 };
 
-enum class ECalcerType {
+enum class EDeviceType {
     CPU,
     GPU
 };

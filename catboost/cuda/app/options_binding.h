@@ -314,6 +314,7 @@ namespace NCatboostCuda
                     .DefaultValue("Borders,FeatureFreq")
                     .Handler1T<TString>([&](const TString& ctrs)
                                         {
+                                            featureManagerOptions.EnabledCtrTypes.clear();
                                             if (ctrs == "None")
                                             {
                                                 return;
@@ -536,7 +537,7 @@ namespace NCatboostCuda
                     .AddLongOption("dev-min-fold-size")
                     .RequiredArgument("INT")
                     .Help("Sets min fold size")
-                    .DefaultValue("128")
+                    .DefaultValue("100")
                     .StoreResult(&boostingOptions.MinFoldSize);
 
             options

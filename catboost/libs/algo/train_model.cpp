@@ -361,7 +361,7 @@ class TCPUModelTrainer : public IModelTrainer {
         }
     }
 };
-TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ECalcerType::CPU);
+TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(EDeviceType::CPU);
 
 void TrainModel(const NJson::TJsonValue& jsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -374,12 +374,12 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     yvector<yvector<double>>* testApprox)
 {
     THolder<IModelTrainer> modelTrainerHolder;
-    bool isGpuCalcerType = jsonParams["calcer_type"].GetStringSafe("CPU") == "GPU";
-    if (isGpuCalcerType && TTrainerFactory::Has(ECalcerType::GPU)) {
-        modelTrainerHolder = TTrainerFactory::Construct(ECalcerType::GPU);
+    bool isGpuDeviceType = jsonParams["device_type"].GetStringSafe("CPU") == "GPU";
+    if (isGpuDeviceType && TTrainerFactory::Has(EDeviceType::GPU)) {
+        modelTrainerHolder = TTrainerFactory::Construct(EDeviceType::GPU);
     } else {
-        CB_ENSURE(!isGpuCalcerType, "GPU Calcer not found.");
-        modelTrainerHolder = TTrainerFactory::Construct(ECalcerType::CPU);
+        CB_ENSURE(!isGpuDeviceType, "GPU Device not found.");
+        modelTrainerHolder = TTrainerFactory::Construct(EDeviceType::CPU);
     }
     modelTrainerHolder->TrainModel(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, outputModelPath, modelPtr, testApprox);
 }

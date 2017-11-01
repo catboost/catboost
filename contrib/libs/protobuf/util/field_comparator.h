@@ -30,6 +30,9 @@
 
 // Author: ksroka@google.com (Krzysztof Sroka)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #ifndef GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
 #define GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
 
@@ -256,3 +259,5 @@ class /* LIBPROTOBUF_EXPORT */ DefaultFieldComparator : public FieldComparator {
 
 }  // namespace google
 #endif  // GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
+
+#pragma clang diagnostic pop

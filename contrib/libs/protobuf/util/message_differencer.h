@@ -39,6 +39,9 @@
 // Aug. 2009: Added different options to compare repeated fields.
 // Apr. 2010: Moved field comparison to FieldComparator.
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #ifndef GOOGLE_PROTOBUF_UTIL_MESSAGE_DIFFERENCER_H__
 #define GOOGLE_PROTOBUF_UTIL_MESSAGE_DIFFERENCER_H__
 
@@ -846,3 +849,5 @@ class /* LIBPROTOBUF_EXPORT */ FieldContext {
 
 }  // namespace google
 #endif  // GOOGLE_PROTOBUF_UTIL_MESSAGE_DIFFERENCER_H__
+
+#pragma clang diagnostic pop

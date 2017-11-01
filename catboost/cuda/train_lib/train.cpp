@@ -21,7 +21,7 @@ class TGPUModelTrainer: public IModelTrainer
     }
 };
 
-TTrainerFactory::TRegistrator <TGPUModelTrainer> GPURegistrator(ECalcerType::GPU);
+TTrainerFactory::TRegistrator <TGPUModelTrainer> GPURegistrator(EDeviceType::GPU);
 
 namespace NCatboostCuda
 {

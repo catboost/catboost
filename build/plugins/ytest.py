@@ -217,6 +217,12 @@ def onadd_ytest(unit, *args):
 
     if flat_args[1] == "fuzz.test":
         unit.ondata("arcadia/fuzzing/{}/corpus.json".format(strip_roots(unit.path())))
+    elif flat_args[1] == "coverage.extractor" and (not unit.get("TESTS_REQUESTED") or not unit.get("CLANG_COVERAGE")):
+        # XXX
+        # Current ymake implementation doesn't allow to call macro inside the 'when' body
+        # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry
+        # We shouldn't add test if tests are not requested or build doesn't imply clang coverage
+        return
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:

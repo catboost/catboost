@@ -501,14 +501,14 @@ class CatBoost(_CatBoostBase):
         """
         return self._fit(X, y, cat_features, sample_weight, baseline, use_best_model, eval_set, verbose, plot)
 
-    def _predict(self, data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose):
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
-            data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
+            data = Pool(data=data, cat_features=self._get_cat_feature_indices())
         elif not np.all(sorted(data.get_cat_feature_indices()) == sorted(self._get_cat_feature_indices())):
             raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
@@ -525,7 +525,7 @@ class CatBoost(_CatBoostBase):
             predictions = np.transpose([1 - predictions, predictions])
         return predictions
 
-    def predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -533,9 +533,6 @@ class CatBoost(_CatBoostBase):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
@@ -561,16 +558,16 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def _staged_predict(self, data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
+    def _staged_predict(self, data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted_ or self.tree_count_ is None:
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
         if not isinstance(data, Pool):
-            data = Pool(data=data, weight=weight, cat_features=self._get_cat_feature_indices())
+            data = Pool(data=data, cat_features=self._get_cat_feature_indices())
         elif not np.all(sorted(data.get_cat_feature_indices()) == sorted(self._get_cat_feature_indices())):
             raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
@@ -593,7 +590,7 @@ class CatBoost(_CatBoostBase):
                     predictions = np.transpose([1 - predictions, predictions])
             yield predictions
 
-    def staged_predict(self, data, weight=None, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -601,9 +598,6 @@ class CatBoost(_CatBoostBase):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
@@ -632,7 +626,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     @property
     def feature_importances_(self):
@@ -986,7 +980,7 @@ class CatBoostClassifier(CatBoost):
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
         If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
-    calcer_type : string, [default=None]
+    device_type : string, [default=None]
         The calcer type used to train the model.
         Possible values:
             - 'CPU'
@@ -1042,7 +1036,7 @@ class CatBoostClassifier(CatBoost):
         feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
-        calcer_type=None,
+        device_type=None,
         device_config=None,
         **kwargs
     ):
@@ -1109,7 +1103,7 @@ class CatBoostClassifier(CatBoost):
             setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
-    def predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -1117,9 +1111,6 @@ class CatBoostClassifier(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         prediction_type : string, optional (default='Class')
             Can be:
@@ -1145,9 +1136,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict class probability with data.
 
@@ -1155,9 +1146,6 @@ class CatBoostClassifier(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         ntree_start: int, optional (default=0)
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -1177,9 +1165,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, 'Probability', ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, weight=None, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1187,9 +1175,6 @@ class CatBoostClassifier(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         prediction_type : string, optional (default='Class')
             Can be:
@@ -1218,9 +1203,9 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def staged_predict_proba(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict classification target at each stage for data.
 
@@ -1228,9 +1213,6 @@ class CatBoostClassifier(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         ntree_start: int, optional (default=0)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -1253,7 +1235,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def score(self, X, y):
         """
@@ -1339,7 +1321,7 @@ class CatBoostRegressor(CatBoost):
         feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
-        calcer_type=None,
+        device_type=None,
         device_config=None,
         **kwargs
     ):
@@ -1353,7 +1335,7 @@ class CatBoostRegressor(CatBoost):
                 params[key] = value
         super(CatBoostRegressor, self).__init__(params)
 
-    def predict(self, data, weight=None, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
         """
         Predict with data.
 
@@ -1361,9 +1343,6 @@ class CatBoostRegressor(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         ntree_start: int, optional (default=0)
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -1383,9 +1362,9 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, weight=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1393,9 +1372,6 @@ class CatBoostRegressor(CatBoost):
         ----------
         data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
-
-        weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
 
         ntree_start: int, optional (default=0)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -1418,7 +1394,7 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, weight, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def score(self, X, y):
         """

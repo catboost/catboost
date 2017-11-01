@@ -254,7 +254,7 @@ namespace NCatboostCuda
         ui32 PermutationBlockSize = 32;
         bool UseCpuRamForCatFeaturesFlag = false;
         ui32 IterationCount = 1000;
-        ui32 MinFoldSize = 1024;
+        ui32 MinFoldSize = 100;
         double RandomStrength = 1.0;
         double Regularization = 0.5;
         bool CalcScores = true;

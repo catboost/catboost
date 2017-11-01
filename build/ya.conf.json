@@ -727,6 +727,48 @@
                 ]
             }
         },
+        "clang50": {
+            "tools": {
+                "cc": { "bottle": "clang50", "executable": "cc" },
+                "c++": { "bottle": "clang50", "executable": "c++" },
+                "gcov": { "bottle": "clang50", "executable": "gcov" },
+                "c++filt": { "bottle": "clang50", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang50", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang50", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang50", "executable": "nm" },
+                "strip": { "bottle": "clang50", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
+                },
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "5.0",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "platform" : {
+                    "LINUX": [
+                        "contrib/libs/platform/linux"
+                    ]
+                },
+                "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib",
+                    "$OS_SDK_ROOT/usr/lib/x86_64-linux-gnu"
+                ]
+            }
+        },
         "linux-freebsd-gcc49": {
             "name": "gcc49",
             "tools": {
@@ -2121,6 +2163,24 @@
         "clang40": {
             "formula": {
                 "sandbox_id": [102658453],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "gcov": ["bin", "llvm-gcov"],
+                "c++filt": ["bin", "c++filt"],
+                "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang50": {
+            "formula": {
+                "sandbox_id": [168054294],
                 "match": "CLANG"
             },
             "executable": {

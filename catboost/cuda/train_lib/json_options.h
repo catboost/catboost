@@ -397,8 +397,8 @@ namespace NCatboostCuda
         {
             yset<TString> seenKeys;
 
-            CB_ENSURE(!src.Has("calcer_type") || (src["calcer_type"] == "GPU"), "calcer_type is CPU in GPU calcer");
-            seenKeys.insert("calcer_type");
+            CB_ENSURE(!src.Has("device_type") || (src["device_type"] == "GPU"), "device_type is CPU in GPU trainer");
+            seenKeys.insert("device_type");
 
             Insert(TOptionsJsonConverter<TApplicationOptions>::Load(src, trainCatboostOptions.ApplicationOptions),
                    seenKeys);

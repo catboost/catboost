@@ -197,7 +197,7 @@ void TFitParams::InitFromJson(const NJson::TJsonValue& tree, NJson::TJsonValue* 
     validKeys.insert("pinned_memory_size");
     validKeys.insert("permutation_count");
     validKeys.insert("device_config");
-    validKeys.insert("calcer_type");
+    validKeys.insert("device_type");
     // ====================================
 
 #define GET_FIELD(json_name, target_name, type)           \
