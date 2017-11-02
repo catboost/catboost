@@ -1,3 +1,16 @@
+# Release 0.3
+
+## Major Features And Improvements
+GPU CUDA support is available. CatBoost supports multi-GPU training. Our GPU implementation is 2 times faster then LightGBM and more then 20 times faster then XGBoost one. Check out the news with benchmarks on our [site](https://catboost.yandex/news#version_0_3).
+
+## Bug Fixes and Other Changes
+Stability improvements and bug fixes
+
+## Thanks to our Contributors
+This release contains contributions from: daskol and CatBoost team.
+
+We are grateful to all who filed issues or helped resolve them, asked and answered questions.
+
 # Release 0.2
 
 ## Breaking Changes
@@ -21,7 +34,7 @@ You can use the metrics to look how its values are changing during training or t
 * Any delimeters support: in addition to datasets in `tsv` format, CatBoost now supports files with any delimeters
 
 ## Bug Fixes and Other Changes
-* Stability improvements and bug fixes
+Stability improvements and bug fixes
 
 ## Thanks to our Contributors
 This release contains contributions from: grayskripko, hadjipantelis and CatBoost team.
