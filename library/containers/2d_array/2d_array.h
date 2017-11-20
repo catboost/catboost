@@ -1,4 +1,5 @@
 #pragma once
+
 #include <util/system/yassert.h>
 #include <util/generic/algorithm.h>
 
@@ -26,8 +27,9 @@ private:
     T** PData;
     size_t XSize;
     size_t YSize;
+
 private:
-    void Copy(const TArray2D &a) {
+    void Copy(const TArray2D& a) {
         XSize = a.XSize;
         YSize = a.YSize;
         Create();
@@ -44,16 +46,17 @@ private:
         for (size_t i = 0; i < YSize; i++)
             PData[i] = Data + i * XSize;
     }
+
 public:
     TArray2D(size_t xsize = 1, size_t ysize = 1) {
         XSize = xsize;
         YSize = ysize;
         Create();
     }
-    TArray2D(const TArray2D &a) {
+    TArray2D(const TArray2D& a) {
         Copy(a);
     }
-    TArray2D& operator =(const TArray2D &a) {
+    TArray2D& operator=(const TArray2D& a) {
         Destroy();
         Copy(a);
         return *this;
@@ -70,7 +73,7 @@ public:
         Create();
     }
     void Clear() {
-        SetSizes(1,1);
+        SetSizes(1, 1);
     }
 #ifdef _DEBUG
     TBoundCheck<T> operator[](size_t i) const {
@@ -104,8 +107,8 @@ public:
     }
 };
 
-template<class T>
-inline bool operator ==(const TArray2D<T> &a, const TArray2D<T> &b) {
+template <class T>
+inline bool operator==(const TArray2D<T>& a, const TArray2D<T>& b) {
     if (a.GetXSize() != b.GetXSize() || a.GetYSize() != b.GetYSize())
         return false;
     for (size_t y = 0; y < a.GetYSize(); ++y) {
@@ -116,7 +119,7 @@ inline bool operator ==(const TArray2D<T> &a, const TArray2D<T> &b) {
     return true;
 }
 
-template<class T>
-inline bool operator !=(const TArray2D<T> &a, const TArray2D<T> &b) {
+template <class T>
+inline bool operator!=(const TArray2D<T>& a, const TArray2D<T>& b) {
     return !(a == b);
 }

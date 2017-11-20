@@ -24,6 +24,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/data
     catboost/libs/algo
+    catboost/libs/helpers
     library/grid_creator
 )
 

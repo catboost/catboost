@@ -16,7 +16,7 @@ namespace NCudaLib {
         const static ui64 NULLPTR_HANDLE = 0;
         const static ui64 MAX_HANDLE_COUNT = 1000000;
         std::array<void*, MAX_HANDLE_COUNT> Objects;
-        yvector<ui64> FreeHandles;
+        TVector<ui64> FreeHandles;
         TAdaptiveLock Lock;
         ui64 LastFreeHandle = 0;
 
@@ -28,10 +28,10 @@ namespace NCudaLib {
             ++LastFreeHandle;
         }
 
-        yvector<ui64> GetHandle(ui64 count = 1) {
+        TVector<ui64> GetHandle(ui64 count = 1) {
             TGuard<TAdaptiveLock> guard(Lock);
 
-            yvector<ui64> result;
+            TVector<ui64> result;
             for (ui64 i = 0; i < count; ++i) {
                 if (FreeHandles.size() == 0) {
                     result.push_back(LastFreeHandle++);

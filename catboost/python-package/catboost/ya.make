@@ -18,6 +18,15 @@ ENDIF()
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/data
+    catboost/libs/fstr
+    catboost/libs/helpers
+    catboost/libs/logging
+    catboost/libs/metrics
+    catboost/libs/model
+    catboost/libs/params
+    library/containers/2d_array
+    library/json/writer
 )
 
 SRCS(helpers.cpp)

@@ -30,7 +30,7 @@ namespace NUnitTest {
                 }
 
             private:
-                yvector<TSimpleSharedPtr<IPlugin>> Plugins;
+                TVector<TSimpleSharedPtr<IPlugin>> Plugins;
             };
         } // anonymous namespace
 
@@ -46,5 +46,5 @@ namespace NUnitTest {
             TPlugins::Instance().OnStopMain(argc, argv);
         }
 
-    } // NPlugin
-} // NUnitTest
+    }
+}

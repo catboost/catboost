@@ -80,7 +80,7 @@ namespace {
         }
     };
 
-} // namespace
+}
 
 class TVariantTest: public TTestBase {
     UNIT_TEST_SUITE(TVariantTest);
@@ -310,7 +310,7 @@ private:
 
     void TestHash() {
         using TIntOrStr = TVariant<int, TString>;
-        yhash_set<TIntOrStr> set;
+        THashSet<TIntOrStr> set;
         set.insert(TIntOrStr(1));
         set.insert(TIntOrStr(2));
         set.insert(TIntOrStr(100));

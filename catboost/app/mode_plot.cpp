@@ -1,11 +1,12 @@
 #include "cmd_line.h"
 #include "proceed_pool_in_blocks.h"
 
-#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
+#include <catboost/libs/algo/plot.h>
+#include <catboost/libs/data/load_data.h>
+
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
-#include <catboost/libs/algo/plot.h>
 
 struct TModePlotParams {
     ui32 Step = 0;
@@ -64,19 +65,19 @@ int mode_plot(int argc, const char* argv[]) {
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
+    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
     if (plotParams.LastIteration == 0) {
-        plotParams.LastIteration = model.TreeStruct.size();
+        plotParams.LastIteration = model.ObliviousTrees.TreeSizes.size();
     }
     if (plotParams.Step == 0) {
         plotParams.Step = (plotParams.LastIteration - plotParams.FirstIteration) > 100 ? 10 : 1;
     }
 
-    yvector<THolder<IMetric>> metrics;
+    TVector<THolder<IMetric>> metrics;
 
     for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
         TString metricStr = TString(metricDescription.Token());
-        auto metricsBatch = CreateMetricFromDescription(metricStr, model.ApproxDimension);
+        auto metricsBatch = CreateMetricFromDescription(metricStr, model.ObliviousTrees.ApproxDimension);
         for (ui32 i = 0; i < metricsBatch.size(); ++i) {
             metrics.push_back(std::move(metricsBatch[i]));
         }

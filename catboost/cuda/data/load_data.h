@@ -61,9 +61,10 @@ namespace NCatboostCuda
             CatFeatureIds = yset<int>(metaInfo.CatFeatureIds.begin(), metaInfo.CatFeatureIds.end());
         }
 
-        TDataProviderBuilder& SetShuffleFlag(bool shuffle)
+        TDataProviderBuilder& SetShuffleFlag(bool shuffle, ui64 seed = 0)
         {
             ShuffleFlag = shuffle;
+            Seed = seed;
             return *this;
         }
 
@@ -123,7 +124,7 @@ namespace NCatboostCuda
             }
         }
 
-        void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) override
+        void AddAllFloatFeatures(ui32 localIdx, const TVector<float>& features) override
         {
             CB_ENSURE(features.ysize() == FeatureValues.ysize(),
                       "Error: number of features should be equal to factor count");
@@ -162,12 +163,12 @@ namespace NCatboostCuda
             DataProvider.DocIds[GetLineIdx(localIdx)] = StringToIntHash(value);
         };
 
-        void SetFeatureIds(const yvector<TString>& featureIds) override
+        void SetFeatureIds(const TVector<TString>& featureIds) override
         {
             FeatureNames = featureIds;
         }
 
-        void SetPairs(const yvector<TPair>& /*pairs*/) override
+        void SetPairs(const TVector<TPair>& /*pairs*/) override
         {
             CB_ENSURE(false, "This function is not implemented in cuda");
         }
@@ -175,6 +176,13 @@ namespace NCatboostCuda
         int GetDocCount() const override
         {
             CB_ENSURE(false, "This function is not implemented in cuda");
+        }
+
+        void GenerateDocIds(int offset) override
+        {
+            for (int ind = 0; ind <  DataProvider.DocIds.ysize(); ++ind) {
+                DataProvider.DocIds[ind] = offset + ind;
+            }
         }
 
         void Finish() override
@@ -188,7 +196,7 @@ namespace NCatboostCuda
 
             if (ShuffleFlag)
             {
-                TRandom random(0);
+                TRandom random(Seed);
                 if (DataProvider.QueryIds.empty())
                 {
                     MATRIXNET_INFO_LOG << "Warning: dataSet shuffle with query ids is not implemented yet";
@@ -197,6 +205,8 @@ namespace NCatboostCuda
                     Shuffle(DataProvider.Order.begin(),
                             DataProvider.Order.end(),
                             random);
+
+                    DataProvider.SetShuffleSeed(Seed);
                 }
 
                 ApplyPermutation(DataProvider.Order, DataProvider.Weights);
@@ -208,7 +218,7 @@ namespace NCatboostCuda
                 ApplyPermutation(DataProvider.Order, DataProvider.QueryIds);
                 ApplyPermutation(DataProvider.Order, DataProvider.DocIds);
             }
-            yvector<TString> featureNames;
+            TVector<TString> featureNames;
             featureNames.resize(FeatureValues.size());
 
             TAdaptiveLock lock;
@@ -216,14 +226,14 @@ namespace NCatboostCuda
             NPar::TLocalExecutor executor;
             executor.RunAdditionalThreads(BuildThreads - 1);
 
-            yvector<TFeatureColumnPtr> featureColumns(FeatureValues.size());
+            TVector<TFeatureColumnPtr> featureColumns(FeatureValues.size());
 
             if (!IsTest)
             {
                 RegisterFeaturesInFeatureManager(featureColumns);
             }
 
-            yvector<yvector<float>> grid;
+            TVector<TVector<float>> grid;
             grid.resize(FeatureValues.size());
 
             NPar::ParallelFor(executor, 0, FeatureValues.size(), [&](ui32 featureId)
@@ -236,7 +246,7 @@ namespace NCatboostCuda
                     return;
                 }
 
-                yvector<float> line(DataProvider.Order.size());
+                TVector<float> line(DataProvider.Order.size());
                 for (ui32 i = 0; i < DataProvider.Order.size(); ++i)
                 {
                     line[i] = FeatureValues[featureId][DataProvider.Order[i]];
@@ -270,7 +280,7 @@ namespace NCatboostCuda
                                                                        std::move(line),
                                                                        featureName);
 
-                    yvector<float>& borders = grid[featureId];
+                    TVector<float>& borders = grid[featureId];
 
                     if (FeaturesManager.HasFloatFeatureBorders(*floatFeature))
                     {
@@ -302,7 +312,7 @@ namespace NCatboostCuda
 
                 //Free memory
                 {
-                    auto emptyVec = yvector<float>();
+                    auto emptyVec = TVector<float>();
                     FeatureValues[featureId].swap(emptyVec);
                 }
             });
@@ -347,7 +357,7 @@ namespace NCatboostCuda
             IsDone = true;
         }
 
-        void RegisterFeaturesInFeatureManager(const yvector<TFeatureColumnPtr>& featureColumns) const
+        void RegisterFeaturesInFeatureManager(const TVector<TFeatureColumnPtr>& featureColumns) const
         {
             for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId)
             {
@@ -382,11 +392,12 @@ namespace NCatboostCuda
         TCatFeaturesPerfectHashHelper CatFeaturesPerfectHashHelper;
 
         bool ShuffleFlag = true;
+        ui64 Seed = 0;
         ui32 Cursor = 0;
         bool IsDone = false;
-        yvector<yvector<float>> FeatureValues;
+        TVector<TVector<float>> FeatureValues;
         yset<ui32> IgnoreFeatures;
-        yvector<TString> FeatureNames;
+        TVector<TString> FeatureNames;
         yset<int> CatFeatureIds;
     };
 }

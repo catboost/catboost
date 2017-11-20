@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/model/split.h>
+#include "projection.h"
 
 struct TCtr {
     Y_SAVELOAD_DEFINE(Projection, CtrIdx, TargetBorderIdx, PriorIdx);
@@ -43,12 +43,14 @@ struct THash<TCtr> {
 
 struct TSplitCandidate {
     TCtr Ctr;
-    int FeatureIdx;
+    int FeatureIdx = -1;
     ESplitType Type;
 
-    static const size_t FloatFeatureBaseHash = 12321;
-    static const size_t CtrBaseHash = 89321;
-    static const size_t OneHotFeatureBaseHash = 517931;
+    Y_SAVELOAD_DEFINE(Ctr, FeatureIdx, Type);
+
+    static const size_t FloatFeatureBaseHash;
+    static const size_t CtrBaseHash;
+    static const size_t OneHotFeatureBaseHash;
 
     size_t GetHash() const {
         if (Type == ESplitType::FloatFeature) {
@@ -68,10 +70,84 @@ struct TSplitCandidate {
     }
 };
 
+template <>
+struct THash<TSplitCandidate> {
+    inline size_t operator()(const TSplitCandidate& split) const {
+        return split.GetHash();
+    }
+};
+
+class TLearnContext;
+class TTrainData;
+
+// TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
 struct TSplit : public TSplitCandidate {
     TSplit(const TSplitCandidate& split, int border)
         : TSplitCandidate(split)
         , BinBorder(border)
     {}
+    TSplit() = default;
     int BinBorder = 0;
+
+
+
+    inline void Save(IOutputStream* s) const {
+        ::SaveMany(s, static_cast<const TSplitCandidate&>(*this), BinBorder);
+    }
+
+    inline void Load(IInputStream* s) {
+        ::LoadMany(s, static_cast<TSplitCandidate&>(*this), BinBorder);
+    }
+    TModelSplit GetModelSplit(const TLearnContext& ctx) const;
+
+    static inline float EmulateUi8Rounding(int value) {
+        return value + 0.999999f;
+    }
+};
+
+struct TSplitTree {
+    TVector<TSplit> Splits;
+
+    void AddSplit(const TSplit& split) {
+        Splits.push_back(split);
+    }
+
+    inline int GetLeafCount() const {
+        return 1 << Splits.ysize();
+    }
+
+    inline int GetDepth() const {
+        return Splits.ysize();
+    }
+    TVector<TBinFeature> GetBinFeatures() const {
+        TVector<TBinFeature> result;
+        for (const auto& split : Splits) {
+            if (split.Type == ESplitType::FloatFeature) {
+                result.push_back(TBinFeature{split.FeatureIdx, split.BinBorder});
+            }
+        }
+        return result;
+    }
+
+    TVector<TOneHotSplit> GetOneHotFeatures() const {
+        TVector<TOneHotSplit> result;
+        for (const auto& split : Splits) {
+            if (split.Type == ESplitType::OneHotFeature) {
+                result.push_back(TOneHotSplit{split.FeatureIdx, split.BinBorder});
+            }
+        }
+        return result;
+    }
+
+    TVector<TCtr> GetCtrSplits() const {
+        TVector<TCtr> result;
+        for (const auto& split : Splits) {
+            if (split.Type == ESplitType::OnlineCtr) {
+                result.push_back(split.Ctr);
+            }
+        }
+        return result;
+    }
+
+    Y_SAVELOAD_DEFINE(Splits)
 };

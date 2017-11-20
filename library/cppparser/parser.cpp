@@ -559,7 +559,7 @@ void TCppSimpleSax::DoCode(const TText& text) {
 }
 
 class TCppFullSax::TImpl {
-        typedef yhash_set<TString> TKeyWords;
+        typedef THashSet<TString> TKeyWords;
 
         class TRegExp {
             public:

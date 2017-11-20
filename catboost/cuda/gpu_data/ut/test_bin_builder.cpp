@@ -14,7 +14,7 @@ using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
     struct TTreeCtrSplit {
-        yvector<ui32> Bins;
+        TVector<ui32> Bins;
         ui32 UniqueCount = 0;
     };
 
@@ -22,8 +22,8 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         const TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
 
-        yvector<ui8> BinarizedTarget;
-        yvector<ui32> Indices;
+        TVector<ui8> BinarizedTarget;
+        TVector<ui32> Indices;
         ui32 NumClasses;
 
         TCpuTreeCtrHelper(const TBinarizedFeaturesManager& featuresManager,
@@ -54,11 +54,11 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             ymap<ui64, ui32> uniqueBins;
 
             const size_t sampleCount = DataProvider.GetSampleCount();
-            yvector<ui64> keys(sampleCount, 0);
+            TVector<ui64> keys(sampleCount, 0);
             ui32 shift = 0;
 
             for (auto split : featureTensor.GetSplits()) {
-                yvector<ui32> splitBins;
+                TVector<ui32> splitBins;
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
                     auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(DataProvider.GetFeatureById(
                         FeaturesManager.GetDataProviderId(split.FeatureId)));
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             }
 
             for (auto featureId : featureTensor.GetCatFeatures()) {
-                yvector<ui32> splitBins;
+                TVector<ui32> splitBins;
                 ui32 binarization = 0;
                 CB_ENSURE(FeaturesManager.IsCat(featureId));
 
@@ -105,7 +105,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
 
         void Split(const TBinarySplit& split,
                    ui32 depth,
-                   yvector<ui32>& bins) {
+                   TVector<ui32>& bins) {
             if (FeaturesManager.IsFloat(split.FeatureId)) {
                 auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(DataProvider.GetFeatureById(
                     FeaturesManager.GetDataProviderId(split.FeatureId)));
@@ -131,13 +131,13 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                                                 DataProvider.GetWeights(),
                                                 ctr.Configuration.Prior[0]);
 
-                yvector<ui32> featureBins;
+                TVector<ui32> featureBins;
                 if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
                     auto freqCtr = calcer.ComputeFreqCtr();
                     featureBins = BinarizeLine<ui32>(~freqCtr, +freqCtr, borders);
                 } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                     auto floatCtr = calcer.Calc(Indices, BinarizedTarget, NumClasses);
-                    yvector<float> values;
+                    TVector<float> values;
                     for (ui32 i = 0; i < treeSplit.Bins.size(); ++i) {
                         values.push_back(floatCtr[i][ctr.Configuration.ParamId]);
                     }
@@ -160,13 +160,13 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                    const TBinarizedFeaturesManager& featuresManager,
                    const TBinarySplit& split, ui32 depth,
                    const TCudaBuffer<ui32, NCudaLib::TMirrorMapping>& bins,
-                   yvector<ui32>& currentBins) {
+                   TVector<ui32>& currentBins) {
         auto& dataProvider = dataSet.GetDataProvider();
         auto& permutation = dataSet.GetPermutation();
 
         TCpuTreeCtrHelper helper(featuresManager, dataProvider, permutation);
         helper.Split(split, depth, currentBins);
-        yvector<ui32> gpuBins;
+        TVector<ui32> gpuBins;
         bins.Read(gpuBins);
         for (ui32 i = 0; i < currentBins.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(currentBins[i], gpuBins[i]);
@@ -204,7 +204,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                  dataProviderBuilder.SetShuffleFlag(false));
 
         {
-            yvector<float> prior = {0.5};
+            TVector<float> prior = {0.5};
             featuresManager.EnableCtrType(ECtrType::Buckets, prior);
             featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
         }
@@ -214,10 +214,10 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
-        yvector<ui32> oneHotIds;
-        yvector<ui32> catIds;
-        yvector<ui32> binaryIds;
-        yvector<ui32> floatIds;
+        TVector<ui32> oneHotIds;
+        TVector<ui32> catIds;
+        TVector<ui32> binaryIds;
+        TVector<ui32> floatIds;
         for (ui32 id : featuresManager.GetCatFeatureIds()) {
             if (featuresManager.UseForOneHotEncoding(id)) {
                 oneHotIds.push_back(id);
@@ -233,9 +233,9 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             }
         }
 
-        yvector<ui32> simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetPermutationFeatures().ComputeAllFeatureIds();
+        TVector<ui32> simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetPermutationFeatures().ComputeAllFeatureIds();
 
-        yvector<TBinarySplit> splits;
+        TVector<TBinarySplit> splits;
         TBinarySplit firstSplit = TBinarySplit(floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater);
         TBinarySplit secondSplit = TBinarySplit(binaryIds[random.NextUniformL() % binaryIds.size()], 0, EBinSplitType::TakeGreater);
         splits.push_back(firstSplit);
@@ -255,7 +255,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             }
         }
         {
-            yvector<float> naiveBorders;
+            TVector<float> naiveBorders;
             for (ui32 i = 0; i < 8; ++i) {
                 naiveBorders.push_back(i * 1.0 / 8);
             }
@@ -285,7 +285,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                     TTreeUpdater<TDataSet<>> treeBuilder(cacheHolder, featuresManager,
                                                          dataSet.GetCtrTargets(), ds,
                                                          bins);
-                    yvector<ui32> currentBinsCpu;
+                    TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);
 
                     for (ui32 i = 0; i < splits.size(); ++i) {
@@ -314,7 +314,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                                                          dataSet.GetCtrTargets(), ds,
                                                          bins);
 
-                    yvector<ui32> currentBinsCpu;
+                    TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);
 
                     for (ui32 i = 0; i < splits.size(); ++i) {
@@ -337,9 +337,9 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         TRandom random(0);
         ui32 size = 115322;
         auto vec = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(size));
-        yvector<float> ref;
+        TVector<float> ref;
         float border = 0.3;
-        yvector<ui32> refBits;
+        TVector<ui32> refBits;
         for (ui32 i = 0; i < size; ++i) {
             ref.push_back(random.NextUniform());
             refBits.push_back(ref.back() > border);
@@ -349,7 +349,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         auto decompressedBits = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(size));
         CreateCompressedSplitFloat(vec, border, compressedBits);
         Decompress(compressedBits, decompressedBits, 2);
-        yvector<ui32> bins;
+        TVector<ui32> bins;
         decompressedBits.Read(bins);
         for (ui32 i = 0; i < size; ++i) {
             UNIT_ASSERT_EQUAL(bins[i], refBits[i]);

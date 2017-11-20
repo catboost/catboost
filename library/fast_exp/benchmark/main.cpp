@@ -9,7 +9,7 @@
 #include <cmath>
 
 namespace {
-    struct TData: public yvector<double> {
+    struct TData: public TVector<double> {
         inline TData() {
             for (size_t i = 0; i < 10000000; ++i) {
                 push_back(RandomNumber<double>() * 10);

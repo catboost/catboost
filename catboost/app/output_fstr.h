@@ -1,13 +1,13 @@
 #pragma once
 
-#include <catboost/libs/algo/calc_fstr.h>
+#include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/fstr/doc_fstr.h>
 
 #include <util/stream/file.h>
 
 inline void OutputFstr(const TFeaturesLayout& layout,
-                       const yvector<std::pair<double, TFeature>>& effect,
+                       const TVector<std::pair<double, TFeature>>& effect,
                        const TString& path) {
     TFileOutput out(path);
     for (const auto& effectWithSplit : effect) {
@@ -16,7 +16,7 @@ inline void OutputFstr(const TFeaturesLayout& layout,
 }
 
 inline void OutputRegularFstr(const TFeaturesLayout& layout,
-                              const yvector<TFeatureEffect>& regularEffect,
+                              const TVector<TFeatureEffect>& regularEffect,
                               const TString& path) {
     TFileOutput out(path);
     for (const auto& initialFeatureScore : regularEffect) {
@@ -28,7 +28,7 @@ inline void OutputRegularFstr(const TFeaturesLayout& layout,
 }
 
 inline void OutputInteraction(const TFeaturesLayout& layout,
-                       const yvector<TInternalFeatureInteraction>& interactionValues,
+                       const TVector<TInternalFeatureInteraction>& interactionValues,
                        const TString& path) {
     TFileOutput out(path);
     for (const auto& interaction : interactionValues) {
@@ -38,7 +38,7 @@ inline void OutputInteraction(const TFeaturesLayout& layout,
 }
 
 inline void OutputRegularInteraction(const TFeaturesLayout& layout,
-                              const yvector<TFeatureInteraction>& interactionValues,
+                              const TVector<TFeatureInteraction>& interactionValues,
                               const TString& path) {
     TFileOutput out(path);
     for (const auto& interaction : interactionValues) {
@@ -52,7 +52,7 @@ inline void OutputRegularInteraction(const TFeaturesLayout& layout,
     }
 }
 
-inline void OutputFeatureImportanceMatrix(const yvector<yvector<double>>& featureImportance,
+inline void OutputFeatureImportanceMatrix(const TVector<TVector<double>>& featureImportance,
                                           const TString& path) {
     Y_ASSERT(!featureImportance.empty());
     TFileOutput out(path);
@@ -76,13 +76,13 @@ inline void CalcAndOutputFstr(const TFullModel& model,
     int floatFeaturesCount = featureCount - catFeaturesCount;
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
-    yvector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool, threadCount);
+    TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool, threadCount);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
         OutputFstr(layout, internalEffect, *internalFstrPath);
     }
 
     if (regularFstrPath != nullptr && !regularFstrPath->empty()) {
-        yvector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(internalEffect, catFeaturesCount, floatFeaturesCount);
+        TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(internalEffect, catFeaturesCount, floatFeaturesCount);
         OutputRegularFstr(layout, regularEffect, *regularFstrPath);
     }
 }
@@ -95,13 +95,13 @@ inline void CalcAndOutputInteraction(const TFullModel& model,
     int featureCount = pool.Docs.GetFactorsCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
-    yvector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
+    TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     if (internalFstrPath != nullptr) {
         OutputInteraction(layout, internalInteraction, *internalFstrPath);
     }
 
     if (regularFstrPath != nullptr) {
-        yvector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
+        TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
         OutputRegularInteraction(layout, interaction, *regularFstrPath);
     }
 }
@@ -114,6 +114,6 @@ inline void CalcAndOutputDocFstr(const TFullModel& model,
     int featureCount = pool.Docs.GetFactorsCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
-    yvector<yvector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);
+    TVector<TVector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);
     OutputFeatureImportanceMatrix(effect, docFstrPath);
 }

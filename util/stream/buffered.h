@@ -217,7 +217,6 @@ public:
         : TSlaveBase(std::forward<Args>(args)...)
         , TAdaptiveBufferedOutput(TSlaveBase::Ptr())
     {
-        this->SetFinishPropagateMode(true);
     }
 };
 

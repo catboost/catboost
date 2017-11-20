@@ -70,12 +70,7 @@ namespace NCatboostCuda
             GET_FIELD(gpu_ram_part, options.ApplicationConfig.GpuMemoryPartByWorker, Double)
             GET_FIELD(pinned_memory_size, options.ApplicationConfig.PinnedMemorySize, Integer)
             GET_FIELD(device_config, options.ApplicationConfig.DeviceConfig, String)
-
-            bool verboseFlag = false;
-            GET_FIELD(verbose, verboseFlag, Boolean)
-            if (verboseFlag) {
-                options.LoggingLevel = ELoggingLevel::Verbose;
-            }
+            GET_ENUM_FIELD(logging_level, options.LoggingLevel, ELoggingLevel)
 
             return validKeys;
         }
@@ -87,6 +82,7 @@ namespace NCatboostCuda
             dst["gpu_ram_part"] = options.ApplicationConfig.GpuMemoryPartByWorker;
             dst["pinned_memory_size"] = options.ApplicationConfig.PinnedMemorySize;
             dst["device_config"] = options.ApplicationConfig.DeviceConfig;
+            dst["logging_level"] = ToString<ELoggingLevel>(options.LoggingLevel);
         }
     };
 
@@ -209,7 +205,7 @@ namespace NCatboostCuda
 
             GET_FIELD(max_ctr_complexity, featureManagerOptions.MaxTensorComplexity, Integer)
             GET_FIELD(one_hot_max_size, featureManagerOptions.OneHotLimit, Integer)
-            yvector<int> ignoredFeatures;
+            TVector<int> ignoredFeatures;
             GET_VECTOR_FIELD(ignored_features, ignoredFeatures, Integer)
             for (auto f : ignoredFeatures) {
                 featureManagerOptions.IgnoredFeatures.insert(f);
@@ -397,8 +393,8 @@ namespace NCatboostCuda
         {
             yset<TString> seenKeys;
 
-            CB_ENSURE(!src.Has("device_type") || (src["device_type"] == "GPU"), "device_type is CPU in GPU trainer");
-            seenKeys.insert("device_type");
+            CB_ENSURE(!src.Has("task_type") || (src["task_type"] == "GPU"), "task_type is CPU in GPU trainer");
+            seenKeys.insert("task_type");
 
             Insert(TOptionsJsonConverter<TApplicationOptions>::Load(src, trainCatboostOptions.ApplicationOptions),
                    seenKeys);

@@ -140,7 +140,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
             file.Close();
 
             // Make 16 maps of our file, which would require 16*128M = 2Gb and exceed our 1Gb limit
-            yvector<TAutoPtr<TFileMap>> maps;
+            TVector<TAutoPtr<TFileMap>> maps;
 
             for (int i = 0; i < 16; ++i) {
                 maps.push_back(TAutoPtr<TFileMap>(new TFileMap(FileName_, TMemoryMapCommon::oRdOnly | TMemoryMapCommon::oNotGreedy)));

@@ -325,8 +325,8 @@ void TOpts::PrintUsage(const TStringBuf& program, IOutputStream& osIn, const NCo
 
     PrintCmdLine(program, os, colors);
 
-    yvector<TString> leftColumn(Opts_.size());
-    yvector<size_t> leftColumnSizes(leftColumn.size());
+    TVector<TString> leftColumn(Opts_.size());
+    TVector<size_t> leftColumnSizes(leftColumn.size());
     size_t leftWidth = 0;
     size_t requiredOptionsCount = 0;
     NColorizer::TColors disabledColors(false);
@@ -384,7 +384,7 @@ void TOpts::PrintUsage(const TStringBuf& program, IOutputStream& osIn, const NCo
 
             bool multiLineHelp = false;
             if (!opt->GetHelp().empty()) {
-                yvector<TStringBuf> helpLines;
+                TVector<TStringBuf> helpLines;
                 Split(opt->GetHelp(), "\n", helpLines);
                 multiLineHelp = (helpLines.size() > 1);
                 os << helpLines[0];

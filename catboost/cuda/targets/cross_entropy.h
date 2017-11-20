@@ -63,7 +63,7 @@ namespace NCatboostCuda
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const
         {
-            yvector<float> result;
+            TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
             Approximate(GetTarget(),

@@ -33,7 +33,7 @@ template <class T, class TMapping>
 inline T ReadLast(const TCudaBuffer<T, TMapping>& data, ui32 stream = 0) {
     Y_ASSERT(data.GetObjectsSlice().Size());
 
-    yvector<ui32> resVec;
+    TVector<ui32> resVec;
     NCudaLib::TCudaBufferReader<TCudaBuffer<T, TMapping>> reader(data);
     auto dataSlice = data.GetObjectsSlice();
     reader.SetReadSlice(TSlice(dataSlice.Right - 1, dataSlice.Right))
@@ -57,7 +57,7 @@ inline TString Printable(ui8 val) {
 template <class TBuffer>
 inline void Dump(const TBuffer& data, TString message, ui32 size = 100) {
     using T = typename std::remove_const<typename TBuffer::TValueType>::type;
-    yvector<T> res;
+    TVector<T> res;
     data.CreateReader().SetReadSlice(TSlice(0, size)).Read(res);
     Cout << message << Endl;
     Cout << "Size:  " << data.GetMapping().GetObjectsSlice().Size() << Endl;
@@ -71,7 +71,7 @@ inline void Dump(const TBuffer& data, TString message, ui32 size = 100) {
 template <class TBuffer>
 inline void DumpToFile(const TBuffer& data, TString file) {
     using T = typename std::remove_const<typename TBuffer::TValueType>::type;
-    yvector<T> res;
+    TVector<T> res;
     data.CreateReader().Read(res);
     TOFStream out(file);
     for (auto& val : res) {
@@ -82,7 +82,7 @@ inline void DumpToFile(const TBuffer& data, TString file) {
 template <class TBuffer>
 inline ui64 DumpHash(const TBuffer& data, TString message) {
     using T = typename std::remove_const<typename TBuffer::TValueType>::type;
-    yvector<T> res;
+    TVector<T> res;
     data.CreateReader().Read(res);
     Cout << message << Endl;
     Cout << "Size:  " << data.GetMapping().GetObjectsSlice().Size() << Endl;
@@ -95,7 +95,7 @@ inline ui64 DumpHash(const TBuffer& data, TString message) {
 template <class TBuffer>
 inline ui64 GetHash(const TBuffer& data) {
     using T = typename TBuffer::TValueType;
-    yvector<T> res;
+    TVector<T> res;
     data.CreateReader().Read(res);
     return VecCityHash(res);
 };
@@ -110,7 +110,7 @@ inline void DumpPtr(const TCudaBuffer<T, TMapping>& data,
 template <class TBuffer>
 inline void DumpCast(const TBuffer& data, TString message, ui32 size = 16) {
     using T = typename std::remove_const<typename TBuffer::TValueType>::type;
-    yvector<T> res;
+    TVector<T> res;
     data.Read(res);
     Cout << message << Endl;
     Cout << "Size:  " << data.GetMapping().GetObjectsSlice().Size() << Endl;

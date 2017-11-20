@@ -196,7 +196,7 @@ const char *Opt2::Arg(char opt, const char *help, TString def, bool required) {
 }
 
 // Options with parameters that can be specified several times
-const yvector<const char*> &Opt2::MArg(char opt, const char *help) {
+const TVector<const char*> &Opt2::MArg(char opt, const char *help) {
     Opt2Param &p = GetInternal(opt, nullptr, help, false);
     p.MultipleUse = true;
     if (!p.HasArg)

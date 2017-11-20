@@ -73,7 +73,7 @@ namespace NVariant {
         T* const Var_;
     };
 
-} // namespace NVariant
+}
 
 template <class... Ts>
 struct THash< ::TVariant<Ts...>> {

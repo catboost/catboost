@@ -236,7 +236,7 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
  *     std::false_type,
  * >;
  *
- * static_assert(TIsAssocCont<yvector<int>>::value == false, "");
+ * static_assert(TIsAssocCont<TVector<int>>::value == false, "");
  * static_assert(TIsAssocCont<yhash<int>>::value == true, "");
  * @endcode
  */

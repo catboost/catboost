@@ -47,7 +47,7 @@ namespace NPowerHash2 {
         }
     }
 
-    extern yvector<TFastPowTable> FastPowTable;
+    extern TVector<TFastPowTable> FastPowTable;
 
     // if we take low bits of this number we will often get a prime number
     // there are no 111 and 000 patterns in binary representation of this number

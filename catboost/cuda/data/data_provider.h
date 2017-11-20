@@ -16,6 +16,15 @@ namespace NCatboostCuda
             return GetSampleCount() == 0;
         }
 
+        void SetShuffleSeed(ui64 seed)  {
+            IsShuffledFlag = true;
+            ShuffleSeed = seed;
+
+        }
+        ui64 GetShuffleSeed() const {
+            return ShuffleSeed;
+        }
+
         size_t GetEffectiveFeatureCount() const
         {
             return Features.size();
@@ -64,17 +73,17 @@ namespace NCatboostCuda
             return this;
         }
 
-        const yvector<float>& GetTargets() const
+        const TVector<float>& GetTargets() const
         {
             return Targets;
         }
 
-        const yvector<float>& GetWeights() const
+        const TVector<float>& GetWeights() const
         {
             return Weights;
         }
 
-        const yvector<ui32>& GetQueryIds() const
+        const TVector<ui32>& GetQueryIds() const
         {
             if (QueryIds.size() != Targets.size())
             {
@@ -84,7 +93,7 @@ namespace NCatboostCuda
             return QueryIds;
         }
 
-        const yvector<yvector<ui32>>& GetQueries() const
+        const TVector<TVector<ui32>>& GetQueries() const
         {
             if (QueryIds.size() != Targets.size())
             {
@@ -99,7 +108,7 @@ namespace NCatboostCuda
             return GetQueryIds()[GetQueries()[line][0]];
         }
 
-        const yvector<TString>& GetFeatureNames() const
+        const TVector<TString>& GetFeatureNames() const
         {
             return FeatureNames;
         }
@@ -114,22 +123,22 @@ namespace NCatboostCuda
             return Baseline.size() && Baseline[0].size() == GetSampleCount();
         }
 
-        const yvector<float>& GetBaseline() const
+        const TVector<float>& GetBaseline() const
         {
             return Baseline[0];
         }
 
     private:
-        yvector<TFeatureColumnPtr> Features;
+        TVector<TFeatureColumnPtr> Features;
 
-        yvector<ui32> Order;
-        yvector<ui32> QueryIds;
-        yvector<yvector<ui32>> Queries;
+        TVector<ui32> Order;
+        TVector<ui32> QueryIds;
+        TVector<TVector<ui32>> Queries;
 
-        yvector<ui32> DocIds;
-        yvector<float> Targets;
-        yvector<float> Weights;
-        yvector<yvector<float>> Baseline;
+        TVector<ui32> DocIds;
+        TVector<float> Targets;
+        TVector<float> Weights;
+        TVector<TVector<float>> Baseline;
 
         ymap<ui32, ui32> IndicesToLocalIndicesRemap;
 
@@ -145,8 +154,11 @@ namespace NCatboostCuda
         }
 
         //for cpu model conversion
-        yvector<TString> FeatureNames;
+        TVector<TString> FeatureNames;
         yset<int> CatFeatureIds;
+
+        ui64 ShuffleSeed = 0;
+        bool IsShuffledFlag = false;
 
         friend class TDataProviderBuilder;
 

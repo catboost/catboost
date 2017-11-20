@@ -24,7 +24,7 @@ namespace NCudaLib {
         }
 
         ui64 OptimalNumBlockSize(ui64 dataSize,
-                                 const yvector<ui32>& devices) const {
+                                 const TVector<ui32>& devices) const {
             if (devices.size() <= 1) {
                 return 1;
             }
@@ -59,7 +59,7 @@ namespace NCudaLib {
         }
 
         void BroadcastSlice(const TSlice& slice, ui32 device,
-                            const yvector<ui32>& devices) {
+                            const TVector<ui32>& devices) {
             auto& cudaManager = GetCudaManager();
             cudaManager.SyncStream(Stream);
             const auto& srcMapping = Src.GetMapping();
@@ -160,16 +160,16 @@ namespace NCudaLib {
             }
         };
 
-        yvector<TBroadcastTask> GetSrcSlicesByDevices(const TSlice& slice) {
-            yvector<TSlice> currentSlices;
+        TVector<TBroadcastTask> GetSrcSlicesByDevices(const TSlice& slice) {
+            TVector<TSlice> currentSlices;
             currentSlices.push_back(slice);
             const auto& srcMapping = Src.GetMapping();
 
-            yvector<TBroadcastTask> tasks;
+            TVector<TBroadcastTask> tasks;
             for (ui32 dev : Src.NonEmptyDevices()) {
                 const TSlice devSlice = srcMapping.DeviceSlice(dev);
 
-                yvector<TSlice> nextCurrent;
+                TVector<TSlice> nextCurrent;
 
                 for (auto current : currentSlices) {
                     auto intersection = TSlice::Intersection(devSlice, current);
@@ -215,7 +215,7 @@ namespace NCudaLib {
             const auto& srcMapping = Src.GetMapping();
             const auto& dstMapping = Dst.GetMapping();
 
-            yvector<ui32> writeDevices;
+            TVector<ui32> writeDevices;
             std::vector<TBroadcastTask> tasks;
 
             for (const auto dev : Dst.NonEmptyDevices()) {
@@ -270,7 +270,7 @@ namespace NCudaLib {
                     }
                 }
 
-                yvector<ui32> devicesToBroadcast;
+                TVector<ui32> devicesToBroadcast;
 
                 for (ui32 i = 0; i < tasks.size(); ++i) {
                     TSlice taskSlice = tasks[i].Slice;
@@ -287,7 +287,7 @@ namespace NCudaLib {
                 CB_ENSURE(!broadcastSlice.IsEmpty());
                 Y_ASSERT(devicesToBroadcast.size() == yset<ui32>(devicesToBroadcast.begin(), devicesToBroadcast.end()).size());
 
-                yvector<TBroadcastTask> slices = GetSrcSlicesByDevices(broadcastSlice);
+                TVector<TBroadcastTask> slices = GetSrcSlicesByDevices(broadcastSlice);
                 CB_ENSURE(slices.size());
                 for (auto broadcastTask : slices) {
                     BroadcastSlice(broadcastTask.Slice, broadcastTask.Device, devicesToBroadcast);

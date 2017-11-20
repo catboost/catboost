@@ -8,9 +8,9 @@ namespace NCatboostCuda
     {
         double Value = 0.0;
 
-        yvector<float> Point;
-        yvector<float> Gradient;
-        yvector<float> Hessian;
+        TVector<float> Point;
+        TVector<float> Gradient;
+        TVector<float> Hessian;
 
         TPointwiseDescentPoint(ui32 partCount)
         {
@@ -24,7 +24,7 @@ namespace NCatboostCuda
             Hessian.resize(leafCount);
         }
 
-        const yvector<float>& GetCurrentPoint() const
+        const TVector<float>& GetCurrentPoint() const
         {
             return Point;
         }
@@ -48,8 +48,8 @@ namespace NCatboostCuda
 
     public:
         TSimpleStepEstimator(const double functionValue,
-                             const yvector<float>& gradient,
-                             const yvector<float>& direction)
+                             const TVector<float>& gradient,
+                             const TVector<float>& direction)
                 : FunctionValue(functionValue)
         {
             (void) gradient;
@@ -58,7 +58,7 @@ namespace NCatboostCuda
 
         bool IsSatisfied(double,
                          double nextFuncValue,
-                         const yvector<float>&) const
+                         const TVector<float>&) const
         {
             return FunctionValue <= nextFuncValue;
         }
@@ -70,14 +70,14 @@ namespace NCatboostCuda
         const double C = 1e-5;
 
         double FunctionValue;
-        const yvector<float>& Gradient;
-        const yvector<float>& Direction;
+        const TVector<float>& Gradient;
+        const TVector<float>& Direction;
         double DirGradDot;
 
     public:
         TArmijoStepEstimation(const double functionValue,
-                              const yvector<float>& gradient,
-                              const yvector<float>& direction)
+                              const TVector<float>& gradient,
+                              const TVector<float>& direction)
                 : FunctionValue(functionValue)
                   , Gradient(gradient)
                   , Direction(direction)
@@ -91,7 +91,7 @@ namespace NCatboostCuda
 
         bool IsSatisfied(double step,
                          double nextFuncValue,
-                         const yvector<float>& nextFuncGradient) const
+                         const TVector<float>& nextFuncGradient) const
         {
             double directionNextGradDot = 0;
             for (ui32 i = 0; i < Gradient.size(); ++i)
@@ -122,7 +122,7 @@ namespace NCatboostCuda
             UpdateMoveDirection();
         }
 
-        const yvector<float>& GetDirection()
+        const TVector<float>& GetDirection()
         {
             return MoveDirection;
         }
@@ -132,7 +132,7 @@ namespace NCatboostCuda
             return CurrentPoint;
         }
 
-        void MoveInOptimalDirection(yvector<float>& point,
+        void MoveInOptimalDirection(TVector<float>& point,
                                     double step) const
         {
             point.resize(CurrentPoint.Point.size());
@@ -159,7 +159,7 @@ namespace NCatboostCuda
 
     private:
         TPointwiseDescentPoint CurrentPoint;
-        yvector<float> MoveDirection;
+        TVector<float> MoveDirection;
     };
 
     template<class TOracle,
@@ -179,7 +179,7 @@ namespace NCatboostCuda
         {
         }
 
-        inline yvector<float> Estimate(const yvector<float>& startPoint)
+        inline TVector<float> Estimate(const TVector<float>& startPoint)
         {
             const ui32 dim = (const ui32) startPoint.size();
 
@@ -194,7 +194,7 @@ namespace NCatboostCuda
 
             if (Iterations == 1)
             {
-                yvector<float> result;
+                TVector<float> result;
                 estimator.MoveInOptimalDirection(result, 1.0);
                 return result;
             }

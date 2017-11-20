@@ -14,8 +14,8 @@ void FunctionUsingEFwdEnum(EFwdEnum) {
 }
 
 // fwd
-const yvector<TString>& EDuplicateKeysAllCppNames();
-const yvector<TString>& ESimpleWithCommaAllCppNames();
+const TVector<TString>& EDuplicateKeysAllCppNames();
+const TVector<TString>& ESimpleWithCommaAllCppNames();
 
 
 SIMPLE_UNIT_TEST_SUITE(TEnumGeneratorTest) {

@@ -1,0 +1,32 @@
+include "ctr_data.fbs";
+
+namespace NCatBoostFbs;
+
+table TKeyValue {
+    Key:string (required, key);
+    Value:string (required);
+}
+//
+table TObliviousTrees {
+    ApproxDimension:int;
+    TreeSplits:[int];
+    TreeSizes:[int];
+    TreeStartOffsets:[int]; // unnessesary, but useful for zero copy loaded model
+
+    CatFeatures:[TCatFeature];
+    FloatFeatures:[TFloatFeature];
+    OneHotFeatures:[TOneHotFeature];
+    CtrFeatures:[TCtrFeature];
+
+    LeafValues:[double];
+}
+
+table TModelCore {
+    FormatVersion:string;
+    ObliviousTrees:TObliviousTrees;
+    InfoMap:[TKeyValue];
+
+    ModelPartIds:[string]; // contains info about model structures, laying after ModelCore
+}
+
+root_type TModelCore;

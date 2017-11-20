@@ -7,8 +7,8 @@
 namespace NCudaLib {
     class TCudaEventsProvider {
     private:
-        yvector<cudaEvent_t> FreeHandles;
-        yvector<cudaEvent_t> FreeHandlesWithoutTiming;
+        TVector<cudaEvent_t> FreeHandles;
+        TVector<cudaEvent_t> FreeHandlesWithoutTiming;
         static const ui64 RequestHandlesBatchSize = 16;
         TSpinLock Lock;
 

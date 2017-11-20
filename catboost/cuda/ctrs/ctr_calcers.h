@@ -17,7 +17,7 @@
 namespace NCatboostCuda
 {
     template<class T>
-    inline yvector<T> SingletonVector(const T& value)
+    inline TVector<T> SingletonVector(const T& value)
     {
         return {value};
     }
@@ -106,7 +106,7 @@ namespace NCatboostCuda
         }
 
         template<class TVisitor>
-        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const yvector<TCtrConfig>& ctrConfigs,
+        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const TVector<TCtrConfig>& ctrConfigs,
                                                    TVisitor&& visitor)
         {
             CB_ENSURE(BinarizedSample.GetObjectsSlice().Size() == Indices.GetObjectsSlice().Size());
@@ -159,7 +159,7 @@ namespace NCatboostCuda
         }
 
         template<class TVisitor>
-        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtrs(const yvector<TCtrConfig>& ctrConfigs,
+        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtrs(const TVector<TCtrConfig>& ctrConfigs,
                                                           TVisitor&& visitor)
         {
             CB_ENSURE(WeightedSample.GetObjectsSlice().Size() == Indices.GetObjectsSlice().Size());
@@ -267,7 +267,7 @@ namespace NCatboostCuda
 
         template<class TUint32, class TVisitor>
         TWeightedBinFreqCalcer& VisitEqualUpToPriorFreqCtrs(const TCudaBuffer<TUint32, TMapping>& indices,
-                                                            const yvector<TCtrConfig>& ctrConfigs,
+                                                            const TVector<TCtrConfig>& ctrConfigs,
                                                             TVisitor&& visitor)
         {
             //TODO(noxoomo): change tempFlags to ui8

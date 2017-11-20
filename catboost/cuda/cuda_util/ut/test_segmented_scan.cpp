@@ -24,8 +24,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto output = TSingleBuffer<ui32>::CopyMapping(input);
                 auto flags = TSingleBuffer<ui32>::CopyMapping(input);
 
-                yvector<ui32> data(size);
-                yvector<ui32> flagsCpu(size);
+                TVector<ui32> data(size);
+                TVector<ui32> flagsCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniformL() % 10000;
@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 flags.Write(flagsCpu);
 
                 SegmentedScanVector(input, flags, output);
-                yvector<ui32> result;
+                TVector<ui32> result;
                 output.Read(result);
 
                 ui32 prefixSum = 0;
@@ -89,8 +89,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto output = TSingleBuffer<ui32>::CopyMapping(input);
                 auto flags = TSingleBuffer<ui32>::CopyMapping(input);
 
-                yvector<ui32> data(size);
-                yvector<ui32> flagsCpu(size);
+                TVector<ui32> data(size);
+                TVector<ui32> flagsCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniformL() % 10000;
@@ -106,7 +106,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 flags.Write(flagsCpu);
 
                 SegmentedScanVector(input, flags, output, false, 1 << 31);
-                yvector<ui32> result;
+                TVector<ui32> result;
                 output.Read(result);
 
                 ui32 prefixSum = 0;
@@ -153,8 +153,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto input = TSingleBuffer<float>::Create(mapping);
                 auto output = TSingleBuffer<float>::CopyMapping(input);
 
-                yvector<float> data(size);
-                yvector<ui32> flagsCpu(size);
+                TVector<float> data(size);
+                TVector<ui32> flagsCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return 1.0 / (1 << (rand.NextUniformL() % 10));
@@ -173,7 +173,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 }
 
                 input.Write(data);
-                yvector<float> result;
+                TVector<float> result;
                 //
                 float prefixSum = 0;
 
@@ -208,8 +208,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto input = TSingleBuffer<float>::Create(mapping);
                 auto output = TSingleBuffer<float>::CopyMapping(input);
 
-                yvector<float> data(size);
-                yvector<ui32> indicesCpu(size);
+                TVector<float> data(size);
+                TVector<ui32> indicesCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return 1.0 / (1 << (rand.NextUniformL() % 10));
@@ -234,7 +234,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 indices.Write(indicesCpu);
                 input.Write(data);
 
-                yvector<float> result;
+                TVector<float> result;
 
                 SegmentedScanAndScatterNonNegativeVector(input, indices, output, false);
                 output.Read(result);
@@ -289,8 +289,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto input = TSingleBuffer<float>::Create(mapping);
                 auto output = TSingleBuffer<float>::CopyMapping(input);
 
-                yvector<float> data(size);
-                yvector<ui32> flagsCpu(size);
+                TVector<float> data(size);
+                TVector<ui32> flagsCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniformL() % 10000;
@@ -336,8 +336,8 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 auto output = TSingleBuffer<ui32>::CopyMapping(input);
                 auto flags = TSingleBuffer<ui32>::CopyMapping(input);
 
-                yvector<ui32> data(size);
-                yvector<ui32> flagsCpu(size);
+                TVector<ui32> data(size);
+                TVector<ui32> flagsCpu(size);
 
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniformL() % 10000;

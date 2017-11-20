@@ -194,10 +194,10 @@ public:
 
     using TBase::Days;
     using TBase::Hours;
+    using TBase::MicroSeconds;
+    using TBase::MilliSeconds;
     using TBase::Minutes;
     using TBase::Seconds;
-    using TBase::MilliSeconds;
-    using TBase::MicroSeconds;
 
     /// DeadLineFromTimeOut
     inline TInstant ToDeadLine() const;
@@ -286,10 +286,10 @@ public:
 
     using TBase::Days;
     using TBase::Hours;
+    using TBase::MicroSeconds;
+    using TBase::MilliSeconds;
     using TBase::Minutes;
     using TBase::Seconds;
-    using TBase::MilliSeconds;
-    using TBase::MicroSeconds;
 
     static constexpr TInstant Max() noexcept {
         return TInstant(::Max<TValue>());

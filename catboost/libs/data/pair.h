@@ -3,10 +3,13 @@
 struct TPair {
     int WinnerId;
     int LoserId;
+    float Weight;
 
-    TPair(int winnerId, int loserId)
+    TPair(int winnerId, int loserId, float weight)
         : WinnerId(winnerId)
-        , LoserId(loserId) {
+        , LoserId(loserId)
+        , Weight(weight)
+    {
     }
 };
 

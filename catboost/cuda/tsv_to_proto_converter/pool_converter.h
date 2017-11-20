@@ -25,13 +25,13 @@
 namespace NCatboostCuda
 {
     template<class T, template<class U> class TField>
-    inline void VectorToProto(const yvector<T>& src, TField<T>* dst)
+    inline void VectorToProto(const TVector<T>& src, TField<T>* dst)
     {
         *dst = TField<T>(src.begin(), src.end());
     }
 
     inline void
-    SetBinarizedData(NCompressedPool::TFeatureColumn& column, const yvector<ui64>& data, ui32 bitsPerKey, ui32 len)
+    SetBinarizedData(NCompressedPool::TFeatureColumn& column, const TVector<ui64>& data, ui32 bitsPerKey, ui32 len)
     {
         VectorToProto(data, column.MutableBinarizedColumn()->MutableData());
         column.MutableBinarizedColumn()->SetBitsPerKey(bitsPerKey);
@@ -39,7 +39,7 @@ namespace NCatboostCuda
     }
 
     template<class TColumn>
-    inline void SetBorders(TColumn& column, const yvector<float>& borders)
+    inline void SetBorders(TColumn& column, const TVector<float>& borders)
     {
         VectorToProto(borders, column.MutableBinarization()->MutableBorders());
     }
@@ -49,7 +49,7 @@ namespace NCatboostCuda
     public:
         TSplittedByColumnsTempPool(const TString& tempDir,
                                    const TString& pool,
-                                   const yvector<TColumn>& columnDescription)
+                                   const TVector<TColumn>& columnDescription)
                 : TempDir(tempDir)
                   , ColumnsDescription(columnDescription)
         {
@@ -58,7 +58,7 @@ namespace NCatboostCuda
         }
 
         void ReadColumn(ui32 column,
-                        yvector<TString>& dst)
+                        TVector<TString>& dst)
         {
             CB_ENSURE(SplitDone);
             CB_ENSURE(column < Columns.size());
@@ -85,7 +85,7 @@ namespace NCatboostCuda
             Y_ENSURE(columnCount >= (ui32) ReadColumnsCount(pool), "Error: found too many columns in cd-file");
             MakeTempFiles(columnCount);
 
-            yvector<THolder<TOFStream>> outputs;
+            TVector<THolder<TOFStream>> outputs;
 
             for (ui32 i = 0; i < Columns.size(); ++i)
             {
@@ -97,13 +97,13 @@ namespace NCatboostCuda
             }
 
             TIFStream input(pool);
-            yvector<TStringBuf> words;
+            TVector<TStringBuf> words;
             TString line;
 
             while (input.ReadLine(line))
             {
                 words.clear();
-                SplitRangeTo<const char, yvector<TStringBuf>>(~line, ~line + line.size(), '\t', &words);
+                SplitRangeTo<const char, TVector<TStringBuf>>(~line, ~line + line.size(), '\t', &words);
                 CB_ENSURE(words.ysize() == ColumnsDescription.ysize(),
                           TStringBuilder() << "Wrong columns number in pool line: Found " << words.size()
                                            << "; Expected " << ColumnsDescription.size());
@@ -127,7 +127,7 @@ namespace NCatboostCuda
             SplitDone = true;
         }
 
-        yvector<THolder<TTempFile>> Columns;
+        TVector<THolder<TTempFile>> Columns;
 
         void MakeTempFiles(ui32 count)
         {
@@ -140,7 +140,7 @@ namespace NCatboostCuda
         }
 
         TString TempDir;
-        const yvector<TColumn>& ColumnsDescription;
+        const TVector<TColumn>& ColumnsDescription;
 
         bool SplitDone = false;
         ui32 LineCount = 0;
@@ -183,7 +183,7 @@ namespace NCatboostCuda
         {
         }
 
-        TFloatColumnConverter& SetColumn(const yvector<TString>& column)
+        TFloatColumnConverter& SetColumn(const TVector<TString>& column)
         {
             FloatColumn.resize(column.size());
 
@@ -251,7 +251,7 @@ namespace NCatboostCuda
             description->SetFeatureType(::NCompressedPool::TFeatureType::Binarized);
         }
 
-        TFloatColumnConverter& BuildBinarized(yvector<float>&& borders)
+        TFloatColumnConverter& BuildBinarized(TVector<float>&& borders)
         {
             Borders = std::move(borders);
             BinarizeIt = true;
@@ -259,8 +259,8 @@ namespace NCatboostCuda
         }
 
     private:
-        yvector<float> FloatColumn;
-        yvector<float> Borders;
+        TVector<float> FloatColumn;
+        TVector<float> Borders;
         bool BinarizeIt = false;
     };
 
@@ -280,7 +280,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TCatFeatureColumnConverter& AddKeys(const yvector<TString>& column)
+        TCatFeatureColumnConverter& AddKeys(const TVector<TString>& column)
         {
             for (const auto& entry : column)
             {
@@ -292,7 +292,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TCatFeatureColumnConverter& SetColumn(const yvector<TString>& column)
+        TCatFeatureColumnConverter& SetColumn(const TVector<TString>& column)
         {
             BinarizedData.resize_uninitialized(column.size());
             NPar::ParallelFor(0, (ui32) column.size(), [&](int i)
@@ -336,8 +336,8 @@ namespace NCatboostCuda
             binarization.Clear();
             WriteColumnDescription(binarization);
 
-            yvector<TString> keys;
-            yvector<ui32> bins;
+            TVector<TString> keys;
+            TVector<ui32> bins;
 
             for (auto& entry : Binarization)
             {
@@ -353,7 +353,7 @@ namespace NCatboostCuda
 
     private:
         ymap<TString, ui32> Binarization;
-        yvector<ui32> BinarizedData;
+        TVector<ui32> BinarizedData;
     };
 
     class TCatBoostProtoPoolConverter
@@ -407,9 +407,9 @@ namespace NCatboostCuda
             int docIdColumn = -1;
             int queryIdColumn = -1;
             int weightColumn = -1;
-            yvector<ui32> baselineColumns;
+            TVector<ui32> baselineColumns;
 
-            yvector<ui32> featureColumns;
+            TVector<ui32> featureColumns;
 
             for (ui32 col = 0; col < ColumnsDescription.size(); ++col)
             {
@@ -522,7 +522,7 @@ namespace NCatboostCuda
             //features
             {
                 NCompressedPool::TFeatureColumn protoFeatureColumn;
-                yvector<TString> factorColumn;
+                TVector<TString> factorColumn;
                 NCompressedPool::TCatFeatureBinarization binarization;
                 NCompressedPool::TFloatFeatureBinarization floatFeatureBinarization;
 
@@ -553,7 +553,7 @@ namespace NCatboostCuda
                                     ReadMessage(*InputBinarization, floatFeatureBinarization);
                                     Y_ENSURE(floatFeatureBinarization.GetFeatureDescription().GetFeatureId() == i,
                                              "Error: featureId in index should be equal to featureId in converted pool");
-                                    yvector<float> borders(floatFeatureBinarization.GetBinarization().borders().begin(),
+                                    TVector<float> borders(floatFeatureBinarization.GetBinarization().borders().begin(),
                                                            floatFeatureBinarization.GetBinarization().borders().end());
                                     converter.BuildBinarized(std::move(borders));
                                 }
@@ -612,7 +612,7 @@ namespace NCatboostCuda
                                           TColumn& column,
                                           TFunction&& cast)
         {
-            yvector<TString> strColumn;
+            TVector<TString> strColumn;
             SplittedPool.ReadColumn(columnId, strColumn);
             column.MutableValues()->Resize(strColumn.size(), 0);
             NPar::ParallelFor(0, strColumn.size(), [&](int i) -> void
@@ -650,7 +650,7 @@ namespace NCatboostCuda
 
         THolder<TIFStream> InputBinarization;
 
-        yvector<TColumn> ColumnsDescription;
+        TVector<TColumn> ColumnsDescription;
         TSplittedByColumnsTempPool SplittedPool;
 
         const TBinarizationConfiguration* BinarizationConfiguration;

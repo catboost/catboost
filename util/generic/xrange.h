@@ -14,7 +14,7 @@
  *      DoSomething(i, MyVector[i]);
  *  }
  *
- * yvector<int> arithmeticSeq = xrange(10); // instead: yvector<int> arithmeticSeq; for(size_t i = 0; i < 10; ++i) { arithmeticSeq.push_back(i); }
+ * TVector<int> arithmeticSeq = xrange(10); // instead: TVector<int> arithmeticSeq; for(size_t i = 0; i < 10; ++i) { arithmeticSeq.push_back(i); }
  *
  */
 
@@ -84,6 +84,7 @@ namespace NPrivate {
             T Value;
         };
 
+        using value_type = T;
         using iterator = TIterator;
         using const_iterator = TIterator;
 
@@ -178,6 +179,7 @@ namespace NPrivate {
             const TSteppedXRange& Parent_;
         };
 
+        using value_type = T;
         using iterator = TIterator;
         using const_iterator = TIterator;
 
@@ -215,7 +217,7 @@ namespace NPrivate {
         const T Finish_;
     };
 
-} // namespace NPrivate
+}
 
 /// generate arithmetic progression that starts at start with certain step and stop at finish (not including)
 template <typename T>

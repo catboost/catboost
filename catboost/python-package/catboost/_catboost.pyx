@@ -8,6 +8,8 @@ from collections import Sequence, defaultdict
 
 from cython.operator cimport dereference
 
+from libc.math cimport isnan
+from libc.stdint cimport uint32_t
 from libcpp cimport bool as bool_t
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
@@ -15,7 +17,7 @@ from libcpp.pair cimport pair
 
 from util.generic.string cimport TString
 from util.generic.string cimport TStringBuf
-from util.generic.vector cimport yvector
+from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport yhash
 
@@ -38,22 +40,17 @@ cdef extern from "catboost/libs/data/pair.h":
     cdef cppclass TPair:
         int WinnerId
         int LoserId
+        float Weight
+        TPair(int winnerId, int loserId, float weight) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data/pool.h":
-    cdef cppclass TDocInfo:
-        float Target
-        float Weight
-        yvector[float] Factors
-        yvector[double] Baseline
-        void Swap(TDocInfo& other) except +ProcessException
-
     cdef cppclass TDocumentStorage:
-        yvector[yvector[float]] Factors
-        yvector[yvector[double]] Baseline
-        yvector[float] Target
-        yvector[float] Weight
-        yvector[TString] Id
-        void Swap(TDocumentStorage& other) except +ProcessException
+        TVector[TVector[float]] Factors
+        TVector[TVector[double]] Baseline
+        TVector[float] Target
+        TVector[float] Weight
+        TVector[TString] Id
+        TVector[uint32_t] QueryId
         int GetBaselineDimension() except +ProcessException const
         int GetFactorsCount() except +ProcessException const
         size_t GetDocCount() except +ProcessException const
@@ -67,10 +64,10 @@ cdef extern from "catboost/libs/data/pool.h":
 
     cdef cppclass TPool:
         TDocumentStorage Docs
-        yvector[int] CatFeatures
-        yvector[TString] FeatureId
+        TVector[int] CatFeatures
+        TVector[TString] FeatureId
         yhash[int, TString] CatFeaturesHashToString
-        yvector[TPair] Pairs
+        TVector[TPair] Pairs
 
 cdef extern from "catboost/libs/data/load_data.h":
     cdef void ReadPool(const TString& cdFile,
@@ -80,22 +77,35 @@ cdef extern from "catboost/libs/data/load_data.h":
                        bool_t verbose,
                        const char fieldDelimiter,
                        bool_t has_header,
-                       const yvector[TString]& classNames,
+                       const TVector[TString]& classNames,
                        TPool* pool) nogil except +ProcessException
     cdef int CalcCatFeatureHash(const TStringBuf& feature) except +ProcessException
     cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
 
-cdef extern from "catboost/libs/model/tensor_struct.h":
-    cdef cppclass TTensorStructure3:
-        pass
-
 cdef extern from "catboost/libs/model/model.h":
 
+    cdef cppclass TCatFeature:
+        int FeatureIndex
+        int FlatFeatureIndex
+        TString FeatureId
+
+    cdef cppclass TFloatFeature:
+        bool_t HasNans
+        int FeatureIndex
+        int FlatFeatureIndex
+        TVector[float] Borders
+        TString FeatureId
+
+    cdef cppclass TObliviousTrees:
+        TVector[TCatFeature] CatFeatures
+        TVector[TFloatFeature] FloatFeatures
+
     cdef cppclass TFullModel:
-        yvector[int] CatFeatures
-        yvector[TTensorStructure3] TreeStruct
+        TObliviousTrees ObliviousTrees
+
         yhash[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
+        size_t GetTreeCount() nogil except +ProcessException
 
     cdef cppclass EModelExportType:
         pass
@@ -110,10 +120,6 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
 
-cdef extern from "catboost/libs/model/formula_evaluator.h":
-    cdef cppclass TFormulaEvaluator "NCatBoost::TFormulaEvaluator":
-        TFormulaEvaluator(const TFullModel& model) nogil except +ProcessException
-
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
         pass
@@ -122,17 +128,17 @@ cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
 
-cdef extern from "catboost/libs/algo/error_holder.h":
-    cdef cppclass TErrorHolder:
+cdef extern from "catboost/libs/metrics/metric_holder.h":
+    cdef cppclass TMetricHolder:
         double Error
         double Weight
 
-cdef extern from "catboost/libs/algo/ders_holder.h":
+cdef extern from "catboost/libs/metrics/ders_holder.h":
     cdef cppclass TDer1Der2:
         double Der1
         double Der2
 
-cdef extern from "catboost/libs/algo/params.h":
+cdef extern from "catboost/libs/params/params.h":
     cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
     cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
 
@@ -145,20 +151,20 @@ cdef extern from "catboost/libs/algo/params.h":
 
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
-        TErrorHolder (*EvalFunc)(const yvector[yvector[double]]& approx,
-                                 const yvector[float]& target,
-                                 const yvector[float]& weight,
+        TMetricHolder (*EvalFunc)(const TVector[TVector[double]]& approx,
+                                 const TVector[float]& target,
+                                 const TVector[float]& weight,
                                  int begin, int end, void* customData) except * with gil
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
-        double (*GetFinalErrorFunc)(const TErrorHolder& error, void *customData) except * with gil
+        double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
 
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
         void (*CalcDersRange)(int count, const double* approxes, const float* targets,
                               const float* weights, TDer1Der2* ders, void* customData) except * with gil
-        void (*CalcDersMulti)(const yvector[double]& approx, float target, float weight,
-                              yvector[double]* ders, TArray2D[double]* der2, void* customData) except * with gil
+        void (*CalcDersMulti)(const TVector[double]& approx, float target, float weight,
+                              TVector[double]* ders, TArray2D[double]* der2, void* customData) except * with gil
 
     cdef cppclass TCrossValidationParams:
         size_t FoldCount
@@ -180,25 +186,25 @@ cdef extern from "catboost/libs/algo/train_model.h":
                          const TPool& testPool,
                          const TString& outputModelPath,
                          TFullModel* model,
-                         yvector[yvector[double]]* testApprox) nogil except +ProcessException
+                         TEvalResult* testApprox) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
-        yvector[double] AverageTrain
-        yvector[double] StdDevTrain
-        yvector[double] AverageTest
-        yvector[double] StdDevTest
+        TVector[double] AverageTrain
+        TVector[double] StdDevTrain
+        TVector[double] AverageTest
+        TVector[double] StdDevTest
 
     cdef void CrossValidate(const TJsonValue& jsonParams,
                             const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
                             const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
                             TPool& pool,
                             const TCrossValidationParams& cvParams,
-                            yvector[TCVResult]* results) nogil except +ProcessException
+                            TVector[TCVResult]* results) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/apply.h":
-    cdef yvector[double] ApplyModel(const TFullModel& model,
+    cdef TVector[double] ApplyModel(const TFullModel& model,
                                     const TPool& pool,
                                     bool_t verbose,
                                     const EPredictionType predictionType,
@@ -206,22 +212,27 @@ cdef extern from "catboost/libs/algo/apply.h":
                                     int end,
                                     int threadCount) nogil except +ProcessException
 
-    cdef yvector[yvector[double]] ApplyModelMulti(const TFormulaEvaluator& calcer,
-                                                      const TPool& pool,
-                                                      bool_t verbose,
-                                                      const EPredictionType predictionType,
-                                                      int begin,
-                                                      int end,
-                                                      int threadCount) nogil except +ProcessException
+    cdef TVector[TVector[double]] ApplyModelMulti(const TFullModel& calcer,
+                                                  const TPool& pool,
+                                                  bool_t verbose,
+                                                  const EPredictionType predictionType,
+                                                  int begin,
+                                                  int end,
+                                                  int threadCount) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/algo/eval_helpers.h":
-    cdef yvector[yvector[double]] PrepareEval(const EPredictionType predictionType,
-                                              const yvector[yvector[double]]& approx,
+cdef extern from "catboost/libs/helpers/eval_helpers.h":
+    cdef TVector[TVector[double]] PrepareEval(const EPredictionType predictionType,
+                                              const TVector[TVector[double]]& approx,
                                               int threadCount) nogil except +ProcessException
+    cdef cppclass TEvalResult:
+        TVector[TVector[double]] GetApproxesRef() except * with gil
+        void PostProcess(int threadCount) except * with gil
+        void DropRawValues() except * with gil
 
-cdef extern from "catboost/libs/algo/calc_fstr.h":
-    cdef yvector[yvector[double]] GetFeatureImportances(const TFullModel& model,
+
+cdef extern from "catboost/libs/fstr/calc_fstr.h":
+    cdef TVector[TVector[double]] GetFeatureImportances(const TFullModel& model,
                                                         const TPool& pool,
                                                         const TString& type,
                                                         int threadCount) nogil except +ProcessException
@@ -237,7 +248,7 @@ cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
     cdef metricObject = <object>customData
     return metricObject.is_max_optimal()
 
-cdef double _MetricGetFinalError(const TErrorHolder& error, void *customData) except * with gil:
+cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) except * with gil:
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Error, error.Weight)
 
@@ -282,14 +293,14 @@ cdef class _DoubleArrayWrapper:
     def __len__(self):
         return self._count
 
-cdef TErrorHolder _MetricEval(const yvector[yvector[double]]& approx,
-                              const yvector[float]& target,
-                              const yvector[float]& weight,
+cdef TMetricHolder _MetricEval(const TVector[TVector[double]]& approx,
+                              const TVector[float]& target,
+                              const TVector[float]& weight,
                               int begin,
                               int end,
                               void* customData) except * with gil:
     cdef metricObject = <object>customData
-    cdef TErrorHolder holder
+    cdef TMetricHolder holder
 
     approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
     targets = _FloatArrayWrapper.create(target.data() + begin, end - begin)
@@ -324,8 +335,8 @@ cdef void _ObjectiveCalcDersRange(int count, const double* approxes, const float
         ders[index].Der2 = der2
         index += 1
 
-cdef void _ObjectiveCalcDersMulti(const yvector[double]& approx, float target, float weight,
-                                  yvector[double]* ders, TArray2D[double]* der2, void* customData) except * with gil:
+cdef void _ObjectiveCalcDersMulti(const TVector[double]& approx, float target, float weight,
+                                  TVector[double]* ders, TArray2D[double]* der2, void* customData) except * with gil:
     cdef objectiveObject = <object>(customData)
 
     approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
@@ -436,18 +447,14 @@ cdef class _PoolBase:
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _PoolBase object')
 
-    cpdef _init_cat_features(self, cat_features):
-        self.__pool.CatFeatures.clear()
-        for feature in cat_features:
-            self.__pool.CatFeatures.push_back(int(feature))
-
-    cpdef _read_pool(self, pool_file, cd_file, delimiter, bool_t has_header, int thread_count):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
         cd_file = to_binary_str(cd_file)
-        cdef yvector[TString] emptyVec
+        pairs_file = to_binary_str(pairs_file)
+        cdef TVector[TString] emptyVec
         ReadPool(TString(<char*>cd_file),
                  TString(<char*>pool_file),
-                 "",
+                 TString(<char*>pairs_file),
                  thread_count,
                  False,
                  ord(delimiter),
@@ -457,19 +464,32 @@ cdef class _PoolBase:
         if len(set([target for target in self.__pool.Docs.Target])) > 1:
             self.has_label_ = True
 
-    cpdef _init_pool(self, data, label, weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names):
+        if cat_features is not None:
+            self._init_cat_features(cat_features)
         self._set_data(data)
         num_class = 2
         if label is not None:
             self._set_label(label)
             num_class = len(set(label))
             self.has_label_ = True
+        if pairs is not None:
+            self._set_pairs(pairs)
         if baseline is not None:
             self._set_baseline(baseline)
         if weight is not None:
             self._set_weight(weight)
+        if query_id is not None:
+            self._set_query_id(query_id)
+        if pairs_weight is not None:
+            self._set_pairs_weight(pairs_weight)
         if feature_names is not None:
             self._set_feature_names(feature_names)
+
+    cpdef _init_cat_features(self, cat_features):
+        self.__pool.CatFeatures.clear()
+        for feature in cat_features:
+            self.__pool.CatFeatures.push_back(int(feature))
 
     cpdef _set_data(self, data):
         self.__pool.Docs.Clear()
@@ -482,8 +502,8 @@ cdef class _PoolBase:
             for j, factor in enumerate(data[i]):
                 if j in cat_features:
                     if not isinstance(factor, string_types):
-                        if int(factor) != factor:
-                            raise CatboostError('Invalid type for cat_feature[{},{}]={} : cat_features must be integer or string, real number values should be converted to string.'.format(i, j, factor))
+                        if isnan(factor) or int(factor) != factor:
+                            raise CatboostError('Invalid type for cat_feature[{},{}]={} : cat_features must be integer or string, real number values and NaN values should be converted to string.'.format(i, j, factor))
                         factor = str(int(factor))
                     factor = to_binary_str(factor)
                     factor_str = TString(<char*>factor)
@@ -497,10 +517,28 @@ cdef class _PoolBase:
         for i in range(rows):
             self.__pool.Docs.Target[i] = float(label[i])
 
+    cpdef _set_pairs(self, pairs):
+        self.__pool.Pairs.clear()
+        cdef TPair* pair_ptr
+        for pair in pairs:
+            pair_ptr = new TPair(int(pair[0]), int(pair[1]), 1.)
+            self.__pool.Pairs.push_back(dereference(pair_ptr))
+            del pair_ptr
+
     cpdef _set_weight(self, weight):
         rows = self.num_row()
         for i in range(rows):
             self.__pool.Docs.Weight[i] = float(weight[i])
+
+    cpdef _set_query_id(self, query_id):
+        rows = self.num_row()
+        for i in range(rows):
+            self.__pool.Docs.QueryId[i] = int(query_id[i])
+
+    cpdef _set_pairs_weight(self, pairs_weight):
+        rows = self.num_pairs()
+        for i in range(rows):
+            self.__pool.Pairs[i].Weight = float(pairs_weight[i])
 
     cpdef _set_baseline(self, baseline):
         rows = self.num_row()
@@ -549,6 +587,18 @@ cdef class _PoolBase:
         """
         if not self.is_empty_:
             return self.__pool.Docs.GetFactorsCount()
+        return None
+
+    cpdef num_pairs(self):
+        """
+        Get the number of pairs in the Pool.
+
+        Returns
+        -------
+        number of pairs : int
+        """
+        if not self.is_empty_:
+            return self.__pool.Pairs.size()
         return None
 
     @property
@@ -649,11 +699,11 @@ cdef class _PoolBase:
 
 cdef class _CatBoost:
     cdef TFullModel* __model
-    cdef yvector[yvector[double]]* __test_eval
+    cdef TEvalResult* __test_eval
 
     def __cinit__(self):
         self.__model = new TFullModel()
-        self.__test_eval = new yvector[yvector[double]]()
+        self.__test_eval = new TEvalResult()
 
     def __dealloc__(self):
         del self.__model
@@ -661,6 +711,7 @@ cdef class _CatBoost:
 
     cpdef _train(self, _PoolBase train_pool, _PoolBase test_pool, dict params):
         prep_params = _PreprocessParams(params)
+        cdef int thread_count = params.get("thread_count", 1)
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -673,30 +724,36 @@ cdef class _CatBoost:
                        TString(<const char*>""),
                        self.__model,
                        self.__test_eval)
+                dereference(self.__test_eval).PostProcess(thread_count)
+                dereference(self.__test_eval).DropRawValues()
+                dereference(self.__test_eval).GetApproxesRef()
             finally:
                 ResetPythonInterruptHandler()
 
     cpdef _set_test_eval(self, test_eval):
-        cdef yvector[double] vector
+        cdef TVector[double] vector
         for row in test_eval:
             for value in row:
                 vector.push_back(float(value))
-            self.__test_eval.push_back(vector)
+            self.__test_eval.GetApproxesRef().push_back(vector)
             vector.clear()
 
     cpdef _get_test_eval(self):
         test_eval = []
-        for i in range(self.__test_eval.size()):
-            test_eval.append([value for value in dereference(self.__test_eval)[i]])
+        for i in range(self.__test_eval.GetApproxesRef().size()):
+            test_eval.append([value for value in dereference(self.__test_eval).GetApproxesRef()[i]])
         if (len(test_eval) == 1):
             return test_eval[0]
         return test_eval
 
     cpdef _get_cat_feature_indices(self):
-        return [feature for feature in self.__model.CatFeatures]
+        return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.CatFeatures]
+
+    cpdef _get_float_feature_indices(self):
+            return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.FloatFeatures]
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
-        cdef yvector[double] pred
+        cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         pred = ApplyModel(dereference(self.__model),
                           dereference(pool.__pool),
@@ -708,17 +765,15 @@ cdef class _CatBoost:
         return [value for value in pred]
 
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
-        cdef yvector[yvector[double]] pred
+        cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
-        cdef TFormulaEvaluator* calcer = new TFormulaEvaluator(dereference(self.__model))
-        pred = ApplyModelMulti(dereference(calcer),
+        pred = ApplyModelMulti(dereference(self.__model),
                                dereference(pool.__pool),
                                verbose,
                                predictionType,
                                ntree_start,
                                ntree_end,
                                thread_count)
-        del calcer
         return [[value for value in vec] for vec in pred]
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
@@ -728,7 +783,7 @@ cdef class _CatBoost:
 
     cpdef _calc_fstr(self, _PoolBase pool, fstr_type, int thread_count):
         fstr_type = to_binary_str(fstr_type)
-        cdef yvector[yvector[double]] fstr = GetFeatureImportances(dereference(self.__model),
+        cdef TVector[TVector[double]] fstr = GetFeatureImportances(dereference(self.__model),
                                                                     dereference(pool.__pool),
                                                                     TString(<const char*>fstr_type),
                                                                     thread_count)
@@ -769,7 +824,7 @@ cdef class _CatBoost:
         return params
 
     def _get_tree_count(self):
-        return self.__model.TreeStruct.size()
+        return self.__model.GetTreeCount()
 
     def _get_random_seed(self):
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
@@ -845,6 +900,9 @@ class _CatBoostBase(object):
 
     def get_test_eval(self):
         return self._object._get_test_eval()
+
+    def _get_float_feature_indices(self):
+        return self._object._get_float_feature_indices()
 
     def _get_cat_feature_indices(self):
         return self._object._get_cat_feature_indices()
@@ -925,7 +983,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
           bool_t shuffle):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
-    cdef yvector[TCVResult] results
+    cdef TVector[TCVResult] results
 
     cvParams.FoldCount = fold_count
     cvParams.PartitionRandSeed = partition_random_seed
@@ -958,17 +1016,15 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 
 
 cdef class _StagedPredictIterator:
-    cdef yvector[yvector[double]] __approx
+    cdef TVector[TVector[double]] __approx
     cdef TFullModel* __model
     cdef _PoolBase pool
-    cdef TFormulaEvaluator* __calcer
     cdef str prediction_type
     cdef int ntree_start, ntree_end, eval_period, thread_count
     cdef bool_t verbose
 
     cdef set_model(self, TFullModel* model):
         self.__model = model
-        self.__calcer = new TFormulaEvaluator(dereference(self.__model))
 
     def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         self.pool = pool
@@ -980,7 +1036,7 @@ cdef class _StagedPredictIterator:
         self.verbose = verbose
 
     def __dealloc__(self):
-        del self.__calcer
+        pass
 
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _StagedPredictIterator object')
@@ -989,9 +1045,9 @@ cdef class _StagedPredictIterator:
         if self.ntree_start >= self.ntree_end:
             raise StopIteration
 
-        cdef yvector[yvector[double]] pred
+        cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
-        pred = ApplyModelMulti(dereference(self.__calcer),
+        pred = ApplyModelMulti(dereference(self.__model),
                                dereference(self.pool.__pool),
                                self.verbose,
                                PyPredictionType('RawFormulaVal').predictionType,

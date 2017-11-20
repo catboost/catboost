@@ -39,17 +39,27 @@ def main():
         if flag in cflags:
             cflags.remove(flag)
 
+    skip_prefix_list = [
+        '-fsanitize=',
+        '-fsanitize-blacklist=',
+    ]
+    for prefix in skip_prefix_list:
+        cflags = [i for i in cflags if not i.startswith(prefix)]
+
     include_args = []
     compiler_args = []
 
     cflags_queue = collections.deque(cflags)
     while cflags_queue:
         arg = cflags_queue.popleft()
-        if arg[:2].upper() in ('-I', '/I'):
+        if arg[:2].upper() in ('-I', '/I', '-B'):
             value = arg[2:]
             if not value:
                 value = cflags_queue.popleft()
-            include_args.append('-I{}'.format(value))
+            if arg[1] == 'I':
+                include_args.append('-I{}'.format(value))
+            elif arg[1] == 'B':  # todo: delete "B" flag check when cuda stop to use gcc
+                pass
         else:
             compiler_args.append(arg)
 

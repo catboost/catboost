@@ -18,7 +18,7 @@ namespace {
         instant.LocalTime(&tm);
 
         // both stftime and sprintf exclude the terminating null byte from the return value
-        char *pos = begin;
+        char* pos = begin;
         pos += strftime(pos, end - pos, "%Y-%m-%d %H:%M:%S.", &tm);
         pos += sprintf(pos, "%03" PRIu32, instant.MilliSecondsOfSecond());
         pos += strftime(pos, end - pos, " %z", &tm);
@@ -28,7 +28,7 @@ namespace {
 }
 
 namespace NLoggingImpl {
-    IOutputStream& operator<<(IOutputStream& out, TLocalTimeS localTimeS)  {
+    IOutputStream& operator<<(IOutputStream& out, TLocalTimeS localTimeS) {
         char buffer[LocalTimeSBufferSize];
         size_t len = PrintLocalTimeS(localTimeS.GetInstant(), buffer, buffer + sizeof(buffer));
         out.Write(buffer, len);

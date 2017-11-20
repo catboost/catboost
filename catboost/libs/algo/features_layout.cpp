@@ -1,9 +1,10 @@
 #include "features_layout.h"
+
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/fwd.h>
 
-TFeaturesLayout::TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const yvector<TString>& featureId) {
+TFeaturesLayout::TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const TVector<TString>& featureId) {
     Sort(catFeatureIndices.begin(), catFeatureIndices.end());
     if (!catFeatureIndices.empty()) {
         CB_ENSURE(catFeatureIndices.back() < featureCount, "Invalid cat feature index " << catFeatureIndices.back());

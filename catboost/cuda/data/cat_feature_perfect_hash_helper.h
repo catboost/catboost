@@ -27,7 +27,7 @@ namespace NCatboostCuda
             return FeaturesManager.CatFeaturesPerfectHash.GetUniqueValues(featureId);
         }
 
-        yvector<ui32> UpdatePerfectHashAndBinarize(ui32 dataProviderId,
+        TVector<ui32> UpdatePerfectHashAndBinarize(ui32 dataProviderId,
                                                    const float* hashesFloat,
                                                    ui32 hashesSize)
         {
@@ -46,7 +46,7 @@ namespace NCatboostCuda
                 binarization.swap(featuresHash.FeaturesPerfectHash[featureId]);
             }
 
-            yvector<ui32> bins(hashesSize, 0);
+            TVector<ui32> bins(hashesSize, 0);
             for (ui32 i = 0; i < hashesSize; ++i)
             {
                 auto hash = hashes[i];

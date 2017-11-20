@@ -21,14 +21,14 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
                 auto input = TStripeBuffer<ui32>::Create(stripeMapping);
                 auto output = TStripeBuffer<ui32>::CopyMapping(input);
 
-                yvector<ui32> data(size);
+                TVector<ui32> data(size);
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniformL() % 10000;
                 });
                 input.Write(data);
 
                 ScanVector(input, output);
-                yvector<ui32> result;
+                TVector<ui32> result;
                 output.Read(result);
 
                 for (ui32 dev : input.NonEmptyDevices()) {
@@ -70,7 +70,7 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
                 ui64 size = i;
                 TSingleMapping mapping = TSingleMapping(0, size);
                 auto input = TSingleBuffer<T>::Create(mapping);
-                yvector<T> data(size);
+                TVector<T> data(size);
                 std::generate(data.begin(), data.end(), [&]() {
                     return static_cast<T>(rand.NextUniformL() % 10000);
                 });

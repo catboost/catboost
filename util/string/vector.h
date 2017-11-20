@@ -14,50 +14,50 @@
 //
 // NOTE: Check util/string/iterator.h to get more convenient split string interface.
 
-void SplitStroku(yvector<TString>* res, const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0);
-void SplitStroku(yvector<TString>* res, const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0);
+void SplitStroku(TVector<TString>* res, const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0);
+void SplitStroku(TVector<TString>* res, const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0);
 
-void SplitStringBySet(yvector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
-void SplitStringBySet(yvector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
 
-void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
-void SplitStringBySet(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
+void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
 
-inline void SplitStroku(yvector<TString>* res, const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
+inline void SplitStroku(TVector<TString>* res, const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
     SplitStroku(res, ~str, +str, delimiter, maxFields, options);
 }
 
-void SplitStroku(yvector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
-void SplitStroku(yvector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
+void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
+void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
 
-inline void SplitStroku(yvector<TUtf16String>* res, const TUtf16String& str, const wchar16* delimiter, size_t maxFields = 0, int options = 0) {
+inline void SplitStroku(TVector<TUtf16String>* res, const TUtf16String& str, const wchar16* delimiter, size_t maxFields = 0, int options = 0) {
     SplitStroku(res, ~str, +str, delimiter, maxFields, options);
 }
 
-inline yvector<TString> SplitStroku(const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    yvector<TString> res;
+inline TVector<TString> SplitStroku(const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0) {
+    TVector<TString> res;
     SplitStroku(&res, ptr, delimiter, maxFields, options);
     return res;
 }
 
-inline yvector<TString> SplitStroku(const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    yvector<TString> res;
+inline TVector<TString> SplitStroku(const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0) {
+    TVector<TString> res;
     SplitStroku(&res, ptr, len, delimiter, maxFields, options);
     return res;
 }
 
-inline yvector<TString> SplitStroku(const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
+inline TVector<TString> SplitStroku(const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
     return SplitStroku(~str, +str, delimiter, maxFields, options);
 }
 
-inline yvector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
-    yvector<TString> res;
+inline TVector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
+    TVector<TString> res;
     SplitStringBySet(&res, ptr, delimiters, maxFields, options);
     return res;
 }
 
-inline yvector<TString> SplitStringBySet(const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0) {
-    yvector<TString> res;
+inline TVector<TString> SplitStringBySet(const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0) {
+    TVector<TString> res;
     SplitStringBySet(&res, ptr, len, delimiters, maxFields, options);
     return res;
 }
@@ -102,34 +102,34 @@ inline TUtf16String JoinStrings(TIter begin, TIter end, const TWtringBuf delim) 
     return result;
 }
 
-/// Concatenates elements of given yvector<TString>.
-inline TString JoinStrings(const yvector<TString>& v, const TStringBuf delim) {
+/// Concatenates elements of given TVector<TString>.
+inline TString JoinStrings(const TVector<TString>& v, const TStringBuf delim) {
     return JoinStrings(v.begin(), v.end(), delim);
 }
 
-inline TString JoinStrings(const yvector<TString>& v, size_t index, size_t count, const TStringBuf delim) {
+inline TString JoinStrings(const TVector<TString>& v, size_t index, size_t count, const TStringBuf delim) {
     Y_ASSERT(index + count <= v.size() && "JoinStrings(): index or count out of range");
     return JoinStrings(v.begin() + index, v.begin() + index + count, delim);
 }
 
 template <typename T>
-inline TString JoinVectorIntoString(const yvector<T>& v, const TStringBuf delim) {
+inline TString JoinVectorIntoString(const TVector<T>& v, const TStringBuf delim) {
     return JoinStrings(v.begin(), v.end(), delim);
 }
 
 template <typename T>
-inline TString JoinVectorIntoString(const yvector<T>& v, size_t index, size_t count, const TStringBuf delim) {
+inline TString JoinVectorIntoString(const TVector<T>& v, size_t index, size_t count, const TStringBuf delim) {
     Y_ASSERT(index + count <= v.size() && "JoinVectorIntoString(): index or count out of range");
     return JoinStrings(v.begin() + index, v.begin() + index + count, delim);
 }
 
-TUtf16String JoinStrings(const yvector<TUtf16String>& v, const TWtringBuf delim);
-TUtf16String JoinStrings(const yvector<TUtf16String>& v, size_t index, size_t count, const TWtringBuf delim);
+TUtf16String JoinStrings(const TVector<TUtf16String>& v, const TWtringBuf delim);
+TUtf16String JoinStrings(const TVector<TUtf16String>& v, size_t index, size_t count, const TWtringBuf delim);
 
 //! Converts vector of strings to vector of type T variables
 template <typename T, typename TStringType>
-yvector<T> Scan(const yvector<TStringType>& input) {
-    yvector<T> output;
+TVector<T> Scan(const TVector<TStringType>& input) {
+    TVector<T> output;
     output.reserve(input.size());
     for (int i = 0; i < input.ysize(); ++i) {
         output.push_back(FromString<T>(input[i]));

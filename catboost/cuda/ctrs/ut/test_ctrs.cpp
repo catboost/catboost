@@ -14,8 +14,8 @@ using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
     template <class T>
-    yvector<T> BuildRandomBins(TRandom & rand, ui32 uniqueValues, ui32 sampleCount) {
-        yvector<T> bins(sampleCount);
+    TVector<T> BuildRandomBins(TRandom & rand, ui32 uniqueValues, ui32 sampleCount) {
+        TVector<T> bins(sampleCount);
         for (ui32 i = 0; i < sampleCount; ++i) {
             bins[i] = rand.NextUniformL() % uniqueValues;
         }
@@ -40,7 +40,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 const auto learnSize = size - 10000;
                 auto learnSlice = TSlice(0, learnSize);
 
-                yvector<float> cpuWeights;
+                TVector<float> cpuWeights;
                 float totalWeight = 0;
 
                 for (ui32 i = 0; i < size; ++i) {
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 weights.Write(cpuWeights);
 
                 auto indices = TMirrorBuffer<ui32>::CopyMapping(weights);
-                yvector<ui32> cpuIndices;
+                TVector<ui32> cpuIndices;
 
                 {
                     cpuIndices.resize(size);
@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
 
                     TMirrorBuffer<float> cudaCtr;
 
-                    yvector<float> priorParams(numClasses, prior);
+                    TVector<float> priorParams(numClasses, prior);
                     builder.SetBinarizedSample(targetsGpu.ConstCopyView());
 
                     for (ui32 clazz = 0; clazz < numClasses; ++clazz) {
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                             builder.ComputeCatFeatureCtr(config, cudaCtr);
                         }
 
-                        yvector<float> ctrsFromGpu;
+                        TVector<float> ctrsFromGpu;
                         cudaCtr.Read(ctrsFromGpu);
 
                         for (ui32 i = 0; i < cpuIndices.size(); ++i) {
@@ -140,7 +140,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 const auto learnSize = size - 10000;
                 auto learnSlice = TSlice(0, learnSize);
 
-                yvector<float> cpuWeights;
+                TVector<float> cpuWeights;
                 float totalWeight = 0;
 
                 for (ui32 i = 0; i < size; ++i) {
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 weights.Write(cpuWeights);
 
                 auto indices = TMirrorBuffer<ui32>::CopyMapping(weights);
-                yvector<ui32> cpuIndices;
+                TVector<ui32> cpuIndices;
 
                 {
                     cpuIndices.resize(size);
@@ -193,7 +193,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
 
                     TMirrorBuffer<float> cudaCtr;
 
-                    yvector<float> priorParams(numClasses, prior);
+                    TVector<float> priorParams(numClasses, prior);
                     for (ui32 clazz = 0; clazz < numClasses - 1; ++clazz) {
                         TCtrConfig config;
                         config.Prior = priorParams;
@@ -230,8 +230,8 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 const auto learnSize = size - 10000;
                 auto learnSlice = TSlice(0, learnSize);
 
-                yvector<float> cpuWeights;
-                yvector<float> cpuWeights2;
+                TVector<float> cpuWeights;
+                TVector<float> cpuWeights2;
                 float totalWeight = 0;
                 for (ui32 i = 0; i < size; ++i) {
                     auto weight = i < learnSize ? 1.0f / (1 << (rand.NextUniformL() % 4)) : 0.0f;
@@ -242,7 +242,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 weights.Write(cpuWeights);
 
                 auto indices = TMirrorBuffer<ui32>::CopyMapping(weights);
-                yvector<ui32> cpuIndices;
+                TVector<ui32> cpuIndices;
 
                 {
                     cpuIndices.resize(size);
@@ -301,8 +301,8 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                                                                   });
                     }
 
-                    yvector<float> ctrsFromGpu;
-                    yvector<float> ctrs2FromGpu;
+                    TVector<float> ctrsFromGpu;
+                    TVector<float> ctrs2FromGpu;
                     ctrs.Read(ctrsFromGpu);
                     ctrs2.Read(ctrs2FromGpu);
 

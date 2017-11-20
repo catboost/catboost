@@ -11,10 +11,10 @@ TFullModel TrainFloatCatboostModel() {
     pool.Docs.Target = {1.0f, 0.0f, 0.2f};
 
     TFullModel model;
-    yvector<yvector<double>> testApprox;
+    TEvalResult evalResult;
     NJson::TJsonValue params;
     params.InsertValue("iterations", 5);
-    TrainModel(params, Nothing(), Nothing(), pool, false, pool, "", &model, &testApprox);
+    TrainModel(params, Nothing(), Nothing(), pool, false, pool, "", &model, &evalResult);
 
     return model;
 }

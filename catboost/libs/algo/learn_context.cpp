@@ -1,9 +1,10 @@
-#include "error_functions.h"
 #include "learn_context.h"
-#include "metric.h"
+#include "error_functions.h"
 
 #include <catboost/libs/helpers/progress_helper.h>
+
 #include <library/digest/md5/md5.h>
+
 #include <util/generic/guid.h>
 #include <util/folder/path.h>
 #include <util/system/fs.h>
@@ -70,24 +71,25 @@ void TLearnContext::OutputMeta() {
         meta << "testErrorLog\t" << FilePathForMeta(Params.TestErrorLog, Files.NamesPrefix) << Endl;
     }
     meta << "timeLeft\t" << FilePathForMeta(Params.TimeLeftLog, Files.NamesPrefix) << Endl;
-    auto losses = CreateMetrics(Params, LearnProgress.Model.ApproxDimension);
+    auto losses = CreateMetrics(Params.EvalMetric, Params.EvalMetricDescriptor, Params.CustomLoss, LearnProgress.ApproxDimension);
     for (const auto& loss : losses) {
         meta << "loss\t" << loss->GetDescription() << "\t" << (loss->IsMaxOptimal() ? "max" : "min") << Endl;
     }
 }
 
 void TLearnContext::InitData(const TTrainData& data) {
+    TVector<TTargetClassifier> targetClassifiers;
     for (const auto& ctr : Params.CtrParams.Ctrs) {
         int targetBorderCount = 0;
         if (ctr.CtrType != ECtrType::Counter) {
             if (IsMultiClassError(Params.LossFunction)) {
-                targetBorderCount = LearnProgress.Model.ApproxDimension - 1;
+                targetBorderCount = LearnProgress.ApproxDimension - 1;
             } else {
                 targetBorderCount = ctr.TargetBorderCount;
             }
         }
 
-        LearnProgress.Model.TargetClassifiers.emplace_back(
+        targetClassifiers.emplace_back(
             BuildTargetClassifier(
                 data.Target,
                 data.LearnSampleCount,
@@ -102,32 +104,35 @@ void TLearnContext::InitData(const TTrainData& data) {
     LearnProgress.Folds.reserve(foldCount);
 
     int foldPermutationBlockSize = Params.FoldPermutationBlockSize;
-    if (foldPermutationBlockSize == ParameterNotSet) {
-        foldPermutationBlockSize = Min(256, data.LearnSampleCount / 1000 + 1);
+    if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
+        foldPermutationBlockSize = DefaultFoldPermutationBlockSize(data.LearnSampleCount);
     }
 
     for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
         LearnProgress.Folds.emplace_back(
             BuildLearnFold(
                 data,
-                LearnProgress.Model.TargetClassifiers,
+                targetClassifiers,
                 foldIdx != 0,
                 foldPermutationBlockSize,
-                LearnProgress.Model.ApproxDimension,
+                LearnProgress.ApproxDimension,
                 Params.FoldLenMultiplier,
                 Params.StoreExpApprox,
                 IsQuerywiseError(Params.LossFunction),
                 Rand));
     }
 
-    LearnProgress.AveragingFold = BuildAveragingFold(data,
-                                                     LearnProgress.Model.TargetClassifiers,
-                                                     !(Params.HasTime || IsQuerywiseError(Params.LossFunction)),
-                                                     LearnProgress.Model.ApproxDimension,
-                                                     Params.StoreExpApprox,
-                                                     Rand);
+    LearnProgress.AveragingFold = BuildAveragingFold(
+        data,
+        targetClassifiers,
+        !(Params.HasTime || IsQuerywiseError(Params.LossFunction)),
+        LearnProgress.ApproxDimension,
+        Params.StoreExpApprox,
+        IsQuerywiseError(Params.LossFunction),
+        Rand
+    );
 
-    LearnProgress.AvrgApprox.resize(LearnProgress.Model.ApproxDimension, yvector<double>(sampleCount));
+    LearnProgress.AvrgApprox.resize(LearnProgress.ApproxDimension, TVector<double>(sampleCount));
     if (!data.Baseline.empty()) {
         LearnProgress.AvrgApprox = data.Baseline;
     }
@@ -157,8 +162,8 @@ bool TLearnContext::TryLoadProgress() {
             ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
             LearnProgress = std::move(LearnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
-            LearnProgress.Model.ModelInfo["params"] = ToString(ResultingParams); // substitute real
-            MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.Model.TreeStruct.size() << " trees" << Endl;
+            LearnProgress.SerializedTrainParams = ToString(ResultingParams); // substitute real
+            MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
     } catch (...) {
@@ -174,7 +179,16 @@ void TLearnProgress::Save(IOutputStream* s) const {
         Folds[i].SaveApproxes(s);
     }
     AveragingFold.SaveApproxes(s);
-    ::SaveMany(s, AvrgApprox, Model, LearnErrorsHistory, TestErrorsHistory);
+    ::SaveMany(s,
+               AvrgApprox,
+               CatFeatures,
+               FloatFeatures,
+               ApproxDimension,
+               SerializedTrainParams,
+               TreeStruct,
+               LeafValues,
+               LearnErrorsHistory,
+               TestErrorsHistory);
 }
 
 void TLearnProgress::Load(IInputStream* s) {
@@ -185,5 +199,13 @@ void TLearnProgress::Load(IInputStream* s) {
         Folds[i].LoadApproxes(s);
     }
     AveragingFold.LoadApproxes(s);
-    ::LoadMany(s, AvrgApprox, Model, LearnErrorsHistory, TestErrorsHistory);
+    ::LoadMany(s, AvrgApprox,
+               CatFeatures,
+               FloatFeatures,
+               ApproxDimension,
+               SerializedTrainParams,
+               TreeStruct,
+               LeafValues,
+               LearnErrorsHistory,
+               TestErrorsHistory);
 }

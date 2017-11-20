@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
             ui64 tries = 20;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
+                TVector<float> vec;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -26,7 +26,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
 
                 RadixSort(cVec);
 
-                yvector<float> result;
+                TVector<float> result;
                 cVec.Read(result);
 
                 for (ui32 dev : cVec.NonEmptyDevices()) {
@@ -47,7 +47,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
             ui64 tries = 20;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
+                TVector<float> vec;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -61,8 +61,8 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
 
                 RadixSort(cVec, cVecLinked);
 
-                yvector<float> result;
-                yvector<float> result2;
+                TVector<float> result;
+                TVector<float> result2;
                 cVec.Read(result);
                 cVecLinked.Read(result2);
 
@@ -85,7 +85,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
             ui64 tries = 20;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
+                TVector<float> vec;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -104,8 +104,8 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
 
                 RadixSort(cVec, cVecLinked, tmp1, tmp2);
 
-                yvector<float> result;
-                yvector<float> result2;
+                TVector<float> result;
+                TVector<float> result2;
                 cVec.Read(result);
                 cVecLinked.Read(result2);
 
@@ -132,7 +132,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
 
             for (ui32 size = 100; size < 10000001; size *= 10) {
                 for (ui32 k = 0; k < tries; ++k) {
-                    yvector<float> vec;
+                    TVector<float> vec;
                     for (ui64 i = 0; i < size; ++i) {
                         vec.push_back(rand.NextUniform());
                     }
@@ -145,7 +145,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                         RadixSort(cVec);
                     }
 
-                    yvector<float> result;
+                    TVector<float> result;
                     cVec.Read(result);
                 }
             }

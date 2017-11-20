@@ -1,6 +1,7 @@
 #include "load_data.h"
 #include "load_helpers.h"
 
+#include <catboost/libs/params/params.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/split.h>
@@ -13,17 +14,18 @@
 #include <util/generic/set.h>
 #include <util/generic/map.h>
 #include <util/generic/hash_set.h>
+#include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/string/iterator.h>
 #include <util/system/fs.h>
 #include <util/system/event.h>
 #include <util/stream/file.h>
-#include <util/system/spinlock.h>
 
 class TPoolBuilder: public IPoolBuilder {
 public:
-    explicit TPoolBuilder(TPool* pool)
+    TPoolBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor)
         : Pool(pool)
+        , LocalExecutor(localExecutor)
     {
     }
 
@@ -45,11 +47,11 @@ public:
 
     float GetCatFeatureValue(const TStringBuf& feature) override {
         int hashVal = CalcCatFeatureHash(feature);
-        auto& curPart = LockedHashMapParts[hashVal & 0xff];
-        with_lock (curPart.Lock) {
-            if (!curPart.CatFeatureHashes.has(hashVal)) {
-                curPart.CatFeatureHashes[hashVal] = feature;
-            }
+        int hashPartIdx = LocalExecutor->GetWorkerThreadId();
+        CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
+        auto& curPart = HashMapParts[hashPartIdx];
+        if (!curPart.CatFeatureHashes.has(hashVal)) {
+            curPart.CatFeatureHashes[hashVal] = feature;
         }
         return ConvertCatFeatureHashToFloat(hashVal);
     }
@@ -62,9 +64,9 @@ public:
         Pool->Docs.Factors[featureId][Cursor + localIdx] = feature;
     }
 
-    void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) override {
+    void AddAllFloatFeatures(ui32 localIdx, const TVector<float>& features) override {
         CB_ENSURE(features.size() == FactorCount, "Error: number of features should be equal to factor count");
-        yvector<float>* factors = Pool->Docs.Factors.data();
+        TVector<float>* factors = Pool->Docs.Factors.data();
         for (ui32 featureId = 0; featureId < FactorCount; ++featureId) {
             factors[featureId][Cursor + localIdx] = features[featureId];
         }
@@ -90,12 +92,12 @@ public:
         Pool->Docs.Id[Cursor + localIdx] = value;
     }
 
-    void SetFeatureIds(const yvector<TString>& featureIds) override {
+    void SetFeatureIds(const TVector<TString>& featureIds) override {
         Y_ENSURE(featureIds.size() == FactorCount, "Error: feature ids size should be equal to factor count");
         Pool->FeatureId = featureIds;
     }
 
-    void SetPairs(const yvector<TPair>& pairs) override {
+    void SetPairs(const TVector<TPair>& pairs) override {
         Pool->Pairs = pairs;
     }
 
@@ -103,9 +105,15 @@ public:
         return NextCursor;
     }
 
+    void GenerateDocIds(int offset) override {
+        for (int ind = 0; ind < Pool->Docs.Id.ysize(); ++ind) {
+            Pool->Docs.Id[ind] = ToString(offset + ind);
+        }
+    }
+
     void Finish() override {
         if (Pool->Docs.GetDocCount() != 0) {
-            for (const auto& part : LockedHashMapParts) {
+            for (const auto& part : HashMapParts) {
                 Pool->CatFeaturesHashToString.insert(part.CatFeatureHashes.begin(), part.CatFeatureHashes.end());
             }
             MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FactorCount << Endl;
@@ -115,8 +123,7 @@ public:
     }
 
 private:
-    struct TLockedHashPart {
-        TAdaptiveLock Lock;
+    struct THashPart {
         yhash<int, TString> CatFeatureHashes;
     };
     TPool* Pool;
@@ -125,14 +132,15 @@ private:
     ui32 NextCursor = 0;
     ui32 FactorCount = 0;
     ui32 BaselineCount = 0;
-    std::array<TLockedHashPart, 256> LockedHashMapParts;
+    std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
+    NPar::TLocalExecutor* LocalExecutor;
 };
 
 static bool IsNan(const TStringBuf& s) {
-    return s == "nan" || s == "NaN" || s == "NAN";
+    return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
 }
 
-TTargetConverter::TTargetConverter(const yvector<TString>& classNames)
+TTargetConverter::TTargetConverter(const TVector<TString>& classNames)
     : ClassNames(classNames)
 {
 }
@@ -153,9 +161,9 @@ float TTargetConverter::operator()(const TString& word) const {
     return UNDEFINED_CLASS;
 }
 
-static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
+static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
     Y_ASSERT(!columns.empty());
-    yvector<int> categFeatures;
+    TVector<int> categFeatures;
     int featureId = 0;
     for (const TColumn& column : columns) {
         switch (column.Type) {
@@ -180,20 +188,23 @@ static yvector<int> GetCategFeatures(const yvector<TColumn>& columns) {
     return categFeatures;
 }
 
-void StartBuilder(const yvector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo, int docCount,
-                bool hasHeader, IPoolBuilder* poolBuilder) {
+void StartBuilder(const TVector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo, int docCount,
+                bool hasHeader, int offset, IPoolBuilder* poolBuilder) {
     poolBuilder->Start(poolMetaInfo, docCount);
     if (hasHeader) {
         poolBuilder->SetFeatureIds(featureIds);
     }
+    if (!poolMetaInfo.HasDocIds) {
+        poolBuilder->GenerateDocIds(offset);
+    }
 }
 
-void FinalizeBuilder(const yvector<TColumn>& columnsDescription, const TString& pairsFile, IPoolBuilder* poolBuilder) {
+void FinalizeBuilder(const TVector<TColumn>& columnsDescription, const TString& pairsFile, IPoolBuilder* poolBuilder) {
     DumpMemUsage("After data read");
     if (!AllOf(columnsDescription.begin(), columnsDescription.end(), [](const TColumn& column) {
             return column.Id.empty();
         })) {
-        yvector<TString> featureIds;
+        TVector<TString> featureIds;
         for (auto column : columnsDescription) {
             if (column.Type == EColumn::Categ || column.Type == EColumn::Num) {
                 featureIds.push_back(column.Id);
@@ -203,12 +214,12 @@ void FinalizeBuilder(const yvector<TColumn>& columnsDescription, const TString& 
     }
     poolBuilder->Finish();
     if (!pairsFile.empty()) {
-         yvector<TPair> pairs = ReadPairs(pairsFile, poolBuilder->GetDocCount());
+         TVector<TPair> pairs = ReadPairs(pairsFile, poolBuilder->GetDocCount());
          poolBuilder->SetPairs(pairs);
      }
 }
 
-static void CheckTargetCount(const yvector<TColumn>& columns) {
+static void CheckTargetCount(const TVector<TColumn>& columns) {
     int targetCount = 0;
     for (const auto& column : columns) {
         if (column.Type == EColumn::Target) {
@@ -218,10 +229,9 @@ static void CheckTargetCount(const yvector<TColumn>& columns) {
     CB_ENSURE(targetCount <= 1, "Target count > 1 not supported");
 }
 
-TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, int threadCount, char fieldDelimiter,
-                         bool hasHeader, const yvector<TString>& classNames, IPoolBuilder* poolBuilder, int blockSize)
+TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, char fieldDelimiter,
+                         bool hasHeader, const TVector<TString>& classNames, int blockSize, IPoolBuilder* poolBuilder, NPar::TLocalExecutor* localExecutor)
     : PairsFile(pairsFile)
-    , ThreadCount(threadCount)
     , LinesRead(0)
     , FieldDelimiter(fieldDelimiter)
     , HasHeader(hasHeader)
@@ -229,8 +239,8 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
     , BlockSize(blockSize)
     , Reader(poolFile.c_str())
     , PoolBuilder(*poolBuilder)
-{
-    CB_ENSURE(threadCount > 0);
+    , LocalExecutor(localExecutor)
+    {
     CB_ENSURE(NFs::Exists(TString(poolFile)), "pool file is not found " + TString(poolFile));
     const int columnsCount = ReadColumnsCount(poolFile, FieldDelimiter);
 
@@ -291,21 +301,17 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
     CB_ENSURE(PoolMetaInfo.FactorCount > 0, "Pool should have at least one factor");
     PoolMetaInfo.CatFeatureIds = GetCategFeatures(ColumnsDescription);
 
-    LocalExecutor.RunAdditionalThreads(ThreadCount - 1);
-
     if (HasHeader) {
         TString line;
         Reader.ReadLine(line);
 
-        yvector<TStringBuf> words;
-        SplitRangeTo<const char, yvector<TStringBuf>>(~line, ~line + line.size(), FieldDelimiter, &words);
+        TVector<TStringBuf> words;
+        SplitRangeTo<const char, TVector<TStringBuf>>(~line, ~line + line.size(), FieldDelimiter, &words);
         CB_ENSURE(words.ysize() == ColumnsDescription.ysize(), "wrong columns number in pool header");
 
         for (int i = 0; i < words.ysize(); ++i) {
             if (ColumnsDescription[i].Type == EColumn::Categ || ColumnsDescription[i].Type == EColumn::Num) {
-                TString Id;
-                TryFromString<TString>(words[i], Id);
-                FeatureIds.push_back(Id);
+                FeatureIds.push_back(ToString(words[i]));
             }
         }
     }
@@ -327,8 +333,8 @@ void TPoolReader::ReadBlockAsync() {
         }
         BlockReadCompletedEvent.Signal();
     };
-    if (LocalExecutor.GetThreadCount() > 0) {
-        LocalExecutor.Exec(readLineBufferLambda, 0, NPar::TLocalExecutor::HIGH_PRIORITY);
+    if (LocalExecutor->GetThreadCount() > 0) {
+        LocalExecutor->Exec(readLineBufferLambda, 0, NPar::TLocalExecutor::HIGH_PRIORITY);
     } else {
         readLineBufferLambda(0);
     }
@@ -348,7 +354,7 @@ void TPoolReader::ProcessBlock() {
     auto parseBlock = [&](int lineIdx) {
         ui32 featureId = 0;
         ui32 baselineIdx = 0;
-        yvector<float> features;
+        TVector<float> features;
         features.yresize(PoolMetaInfo.FactorCount);
 
         int tokenCount = 0;
@@ -357,6 +363,9 @@ void TPoolReader::ProcessBlock() {
         while (words.NextTok(FieldDelimiter, token)) {
             switch (ColumnsDescription[tokenCount].Type) {
                 case EColumn::Categ: {
+                    if (IsNan(token)) {
+                        token = "nan";
+                    }
                     features[featureId] = PoolBuilder.GetCatFeatureValue(token);
                     ++featureId;
                     break;
@@ -390,6 +399,7 @@ void TPoolReader::ProcessBlock() {
                     break;
                 }
                 case EColumn::QueryId: {
+                    CB_ENSURE(token.length() != 0, "empty values not supported for query id");
                     PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;
                 }
@@ -414,12 +424,13 @@ void TPoolReader::ProcessBlock() {
         CB_ENSURE(tokenCount == ColumnsDescription.ysize(), "wrong columns number in pool line " <<
                   LinesRead + lineIdx + 1 << ": expected " << ColumnsDescription.ysize() << ", found " << tokenCount);
     };
-    LocalExecutor.ExecRange(parseBlock, NPar::TLocalExecutor::TBlockParams(0, ParseBuffer.ysize()).SetBlockCount(ThreadCount).WaitCompletion());
+    const int threadCount = LocalExecutor->GetThreadCount() + 1;
+    LocalExecutor->ExecRange(parseBlock, NPar::TLocalExecutor::TBlockParams(0, ParseBuffer.ysize()).SetBlockCount(threadCount), NPar::TLocalExecutor::WAIT_COMPLETE);
     LinesRead += ParseBuffer.ysize();
 }
 
-THolder<IPoolBuilder> InitBuilder(TPool* pool) {
-    return new TPoolBuilder(pool);
+THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor) {
+    return new TPoolBuilder(pool, localExecutor);
 }
 
 void ReadPool(const TString& cdFile,
@@ -429,28 +440,30 @@ void ReadPool(const TString& cdFile,
               bool verbose,
               char fieldDelimiter,
               bool hasHeader,
-              const yvector<TString>& classNames,
+              const TVector<TString>& classNames,
               TPool* pool) {
-    TPoolBuilder builder(pool);
-    ReadPool(cdFile, poolFile, pairsFile, threadCount, verbose, fieldDelimiter, hasHeader, classNames, &builder);
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+    TPoolBuilder builder(pool, &localExecutor);
+    ReadPool(cdFile, poolFile, pairsFile, verbose, fieldDelimiter, hasHeader, classNames, &localExecutor, &builder);
 }
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               const TString& pairsFile,
-              int threadCount,
               bool verbose,
               char fieldDelimiter,
               bool hasHeader,
-              const yvector<TString>& classNames,
+              const TVector<TString>& classNames,
+              NPar::TLocalExecutor* localExecutor,
               IPoolBuilder* poolBuilder) {
     if (verbose) {
         SetVerboseLogingMode();
     } else {
         SetSilentLogingMode();
     }
-    TPoolReader poolReader(cdFile, poolFile, pairsFile, threadCount, fieldDelimiter, hasHeader, classNames, poolBuilder, 10000);
-    StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, CountLines(poolFile), hasHeader, poolBuilder);
+    TPoolReader poolReader(cdFile, poolFile, pairsFile, fieldDelimiter, hasHeader, classNames, 10000, poolBuilder, localExecutor);
+    StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, CountLines(poolFile), hasHeader, 0, poolBuilder);
     while (poolReader.ReadBlock()) {
          poolReader.ProcessBlock();
     }
@@ -464,6 +477,8 @@ void ReadPool(const TString& cdFile,
               int threadCount,
               bool verbose,
               IPoolBuilder& poolBuilder) {
-    yvector<TString> noNames;
-    ReadPool(cdFile, poolFile, pairsFile, threadCount, verbose, '\t', false, noNames, &poolBuilder);
+    TVector<TString> noNames;
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+    ReadPool(cdFile, poolFile, pairsFile, verbose, '\t', false, noNames, &localExecutor, &poolBuilder);
 }

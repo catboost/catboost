@@ -105,8 +105,8 @@ size_t TOptsParseResult::GetFreeArgsPos() const {
     return Parser_->Pos_;
 }
 
-yvector<TString> TOptsParseResult::GetFreeArgs() const {
-    yvector<TString> v;
+TVector<TString> TOptsParseResult::GetFreeArgs() const {
+    TVector<TString> v;
     for (size_t i = GetFreeArgsPos(); i < Parser_->Argc_; ++i) {
         v.push_back(Parser_->Argv_[i]);
     }

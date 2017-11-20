@@ -57,7 +57,7 @@ namespace NCudaLib {
         }
 
     private:
-        yvector<T> Data;
+        TVector<T> Data;
 
     private:
         template <class TC>
@@ -80,9 +80,9 @@ namespace NCudaLib {
     class TCudaManager {
     private:
         struct TCudaManagerState {
-            yvector<TCudaSingleDevice*> Devices;
-            yvector<ui64> Streams;
-            yvector<ui64> FreeStreams;
+            TVector<TCudaSingleDevice*> Devices;
+            TVector<ui64> Streams;
+            TVector<ui64> FreeStreams;
             TAdaptiveLock Lock;
         };
 
@@ -94,7 +94,7 @@ namespace NCudaLib {
         TDevicesList DevicesList;
         TAutoEvent OnStopChildEvent;
 
-        yvector<bool> IsActiveDevice;
+        TVector<bool> IsActiveDevice;
         bool Locked = false;
 
         void FreeStream(const ui32 stream) {
@@ -113,7 +113,7 @@ namespace NCudaLib {
             return *State;
         }
 
-        void SetDevices(yvector<TCudaSingleDevice*>&& devices) {
+        void SetDevices(TVector<TCudaSingleDevice*>&& devices) {
             CB_ENSURE(!HasDevices(), "Error: CudaManager already has devices");
             GetState().Devices = std::move(devices);
             GetState().Streams.clear();
@@ -204,7 +204,7 @@ namespace NCudaLib {
 
         //waits for finish all work submitted to selected devices
         void WaitComplete(TDevicesList&& devices) {
-            yvector<TDeviceFuture<ui64>> waitComplete;
+            TVector<TDeviceFuture<ui64>> waitComplete;
 
             for (auto dev : devices) {
                 CB_ENSURE(dev < GetState().Devices.size());
@@ -222,7 +222,7 @@ namespace NCudaLib {
         }
 
         void WaitStreamSubmit(TDevicesList&& devices, ui32 stream = 0) {
-            yvector<TDeviceFuture<ui64>> waitComplete;
+            TVector<TDeviceFuture<ui64>> waitComplete;
             for (auto dev : devices) {
                 CB_ENSURE(dev < GetState().Devices.size());
                 CB_ENSURE(IsActiveDevice[dev], "Device should be active");
@@ -456,9 +456,9 @@ namespace NCudaLib {
     private:
         TAdaptiveLock Lock;
         TCudaManager& Parent;
-        yvector<bool> IsRequested;
-        yvector<TAutoEvent> Events;
-        yvector<TStopChildLock> StopChildGuards;
+        TVector<bool> IsRequested;
+        TVector<TAutoEvent> Events;
+        TVector<TStopChildLock> StopChildGuards;
     };
 }
 

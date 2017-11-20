@@ -54,7 +54,7 @@ i64 GetFileSize(const TString& srcLocation) {
     if (!in.ReadLine(s))
         return -1;
 
-    yvector<TString> el;
+    TVector<TString> el;
     Split(~s, " ", el);
 
     i64 size;

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "online_ctr.h"
-#include <catboost/libs/model/projection.h>
+
 #include <util/digest/multi.h>
+
 #include <library/binsaver/bin_saver.h>
 
 inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
@@ -15,27 +16,27 @@ inline bool IsTrueOneHotFeature(int featureValue, int splitValue) {
 
 enum class ESplitType {
     FloatFeature,
-    OnlineCtr,
-    OneHotFeature
+    OneHotFeature,
+    OnlineCtr
 };
 
 struct TModelSplit {
     ESplitType Type;
-    TBinFeature BinFeature;
+    TFloatSplit FloatFeature;
     TModelCtrSplit OnlineCtr;
-    TOneHotFeature OneHotFeature;
+    TOneHotSplit OneHotFeature;
 
-    Y_SAVELOAD_DEFINE(Type, BinFeature, OnlineCtr, OneHotFeature);
+    Y_SAVELOAD_DEFINE(Type, FloatFeature, OnlineCtr, OneHotFeature);
 
     TModelSplit() {
     }
 
-    explicit TModelSplit(const TBinFeature& binFeature) {
+    explicit TModelSplit(const TFloatSplit& floatFeature) {
         Type = ESplitType::FloatFeature;
-        BinFeature = binFeature;
+        FloatFeature = floatFeature;
     }
 
-    explicit TModelSplit(const TOneHotFeature& oheFeature) {
+    explicit TModelSplit(const TOneHotSplit& oheFeature) {
         Type = ESplitType::OneHotFeature;
         OneHotFeature = oheFeature;
     }
@@ -46,20 +47,9 @@ struct TModelSplit {
     {
     }
 
-    TModelSplit(ESplitType splitType, int featureIdx, int splitIdxOrValue)
-        : Type(splitType)
-    {
-        if (splitType == ESplitType::FloatFeature) {
-            BinFeature = TBinFeature(featureIdx, splitIdxOrValue);
-        } else {
-            Y_ASSERT(splitType == ESplitType::OneHotFeature);
-            OneHotFeature = TOneHotFeature(featureIdx, splitIdxOrValue);
-        }
-    }
-
     size_t GetHash() const {
         if (Type == ESplitType::FloatFeature) {
-            return MultiHash(BinFeature.FloatFeature, BinFeature.SplitIdx);
+            return MultiHash(FloatFeature.FloatFeature, FloatFeature.Split);
         } else if (Type == ESplitType::OnlineCtr) {
             return OnlineCtr.GetHash();
         } else {
@@ -69,7 +59,7 @@ struct TModelSplit {
     }
 
     bool operator==(const TModelSplit& other) const {
-        return Type == other.Type && ((Type == ESplitType::FloatFeature && BinFeature == other.BinFeature) ||
+        return Type == other.Type && ((Type == ESplitType::FloatFeature && FloatFeature == other.FloatFeature) ||
                                       (Type == ESplitType::OnlineCtr && OnlineCtr == other.OnlineCtr) ||
                                       (Type == ESplitType::OneHotFeature && OneHotFeature == other.OneHotFeature));
     }
@@ -82,7 +72,7 @@ struct TModelSplit {
             return false;
         }
         if (Type == ESplitType::FloatFeature) {
-            return BinFeature < other.BinFeature;
+            return FloatFeature < other.FloatFeature;
         } else if (Type == ESplitType::OnlineCtr) {
             return OnlineCtr < other.OnlineCtr;
         } else {

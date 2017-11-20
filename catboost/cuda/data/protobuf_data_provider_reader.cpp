@@ -4,7 +4,7 @@ using namespace NCatboostCuda;
 
 
 void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
-                                                yvector<TFeatureColumnPtr>& features,
+                                                TVector<TFeatureColumnPtr>& features,
                                                 ui32 docCount) {
     ReadMessage(input, FeatureColumn);
     const auto& featureDescription = FeatureColumn.GetFeatureDescription();
@@ -22,7 +22,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
             break;
         }
         case ::NCompressedPool::TFeatureType::Binarized: {
-            yvector<float> borders = FromProtoToVector(FeatureColumn.GetBinarization().GetBorders());
+            TVector<float> borders = FromProtoToVector(FeatureColumn.GetBinarization().GetBorders());
             const auto& binarizedData = FeatureColumn.GetBinarizedColumn().GetData();
             auto values = FromProtoToVector(binarizedData);
             CB_ENSURE(borders.size(), "Error: binarization should be positive");

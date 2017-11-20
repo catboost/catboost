@@ -20,12 +20,12 @@ namespace NCatboostCuda
 
         struct TCtrFeature {
             TCtr Ctr;
-            yvector<float> Borders;
+            TVector<float> Borders;
 
             TCtrFeature() = default;
 
             TCtrFeature(const TCtr& ctr,
-                        yvector<float> borders)
+                        TVector<float> borders)
                     : Ctr(ctr)
                     , Borders(std::move(borders)) {
             }
@@ -35,12 +35,12 @@ namespace NCatboostCuda
 
         struct TFloatFeature {
             ui32 DataProviderId;
-            yvector<float> Borders;
+            TVector<float> Borders;
 
             TFloatFeature() = default;
 
             TFloatFeature(const ui32& dataProviderId,
-                          yvector<float> borders)
+                          TVector<float> borders)
                     : DataProviderId(dataProviderId)
                     , Borders(std::move(borders)) {
             }
@@ -128,7 +128,7 @@ namespace NCatboostCuda
                 return;
             }
             TCtr ctr = FeaturesManager.GetCtr(featureId);
-            yvector<float> borders = FeaturesManager.GetBorders(featureId);
+            TVector<float> borders = FeaturesManager.GetBorders(featureId);
             FeaturesMap.Ctrs[featureId] = TModelFeaturesMap::TCtrFeature(ctr, std::move(borders));
 
             for (auto split : ctr.FeatureTensor.GetSplits()) {

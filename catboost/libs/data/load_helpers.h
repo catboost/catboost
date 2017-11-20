@@ -10,14 +10,14 @@
 #include <util/string/split.h>
 
 template <class TStr>
-yvector<TPair> ReadPairs(const TStr& fileName, int docCount) {
+TVector<TPair> ReadPairs(const TStr& fileName, int docCount) {
     CB_ENSURE(NFs::Exists(TString(fileName)), "pairs file is not found");
     TIFStream reader(fileName.c_str());
 
-    yvector<TPair> pairs;
+    TVector<TPair> pairs;
     TString line;
     while (reader.ReadLine(line)) {
-        yvector<TString> tokens;
+        TVector<TString> tokens;
         try {
             Split(line, "\t", tokens);
         }
@@ -28,12 +28,16 @@ yvector<TPair> ReadPairs(const TStr& fileName, int docCount) {
         if (tokens.empty()) {
             continue;
         }
-        CB_ENSURE(tokens.ysize() == 2, "Each line should have two columns. Invalid line number " << line);
+        CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3, "Each line should have two or three columns. Invalid line number " << line);
         int winnerId = FromString<int>(tokens[0]);
         int loserId = FromString<int>(tokens[1]);
+        float weight = 1;
+        if (tokens.ysize() == 3) {
+            weight = FromString<float>(tokens[2]);
+        }
         CB_ENSURE(winnerId >= 0 && winnerId < docCount, "Invalid winner index " << winnerId);
         CB_ENSURE(loserId >= 0 && loserId < docCount, "Invalid loser index " << loserId);
-        pairs.push_back(TPair(winnerId, loserId));
+        pairs.emplace_back(winnerId, loserId, weight);
     }
 
     return pairs;
@@ -45,8 +49,8 @@ inline int ReadColumnsCount(const TStr& poolFile, char fieldDelimiter = '\t') {
     TIFStream reader(poolFile.c_str());
     TString line;
     CB_ENSURE(reader.ReadLine(line), "pool can't be empty");
-    yvector<TStringBuf> words;
-    SplitRangeTo<const char, yvector<TStringBuf>>(~line, ~line + line.size(), fieldDelimiter, &words);
+    TVector<TStringBuf> words;
+    SplitRangeTo<const char, TVector<TStringBuf>>(~line, ~line + line.size(), fieldDelimiter, &words);
     return words.ysize();
 }
 

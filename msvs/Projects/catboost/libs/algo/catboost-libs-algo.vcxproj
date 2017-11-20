@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3215009 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3215009 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3248252 /Dyhash=THashMap /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3248252 /Dyhash=THashMap /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -76,11 +76,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\apply.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_fstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cross_validation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\eval_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_features.cpp"/>
@@ -91,15 +89,13 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\logger.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\logger.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\metric.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\metric.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\model_build_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\params.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\params.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_model.cpp"/>
@@ -131,60 +127,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\algo\logger.h;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\algo\logger.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\algo\metric.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/metric.h" "--include-path" "catboost/libs/algo/metric.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/metric.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/metric.h" "--include-path" "catboost/libs/algo/metric.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/metric.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/algo/metric.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\algo\metric.h;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\algo\metric.h_serialized.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\algo\params.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/params.h" "--include-path" "catboost/libs/algo/params.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/params.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/params.h" "--include-path" "catboost/libs/algo/params.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/params.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/algo/params.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\algo\params.h;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\algo\params.h_serialized.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
@@ -193,13 +135,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_fstr.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cross_validation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_holder.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\eval_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_features.h"/>
@@ -208,10 +147,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\model_build_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\priors.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.h"/>
@@ -237,9 +178,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
-      <Project>E83B3FB9-9F00-AC47-8D5D-2028D57A073D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
     </ProjectReference>
@@ -252,8 +190,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
+      <Project>2A1F054B-AB2A-66AA-1838-2784A8B46C5D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\params\catboost-libs-params.vcxproj">
+      <Project>AFF86C9B-6E36-5463-A269-12BE720A04BA</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\tensorboard_logger\catboost-libs-tensorboard_logger.vcxproj">
       <Project>6F9BA27F-7853-1464-BB51-1321A3D1AC80</Project>
@@ -291,6 +235,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
+      <Project>B88207AE-800B-A7B1-AE0B-F609E8684A5A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
       <Project>90F91270-0728-ADD6-69B3-0B2735FE25FB</Project>
     </ProjectReference>
@@ -308,6 +255,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
+      <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.vcxproj">
       <Project>0D24EC99-8508-5906-E120-5A68AEB033F8</Project>
@@ -345,6 +295,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\sse2\library-fast_exp-sse2.vcxproj">
       <Project>005F449B-17BD-B0FE-A78D-F57DAC88A959</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
+      <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
       <Project>779D8853-F643-71C6-90BD-D7B34A2441E9</Project>
     </ProjectReference>
@@ -365,6 +318,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
       <Project>83A191D5-D636-DE22-2633-0CBA3DEA99BB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
+      <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
+      <Project>898C3811-AD77-869C-24DC-EF6A89FA8399</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>137212F6-D2FE-719F-EBE2-99060434BC72</Project>

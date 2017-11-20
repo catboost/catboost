@@ -19,7 +19,7 @@ public:
 
     TTargetClassifier() = default;
 
-    explicit TTargetClassifier(const yvector<float>& borders)
+    explicit TTargetClassifier(const TVector<float>& borders)
         : Borders(borders)
     {
     }
@@ -29,5 +29,5 @@ public:
     Y_SAVELOAD_DEFINE(Borders);
 
 private:
-    yvector<float> Borders;
+    TVector<float> Borders;
 };

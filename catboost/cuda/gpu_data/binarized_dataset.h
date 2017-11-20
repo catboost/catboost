@@ -86,7 +86,7 @@ namespace NCatboostCuda
             return LocalFeatureIndex.has(featureId);
         }
 
-        const yvector<ui32>& GetFeatureIds() const
+        const TVector<ui32>& GetFeatureIds() const
         {
             return FeatureIds;
         }
@@ -106,7 +106,7 @@ namespace NCatboostCuda
             return static_cast<ui32>(HostFeatures.size());
         }
 
-        const yvector<TCFeature>& GetHostFeatures() const
+        const TVector<TCFeature>& GetHostFeatures() const
         {
             return HostFeatures;
         }
@@ -152,21 +152,21 @@ namespace NCatboostCuda
                     : EBinSplitType::TakeGreater};
         }
 
-        const yvector<TCBinFeature>& GetHostBinaryFeatures() const
+        const TVector<TCBinFeature>& GetHostBinaryFeatures() const
         {
             return HostBinFeatures;
         }
 
     private:
-        yvector<ui32> FeatureIds;
+        TVector<ui32> FeatureIds;
         ymap<ui32, ui32> LocalFeatureIndex;
         TCudaBuffer<ui32, TCompressedIndexMapping> CompressedIndex;
         //features
         TCudaBuffer<TCFeature, TFeaturesMapping> Grid;
-        yvector<TCFeature> HostFeatures;
+        TVector<TCFeature> HostFeatures;
 
         TCudaBuffer<TCBinFeature, TFeaturesMapping> BinaryFeatures;
-        yvector<TCBinFeature> HostBinFeatures;
+        TVector<TCBinFeature> HostBinFeatures;
         TSampleMapping DocsMapping;
 
         template<class>

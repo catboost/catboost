@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
                 TSingleMapping mapping(dev, size);
                 auto cVec = TCudaBuffer<ui32, TSingleMapping>::Create(mapping);
                 MakeSequence(cVec);
-                yvector<ui32> result;
+                TVector<ui32> result;
                 cVec.Read(result);
 
                 for (ui32 i = 0; i < result.size(); ++i) {
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
                 TStripeMapping stripeMapping = TStripeMapping::SplitBetweenDevices(size);
                 auto cVec = TCudaBuffer<ui32, TStripeMapping>::Create(stripeMapping);
                 MakeSequence(cVec);
-                yvector<ui32> result;
+                TVector<ui32> result;
                 cVec.Read(result);
 
                 UNIT_ASSERT_EQUAL(result.size(), size);
@@ -59,8 +59,8 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
                 const ui64 size = 2 + rand.NextUniformL() % 1000000;
-                yvector<float> data(size);
-                yvector<float> tmp;
+                TVector<float> data(size);
+                TVector<float> tmp;
                 std::generate(data.begin(), data.end(), [&]() {
                     return rand.NextUniform();
                 });

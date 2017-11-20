@@ -18,7 +18,7 @@ namespace NAddr {
         TNetworkInterfaceList result;
 
 #ifdef _win_
-        yvector<char> buf;
+        TVector<char> buf;
         buf.resize(1000000);
         PIP_ADAPTER_ADDRESSES adapterBuf = (PIP_ADAPTER_ADDRESSES)&buf[0];
         ULONG bufSize = buf.ysize();

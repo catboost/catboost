@@ -7,7 +7,9 @@ RECURSE(
     log2/metrics
     rotate_bits
     rotate_bits/metrics
-    smart_pointers
     singleton
+    smart_pointers
     sort
+    vector_count_ctor
+    vector_count_ctor/metrics
 )

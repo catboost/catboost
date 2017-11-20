@@ -1,11 +1,8 @@
 #include "online_ctr.h"
-
 #include "bin_tracker.h"
 #include "fold.h"
-#include "index_hash_calcer.h"
 #include "learn_context.h"
 #include "score_calcer.h"
-#include <catboost/libs/model/tensor_struct.h>
 
 #include <util/generic/utility.h>
 #include <util/thread/singleton.h>
@@ -32,7 +29,7 @@ struct TCtrCalcer {
     }
 
 private:
-    yvector<char> Storage;
+    TVector<char> Storage;
 };
 
 struct TBucketsView {
@@ -56,7 +53,7 @@ struct TBucketsView {
     }
 };
 
-void CalcNormalization(const yvector<float>& priors, yvector<float>* shift, yvector<float>* norm) {
+void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm) {
     shift->yresize(priors.size());
     norm->yresize(priors.size());
     for (int i = 0; i < priors.ysize(); ++i) {
@@ -84,25 +81,25 @@ static void UpdateGoodCount(int curCount, ECtrType ctrType, int* goodCount) {
 }
 
 static void CalcOnlineCTRClasses(const TTrainData& data,
-                                 const yvector<ui64>& enumeratedCatFeatures,
+                                 const TVector<ui64>& enumeratedCatFeatures,
                                  size_t leafCount,
-                                 const yvector<int>& permutedTargetClass,
+                                 const TVector<int>& permutedTargetClass,
                                  int targetClassesCount,
-                                 const yvector<float>& priors,
+                                 const TVector<float>& priors,
                                  int ctrBorderCount,
                                  ECtrType ctrType,
-                                 TArray2D<yvector<ui8>>* feature) {
+                                 TArray2D<TVector<ui8>>* feature) {
     const int targetBorderCount = GetCtrBorderCount(targetClassesCount, ctrType);
     const int docCount = enumeratedCatFeatures.ysize();
 
     TBucketsView bv(leafCount, targetClassesCount);
-    yvector<float> shift;
-    yvector<float> norm;
+    TVector<float> shift;
+    TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
 
     const int blockSize = (1000 + targetBorderCount - 1) / targetBorderCount + 100; // ensure blocks have reasonable size
-    yvector<int> totalCountByDoc(blockSize);
-    yvector<yvector<int>> goodCountByBorderByDoc(targetBorderCount, yvector<int>(blockSize));
+    TVector<int> totalCountByDoc(blockSize);
+    TVector<TVector<int>> goodCountByBorderByDoc(targetBorderCount, TVector<int>(blockSize));
     for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
@@ -139,21 +136,21 @@ static void CalcOnlineCTRClasses(const TTrainData& data,
 }
 
 static void CalcOnlineCTRSimple(const TTrainData& data,
-                                const yvector<ui64>& enumeratedCatFeatures,
+                                const TVector<ui64>& enumeratedCatFeatures,
                                 size_t leafCount,
-                                const yvector<int>& permutedTargetClass,
-                                const yvector<float>& priors,
+                                const TVector<int>& permutedTargetClass,
+                                const TVector<float>& priors,
                                 int ctrBorderCount,
-                                TArray2D<yvector<ui8>>* feature) {
+                                TArray2D<TVector<ui8>>* feature) {
     const auto docCount = enumeratedCatFeatures.ysize();
     auto ctrArrSimple = TCtrCalcer::GetCtrHistoryArr(leafCount);
-    yvector<float> shift;
-    yvector<float> norm;
+    TVector<float> shift;
+    TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
 
     const int blockSize = 1000;
-    yvector<int> totalCount(blockSize);
-    yvector<int> goodCount(blockSize);
+    TVector<int> totalCount(blockSize);
+    TVector<int> goodCount(blockSize);
     for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
@@ -178,22 +175,22 @@ static void CalcOnlineCTRSimple(const TTrainData& data,
 }
 
 static void CalcOnlineCTRMean(const TTrainData& data,
-                              const yvector<ui64>& enumeratedCatFeatures,
+                              const TVector<ui64>& enumeratedCatFeatures,
                               size_t leafCount,
-                              const yvector<int>& permutedTargetClass,
+                              const TVector<int>& permutedTargetClass,
                               int targetBorderCount,
-                              const yvector<float>& priors,
+                              const TVector<float>& priors,
                               int ctrBorderCount,
-                              TArray2D<yvector<ui8>>* feature) {
+                              TArray2D<TVector<ui8>>* feature) {
     const auto docCount = enumeratedCatFeatures.ysize();
     auto ctrArrMean = TCtrCalcer::GetCtrMeanHistoryArr(leafCount);
-    yvector<float> shift;
-    yvector<float> norm;
+    TVector<float> shift;
+    TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
 
     const int blockSize = 1000;
-    yvector<float> sum(blockSize);
-    yvector<int> count(blockSize);
+    TVector<float> sum(blockSize);
+    TVector<int> count(blockSize);
     for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
@@ -219,16 +216,16 @@ static void CalcOnlineCTRMean(const TTrainData& data,
 }
 
 static void CalcOnlineCTRCounter(const TTrainData& data,
-                                 const yvector<ui64>& enumeratedCatFeatures,
+                                 const TVector<ui64>& enumeratedCatFeatures,
                                  size_t leafCount,
-                                 const yvector<float>& priors,
+                                 const TVector<float>& priors,
                                  int ctrBorderCount,
                                  ECounterCalc counterCalc,
-                                 TArray2D<yvector<ui8>>* feature) {
+                                 TArray2D<TVector<ui8>>* feature) {
     const auto docCount = enumeratedCatFeatures.ysize();
     auto ctrArrTotal = TCtrCalcer::GetCtrArrTotal(leafCount);
-    yvector<float> shift;
-    yvector<float> norm;
+    TVector<float> shift;
+    TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
     Y_ASSERT(docCount >= data.LearnSampleCount);
 
@@ -237,15 +234,15 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
         Full
     };
 
-    auto CalcCTRs = [](const yvector<ui64>& enumeratedCatFeatures,
-                       const yvector<float>& priors,
-                       const yvector<float>& shift,
-                       const yvector<float>& norm,
+    auto CalcCTRs = [](const TVector<ui64>& enumeratedCatFeatures,
+                       const TVector<float>& priors,
+                       const TVector<float>& shift,
+                       const TVector<float>& norm,
                        int ctrBorderCount,
                        int firstId, int lastId, ECalcMode mode,
                        int* denominator,
                        int* ctrArrTotal,
-                       TArray2D<yvector<ui8>>* feature) {
+                       TArray2D<TVector<ui8>>* feature) {
         int currentDenominator = *denominator;
 
         if (mode == ECalcMode::Full) {
@@ -257,8 +254,8 @@ static void CalcOnlineCTRCounter(const TTrainData& data,
         }
 
         const int blockSize = 1000;
-        yvector<int> ctrTotal(blockSize);
-        yvector<int> ctrDenominator(blockSize);
+        TVector<int> ctrTotal(blockSize);
+        TVector<int> ctrDenominator(blockSize);
         for (int blockStart = firstId; blockStart < lastId; blockStart += blockSize) {
             const int blockEnd = Min(lastId, blockStart + blockSize);
             for (int docId = blockStart; docId < blockEnd; ++docId) {
@@ -315,13 +312,12 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        TLearnContext* ctx,
                        TOnlineCTR* dst) {
     dst->Feature.resize(ctx->Params.CtrParams.Ctrs.size());
-    using THashArr = yvector<ui64>;
+    using THashArr = TVector<ui64>;
     using TRehashHash = TDenseHash<ui64, ui32>;
     Y_STATIC_THREAD(THashArr) tlsHashArr;
     Y_STATIC_THREAD(TRehashHash) rehashHashTlsVal;
-    yvector<ui64>& hashArr = tlsHashArr.Get();
-
-    CalcHashes(proj, data, fold, &hashArr);
+    TVector<ui64>& hashArr = tlsHashArr.Get();
+    CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, &hashArr);
     rehashHashTlsVal.Get().MakeEmpty(fold.LearnPermutation.size());
     ui64 topSize = ctx->Params.CtrLeafCountLimit;
     if (proj.IsSingleCatFeature() && ctx->Params.StoreAllSimpleCtr) {
@@ -333,7 +329,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
         &hashArr,
         rehashHashTlsVal.GetPtr());
 
-    const yvector<float>& priors = ctx->Priors.GetPriors(proj);
+    const TVector<float>& priors = ctx->Priors.GetPriors(proj);
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
         int targetClassesCount = fold.TargetClassesCount[ctrIdx];
         ECtrType ctrType = ctx->Params.CtrParams.Ctrs[ctrIdx].CtrType;
@@ -404,7 +400,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
                       &ctrs[proj]);
 }
 
-void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx) {
+void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx) {
     auto calcer = [&](int i) {
         ComputeOnlineCTRs(data,
                           *tasks[i].Fold,
@@ -415,32 +411,29 @@ void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const T
     ctx->LocalExecutor.ExecRange(calcer, 0, tasks.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-void CalcFinalCtrs(const TModelCtrBase& ctr,
-                   const TAllFeatures& data,
-                   const ui64 learnSampleCount,
-                   const yvector<int>& learnPermutation,
-                   const yvector<int>& permutedTargetClass,
-                   int targetClassesCount,
-                   ui64 ctrLeafCountLimit,
-                   bool storeAllSimpleCtr,
-                   TCtrValueTable* result) {
-    const ECtrType ctrType = ctr.CtrType;
-    yvector<ui64> hashArr;
-    CalcHashes(ctr.Projection, data,  learnSampleCount, learnPermutation, &hashArr);
-
-    ui64 topSize = ctrLeafCountLimit;
-    if (ctr.Projection.IsSingleCatFeature() && storeAllSimpleCtr) {
-        topSize = Max<ui64>();
-    }
-
+void CalcFinalCtrsImpl(
+    const ECtrType ctrType,
+    const ui64 ctrLeafCountLimit,
+    const TVector<int>& permutedTargetClass,
+    const TVector<float>& permutedTargets,
+    const ui64 learnSampleCount,
+    int targetClassesCount,
+    TVector<ui64>* hashArr,
+    TCtrValueTable* result
+) {
+    TDenseHash<ui64, ui32> tmpHash;
     auto leafCount = ReindexHash(
         learnSampleCount,
-        topSize,
-        &hashArr,
-        &result->Hash).first;
+        ctrLeafCountLimit,
+        hashArr,
+        &tmpHash).first;
+    auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
+    for (const auto& kv : tmpHash) {
+        hashIndexBuilder.SetIndex(kv.Key(), kv.Value());
+    }
     TArrayRef<int> ctrIntArray;
     TArrayRef<TCtrMeanHistory> ctrMean;
-    if (ctrType == ECtrType::BinarizedTargetMeanValue) {
+    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
         ctrMean = result->AllocateBlobAndGetArrayRef<TCtrMeanHistory>(leafCount);
     } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
         ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount);
@@ -450,15 +443,19 @@ void CalcFinalCtrs(const TModelCtrBase& ctr,
         ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount * targetClassesCount);
     }
 
-    Y_ASSERT(hashArr.size() == learnSampleCount);
+    Y_ASSERT(hashArr->size() == learnSampleCount);
     int targetBorderCount = targetClassesCount - 1;
+    auto hashArrPtr = hashArr->data();
     for (ui32 z = 0; z < learnSampleCount; ++z) {
-        const ui64 elemId = hashArr[z];
+        const ui64 elemId = hashArrPtr[z];
         if (ctrType == ECtrType::BinarizedTargetMeanValue) {
             TCtrMeanHistory& elem = ctrMean[elemId];
             elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
         } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
             ++ctrIntArray[elemId];
+        } else if (ctrType == ECtrType::FloatTargetMeanValue) {
+            TCtrMeanHistory& elem = ctrMean[elemId];
+            elem.Add(permutedTargets[z]);
         } else {
             TArrayRef<int> elem = MakeArrayRef(ctrIntArray.data() + targetClassesCount * elemId, targetClassesCount);
             ++elem[permutedTargetClass[z]];
@@ -471,4 +468,50 @@ void CalcFinalCtrs(const TModelCtrBase& ctr,
     if (ctrType == ECtrType::FeatureFreq) {
         result->CounterDenominator = static_cast<int>(learnSampleCount);
     }
+}
+
+void CalcFinalCtrs(const ECtrType ctrType, const TProjection& projection, const TTrainData& data,
+                   const TVector<int>& learnPermutation, const TVector<int>& permutedTargetClass,
+                   int targetClassesCount, ui64 ctrLeafCountLimit, bool storeAllSimpleCtr,
+                   ECounterCalc counterCalcMethod, TCtrValueTable* result) {
+    ui64 sampleCount = data.LearnSampleCount;
+    if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
+        sampleCount = data.GetSampleCount();
+    }
+    TVector<ui64> hashArr;
+    CalcHashes(projection, data.AllFeatures, sampleCount, learnPermutation, &hashArr);
+
+    if (projection.IsSingleCatFeature() && storeAllSimpleCtr) {
+        ctrLeafCountLimit = Max<ui64>();
+    }
+    CalcFinalCtrsImpl(
+        ctrType,
+        ctrLeafCountLimit,
+        permutedTargetClass,
+        TVector<float>(),
+        sampleCount,
+        targetClassesCount,
+        &hashArr,
+        result);
+}
+
+void CalcFinalCtrs(const ECtrType ctrType, const TFeatureCombination& projection, const TPool& pool, ui64 sampleCount,
+                   const TVector<int>& permutedTargetClass, const TVector<float>& permutedTargets,
+                   int targetClassesCount, ui64 ctrLeafCountLimit, bool storeAllSimpleCtr, TCtrValueTable* result) {
+    TVector<ui64> hashArr;
+    CalcHashes(
+        projection,
+        [&pool] (int floatFeatureIdx, size_t docId) -> float {
+            return pool.Docs.Factors[floatFeatureIdx][docId];
+        },
+        [&pool] (int floatFeatureIdx, size_t docId) -> int {
+            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[floatFeatureIdx][docId]);
+        },
+        sampleCount,
+        &hashArr);
+
+    if (projection.IsSingleCatFeature() && storeAllSimpleCtr) {
+        ctrLeafCountLimit = Max<ui64>();
+    }
+    CalcFinalCtrsImpl(ctrType, ctrLeafCountLimit, permutedTargetClass, permutedTargets, sampleCount, targetClassesCount, &hashArr, result);
 }

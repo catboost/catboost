@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model_calcer_wrapper.h"
+
 #include <array>
 #include <vector>
 #include <functional>

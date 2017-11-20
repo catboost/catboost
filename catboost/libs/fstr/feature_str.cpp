@@ -7,7 +7,7 @@
 #include <util/generic/hash.h>
 #include <library/containers/2d_array/2d_array.h>
 
-static int GetMaxSrcFeature(const yvector<TMxTree>& trees) {
+static int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
     int res = -1;
     for (const auto& tree : trees) {
         const auto& features = tree.SrcFeatures;
@@ -20,16 +20,16 @@ static int GetMaxSrcFeature(const yvector<TMxTree>& trees) {
     return res;
 }
 
-static void ConvertToPercents(yvector<double>& res) {
+static void ConvertToPercents(TVector<double>& res) {
     double total = Accumulate(res.begin(), res.end(), 0.0);
     for (auto& x : res) {
         x *= 100. / total;
     }
 }
 
-yvector<double> CalcEffect(const yvector<TMxTree>& trees,
-                           const yvector<yvector<ui64>>& docCountInLeaf) {
-    yvector<double> res;
+TVector<double> CalcEffect(const TVector<TMxTree>& trees,
+                           const TVector<TVector<ui64>>& docCountInLeaf) {
+    TVector<double> res;
     int featureCount = GetMaxSrcFeature(trees) + 1;
     res.resize(featureCount);
 
@@ -66,7 +66,7 @@ yvector<double> CalcEffect(const yvector<TMxTree>& trees,
     return res;
 }
 
-static ui64 CalcMaxBinFeaturesCount(const yvector<yvector<ui64>>& trueDocsPerFeature) {
+static ui64 CalcMaxBinFeaturesCount(const TVector<TVector<ui64>>& trueDocsPerFeature) {
     ui64 res = 0;
     for (const auto& x : trueDocsPerFeature) {
         res = Max(res, x.size());
@@ -74,8 +74,8 @@ static ui64 CalcMaxBinFeaturesCount(const yvector<yvector<ui64>>& trueDocsPerFea
     return res;
 }
 
-static yvector<double> PrecalcLogFactorials(ui64 maxLog) {
-    yvector<double> res(maxLog + 1);
+static TVector<double> PrecalcLogFactorials(ui64 maxLog) {
+    TVector<double> res(maxLog + 1);
     res[0] = 0;
     for (int i = 1; i < res.ysize(); ++i) {
         res[i] = res[i - 1] + log((double)i);
@@ -83,14 +83,14 @@ static yvector<double> PrecalcLogFactorials(ui64 maxLog) {
     return res;
 }
 
-yvector<double> CalcFeaturesInfo(yvector<yvector<ui64>> trueDocsPerFeature,
+TVector<double> CalcFeaturesInfo(TVector<TVector<ui64>> trueDocsPerFeature,
                                  const ui64 docCount,
                                  bool symmetric) {
     ui64 maxBinFeaturesCount = CalcMaxBinFeaturesCount(trueDocsPerFeature);
-    yvector<double> facLogs = PrecalcLogFactorials(docCount + maxBinFeaturesCount + 1);
+    TVector<double> facLogs = PrecalcLogFactorials(docCount + maxBinFeaturesCount + 1);
 
     const int featuresCount = trueDocsPerFeature.size();
-    yvector<double> result(featuresCount);
+    TVector<double> result(featuresCount);
 
     for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
         auto& trueDocs = trueDocsPerFeature[featureIdx];
@@ -122,10 +122,10 @@ yvector<double> CalcFeaturesInfo(yvector<yvector<ui64>> trueDocsPerFeature,
     return result;
 }
 
-yvector<double> CalculateEffectToInfoRate(const yvector<double>& effect,
-                                          const yvector<double>& info) {
+TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
+                                          const TVector<double>& info) {
     Y_ASSERT(effect.size() == info.size());
-    yvector<double> featuresEfficiency(effect.size());
+    TVector<double> featuresEfficiency(effect.size());
     auto efficiencyMax = double{};
     for (const auto& index : xrange(featuresEfficiency.size())) {
         const auto efficiency = effect[index] / (info[index] + 1e-20);
@@ -142,7 +142,7 @@ yvector<double> CalculateEffectToInfoRate(const yvector<double>& effect,
     return featuresEfficiency;
 }
 
-yvector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const yvector<TMxTree>& trees,
+TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
                                                                  int topPairsCount) {
     int featureCount = GetMaxSrcFeature(trees) + 1;
     yhash<std::pair<int, int>, double> sumInteractions;
@@ -175,7 +175,7 @@ yvector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const yvector<T
         }
     }
 
-    yvector<TFeaturePairInteractionInfo> pairsInfo;
+    TVector<TFeaturePairInteractionInfo> pairsInfo;
 
     if (topPairsCount == EXISTING_PAIRS_COUNT) {
         for (const auto& pairInteraction : sumInteractions) {

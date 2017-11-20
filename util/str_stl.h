@@ -111,7 +111,7 @@ namespace NHashPrivate {
         }
     };
 
-} // namespace NHashPrivate
+}
 
 template <typename... TArgs>
 struct THash<std::tuple<TArgs...>> {
@@ -150,7 +150,7 @@ namespace NHashPrivate {
             return CombineHashes(THash<TFirst>()(pair.first), THash<TSecond>()(pair.second));
         }
     };
-} // namespace NHashPrivate
+}
 
 template <class TFirst, class TSecond>
 struct hash<std::pair<TFirst, TSecond>>: public NHashPrivate::TPairHash<TFirst, TSecond> {

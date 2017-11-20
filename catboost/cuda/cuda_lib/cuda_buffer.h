@@ -20,7 +20,7 @@ namespace NCudaLib {
     private:
         const TCudaBuffer* Buffer;
         ui32 Stream = 0;
-        yvector<TDeviceEvent> ReadDone;
+        TVector<TDeviceEvent> ReadDone;
 
         TSlice FactorSlice;
         //slice to read: ReadSlice read all slices, that equal mod ReduceSlice to read slice
@@ -34,14 +34,14 @@ namespace NCudaLib {
             return mapping.MemorySize(slice);
         }
 
-        yvector<TSlice> GetReadSlices() {
+        TVector<TSlice> GetReadSlices() {
             Y_ASSERT(ReadSlice.Right <= FactorSlice.Right);
             CB_ENSURE(ReadSlice.Right <= FactorSlice.Right);
 
             auto& mapping = Buffer->GetMapping();
             TSlice objectsSlice = mapping.GetObjectsSlice();
 
-            yvector<TSlice> readSlices;
+            TVector<TSlice> readSlices;
             if (ReadSlice.IsEmpty()) {
                 return readSlices;
             }
@@ -92,7 +92,7 @@ namespace NCudaLib {
             }
         }
 
-        void ReadAsync(yvector<NonConstT>& dst) {
+        void ReadAsync(TVector<NonConstT>& dst) {
             auto readSlices = GetReadSlices();
             ui64 singleSliceSize = ReadMemorySize(ReadSlice) * ColumnReadSlice.Size();
             dst.resize(readSlices.size() * singleSliceSize);
@@ -102,13 +102,13 @@ namespace NCudaLib {
             }
         }
 
-        void Read(yvector<NonConstT>& dst) {
+        void Read(TVector<NonConstT>& dst) {
             ReadAsync(dst);
             WaitComplete();
         }
 
         template <class TReducer = NReducers::TSumReducer<NonConstT>>
-        void ReadReduce(yvector<NonConstT>& dst) {
+        void ReadReduce(TVector<NonConstT>& dst) {
             Read(dst);
             ui64 reduceStep = FactorSlice.Size();
             auto& mapping = Buffer->GetMapping();
@@ -134,11 +134,11 @@ namespace NCudaLib {
                 const ui64 skipOffset = mapping.MemoryOffset(readSlice);
 
                 for (ui64 column = ColumnReadSlice.Left; column < ColumnReadSlice.Right; ++column) {
-                    yvector<TSlice> currentSlices;
+                    TVector<TSlice> currentSlices;
                     currentSlices.push_back(readSlice);
 
                     for (auto dev : Buffer->NonEmptyDevices()) {
-                        yvector<TSlice> nextSlices;
+                        TVector<TSlice> nextSlices;
 
                         for (auto& slice : currentSlices) {
                             const TSlice& deviceSlice = mapping.DeviceSlice(dev);
@@ -188,12 +188,12 @@ namespace NCudaLib {
         TSlice WriteSlice;
         ui32 Stream = 0;
         bool Async = false;
-        yvector<TDeviceEvent> WriteDone;
+        TVector<TDeviceEvent> WriteDone;
         ui64 SrcOffset = 0;
         TSlice ColumnWriteSlice;
 
     public:
-        TCudaBufferWriter(const yvector<T>& src,
+        TCudaBufferWriter(const TVector<T>& src,
                           TCudaBuffer& dst)
             : Src(~src)
             , Dst(&dst)
@@ -281,7 +281,7 @@ namespace NCudaLib {
         using TDeviceBuffer = typename NKernelHost::TDeviceBuffer<T, TDeviceMeta, Type>;
         using TConstDeviceBuffer = typename NKernelHost::TDeviceBuffer<const T, TDeviceMeta, Type>;
         TMapping Mapping;
-        yvector<TBuffer> Buffers;
+        TVector<TBuffer> Buffers;
         ui64 ColumnCount = 1;
         mutable bool CreatetedFromScratchFlag = false;
         mutable bool IsSliceView = false;
@@ -576,7 +576,7 @@ namespace NCudaLib {
             return Type;
         }
 
-        TCudaBufferWriter<TCudaBuffer> CreateWriter(const yvector<T>& src) {
+        TCudaBufferWriter<TCudaBuffer> CreateWriter(const TVector<T>& src) {
             return TCudaBufferWriter<TCudaBuffer>(src, *this);
         }
 
@@ -584,11 +584,11 @@ namespace NCudaLib {
             return TCudaBufferReader<TCudaBuffer>(*this);
         }
 
-        void Write(const yvector<T>& src, ui32 stream = 0) {
+        void Write(const TVector<T>& src, ui32 stream = 0) {
             CreateWriter(src).SetCustomWritingStream(stream).Write();
         }
 
-        void Read(yvector<typename std::remove_const<T>::type>& dst, ui32 stream = 0) const {
+        void Read(TVector<typename std::remove_const<T>::type>& dst, ui32 stream = 0) const {
             CreateReader().SetCustomReadingStream(stream).Read(dst);
         }
 
@@ -641,12 +641,12 @@ namespace NCudaLib {
     };
 
     template <class T, class TMapping, EPtrType Type>
-    class TDeviceObjectExtractor<yvector<const TCudaBuffer<T, TMapping, Type>*>> {
+    class TDeviceObjectExtractor<TVector<const TCudaBuffer<T, TMapping, Type>*>> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = yvector<typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>>;
+        using TRemoteObject = TVector<typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>>;
 
-        static TRemoteObject At(ui32 devId, yvector<const TCudaBuffer<T, TMapping, Type>*> object) {
+        static TRemoteObject At(ui32 devId, TVector<const TCudaBuffer<T, TMapping, Type>*> object) {
             using TBuffer = typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>;
             TRemoteObject deviceVector;
             for (auto ptr : object) {
@@ -739,8 +739,8 @@ namespace NCudaLib {
         TCudaBuffer<T, TStripeMapping, Type> parallelViewBuffer;
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
 
-        yvector<TSlice> srcSlices(devCount);
-        yvector<TSlice> viewSlices(devCount);
+        TVector<TSlice> srcSlices(devCount);
+        TVector<TSlice> viewSlices(devCount);
 
         {
             TSlice firstDevSlice = srcMapping.DeviceSlice(0);

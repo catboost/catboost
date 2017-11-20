@@ -1,12 +1,12 @@
 #pragma once
 
-#include "calc_fstr.h"
 #include "features_layout.h"
-#include <catboost/libs/model/tensor_struct.h>
-#include <catboost/libs/model/projection.h>
+#include "projection.h"
+#include "split.h"
+
 
 TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type);
-TString BuildDescription(const TFeaturesLayout& featuresLayout, const TModelSplit& split);
-TString BuildDescription(const TFeaturesLayout& featuresLayout, const TTensorStructure3& ts);
 TString BuildDescription(const TFeaturesLayout& featuresLayout, const TProjection& proj);
+TString BuildDescription(const TFeaturesLayout& featuresLayout, const TFeatureCombination& proj);
 TString BuildDescription(const TFeaturesLayout& featuresLayout, const TSplitCandidate& feature);
+TString BuildDescription(const TFeaturesLayout& featuresLayout, const TSplit& feature);

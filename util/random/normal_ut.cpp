@@ -16,7 +16,7 @@ SIMPLE_UNIT_TEST_SUITE(TestNormalDistribution) {
 
     template <class T>
     static void TestMD(std::function<T()> f, T m, T d) {
-        yvector<T> v;
+        TVector<T> v;
 
         v.reserve(20000);
 

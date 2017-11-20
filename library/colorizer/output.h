@@ -16,7 +16,10 @@ namespace NColorizer {
         }
     };
 
-#define DEF(X) static inline TColorHandle X() noexcept {return TColorHandle(&StdErr(), &TColors::X ## Color);}
+#define DEF(X)                                              \
+    static inline TColorHandle X() noexcept {               \
+        return TColorHandle(&StdErr(), &TColors::X##Color); \
+    }
 
     DEF(Old)
     DEF(Black)

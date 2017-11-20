@@ -114,7 +114,6 @@ JOIN_SRCS(
     generic/noncopyable.cpp
     generic/object_counter.cpp
     generic/queue.cpp
-    generic/ref.cpp
     generic/refcount.cpp
     generic/region.cpp
     generic/reinterpretcast.cpp

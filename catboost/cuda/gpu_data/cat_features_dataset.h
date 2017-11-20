@@ -43,7 +43,7 @@ namespace NCatboostCuda
             return static_cast<ui32>(DeviceFeatures[devId].size());
         }
 
-        const yvector<ui32>& GetDeviceFeatures(ui32 devId) const
+        const TVector<ui32>& GetDeviceFeatures(ui32 devId) const
         {
             return DeviceFeatures[devId];
         }
@@ -67,8 +67,8 @@ namespace NCatboostCuda
         };
 
     private:
-        yvector<TCompressedCatFeatureVec> CompressedCatIndex;
-        yvector<yvector<ui32>> DeviceFeatures;
+        TVector<TCompressedCatFeatureVec> CompressedCatIndex;
+        TVector<TVector<ui32>> DeviceFeatures;
         ymap<ui32, TCatFeature> Features;
         const TDataProvider* DataProvider = nullptr;
 
@@ -142,7 +142,7 @@ namespace NCatboostCuda
         TCompressedCatFeatureDataSet<StorageType>& DataSet;
         bool BuildDone = false;
         ui32 DeviceId = 0;
-        yvector<ui64> MemoryUsage;
+        TVector<ui64> MemoryUsage;
 
         const TDataProvider& DataProvider;
         const TBinarizedFeaturesManager& FeaturesManager;

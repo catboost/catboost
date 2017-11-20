@@ -58,10 +58,12 @@ void ZeroCopyStreamByteSink::Append(const char* bytes, size_t len) {
       return;
     }
     if (len < length) {
-      memcpy(buffer, bytes, len);
-      stream_->BackUp(length - len);
+      if (len > 0) {
+        memcpy(buffer, bytes, len);
+        stream_->BackUp(length - len);
+      }
       break;
-    } else {
+    } else if (length > 0) {
       memcpy(buffer, bytes, length);
       bytes += length;
       len -= length;

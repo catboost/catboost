@@ -4,7 +4,7 @@
 
 namespace NUnitTest {
     struct TSimpleTestExecutor: public TTestBase {
-        typedef yvector<TTest> TTests;
+        typedef TVector<TTest> TTests;
 
         TTests Tests;
 

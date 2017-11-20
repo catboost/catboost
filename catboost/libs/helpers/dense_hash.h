@@ -3,6 +3,7 @@
 #include "power_hash.h"
 
 #include <library/binsaver/bin_saver.h>
+
 #include <util/ysaveload.h>
 #include <util/generic/typetraits.h>
 
@@ -44,7 +45,7 @@ Y_DECLARE_PODTYPE(NTensor2::TElem);
 namespace NTensor2 {
     template <class TResizePolicy = NDenseHashResizePolicy::TNoResize>
     struct TDenseHash {
-        yvector<TElem> Elems;
+        TVector<TElem> Elems;
         ui64 HashMask;
         ui64 BinCount;
 

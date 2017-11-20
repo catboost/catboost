@@ -157,7 +157,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeQueueTests) {
         UNIT_ASSERT(!queue.Dequeue(&i));
         UNIT_ASSERT_VALUES_EQUAL(i, -1);
 
-        yvector<int> v;
+        TVector<int> v;
         v.push_back(20);
         v.push_back(21);
 

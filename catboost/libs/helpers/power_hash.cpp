@@ -6,7 +6,7 @@
 namespace NPowerHash2 {
     const int FAST_POW_TABLE_SIZE = 10;
 
-    yvector<TFastPowTable> FastPowTable;
+    TVector<TFastPowTable> FastPowTable;
 
     static bool IsPrime(ui64 n) {
         if (n != 2 && (n & 1) == 0) {

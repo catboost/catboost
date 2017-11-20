@@ -51,7 +51,7 @@ protected:
     TStringBuf CurrentValue_; // the value of the last met argument (corresponding to CurrentOpt_)
 
 private:
-    typedef yhash_set<const TOpt *> TdOptSet;
+    typedef THashSet<const TOpt *> TdOptSet;
     TdOptSet OptsSeen_;  //the set of options that have been met during parsing
 
     ylist<const TOpt *> OptsDefault_;

@@ -37,7 +37,7 @@ namespace NJsonWriter {
     struct TBufState {
         bool NeedComma;
         bool NeedNewline;
-        yvector<EJsonEntity> Stack;
+        TVector<EJsonEntity> Stack;
     };
 
     class TBuf: TNonCopyable {
@@ -145,10 +145,10 @@ namespace NJsonWriter {
     private:
         IOutputStream* Stream;
         THolder<TStringStream> StringStream;
-        typedef yvector<const TString*> TKeys;
+        typedef TVector<const TString*> TKeys;
         TKeys Keys;
 
-        yvector<EJsonEntity> Stack;
+        TVector<EJsonEntity> Stack;
         bool NeedComma;
         bool NeedNewline;
         const EHtmlEscapeMode EscapeMode;

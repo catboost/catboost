@@ -127,6 +127,7 @@ SRCS(
     src/strstream.cpp
     src/system_error.cpp
     src/thread.cpp
+    src/typeinfo.cpp
     src/utility.cpp
     src/valarray.cpp
     src/variant.cpp
@@ -136,7 +137,6 @@ SRCS(
 IF(NOT OS_WINDOWS)
     SRCS(
         src/new.cpp
-        src/typeinfo.cpp
     )
 ENDIF()
 

@@ -29,13 +29,13 @@ static inline double GetNeutralApprox(bool storeExpApproxes) {
     }
 }
 
-static inline void ExpApproxIf(bool storeExpApproxes, yvector<double>* approx) {
+static inline void ExpApproxIf(bool storeExpApproxes, TVector<double>* approx) {
     if (storeExpApproxes) {
         FastExpInplace(approx->data(), approx->ysize());
     }
 }
 
-static inline void ExpApproxIf(bool storeExpApproxes, yvector<yvector<double>>* approxMulti) {
+static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* approxMulti) {
     for (auto& approx : *approxMulti) {
         ExpApproxIf(storeExpApproxes, &approx);
     }

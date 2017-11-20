@@ -14,7 +14,7 @@ inline ui64 CalcHash(ui64 a, ui64 b) {
 
 template <typename T>
 struct TVecHash {
-    int operator()(const yvector<T>& a) const {
+    int operator()(const TVector<T>& a) const {
         int res = 1988712;
         for (int i = 0; i < a.ysize(); ++i)
             res = 984121 * res + a[i].GetHash();
@@ -24,7 +24,7 @@ struct TVecHash {
 
 template <>
 struct TVecHash<int> {
-    int operator()(const yvector<int>& a) const {
+    int operator()(const TVector<int>& a) const {
         int res = 1988712;
         for (int i = 0; i < a.ysize(); ++i)
             res = 984121 * res + a[i];

@@ -83,7 +83,7 @@ inline void UpdatePartitionOffsets(const TCudaBuffer<ui32, TMapping>& sortedBins
 //
 //    const int devId = GetSingleDevId(objectsMapping);
 //    const TDataPartition initialPart(0, objectsMapping->SizeAt(devId));
-//    yvector<TDataPartition> partitioningInitial;
+//    TVector<TDataPartition> partitioningInitial;
 //    partitioningInitial.push_back(initialPart);
 //    parts.Write(partitioningInitial);
 //}

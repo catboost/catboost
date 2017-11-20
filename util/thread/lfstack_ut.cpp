@@ -67,7 +67,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
             StartLatch.CountDown();
             StartLatch.Await();
 
-            yvector<int> temp;
+            TVector<int> temp;
             while (AtomicGet(LeftToDequeue) > 0) {
                 size_t dequeued = 0;
                 for (size_t i = 0; i < 100; ++i) {
@@ -84,7 +84,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         }
 
         void Run() {
-            yvector<TSimpleSharedPtr<NThreading::TLegacyFuture<>>> futures;
+            TVector<TSimpleSharedPtr<NThreading::TLegacyFuture<>>> futures;
 
             for (size_t i = 0; i < EnqueueThreads; ++i) {
                 futures.push_back(new NThreading::TLegacyFuture<>(std::bind(&TDequeueAllTester<SingleConsumer>::Enqueuer, this)));
@@ -99,7 +99,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
 
             UNIT_ASSERT_VALUES_EQUAL(0, int(AtomicGet(LeftToDequeue)));
 
-            yvector<int> left;
+            TVector<int> left;
             Stack.DequeueAll(&left);
             UNIT_ASSERT(left.empty());
         }
@@ -116,7 +116,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
     SIMPLE_UNIT_TEST(TestDequeueAllEmptyStack) {
         TLockFreeStack<int> stack;
 
-        yvector<int> r;
+        TVector<int> r;
         stack.DequeueAll(&r);
 
         UNIT_ASSERT(r.empty());
@@ -129,7 +129,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         stack.Enqueue(19);
         stack.Enqueue(23);
 
-        yvector<int> r;
+        TVector<int> r;
 
         stack.DequeueAll(&r);
 
@@ -142,8 +142,8 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
     SIMPLE_UNIT_TEST(TestEnqueueAll) {
         TLockFreeStack<int> stack;
 
-        yvector<int> v;
-        yvector<int> expected;
+        TVector<int> v;
+        TVector<int> expected;
 
         stack.EnqueueAll(v); // add empty
 
@@ -164,7 +164,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         expected.insert(expected.end(), v.begin(), v.end());
         stack.EnqueueAll(v);
 
-        yvector<int> actual;
+        TVector<int> actual;
         stack.DequeueAll(&actual);
 
         UNIT_ASSERT_VALUES_EQUAL(expected.size(), actual.size());

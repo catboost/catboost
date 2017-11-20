@@ -12,9 +12,9 @@
 
 static void PrepareFolds(
     const TPool& pool,
-    const yvector<THolder<TLearnContext>>& contexts,
+    const TVector<THolder<TLearnContext>>& contexts,
     const TCrossValidationParams& cvParams,
-    yvector<TTrainData>* folds)
+    TVector<TTrainData>* folds)
 {
     folds->reserve(cvParams.FoldCount);
     const size_t foldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
@@ -23,7 +23,7 @@ static void PrepareFolds(
         size_t foldStartIndex = testFoldIdx * foldSize;
         size_t foldEndIndex = Min(foldStartIndex + foldSize, pool.Docs.GetDocCount());
 
-        yvector<size_t> docIndices;
+        TVector<size_t> docIndices;
 
         auto appendTestIndices = [foldStartIndex, foldEndIndex, &docIndices] {
             for (size_t idx = foldStartIndex; idx < foldEndIndex; ++idx) {
@@ -68,8 +68,7 @@ static void PrepareFolds(
         PrepareAllFeaturesFromPermutedDocs(
             docIndices,
             contexts[testFoldIdx]->CatFeatures,
-            contexts[testFoldIdx]->LearnProgress.Model.Borders,
-            contexts[testFoldIdx]->LearnProgress.Model.HasNans,
+            contexts[testFoldIdx]->LearnProgress.FloatFeatures,
             contexts[testFoldIdx]->Params.IgnoredFeatures,
             fold.LearnSampleCount,
             contexts[testFoldIdx]->Params.OneHotMaxSize,
@@ -83,7 +82,7 @@ static void PrepareFolds(
     }
 }
 
-static double ComputeStdDev(const yvector<double>& values, double avg) {
+static double ComputeStdDev(const TVector<double>& values, double avg) {
     double sqrSum = 0.0;
     for (double value : values) {
         sqrSum += Sqr(value - avg);
@@ -92,8 +91,8 @@ static double ComputeStdDev(const yvector<double>& values, double avg) {
 }
 
 static TCVIterationResults ComputeIterationResults(
-    const yvector<double>& trainErrors,
-    const yvector<double>& testErrors,
+    const TVector<double>& trainErrors,
+    const TVector<double>& testErrors,
     size_t foldCount)
 {
     TCVIterationResults cvResults;
@@ -110,14 +109,14 @@ void CrossValidate(
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TPool& pool,
     const TCrossValidationParams& cvParams,
-    yvector<TCVResult>* results)
+    TVector<TCVResult>* results)
 {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool is empty");
     CB_ENSURE(pool.Docs.GetDocCount() > cvParams.FoldCount, "Pool is too small to be split into folds");
 
     const int featureCount = pool.Docs.GetFactorsCount();
 
-    yvector<THolder<TLearnContext>> contexts;
+    TVector<THolder<TLearnContext>> contexts;
     contexts.reserve(cvParams.FoldCount);
 
     for (size_t idx = 0; idx < cvParams.FoldCount; ++idx) {
@@ -137,11 +136,7 @@ void CrossValidate(
     // without fields duplication.
     auto& ctx = contexts.front();
 
-    if (ctx->Params.Verbose) {
-        SetVerboseLogingMode();
-    } else {
-        SetSilentLogingMode();
-    }
+    SetLogingLevel(ctx->Params.LoggingLevel);
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
@@ -153,14 +148,14 @@ void CrossValidate(
         CB_ENSURE(AllOf(pool.Docs.Target, [] (float target) { return floor(target) == target && target >= 0; }),
                   "Each target label should be non-negative integer for Multiclass/MultiClassOneVsAll loss function");
         for (const auto& context : contexts) {
-            context->LearnProgress.Model.ApproxDimension = GetClassesCount(pool.Docs.Target, context->Params.ClassesCount);
+            context->LearnProgress.ApproxDimension = GetClassesCount(pool.Docs.Target, context->Params.ClassesCount);
         }
-        CB_ENSURE(ctx->LearnProgress.Model.ApproxDimension > 1, "All targets are equal");
+        CB_ENSURE(ctx->LearnProgress.ApproxDimension > 1, "All targets are equal");
     }
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    yvector<size_t> indices(pool.Docs.GetDocCount(), 0);
+    TVector<size_t> indices(pool.Docs.GetDocCount(), 0);
     std::iota(indices.begin(), indices.end(), 0);
     if (cvParams.Shuffle) {
         Shuffle(indices.begin(), indices.end(), rand);
@@ -168,23 +163,22 @@ void CrossValidate(
 
     ApplyPermutation(InvertPermutation(indices), &pool);
     auto permutationGuard = Finally([&] { ApplyPermutation(indices, &pool); });
-    yvector<yvector<float>> borders;
-    yvector<bool> hasNans;
-    GenerateBorders(pool.Docs, ctx.Get(), &borders, &hasNans);
+    TVector<TFloatFeature> floatFeatures;
+    GenerateBorders(pool, ctx.Get(), &floatFeatures);
 
     for (size_t i = 0; i < cvParams.FoldCount; ++i) {
-        contexts[i]->LearnProgress.Model.Borders = borders;
-        contexts[i]->LearnProgress.Model.HasNans = hasNans;
+        contexts[i]->LearnProgress.FloatFeatures = floatFeatures;
     }
 
-    yvector<TTrainData> folds;
+    TVector<TTrainData> folds;
     PrepareFolds(pool, contexts, cvParams, &folds);
 
     for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
         contexts[foldIdx]->InitData(folds[foldIdx]);
     }
 
-    yvector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params, ctx->LearnProgress.Model.ApproxDimension);
+    TVector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params.EvalMetric, ctx->Params.EvalMetricDescriptor,
+                                                      ctx->Params.CustomLoss, ctx->LearnProgress.ApproxDimension);
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), /* hasTest */ true, ctx.Get());
 
     auto calcFoldError = [&] (size_t foldIndex, int begin, int end, const THolder<IMetric>& metric) {
@@ -212,8 +206,8 @@ void CrossValidate(
         for (size_t metricIdx = 0; metricIdx < metrics.size(); ++metricIdx) {
             const auto& metric = metrics[metricIdx];
 
-            yvector<double> trainErrors;
-            yvector<double> testErrors;
+            TVector<double> trainErrors;
+            TVector<double> testErrors;
 
             for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
                 trainErrors.push_back(calcFoldError(foldIdx, 0, folds[foldIdx].LearnSampleCount, metric));
@@ -229,7 +223,7 @@ void CrossValidate(
             (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
             if (metricIdx == 0) {
-                yvector<double> valuesToLog;
+                TVector<double> valuesToLog;
                 errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
             }
         }

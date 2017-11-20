@@ -85,7 +85,7 @@ inline yset<ECtrType> GetPermutationIndependentCtrs() {
 
 struct TCtrConfig {
     ECtrType Type = ECtrType::FloatTargetMeanValue;
-    yvector<float> Prior;
+    TVector<float> Prior;
     ui32 ParamId = 0;
 
     ui64 GetHash() const {
@@ -115,8 +115,8 @@ inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {
     return result;
 }
 
-inline ymap<TCtrConfig, yvector<TCtrConfig>> CreateEqualUpToPriorCtrsGroupping(const yvector<TCtrConfig>& configs) {
-    ymap<TCtrConfig, yvector<TCtrConfig>> result;
+inline ymap<TCtrConfig, TVector<TCtrConfig>> CreateEqualUpToPriorCtrsGroupping(const TVector<TCtrConfig>& configs) {
+    ymap<TCtrConfig, TVector<TCtrConfig>> result;
     for (auto& config : configs) {
         TCtrConfig withoutPriorConfig = RemovePrior(config);
         result[withoutPriorConfig].push_back(config);

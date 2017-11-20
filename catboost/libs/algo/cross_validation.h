@@ -1,7 +1,6 @@
 #pragma once
 
-#include "params.h"
-
+#include <catboost/libs/params/params.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -18,10 +17,10 @@ struct TCVIterationResults {
 
 struct TCVResult {
     TString Metric;
-    yvector<double> AverageTrain;
-    yvector<double> StdDevTrain;
-    yvector<double> AverageTest;
-    yvector<double> StdDevTest;
+    TVector<double> AverageTrain;
+    TVector<double> StdDevTrain;
+    TVector<double> AverageTest;
+    TVector<double> StdDevTest;
 
     void AppendOneIterationResults(const TCVIterationResults& results) {
         AverageTrain.push_back(results.AverageTrain);
@@ -37,4 +36,4 @@ void CrossValidate(
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TPool& pool,
     const TCrossValidationParams& cvParams,
-    yvector<TCVResult>* results);
+    TVector<TCVResult>* results);

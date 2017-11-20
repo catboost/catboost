@@ -13,7 +13,7 @@ template <typename T>
 using TCallback = std::function<void(const TFuture<T>&)>;
 
 template <typename T>
-using TCallbackList = yvector<TCallback<T>>;    // TODO: small vector
+using TCallbackList = TVector<TCallback<T>>;    // TODO: small vector
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -295,7 +295,7 @@ void In<TUtf16String>(IInputStream& i, TUtf16String& w) {
     }
 }
 
-// specialization for char types
+    // specialization for char types
 
 #define SPEC_FOR_CHAR(T)                  \
     template <>                           \

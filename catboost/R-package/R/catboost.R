@@ -28,9 +28,13 @@ NULL
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
 #' @param column_description The path to the input file that contains the column descriptions.
+#' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+#' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.
 #' @param has_header Read column names from first line, if this parameter is set to True.
 #' @param weight The weights of the target vector.
+#' @param query_id The query_id of the target vector.
+#' @param pairs_weight The weights of the pairs.
 #' @param baseline Vector of initial (raw) values of the target function for the object.
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
@@ -68,14 +72,21 @@ NULL
 #'
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
-                               delimiter = "\t", has_header = FALSE, weight = NULL, baseline = NULL,
-                               feature_names = NULL, thread_count = 1) {
-    if (is.character(data)) {
-        pool <- catboost.from_file(data, column_description, delimiter, has_header, thread_count)
+                               pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
+                               query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, thread_count = 1) {
+    if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
+        stop("Data and pairs should be the same types.")
+    }
+
+    if (is.character(data) && length(data) == 1) {
+        if (any(!is.null(cat_features), !is.null(weight), !is.null(query_id), !is.null(pairs_weight), !is.null(baseline), !is.null(feature_names))) {
+            stop("cat_features, weight, query_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
+        }
+        pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count)
     } else if (is.matrix(data)) {
-        pool <- catboost.from_matrix(data, label, weight, baseline, cat_features, feature_names)
+        pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
     } else if (is.data.frame(data)) {
-        pool <- catboost.from_data_frame(data, label, weight, baseline, feature_names)
+        pool <- catboost.from_data_frame(data, label, pairs, weight, query_id, pairs_weight, baseline, feature_names)
     } else {
         stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
     }
@@ -91,6 +102,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 #'
 #' Default value: Required argument
 #' @param cd_path The path to the input file that contains the column descriptions.
+#' @param pairs_path The path to the input file that contains the pairs descriptions.
 #' @param delimiter Delimiter character to use to separate features in a file.
 #' @param has_header Read column names from first line, if this parameter is set to True.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
@@ -105,15 +117,17 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 #' pool <- catboost.from_file(pool_path, cd_path)
 #' test_pool <- catboost.from_file(test_pool_path, cd_path)
 #'
-catboost.from_file <- function(pool_path, cd_path = "", delimiter = "\t", has_header = FALSE, thread_count = 1, verbose = FALSE) {
-  if (missing(pool_path))
+catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE, thread_count = 1, verbose = FALSE) {
+    if (missing(pool_path))
         stop("Need to specify pool path.")
-  if (!is.character(pool_path) || !is.character(cd_path))
+    if (is.null(pairs_path))
+        pairs_path <- ""
+    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path))
         stop("Path must be a string.")
 
-  pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, delimiter, has_header, thread_count, verbose)
-  attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
-  return(pool)
+    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, delimiter, has_header, thread_count, verbose)
+    attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
+    return(pool)
 }
 
 
@@ -129,11 +143,15 @@ catboost.from_file <- function(pool_path, cd_path = "", delimiter = "\t", has_he
 #'
 #' Default value: Required argument
 #' @param target The target vector.
-#' @param weight The weights of the target vector.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
-#' Used in the calculation of final values of trees.
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
+#' @param pairs A matrix that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+#' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
+#' @param weight The weights of the target vector.
+#' @param query_id The query_id of the target vector.
+#' @param pairs_weight The weights of the pairs.
+#' @param baseline Vector of initial (raw) values of the target function for the object.
+#' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #'
 #' @return catboost.Pool
@@ -146,25 +164,48 @@ catboost.from_file <- function(pool_path, cd_path = "", delimiter = "\t", has_he
 #' data_matrix <- as.matrix(data)
 #' pool <- catboost.from_matrix(data = as.matrix(data[,-target]), target = as.matrix(data[,target]), cat_features = cat_features)
 #'
-catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = NULL, cat_features = NULL, feature_names = NULL) {
+catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
+                                 query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
   if (!is.matrix(data))
       stop("Unsupported data type, expecting matrix, got: ", class(data))
+
   if (!is.double(target) && !is.integer(target) && !is.null(target))
       stop("Unsupported target type, expecting double or int, got: ", typeof(target))
   if (length(target) != nrow(data) && !is.null(target))
       stop("Data has ", nrow(data), " rows, target has ", length(target), " rows.")
+
+  if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
+      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
+
+  if (!is.matrix(pairs) && !is.null(pairs))
+      stop("Unsupported pairs class, expecting matrix, got: ", class(pairs))
+  if (!is.null(pairs) && dim(pairs)[2] != 2)
+      stop("Unsupported pairs dim, expecting 2 columns, got: ", dim(pairs)[2])
+  if (!all(pairs == as.integer(pairs)) && !is.null(pairs))
+      stop("Unsupported pair type, expecting integer, got: ", typeof(pairs))
+
   if (!is.double(weight) && !is.null(weight))
-      stop("Unsupported weight type, expecting double, got: ", typeof(target))
+      stop("Unsupported weight type, expecting double, got: ", typeof(weight))
   if (length(weight) != nrow(data) && !is.null(weight))
       stop("Data has ", nrow(data), " rows, weight vector has ", length(weight), " rows.")
+
+  if (!is.integer(query_id) && !is.null(query_id))
+      stop("Unsupported query_id type, expecting int, got: ", typeof(query_id))
+  if (length(query_id) != nrow(data) && !is.null(query_id))
+      stop("Data has ", nrow(data), " rows, query_id vector has ", length(query_id), " rows.")
+
+  if (!is.double(pairs_weight) && !is.null(pairs_weight))
+      stop("Unsupported pairs_weight type, expecting double, got: ", typeof(pairs_weight))
+  if (length(pairs_weight) != nrow(pairs) && !is.null(pairs_weight) && !is.null(pairs))
+      stop("Pairs has ", nrow(pairs), " rows, pairs_weight vector has ", length(pairs_weight), " rows.")
+
   if (!is.matrix(baseline) && !is.null(baseline))
       stop("Baseline should be matrix, got: ", class(baseline))
   if (!is.double(baseline) && !is.null(baseline))
       stop("Unsupported baseline type, expecting double, got: ", typeof(baseline))
   if (nrow(baseline) != nrow(data) && !is.null(baseline))
       stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(data), " objects, baseline has ", nrow(baseline), " rows.")
-  if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
+
   if (!is.list(feature_names) && !is.null(feature_names))
       stop("Unsupported feature_names type, expecting list, got: ", typeof(feature_names))
   if (length(feature_names) != ncol(data) && !is.null(feature_names))
@@ -173,7 +214,7 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
   if (!is.double(target) && !is.null(target))
       target <- as.double(target)
 
-  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, weight, baseline, cat_features, feature_names)
+  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
@@ -201,7 +242,11 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
 #'
 #' Default value: Required argument
 #' @param target The target vector.
+#' @param pairs A data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+#' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param weight The weights of the target vector.
+#' @param query_id The query_id of the target vector.
+#' @param pairs_weight The weights of the pairs.
 #' @param baseline Vector of initial (raw) values of the target function for the object.
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
@@ -220,7 +265,8 @@ catboost.from_matrix <- function(data, target = NULL, weight = NULL, baseline = 
 #' learn_pool <- catboost.from_data_frame(data = learn[,-target], target = learn[,target])
 #' test_pool <- catboost.from_data_frame(data = test[,-target], target = test[,target])
 #'
-catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baseline = NULL, feature_names = NULL) {
+catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight = NULL, query_id = NULL,
+                                     pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
     }
@@ -229,7 +275,7 @@ catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baselin
     }
 
     factor_columns = sapply(data, is.factor)
-    num_columns = sapply(data, is.double) | sapply(data, is.integer)
+    num_columns = sapply(data, is.double) | sapply(data, is.integer) | sapply(data, is.logical)
     bad_columns = !(factor_columns | num_columns)
 
     if (sum(bad_columns) > 0) {
@@ -242,8 +288,10 @@ catboost.from_data_frame <- function(data, target = NULL, weight = NULL, baselin
         preprocessed[, column_index] = .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
         cat_features <- c(cat_features, column_index - 1)
     }
-
-    pool <- catboost.from_matrix(as.matrix(preprocessed), target, weight, baseline, cat_features, feature_names)
+    if (!is.null(pairs)) {
+        pairs <- as.matrix(pairs)
+    }
+    pool <- catboost.from_matrix(as.matrix(preprocessed), target, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
     return(pool)
 }
 
@@ -475,16 +523,18 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Supported loss functions:
 #'       \itemize{
-#'         \item 'RMSE'
 #'         \item 'Logloss'
-#'         \item 'MAE'
 #'         \item 'CrossEntropy'
+#'         \item 'RMSE'
+#'         \item 'MAE'
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
+#'         \item 'QueryRMSE'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
+#'         \item 'PairLogit'
 #'       }
 #'
 #'       Supported parameters:
@@ -511,24 +561,27 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Supported loss functions:
 #'       \itemize{
-#'         \item 'RMSE'
 #'         \item 'Logloss'
-#'         \item 'MAE'
 #'         \item 'CrossEntropy'
+#'         \item 'RMSE'
+#'         \item 'MAE'
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
-#'         \item 'Recall'
+#'         \item 'QueryRMSE'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
+#'         \item 'PairLogit'
+#'         \item 'R2'
+#'         \item 'AUC'
+#'         \item 'Accuracy'
 #'         \item 'Precision'
+#'         \item 'Recall'
 #'         \item 'F1'
 #'         \item 'TotalF1'
 #'         \item 'MCC'
-#'         \item 'AUC'
-#'         \item 'Accuracy'
-#'         \item 'R2'
+#'         \item 'PairAccuracy'
 #'       }
 #'
 #'       Supported parameters:
@@ -553,24 +606,27 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Supported loss functions:
 #'       \itemize{
-#'         \item 'RMSE'
 #'         \item 'Logloss'
-#'         \item 'MAE'
 #'         \item 'CrossEntropy'
+#'         \item 'RMSE'
+#'         \item 'MAE'
 #'         \item 'Quantile'
 #'         \item 'LogLinQuantile'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
 #'         \item 'MAPE'
 #'         \item 'Poisson'
-#'         \item 'Recall'
+#'         \item 'QueryRMSE'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
+#'         \item 'PairLogit'
+#'         \item 'R2'
+#'         \item 'AUC'
+#'         \item 'Accuracy'
 #'         \item 'Precision'
+#'         \item 'Recall'
 #'         \item 'F1'
 #'         \item 'TotalF1'
 #'         \item 'MCC'
-#'         \item 'AUC'
-#'         \item 'Accuracy'
-#'         \item 'R2'
+#'         \item 'PairAccuracy'
 #'       }
 #'
 #'       Format:
@@ -902,7 +958,7 @@ print.catboost.Pool <- function(x, ...) {
 #'           \item \code{'Median'}
 #'           \item \code{'Uniform'}
 #'           \item \code{'UniformAndQuantiles'}
-#'           \item \code{'MaxSumLog'}
+#'           \item \code{'MaxLogSum'}
 #'           \item \code{'MinEntropy'}
 #'           \item \code{'GreedyLogSum'}
 #'         }
@@ -993,7 +1049,7 @@ print.catboost.Pool <- function(x, ...) {
 #'         \item \code{'Median'}
 #'         \item \code{'Uniform'}
 #'         \item \code{'UniformAndQuantiles'}
-#'         \item \code{'MaxSumLog'}
+#'         \item \code{'MaxLogSum'}
 #'         \item \code{'MinEntropy'}
 #'         \item \code{'GreedyLogSum'}
 #'       }
@@ -1016,13 +1072,19 @@ print.catboost.Pool <- function(x, ...) {
 #'   }
 #'   \item Output settings
 #'   \itemize{
-#'     \item verbose
+#'     \item logging_level
 #'
-#'       Verbose output to stdout.
+#'       Possible values:
+#'       \itemize{
+#'         \item \code{'Silent'}
+#'         \item \code{'Verbose'}
+#'         \item \code{'Info'}
+#'         \item \code{'Debug'}
+#'       }
 #'
 #'       Default value:
 #'
-#'       FALSE (not used)
+#'       'Silent'
 #'
 #'     \item train_dir
 #'
@@ -1216,8 +1278,7 @@ catboost.predict <- function(model, pool,
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
 
-    calcer <- .Call("CatBoostGetCalcer_R", model$handle)
-    prediction <- .Call("CatBoostPredictMulti_R", calcer, pool,
+    prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
     prediction_columns <- length(prediction) / nrow(pool)
     if (prediction_columns != 1) {
@@ -1279,13 +1340,12 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         ntree_end = model$tree_count
 
     current_tree_count <- ntree_start
-    calcer <- .Call("CatBoostGetCalcer_R", model$handle)
     approx <- 0
     preds <- function() {
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
             stop('StopIteration')
-        current_approx <- as.array(.Call("CatBoostPredictMulti_R", calcer, pool,
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
                                          verbose, 'RawFormulaVal', current_tree_count - eval_period, min(current_tree_count, ntree_end), thread_count))
         approx <<- approx + current_approx
         prediction_columns <- length(approx) / nrow(pool)

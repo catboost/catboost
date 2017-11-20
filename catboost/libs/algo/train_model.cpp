@@ -1,10 +1,12 @@
 #include "learn_context.h"
 #include "train_model.h"
 #include "apply.h"
-#include "eval_helpers.h"
 #include "train.h"
 #include "helpers.h"
+#include "model_build_helper.h"
+#include "tree_print.h"
 
+#include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <library/grid_creator/binarization.h>
@@ -12,14 +14,14 @@
 #include <util/random/shuffle.h>
 #include <util/generic/vector.h>
 
-static void PrepareTargetBinary(float border, yvector<float>* target) {
+static void PrepareTargetBinary(float border, TVector<float>* target) {
     for (int i = 0; i < (*target).ysize(); ++i) {
         (*target)[i] = ((*target)[i] > border);
     }
 }
 
-static bool IsCorrectQueryIdsFormat(const yvector<ui32>& queryIds) {
-    yhash_set<ui32> queryGroupIds;
+static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
+    THashSet<ui32> queryGroupIds;
     ui32 lastId = queryIds.empty() ? 0 : queryIds[0];
     for (ui32 id : queryIds) {
         if (id != lastId) {
@@ -33,7 +35,7 @@ static bool IsCorrectQueryIdsFormat(const yvector<ui32>& queryIds) {
     return true;
 }
 
-static yhash<ui32, ui32> CalcQueriesSize(const yvector<ui32>& queriesId) {
+static yhash<ui32, ui32> CalcQueriesSize(const TVector<ui32>& queriesId) {
     yhash<ui32, ui32> queriesSize;
     for (int docId = 0; docId < queriesId.ysize(); ++docId) {
         ++queriesSize[queriesId[docId]];
@@ -50,7 +52,7 @@ class TCPUModelTrainer : public IModelTrainer {
         const TPool& testPool,
         const TString& outputModelPath,
         TFullModel* modelPtr,
-        yvector<yvector<double>>* testApprox) const override
+        TEvalResult* evalResult) const override
     {
         CB_ENSURE(learnPool.Docs.GetDocCount() != 0, "Train dataset is empty");
 
@@ -79,15 +81,11 @@ class TCPUModelTrainer : public IModelTrainer {
             sortedCatFeatures,
             learnPool.FeatureId);
 
-        if (ctx.Params.Verbose) {
-            SetVerboseLogingMode();
-        } else {
-            SetSilentLogingMode();
-        }
+        SetLogingLevel(ctx.Params.LoggingLevel);
 
         auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
-        yvector<size_t> indices(learnPool.Docs.GetDocCount());
+        TVector<size_t> indices(learnPool.Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
         if (!(ctx.Params.HasTime || IsQuerywiseError(ctx.Params.LossFunction))) {
             Shuffle(indices.begin(), indices.end(), ctx.Rand);
@@ -166,8 +164,8 @@ class TCPUModelTrainer : public IModelTrainer {
         }
         if (IsMultiClassError(ctx.Params.LossFunction)) {
             CB_ENSURE(AllOf(trainData.Target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
-            ctx.LearnProgress.Model.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
-            CB_ENSURE(ctx.LearnProgress.Model.ApproxDimension > 1, "All targets are equal");
+            ctx.LearnProgress.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.ClassesCount);
+            CB_ENSURE(ctx.LearnProgress.ApproxDimension > 1, "All targets are equal");
         }
 
         ctx.OutputMeta();
@@ -182,16 +180,18 @@ class TCPUModelTrainer : public IModelTrainer {
 
         ctx.InitData(trainData);
 
-        GenerateBorders(learnPool.Docs, &ctx, &ctx.LearnProgress.Model.Borders, &ctx.LearnProgress.Model.HasNans);
+        GenerateBorders(learnPool, &ctx, &ctx.LearnProgress.FloatFeatures);
 
         if (testPool.Docs.GetDocCount() != 0) {
             CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
             CB_ENSURE(testPool.Docs.GetBaselineDimension() == learnPool.Docs.GetBaselineDimension(), "train pool baseline dimension == " << learnPool.Docs.GetBaselineDimension() << " and test pool baseline dimension == " << testPool.Docs.GetBaselineDimension());
 
             if (!IsPairwiseError(ctx.Params.LossFunction)) {
-                float minTestTarget = *MinElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-                float maxTestTarget = *MaxElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-                CB_ENSURE(minTestTarget != maxTestTarget, "All targets in test are equal.");
+                float minTestTarget = *MinElement(trainData.Target.begin() + trainData.LearnSampleCount, trainData.Target.begin() + trainData.GetSampleCount());
+                float maxTestTarget = *MaxElement(trainData.Target.begin() + trainData.LearnSampleCount, trainData.Target.begin() + trainData.GetSampleCount());
+                if (minTestTarget == maxTestTarget) {
+                    MATRIXNET_WARNING_LOG << "Test target is constant or not set." << Endl;
+                }
             }
         }
         learnPool.Docs.Append(testPool.Docs);
@@ -206,8 +206,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         PrepareAllFeatures(
             ctx.CatFeatures,
-            ctx.LearnProgress.Model.Borders,
-            ctx.LearnProgress.Model.HasNans,
+            ctx.LearnProgress.FloatFeatures,
             ctx.Params.IgnoredFeatures,
             trainData.LearnSampleCount,
             ctx.Params.OneHotMaxSize,
@@ -230,13 +229,18 @@ class TCPUModelTrainer : public IModelTrainer {
         } else { // Learn weight sum should be equal to learn sample count
             CB_ENSURE(minWeight > 0, "weights should be positive");
         }
+        ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());
+        for (size_t i = 0; i < sortedCatFeatures.size(); ++i) {
+            auto& catFeature = ctx.LearnProgress.CatFeatures[i];
+            catFeature.FeatureIndex = i;
+            catFeature.FlatFeatureIndex = sortedCatFeatures[i];
+            if (catFeature.FlatFeatureIndex < learnPool.FeatureId.ysize()) {
+                catFeature.FeatureId = learnPool.FeatureId[catFeature.FlatFeatureIndex];
+            }
+        }
 
-        ctx.LearnProgress.Model.CatFeatures = sortedCatFeatures;
-        ctx.LearnProgress.Model.FeatureIds = learnPool.FeatureId;
-
+        evalResult->GetRawValuesRef().resize(ctx.LearnProgress.ApproxDimension);
         DumpMemUsage("Before start train");
-
-        testApprox->resize(ctx.LearnProgress.Model.ApproxDimension);
 
         TTrainFunc trainFunc;
         switch (ctx.Params.LossFunction) {
@@ -280,88 +284,78 @@ class TCPUModelTrainer : public IModelTrainer {
             default:
                 CB_ENSURE(false, "provided error function is not supported");
         }
+        trainFunc(trainData, &ctx, &(evalResult->GetRawValuesRef()));
+        evalResult->SetPredictionTypes(ctx.Params.PredictionTypes);
 
-        trainFunc(trainData, &ctx, testApprox);
-
-        *testApprox = PrepareEval(ctx.Params.PredictionType, *testApprox, &ctx.LocalExecutor);
-
-        TOneHotFeaturesInfo oneHotFeaturesInfo;
-        for (const auto& bestTree : ctx.LearnProgress.Model.TreeStruct) {
-            for (const auto& split : bestTree.SelectedSplits) {
-                if (split.Type != ESplitType::OneHotFeature) {
-                    continue;
+        TObliviousTrees obliviousTrees;
+        yhash<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
+        {
+            TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures);
+            for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
+                TVector<TModelSplit> modelSplits;
+                for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
+                    auto modelSplit = split.GetModelSplit(ctx);
+                    modelSplits.push_back(modelSplit);
+                    if (modelSplit.Type == ESplitType::OnlineCtr) {
+                        featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
+                    }
                 }
-                oneHotFeaturesInfo.FeatureHashToOrigString[split.OneHotFeature.Value] = learnPool.CatFeaturesHashToString.at(split.OneHotFeature.Value);
+                builder.AddTree(modelSplits, ctx.LearnProgress.LeafValues[treeId]);
             }
+            obliviousTrees = builder.Build();
         }
 
+        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
+            for (const auto& value : oheFeature.Values) {
+                oheFeature.StringValues.push_back(learnPool.CatFeaturesHashToString.at(value));
+            }
+        }
+        auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
+            TCtrValueTable resTable;
+            CalcFinalCtrs(
+                ctr.CtrType,
+                featureCombinationToProjectionMap.at(ctr.Projection),
+                trainData,
+                ctx.LearnProgress.AveragingFold.LearnPermutation,
+                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
+                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
+                ctx.Params.CtrLeafCountLimit,
+                ctx.Params.StoreAllSimpleCtr,
+                ctx.Params.CounterCalcMethod,
+                &resTable);
+            resTable.ModelCtrBase = ctr;
+            MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " " << BuildDescription(ctx.Layout, ctr.Projection) << Endl;
+            return resTable;
+        };
         if (modelPtr) {
-            *modelPtr = std::move(ctx.LearnProgress.Model);
-            modelPtr->OneHotFeaturesInfo = std::move(oneHotFeaturesInfo);
-            yvector<TModelCtrBase> ctrsForModelCalcTasks;
-            for (const auto& bestTree : modelPtr->TreeStruct) {
-                for (const auto& split : bestTree.SelectedSplits) {
-                    if (split.Type != ESplitType::OnlineCtr) {
-                        continue;
-                    }
-                    const auto& ctr = split.OnlineCtr.Ctr;
-                    if (modelPtr->CtrCalcerData.LearnCtrs.has(ctr)) {
-                        continue;
-                    }
-                    modelPtr->CtrCalcerData.LearnCtrs[ctr];
-                    ctrsForModelCalcTasks.emplace_back(ctr);
-                }
-            }
-            MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << ctrsForModelCalcTasks.size() << " unique ctrs" << Endl;
+            modelPtr->ObliviousTrees = std::move(obliviousTrees);
+            modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
+            modelPtr->CtrProvider = new TStaticCtrProvider;
+            TMutex lock;
+            MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
             ctx.LocalExecutor.ExecRange([&](int i) {
-                auto& ctr = ctrsForModelCalcTasks[i];
-                TCtrValueTable* resTable = &modelPtr->CtrCalcerData.LearnCtrs.at(ctr);
-                CalcFinalCtrs(ctr,
-                    trainData,
-                    ctx.LearnProgress.AveragingFold.LearnPermutation,
-                    ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
-                    ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
-                    ctx.Params.CtrLeafCountLimit,
-                    ctx.Params.StoreAllSimpleCtr,
-                    ctx.Params.CounterCalcMethod,
-                    resTable);
-            }, 0, ctrsForModelCalcTasks.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+                auto& ctr = usedCtrBases[i];
+                auto table = ctrTableGenerator(ctr);
+                with_lock(lock) {
+                    modelPtr->CtrProvider->AddCtrCalcerData(std::move(table));
+                }
+            }, 0, usedCtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
             MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
+            modelPtr->UpdateDynamicData();
         } else {
-            yvector<TModelCtrBase> usedCtrs;
-            {
-                yhash_set<TModelCtrBase> ctrsSet;
-                for (const auto& bestTree : ctx.LearnProgress.Model.TreeStruct) {
-                    for (const auto& split : bestTree.SelectedSplits) {
-                        if (split.Type != ESplitType::OnlineCtr) {
-                            continue;
-                        }
-                        ctrsSet.insert(split.OnlineCtr.Ctr);
-                    }
-                }
-                usedCtrs.assign(ctrsSet.begin(), ctrsSet.end());
-            }
-            TStreamedFullModelSaver saver(outputModelPath, usedCtrs.size(), ctx.LearnProgress.Model, oneHotFeaturesInfo);
-            MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrs.size() << " unique ctrs started" << Endl;
-            ctx.LocalExecutor.ExecRange([&](int i) {
-                auto& ctr = usedCtrs[i];
-                TCtrValueTable resTable;
-                CalcFinalCtrs(ctr,
-                    trainData,
-                    ctx.LearnProgress.AveragingFold.LearnPermutation,
-                    ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
-                    ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
-                    ctx.Params.CtrLeafCountLimit,
-                    ctx.Params.StoreAllSimpleCtr,
-                    ctx.Params.CounterCalcMethod,
-                    &resTable);
-                saver.SaveOneCtr(ctr, resTable);
-                MATRIXNET_DEBUG_LOG << "Finished CTR number: " << i << Endl;
-            }, 0, usedCtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            TFullModel Model;
+            Model.ObliviousTrees = std::move(obliviousTrees);
+            Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
+
+            Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator, ctx.LocalExecutor);
+            MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
+            OutputModel(Model, outputModelPath);
         }
     }
 };
-TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(EDeviceType::CPU);
+TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 
 void TrainModel(const NJson::TJsonValue& jsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -371,26 +365,22 @@ void TrainModel(const NJson::TJsonValue& jsonParams,
     const TPool& testPool,
     const TString& outputModelPath,
     TFullModel* modelPtr,
-    yvector<yvector<double>>* testApprox)
+    TEvalResult* evalResult)
 {
     THolder<IModelTrainer> modelTrainerHolder;
-    bool isGpuDeviceType = jsonParams["device_type"].GetStringSafe("CPU") == "GPU";
-    if (isGpuDeviceType && TTrainerFactory::Has(EDeviceType::GPU)) {
-        modelTrainerHolder = TTrainerFactory::Construct(EDeviceType::GPU);
+    bool isGpuTaskType = jsonParams["task_type"].GetStringSafe("CPU") == "GPU";
+    if (isGpuTaskType && TTrainerFactory::Has(ETaskType::GPU)) {
+        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
     } else {
-        CB_ENSURE(!isGpuDeviceType, "GPU Device not found.");
-        modelTrainerHolder = TTrainerFactory::Construct(EDeviceType::CPU);
+        CB_ENSURE(!isGpuTaskType, "GPU Device not found.");
+        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
-    modelTrainerHolder->TrainModel(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, outputModelPath, modelPtr, testApprox);
+    modelTrainerHolder->TrainModel(jsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, outputModelPath, modelPtr, evalResult);
 }
 
 void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx)
 {
-    if (ctx->Params.Verbose) {
-        SetVerboseLogingMode();
-    } else {
-        SetSilentLogingMode();
-    }
+    SetLogingLevel(ctx->Params.LoggingLevel);
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 

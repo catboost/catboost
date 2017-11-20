@@ -10,15 +10,15 @@
 
 namespace NCatboostCuda
 {
-    void GroupQueries(const yvector<ui32>& qid, yvector<yvector<ui32>>* qdata);
+    void GroupQueries(const TVector<ui32>& qid, TVector<TVector<ui32>>* qdata);
 
     template<class T>
-    yvector<T> SampleVector(const yvector<T>& vec,
+    TVector<T> SampleVector(const TVector<T>& vec,
                             ui32 size,
                             ui64 seed)
     {
         TRandom random(seed);
-        yvector<T> result(size);
+        TVector<T> result(size);
         for (ui32 i = 0; i < size; ++i)
         {
             result[i] = vec[(random.NextUniformL() % vec.size())];
@@ -41,12 +41,12 @@ namespace NCatboostCuda
     };
 
     template<class T>
-    void ApplyPermutation(const yvector<ui32>& order,
-                          yvector<T>& data)
+    void ApplyPermutation(const TVector<ui32>& order,
+                          TVector<T>& data)
     {
         if (data.size())
         {
-            yvector<T> tmp(data.begin(), data.end());
+            TVector<T> tmp(data.begin(), data.end());
             for (ui32 i = 0; i < order.size(); ++i)
             {
                 data[i] = tmp[order[i]];
@@ -54,7 +54,7 @@ namespace NCatboostCuda
         }
     };
 
-    inline yvector<float> BuildBorders(const yvector<float>& floatFeature,
+    inline TVector<float> BuildBorders(const TVector<float>& floatFeature,
                                        const ui32 seed,
                                        const TBinarizationDescription& config)
     {

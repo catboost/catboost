@@ -3,7 +3,8 @@ from libcpp.string cimport string as _std_string
 cdef extern from "<util/generic/strbuf.h>" nogil:
 
     cdef cppclass TStringBuf:
-        pass
+        TStringBuf() except +
+        TStringBuf(const char*) except +
 
 
 cdef extern from "<util/generic/string.h>" nogil:

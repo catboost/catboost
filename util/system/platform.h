@@ -169,16 +169,22 @@
 #endif
 
 #define SIZEOF_CHAR 1
+#define SIZEOF_UNSIGNED_CHAR 1
 #define SIZEOF_SHORT 2
+#define SIZEOF_UNSIGNED_SHORT 2
 #define SIZEOF_INT 4
+#define SIZEOF_UNSIGNED_INT 4
 
 #if defined(_32_)
 #define SIZEOF_LONG 4
+#define SIZEOF_UNSIGNED_LONG 4
 #elif defined(_64_)
 #if defined(_win_)
 #define SIZEOF_LONG 4
+#define SIZEOF_UNSIGNED_LONG 4
 #else
 #define SIZEOF_LONG 8
+#define SIZEOF_UNSIGNED_LONG 8
 #endif // _win_
 #endif // _32_
 
@@ -187,15 +193,11 @@
 #endif
 
 #define SIZEOF_LONG_LONG 8
+#define SIZEOF_UNSIGNED_LONG_LONG 8
 
 #undef SIZEOF_SIZE_T // in case we include <Python.h> which defines it, too
 #define SIZEOF_SIZE_T SIZEOF_PTR
 
-#define SIZEOF_UNSIGNED_CHAR SIZEOF_CHAR
-#define SIZEOF_UNSIGNED_INT SIZEOF_INT
-#define SIZEOF_UNSIGNED_LONG SIZEOF_LONG
-#define SIZEOF_UNSIGNED_LONG_LONG SIZEOF_LONG_LONG
-#define SIZEOF_UNSIGNED_SHORT SIZEOF_SHORT
 
 #if defined(__INTEL_COMPILER)
 #pragma warning(disable 1292)

@@ -1,16 +1,18 @@
 #include "coreml_helpers.h"
+#include <catboost/libs/helpers/exception.h>
 
 using namespace CoreML::Specification;
 
 void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsembleParameters* ensemble) {
-    const auto classesCount = static_cast<size_t>(model.ApproxDimension);
-
-    for (size_t treeIdx = 0; treeIdx < model.TreeStruct.size(); ++treeIdx) {
-        const auto& tree = model.TreeStruct[treeIdx];
-        const auto leafsCount = model.LeafValues[treeIdx][0].size();
+    const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
+    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty(), "model with only float features supported");
+    auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
+    size_t currentSplitIndex = 0;
+    for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
+        const auto leafsCount = model.ObliviousTrees.LeafValues[treeIdx].size() / model.ObliviousTrees.ApproxDimension;
         size_t lastNodeId = 0;
 
-        yvector<TreeEnsembleParameters::TreeNode*> outputLeafs(leafsCount);
+        TVector<TreeEnsembleParameters::TreeNode*> outputLeafs(leafsCount);
 
         for (size_t leafIdx = 0; leafIdx < leafsCount; ++leafIdx) {
             auto leafNode = ensemble->add_nodes();
@@ -26,21 +28,21 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
                 auto evalInfo = evalInfoArray->Add();
                 evalInfo->set_evaluationindex(classIdx);
                 evalInfo->set_evaluationvalue(
-                    model.LeafValues[treeIdx][classIdx][leafIdx]);
+                    model.ObliviousTrees.LeafValues[treeIdx][leafIdx * model.ObliviousTrees.ApproxDimension + classIdx]);
             }
 
             outputLeafs[leafIdx] = leafNode;
         }
 
         auto& previousLayer = outputLeafs;
-        for (int layer = tree.GetDepth() - 1; layer >= 0; --layer) {
-            const auto& split = tree.SelectedSplits[tree.GetDepth() - 1 - layer];
-            auto featureId = split.BinFeature.FloatFeature;
-            auto splitId = split.BinFeature.SplitIdx;
-            auto branchValue = model.Borders[featureId][splitId];
+        auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];
+        for (int layer = treeDepth - 1; layer >= 0; --layer) {
+            const auto& binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
+            auto featureId = binFeature.FloatFeature.FloatFeature;
+            auto branchValue = binFeature.FloatFeature.Split;
 
             auto nodesInLayerCount = std::pow(2, layer);
-            yvector<TreeEnsembleParameters::TreeNode*> currentLayer(nodesInLayerCount);
+            TVector<TreeEnsembleParameters::TreeNode*> currentLayer(nodesInLayerCount);
 
             for (size_t nodeIdx = 0; nodeIdx < nodesInLayerCount; ++nodeIdx) {
                 auto branchNode = ensemble->add_nodes();
@@ -67,12 +69,12 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
 }
 
 void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
-    for (size_t featureIdx = 0; featureIdx < model.Borders.size(); ++featureIdx) {
+    for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
         auto feature = description->add_input();
-        if (featureIdx < model.FeatureIds.size())
-            feature->set_name(model.FeatureIds[featureIdx]);
+        if (!floatFeature.FeatureId.empty())
+            feature->set_name(floatFeature.FeatureId);
         else
-            feature->set_name(("feature_" + std::to_string(featureIdx)).c_str());
+            feature->set_name(("feature_" + std::to_string(floatFeature.FeatureIndex)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
@@ -80,7 +82,7 @@ void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJson
         feature->set_allocated_type(featureType);
     }
 
-    const auto classesCount = static_cast<size_t>(model.ApproxDimension);
+    const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
     for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
         regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);

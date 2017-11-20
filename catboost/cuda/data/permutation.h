@@ -30,21 +30,22 @@ namespace NCatboostCuda
         friend TDataPermutation GetPermutation(const TDataProvider& dataProvider, ui32 permutationId, ui32 blockSize);
 
     public:
-        void FillOrder(yvector<ui32>& order) const
+        void FillOrder(TVector<ui32>& order) const
         {
             order.resize(Size);
             std::iota(order.begin(), order.end(), 0);
 
             if (Index != IdentityPermutationId())
             {
-                TRandom rng(1664525 * GetPermutationId() + 1013904223);
+                TRandom rng(1664525 * GetPermutationId() + 1013904223 + BlockSize);
+                rng.Advance(10);
                 if (BlockSize == 1)
                 {
                     Shuffle(order.begin(), order.begin() + Size, rng);
                 } else
                 {
                     const auto blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), BlockSize));
-                    yvector<ui32> blocks(blocksCount);
+                    TVector<ui32> blocks(blocksCount);
                     std::iota(blocks.begin(), blocks.end(), 0);
                     Shuffle(blocks.begin(), blocks.end(), rng);
 
@@ -63,12 +64,12 @@ namespace NCatboostCuda
         }
 
         template<class T>
-        yvector<T> Gather(const yvector<T>& src) const
+        TVector<T> Gather(const TVector<T>& src) const
         {
-            yvector<T> result;
+            TVector<T> result;
             result.resize(src.size());
 
-            yvector<ui32> order;
+            TVector<ui32> order;
             FillOrder(order);
             for (ui32 i = 0; i < order.size(); ++i)
             {
@@ -77,9 +78,9 @@ namespace NCatboostCuda
             return result;
         }
 
-        void FillInversePermutation(yvector<ui32>& permutation) const
+        void FillInversePermutation(TVector<ui32>& permutation) const
         {
-            yvector<ui32> order;
+            TVector<ui32> order;
             FillOrder(order);
             permutation.resize(order.size());
             for (ui32 i = 0; i < order.size(); ++i)
@@ -91,7 +92,7 @@ namespace NCatboostCuda
         template<class TBuffer>
         void WriteOrder(TBuffer& dst) const
         {
-            yvector<ui32> order;
+            TVector<ui32> order;
             FillOrder(order);
             dst.Write(order);
         }
@@ -99,7 +100,7 @@ namespace NCatboostCuda
         template<class TBuffer>
         void WriteInversePermutation(TBuffer& dst) const
         {
-            yvector<ui32> order;
+            TVector<ui32> order;
             FillInversePermutation(order);
             dst.Write(order);
         }

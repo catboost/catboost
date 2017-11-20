@@ -516,7 +516,7 @@ namespace NCatboostCuda
 
     private:
         THolder<TTensorTracker> TensorTracker;
-        yvector<TBinarySplit> BinarySplits;
+        TVector<TBinarySplit> BinarySplits;
 
         const TBinarizedFeaturesManager& FeaturesManager;
         TScopedCacheHolder& CacheHolder;

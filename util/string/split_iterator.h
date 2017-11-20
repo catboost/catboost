@@ -306,7 +306,7 @@ public:
     }
 };
 
-using TSplitTokens = yvector<TString>;
+using TSplitTokens = TVector<TString>;
 
 template <typename TSplit>
 void Split(const TSplit& split, TSplitTokens* words) {

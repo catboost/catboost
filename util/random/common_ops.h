@@ -63,6 +63,7 @@ namespace NPrivate {
 template <class TRandType, class T>
 struct TCommonRNG {
     using TResult = TRandType;
+    using result_type = TRandType;
 
     inline T& Engine() noexcept {
         return static_cast<T&>(*this);

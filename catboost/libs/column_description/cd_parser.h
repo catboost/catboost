@@ -16,4 +16,4 @@ struct TCdParserDefaults {
 
 // Returns vector of columnsCount columns, where i-th element describes
 // i-th column.
-yvector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults = {});
+TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults = {});

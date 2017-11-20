@@ -56,15 +56,15 @@ namespace NCudaLib {
 
     class TSingleHostDevicesProvider {
     private:
-        yvector<THolder<TGpuOneDeviceWorker>> Workers;
-        yvector<ui32> Devices;
-        yvector<THolder<TCudaSingleDevice>> SingleDevices;
+        TVector<THolder<TGpuOneDeviceWorker>> Workers;
+        TVector<ui32> Devices;
+        TVector<THolder<TCudaSingleDevice>> SingleDevices;
         bool IsInitialized = false;
         TCudaApplicationConfig Config;
         TSpinLock Lock;
 
         friend void SetApplicationConfig(const TCudaApplicationConfig& config);
-        yvector<yset<ui32>> PeerDevices;
+        TVector<yset<ui32>> PeerDevices;
 
     private:
         void EnablePeerAccess() {
@@ -157,12 +157,12 @@ namespace NCudaLib {
             }
         }
 
-        yvector<TCudaSingleDevice*> GetDevices() {
+        TVector<TCudaSingleDevice*> GetDevices() {
             TGuard<TSpinLock> guard(Lock);
             if (!IsInitialized) {
                 Initilize();
             }
-            yvector<TCudaSingleDevice*> devices;
+            TVector<TCudaSingleDevice*> devices;
 
             switch (Config.UsageType) {
                 case TCudaApplicationConfig::EDevicesUsageType::Single: {

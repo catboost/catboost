@@ -12,7 +12,7 @@ namespace NLastGetopt {
 */
 class TOptParseResult {
 public:
-    typedef yvector<const char *> TValues;
+    typedef TVector<const char *> TValues;
 
 public:
     TOptParseResult(const TOpt* opt = nullptr)
@@ -68,7 +68,7 @@ private:
     THolder<TOptsParser> Parser_; //The instance of parser.
 
     // XXX: make argc, argv
-    typedef yvector<TOptParseResult> TdVec;
+    typedef TVector<TOptParseResult> TdVec;
 
     TdVec Opts_;     //Parsing result for all options, that have been explicitly defined in argc/argv
     TdVec OptsDef_;  //Parsing result for options, that have been defined by default values only
@@ -174,7 +174,7 @@ public:
     /**
     * @return all fetched free arguments
     */
-    yvector<TString> GetFreeArgs() const;
+    TVector<TString> GetFreeArgs() const;
 
     /**
     * @return true if given option exist in results of parsing

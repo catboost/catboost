@@ -3,7 +3,7 @@
 
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
-#include <catboost/libs/algo/eval_helpers.h>
+#include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/getopt/small/last_getopt.h>
@@ -15,46 +15,48 @@
 
 #include <algorithm>
 
-// Returns approx[evalPeriodIdx][classIdx][objectIdx]
-static yvector<yvector<yvector<double>>> Apply(const NCatBoost::TFormulaEvaluator& calcer,
-                                               const TPool& pool,
-                                               const EPredictionType predictionType, int begin, int end,
-                                               int evalPeriod,
-                                               NPar::TLocalExecutor* executor)
+static TEvalResult Apply(
+    const TFullModel& model,
+    const TPool& pool,
+    size_t begin, size_t end,
+    size_t evalPeriod,
+    NPar::TLocalExecutor* executor)
 {
-    yvector<yvector<double>> currentApprox; // [classIdx][objectIdx]
-    yvector<yvector<yvector<double>>> resultApprox; // [evalPeriodIdx][classIdx][objectIdx]
+    TEvalResult resultApprox;
     for (; begin < end; begin += evalPeriod) {
-        yvector<yvector<double>> approx = ApplyModelMulti(calcer, pool, EPredictionType::RawFormulaVal,
+        TVector<TVector<double>> approx = ApplyModelMulti(model, pool, EPredictionType::RawFormulaVal,
                                                           begin, Min(begin + evalPeriod, end), *executor);
-        if (currentApprox.empty()) {
-            currentApprox.swap(approx);
+        if (resultApprox.GetRawValuesRef().empty()) {
+            resultApprox.GetRawValuesRef().swap(approx);
         } else {
             for (size_t i = 0; i < approx.size(); ++i) {
                 for (size_t j = 0; j < approx[0].size(); ++j) {
-                    currentApprox[i][j] += approx[i][j];
+                    resultApprox.GetRawValuesRef()[i][j] += approx[i][j];
                 }
             }
         }
-        resultApprox.push_back(PrepareEval(predictionType, currentApprox, executor));
+        resultApprox.PostProcess(executor, std::make_pair((int)begin, (int)Min(begin + evalPeriod, end)));
     }
     return resultApprox;
 }
 
 int mode_calc(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
-    int iterationsLimit = 0;
-    int evalPeriod = 0;
+    size_t iterationsLimit = 0;
+    size_t evalPeriod = 0;
 
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParserOpts(parser);
     parser.AddLongOption("tree-count-limit", "limit count of used trees")
         .StoreResult(&iterationsLimit);
-    parser.AddLongOption("prediction-type", "Should be one of: Probability, Class, RawFormulaVal")
-        .RequiredArgument("prediction-type")
-        .Handler1T<TString>([&params](const TString& predictionType) {
-            params.PredictionType = FromString<EPredictionType>(predictionType);
+    parser.AddLongOption("prediction-type")
+        .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
+        .Handler1T<TString>([&](const TString& predictionTypes) {
+            params.PredictionTypes.clear();
+            for (const auto&  typeName : StringSplitter(predictionTypes).Split(',')) {
+                params.PredictionTypes.push_back(FromString<EPredictionType>(typeName.Token()));
+            }
         });
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
@@ -62,36 +64,39 @@ int mode_calc(int argc, const char* argv[]) {
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
-    NCatBoost::TFormulaEvaluator calcer(ReadModel(params.ModelFileName));
-    if (calcer.HasCategoricalFeatures()) {
+    TFullModel model = ReadModel(params.ModelFileName);
+    if (model.HasCategoricalFeatures()) {
         CB_ENSURE(!params.CdFile.empty(),
                   "Model has categorical features. Specify column_description file with correct categorical features.");
-        CB_ENSURE(calcer.HasValidCtrProvider(),
+        CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
 
     if (iterationsLimit == 0) {
-        iterationsLimit = calcer.GetTreeCount();
+        iterationsLimit = model.GetTreeCount();
     }
-    iterationsLimit = Min(iterationsLimit, calcer.GetTreeCount());
+    iterationsLimit = Min(iterationsLimit, model.GetTreeCount());
 
     if (evalPeriod == 0) {
-        evalPeriod = calcer.GetTreeCount();
+        evalPeriod = model.GetTreeCount();
     } else {
-        evalPeriod = Min(evalPeriod, calcer.GetTreeCount());
+        evalPeriod = Min(evalPeriod, model.GetTreeCount());
     }
 
-    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / calcer.GetModelClassCount()));
+    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
     TOFStream outputStream(params.OutputPath);
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     SetVerboseLogingMode();
+    bool IsFirstBlock = true;
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
-        yvector<yvector<yvector<double>>> approx = Apply(calcer, poolPart, params.PredictionType,
-                                                         0, iterationsLimit, evalPeriod, &executor);
+        TEvalResult approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
+        approx.SetPredictionTypes(params.PredictionTypes);
         SetSilentLogingMode();
-        OutputTestEval(approx, poolPart.Docs, false, &outputStream);
+        approx.PostProcess(&executor);
+        approx.OutputToFile(poolPart.Docs.Id, &outputStream, IsFirstBlock);
+        IsFirstBlock = false;
     });
 
     return 0;

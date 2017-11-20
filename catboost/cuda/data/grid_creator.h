@@ -15,11 +15,11 @@ namespace NCatboostCuda
         {
         }
 
-        virtual IGridBuilder& AddFeature(const yvector<float>& feature, ui32 borderCount) = 0;
+        virtual IGridBuilder& AddFeature(const TVector<float>& feature, ui32 borderCount) = 0;
 
-        virtual const yvector<yvector<float>>& Borders() = 0;
+        virtual const TVector<TVector<float>>& Borders() = 0;
 
-        virtual yvector<float> BuildBorders(const yvector<float>& sortedFeature,
+        virtual TVector<float> BuildBorders(const TVector<float>& sortedFeature,
                                             ui32 borderCount) const = 0;
     };
 
@@ -41,11 +41,11 @@ namespace NCatboostCuda
     class TGridBuilderBase: public IGridBuilder
     {
     public:
-        yvector<float> BuildBorders(const yvector<float>& sortedFeature, ui32 borderCount) const override
+        TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override
         {
-            yvector<float> copy(sortedFeature.begin(), sortedFeature.end());
+            TVector<float> copy(sortedFeature.begin(), sortedFeature.end());
             auto bordersSet = Binarizer.BestSplit(copy, borderCount, true);
-            yvector<float> borders(bordersSet.begin(), bordersSet.end());
+            TVector<float> borders(bordersSet.begin(), bordersSet.end());
             Sort(borders.begin(), borders.end());
             return borders;
         }
@@ -58,23 +58,23 @@ namespace NCatboostCuda
     class TCpuGridBuilder: public TGridBuilderBase<TBinarizer>
     {
     public:
-        IGridBuilder& AddFeature(const yvector<float>& feature,
+        IGridBuilder& AddFeature(const TVector<float>& feature,
                                  ui32 borderCount) override
         {
-            yvector<float> sortedFeature(feature.begin(), feature.end());
+            TVector<float> sortedFeature(feature.begin(), feature.end());
             Sort(sortedFeature.begin(), sortedFeature.end());
             auto borders = TGridBuilderBase<TBinarizer>::BuildBorders(sortedFeature, borderCount);
             Result.push_back(std::move(borders));
             return *this;
         }
 
-        const yvector<yvector<float>>& Borders() override
+        const TVector<TVector<float>>& Borders() override
         {
             return Result;
         }
 
     private:
-        yvector<yvector<float>> Result;
+        TVector<TVector<float>> Result;
     };
 
     template<template<class T> class TGridBuilder>
@@ -129,13 +129,13 @@ namespace NCatboostCuda
     {
     public:
         TBordersBuilder(IFactory<IGridBuilder>& builderFactory,
-                        const yvector<float>& values)
+                        const TVector<float>& values)
                 : BuilderFactory(builderFactory)
                   , Values(values)
         {
         }
 
-        yvector<float> operator()(const TBinarizationDescription& description)
+        TVector<float> operator()(const TBinarizationDescription& description)
         {
             auto builder = BuilderFactory.Create(description.BorderSelectionType);
             builder->AddFeature(Values, description.Discretization);
@@ -144,7 +144,7 @@ namespace NCatboostCuda
 
     private:
         IFactory<IGridBuilder>& BuilderFactory;
-        const yvector<float>& Values;
+        const TVector<float>& Values;
     };
 
     using TOnCpuGridBuilderFactory = TGridBuilderFactory<TCpuGridBuilder>;

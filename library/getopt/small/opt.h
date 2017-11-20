@@ -90,7 +90,7 @@ public:
 
     const char* GetArg() const { return Arg; }
 
-    yvector<TString> GetFreeArgs() const {
+    TVector<TString> GetFreeArgs() const {
         return NLastGetopt::TOptsParseResult(&*Opts_, GetArgC(), GetArgV()).GetFreeArgs();
     }
 

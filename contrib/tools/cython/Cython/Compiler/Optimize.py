@@ -259,7 +259,7 @@ class IterationTransform(Visitor.EnvTransform):
                 return self._transform_reversed_iteration(node, iterator)
 
         # range() iteration?
-        if Options.convert_range and node.target.type.is_int:
+        if Options.convert_range and (node.target.type.is_int or node.target.type.is_enum):
             if iterator.self is None and function.is_name and \
                    function.entry and function.entry.is_builtin and \
                    function.name in ('range', 'xrange'):
@@ -892,7 +892,7 @@ class IterationTransform(Visitor.EnvTransform):
             method_node = ExprNodes.StringNode(
                 dict_obj.pos, is_identifier=True, value=method)
             dict_obj = dict_obj.as_none_safe_node(
-                "'NoneType' object has no attribute '%s'",
+                "'NoneType' object has no attribute '%{0}s'".format('.30' if len(method) <= 30 else ''),
                 error = "PyExc_AttributeError",
                 format_args = [method])
         else:
@@ -2210,14 +2210,10 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
             PyrexTypes.CFuncTypeArg("list", Builtin.list_type, None)
             ])
 
-    PySequence_Tuple_func_type = PyrexTypes.CFuncType(
-        Builtin.tuple_type,
-        [PyrexTypes.CFuncTypeArg("it", PyrexTypes.py_object_type, None)])
-
     def _handle_simple_function_tuple(self, node, function, pos_args):
         """Replace tuple([...]) by PyList_AsTuple or PySequence_Tuple.
         """
-        if len(pos_args) != 1:
+        if len(pos_args) != 1 or not node.is_temp:
             return node
         arg = pos_args[0]
         if arg.type is Builtin.tuple_type and not arg.may_be_none():
@@ -2230,9 +2226,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
                 node.pos, "PyList_AsTuple", self.PyList_AsTuple_func_type,
                 args=pos_args, is_temp=node.is_temp)
         else:
-            return ExprNodes.PythonCapiCallNode(
-                node.pos, "PySequence_Tuple", self.PySequence_Tuple_func_type,
-                args=pos_args, is_temp=node.is_temp)
+            return ExprNodes.AsTupleNode(node.pos, arg=arg, type=Builtin.tuple_type)
 
     PySet_New_func_type = PyrexTypes.CFuncType(
         Builtin.set_type, [
@@ -2429,6 +2423,14 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
                 node.pos, "__Pyx_Py_UNICODE_strlen", self.Pyx_Py_UNICODE_strlen_func_type,
                 args = [arg],
                 is_temp = node.is_temp)
+        elif arg.type.is_memoryviewslice:
+            func_type = PyrexTypes.CFuncType(
+                PyrexTypes.c_size_t_type, [
+                    PyrexTypes.CFuncTypeArg("memoryviewslice", arg.type, None)
+                ], nogil=True)
+            new_node = ExprNodes.PythonCapiCallNode(
+                node.pos, "__Pyx_MemoryView_Len", func_type,
+                args=[arg], is_temp=node.is_temp)
         elif arg.type.is_pyobject:
             cfunc_name = self._map_to_capi_len_function(arg.type)
             if cfunc_name is None:
@@ -2442,8 +2444,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
                 "object of type 'NoneType' has no len()")
             new_node = ExprNodes.PythonCapiCallNode(
                 node.pos, cfunc_name, self.PyObject_Size_func_type,
-                args = [arg],
-                is_temp = node.is_temp)
+                args=[arg], is_temp=node.is_temp)
         elif arg.type.is_unicode_char:
             return ExprNodes.IntNode(node.pos, value='1', constant_result=1,
                                      type=node.type)
@@ -2759,7 +2760,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         if is_list:
             type_name = 'List'
             obj = obj.as_none_safe_node(
-                "'NoneType' object has no attribute '%s'",
+                "'NoneType' object has no attribute '%.30s'",
                 error="PyExc_AttributeError",
                 format_args=['pop'])
         else:
@@ -3337,7 +3338,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
             PyrexTypes.CFuncTypeArg("obj", Builtin.unicode_type, None),
             ])
 
-    _special_encodings = ['UTF8', 'UTF16', 'Latin1', 'ASCII',
+    _special_encodings = ['UTF8', 'UTF16', 'UTF-16LE', 'UTF-16BE', 'Latin1', 'ASCII',
                           'unicode_escape', 'raw_unicode_escape']
 
     _special_codecs = [ (name, codecs.getencoder(name))
@@ -3379,7 +3380,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         if encoding and error_handling == 'strict':
             # try to find a specific encoder function
             codec_name = self._find_special_codec_name(encoding)
-            if codec_name is not None:
+            if codec_name is not None and '-' not in codec_name:
                 encode_function = "PyUnicode_As%sString" % codec_name
                 return self._substitute_method_call(
                     node, function, encode_function,
@@ -3449,7 +3450,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
                     format_args=['decode', string_type.name])
             else:
                 string_node = string_node.as_none_safe_node(
-                    "'NoneType' object has no attribute '%s'",
+                    "'NoneType' object has no attribute '%.30s'",
                     error="PyExc_AttributeError",
                     format_args=['decode'])
         elif not string_type.is_string and not string_type.is_cpp_string:
@@ -3473,9 +3474,12 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         if encoding is not None:
             codec_name = self._find_special_codec_name(encoding)
         if codec_name is not None:
+            if codec_name in ('UTF16', 'UTF-16LE', 'UTF-16BE'):
+                codec_cname = "__Pyx_PyUnicode_Decode%s" % codec_name.replace('-', '')
+            else:
+                codec_cname = "PyUnicode_Decode%s" % codec_name
             decode_function = ExprNodes.RawCNameExprNode(
-                node.pos, type=self.PyUnicode_DecodeXyz_func_ptr_type,
-                cname="PyUnicode_Decode%s" % codec_name)
+                node.pos, type=self.PyUnicode_DecodeXyz_func_ptr_type, cname=codec_cname)
             encoding_node = ExprNodes.NullNode(node.pos)
         else:
             decode_function = ExprNodes.NullNode(node.pos)
@@ -3643,7 +3647,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
                     format_args=[attr_name, function.obj.name])
             else:
                 self_arg = self_arg.as_none_safe_node(
-                    "'NoneType' object has no attribute '%s'",
+                    "'NoneType' object has no attribute '%{0}s'".format('.30' if len(attr_name) <= 30 else ''),
                     error = "PyExc_AttributeError",
                     format_args = [attr_name])
             args[0] = self_arg
@@ -3949,10 +3953,21 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
 
     def visit_FormattedValueNode(self, node):
         self.visitchildren(node)
+        conversion_char = node.conversion_char or 's'
         if isinstance(node.format_spec, ExprNodes.UnicodeNode) and not node.format_spec.value:
             node.format_spec = None
-        if node.format_spec is None and node.conversion_char is None and isinstance(node.value, ExprNodes.UnicodeNode):
-            return node.value
+        if node.format_spec is None and isinstance(node.value, ExprNodes.IntNode):
+            value = EncodedString(node.value.value)
+            if value.isdigit():
+                return ExprNodes.UnicodeNode(node.value.pos, value=value, constant_result=value)
+        if node.format_spec is None and conversion_char == 's':
+            value = None
+            if isinstance(node.value, ExprNodes.UnicodeNode):
+                value = node.value.value
+            elif isinstance(node.value, ExprNodes.StringNode):
+                value = node.value.unicode_value
+            if value is not None:
+                return ExprNodes.UnicodeNode(node.value.pos, value=value, constant_result=value)
         return node
 
     def visit_JoinedStrNode(self, node):
@@ -3970,7 +3985,8 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                 substrings = list(substrings)
                 unode = substrings[0]
                 if len(substrings) > 1:
-                    unode.value = EncodedString(u''.join(value.value for value in substrings))
+                    value = EncodedString(u''.join(value.value for value in substrings))
+                    unode = ExprNodes.UnicodeNode(unode.pos, value=value, constant_result=value)
                 # ignore empty Unicode strings
                 if unode.value:
                     values.append(unode)
@@ -3978,7 +3994,8 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                 values.extend(substrings)
 
         if not values:
-            node = ExprNodes.UnicodeNode(node.pos, value=EncodedString(''))
+            value = EncodedString('')
+            node = ExprNodes.UnicodeNode(node.pos, value=value, constant_result=value)
         elif len(values) == 1:
             node = values[0]
         elif len(values) == 2:

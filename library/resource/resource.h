@@ -10,7 +10,7 @@ namespace NResource {
         TString Data;
     };
 
-    typedef yvector<TResource> TResources;
+    typedef TVector<TResource> TResources;
 
     TString Find(const TStringBuf& key);
     bool FindExact(const TStringBuf& key, TString* out);
@@ -18,5 +18,5 @@ namespace NResource {
     void FindMatch(const TStringBuf& subkey, TResources* out);
     size_t Count() noexcept;
     TStringBuf KeyByIndex(size_t idx);
-    yvector<TStringBuf> ListAllKeys();
+    TVector<TStringBuf> ListAllKeys();
 }

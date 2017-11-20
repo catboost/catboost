@@ -8,7 +8,7 @@ SIMPLE_UNIT_TEST_SUITE(ObjectsCounter) {
 
     SIMPLE_UNIT_TEST(Test1) {
         TObject obj;
-        yvector<TObject> objects;
+        TVector<TObject> objects;
         for (ui32 i = 0; i < 100; ++i) {
             objects.push_back(obj);
         }

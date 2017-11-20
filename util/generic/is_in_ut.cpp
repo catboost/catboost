@@ -44,15 +44,15 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         TestIsInWithCont<ymap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<ymultimap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<yhash<TString, TString>>(std::make_pair("found", "1"));
-        TestIsInWithCont<yhash_mm<TString, TString>>(std::make_pair("found", "1"));
+        TestIsInWithCont<THashMultiMap<TString, TString>>(std::make_pair("found", "1"));
 
         TestIsInWithCont<yset<TString>>("found");
         TestIsInWithCont<ymultiset<TString>>("found");
-        TestIsInWithCont<yhash_set<TString>>("found");
-        TestIsInWithCont<yhash_multiset<TString>>("found");
+        TestIsInWithCont<THashSet<TString>>("found");
+        TestIsInWithCont<THashMultiSet<TString>>("found");
 
         // vector also compiles and works
-        yvector<TString> v;
+        TVector<TString> v;
         v.push_back("found");
         UNIT_ASSERT(IsIn(v, "found"));
         UNIT_ASSERT(!IsIn(v, "not found"));
@@ -101,7 +101,7 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         const TString b = "b";
 
         UNIT_ASSERT(!IsIn({"a", "b", "c"}, ~b)); // compares pointers by value. Whether it's good or not.
-        UNIT_ASSERT(IsIn(yvector<TStringBuf>({"a", "b", "c"}), ~b));
-        UNIT_ASSERT(IsIn(yvector<TStringBuf>({"a", "b", "c"}), "b"));
+        UNIT_ASSERT(IsIn(TVector<TStringBuf>({"a", "b", "c"}), ~b));
+        UNIT_ASSERT(IsIn(TVector<TStringBuf>({"a", "b", "c"}), "b"));
     }
 }

@@ -83,4 +83,29 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(8123), pm.GetPort(8123));
         SetEnv("NO_RANDOM_PORTS", "");
     }
+
+    int CheckPort(ui16 port) {
+        TInetStreamSocket sock;
+        TSockAddrInet addr((TIpHost)INADDR_ANY, port);
+        SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+        return sock.Bind(&addr);
+    }
+
+    SIMPLE_UNIT_TEST(TestPortsRange) {
+        TFsPath workDir(GetYaPath() / "tmp/ports_test");
+
+        TPortsRangeManager pm(workDir);
+        ui16 port = pm.GetPortsRange(3000, 3);
+        UNIT_ASSERT(port >= 3000);
+
+        for (ui32 i = 0; i < 3; ++i) {
+            UNIT_ASSERT_EQUAL(CheckPort(port + i), 0);
+        }
+
+        ui16 anotherPort = pm.GetPortsRange(port, 3);
+        UNIT_ASSERT(anotherPort >= port + 3);
+
+        port = pm.GetPortsRange(anotherPort, 1);
+        UNIT_ASSERT(port > anotherPort);
+    }
 }

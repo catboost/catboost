@@ -1,11 +1,8 @@
 #pragma once
 
-#include "params.h"
 #include "online_predictor.h"
 
-inline int GetLeafCount(const yvector<TSplit>& tree) {
-    return 1 << tree.ysize();
-}
+#include <catboost/libs/params/params.h>
 
 template <ELeafEstimation LeafEstimationType>
 inline void UpdateBucket(const TDer1Der2&, double, int, TSum*);

@@ -9,6 +9,8 @@ SRCS(
 )
 ENDIF()
 
+SIZE(MEDIUM)
+
 SRCS(
     test_data_provider_load.cpp
 )

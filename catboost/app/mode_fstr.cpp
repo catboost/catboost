@@ -1,7 +1,7 @@
 #include "cmd_line.h"
 #include "output_fstr.h"
 
-#include <catboost/libs/algo/calc_fstr.h>
+#include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/model/model.h>
 
@@ -27,8 +27,13 @@ int mode_fstr(int argc, const char* argv[]) {
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.CtrCalcerData.LearnCtrs.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
-
+    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
+    if (model.HasCategoricalFeatures()) {
+        CB_ENSURE(!params.CdFile.empty(),
+                  "Model has categorical features. Specify column_description file with correct categorical features.");
+        CB_ENSURE(model.HasValidCtrProvider(),
+                  "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
+    }
     TPool pool;
     ReadPool(params.CdFile, params.InputPath, params.PairsFile, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &pool);
 

@@ -62,8 +62,8 @@ namespace NCatboostCuda
     };
 
 
-    template<class TVector>
-    inline void Unique(TVector& vector)
+    template<class TVectorType>
+    inline void Unique(TVectorType& vector)
     {
         ui64 size = std::unique(vector.begin(), vector.end()) - vector.begin();
         vector.resize(size);
@@ -84,7 +84,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TFeatureTensor& AddBinarySplit(const yvector<TBinarySplit>& splits)
+        TFeatureTensor& AddBinarySplit(const TVector<TBinarySplit>& splits)
         {
             for (auto& bin : splits)
             {
@@ -100,7 +100,7 @@ namespace NCatboostCuda
             Unique(Splits);
         }
 
-        TFeatureTensor& AddCatFeature(const yvector<ui32>& featureIds)
+        TFeatureTensor& AddCatFeature(const TVector<ui32>& featureIds)
         {
             for (auto feature : featureIds)
             {
@@ -173,12 +173,12 @@ namespace NCatboostCuda
             return NCatboostCuda::IsSubset(Splits, other.Splits) && NCatboostCuda::IsSubset(CatFeatures, other.CatFeatures);
         }
 
-        const yvector<TBinarySplit>& GetSplits() const
+        const TVector<TBinarySplit>& GetSplits() const
         {
             return Splits;
         }
 
-        const yvector<ui32>& GetCatFeatures() const
+        const TVector<ui32>& GetCatFeatures() const
         {
             return CatFeatures;
         }
@@ -191,8 +191,8 @@ namespace NCatboostCuda
         Y_SAVELOAD_DEFINE(Splits, CatFeatures);
 
     private:
-        yvector<TBinarySplit> Splits;
-        yvector<ui32> CatFeatures;
+        TVector<TBinarySplit> Splits;
+        TVector<ui32> CatFeatures;
     };
 
     struct TCtr

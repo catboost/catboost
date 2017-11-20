@@ -889,7 +889,7 @@ void TSocketOutput::DoWriteV(const TPart* parts, size_t count) {
 namespace {
     //https://bugzilla.mozilla.org/attachment.cgi?id=503263&action=diff
 
-    struct TLocalNames: public yhash_set<TStringBuf> {
+    struct TLocalNames: public THashSet<TStringBuf> {
         inline TLocalNames() {
             insert("localhost");
             insert("localhost.localdomain");

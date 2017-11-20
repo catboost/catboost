@@ -24,5 +24,5 @@ namespace NUnitTest {
             TPluginRegistrator(TSimpleSharedPtr<IPlugin> plugin);
         };
 
-    } // NPlugin
-} // NUnitTest
+    }
+}

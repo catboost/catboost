@@ -68,7 +68,7 @@ namespace NDetail {
 
     void Deallocate(void* data);
 
-} // namespace NDetail
+}
 
 template <typename TDerived, typename TCharType, typename TTraits>
 class TStringBase;
@@ -778,9 +778,9 @@ public:
     }
 
     using TBase::begin;  //!< const_iterator TStringBase::begin() const
-    using TBase::end;    //!< const_iterator TStringBase::end() const
     using TBase::cbegin; //!< const_iterator TStringBase::cbegin() const
     using TBase::cend;   //!< const_iterator TStringBase::cend() const
+    using TBase::end;    //!< const_iterator TStringBase::end() const
 
     inline size_t reserve() const noexcept {
         return GetData()->BufLen;
@@ -909,6 +909,11 @@ private:
         return s1.Length + SumLength(r...);
     }
 
+    template <typename... R>
+    static size_t SumLength(const TCharType /*s1*/, const R&... r) noexcept {
+        return 1 + SumLength(r...);
+    }
+
     static constexpr size_t SumLength() noexcept {
         return 0;
     }
@@ -917,6 +922,12 @@ private:
     static void CopyAll(TCharType* p, const TFixedString s, const R&... r) {
         TTraits::Copy(p, s.Start, s.Length);
         CopyAll(p + s.Length, r...);
+    }
+
+    template <typename... R>
+    static void CopyAll(TCharType* p, const TCharType s, const R&... r) {
+        p[0] = s;
+        CopyAll(p + 1, r...);
     }
 
     static void CopyAll(TCharType*) noexcept {
@@ -1694,4 +1705,4 @@ namespace std {
             return s.hash();
         }
     };
-};
+}

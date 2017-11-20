@@ -18,11 +18,11 @@ namespace NCatboostCuda
     }
 
     template<class TSortedStorage>
-    inline yvector<typename TSortedStorage::value_type>
+    inline TVector<typename TSortedStorage::value_type>
     RemoveExisting(const TSortedStorage& from, const TSortedStorage& what)
     {
         using T = typename TSortedStorage::value_type;
-        yvector<T> result;
+        TVector<T> result;
         std::set_difference(from.begin(), from.end(), what.begin(), what.end(), std::inserter(result, result.end()));
         return result;
     }

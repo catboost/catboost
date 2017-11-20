@@ -362,7 +362,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         constexpr size_t TEST_CASES_COUNT = 1000;
         constexpr size_t MAX_DATA_SIZE = 1000;
         TFastRng<ui32> prng{42};
-        yvector<TString> xs{TEST_CASES_COUNT};
+        TVector<TString> xs{TEST_CASES_COUNT};
         TString xEnc;
         TString xDec;
         TString yEnc;
@@ -407,7 +407,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         constexpr size_t MAX_DATA_SIZE = 1000;
         TFastRng<ui32> prng{42};
         TString x;
-        yvector<char> buf;
+        TVector<char> buf;
         for (size_t i = 0; i < TEST_CASES_COUNT; ++i) {
             const size_t size = prng() % MAX_DATA_SIZE;
             x.clear();

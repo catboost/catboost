@@ -9,8 +9,8 @@ import re
 import sys
 import io
 
-if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[:2] < (3, 2):
-    sys.stderr.write("Sorry, Cython requires Python 2.6+ or 3.2+, found %d.%d\n" % tuple(sys.version_info[:2]))
+if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[:2] < (3, 3):
+    sys.stderr.write("Sorry, Cython requires Python 2.6+ or 3.3+, found %d.%d\n" % tuple(sys.version_info[:2]))
     sys.exit(1)
 
 try:
@@ -551,15 +551,24 @@ class CompilationOptions(object):
         # ignore valid options that are not in the defaults
         unknown_options.difference_update(['include_path'])
         if unknown_options:
-            # TODO: make this a hard error in 0.22
             message = "got unknown compilation option%s, please remove: %s" % (
                 's' if len(unknown_options) > 1 else '',
                 ', '.join(unknown_options))
-            import warnings
-            warnings.warn(message)
+            raise ValueError(message)
 
         directives = dict(options['compiler_directives'])  # copy mutable field
+        # check for invalid directives
+        unknown_directives = set(directives) - set(Options.get_directive_defaults())
+        if unknown_directives:
+            message = "got unknown compiler directive%s: %s" % (
+                's' if len(unknown_directives) > 1 else '',
+                ', '.join(unknown_directives))
+            raise ValueError(message)
         options['compiler_directives'] = directives
+        if directives.get('np_pythran', False) and not options['cplus']:
+            import warnings
+            warnings.warn("C++ mode forced when in Pythran mode!")
+            options['cplus'] = True
         if 'language_level' in directives and 'language_level' not in kw:
             options['language_level'] = int(directives['language_level'])
         if 'formal_grammar' in directives and 'formal_grammar' not in kw:
@@ -753,4 +762,6 @@ default_options = dict(
     output_dir=None,
     build_dir=None,
     cache=None,
+    create_extension=None,
+    np_pythran=False
 )

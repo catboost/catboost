@@ -307,6 +307,19 @@ namespace NCatboostCuda
                                          featureManagerOptions.MaxTensorComplexity = count;
                                      });
 
+            options.AddLongOption("counter-calc-method", "Should be one of {Full, SkipTest}")
+                    .RequiredArgument("method-name")
+                    .DefaultValue("SkipTest")
+                    .Handler1T<TString>([&](const TString& method) {
+                        if (method == "Full") {
+                            featureManagerOptions.UseTestTestForFeatureFreqFlag = true;
+                            MATRIXNET_WARNING_LOG << "Currently full method works only during training. In model we write learn-based counters. It'll be fixed in near future" << Endl;
+                        } else {
+                            CB_ENSURE(method == "SkipTest", "Error: unknown option value");
+                            featureManagerOptions.UseTestTestForFeatureFreqFlag = false;
+                        }
+                    });
+
             options
                     .AddLongOption("dev-ctrs")
                     .RequiredArgument("String")
@@ -554,7 +567,7 @@ namespace NCatboostCuda
                     .StoreResult(&boostingOptions.PermutationCount);
 
             options
-                    .AddLongOption("dev-use-cpu-ram-for-catfeatures")
+                    .AddLongOption("use-cpu-ram-for-catfeatures")
                     .RequiredArgument("INT")
                     .Help("Store")
                     .SetFlag(&boostingOptions.UseCpuRamForCatFeaturesFlag)

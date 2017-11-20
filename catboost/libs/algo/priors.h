@@ -1,7 +1,7 @@
 #pragma once
 
 #include "features_layout.h"
-#include <catboost/libs/model/projection.h>
+#include "projection.h"
 
 #include <library/binsaver/bin_saver.h>
 
@@ -11,8 +11,8 @@
 
 class TPriors {
 public:
-    void Init(const yvector<float>& commonPriors,
-              const yvector<std::pair<int, yvector<float>>>& perFeaturePriors,
+    void Init(const TVector<float>& commonPriors,
+              const TVector<std::pair<int, TVector<float>>>& perFeaturePriors,
               const TFeaturesLayout& layout) {
         DefaultPriors = commonPriors;
 
@@ -25,7 +25,7 @@ public:
         }
     }
 
-    const yvector<float>& GetPriors(const TProjection& proj) const {
+    const TVector<float>& GetPriors(const TProjection& proj) const {
         if (!proj.IsSingleCatFeature() || !PerFeaturePriors.has(proj.CatFeatures[0])) {
             return DefaultPriors;
         }
@@ -40,6 +40,6 @@ public:
     Y_SAVELOAD_DEFINE(DefaultPriors, PerFeaturePriors)
 
 private:
-    yvector<float> DefaultPriors;
-    ymap<int, yvector<float>> PerFeaturePriors;
+    TVector<float> DefaultPriors;
+    ymap<int, TVector<float>> PerFeaturePriors;
 };

@@ -46,7 +46,7 @@ namespace NStringSplitterContainerConsumer {
 
         Container* Cont;
     };
-} // namespace NStringSplitterContainerConsumer
+}
 
 template <class It>
 struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
@@ -67,8 +67,8 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     }
 
     template <class S>
-    inline yvector<S> ToList() {
-        yvector<S> result;
+    inline TVector<S> ToList() {
+        TVector<S> result;
         for (auto&& it : *this) {
             result.push_back(S(it.Token()));
         }

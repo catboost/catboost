@@ -70,7 +70,7 @@ public:
 private:
     ICallback* Callback;
     TArrayHolder<ssize_t> PrefixFunction;
-    using TTVector = yvector<T>;
+    using TTVector = TVector<T>;
     TTVector Pattern;
     ssize_t State;
     TTVector Candidate;

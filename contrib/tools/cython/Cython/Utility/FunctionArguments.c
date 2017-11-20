@@ -1,34 +1,31 @@
 //////////////////// ArgTypeTest.proto ////////////////////
 
-static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, int none_allowed,
-    const char *name, int exact); /*proto*/
+
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact) \
+    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 : \
+        __Pyx__ArgTypeTest(obj, type, name, exact))
+
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact); /*proto*/
 
 //////////////////// ArgTypeTest ////////////////////
 
-static void __Pyx_RaiseArgumentTypeInvalid(const char* name, PyObject *obj, PyTypeObject *type) {
-    PyErr_Format(PyExc_TypeError,
-        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
-        name, type->tp_name, Py_TYPE(obj)->tp_name);
-}
-
-static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, int none_allowed,
-    const char *name, int exact)
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
 {
     if (unlikely(!type)) {
         PyErr_SetString(PyExc_SystemError, "Missing type object");
         return 0;
     }
-    if (none_allowed && obj == Py_None) return 1;
     else if (exact) {
-        if (likely(Py_TYPE(obj) == type)) return 1;
         #if PY_MAJOR_VERSION == 2
-        else if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
+        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
         #endif
     }
     else {
-        if (likely(PyObject_TypeCheck(obj, type))) return 1;
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
     }
-    __Pyx_RaiseArgumentTypeInvalid(name, obj, type);
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
+        name, type->tp_name, Py_TYPE(obj)->tp_name);
     return 0;
 }
 
@@ -72,14 +69,11 @@ static void __Pyx_RaiseArgtupleInvalid(
 
 //////////////////// RaiseKeywordRequired.proto ////////////////////
 
-static CYTHON_INLINE void __Pyx_RaiseKeywordRequired(const char* func_name, PyObject* kw_name); /*proto*/
+static void __Pyx_RaiseKeywordRequired(const char* func_name, PyObject* kw_name); /*proto*/
 
 //////////////////// RaiseKeywordRequired ////////////////////
 
-static CYTHON_INLINE void __Pyx_RaiseKeywordRequired(
-    const char* func_name,
-    PyObject* kw_name)
-{
+static void __Pyx_RaiseKeywordRequired(const char* func_name, PyObject* kw_name) {
     PyErr_Format(PyExc_TypeError,
         #if PY_MAJOR_VERSION >= 3
         "%s() needs keyword-only argument %U", func_name, kw_name);
@@ -123,7 +117,7 @@ static void __Pyx_RaiseMappingExpectedError(PyObject* arg) {
 
 //////////////////// KeywordStringCheck.proto ////////////////////
 
-static CYTHON_INLINE int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed); /*proto*/
+static int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed); /*proto*/
 
 //////////////////// KeywordStringCheck ////////////////////
 
@@ -131,7 +125,7 @@ static CYTHON_INLINE int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char*
 //  were passed to a function, or if any keywords were passed to a
 //  function that does not accept them.
 
-static CYTHON_INLINE int __Pyx_CheckKeywordStrings(
+static int __Pyx_CheckKeywordStrings(
     PyObject *kwdict,
     const char* function_name,
     int kw_allowed)
@@ -146,7 +140,7 @@ static CYTHON_INLINE int __Pyx_CheckKeywordStrings(
 #else
     while (PyDict_Next(kwdict, &pos, &key, 0)) {
         #if PY_MAJOR_VERSION < 3
-        if (unlikely(!PyString_CheckExact(key)) && unlikely(!PyString_Check(key)))
+        if (unlikely(!PyString_Check(key)))
         #endif
             if (unlikely(!PyUnicode_Check(key)))
                 goto invalid_keyword_type;

@@ -18,7 +18,7 @@ class TGetOpt::TImpl: public TSimpleRefCount<TImpl> {
 
         inline ~TImpl() = default;
 
-        yvector<TString> args;
+        TVector<TString> args;
         const TString format;
 };
 
@@ -59,7 +59,7 @@ class TGetOpt::TIterator::TIterImpl: public TSimpleRefCount<TIterImpl> {
         }
 
     private:
-        yvector<TString> Args_;
+        TVector<TString> Args_;
         TArrayHolder<char*> ArgsPtrs_;
         const TString Format_;
         THolder<Opt> Opt_;

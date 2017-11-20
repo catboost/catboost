@@ -11,7 +11,7 @@ namespace NAddr {
         IRemoteAddrRef Mask;
     };
 
-    using TNetworkInterfaceList = yvector<TNetworkInterface>;
+    using TNetworkInterfaceList = TVector<TNetworkInterface>;
 
     TNetworkInterfaceList GetNetworkInterfaces();
 }

@@ -19,22 +19,22 @@ namespace {
     };
 
     class TOptsParseResultTestWrapper : public TOptsParseResultException {
-        yvector<const char*> Argv_;
+        TVector<const char*> Argv_;
 
     public:
-        TOptsParseResultTestWrapper(const TOpts* opts, yvector<const char*> argv)
+        TOptsParseResultTestWrapper(const TOpts* opts, TVector<const char*> argv)
             : Argv_(argv)
         {
             Init(opts, (int)+Argv_, ~Argv_);
         }
     };
 
-    using V = yvector<const char*>;
+    using V = TVector<const char*>;
 }
 
 struct TOptsParserTester {
     TOptsNoDefault Opts_;
-    yvector<const char*> Argv_;
+    TVector<const char*> Argv_;
 
     THolder<TOptsParser> Parser_;
 
@@ -471,7 +471,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
 
     SIMPLE_UNIT_TEST(TestSplitValue) {
         TOptsNoDefault opts;
-        yvector<TString> vals;
+        TVector<TString> vals;
         opts.AddLongOption('s', "split").SplitHandler(&vals, ',');
         TOptsParseResultTestWrapper r(&opts, V({"prog", "--split=a,b,c"}));
         UNIT_ASSERT_EQUAL(vals.ysize(), 3);
@@ -482,7 +482,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
 
     SIMPLE_UNIT_TEST(TestRangeSplitValue) {
         TOptsNoDefault opts;
-        yvector<ui32> vals;
+        TVector<ui32> vals;
         opts.AddLongOption('s', "split").RangeSplitHandler(&vals, ',', '-');
         TOptsParseResultTestWrapper r(&opts, V({"prog", "--split=1,8-10", "--split=12-14"}));
         UNIT_ASSERT_EQUAL(vals.ysize(), 7);
@@ -667,10 +667,10 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
                 SubstGlobal(printed, TString(colors.CyanColor()), "");
                 SubstGlobal(printed, TString(colors.OldColor()), "");
             }
-            yvector<TString> lines;
+            TVector<TString> lines;
             SplitStroku(&lines, printed, "\n");
             UNIT_ASSERT(!lines.empty());
-            yvector<size_t> indents;
+            TVector<size_t> indents;
             for (const TString& line : lines) {
                 const size_t indent = line.find("description ");
                 if (indent != TString::npos)
@@ -685,7 +685,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
     }
 
     SIMPLE_UNIT_TEST(TestAppendTo) {
-        yvector<int> ints;
+        TVector<int> ints;
 
         TOptsNoDefault opts;
         opts.AddLongOption("size").AppendTo(&ints);

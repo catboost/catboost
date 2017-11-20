@@ -157,12 +157,6 @@ inline void check_16(const i16&) {
 
 #include "compiler.h"
 
-/// Deprecated. Use TNonCopyable instead (util/generic/noncopyable.h)
-#define Y_DISABLE_COPY(aClass) \
-private:                       \
-    aClass(const aClass&);     \
-    aClass& operator=(const aClass&)
-
 #ifdef _win_
 #include <malloc.h>
 #elif defined(_sun_)

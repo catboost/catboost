@@ -41,6 +41,10 @@ namespace NCatboostCuda
             return OneHotLimit;
         }
 
+        bool UseTestSetForFeatureFreqEstimation() const {
+            return UseTestTestForFeatureFreqFlag;
+        }
+
         ui32 GetMaxTensorComplexity() const
         {
             return MaxTensorComplexity;
@@ -105,7 +109,7 @@ namespace NCatboostCuda
 
     private:
         TBinarizationConfiguration BinarizationConfiguration;
-
+        bool UseTestTestForFeatureFreqFlag = false;
         ui32 OneHotLimit = 0;
         ui32 MaxTensorComplexity = 4; //tensor complexity is number  of catFeatures, which could be used in one ctr
         yset<ui32> IgnoredFeatures;
@@ -138,7 +142,7 @@ namespace NCatboostCuda
         }
 
         template<class TBuilder>
-        const yvector<float>& GetOrCreateFloatFeatureBorders(const TFloatValuesHolder& feature,
+        const TVector<float>& GetOrCreateFloatFeatureBorders(const TFloatValuesHolder& feature,
                                                              TBuilder&& builder)
         {
             CB_ENSURE(IsKnown(feature));
@@ -156,7 +160,7 @@ namespace NCatboostCuda
             return Borders.has(GetId(feature));
         }
 
-        const yvector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const
+        const TVector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const
         {
             CB_ENSURE(IsKnown(feature));
             ui32 id = GetId(feature);
@@ -164,7 +168,7 @@ namespace NCatboostCuda
         }
 
         template<class TBuilder>
-        yvector<float> GetOrBuildCtrBorders(const TCtr& ctr,
+        TVector<float> GetOrBuildCtrBorders(const TCtr& ctr,
                                             TBuilder&& gridBuilder)
         {
             ui32 ctrId;
@@ -206,9 +210,9 @@ namespace NCatboostCuda
             }
         }
 
-        yvector<ui32> GetOneHotIds(const yvector<ui32>& ids) const
+        TVector<ui32> GetOneHotIds(const TVector<ui32>& ids) const
         {
-            yvector<ui32> result;
+            TVector<ui32> result;
             for (auto id : ids)
             {
                 if (IsCat(id) && UseForOneHotEncoding(id))
@@ -273,7 +277,7 @@ namespace NCatboostCuda
             return HasPermutationDependentSplit(ctr.FeatureTensor.GetSplits());
         }
 
-        bool HasPermutationDependentSplit(const yvector<TBinarySplit>& splits) const
+        bool HasPermutationDependentSplit(const TVector<TBinarySplit>& splits) const
         {
             for (auto& split : splits)
             {
@@ -323,7 +327,7 @@ namespace NCatboostCuda
         }
 
         ui32 SetFloatFeatureBordersForDataProviderId(ui32 dataProviderId,
-                                                     yvector<float>&& borders)
+                                                     TVector<float>&& borders)
         {
             const ui32 id = GetFeatureManagerIdForFloatFeature(dataProviderId);
             Borders[id] = std::move(borders);
@@ -331,7 +335,7 @@ namespace NCatboostCuda
         }
 
         ui32 SetFloatFeatureBorders(const TFloatValuesHolder& feature,
-                                    yvector<float>&& borders)
+                                    TVector<float>&& borders)
         {
             CB_ENSURE(IsKnown(feature));
 
@@ -394,14 +398,14 @@ namespace NCatboostCuda
         }
 
         ui32 AddCtr(const TCtr& ctr,
-                    yvector<float>&& borders)
+                    TVector<float>&& borders)
         {
             ui32 id = AddCtr(ctr);
             Borders[id] = std::move(borders);
             return id;
         }
 
-        const yvector<float>& GetBorders(ui32 id) const
+        const TVector<float>& GetBorders(ui32 id) const
         {
             return Borders.at(id);
         }
@@ -489,17 +493,17 @@ namespace NCatboostCuda
             return EnabledCtrTypes;
         }
 
-        const yvector<TCtrConfig>& GetDefaultConfigForType(ECtrType type) const
+        const TVector<TCtrConfig>& GetDefaultConfigForType(ECtrType type) const
         {
             return DefaultCtrConfigsForType.at(type);
         }
 
-        yvector<ui32> CreateSimpleCtrsForType(ui32 featureId,
+        TVector<ui32> CreateSimpleCtrsForType(ui32 featureId,
                                               ECtrType type)
         {
             CB_ENSURE(UseForCtr(featureId));
 
-            yvector<ui32> resultIds;
+            TVector<ui32> resultIds;
 
             for (const auto& ctrConfig : GetDefaultConfigForType(type))
             {
@@ -516,9 +520,9 @@ namespace NCatboostCuda
             return resultIds;
         }
 
-        yvector<TCtrConfig> CreateCtrsConfigsForTensor(const TFeatureTensor& tensor) const
+        TVector<TCtrConfig> CreateCtrsConfigsForTensor(const TFeatureTensor& tensor) const
         {
-            yvector<TCtrConfig> result;
+            TVector<TCtrConfig> result;
 
             for (const auto& ctrType : EnabledCtrTypes)
             {
@@ -574,9 +578,9 @@ namespace NCatboostCuda
             return uniqueValues;
         }
 
-        yvector<ui32> GetCatFeatureIds() const
+        TVector<ui32> GetCatFeatureIds() const
         {
-            yvector<ui32> featureIds;
+            TVector<ui32> featureIds;
 
             for (const auto& feature : DataProviderCatFeatureIdToFeatureManagerId)
             {
@@ -589,9 +593,9 @@ namespace NCatboostCuda
             return featureIds;
         }
 
-        yvector<ui32> GetFloatFeatureIds() const
+        TVector<ui32> GetFloatFeatureIds() const
         {
-            yvector<ui32> featureIds;
+            TVector<ui32> featureIds;
 
             for (const auto& feature : DataProviderFloatFeatureIdToFeatureManagerId)
             {
@@ -613,20 +617,20 @@ namespace NCatboostCuda
             return static_cast<bool>(!GetTargetBorders().empty());
         }
 
-        TBinarizedFeaturesManager& SetTargetBorders(yvector<float>&& borders)
+        TBinarizedFeaturesManager& SetTargetBorders(TVector<float>&& borders)
         {
             TargetBorders = borders;
             return *this;
         }
 
-        const yvector<float>& GetTargetBorders() const
+        const TVector<float>& GetTargetBorders() const
         {
             return TargetBorders;
         }
 
-        yvector<ui32> GetDataProviderFeatureIds() const
+        TVector<ui32> GetDataProviderFeatureIds() const
         {
-            yvector<ui32> features;
+            TVector<ui32> features;
             for (auto id : GetFloatFeatureIds())
             {
                 Y_ASSERT(GetBinCount(id));
@@ -662,7 +666,7 @@ namespace NCatboostCuda
         }
 
         TBinarizedFeaturesManager& EnableCtrType(ECtrType type,
-                                                 yvector<float> prior)
+                                                 TVector<float> prior)
         {
             CB_ENSURE(TargetBorders.size() != 0, "Enable ctr_description should be done after target borders are set");
 
@@ -722,6 +726,11 @@ namespace NCatboostCuda
             CatFeaturesPerfectHash.FreeRam();
         }
 
+
+        bool UseFullSetForCatFeatureStatCtrs() {
+            return FeatureManagerOptions.UseTestSetForFeatureFreqEstimation();
+
+        }
         SAVELOAD(KnownCtrs, InverseCtrs,
                  DataProviderFloatFeatureIdToFeatureManagerId, DataProviderCatFeatureIdToFeatureManagerId,
                  FeatureManagerIdToDataProviderId, Cursor, FeatureManagerOptions,
@@ -743,7 +752,7 @@ namespace NCatboostCuda
         }
 
         TBinarizedFeaturesManager& SetBinarization(ui64 featureId,
-                                                   yvector<float>&& borders)
+                                                   TVector<float>&& borders)
         {
             Borders[featureId] = std::move(borders);
             return *this;
@@ -767,12 +776,12 @@ namespace NCatboostCuda
         mutable ui32 Cursor = 0;
 
         TFeatureManagerOptions FeatureManagerOptions;
-        ymap<ECtrType, yvector<TCtrConfig>> DefaultCtrConfigsForType;
+        ymap<ECtrType, TVector<TCtrConfig>> DefaultCtrConfigsForType;
 
         //float and ctr features
-        ymap<ui32, yvector<float>> Borders;
+        ymap<ui32, TVector<float>> Borders;
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
         yset<ECtrType> EnabledCtrTypes;
-        yvector<float> TargetBorders;
+        TVector<float> TargetBorders;
     };
 }

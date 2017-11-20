@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Rebuild me!
+
 #
 #   Cython -- Main Program, generic
 #

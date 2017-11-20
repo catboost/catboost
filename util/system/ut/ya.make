@@ -17,6 +17,7 @@ SRCS(
     system/byteorder_ut.cpp
     system/compat_ut.cpp
     system/compiler_ut.cpp
+    system/context_ut.cpp
     system/condvar_ut.cpp
     system/cpu_id_ut.cpp
     system/datetime_ut.cpp

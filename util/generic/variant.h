@@ -16,7 +16,7 @@ namespace NVariant {
     template <class Visitor, class... Ts>
     struct TVisitorResult;
 
-} // namespace NVariant
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

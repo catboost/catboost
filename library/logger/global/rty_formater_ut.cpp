@@ -26,6 +26,6 @@ SIMPLE_UNIT_TEST_SUITE(NLoggingImplTest) {
     SIMPLE_UNIT_TEST(TestTLocalTimeSAddRight) {
         NLoggingImpl::TLocalTimeS lt(TInstant::ParseIso8601(SampleISO8601));
         TString prefix("prefix");
-        UNIT_ASSERT_EQUAL(prefix + lt , prefix + SampleRtyLog);
+        UNIT_ASSERT_EQUAL(prefix + lt, prefix + SampleRtyLog);
     }
 }

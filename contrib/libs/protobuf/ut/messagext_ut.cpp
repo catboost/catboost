@@ -23,7 +23,7 @@
 using namespace google::protobuf::io;
 
 SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
-    static void GenerateStrings(int n, yvector<TString>& strings) {
+    static void GenerateStrings(int n, TVector<TString>& strings) {
         for (int i = 0; i < n; ++i) {
             unsigned int lengthMax = 2 << (RandomNumber<unsigned int>() % 15);
             unsigned int length = RandomNumber<unsigned int>() % lengthMax;
@@ -55,14 +55,14 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
     }
 
     SIMPLE_UNIT_TEST(TestReadWriteSeq) {
-        yvector<TString> strings;
+        TVector<TString> strings;
         GenerateStrings(1000, strings);
 
         TString s;
         TStringOutput o(s);
         TCopyingOutputStreamAdaptor oo(&o);
 
-        for (yvector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
+        for (TVector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
             TTestMessage m;
             m.Setff(*it);
             UNIT_ASSERT(SerializeToZeroCopyStreamSeq(&m, &oo));
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         TStringInput i(s);
         TCopyingInputStreamAdaptor ii(&i);
 
-        for (yvector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
+        for (TVector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
             TTestMessage m;
             UNIT_ASSERT(ParseFromZeroCopyStreamSeq(&m, &ii));
             UNIT_ASSERT_VALUES_EQUAL(*it, m.Getff());
@@ -105,18 +105,18 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
     };
 
     SIMPLE_UNIT_TEST(TestSaveLoad) {
-        yvector<TString> strings;
+        TVector<TString> strings;
         GenerateStrings(1000, strings);
 
         TStringStream s;
 
-        for (yvector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
+        for (TVector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
             TTestMessage m;
             m.Setff(*it);
             UNIT_ASSERT_NO_EXCEPTION(::Save(&s, m));
         }
 
-        for (yvector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
+        for (TVector<TString>::const_iterator it = strings.begin(); it != strings.end(); ++it) {
             TTestMessage m;
             //UNIT_ASSERT_NO_EXCEPTION(::Load(&s, m));
             ::Load(&s, m);

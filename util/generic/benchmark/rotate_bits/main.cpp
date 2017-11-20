@@ -25,7 +25,7 @@ namespace {
             }
         }
 
-        yvector<TExample<T>> Examples;
+        TVector<TExample<T>> Examples;
     };
 }
 

@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
     TOptsParseResult res(&opts, argc, argv);
 
-    yvector<TString> freeArgs = res.GetFreeArgs();
+    TVector<TString> freeArgs = res.GetFreeArgs();
 
     ui32 pageSize = res.Get<ui32>("page-size");
 

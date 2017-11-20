@@ -1,3 +1,24 @@
+# Release 0.4
+
+## Breaking Changes
+FlatBuffers model format: new CatBoost versions wouldn’t break model compatibility anymore.
+
+## Major Features And Improvements
+* Training speedups: we have speed up the training by 33%.
+* Two new ranking modes are [available](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#ranking):
+  * [`PairLogit`](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_pairs-description-docpage/) - pairwise comparison of objects from the input dataset. Algorithm maximises probability correctly reorder all dataset pairs.
+  * `QueryRMSE` - mix of regression and ranking. It’s trying to make best ranking for each dataset query by input labels.
+
+## Bug Fixes and Other Changes
+* We have fixed a bug that caused quality degradation when using weights < 1.
+* `Verbose` flag is now deprecated, please use `logging_level` instead.
+* And some other bugs.
+
+## Thanks to our Contributors
+This release contains contributions from: avidale, newbfg, KochetovNicolai and CatBoost team.
+
+We are grateful to all who filed issues or helped resolve them, asked and answered questions.
+
 # Release 0.3
 
 ## Major Features And Improvements

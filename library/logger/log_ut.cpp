@@ -94,7 +94,7 @@ void TLogTest::TestWrite() {
         TLog log(new TStreamLogBackend(&data));
 
         for (size_t i = 0; i < 1000; ++i) {
-            yvector<char> buf(i, (char)i);
+            TVector<char> buf(i, (char)i);
 
             test.append(~buf, +buf);
             log.Write(~buf, +buf);

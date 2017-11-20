@@ -2,7 +2,7 @@
 
 std::pair<size_t, size_t> ReindexHash(size_t learnSize,
                                       ui64 topSize,
-                                      yvector<ui64>* hashVecPtr,
+                                      TVector<ui64>* hashVecPtr,
                                       TDenseHash<ui64, ui32>* reindexHashPtr) {
     auto& hashArr = *hashVecPtr;
     auto& reindexHash = *reindexHashPtr;
@@ -52,7 +52,7 @@ std::pair<size_t, size_t> ReindexHash(size_t learnSize,
         totalNumLeaves = reindexHash.Size();
     } else {
         using TFreqPair = std::pair<ui64, ui32>;
-        yvector<TFreqPair> freqValList;
+        TVector<TFreqPair> freqValList;
 
         freqValList.reserve(reindexHash.Size());
         for (const auto& it : reindexHash) {

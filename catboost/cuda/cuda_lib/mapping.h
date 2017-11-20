@@ -93,7 +93,7 @@ namespace NCudaLib {
         {
         }
 
-        explicit TSingleMapping(yvector<TSlice>&& slices, ui64 singleObjectSize = 1)
+        explicit TSingleMapping(TVector<TSlice>&& slices, ui64 singleObjectSize = 1)
             : TFixedSizeMappingBase(singleObjectSize)
         {
             CB_ENSURE(slices.size() == NCudaLib::GetCudaManager().GetDeviceCount());
@@ -199,12 +199,12 @@ namespace NCudaLib {
 
     class TStripeMapping: public TFixedSizeMappingBase<TStripeMapping> {
     protected:
-        yvector<TSlice> Slices;
+        TVector<TSlice> Slices;
 
     public:
         using TFixedSizeMappingBase::TMeta;
 
-        explicit TStripeMapping(yvector<TSlice>&& slices, ui64 singleObjectSize = 1)
+        explicit TStripeMapping(TVector<TSlice>&& slices, ui64 singleObjectSize = 1)
             : TFixedSizeMappingBase(singleObjectSize)
             , Slices(std::move(slices))
         {
@@ -240,7 +240,7 @@ namespace NCudaLib {
 
         TStripeMapping ToLocalSlice(const TSlice& slice) const {
             CB_ENSURE(GetObjectsSlice().Contains(slice));
-            yvector<TSlice> slices(Slices.begin(), Slices.end());
+            TVector<TSlice> slices(Slices.begin(), Slices.end());
 
             for (ui64 i = 0; i < slices.size(); ++i) {
                 slices[i] = TSlice::Intersection(slices[i], slice);
@@ -253,7 +253,7 @@ namespace NCudaLib {
 
         static TStripeMapping SplitBetweenDevices(ui64 objectCount, ui64 objectSize = 1) {
             const ui64 devCount = GetCudaManager().GetDeviceCount();
-            yvector<TSlice> slices(devCount);
+            TVector<TSlice> slices(devCount);
             const ui64 objectPerDevice = objectCount / devCount;
 
             ui64 total = 0;
@@ -269,7 +269,7 @@ namespace NCudaLib {
         static TStripeMapping RepeatOnAllDevices(ui64 objectCount,
                                                  ui64 objectSize = 1) {
             const ui64 devCount = GetCudaManager().GetDeviceCount();
-            yvector<TSlice> slices(devCount);
+            TVector<TSlice> slices(devCount);
             for (ui64 i = 0; i < slices.size(); ++i) {
                 slices[i].Left = i * objectCount;
                 slices[i].Right = (i + 1) * objectCount;
@@ -280,7 +280,7 @@ namespace NCudaLib {
         template <class TFunc>
         inline TStripeMapping Transform(TFunc&& trans,
                                         ui64 objectSize = 1) const {
-            yvector<TSlice> nextSlices;
+            TVector<TSlice> nextSlices;
 
             ui64 offset = 0;
             for (ui32 i = 0; i < Slices.size(); ++i) {

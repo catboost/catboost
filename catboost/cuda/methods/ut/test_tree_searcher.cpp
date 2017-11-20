@@ -22,15 +22,15 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             const TMirrorBuffer<ui32>& indices,
                             const TMirrorBuffer<const TDataPartition>& partitioning,
                             ui32 depth, ui32 foldCount,
-                            yvector<float>* sums1,
-                            yvector<float>* sums2) {
-        yvector<float> targets, weights;
-        yvector<ui32> inds;
+                            TVector<float>* sums1,
+                            TVector<float>* sums2) {
+        TVector<float> targets, weights;
+        TVector<ui32> inds;
 
-        yvector<TDataPartition> parts;
+        TVector<TDataPartition> parts;
         partitioning.Read(parts);
 
-        yvector<ui32> cindex;
+        TVector<ui32> cindex;
         ui32 numLeaves = 1 << depth;
         ui32 bitsPerFold = IntLog2(foldCount);
         ui32 foldsStripe = 1 << bitsPerFold;
@@ -43,8 +43,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         sums1->resize(dataSet->GetHostBinaryFeatures().size() * numLeaves * foldCount);
         sums2->resize(dataSet->GetHostBinaryFeatures().size() * numLeaves * foldCount);
 
-        yvector<float>& binSums = *sums1;
-        yvector<float>& binWeights = *sums2;
+        TVector<float>& binSums = *sums1;
+        TVector<float>& binWeights = *sums2;
 
         const auto& featuresMapping = dataSet->GetGrid().GetMapping();
         const auto& grid = dataSet->GetHostFeatures();
@@ -54,7 +54,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
             TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
-            yvector<ui32> compressedIndex;
+            TVector<ui32> compressedIndex;
             dataSet->GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
             const ui32 dsSize = dataSet->GetDataSetSize().At(dev);
 
@@ -68,8 +68,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                     for (ui32 fold = 0; fold < foldCount; ++fold) {
                         const auto& part = parts[leaf * foldsStripe + fold];
 
-                        yvector<double> s1(feature.Folds + 1, 0.0f);
-                        yvector<double> s2(feature.Folds + 1, 0.0f);
+                        TVector<double> s1(feature.Folds + 1, 0.0f);
+                        TVector<double> s2(feature.Folds + 1, 0.0f);
 
                         for (ui32 i = 0; i < part.Size; i++) {
                             ui32 idx = inds[part.Offset + i];
@@ -124,8 +124,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                              const TMirrorBuffer<ui32>& indices,
                              const TMirrorBuffer<const TDataPartition>& partitioning,
                              ui32 depth, ui32 foldCount,
-                             const yvector<float>& props) {
-        yvector<float> refSums, refWts;
+                             const TVector<float>& props) {
+        TVector<float> refSums, refWts;
         CalcRefSums<TGridPolicy>(dataSet, approx, wts, indices, partitioning, depth, foldCount, &refSums, &refWts);
 
         const ui32 leavesCount = static_cast<const ui32>(1 << depth);
@@ -153,7 +153,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             ui32 bitsPerFold = IntLog2(foldCount);
                             ui32 foldsStripe = 1 << bitsPerFold;
 
-                            yvector<TDataPartition> parts;
+                            TVector<TDataPartition> parts;
                             partitioning.Read(parts);
                             Cout << deviceOffset << "  " << depth << Endl;
                             Cout << parts[leaf * foldsStripe + fold].Offset << " " << parts[leaf * foldsStripe + fold].Size << Endl;
@@ -183,7 +183,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     TOptimizationSubsets CreateSubsets(ui32 maxDepth,
                                        TL2Target & src,
                                        ui32 foldCount,
-                                       yvector<ui32> & bins) {
+                                       TVector<ui32> & bins) {
         TOptimizationSubsets subsets;
         subsets.Bins = TMirrorBuffer<ui32>::CopyMapping(src.WeightedTarget);
         subsets.Bins.Write(bins);
@@ -201,7 +201,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         subsets.Update();
 
         {
-            yvector<TDataPartition> initParts;
+            TVector<TDataPartition> initParts;
             subsets.CurrentPartsView().Read(initParts);
             ui32 cursor = 0;
             for (ui32 i = 0; i < initParts.size(); ++i) {
@@ -224,8 +224,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         target.WeightedTarget = TMirrorBuffer<float>::Create(mapping);
 
         {
-            yvector<float> relev(size);
-            yvector<float> weights(size);
+            TVector<float> relev(size);
+            TVector<float> weights(size);
 
             // fill with trash to avoid rounding comparison
             for (ui32 i = 0; i < size; i++) {
@@ -249,13 +249,13 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     }
 
     void CheckStats(const TOptimizationSubsets& subsets,
-                    const yvector<float>& gatheredTarget,
-                    const yvector<float>& gatheredWeights,
+                    const TVector<float>& gatheredTarget,
+                    const TVector<float>& gatheredWeights,
                     const TMirrorBuffer<const TPartitionStatistics>& partStats) {
-        yvector<TPartitionStatistics> cpuStat;
+        TVector<TPartitionStatistics> cpuStat;
         partStats.Read(cpuStat);
 
-        yvector<TDataPartition> cpuParts;
+        TVector<TDataPartition> cpuParts;
         subsets.CurrentPartsView().Read(cpuParts);
 
         {
@@ -334,14 +334,14 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         const ui32 foldCount = 28;
         const ui32 maxDepth = 10;
-        yvector<ui32> foldSizes;
+        TVector<ui32> foldSizes;
         ui32 totalSize = 0;
 
-        yvector<ui32> learnIndices;
-        yvector<ui32> learnIndicesDirect;
-        yvector<ui32> foldBins;
+        TVector<ui32> learnIndices;
+        TVector<ui32> learnIndicesDirect;
+        TVector<ui32> foldBins;
         {
-            yvector<ui32> indicesCpu;
+            TVector<ui32> indicesCpu;
             dataSet.GetIndices().Read(indicesCpu);
 
             for (ui32 i = 0; i < foldCount; ++i) {
@@ -374,8 +374,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                              dataSet,
                                              docBins);
 
-        yvector<float> gatheredTarget;
-        yvector<float> gatheredWeights;
+        TVector<float> gatheredTarget;
+        TVector<float> gatheredWeights;
 
         subsets.GatheredTarget.WeightedTarget.Read(gatheredTarget);
         subsets.GatheredTarget.Weights.Read(gatheredWeights);
@@ -455,7 +455,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             {
 //                const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& byteFeatures
                 auto featureIds = dataSet.GetFeatures().ComputeAllFeatureIds();
-//                yvector<TCFeature> features = byteFeatures.GetHostFeatures();
+//                TVector<TCFeature> features = byteFeatures.GetHostFeatures();
                 auto localIdx = rand.NextUniformL() % featureIds.size();
                 bestSplit.FeatureId = featureIds[localIdx];
                 bestSplit.BinIdx =  featuresManager.GetBinCount(bestSplit.FeatureId) / 2;
@@ -490,7 +490,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                  dataProviderBuilder.SetShuffleFlag(false));
 
         {
-            yvector<float> prior = {0.5};
+            TVector<float> prior = {0.5};
             featuresManager.EnableCtrType(ECtrType::Buckets, prior);
             featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
         }

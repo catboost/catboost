@@ -14,7 +14,7 @@ extern "C" int LLVMFuzzerTestOneInput(const ui8* data, size_t size) {
     TMemoryInput mi(data, size);
 
     try {
-        yvector<ui16> v;
+        TVector<ui16> v;
 
         while (mi.Avail()) {
             char cmd = Read<char>(mi);

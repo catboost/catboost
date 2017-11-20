@@ -18,7 +18,7 @@ struct TBinTracker {
     };
 
     int ElemCount = 0;
-    yvector<THashElem> Hash;
+    TVector<THashElem> Hash;
     ui64 HashMask = 0;
     int CurrentVersion = 0;
 

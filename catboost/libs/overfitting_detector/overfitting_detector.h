@@ -1,11 +1,13 @@
 #pragma once
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
+
 #include <util/generic/deque.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
+
 #include <library/logger/global/global.h>
-#include <catboost/libs/logging/logging.h>
 
 enum class EOverfittingDetectorType {
     Wilcoxon,
@@ -82,7 +84,7 @@ public:
 private:
     void UpdatePValue();
 
-    yvector<double> DeltasAfterLocalMax;
+    TVector<double> DeltasAfterLocalMax;
     double LastError;
     double LocalMax;
 };
@@ -118,7 +120,7 @@ inline bool NeedOverfittingDetection(const IOverfittingDetector* detector) {
 
 inline bool DetectOverfitting(double testError,
                               IOverfittingDetector* detector,
-                              yvector<double>* valuesToLog) {
+                              TVector<double>* valuesToLog) {
     detector->AddError(testError);
     double pValue = detector->GetCurrentPValue();
     valuesToLog->push_back(pValue);

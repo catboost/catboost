@@ -1,8 +1,8 @@
 #!/bin/sh -e
 
-rev=308482
+rev=313788
 
 svn export https://llvm.org/svn/llvm-project/libcxx/trunk@$rev libcxx-r$rev
 cd libcxx-r$rev
 
-rm -r benchmarks cmake docs lib test utils www CMakeLists.txt TODO.TXT .arcconfig .gitignore include/CMakeLists.txt appveyor.yml install-appveyor-reqs.cmd
+rm -r benchmarks cmake docs lib test utils www CMakeLists.txt TODO.TXT .arcconfig .gitignore include/CMakeLists.txt appveyor.yml appveyor-reqs-install.cmd

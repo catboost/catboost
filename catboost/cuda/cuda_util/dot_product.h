@@ -65,7 +65,7 @@ namespace NKernelHost {
         }
 
         void Postprocess(const TCudaStream& stream, TKernelContext& context) {
-            yvector<T> values;
+            TVector<T> values;
             values.push_back(0);
             auto& value = values[0];
             for (ui32 i = 0; i < context.PartResultSize; ++i) {
@@ -93,7 +93,7 @@ inline float DotProduct(const TCudaBuffer<T1, TMapping>& x,
     } else {
         LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, *weights, tmp);
     }
-    yvector<T> result;
+    TVector<T> result;
 
     NCudaLib::TCudaBufferReader<TResultBuffer>(tmp)
         .SetFactorSlice(TSlice(0, 1))

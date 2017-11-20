@@ -18,10 +18,10 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
                 for (ui32 meanSize : {2, 4, 7, 15, 30, 55, 77, 110, 140, 255, 1024, 10000}) {
                     const ui32 partCount = 10000 + rand.NextUniformL() % 100;
 
-                    yvector<ui32> segmentOffsets;
+                    TVector<ui32> segmentOffsets;
 
-                    yvector<ui32> segmentKeys;
-                    yvector<ui32> segmentValues;
+                    TVector<ui32> segmentKeys;
+                    TVector<ui32> segmentValues;
 
                     for (ui32 i = 0; i < partCount; ++i) {
                         ui32 segmentSize = std::max<double>(ceil(meanSize * rand.NextUniform()), 2.0);
@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
 
                     SegmentedRadixSort(keys, values, tmpKeys, tmpValues, offsetsVec, partCount);
 
-                    yvector<ui32> keysAfterSort;
+                    TVector<ui32> keysAfterSort;
                     keys.Read(keysAfterSort);
 
                     for (ui32 i = 0; (i + 1) < (segmentOffsets.size()); ++i) {
@@ -79,9 +79,9 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
 
             for (ui32 k = 0; k < tries; ++k) {
                 for (ui32 meanSize : {65536}) {
-                    yvector<ui32> segmentKeys;
-                    yvector<ui32> segmentValues;
-                    yvector<ui32> segmentOffsets;
+                    TVector<ui32> segmentKeys;
+                    TVector<ui32> segmentValues;
+                    TVector<ui32> segmentOffsets;
                     ui32 size = 10000000;
 
                     for (ui32 i = 0; i < size; ++i) {

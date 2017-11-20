@@ -1,10 +1,11 @@
 #include "plot.h"
+
 #include <library/threading/local_executor/local_executor.h>
 
-void TMetricsPlotCalcer::ProceedMetrics(const yvector<yvector<double>>& cursor,
+void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
                                         const TPool& pool,
-                                        const yvector<float>& target,
-                                        const yvector<float>& weights,
+                                        const TVector<float>& target,
+                                        const TVector<float>& weights,
                                         ui32 plotLineIndex,
                                         ui32 modelIterationIndex) {
     const ui32 plotSize = plotLineIndex + 1;
@@ -39,11 +40,11 @@ void TMetricsPlotCalcer::ProceedMetrics(const yvector<yvector<double>>& cursor,
     }
 }
 
-TErrorHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
+TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
                                                const TPool& pool,
-                                               const yvector<float>& target,
-                                               const yvector<float>& weights,
-                                               const yvector<yvector<double>>& approx) {
+                                               const TVector<float>& target,
+                                               const TVector<float>& weights,
+                                               const TVector<TVector<double>>& approx) {
     const auto docCount = static_cast<int>(target.size());
 
     if (metric.GetErrorType() == EErrorType::PerObjectError) {
@@ -62,8 +63,8 @@ TErrorHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
     }
 }
 
-void TMetricsPlotCalcer::Append(const yvector<yvector<double>>& approx,
-                                yvector<yvector<double>>* dst) {
+void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx,
+                                TVector<TVector<double>>* dst) {
     const ui32 docCount = approx[0].size();
 
     for (ui32 dim = 0; dim < approx.size(); ++dim) {
@@ -77,13 +78,13 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
     EnsureCorrectParams();
     const ui32 docCount = pool.Docs.GetDocCount();
 
-    yvector<yvector<double>> cursor(Model.ApproxDimension, yvector<double>(docCount));
+    TVector<TVector<double>> cursor(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));
     ui32 currentIter = 0;
     ui32 idx = 0;
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
         ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
-        auto nextBatchApprox = ApplyModelMulti(FormulaEvaluator,
+        auto nextBatchApprox = ApplyModelMulti(Model,
                                                pool,
                                                EPredictionType::RawFormulaVal,
                                                nextBatchStart,
@@ -138,12 +139,12 @@ TString TMetricsPlotCalcer::GetApproxFileName(ui32 plotLineIndex) {
 }
 
 void TMetricsPlotCalcer::SaveApproxToFile(ui32 plotLineIndex,
-                                          const yvector<yvector<double>>& approx) {
+                                          const TVector<TVector<double>>& approx) {
     auto fileName = GetApproxFileName(plotLineIndex);
     ui32 docCount = approx[0].size();
     TFile file(fileName, EOpenModeFlag::ForAppend | EOpenModeFlag::OpenAlways);
     TOFStream out(file);
-    yvector<double> line(approx.size());
+    TVector<double> line(approx.size());
 
     for (ui32 i = 0; i < docCount; ++i) {
         for (ui32 dim = 0; dim < approx.size(); ++dim) {
@@ -153,11 +154,11 @@ void TMetricsPlotCalcer::SaveApproxToFile(ui32 plotLineIndex,
     }
 }
 
-yvector<yvector<double>> TMetricsPlotCalcer::LoadApprox(ui32 plotLineIndex) {
+TVector<TVector<double>> TMetricsPlotCalcer::LoadApprox(ui32 plotLineIndex) {
     TIFStream input(GetApproxFileName(plotLineIndex));
     ui32 docCount = NonAdditiveMetricsData.Target.size();
-    yvector<yvector<double>> result(Model.ApproxDimension, yvector<double>(docCount));
-    yvector<double> line;
+    TVector<TVector<double>> result(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));
+    TVector<double> line;
     for (ui32 i = 0; i < docCount; ++i) {
         ::Load(&input, line);
         for (ui32 dim = 0; dim < result.size(); ++dim) {

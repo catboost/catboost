@@ -83,7 +83,7 @@ namespace {
         }
     };
 
-} // namespace anonymous
+}
 
 SIMPLE_UNIT_TEST_SUITE(EventTest) {
     SIMPLE_UNIT_TEST(WaitAndSignalTest) {
@@ -105,7 +105,7 @@ SIMPLE_UNIT_TEST_SUITE(EventTest) {
         TManualEvent barrier;
         TMtpQueue queue;
         queue.Start(limit);
-        yvector<TAutoPtr<IObjectInQueue>> tasks;
+        TVector<TAutoPtr<IObjectInQueue>> tasks;
         for (size_t i = 0; i < limit; ++i) {
             tasks.push_back(new TSignalTask(barrier, event[i]));
             UNIT_ASSERT(queue.Add(tasks.back().Get()));
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(EventTest) {
     /** Test for a problem: http://nga.at.yandex-team.ru/5772 */
     SIMPLE_UNIT_TEST(DestructorBeforeSignalFinishTest) {
         return;
-        yvector<TAutoPtr<IObjectInQueue>> tasks;
+        TVector<TAutoPtr<IObjectInQueue>> tasks;
         for (size_t i = 0; i < 1000; ++i) {
             TAutoPtr<TOwnerTask> owner = new TOwnerTask;
             tasks.push_back(new TSignalTask(owner->Barrier, *owner->Ev));

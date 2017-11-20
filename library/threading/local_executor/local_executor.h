@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO(annaveronika): readme
-
 #include <util/generic/ptr.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/event.h>
@@ -92,37 +90,30 @@ namespace NPar {
                 , LastId(lastId)
             {
                 Y_ASSERT(lastId >= firstId);
-            }
-            TBlockParams& WaitCompletion() {
-                Flags |= TLocalExecutor::WAIT_COMPLETE;
-                return *this;
-            }
-            TBlockParams& HighPriority() {
-                Flags = (Flags & ~TLocalExecutor::PRIORITY_MASK) | TLocalExecutor::HIGH_PRIORITY;
-                return *this;
-            }
-            TBlockParams& MediumPriority() {
-                Flags = (Flags & ~TLocalExecutor::PRIORITY_MASK) | TLocalExecutor::MED_PRIORITY;
-                return *this;
-            }
-            TBlockParams& LowPriority() {
-                Flags = (Flags & ~TLocalExecutor::PRIORITY_MASK) | TLocalExecutor::LOW_PRIORITY;
-                return *this;
+                SetBlockSize(1);
             }
             TBlockParams& SetBlockCount(int blockCount) {
                 BlockSize = CeilDiv(LastId - FirstId, blockCount);
                 BlockCount = CeilDiv(LastId - FirstId, BlockSize);
+                BlockEqualToThreads = false;
                 return *this;
             }
             TBlockParams& SetBlockSize(int blockSize) {
                 BlockSize = blockSize;
                 BlockCount = CeilDiv(LastId - FirstId, blockSize);
+                BlockEqualToThreads = false;
+                return *this;
+            }
+            TBlockParams& SetBlockCountToThreadCount() {
+                BlockEqualToThreads = true;
                 return *this;
             }
             int GetBlockCount() const {
+                Y_ASSERT(!BlockEqualToThreads);
                 return BlockCount;
             }
             int GetBlockSize() const {
+                Y_ASSERT(!BlockEqualToThreads);
                 return BlockSize;
             }
 
@@ -136,10 +127,9 @@ namespace NPar {
                 return (x + y - 1) / y;
             }
 
-            // if BlockSize and BlockCount not set, SetBlockCount(ThreadCount) (wait flag unset) or SetBlockCount(ThreadCount+1) (wait flag set)
-            int BlockSize = 0;
-            int BlockCount = 0;
-            int Flags = 0;
+            int BlockSize;
+            int BlockCount;
+            bool BlockEqualToThreads;
         };
 
         template<typename TBody>
@@ -168,11 +158,11 @@ namespace NPar {
         void Exec(TLocallyExecutableFunction exec, int id, int flags);
         void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags); // [firstId..lastId)
         template <typename TBody>
-        inline void ExecRange(TBody&& body, TBlockParams params) {
-            if (params.BlockCount == 0 || params.BlockSize == 0) { // blocking not specified
-                params.SetBlockCount(ThreadCount + ((params.Flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
+        inline void ExecRange(TBody&& body, TBlockParams params, int flags) {
+            if (params.BlockEqualToThreads) {
+                params.SetBlockCount(ThreadCount + ((flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
             }
-            ExecRange(BlockedLoopBody(params, body), 0, params.BlockCount, params.Flags);
+            ExecRange(BlockedLoopBody(params, body), 0, params.BlockCount, flags);
         }
         int GetQueueSize() const {
             return QueueSize;
@@ -202,8 +192,8 @@ namespace NPar {
     inline void ParallelFor(TLocalExecutor& executor,
                             ui32 from, ui32 to, TBody&& body) {
         TLocalExecutor::TBlockParams params(from, to);
-        params.WaitCompletion();
-        executor.ExecRange(std::forward<TBody>(body), params);
+        params.SetBlockCountToThreadCount();
+        executor.ExecRange(std::forward<TBody>(body), params, TLocalExecutor::WAIT_COMPLETE);
     }
 
     template <typename TBody>
@@ -214,6 +204,7 @@ namespace NPar {
     template <typename TBody>
     inline void AsyncParallelFor(ui32 from, ui32 to, TBody&& body) {
         TLocalExecutor::TBlockParams params(from, to);
-        LocalExecutor().ExecRange(std::forward<TBody>(body), params);
+        params.SetBlockCountToThreadCount();
+        LocalExecutor().ExecRange(std::forward<TBody>(body), params, 0);
     }
 }

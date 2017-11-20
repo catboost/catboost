@@ -8,7 +8,7 @@ namespace NCatboostCuda
 {
     struct TObliviousTreeStructure
     {
-        yvector<TBinarySplit> Splits;
+        TVector<TBinarySplit> Splits;
 
         ui64 GetHash() const
         {
@@ -55,7 +55,7 @@ namespace NCatboostCuda
     {
     public:
         TObliviousTreeModel(TObliviousTreeStructure&& modelStructure,
-                            const yvector<float>& values)
+                            const TVector<float>& values)
                 : ModelStructure(std::move(modelStructure))
                   , LeafValues(values)
         {
@@ -86,12 +86,12 @@ namespace NCatboostCuda
             }
         }
 
-        void UpdateLeaves(yvector<float>&& newValues)
+        void UpdateLeaves(TVector<float>&& newValues)
         {
             LeafValues = std::move(newValues);
         }
 
-        const yvector<float>& GetValues() const
+        const TVector<float>& GetValues() const
         {
             return LeafValues;
         }
@@ -101,7 +101,7 @@ namespace NCatboostCuda
 
     private:
         TObliviousTreeStructure ModelStructure;
-        yvector<float> LeafValues;
+        TVector<float> LeafValues;
     };
 }
 

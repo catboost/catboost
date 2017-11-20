@@ -104,22 +104,22 @@ namespace NCatboostCuda
             }
         };
 
-        yvector<TEstimationTaskHelper> TaskHelpers;
+        TVector<TEstimationTaskHelper> TaskHelpers;
 
-        yvector<float> LeafWeights;
-        yvector<double> TaskTotalWeights;
+        TVector<float> LeafWeights;
+        TVector<double> TaskTotalWeights;
         TMirrorBuffer<float> LeafValues;
         TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::CudaHost> PartStats;
 
         TObliviousTreeStructure Structure;
         const TBinarizedFeaturesManager& FeaturesManager;
         TScopedCacheHolder& ScopedCache;
-        yvector<TObliviousTreeModel*> WriteDst;
+        TVector<TObliviousTreeModel*> WriteDst;
 
         bool UseNewton = true;
         double Lambda = 1.0; //l2 reg
         ui32 Iterations = 10;
-        ui32 MinLeafWeight = 1;
+        double MinLeafWeight = 1e-20;
         bool IsNormalize;
         bool AddRidgeToTargetFunction = false;
 
@@ -134,7 +134,7 @@ namespace NCatboostCuda
             return static_cast<ui32>(TaskHelpers.size() * (1 << Structure.GetDepth()));
         }
 
-        void MoveTo(const yvector<float>& point)
+        void MoveTo(const TVector<float>& point)
         {
             auto guard = NCudaLib::GetProfiler().Profile("Move to point");
             CB_ENSURE(LeafValues.GetObjectsSlice().Size() == point.size());
@@ -147,12 +147,11 @@ namespace NCatboostCuda
             });
         }
 
-        void Regularize(yvector<float>& point)
+        void Regularize(TVector<float>& point)
         {
             for (ui32 i = 0; i < point.size(); ++i)
             {
-                if (LeafWeights[i] < MinLeafWeight)
-                {
+                if (LeafWeights[i] < MinLeafWeight) {
                     point[i] = 0;
                 }
             }
@@ -187,7 +186,7 @@ namespace NCatboostCuda
                 );
             });
 
-            yvector<float> data;
+            TVector<float> data;
             //TODO(noxoomo): change to reduceToAll and migrate all gradient descent to device side
 
             PartStats.CreateReader()
@@ -203,7 +202,7 @@ namespace NCatboostCuda
             return leaves.SliceView(TSlice(taskId * Structure.LeavesCount(), (taskId + 1) * Structure.LeavesCount()));
         }
 
-        void NormalizeDerivatives(yvector<float>& derOrDer2)
+        void NormalizeDerivatives(TVector<float>& derOrDer2)
         {
             ui32 cursor = 0;
 
@@ -218,7 +217,7 @@ namespace NCatboostCuda
             }
         }
 
-        void WriteValueAndDerivatives(const yvector<float>& data,
+        void WriteValueAndDerivatives(const TVector<float>& data,
                                       TPointwiseDescentPoint& point)
         {
             const bool normalize = IsNormalize;
@@ -257,7 +256,7 @@ namespace NCatboostCuda
             AddRidgeRegularizer(point, Lambda);
         }
 
-        void WriteWeights(yvector<float>& dst)
+        void WriteWeights(TVector<float>& dst)
         {
             dst.resize(LeafWeights.size());
             Copy(LeafWeights.begin(), LeafWeights.end(), dst.begin());
@@ -426,7 +425,7 @@ namespace NCatboostCuda
 
             TNewtonLikeWalker<TObliviousTreeLeavesEstimator, TSimpleStepEstimator> newtonLikeWalker(*this, Iterations);
 
-            yvector<float> point;
+            TVector<float> point;
             point.resize(leavesCount * TaskHelpers.size());
             point = newtonLikeWalker.Estimate(point);
 
@@ -434,7 +433,7 @@ namespace NCatboostCuda
             {
                 float* values = ~point + taskId * leavesCount;
                 TObliviousTreeModel& dst = *WriteDst[taskId];
-                yvector<float> leaves(leavesCount);
+                TVector<float> leaves(leavesCount);
                 for (ui32 i = 0; i < leavesCount; ++i)
                 {
                     leaves[i] = values[i];

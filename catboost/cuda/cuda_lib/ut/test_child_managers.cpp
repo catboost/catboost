@@ -31,8 +31,8 @@ SIMPLE_UNIT_TEST_SUITE(TChildManagerTest) {
                 TRandom rand(device);
 
                 for (ui32 k = 0; k < tries; ++k) {
-                    yvector<float> data(size);
-                    yvector<float> tmp;
+                    TVector<float> data(size);
+                    TVector<float> tmp;
                     std::generate(data.begin(), data.end(), [&]() {
                         return rand.NextUniform();
                     });
@@ -85,8 +85,8 @@ SIMPLE_UNIT_TEST_SUITE(TChildManagerTest) {
 
                 for (ui32 k = 0; k < tries; ++k) {
                     const TSlice& deviceSlice = mapping.DeviceSlice(device);
-                    yvector<ui32> data(deviceSlice.Size());
-                    yvector<ui32> tmp;
+                    TVector<ui32> data(deviceSlice.Size());
+                    TVector<ui32> tmp;
                     std::generate(data.begin(), data.end(), [&]() {
                         return rand.NextUniformL();
                     });

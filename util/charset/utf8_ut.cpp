@@ -60,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
     }
 
     SIMPLE_UNIT_TEST(TestInvalidUTF8) {
-        yvector<TString> testData;
+        TVector<TString> testData;
         TFileInput input(ArcadiaSourceRoot() + STRINGBUF("/util/charset/ut/utf8/invalid_UTF8.bin"));
         Load(&input, testData);
 

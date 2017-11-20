@@ -1,6 +1,6 @@
 #include "logger.h"
 
-static void OutputLineToErrLog(const yvector<double>& history, const int iteration, TOFStream* errLog) {
+static void OutputLineToErrLog(const TVector<double>& history, const int iteration, TOFStream* errLog) {
     *errLog << iteration;
     for (const auto& error : history) {
         *errLog << "\t" << error;
@@ -8,14 +8,14 @@ static void OutputLineToErrLog(const yvector<double>& history, const int iterati
     *errLog << Endl;
 }
 
-static void OutputLineToTensorBoardLog(const yvector<double>& history, const int iteration,
-        const yvector<THolder<IMetric>>& errors, TTensorBoardLogger* tensorBoardLogger) {
+static void OutputLineToTensorBoardLog(const TVector<double>& history, const int iteration,
+        const TVector<THolder<IMetric>>& errors, TTensorBoardLogger* tensorBoardLogger) {
     for (int i = 0; i < history.ysize(); ++i) {
         tensorBoardLogger->AddScalar(errors[i]->GetDescription(), iteration, history[i]);
     }
 }
 
-static THolder<TOFStream> CreateErrLog(const yvector<THolder<IMetric>>& errors, const yvector<yvector<double>>& history, const TString& logName) {
+static THolder<TOFStream> CreateErrLog(const TVector<THolder<IMetric>>& errors, const TVector<TVector<double>>& history, const TString& logName) {
     THolder<TOFStream> errLog = new TOFStream(logName);
     *errLog << "iter";
     for (const auto& error : errors) {
@@ -28,8 +28,8 @@ static THolder<TOFStream> CreateErrLog(const yvector<THolder<IMetric>>& errors, 
     return errLog;
 }
 
-static THolder<TTensorBoardLogger> CreateTensorBoardLog(const yvector<THolder<IMetric>>& errors,
-        const yvector<yvector<double>>& history, const TString& logName) {
+static THolder<TTensorBoardLogger> CreateTensorBoardLog(const TVector<THolder<IMetric>>& errors,
+        const TVector<TVector<double>>& history, const TString& logName) {
     THolder<TTensorBoardLogger> tensorBoardLogger = new TTensorBoardLogger(logName);
     for (int iteration = 0; iteration < history.ysize(); ++iteration) {
         OutputLineToTensorBoardLog(history[iteration], iteration, errors, tensorBoardLogger.Get());
@@ -38,7 +38,7 @@ static THolder<TTensorBoardLogger> CreateTensorBoardLog(const yvector<THolder<IM
 }
 
 
-THolder<TLogger> CreateLogger(const yvector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest) {
+THolder<TLogger> CreateLogger(const TVector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest) {
     THolder<TLogger> logger = new TLogger();
     logger->LearnErrLog = CreateErrLog(errors, ctx.LearnProgress.LearnErrorsHistory, ctx.Files.LearnErrorLogFile);
     if (hasTest) {
@@ -49,7 +49,7 @@ THolder<TLogger> CreateLogger(const yvector<THolder<IMetric>>& errors, TLearnCon
     return logger;
 }
 
-void Log(int iteration, const yvector<double>& errorsHistory, const yvector<THolder<IMetric>>& errors, TLogger* logger, const EPhase phase) {
+void Log(int iteration, const TVector<double>& errorsHistory, const TVector<THolder<IMetric>>& errors, TLogger* logger, const EPhase phase) {
     TOFStream* errLog = logger->LearnErrLog.Get();
     TTensorBoardLogger* tensorBoardLogger = logger->LearnTensorBoardLogger.Get();
     if (phase == EPhase::Test) {

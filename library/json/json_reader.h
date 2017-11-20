@@ -80,7 +80,7 @@ public:
 protected:
     TJsonValue &Value;
     TString Key;
-    yvector<TJsonValue *> ValuesStack;
+    TVector<TJsonValue *> ValuesStack;
 
     enum {
         START,

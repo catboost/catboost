@@ -1,4 +1,5 @@
 #include "cmd_line.h"
+
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/strbuf.h>
@@ -6,8 +7,8 @@
 #include <util/string/vector.h>
 #include <util/system/info.h>
 
-static yvector<int> ParseIndicesLine(const TStringBuf indicesLine) {
-    yvector<int> result;
+static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
+    TVector<int> result;
     for (const auto& t : StringSplitter(indicesLine).Split(':')) {
         const auto s = t.Token();
         int from = FromString<int>(s.Before('-'));
@@ -43,16 +44,16 @@ void ParseCommandLine(int argc, const char* argv[],
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
 
-    parser.AddLongOption("verbose", "produce verbose output")
-        .NoArgument()
-        .Handler0([&trainJson]() {
-            trainJson->InsertValue("verbose", true);
+    parser.AddLongOption("logging-level", "Should be one of: Silent, Verbose, Info, Debug")
+        .RequiredArgument("string")
+        .Handler1T<TString>([&trainJson](const TString& loggingLevel) {
+            trainJson->InsertValue("logging_level", loggingLevel);
         });
 
     parser.AddLongOption("loss-function", "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE. A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
-        .Handler1T<TString>([&trainJson](const TString& target) {
-            trainJson->InsertValue("loss_function", target);
+        .Handler1T<TString>([&trainJson](const TString& lossFunction) {
+            trainJson->InsertValue("loss_function", lossFunction);
         });
 
     parser.AddLongOption("custom-loss", "A loss might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
@@ -285,7 +286,7 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("test_error_log", log);
         });
 
-    parser.AddLongOption("feature-border-type", "Should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum")
+    parser.AddLongOption("feature-border-type", "Should be one of: Median, GreedyLogSum, Uniform, UniformAndQuantiles, MinEntropy, MaxLogSum")
         .RequiredArgument("border-type")
         .Handler1T<TString>([&trainJson](const TString& type) {
             trainJson->InsertValue("feature_border_type", type);
@@ -365,10 +366,12 @@ void ParseCommandLine(int argc, const char* argv[],
         .Help("evaluation metric for overfitting detector (if enabled) and best model "
               "selection in format MetricName:param=value. If not specified default metric for objective is used.");
 
-    parser.AddLongOption("prediction-type", "Should be one of: Probability, Class, RawFormulaVal")
-        .RequiredArgument("prediction-type")
-        .Handler1T<TString>([&trainJson](const TString& predictionType) {
-            trainJson->InsertValue("prediction_type", predictionType);
+    parser.AddLongOption("prediction-type")
+        .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
+        .Handler1T<TString>([&](const TString& predictionTypes) {
+            for (const auto& t : StringSplitter(predictionTypes).Split(',')) {
+                (*trainJson)["prediction_type"].AppendValue(t.Token());
+            }
         });
 
     parser.AddLongOption("nan-mode", "Should be one of: {Min, Max, Forbidden}")
@@ -461,7 +464,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongName("dev")
         .NoArgument()
         .Handler0([&trainJson]() {
-            trainJson->InsertValue("verbose", true);
+            trainJson->InsertValue("logging_level", "Verbose");
             trainJson->InsertValue("developer_mode", true);
         })
         .Help("Profile mode for developers.");
@@ -480,6 +483,13 @@ void ParseCommandLine(int argc, const char* argv[],
             trainJson->InsertValue("approx_on_full_history", true);
         })
         .Help("Use full history to calculate approxes.");
+
+    parser.AddLongOption("weight-sampling-frequency")
+        .RequiredArgument("string")
+        .Handler1T<TString>([&trainJson](const TString& target) {
+            trainJson->InsertValue("weight_sampling_frequency", target);
+        })
+        .Help("Controls how frequently to sample weights when constructing trees. Possible values are PerTree and PerTreeLevel.");
 
     parser.SetFreeArgsNum(0);
 

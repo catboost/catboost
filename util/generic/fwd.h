@@ -54,7 +54,7 @@ class TRbTree;
 
 //containers
 template <class T, class A = std::allocator<T>>
-class yvector;
+class TVector;
 
 template <class T, class A = std::allocator<T>>
 class ydeque;
@@ -62,20 +62,20 @@ class ydeque;
 template <class T, class S = ydeque<T>>
 class yqueue;
 
-template <class T, class S = yvector<T>, class C = TLess<T>>
+template <class T, class S = TVector<T>, class C = TLess<T>>
 class ypriority_queue;
 
 template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
 class yhash;
 
 template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
-class yhash_mm;
+class THashMultiMap;
 
 template <class Value, class HashFcn = THash<Value>, class EqualKey = TEqualTo<Value>, class Alloc = std::allocator<Value>>
-class yhash_set;
+class THashSet;
 
 template <class Value, class HashFcn = THash<Value>, class EqualKey = TEqualTo<Value>, class Alloc = std::allocator<Value>>
-class yhash_multiset;
+class THashMultiSet;
 
 template <class T, class A = std::allocator<T>>
 class ylist;

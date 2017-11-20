@@ -32,7 +32,6 @@
 using namespace NBlockCodecs;
 
 namespace {
-
     //lz4 codecs
     struct TLz4Base {
         static inline size_t DoMaxCompressedLength(size_t in) {
@@ -462,7 +461,7 @@ namespace {
 
         TNullCodec Null;
         TSnappyCodec Snappy;
-        yvector<TCodecPtr> Codecs;
+        TVector<TCodecPtr> Codecs;
         typedef yhash<TStringBuf, ICodec*> TRegistry;
         TRegistry Registry;
     };

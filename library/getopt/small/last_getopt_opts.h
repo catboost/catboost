@@ -40,7 +40,7 @@ class TOpts {
     friend class TOptsParser;
 
 public:
-    typedef yvector<TSimpleSharedPtr<TOpt> > TOptsVector;
+    typedef TVector<TSimpleSharedPtr<TOpt> > TOptsVector;
     TOptsVector Opts_;                                          // infomation about named (short and long) options
 
     EArgPermutation ArgPermutation_ = DEFAULT_ARG_PERMUTATION;  // determines how to parse positions of named and free options. See information below.

@@ -13,17 +13,22 @@ enum class EBorderSelectionType {
     Uniform = 6
 };
 
-yhash_set<float> BestSplit(
-    yvector<float>& featureVals,
+THashSet<float> BestSplit(
+    TVector<float>& featureVals,
     int bordersCount,
     EBorderSelectionType type,
     bool nanValuesIsInfty=false);
+
+size_t CalcMemoryForFindBestSplit(int bordersCount,
+                     size_t docsCount,
+                     EBorderSelectionType type);
+
 
 namespace NSplitSelection {
 class IBinarizer {
 public:
     // featureValues vector might be changed!
-    virtual yhash_set<float> BestSplit(yvector<float>& featureValues,
+    virtual THashSet<float> BestSplit(TVector<float>& featureValues,
                                        int bordersCount,
                                        bool isSorted=false) const = 0;
 
@@ -32,28 +37,28 @@ public:
 
 class TMedianInBinBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };
 
 class TMedianPlusUniformBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };
 
 class TMinEntropyBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };
 
 class TMaxSumLogBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };
@@ -61,14 +66,14 @@ public:
 // Works in O(binCount * log(n)) + O(nlogn) for sorting.
 class TMedianBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };
 
 class TUniformBinarizer : public IBinarizer {
 public:
-    yhash_set<float> BestSplit(yvector<float>& featureValues,
+    THashSet<float> BestSplit(TVector<float>& featureValues,
                                int bordersCount,
                                bool isSorted) const override;
 };

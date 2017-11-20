@@ -739,7 +739,6 @@ wctype.h
 wordexp.h
 ypclnt.h
 zconf.h
-zlib.h
 #endif
 #if defined  CONTRIB
 libutf8.h
@@ -999,7 +998,6 @@ wctype.h
 wordexp.h
 xlocale.h
 zconf.h
-zlib.h
 zlibdefs.h
 #endif
 #if defined(_MSC_VER)
@@ -5159,3 +5157,8 @@ yandex/lbs/LBSLocator.hpp
 #endif metrika
 xti.h
 copyfile.h
+# libgit2 unused includes
+Security/SecCertificate.h
+proto/timer.h
+mbsupport.h
+# end of libgit2 unused includes

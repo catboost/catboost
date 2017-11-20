@@ -426,6 +426,7 @@ public:
         UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), TStringType(Data._345()), Data._6()), Data._123456());
         UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data._12()), TStringType(Data._345()), Data._6()), Data._123456());
         UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), Data.b(), TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
+        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), 'b', TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
     }
 
     void TestCopy() {
@@ -705,7 +706,7 @@ protected:
 
         {
             //This is to test move constructor
-            yvector<TStringType> str_vect;
+            TVector<TStringType> str_vect;
 
             str_vect.push_back(short_str1);
             str_vect.push_back(long_str1);

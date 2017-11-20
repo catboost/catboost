@@ -1,49 +1,64 @@
 #include "static_ctr_provider.h"
+
 #include <catboost/libs/helpers/exception.h>
 
 struct TCompressedModelCtr {
-    const TProjection* Projection;
-    yvector<const TModelCtr*> ModelCtrs;
+    const TFeatureCombination* Projection;
+    TVector<const TModelCtr*> ModelCtrs;
 };
 
-void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
+void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
                                   const TConstArrayRef<ui8>& binarizedFeatures,
                                   const TConstArrayRef<int>& hashedCatFeatures,
-                                  const IFeatureIndexProvider& binFeatureIndexProvider, size_t docCount,
+                                  size_t docCount,
                                   TArrayRef<float> result) {
     if (neededCtrs.empty()) {
         return;
     }
-    yvector<TCompressedModelCtr> compressedModelCtrs;
-    compressedModelCtrs.emplace_back(TCompressedModelCtr{&neededCtrs[0].Projection, {&neededCtrs[0]}});
+    TVector<TCompressedModelCtr> compressedModelCtrs;
+    compressedModelCtrs.emplace_back(TCompressedModelCtr{&neededCtrs[0].Base.Projection, {&neededCtrs[0]}});
     for (size_t i = 1; i < neededCtrs.size(); ++i) {
         Y_ASSERT(neededCtrs[i - 1] < neededCtrs[i]); // needed ctrs should be sorted
-        if (*(compressedModelCtrs.back().Projection) != neededCtrs[i].Projection) {
-            compressedModelCtrs.emplace_back(TCompressedModelCtr{&neededCtrs[i].Projection, {}});
+        if (*(compressedModelCtrs.back().Projection) != neededCtrs[i].Base.Projection) {
+            compressedModelCtrs.emplace_back(TCompressedModelCtr{&neededCtrs[i].Base.Projection, {}});
         }
         compressedModelCtrs.back().ModelCtrs.push_back(&neededCtrs[i]);
     }
     size_t samplesCount = docCount;
-    yvector<ui64> ctrHashes(samplesCount);
-    yvector<ui64> buckets(samplesCount);
+    TVector<ui64> ctrHashes(samplesCount);
+    TVector<ui64> buckets(samplesCount);
     size_t resultIdx = 0;
     float* resultPtr = result.data();
+    TVector<int> transposedCatFeatureIndexes;
+    TVector<int> binarizedIndexes;
     for (size_t i = 0; i < compressedModelCtrs.size(); ++i) {
         auto& proj = *compressedModelCtrs[i].Projection;
-        CalcHashes(proj, binarizedFeatures, hashedCatFeatures, binFeatureIndexProvider, docCount, &ctrHashes);
+        binarizedIndexes.clear();
+        transposedCatFeatureIndexes.clear();
+        for (const auto feature : proj.CatFeatures) {
+            transposedCatFeatureIndexes.push_back(CatFeatureIndex.at(feature));
+        }
+        for (const auto feature : proj.BinFeatures ) {
+            binarizedIndexes.push_back(FloatFeatureIndexes.at(feature));
+        }
+        for (const auto feature : proj.OneHotFeatures ) {
+            binarizedIndexes.push_back(OneHotFeatureIndexes.at(feature));
+        }
+        CalcHashes(binarizedFeatures, hashedCatFeatures, transposedCatFeatureIndexes, binarizedIndexes, docCount, &ctrHashes);
         for (size_t j = 0; j < compressedModelCtrs[i].ModelCtrs.size(); ++j) {
             auto& ctr = *compressedModelCtrs[i].ModelCtrs[j];
-            auto& learnCtr = CtrData.LearnCtrs.at(ctr);
-            const ECtrType ctrType = ctr.CtrType;
+            auto& learnCtr = CtrData.LearnCtrs.at(ctr.Base);
+            auto hashIndexResolver = learnCtr.GetIndexHashViewer();
+            const ECtrType ctrType = ctr.Base.CtrType;
             auto ptrBuckets = buckets.data();
             for (size_t docId = 0; docId < samplesCount; ++docId) {
-                ptrBuckets[docId] = learnCtr.ResolveHashToIndex(ctrHashes[docId]);
+                ptrBuckets[docId] = hashIndexResolver.GetIndex(ctrHashes[docId]);
             }
             if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                 const auto emptyVal = ctr.Calc(0.f, 0.f);
                 auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
+                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         const TCtrMeanHistory& ctrMeanHistory = ctrMean[ptrBuckets[doc]];
                         resultPtr[doc + resultIdx] = ctr.Calc(ctrMeanHistory.Sum, ctrMeanHistory.Count);
                     } else {
@@ -55,7 +70,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                 const int denominator = learnCtr.CounterDenominator;
                 auto emptyVal = ctr.Calc(0, denominator);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
+                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         resultPtr[doc + resultIdx] = ctr.Calc(ctrTotal[ptrBuckets[doc]], denominator);
                     } else {
                         resultPtr[doc + resultIdx] = emptyVal;
@@ -66,7 +81,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                 const int targetClassesCount = learnCtr.TargetClassesCount;
                 auto emptyVal = ctr.Calc(0, 0);
                 for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
+                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         int goodCount = 0;
                         int totalCount = 0;
                         auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
@@ -88,7 +103,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                     for (size_t doc = 0; doc < samplesCount; ++doc) {
                         int goodCount = 0;
                         int totalCount = 0;
-                        if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
+                        if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                             auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
                             for (int classId = 0; classId < ctr.TargetBorderIdx + 1; ++classId) {
                                 totalCount += ctrHistory[classId];
@@ -102,7 +117,7 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
                     }
                 } else {
                     for (size_t doc = 0; doc < samplesCount; ++doc) {
-                        if (ptrBuckets[doc] != TCtrValueTable::UnknownHash) {
+                        if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                             const int* ctrHistory = &ctrIntArray[ptrBuckets[doc] * 2];
                             resultPtr[doc + resultIdx] = ctr.Calc(ctrHistory[1], ctrHistory[0] + ctrHistory[1]);
                         } else {
@@ -116,9 +131,9 @@ void TStaticCtrProvider::CalcCtrs(const yvector<TModelCtr>& neededCtrs,
     }
 }
 
-bool TStaticCtrProvider::HasNeededCtrs(const yvector<TModelCtr>& neededCtrs) const {
+bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
-        if (!CtrData.LearnCtrs.has(ctr)) {
+        if (!CtrData.LearnCtrs.has(ctr.Base)) {
             return false;
         }
     }

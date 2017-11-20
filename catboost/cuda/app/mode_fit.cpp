@@ -24,11 +24,13 @@ int mode_fit(const int argc, const char* argv[]) {
     TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 
     const int numThreads = catBoostOptions.ApplicationOptions.GetNumThreads();
+    TVector<TTargetClassifier> targetClassifiers;
     {
         NPar::LocalExecutor().RunAdditionalThreads(numThreads - 1);
         TBinarizedFeaturesManager featuresManager(catBoostOptions.FeatureManagerOptions);
         TDataProvider dataProvider;
         THolder<TDataProvider> testProvider;
+
         {
             MATRIXNET_INFO_LOG << "Loading data..." << Endl;
 
@@ -39,17 +41,19 @@ int mode_fit(const int argc, const char* argv[]) {
 
             dataProviderBuilder
                 .AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
-                .SetShuffleFlag(!catBoostOptions.BoostingOptions.HasTime());
+                .SetShuffleFlag(!catBoostOptions.BoostingOptions.HasTime(), catBoostOptions.GetShuffleSeed());
 
             {
+                NPar::TLocalExecutor localExecutor;
+                localExecutor.RunAdditionalThreads(numThreads - 1);
                 ReadPool(poolLoadOptions.GetColumnDescriptionName(),
                          poolLoadOptions.GetFeaturesFilename(),
                          "",
-                         numThreads,
                          true,
                          poolLoadOptions.GetDelimiter(),
                          poolLoadOptions.HasHeader(),
                          poolLoadOptions.GetClassNames(),
+                         &localExecutor,
                          &dataProviderBuilder);
             }
 
@@ -64,14 +68,16 @@ int mode_fit(const int argc, const char* argv[]) {
                     .AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
                     .SetShuffleFlag(false);
 
+                NPar::TLocalExecutor localExecutor;
+                localExecutor.RunAdditionalThreads(numThreads - 1);
                 ReadPool(poolLoadOptions.GetColumnDescriptionName(),
                          poolLoadOptions.GetTestFilename(),
                          "",
-                         numThreads,
                          true,
                          poolLoadOptions.GetDelimiter(),
                          poolLoadOptions.HasHeader(),
                          poolLoadOptions.GetClassNames(),
+                         &localExecutor,
                          &testBuilder);
             }
         }
@@ -83,10 +89,12 @@ int mode_fit(const int argc, const char* argv[]) {
             TOFStream modelOutput(coreModelPath);
             coreModel.Save(&modelOutput);
         }
+        targetClassifiers = CreateTargetClassifiers(featuresManager);
     }
 
     MakeFullModel(coreModelPath,
                   poolLoadOptions,
+                  targetClassifiers,
                   numThreads,
                   resultModelPath);
 

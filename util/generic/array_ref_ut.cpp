@@ -3,7 +3,6 @@
 #include <library/unittest/registar.h>
 
 SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
-
     SIMPLE_UNIT_TEST(Test1) {
         TConstArrayRef<char> a("123", 3);
         size_t ret = 0;
@@ -60,10 +59,10 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         auto fc = [](TArrayRef<const int>) {};
         auto fm = [](TArrayRef<int>) {};
 
-        fc(yvector<int>({1}));
+        fc(TVector<int>({1}));
 
-        const yvector<int> ac = {1};
-        yvector<int> am = {1};
+        const TVector<int> ac = {1};
+        TVector<int> am = {1};
 
         fc(ac);
         fc(am);
@@ -86,8 +85,8 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
     SIMPLE_UNIT_TEST(TestArrayRefCtorAdl) {
         /* No checks here, the code should simply compile. */
 
-        yvector<A> a;
-        yvector<B> b;
+        TVector<A> a;
+        TVector<B> b;
 
         checkAdl1(a);
         checkAdl1(b);

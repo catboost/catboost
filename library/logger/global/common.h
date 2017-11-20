@@ -125,7 +125,7 @@ namespace NPrivateGlobalLogger {
             return true;
         }
     };
-} // namespace NPrivateGlobalLogger
+}
 
 #define LOGGER_GENERIC_LOG_CHECKED(logger, preprocessor, level, message) (*GetLoggerForce<preprocessor>(logger, TLogRecordContext(__LOCATION__, message, level)))
 #define LOGGER_CHECKED_GENERIC_LOG(logger, preprocessor, level, message) \

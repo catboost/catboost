@@ -9,8 +9,8 @@ SIMPLE_UNIT_TEST_SUITE(TDirectIoTestSuite) {
 
     SIMPLE_UNIT_TEST(TestDirectFile) {
         TDirectIOBufferedFile file(FileName_, RdWr | Direct | Seq | CreateAlways, 1 << 15);
-        yvector<ui64> data((1 << 15) + 1);
-        yvector<ui64> readed(data.size());
+        TVector<ui64> data((1 << 15) + 1);
+        TVector<ui64> readed(data.size());
         for (auto& i : data)
             i = RandomNumber<ui64>();
         for (size_t writePos = 0; writePos < data.size();) {

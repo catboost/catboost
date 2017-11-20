@@ -82,7 +82,7 @@ namespace NStatistics {
         static_assert((std::is_same<ValueType, AnotherValueType>::value), "expect (std::is_same<ValueType, AnotherValueType>::value)");
         static_assert(std::is_floating_point<ValueType>::value, "expect std::is_floating_point<ValueType>::value");
 
-        typedef yvector< std::pair<ValueType, bool> > TMWVector;
+        typedef TVector< std::pair<ValueType, bool> > TMWVector;
 
         ValueType xSize = static_cast<ValueType>(std::distance(xBegin, xEnd));
         ValueType ySize = static_cast<ValueType>(std::distance(yBegin, yEnd));
@@ -143,7 +143,7 @@ namespace NStatistics {
             return TStatTestResult(0.5, 0);
         }
 
-        yvector<ValueType> v;
+        TVector<ValueType> v;
         for (; xBegin != xEnd; ++xBegin, ++yBegin) {
             if (!NDetail::RelativeEqual(*xBegin, *yBegin)) {
                 v.push_back(*xBegin - *yBegin);
@@ -171,7 +171,7 @@ namespace NStatistics {
             return TStatTestResult(0.5, 0);
         }
 
-        yvector<ValueType> v;
+        TVector<ValueType> v;
         for (InputIterator it = begin; it != end; ++it) {
             if (*it != 0) {
                 v.push_back(*it);

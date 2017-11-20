@@ -22,7 +22,6 @@
 using namespace NBlockCodecs;
 
 namespace {
-
     struct TZStd06Codec: public TAddLengthCodec<TZStd06Codec> {
         inline TZStd06Codec(unsigned level)
             : Level(level)
@@ -65,8 +64,8 @@ namespace {
 }
 
 namespace NBlockCodecs {
-    yvector<TCodecPtr> LegacyZStd06Codec() {
-        yvector<TCodecPtr> codecs;
+    TVector<TCodecPtr> LegacyZStd06Codec() {
+        TVector<TCodecPtr> codecs;
 
         for (unsigned i = 1; i <= ZSTD_maxCLevel(); ++i) {
             codecs.emplace_back(new TZStd06Codec(i));

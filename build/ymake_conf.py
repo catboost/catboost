@@ -1129,7 +1129,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-Dyhash=THashMap')
         append('CXXFLAGS', '$CXX_WARNING_OPTS', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1202,13 +1202,13 @@ class GnuCompiler(Compiler):
         append('EXTRA_OUTPUT')
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
-        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
-        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
+        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT', '$SRCFLAGS'] + style
+        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT', '$SRCFLAGS'] + style
 
-        print 'macro _SRC_cpp(SRC, OPTIONS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
-        print 'macro _SRC_c(SRC, OPTIONS...) {\n .CMD=%s\n}' % ' '.join(c_args)
-        print 'macro _SRC_m(SRC, OPTIONS...) {\n .CMD=$SRC_c($SRC $OPTIONS)\n}'
-        print 'macro _SRC_masm(SRC, OPTIONS...) {\n}'
+        print 'macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
+        print 'macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args)
+        print 'macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}'
+        print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
 
 
 class GCC(GnuCompiler):
@@ -1396,7 +1396,8 @@ class LD(Linker):
 
         emit("GENERATE_MF",
              '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
-             '$ARCADIA_BUILD_ROOT $REALPRJNAME ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME} $MODULE_SUFFIX -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
+             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
+             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
              '${kv;hide:"p MF"} ${kv;hide:"pc light-green"}'
              )
 
@@ -1417,14 +1418,12 @@ class LD(Linker):
              ld_env_style)
 
         if self.dwarf_command is None:
-            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE')
-            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB')
-            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD')
+            emit('APPEND_DWARF_COMMAND')
         else:
-            emit('DWARF_TOOL_COMMAND', self.dwarf_command, ld_env_style)
-            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
-            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
-            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD', '&&', '$DWARF_TOOL_COMMAND')
+            emit('APPEND_DWARF_COMMAND', '&&', self.dwarf_command, ld_env_style)
+        emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE $APPEND_DWARF_COMMAND')
+        emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB $APPEND_DWARF_COMMAND')
+        emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD $APPEND_DWARF_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
 
@@ -1552,7 +1551,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dyhash=THashMap']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1659,19 +1658,19 @@ macro MSVC_FLAGS(Flags...) {
     CFLAGS($Flags)
 }
 
-macro _SRC_cpp(SRC, OPTIONS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+macro _SRC_cpp(SRC, SRCFLAGS...) {
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
-macro _SRC_c(SRC, OPTIONS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+macro _SRC_c(SRC, SRCFLAGS...) {
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
-macro _SRC_m(SRC, OPTIONS...) {
+macro _SRC_m(SRC, SRCFLAGS...) {
 }
 
-macro _SRC_masm(SRC, OPTIONS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
+macro _SRC_masm(SRC, SRCFLAGS...) {
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
 }
 '''
 
@@ -1799,8 +1798,8 @@ class MSVCLinker(MSVC, Linker):
         emit('EXPORTS_VALUE')
 
         emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
-             '$ARCADIA_BUILD_ROOT $REALPRJNAME',
-             '${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME} $REALPRJNAME $MODULE_SUFFIX -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
+             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
+             '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
              '${kv;hide:"p MF"} ${kv;hide:"pc light-green"}'
              )
 
@@ -1974,13 +1973,16 @@ class Cuda(object):
             if target.is_linux:
                 if target.is_x86_64:
                     nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/g++-4.9')
+                    if self.build.tc.is_clang:
+                        os_sdk_root = '{OS_SDK_ROOT}' if self.build.tc.version_at_least(4, 0) else ''
+                        nvcc_flags.append('-I${}/usr/include/x86_64-linux-gnu'.format(os_sdk_root))
                 elif target.is_aarch64:
                     nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/aarch64-linux-g++')
             if target.is_macos:
                 if target.is_x86_64:
                     nvcc_flags.append('--compiler-bindir=$(CUDA_XCODE)/usr/bin')
 
-        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\\\bin\\\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
 
         if preset('CUDA_NVCC_FLAGS') is None:

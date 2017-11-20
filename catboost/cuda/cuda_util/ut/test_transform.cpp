@@ -16,7 +16,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
+                TVector<float> vec;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -29,7 +29,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 cVec.Write(vec);
 
                 MultiplyVector(cVec, scale);
-                yvector<float> result;
+                TVector<float> result;
                 cVec.Read(result);
 
                 for (ui32 i = 0; i < vec.size(); ++i) {
@@ -38,8 +38,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             }
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -54,7 +54,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 cVec2.Write(vec2);
 
                 MultiplyVector(cVec, cVec2);
-                yvector<float> result;
+                TVector<float> result;
                 cVec.Read(result);
 
                 for (ui32 i = 0; i < vec.size(); ++i) {
@@ -72,8 +72,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -88,7 +88,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 cVec2.Write(vec2);
 
                 SubtractVector(cVec, cVec2);
-                yvector<float> result;
+                TVector<float> result;
                 cVec.Read(result);
 
                 for (ui32 i = 0; i < vec.size(); ++i) {
@@ -106,8 +106,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = rand.NextUniformL() % 10000000;
                 for (ui64 i = 0; i < size; ++i) {
                     vec.push_back(rand.NextUniform());
@@ -121,7 +121,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 cVec2.Write(vec2);
 
                 AddVector(cVec, cVec2);
-                yvector<float> result;
+                TVector<float> result;
                 cVec.Read(result);
 
                 for (ui32 i = 0; i < vec.size(); ++i) {
@@ -139,10 +139,10 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> src;
-                yvector<float> dstScatter;
-                yvector<float> dstGather;
-                yvector<ui32> index;
+                TVector<float> src;
+                TVector<float> dstScatter;
+                TVector<float> dstGather;
+                TVector<ui32> index;
                 ui64 size = rand.NextUniformL() % 100000;
                 index.resize(size);
                 dstGather.resize(size);
@@ -174,7 +174,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 Scatter(cudaDstScatter, cudaSrc, cudaIndex, streamScatter.GetId());
 
                 {
-                    yvector<float> tmp;
+                    TVector<float> tmp;
                     cudaDstGather.Read(tmp, streamGather.GetId());
                     for (ui32 i = 0; i < size; ++i) {
                         UNIT_ASSERT_DOUBLES_EQUAL(tmp[i], dstGather[i], 1e-20f);
@@ -182,7 +182,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
 
                 {
-                    yvector<float> tmp;
+                    TVector<float> tmp;
                     cudaDstScatter.Read(tmp, streamScatter.GetId());
                     for (ui32 i = 0; i < size; ++i) {
                         UNIT_ASSERT_DOUBLES_EQUAL(tmp[i], dstScatter[i], 1e-20f);
@@ -200,8 +200,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = rand.NextUniformL() % 10000000;
                 double dotProd = 0;
                 for (ui64 i = 0; i < size; ++i) {
@@ -233,8 +233,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             TRandom rand(0);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = rand.NextUniformL() % 10000000;
                 double dotProd = 0;
                 for (ui64 i = 0; i < size; ++i) {
@@ -268,8 +268,8 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
             NCudaLib::TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
 
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
-                yvector<float> vec2;
+                TVector<float> vec;
+                TVector<float> vec2;
                 ui64 size = (rand.NextUniformL() % 10000000) * GetCudaManager().GetDeviceCount();
                 double dotProd = 0;
 

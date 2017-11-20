@@ -1,0 +1,42 @@
+include "features.fbs";
+
+namespace NCatBoostFbs;
+
+enum ECtrType : byte {
+    Borders,
+    Buckets,
+    BinarizedTargetMeanValue,
+    FloatTargetMeanValue,
+    Counter,
+    FeatureFreq
+}
+
+//
+table TModelCtrBase {
+    FeatureCombination:TFeatureCombination;
+    CtrType: ECtrType;
+}
+//
+table TModelCtr {
+    Base:TModelCtrBase;
+    TargetBorderIdx:int = 0;
+    PriorNum:float = 0.0;
+    PriorDenom:float = 1.0;
+    Shift:float = 0.0;
+    Scale:float = 1.0;
+}
+//
+table TCtrFeature {
+    Ctr:TModelCtr;
+    Borders:[float];
+}
+//
+table TCtrValueTable {
+    ModelCtrBase:TModelCtrBase;
+    IndexHashRaw:[ubyte];
+    CTRBlob:[ubyte];
+    CounterDenominator:int;
+    TargetClassesCount:int;
+}
+
+root_type TCtrValueTable;

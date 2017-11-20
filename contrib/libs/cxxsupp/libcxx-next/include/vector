@@ -981,11 +981,13 @@ void
 vector<_Tp, _Allocator>::__construct_at_end(size_type __n)
 {
     allocator_type& __a = this->__alloc();
+    pointer __to_be_end = this->__end_;
     do
     {
         __RAII_IncreaseAnnotator __annotator(*this);
-        __alloc_traits::construct(__a, _VSTD::__to_raw_pointer(this->__end_));
-        ++this->__end_;
+        __alloc_traits::construct(__a, _VSTD::__to_raw_pointer(__to_be_end));
+        ++__to_be_end;
+        this->__end_ = __to_be_end;
         --__n;
         __annotator.__done();
     } while (__n > 0);
@@ -1003,11 +1005,13 @@ void
 vector<_Tp, _Allocator>::__construct_at_end(size_type __n, const_reference __x)
 {
     allocator_type& __a = this->__alloc();
+    pointer __to_be_end = this->__end_;
     do
     {
         __RAII_IncreaseAnnotator __annotator(*this);
-        __alloc_traits::construct(__a, _VSTD::__to_raw_pointer(this->__end_), __x);
-        ++this->__end_;
+        __alloc_traits::construct(__a, _VSTD::__to_raw_pointer(__to_be_end), __x);
+        ++__to_be_end;
+        this->__end_ = __to_be_end;
         --__n;
         __annotator.__done();
     } while (__n > 0);

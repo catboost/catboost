@@ -7,16 +7,19 @@
 #include <catboost/cuda/data/cat_feature_perfect_hash.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/target_classifier.h>
+#include <catboost/libs/algo/projection.h>
+#include <catboost/libs/algo/split.h>
+#include <catboost/libs/algo/model_build_helper.h>
 
 namespace NCatboostCuda
 {
 //store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
-    inline yvector<yvector<int>>
+    inline TVector<TVector<int>>
     MakeInverseCatFeatureIndexForDataProviderIds(const TBinarizedFeaturesManager& featuresManager,
-                                                 const yvector<ui32>& catFeaturesDataProviderIds,
+                                                 const TVector<ui32>& catFeaturesDataProviderIds,
                                                  bool clearFeatureManagerRamCache = true)
     {
-        yvector<yvector<int>> result(catFeaturesDataProviderIds.size());
+        TVector<TVector<int>> result(catFeaturesDataProviderIds.size());
         for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i)
         {
 
@@ -46,7 +49,7 @@ namespace NCatboostCuda
         TModelConverter(const TBinarizedFeaturesManager& manager,
                         const TDataProvider& dataProvider)
                 : FeaturesManager(manager)
-                  , DataProvider(dataProvider)
+                , DataProvider(dataProvider)
         {
             auto& allFeatures = dataProvider.GetFeatureNames();
             auto& catFeatureIds = dataProvider.GetCatFeatureIds();
@@ -61,52 +64,69 @@ namespace NCatboostCuda
                     {
                         if (dataProvider.HasFeatureId(featureId))
                         {
-                            yvector<float> borders = manager.GetBorders(manager.GetFeatureManagerIdForFloatFeature(featureId));
+                            TVector<float> borders = manager.GetBorders(manager.GetFeatureManagerIdForFloatFeature(featureId));
                             Borders.push_back(std::move(borders));
                         } else
                         {
-                            Borders.push_back(yvector<float>());
+                            Borders.push_back(TVector<float>());
                         }
                         FloatFeaturesRemap[featureId] = static_cast<ui32>(FloatFeaturesRemap.size());
                     }
                 }
             }
             {
-                yvector<ui32> catFeatureVec(catFeatureIds.begin(), catFeatureIds.end());
+                TVector<ui32> catFeatureVec(catFeatureIds.begin(), catFeatureIds.end());
                 CatFeatureBinToHashIndex = MakeInverseCatFeatureIndexForDataProviderIds(manager, catFeatureVec);
             }
         }
 
-        TCoreModel Convert(const TAdditiveModel<TObliviousTreeModel>& src) const
+        TFullModel Convert(const TAdditiveModel<TObliviousTreeModel>& src) const
         {
             const auto& featureNames = DataProvider.GetFeatureNames();
-
-            TCoreModel coreModel;
-            coreModel.Borders = Borders;
+            const auto& catFeatureIds = DataProvider.GetCatFeatureIds();
+            TFullModel coreModel;
             coreModel.ModelInfo["params"] = "{}"; //TODO(noxoomo): something meaningful here
-            coreModel.FeatureCount = static_cast<int>(featureNames.size());
-            coreModel.CatFeatures = yvector<int>(DataProvider.GetCatFeatureIds().begin(),
-                                                 DataProvider.GetCatFeatureIds().end());
-            coreModel.FeatureIds = featureNames;
-            coreModel.TargetClassifiers = CreateTargetClassifiers();
+            auto featureCount = featureNames.ysize();
+            TVector<TFloatFeature> floatFeatures;
+            TVector<TCatFeature> catFeatures;
 
-            coreModel.LeafValues.resize(src.Size());
+            for (int i = 0; i < featureCount; ++i) {
+                if (catFeatureIds.has(i)) {
+                    auto catFeatureIdx = catFeatures.size();
+                    auto& catFeature = catFeatures.emplace_back();
+                    catFeature.FeatureIndex = catFeatureIdx;
+                    catFeature.FlatFeatureIndex = i;
+                    catFeature.FeatureId = featureNames[catFeature.FlatFeatureIndex];
+                } else {
+                    auto floatFeatureIdx = floatFeatures.size();
+                    auto& floatFeature = floatFeatures.emplace_back();
+                    floatFeature.FeatureIndex = floatFeatureIdx;
+                    floatFeature.FlatFeatureIndex = i;
+                    floatFeature.Borders = Borders[floatFeatureIdx];
+                    floatFeature.FeatureId = featureNames[i];
+                }
+            }
+
+            TObliviousTreeBuilder obliviousTreeBuilder(floatFeatures, catFeatures);
+
+
             for (ui32 i = 0; i < src.Size(); ++i)
             {
-                coreModel.LeafValues[i].resize(1);
+                TVector<TVector<double>> leafValues(1);
                 const TObliviousTreeModel& model = src.GetWeakModel(i);
-                auto& values = model.GetValues();
 
-                coreModel.LeafValues[i][0].resize(values.size());
+                auto& values = model.GetValues();
+                leafValues[0].resize(values.size());
                 for (ui32 leaf = 0; leaf < values.size(); ++leaf)
                 {
-                    coreModel.LeafValues[i][0][leaf] = values[leaf];
+                    leafValues[0][leaf] = values[leaf];
                 }
 
                 const auto& structure = model.GetStructure();
-                TTensorStructure3 treeStructure = ConvertStructure(structure);
-                coreModel.TreeStruct.push_back(treeStructure);
+                auto treeStructure = ConvertStructure(structure);
+                obliviousTreeBuilder.AddTree(treeStructure, leafValues);
             }
+            coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
             return coreModel;
         }
 
@@ -120,8 +140,7 @@ namespace NCatboostCuda
             auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
             CB_ENSURE(FloatFeaturesRemap.has(dataProviderId));
             auto remapId = FloatFeaturesRemap.at(dataProviderId);
-            modelSplit.BinFeature = TBinFeature(remapId,
-                                                split.BinIdx);
+            modelSplit.FloatFeature = TFloatSplit{(int)remapId, Borders.at(remapId).at(split.BinIdx)};
             return modelSplit;
         }
 
@@ -139,7 +158,7 @@ namespace NCatboostCuda
             CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[remapId].size(),
                       TStringBuilder() << "Error: no gasg fir feature " << split.FeatureId << " " << split.BinIdx);
             const int hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
-            modelSplit.OneHotFeature = TOneHotFeature(remapId,
+            modelSplit.OneHotFeature = TOneHotSplit(remapId,
                                                       hash);
             return modelSplit;
         }
@@ -157,25 +176,21 @@ namespace NCatboostCuda
             }
         }
 
-        TProjection ExtractProjection(const TCtr& ctr) const
+        TFeatureCombination ExtractProjection(const TCtr& ctr) const
         {
-            TProjection projection;
-            for (auto split : ctr.FeatureTensor.GetSplits())
-            {
-                if (FeaturesManager.IsFloat(split.FeatureId))
-                {
-                    projection.AddBinFeature(CreateFloatSplit(split).BinFeature);
-                } else if (FeaturesManager.IsCat(split.FeatureId))
-                {
-                    projection.AddOneHotFeature(CreateOneHotSplit(split).OneHotFeature);
-                } else
-                {
+            TFeatureCombination projection;
+            for (auto split : ctr.FeatureTensor.GetSplits()) {
+                if (FeaturesManager.IsFloat(split.FeatureId)) {
+                    auto floatSplit = CreateFloatSplit(split);
+                    projection.BinFeatures.push_back(floatSplit.FloatFeature);
+                } else if (FeaturesManager.IsCat(split.FeatureId)) {
+                    projection.OneHotFeatures.push_back(CreateOneHotSplit(split).OneHotFeature);
+                } else {
                     CB_ENSURE(false, "Error: unknown split type");
                 }
             }
-            for (auto catFeature : ctr.FeatureTensor.GetCatFeatures())
-            {
-                projection.AddCatFeature(GetRemappedIndex(catFeature));
+            for (auto catFeature : ctr.FeatureTensor.GetCatFeatures()) {
+                projection.CatFeatures.push_back(GetRemappedIndex(catFeature));
             }
             return projection;
         }
@@ -192,57 +207,52 @@ namespace NCatboostCuda
             modelSplit.OnlineCtr.Border = borders[split.BinIdx];
 
             TModelCtr& modelCtr = modelSplit.OnlineCtr.Ctr;
-            modelCtr.Projection = ExtractProjection(ctr);
-            modelCtr.CtrType = ctr.Configuration.Type;
+            modelCtr.Base.Projection = ExtractProjection(ctr);
+            modelCtr.Base.CtrType = ctr.Configuration.Type;
+            modelCtr.Base.TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove me
 
             const auto& config = ctr.Configuration;
             modelCtr.TargetBorderIdx = config.ParamId;
-            modelCtr.TargetBorderClassifierIdx = 0;
             modelCtr.PriorNum = GetNumeratorShift(config);
             modelCtr.PriorDenom = GetDenumeratorShift(config);
 
             return modelSplit;
         }
 
-        inline TTensorStructure3 ConvertStructure(const TObliviousTreeStructure& structure) const
+        inline TVector<TModelSplit> ConvertStructure(const TObliviousTreeStructure& structure) const
         {
-            TTensorStructure3 structure3;
+            TVector<TModelSplit> structure3;
             for (auto split : structure.Splits)
             {
                 TModelSplit modelSplit;
-                if (FeaturesManager.IsFloat(split.FeatureId))
-                {
+                if (FeaturesManager.IsFloat(split.FeatureId)) {
                     modelSplit = CreateFloatSplit(split);
-                } else if (FeaturesManager.IsCat(split.FeatureId))
-                {
+                } else if (FeaturesManager.IsCat(split.FeatureId)) {
                     modelSplit = CreateOneHotSplit(split);
-                } else
-                {
+                } else {
                     modelSplit = CreateCtrSplit(split);
                 }
-                structure3.Add(modelSplit);
+                structure3.push_back(modelSplit);
             }
             return structure3;
         }
-
-        yvector<TTargetClassifier> CreateTargetClassifiers() const
-        {
-            TTargetClassifier targetClassifier(FeaturesManager.GetTargetBorders());
-            yvector<TTargetClassifier> classifiers;
-            classifiers.resize(1, targetClassifier);
-            return classifiers;
-        }
-
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
-        yvector<yvector<int>> CatFeatureBinToHashIndex;
+        TVector<TVector<int>> CatFeatureBinToHashIndex;
         ymap<ui32, ui32> CatFeaturesRemap;
         ymap<ui32, ui32> FloatFeaturesRemap;
-        yvector<yvector<float>> Borders;
+        TVector<TVector<float>> Borders;
     };
 
-    inline TCoreModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
+    inline TVector<TTargetClassifier> CreateTargetClassifiers(const TBinarizedFeaturesManager& featuresManager) {
+        TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
+        TVector<TTargetClassifier> classifiers;
+        classifiers.resize(1, targetClassifier);
+        return classifiers;
+    }
+
+    inline TFullModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
                                          const TDataProvider& dataProvider,
                                          const TAdditiveModel<TObliviousTreeModel>& treeModel)
     {

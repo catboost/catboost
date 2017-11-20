@@ -5,16 +5,17 @@ import shutil
 import subprocess as sp
 import tarfile
 import zipfile
+import sys
 
 
-def parse_args():
+def parse_args(args):
     parser = optparse.OptionParser()
     parser.add_option('--javac-bin')
     parser.add_option('--jar-bin')
     parser.add_option('--package-prefix')
     parser.add_option('--jar-output')
     parser.add_option('--srcs-jar-output')
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def mkdir_p(directory):
@@ -22,14 +23,21 @@ def mkdir_p(directory):
         os.makedirs(directory)
 
 
-def main():
-    opts, args = parse_args()
+def split_cmd_by_delim(cmd, delim='DELIM'):
+    result = [[]]
+    for arg in cmd:
+        if arg == delim:
+            result.append([])
+        else:
+            result[-1].append(arg)
+    return result
 
-    try:
-        i = args.index('DELIM')
-        jsrcs, peers = args[:i], args[i + 1:]
-    except ValueError:
-        jsrcs, peers = args, []
+
+def main():
+    cmd_parts = split_cmd_by_delim(sys.argv)
+    assert len(cmd_parts) == 3
+    args, javac_opts, peers = cmd_parts
+    opts, jsrcs = parse_args(args)
 
     sources_dir = 'src'
     mkdir_p(sources_dir)
@@ -49,7 +57,7 @@ def main():
     classpath = os.pathsep.join(peers)
 
     if srcs:
-        sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + srcs)
+        sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts + srcs)
 
     for s in jsrcs:
         if s.endswith('-sources.jar'):

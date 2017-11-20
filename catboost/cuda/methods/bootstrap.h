@@ -149,7 +149,7 @@ namespace NCatboostCuda
         inline void WriteSeedsPointwise(TCudaBuffer<ui64, TMapping>& seeds,
                                         TRandom& random) const
         {
-            yvector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());
+            TVector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());
             for (ui32 i = 0; i < seeds.GetObjectsSlice().Size(); ++i)
             {
                 seedsCpu[i] = random.NextUniformL();

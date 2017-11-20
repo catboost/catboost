@@ -16,6 +16,7 @@ except ImportError:
     gzip_ext = ''
 import shutil
 import subprocess
+import os
 
 try:
     import hashlib
@@ -42,8 +43,15 @@ except ImportError:
             return os.path.curdir
         return os.path.join(*rel_list)
 
+try:
+    import pythran
+    import pythran.config
+    PythranAvailable = True
+except:
+    PythranAvailable = False
 
 from distutils.extension import Extension
+from distutils.util import strtobool
 
 from .. import Utils
 from ..Utils import (cached_function, cached_method, path_exists,
@@ -67,6 +75,15 @@ else:
     def encode_filename_in_py2(filename):
         return filename
     basestring = str
+
+
+def _make_relative(file_paths, base=None):
+    if not base:
+        base = os.getcwd()
+    if base[-1] != os.path.sep:
+        base += os.path.sep
+    return [_relpath(path, base) if path.startswith(base) else path
+            for path in file_paths]
 
 
 def extended_iglob(pattern):
@@ -111,7 +128,8 @@ def nonempty(it, error_msg="expected non-empty iterator"):
 @cached_function
 def file_hash(filename):
     path = os.path.normpath(filename.encode("UTF-8"))
-    m = hashlib.md5(str(len(path)) + ":")
+    prefix = (str(len(path)) + ":").encode("UTF-8")
+    m = hashlib.md5(prefix)
     m.update(path)
     f = open(filename, 'rb')
     try:
@@ -156,6 +174,7 @@ def parse_list(s):
 
 transitive_str = object()
 transitive_list = object()
+bool_or = object()
 
 distutils_settings = {
     'name':                 str,
@@ -172,7 +191,29 @@ distutils_settings = {
     'export_symbols':       list,
     'depends':              transitive_list,
     'language':             transitive_str,
+    'np_pythran':           bool_or
 }
+
+
+def update_pythran_extension(ext):
+    if not PythranAvailable:
+        raise RuntimeError("You first need to install Pythran to use the np_pythran directive.")
+    pythran_ext = pythran.config.make_extension()
+    ext.include_dirs.extend(pythran_ext['include_dirs'])
+    ext.extra_compile_args.extend(pythran_ext['extra_compile_args'])
+    ext.extra_link_args.extend(pythran_ext['extra_link_args'])
+    ext.define_macros.extend(pythran_ext['define_macros'])
+    ext.undef_macros.extend(pythran_ext['undef_macros'])
+    ext.library_dirs.extend(pythran_ext['library_dirs'])
+    ext.libraries.extend(pythran_ext['libraries'])
+    ext.language = 'c++'
+
+    # These options are not compatible with the way normal Cython extensions work
+    for bad_option in ["-fwhole-program", "-fvisibility=hidden"]:
+        try:
+            ext.extra_compile_args.remove(bad_option)
+        except ValueError:
+            pass
 
 
 @cython.locals(start=cython.Py_ssize_t, end=cython.Py_ssize_t)
@@ -203,19 +244,23 @@ class DistutilsInfo(object):
                 if line[0] != '#':
                     break
                 line = line[1:].lstrip()
-                if line[:10] == 'distutils:':
-                    key, _, value = [s.strip() for s in line[10:].partition('=')]
-                    type = distutils_settings[key]
+                kind = next((k for k in ("distutils:","cython:") if line.startswith(k)), None)
+                if not kind is None:
+                    key, _, value = [s.strip() for s in line[len(kind):].partition('=')]
+                    type = distutils_settings.get(key, None)
+                    if line.startswith("cython:") and type is None: continue
                     if type in (list, transitive_list):
                         value = parse_list(value)
                         if key == 'define_macros':
                             value = [tuple(macro.split('=', 1))
                                      if '=' in macro else (macro, None)
                                      for macro in value]
+                    if type is bool_or:
+                        value = strtobool(value)
                     self.values[key] = value
         elif exn is not None:
             for key in distutils_settings:
-                if key in ('name', 'sources'):
+                if key in ('name', 'sources','np_pythran'):
                     continue
                 value = getattr(exn, key, None)
                 if value:
@@ -237,6 +282,8 @@ class DistutilsInfo(object):
                             all.append(v)
                     value = all
                 self.values[key] = value
+            elif type is bool_or:
+                self.values[key] = self.values.get(key, False) | value
         return self
 
     def subs(self, aliases):
@@ -374,14 +421,30 @@ def normalize_existing(base_path, rel_paths):
 
 @cached_function
 def normalize_existing0(base_dir, rel_paths):
+    """
+    Given some base directory ``base_dir`` and a list of path names
+    ``rel_paths``, normalize each relative path name ``rel`` by
+    replacing it by ``os.path.join(base, rel)`` if that file exists.
+
+    Return a couple ``(normalized, needed_base)`` where ``normalized``
+    if the list of normalized file names and ``needed_base`` is
+    ``base_dir`` if we actually needed ``base_dir``. If no paths were
+    changed (for example, if all paths were already absolute), then
+    ``needed_base`` is ``None``.
+    """
     normalized = []
+    needed_base = None
     for rel in rel_paths:
+        if os.path.isabs(rel):
+            normalized.append(rel)
+            continue
         path = join_path(base_dir, rel)
         if path_exists(path):
             normalized.append(os.path.normpath(path))
+            needed_base = base_dir
         else:
             normalized.append(rel)
-    return normalized
+    return (normalized, needed_base)
 
 
 def resolve_depends(depends, include_dirs):
@@ -482,20 +545,25 @@ class DependencyTree(object):
         return all
 
     @cached_method
-    def cimports_and_externs(self, filename):
+    def cimports_externs_incdirs(self, filename):
         # This is really ugly. Nested cimports are resolved with respect to the
         # includer, but includes are resolved with respect to the includee.
         cimports, includes, externs = self.parse_dependencies(filename)[:3]
         cimports = set(cimports)
         externs = set(externs)
+        incdirs = set()
         for include in self.included_files(filename):
-            included_cimports, included_externs = self.cimports_and_externs(include)
+            included_cimports, included_externs, included_incdirs = self.cimports_externs_incdirs(include)
             cimports.update(included_cimports)
             externs.update(included_externs)
-        return tuple(cimports), normalize_existing(filename, externs)
+            incdirs.update(included_incdirs)
+        externs, incdir = normalize_existing(filename, externs)
+        if incdir:
+            incdirs.add(incdir)
+        return tuple(cimports), externs, incdirs
 
     def cimports(self, filename):
-        return self.cimports_and_externs(filename)[0]
+        return self.cimports_externs_incdirs(filename)[0]
 
     def package(self, filename):
         return package(filename)
@@ -565,25 +633,37 @@ class DependencyTree(object):
 
     def transitive_fingerprint(self, filename, extra=None):
         try:
-            m = hashlib.md5(__version__)
-            m.update(file_hash(filename))
+            m = hashlib.md5(__version__.encode('UTF-8'))
+            m.update(file_hash(filename).encode('UTF-8'))
             for x in sorted(self.all_dependencies(filename)):
                 if os.path.splitext(x)[1] not in ('.c', '.cpp', '.h'):
-                    m.update(file_hash(x))
+                    m.update(file_hash(x).encode('UTF-8'))
             if extra is not None:
-                m.update(str(extra))
+                m.update(str(extra).encode('UTF-8'))
             return m.hexdigest()
         except IOError:
             return None
 
     def distutils_info0(self, filename):
         info = self.parse_dependencies(filename)[3]
-        externs = self.cimports_and_externs(filename)[1]
+        kwds = info.values
+        cimports, externs, incdirs = self.cimports_externs_incdirs(filename)
+        basedir = os.getcwd()
+        # Add dependencies on "cdef extern from ..." files
         if externs:
-            if 'depends' in info.values:
-                info.values['depends'] = list(set(info.values['depends']).union(externs))
+            externs = _make_relative(externs, basedir)
+            if 'depends' in kwds:
+                kwds['depends'] = list(set(kwds['depends']).union(externs))
             else:
-                info.values['depends'] = list(externs)
+                kwds['depends'] = list(externs)
+        # Add include_dirs to ensure that the C compiler will find the
+        # "cdef extern from ..." files
+        if incdirs:
+            include_dirs = list(kwds.get('include_dirs', []))
+            for inc in _make_relative(incdirs, basedir):
+                if inc not in include_dirs:
+                    include_dirs.append(inc)
+            kwds['include_dirs'] = include_dirs
         return info
 
     def distutils_info(self, filename, aliases=None, base=None):
@@ -636,6 +716,20 @@ def create_dependency_tree(ctx=None, quiet=False):
     return _dep_tree
 
 
+# If this changes, change also docs/src/reference/compilation.rst
+# which mentions this function
+def default_create_extension(template, kwds):
+    if 'depends' in kwds:
+        include_dirs = kwds.get('include_dirs', []) + ["."]
+        depends = resolve_depends(kwds['depends'], include_dirs)
+        kwds['depends'] = sorted(set(depends + template.depends))
+
+    t = template.__class__
+    ext = t(**kwds)
+    metadata = dict(distutils=kwds, module_name=kwds['name'])
+    return (ext, metadata)
+
+
 # This may be useful for advanced users?
 def create_extension_list(patterns, exclude=None, ctx=None, aliases=None, quiet=False, language=None,
                           exclude_failures=False):
@@ -668,13 +762,16 @@ def create_extension_list(patterns, exclude=None, ctx=None, aliases=None, quiet=
         Extension_distutils = Extension
         class Extension_setuptools(Extension): pass
 
+    # if no create_extension() function is defined, use a simple
+    # default function.
+    create_extension = ctx.options.create_extension or default_create_extension
+
     for pattern in patterns:
         if isinstance(pattern, str):
             filepattern = pattern
-            template = None
+            template = Extension(pattern, [])  # Fake Extension without sources
             name = '*'
             base = None
-            exn_type = Extension
             ext_language = language
         elif isinstance(pattern, (Extension_distutils, Extension_setuptools)):
             cython_sources = [s for s in pattern.sources
@@ -692,7 +789,6 @@ def create_extension_list(patterns, exclude=None, ctx=None, aliases=None, quiet=
             template = pattern
             name = template.name
             base = DistutilsInfo(exn=template)
-            exn_type = template.__class__
             ext_language = None  # do not override whatever the Extension says
         else:
             msg = str("pattern is not of type str nor subclass of Extension (%s)"
@@ -726,42 +822,41 @@ def create_extension_list(patterns, exclude=None, ctx=None, aliases=None, quiet=
                         if key not in kwds:
                             kwds[key] = value
 
-                sources = [file]
-                if template is not None:
-                    sources += [m for m in template.sources if m != filepattern]
+                kwds['name'] = module_name
+
+                sources = [file] + [m for m in template.sources if m != filepattern]
                 if 'sources' in kwds:
                     # allow users to add .c files etc.
                     for source in kwds['sources']:
                         source = encode_filename_in_py2(source)
                         if source not in sources:
                             sources.append(source)
-                    extra_sources = kwds['sources']
-                    del kwds['sources']
-                else:
-                    extra_sources = None
-                if 'depends' in kwds:
-                    depends = resolve_depends(kwds['depends'], (kwds.get('include_dirs') or []) + ["."])
-                    if template is not None:
-                        # Always include everything from the template.
-                        depends = set(template.depends).union(depends)
-                    # Sort depends to make the metadata dump in the
-                    # Cython-generated C code predictable.
-                    kwds['depends'] = sorted(depends)
+                kwds['sources'] = sources
 
                 if ext_language and 'language' not in kwds:
                     kwds['language'] = ext_language
 
-                module_list.append(exn_type(
-                        name=module_name,
-                        sources=sources,
-                        **kwds))
-                if extra_sources:
-                    kwds['sources'] = extra_sources
-                module_metadata[module_name] = {'distutils': kwds, 'module_name': module_name}
-                m = module_list[-1]
+                np_pythran = kwds.pop('np_pythran', False)
+
+                # Create the new extension
+                m, metadata = create_extension(template, kwds)
+                m.np_pythran = np_pythran or getattr(m, 'np_pythran', False)
+                if m.np_pythran:
+                    update_pythran_extension(m)
+                module_list.append(m)
+
+                # Store metadata (this will be written as JSON in the
+                # generated C file but otherwise has no purpose)
+                module_metadata[module_name] = metadata
+
                 if file not in m.sources:
-                    # Old setuptools unconditionally replaces .pyx with .c
-                    m.sources.remove(file.rsplit('.')[0] + '.c')
+                    # Old setuptools unconditionally replaces .pyx with .c/.cpp
+                    target_file = os.path.splitext(file)[0] + ('.cpp' if m.language == 'c++' else '.c')
+                    try:
+                        m.sources.remove(target_file)
+                    except ValueError:
+                        # never seen this in the wild, but probably better to warn about this unexpected case
+                        print("Warning: Cython source file not found in sources list, adding %s" % file)
                     m.sources.insert(0, file)
                 seen.add(name)
     return module_list, module_metadata
@@ -804,6 +899,13 @@ def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, 
         if options.get('cache'):
             raise NotImplementedError("common_utility_include_dir does not yet work with caching")
         safe_makedirs(options['common_utility_include_dir'])
+
+    pythran_options = None
+    if PythranAvailable:
+        pythran_options = CompilationOptions(**options)
+        pythran_options.cplus = True
+        pythran_options.np_pythran = True
+
     c_options = CompilationOptions(**options)
     cpp_options = CompilationOptions(**options); cpp_options.cplus = True
     ctx = c_options.create_context()
@@ -839,7 +941,10 @@ def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, 
         for source in m.sources:
             base, ext = os.path.splitext(source)
             if ext in ('.pyx', '.py'):
-                if m.language == 'c++':
+                if m.np_pythran:
+                    c_file = base + '.cpp'
+                    options = pythran_options
+                elif m.language == 'c++':
                     c_file = base + '.cpp'
                     options = cpp_options
                 else:
@@ -866,7 +971,7 @@ def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, 
                     dep_timestamp, dep = deps.newest_dependency(source)
                     priority = 2 - (dep in deps.immediate_dependencies(source))
                 if force or c_timestamp < dep_timestamp:
-                    if not quiet:
+                    if not quiet and not force:
                         if source == dep:
                             print("Compiling %s because it changed." % source)
                         else:

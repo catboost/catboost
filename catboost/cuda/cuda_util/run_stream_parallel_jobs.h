@@ -5,7 +5,7 @@
 
 template <class TFunc>
 inline void RunInStreams(ui32 taskCount, ui32 streamCount, TFunc&& func) {
-    yvector<TComputationStream> streams;
+    TVector<TComputationStream> streams;
     auto& manager = NCudaLib::GetCudaManager();
 
     if (streamCount == 1) {

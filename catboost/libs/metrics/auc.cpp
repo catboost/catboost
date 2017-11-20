@@ -4,7 +4,7 @@
 
 using NMetrics::TSample;
 
-static double MergeAndCountInversions(yvector<TSample>* samples, yvector<TSample>* aux, ui32 lo, ui32 hi, ui32 mid) {
+static double MergeAndCountInversions(TVector<TSample>* samples, TVector<TSample>* aux, ui32 lo, ui32 hi, ui32 mid) {
     double result = 0;
     ui32 left = lo;
     ui32 right = mid;
@@ -28,7 +28,7 @@ static double MergeAndCountInversions(yvector<TSample>* samples, yvector<TSample
     return result;
 }
 
-static double SortAndCountInversions(yvector<TSample>* samples, yvector<TSample>* aux, ui32 lo, ui32 hi) {
+static double SortAndCountInversions(TVector<TSample>* samples, TVector<TSample>* aux, ui32 lo, ui32 hi) {
     if (lo + 1 >= hi) return 0;
     ui32 mid = lo + (hi - lo) / 2;
     auto leftCount = SortAndCountInversions(samples, aux, lo, mid);
@@ -38,7 +38,7 @@ static double SortAndCountInversions(yvector<TSample>* samples, yvector<TSample>
     return leftCount + rightCount + mergeCount;
 }
 
-double CalcAUC(yvector<TSample>* samples, double* outWeightSum, double* outPairWeightSum) {
+double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairWeightSum) {
     double weightSum = 0;
     double pairWeightSum = 0;
     Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
@@ -62,7 +62,7 @@ double CalcAUC(yvector<TSample>* samples, double* outWeightSum, double* outPairW
     if (pairWeightSum == 0) {
         return 0;
     }
-    yvector<TSample> aux(samples->begin(), samples->end());
+    TVector<TSample> aux(samples->begin(), samples->end());
     Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
         return left.Prediction < right.Prediction ||
                left.Prediction == right.Prediction && left.Target < right.Target;

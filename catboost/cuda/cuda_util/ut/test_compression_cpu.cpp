@@ -15,7 +15,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionTest) {
             TRandom rand(0);
 
             for (ui32 bitsPerKey = 1; bitsPerKey < bits; ++bitsPerKey) {
-                yvector<ui32> vec;
+                TVector<ui32> vec;
                 ui32 uniqueValues = (1 << bitsPerKey);
 
                 ui64 size = rand.NextUniformL() % 1000000;

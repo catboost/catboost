@@ -613,7 +613,7 @@ void TShellCommand::TImpl::Run() {
 
     /* arguments holders */
     TString shellArg;
-    yvector<char*> qargv;
+    TVector<char*> qargv;
     /*
       Following "const_cast"s are safe:
       http://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html
@@ -636,8 +636,8 @@ void TShellCommand::TImpl::Run() {
 
     qargv.push_back(nullptr);
 
-    yvector<TString> envHolder;
-    yvector<char*> envp;
+    TVector<TString> envHolder;
+    TVector<char*> envp;
     if (!Environment.empty()) {
         for (auto& env : Environment) {
             envHolder.emplace_back(env.first + '=' + env.second);

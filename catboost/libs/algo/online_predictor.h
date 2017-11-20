@@ -6,8 +6,8 @@
 #include <util/system/yassert.h>
 
 struct TSum {
-    yvector<double> SumDerHistory;
-    yvector<double> SumDer2History;
+    TVector<double> SumDerHistory;
+    TVector<double> SumDer2History;
     double SumWeights;
 
     TSum(int iterationCount)
@@ -42,8 +42,8 @@ struct TSum {
 };
 
 struct TSumMulti {
-    yvector<yvector<double>> SumDerHistory;
-    TArray2D<yvector<double>> SumDer2History;
+    TVector<TVector<double>> SumDerHistory;
+    TArray2D<TVector<double>> SumDer2History;
     double SumWeights;
 
     TSumMulti()
@@ -74,7 +74,7 @@ struct TSumMulti {
         SumDer2History.Clear();
     }
 
-    void AddDerWeight(const yvector<double>& delta, double weight, int gradientIteration) {
+    void AddDerWeight(const TVector<double>& delta, double weight, int gradientIteration) {
         for (int dim = 0; dim < SumDerHistory.ysize(); ++dim) {
             if (SumDerHistory[dim].ysize() < gradientIteration + 1) {
                 SumDerHistory[dim].resize(gradientIteration + 1);
@@ -86,7 +86,7 @@ struct TSumMulti {
         }
     }
 
-    void AddDerDer2(const yvector<double>& delta, const TArray2D<double>& der2, int gradientIteration) {
+    void AddDerDer2(const TVector<double>& delta, const TArray2D<double>& der2, int gradientIteration) {
         for (size_t dimY = 0; dimY < SumDer2History.GetYSize(); ++dimY) {
             if (SumDerHistory[dimY].ysize() < gradientIteration + 1) {
                 SumDerHistory[dimY].resize(gradientIteration + 1);
@@ -103,11 +103,9 @@ struct TSumMulti {
 };
 
 namespace {
+
 inline double CalcAverage(double sumDelta, double count, float l2Regularizer) {
-    if (count < 1) {
-        return 0;
-    }
-    double inv = 1. / (count + l2Regularizer);
+    double inv = count > 0 ? 1. / (count + l2Regularizer) : 0;
     return sumDelta * inv;
 }
 
@@ -118,7 +116,7 @@ inline double CalcModelGradient(const TSum& ss, int gradientIteration, float l2R
     return CalcAverage(ss.SumDerHistory[gradientIteration], ss.SumWeights, l2Regularizer);
 }
 
-inline void CalcModelGradientMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, yvector<double>* res) {
+inline void CalcModelGradientMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res) {
     const int approxDimension = ss.SumDerHistory.ysize();
     res->resize(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
@@ -142,4 +140,4 @@ inline double CalcModelNewton(const TSum& ss, int gradientIteration, float l2Reg
 }
 }
 
-void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, yvector<double>* res);
+void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res);

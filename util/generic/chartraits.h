@@ -114,17 +114,17 @@ namespace NCharTraitsImpl {
             return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
         }
     };
-} // namespace NCharTraitsImpl
+}
 
 template <typename TCharType,
           typename TSingleCharBase = NCharTraitsImpl::TSingleCharBase<TCharType>,
           typename TCompareBase = NCharTraitsImpl::TCompareBase<TCharType, TSingleCharBase>,
           typename TEqualBase = NCharTraitsImpl::TEqualBase<TCharType, TCompareBase>>
 struct TCompareCharTraits: public TSingleCharBase, public TCompareBase, public TEqualBase {
-    using TSingleCharBase::Compare;
-    using TSingleCharBase::Equal;
     using TCompareBase::Compare;
     using TEqualBase::Equal;
+    using TSingleCharBase::Compare;
+    using TSingleCharBase::Equal;
 
     static int Compare(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
         const size_t n = n1 < n2 ? n1 : n2;
@@ -233,7 +233,7 @@ namespace NCharTraitsImpl {
             return nullptr;
         }
     };
-} // NCharTraitsImpl
+}
 
 template <typename TCharType, typename TLength = TLengthCharTraits<TCharType>, typename TCompare = TCompareCharTraits<TCharType>>
 class TFindCharTraits: public NCharTraitsImpl::TFind<TCharType, TLength, TCompare> {
@@ -346,7 +346,7 @@ namespace NCharTraitsImpl {
             }
         }
     };
-} // namespace NCharTraitsImpl
+}
 
 template <typename TCharType>
 struct TMutableCharTraits: public NCharTraitsImpl::TMutable<TCharType> {

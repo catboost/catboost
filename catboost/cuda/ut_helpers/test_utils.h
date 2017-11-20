@@ -5,18 +5,18 @@
 #include <util/stream/file.h>
 
 struct TUnitTestPool {
-    yvector<float> Features;
-    yvector<float> Targets;
-    yvector<ui32> Qids;
-    yvector<ui32> Gids;
-    yvector<yvector<ui32>> Queries;
+    TVector<float> Features;
+    TVector<float> Targets;
+    TVector<ui32> Qids;
+    TVector<ui32> Gids;
+    TVector<TVector<ui32>> Queries;
 
     ui64 NumSamples;
     ui64 SamplesPerQuery;
     ui64 NumFeatures;
 
-    yvector<float> GetFeature(ui32 f) {
-        yvector<float> feature;
+    TVector<float> GetFeature(ui32 f) {
+        TVector<float> feature;
         for (size_t doc = 0; doc < NumSamples; ++doc) {
             feature.push_back(Features[f * NumSamples + doc]);
         }
@@ -26,16 +26,16 @@ struct TUnitTestPool {
 ////
 
 struct TBinarizedPool {
-    yvector<yvector<ui8>> Features;
-    yvector<float> Targets;
-    yvector<ui32> Qids;
-    yvector<yvector<ui32>> CatFeatures;
-    yvector<yvector<int>> Queries;
+    TVector<TVector<ui8>> Features;
+    TVector<float> Targets;
+    TVector<ui32> Qids;
+    TVector<TVector<ui32>> CatFeatures;
+    TVector<TVector<int>> Queries;
     ui32 NumSamples;
     ui32 SamplesPerQuery;
     ui32 NumFeatures;
     ui32 NumCatFeatures = 1;
-    yvector<ui32> CompressedIndex;
+    TVector<ui32> CompressedIndex;
     //
     //
 
@@ -57,7 +57,7 @@ struct TBinarizedPool {
         }
     }
 
-    void Add(yvector<ui8> bins, ui32 i) {
+    void Add(TVector<ui8> bins, ui32 i) {
         ui32 mask = GetMask(i);
         ui32 offset = NumSamples * (i / 4);
         for (ui32 doc = 0; doc < NumSamples; ++doc) {

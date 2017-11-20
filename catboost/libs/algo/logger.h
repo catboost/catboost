@@ -1,8 +1,8 @@
 #pragma once
 
 #include "learn_context.h"
-#include "metric.h"
 
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/tensorboard_logger/tensorboard_logger.h>
 
 struct TLogger {
@@ -15,5 +15,5 @@ enum class EPhase {
     Test
 };
 
-THolder<TLogger> CreateLogger(const yvector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest);
-void Log(int iteration, const yvector<double>& errorsHistory, const yvector<THolder<IMetric>>& errors, TLogger* logger, const EPhase phase);
+THolder<TLogger> CreateLogger(const TVector<THolder<IMetric>>& errors, TLearnContext& ctx, const bool hasTest);
+void Log(int iteration, const TVector<double>& errorsHistory, const TVector<THolder<IMetric>>& errors, TLogger* logger, const EPhase phase);

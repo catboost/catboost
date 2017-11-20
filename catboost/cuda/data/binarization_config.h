@@ -26,7 +26,7 @@ namespace NCatboostCuda
     {
         TBinarizationDescription BinarizationDescription;
 
-        yvector<float> Borders;
+        TVector<float> Borders;
         bool HasBordersFlag = false;
 
         bool HasBorders() const
@@ -34,7 +34,7 @@ namespace NCatboostCuda
             return (bool) HasBordersFlag;
         }
 
-        const yvector<float>& GetBorders() const
+        const TVector<float>& GetBorders() const
         {
             return Borders;
         }

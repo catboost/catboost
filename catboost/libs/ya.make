@@ -3,10 +3,12 @@ RECURSE(
     helpers
     logging
     metrics
+    params
     model
     model/ut
     model_interface
     overfitting_detector
+    tensorboard_logger
     algo/ut
     algo
     data

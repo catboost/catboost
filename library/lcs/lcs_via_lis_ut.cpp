@@ -10,7 +10,7 @@ class TLCSTest: public TTestBase {
 
 private:
     size_t Length(TStringBuf s1, TStringBuf s2) {
-        yvector<yvector<size_t>> c;
+        TVector<TVector<size_t>> c;
         c.resize(s1.size() + 1);
 
         for (size_t i = 0; i < c.size(); ++i) {

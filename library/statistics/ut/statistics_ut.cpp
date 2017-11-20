@@ -145,7 +145,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
 
 
     double WilcoxonPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
-        yvector<float> v(a, a + length);
+        TVector<float> v(a, a + length);
         for (size_t i = 0; i < length; ++i) {
             v[i] -= b[i];
         }
@@ -168,7 +168,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
 
 
     int WilcoxonSignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
-        yvector<float> v(a, a + length);
+        TVector<float> v(a, a + length);
         for (size_t i = 0; i < length; ++i) {
             v[i] -= b[i];
         }
@@ -182,7 +182,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
 
 
     double WilcoxonWithSignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
-        yvector<float> v(a, a + length);
+        TVector<float> v(a, a + length);
         for (size_t i = 0; i < length; ++i) {
             v[i] -= b[i];
         }
@@ -404,17 +404,17 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
     }
 
     SIMPLE_UNIT_TEST(KLDivergenceTest) {
-        yvector <double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
-        yvector <double> pNormal = {1                , 9               , 54             , 230           , 402           , 247           , 48             , 9               , 0                };
+        TVector <double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
+        TVector <double> pNormal = {1                , 9               , 54             , 230           , 402           , 247           , 48             , 9               , 0                };
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pNormal.begin(), pNormal.end(), qNormal.begin(), qNormal.end()), 0.0048574438, 1e-5);
-        yvector <int> qSimple = {1, 1, 0};
-        yvector <int> pSimple = {0, 2, 0};
+        TVector <int> qSimple = {1, 1, 0};
+        TVector <int> pSimple = {0, 2, 0};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pSimple.begin(), pSimple.end(), qSimple.begin(), qSimple.end()), 0.69314781, 1e-5);
-        yvector <int> pBinomial = {2, 8};
-        yvector <double> qBinomial = {8, 2};
+        TVector <int> pBinomial = {2, 8};
+        TVector <double> qBinomial = {8, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pBinomial.begin(), pBinomial.end(), qBinomial.begin(), qBinomial.end()), 0.8317766167, 1e-5);
-        yvector <int> qBadDataBinomial = {0, 1};
-        yvector <int> pBadDataBinomial = {1, 1};
+        TVector <int> qBadDataBinomial = {0, 1};
+        TVector <int> pBadDataBinomial = {1, 1};
         bool exceptionCaught = false;
         try {
             NStatistics::KLDivergence(pBadDataBinomial.begin(), pBadDataBinomial.end(), qBadDataBinomial.begin(), qBadDataBinomial.end());
@@ -425,8 +425,8 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
     }
 
     SIMPLE_UNIT_TEST(KolmogorovSmirnovHistogramStatistics) {
-        yvector <double> p;
-        yvector <double> q;
+        TVector <double> p;
+        TVector <double> q;
         p = {1, 2, 1};
         q = {1, 0, 3};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KolmogorovSmirnovHistogramStatistics(p.begin(), p.end(), q.begin(), q.end()), 0.5, 1e-5);

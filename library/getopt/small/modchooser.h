@@ -7,8 +7,8 @@
 #include <functional>
 
 //! Mode function with vector of cli arguments.
-typedef std::function<int(const yvector<TString>&)> TMainFunctionPtrV;
-typedef int (*TMainFunctionRawPtrV)(const yvector<TString> &argv);
+typedef std::function<int(const TVector<TString>&)> TMainFunctionPtrV;
+typedef int (*TMainFunctionRawPtrV)(const TVector<TString> &argv);
 
 //! Mode function with classic argc and argv arguments.
 typedef std::function<int(const int, const char **)> TMainFunctionPtr;
@@ -17,7 +17,7 @@ typedef int (*TMainFunctionRawPtr)(const int argc, const char **argv);
 //! Mode class with vector of cli arguments.
 class TMainClassV {
 public:
-    virtual int operator()(const yvector<TString> &argv) = 0;
+    virtual int operator()(const TVector<TString> &argv) = 0;
     virtual ~TMainClassV() = default;
 };
 
@@ -84,7 +84,7 @@ public:
     int Run(const int argc, const char** argv) const;
 
     //! Run appropriate mode. Same as Run(const int, const char**)
-    int Run(const yvector<TString> &argv) const;
+    int Run(const TVector<TString> &argv) const;
 
     void PrintHelp(const TString& progName) const;
 
@@ -114,7 +114,7 @@ private:
     TString ModesHelpOption;
 
     //! Wrappers around all modes.
-    yvector<TAutoPtr<TMainClassV>> Wrappers;
+    TVector<TAutoPtr<TMainClassV>> Wrappers;
 
     //! Modes
     TModes Modes;
@@ -132,5 +132,5 @@ private:
     TString SeparationString;
 
     //! Unsorted list of options
-    yvector<TMode> UnsortedModes;
+    TVector<TMode> UnsortedModes;
 };

@@ -121,13 +121,13 @@ namespace NKernelHost {
             return ColumnCount;
         }
 
-        void AsyncWrite(const yvector<T>& data,
+        void AsyncWrite(const TVector<T>& data,
                         const TCudaStream& stream) const {
             CB_ENSURE(data.size() <= Size());
             NCudaLib::TMemoryCopier<EPtrType::Host, Type>::CopyMemoryAsync(~data, Get(), data.size(), stream);
         }
 
-        void Write(const yvector<T>& data, const TCudaStream& stream) const {
+        void Write(const TVector<T>& data, const TCudaStream& stream) const {
             if (Type == EPtrType::CudaHost) {
                 T* Dst = this->Get();
                 for (ui32 i = 0; i < data.size(); ++i) {
@@ -139,9 +139,9 @@ namespace NKernelHost {
             }
         }
 
-        yvector<typename std::remove_const<T>::type> Read(const TCudaStream& stream) const {
+        TVector<typename std::remove_const<T>::type> Read(const TCudaStream& stream) const {
             const ui64 size = Size();
-            yvector<typename std::remove_const<T>::type> result;
+            TVector<typename std::remove_const<T>::type> result;
             result.resize(size);
             NCudaLib::TMemoryCopier<Type, EPtrType::Host>::CopyMemoryAsync(Get(), ~result, size, stream);
             stream.Synchronize();

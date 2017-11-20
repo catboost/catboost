@@ -3,6 +3,7 @@
 #include <util/system/align.h>
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
+#include <util/generic/noncopyable.h>
 #include <util/generic/vector.h>
 #include <util/generic/strbuf.h>
 
@@ -14,7 +15,7 @@
  * Non-reallocated storage for the objects of POD type
  */
 template <class T, class Alloc = std::allocator<T>>
-class segmented_pool {
+class segmented_pool : TNonCopyable {
 protected:
     using pointer = typename Alloc::pointer;
     Alloc seg_allocator;
@@ -35,7 +36,7 @@ protected:
         {
         }
     };
-    using seg_container = yvector<seg_inf>;
+    using seg_container = TVector<seg_inf>;
     using seg_iterator = typename seg_container::iterator;
     using seg_const_iterator = typename seg_container::const_iterator;
     const size_t segment_size; // default size of a memory chunk in sizeof(T)-units
@@ -144,7 +145,6 @@ public:
         check_capacity(segment_size);
         Y_ASSERT(capacity() == segment_size * sizeof(T));
     }
-    Y_DISABLE_COPY(segmented_pool);
 };
 
 class segmented_string_pool: public segmented_pool<char> {
@@ -183,7 +183,6 @@ public:
     char* Allocate(size_t len) {
         return append(nullptr, len);
     }
-    Y_DISABLE_COPY(segmented_string_pool);
 };
 
 template <typename T, typename C>

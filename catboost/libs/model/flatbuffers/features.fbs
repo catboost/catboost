@@ -1,0 +1,37 @@
+namespace NCatBoostFbs;
+
+table TFloatFeature {
+    HasNans:bool = false;
+    Index:int = -1;
+    FlatIndex:int = -1;
+    Borders:[float];
+    FeatureId:string;
+}
+
+table TCatFeature {
+    Index:int = -1;
+    FlatIndex:int = -1;
+    FeatureId:string;
+}
+
+table TOneHotFeature {
+    Index:int = -1;
+    Values:[int];
+    StringValues:[string];
+}
+
+struct TFloatSplit {
+    Index:int;
+    Border:float;
+}
+
+struct TOneHotSplit {
+    Index:int;
+    Value:int;
+}
+
+table TFeatureCombination {
+    CatFeatures:[int];
+    FloatSplits:[TFloatSplit];
+    OneHotSplits:[TOneHotSplit];
+}

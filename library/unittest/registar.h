@@ -357,8 +357,8 @@ public:                       \
 #define UNIT_FAIL_NONFATAL(M) UNIT_FAIL_NONFATAL_IMPL("forced failure", M)
 
 //types
-#define UNIT_ASSERT_TYPES_EQUAL(A, B) \
-    if (!std::is_same<A, B>::value) {                                   \
+#define UNIT_ASSERT_TYPES_EQUAL(A, B)                                                                                                                        \
+    if (!std::is_same<A, B>::value) {                                                                                                                        \
         UNIT_FAIL_IMPL("types equal assertion failed", ~(TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")")); \
     }
 
@@ -470,37 +470,37 @@ public:                       \
 #define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "")
 
 // Assert that exception is thrown and contains some part of text
-#define UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, substr, C)      \
-    do {                                                       \
-        bool _thrown = false;                                  \
-        try {                                                  \
-            (void)(A);                                         \
-        } catch (const ::NUnitTest::TAssertException&) {       \
-            throw;                                             \
-        } catch (const E&) {                                   \
-            _thrown = true;                                    \
-            const TString _substr((substr));                   \
-            if (!_substr.empty()) {                            \
-                UNIT_ASSERT_C(CurrentExceptionMessage()        \
-                              .Contains(_substr),              \
-                              "Exception doesn't contain \""   \
-                              << _substr << "\".\n"            \
-                              << "Exception message: "         \
-                              << CurrentExceptionMessage());   \
-            }                                                  \
-        } catch (...) {                                        \
-            _thrown = true;                                    \
-            UNIT_FAIL_IMPL("exception assertion failed",       \
-                           #A << " doesn't throw " << #E       \
-                           << ", but throws other exception "  \
-                           << "with message:\n"                \
-                           << CurrentExceptionMessage());      \
-        }                                                      \
-        if (!_thrown) {                                        \
-            UNIT_FAIL_IMPL("exception assertion failed",       \
-                           #A << " doesn't throw " << #E       \
-                           << " " << C);                       \
-        }                                                      \
+#define UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, substr, C)        \
+    do {                                                         \
+        bool _thrown = false;                                    \
+        try {                                                    \
+            (void)(A);                                           \
+        } catch (const ::NUnitTest::TAssertException&) {         \
+            throw;                                               \
+        } catch (const E&) {                                     \
+            _thrown = true;                                      \
+            const TString _substr((substr));                     \
+            if (!_substr.empty()) {                              \
+                UNIT_ASSERT_C(CurrentExceptionMessage()          \
+                                  .Contains(_substr),            \
+                              "Exception doesn't contain \""     \
+                                  << _substr << "\".\n"          \
+                                  << "Exception message: "       \
+                                  << CurrentExceptionMessage()); \
+            }                                                    \
+        } catch (...) {                                          \
+            _thrown = true;                                      \
+            UNIT_FAIL_IMPL("exception assertion failed",         \
+                           #A << " doesn't throw " << #E         \
+                              << ", but throws other exception " \
+                              << "with message:\n"               \
+                              << CurrentExceptionMessage());     \
+        }                                                        \
+        if (!_thrown) {                                          \
+            UNIT_FAIL_IMPL("exception assertion failed",         \
+                           #A << " doesn't throw " << #E         \
+                              << " " << C);                      \
+        }                                                        \
     } while (false)
 
 #define UNIT_ASSERT_EXCEPTION_CONTAINS(A, E, substr) \
@@ -608,7 +608,7 @@ public:                       \
             UNIT_FAIL_IMPL("fail test assertion failure",                \
                            "code is expected to generate test failure, " \
                            "but it throws exception with message: "      \
-                           << CurrentExceptionMessage());                \
+                               << CurrentExceptionMessage());            \
         }                                                                \
         if (!checker.Failed()) {                                         \
             UNIT_FAIL_IMPL("fail test assertion failure",                \
@@ -756,7 +756,7 @@ public:                       \
     namespace NTestSuite##N {                                                                                           \
         class TCurrentTest: public T {                                                                                  \
         private:                                                                                                        \
-            typedef yvector<NUnitTest::TTest> TTests;                                                                   \
+            typedef TVector<NUnitTest::TTest> TTests;                                                                   \
                                                                                                                         \
             static TTests& Tests() {                                                                                    \
                 static TTests tests;                                                                                    \

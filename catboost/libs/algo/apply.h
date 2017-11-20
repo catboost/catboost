@@ -4,31 +4,11 @@
 
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
-
-#include <util/generic/vector.h>
 #include <catboost/libs/model/formula_evaluator.h>
 
-using TTreeFunction = std::function<void(const TAllFeatures& features,
-                                         const TFullModel& model,
-                                         int treeIdx,
-                                         const TCommonContext& ctx,
-                                         yvector<yvector<double>>* approxPtr)>;
+#include <util/generic/vector.h>
 
-void CalcApproxForTree(const TAllFeatures& features,
-                       const TFullModel& model,
-                       int treeIdx,
-                       const TCommonContext& ctx,
-                       yvector<yvector<double>>* resultPtr);
-
-yvector<yvector<double>> MapFunctionToTrees(const TFullModel& model,
-                                            const TAllFeatures& features,
-                                            int begin,
-                                            int end,
-                                            const TTreeFunction& function,
-                                            int resultDimension,
-                                            TCommonContext* ctx);
-
-yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
+TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          const TPool& pool,
                                          const EPredictionType predictionType,
                                          int begin,
@@ -36,7 +16,7 @@ yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& cal
                                          NPar::TLocalExecutor& executor);
 
 
-yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& calcer,
+TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          const TPool& pool,
                                          bool verbose = false,
                                          const EPredictionType predictionType = EPredictionType::RawFormulaVal,
@@ -44,7 +24,7 @@ yvector<yvector<double>> ApplyModelMulti(const NCatBoost::TFormulaEvaluator& cal
                                          int end = 0,
                                          int threadCount = 1);
 
-yvector<double> ApplyModel(const TFullModel& model,
+TVector<double> ApplyModel(const TFullModel& model,
                            const TPool& pool,
                            bool verbose = false,
                            const EPredictionType predictionType = EPredictionType::RawFormulaVal,

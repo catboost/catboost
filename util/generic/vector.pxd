@@ -1,5 +1,5 @@
 cdef extern from "<util/generic/vector.h>" nogil:
-    cdef cppclass yvector[T]:
+    cdef cppclass TVector[T]:
         cppclass iterator:
             T& operator*()
             iterator operator++()
@@ -32,17 +32,17 @@ cdef extern from "<util/generic/vector.h>" nogil:
         cppclass const_reverse_iterator(reverse_iterator):
             pass
 
-        yvector() except +
-        yvector(yvector&) except +
-        yvector(size_t) except +
-        yvector(size_t, T&) except +
+        TVector() except +
+        TVector(TVector&) except +
+        TVector(size_t) except +
+        TVector(size_t, T&) except +
 
-        bint operator==(yvector&)
-        bint operator!=(yvector&)
-        bint operator<(yvector&)
-        bint operator>(yvector&)
-        bint operator<=(yvector&)
-        bint operator>=(yvector&)
+        bint operator==(TVector&)
+        bint operator!=(TVector&)
+        bint operator<(TVector&)
+        bint operator>(TVector&)
+        bint operator<=(TVector&)
+        bint operator>=(TVector&)
 
         void assign(size_t, const T&) except +
         void assign[input_iterator](input_iterator, input_iterator) except +
@@ -76,7 +76,7 @@ cdef extern from "<util/generic/vector.h>" nogil:
         void resize(size_t) except +
         void resize(size_t, T&) except +
         size_t size()
-        void swap(yvector&) except +
+        void swap(TVector&) except +
 
         # C++11 methods
         T* data()

@@ -6,29 +6,36 @@
 #include <util/generic/algorithm.h>
 #include <util/system/mem_info.h>
 
-void GenerateBorders(const TDocumentStorage& docStorage, TLearnContext* ctx, yvector<yvector<float>>* borders, yvector<bool>* hasNans) {
-
-    const yhash_set<int>& categFeatures = ctx->CatFeatures;
+void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
+    auto& docStorage = pool.Docs;
+    const THashSet<int>& categFeatures = ctx->CatFeatures;
     const int borderCount = ctx->Params.BorderCount;
     const EBorderSelectionType borderType = ctx->Params.FeatureBorderType;
 
     size_t reasonCount = docStorage.GetFactorsCount() - categFeatures.size();
-    borders->resize(reasonCount);
-    hasNans->resize(reasonCount);
+    floatFeatures->resize(reasonCount);
     if (reasonCount == 0) {
         return;
     }
-
-    yvector<int> floatIndexes;
-    for (int i = 0; i < docStorage.GetFactorsCount(); ++i) {
-        if (!categFeatures.has(i)) {
-            floatIndexes.push_back(i);
+    {
+        size_t floatFeatureId = 0;
+        for (int i = 0; i < docStorage.GetFactorsCount(); ++i) {
+            if (categFeatures.has(i)) {
+                continue;
+            }
+            auto& floatFeature = floatFeatures->at(floatFeatureId);
+            floatFeature.FeatureIndex = static_cast<int>(floatFeatureId);
+            floatFeature.FlatFeatureIndex = i;
+            if (i < pool.FeatureId.ysize()) {
+                floatFeature.FeatureId = pool.FeatureId[i];
+            }
+            ++floatFeatureId;
         }
     }
     // Estimate how many threads can generate borders
     const size_t bytes1M = 1024 * 1024, bytesThreadStack = 2 * bytes1M;
     const size_t bytesUsed = NMemInfo::GetMemInfo().RSS;
-    const size_t bytesBestSplit = (sizeof(float) + (borderCount - 1) * sizeof(size_t) + 2 * sizeof(double) + 2 * sizeof(size_t) + 2 * sizeof(double)) * docStorage.GetDocCount();
+    const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, docStorage.GetDocCount(), borderType);
     const size_t bytesGenerateBorders = sizeof(float) * docStorage.GetDocCount();
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
     const size_t threadCount = Min(reasonCount, (ctx->Params.UsedRAMLimit - bytesUsed) / bytesRequiredPerThread);
@@ -37,29 +44,30 @@ void GenerateBorders(const TDocumentStorage& docStorage, TLearnContext* ctx, yve
     }
 
     TAtomic taskFailedBecauseOfNans = 0;
-    yhash_set<int> ignoredFeatureIndexes(ctx->Params.IgnoredFeatures.begin(), ctx->Params.IgnoredFeatures.end());
+    THashSet<int> ignoredFeatureIndexes(ctx->Params.IgnoredFeatures.begin(), ctx->Params.IgnoredFeatures.end());
     auto calcOneFeatureBorder = [&](int idx) {
-        const auto floatFeatureIdx = floatIndexes[idx];
+        auto& floatFeature = floatFeatures->at(idx);
+        const auto floatFeatureIdx = floatFeatures->at(idx).FlatFeatureIndex;
         if (ignoredFeatureIndexes.has(floatFeatureIdx)) {
             return;
         }
 
-        yvector<float> vals;
+        TVector<float> vals;
 
-        (*hasNans)[idx] = false;
+        floatFeature.HasNans = false;
         for (size_t i = 0; i < docStorage.GetDocCount(); ++i) {
             if (!IsNan(docStorage.Factors[floatFeatureIdx][i])) {
                 vals.push_back(docStorage.Factors[floatFeatureIdx][i]);
             } else {
-                (*hasNans)[idx] = true;
+                floatFeature.HasNans = true;
             }
         }
         Sort(vals.begin(), vals.end());
 
-        yhash_set<float> borderSet = BestSplit(vals, borderCount, borderType);
-        yvector<float> bordersBlock(borderSet.begin(), borderSet.end());
+        THashSet<float> borderSet = BestSplit(vals, borderCount, borderType);
+        TVector<float> bordersBlock(borderSet.begin(), borderSet.end());
         Sort(bordersBlock.begin(), bordersBlock.end());
-        if ((*hasNans)[idx]) {
+        if (floatFeature.HasNans) {
             if (ctx->Params.NanMode == ENanMode::Min) {
                 bordersBlock.insert(bordersBlock.begin(), std::numeric_limits<float>::lowest());
             } else if (ctx->Params.NanMode == ENanMode::Max) {
@@ -69,7 +77,7 @@ void GenerateBorders(const TDocumentStorage& docStorage, TLearnContext* ctx, yve
                 taskFailedBecauseOfNans = 1;
             }
         }
-        (*borders)[idx].swap(bordersBlock);
+        floatFeature.Borders.swap(bordersBlock);
     };
     size_t nReason = 0;
     for (; nReason + threadCount <= reasonCount; nReason += threadCount) {
@@ -83,10 +91,10 @@ void GenerateBorders(const TDocumentStorage& docStorage, TLearnContext* ctx, yve
     MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
 }
 
-void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool) {
+void ApplyPermutation(const TVector<size_t>& permutation, TPool* pool) {
     Y_VERIFY(pool->Docs.GetDocCount() == 0 || permutation.size() == pool->Docs.GetDocCount());
 
-    yvector<size_t> toIndices(permutation);
+    TVector<size_t> toIndices(permutation);
     for (size_t i = 0; i < pool->Docs.GetDocCount(); ++i) {
         while (toIndices[i] != i) {
             auto destinationIndex = toIndices[i];
@@ -101,15 +109,15 @@ void ApplyPermutation(const yvector<size_t>& permutation, TPool* pool) {
     }
 }
 
-yvector<size_t> InvertPermutation(const yvector<size_t>& permutation) {
-    yvector<size_t> result(permutation.size());
+TVector<size_t> InvertPermutation(const TVector<size_t>& permutation) {
+    TVector<size_t> result(permutation.size());
     for (size_t i = 0; i < permutation.size(); ++i) {
         result[permutation[i]] = i;
     }
     return result;
 }
 
-int GetClassesCount(const yvector<float>& target, int classesCount) {
+int GetClassesCount(const TVector<float>& target, int classesCount) {
     int maxClass = static_cast<int>(*MaxElement(target.begin(), target.end()));
     if (classesCount == 0) { // classesCount not set
         return maxClass + 1;

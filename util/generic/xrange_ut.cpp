@@ -28,7 +28,7 @@ SIMPLE_UNIT_TEST_SUITE(XRange) {
         UNIT_ASSERT_VALUES_EQUAL(sum, count * (first + last) / 2);
     }
 
-    void TestSteppedXRangeImpl(int begin, int end, int step, const yvector<int>& expected) {
+    void TestSteppedXRangeImpl(int begin, int end, int step, const TVector<int>& expected) {
         size_t expInd = 0;
         for (auto i : xrange(begin, end, step)) {
             UNIT_ASSERT(expInd < expected.size());
@@ -63,7 +63,7 @@ SIMPLE_UNIT_TEST_SUITE(XRange) {
     }
 
     SIMPLE_UNIT_TEST(PointersWorks) {
-        yvector<size_t> data = {3, 1, 4, 1, 5, 9, 2, 6};
+        TVector<size_t> data = {3, 1, 4, 1, 5, 9, 2, 6};
         const size_t digSumExpected = Accumulate(data.begin(), data.end(), static_cast<size_t>(0));
         size_t digSumByIt = 0;
         for (auto ptr : xrange(data.begin(), data.end())) {
@@ -83,19 +83,19 @@ SIMPLE_UNIT_TEST_SUITE(XRange) {
         UNIT_ASSERT_VALUES_EQUAL(xrange(0, 6, 2).size(), 3);
     }
 
-    class TVectorChild: public yvector<size_t> {
+    class TVectorChild: public TVector<size_t> {
     public:
         template <typename TIterator>
         TVectorChild(TIterator a, TIterator b)
-            : yvector<size_t>(a, b)
+            : TVector<size_t>(a, b)
         {
         }
     };
 
     SIMPLE_UNIT_TEST(ConvertionWorks) {
-        yvector<size_t> data = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+        TVector<size_t> data = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
-        yvector<size_t> convertionResults[] = {xrange<size_t>(9),
+        TVector<size_t> convertionResults[] = {xrange<size_t>(9),
                                                xrange<ui32>(0, 9),
                                                xrange(0, 9, 1)};
 
@@ -122,7 +122,7 @@ SIMPLE_UNIT_TEST_SUITE(XRange) {
             }
 
             using TValueType = decltype(*emptyRange.begin());
-            const yvector<TValueType> asVector = emptyRange;
+            const TVector<TValueType> asVector = emptyRange;
             UNIT_ASSERT(asVector.empty());
         }
     }

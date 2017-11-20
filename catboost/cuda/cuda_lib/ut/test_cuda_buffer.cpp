@@ -22,7 +22,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
 
                 {
                     NCudaLib::TMirrorMapping mirrorMapping(1);
-                    yvector<ui32> devs;
+                    TVector<ui32> devs;
                     for (auto dev : mirrorMapping.NonEmptyDevices()) {
                         devs.push_back(dev);
                     }
@@ -56,7 +56,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 }
             }
             {
-                yvector<ui32> devs;
+                TVector<ui32> devs;
                 for (ui32 dev : TMirrorMapping(10, 1).NonEmptyDevices()) {
                     devs.push_back(dev);
                 }
@@ -67,14 +67,14 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
             }
             {
                 {
-                    yvector<ui32> devs;
+                    TVector<ui32> devs;
                     for (ui32 dev : TSingleMapping(0, 1, 1).NonEmptyDevices()) {
                         devs.push_back(dev);
                     }
                     UNIT_ASSERT_EQUAL(devs[0], 0);
                 }
                 if (devCount > 1) {
-                    yvector<ui32> devs;
+                    TVector<ui32> devs;
                     for (ui32 dev : TSingleMapping(1, 1, 1).NonEmptyDevices()) {
                         devs.push_back(dev);
                     }
@@ -121,13 +121,13 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 UNIT_ASSERT_VALUES_EQUAL(buffer.GetMapping().MemorySize(TSlice(0, 4)), 4 * objectSize);
                 UNIT_ASSERT_VALUES_EQUAL(buffer.GetMapping().DeviceSlice(1), TSlice(0, objectCount));
 
-                yvector<float> tmp;
+                TVector<float> tmp;
                 for (ui32 i = 0; i < objectCount * objectSize; ++i) {
                     tmp.push_back((float)i);
                 }
 
                 buffer.CreateWriter(tmp).Write();
-                yvector<float> tmp2;
+                TVector<float> tmp2;
                 buffer.CreateReader().Read(tmp2);
                 UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), objectCount * objectSize);
                 for (ui32 i = 0; i < objectCount * objectSize; ++i) {
@@ -147,7 +147,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 const ui32 objectCount = 1024;
                 auto buffer = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(objectCount, objectSize));
 
-                yvector<float> tmp;
+                TVector<float> tmp;
                 for (ui32 i = 0; i < objectCount * objectSize; ++i) {
                     tmp.push_back((float)i);
                 }
@@ -156,9 +156,9 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
 
                 const auto& constRef = buffer;
 
-                yvector<float> tmp1;
-                yvector<float> tmp2;
-                yvector<float> tmp3;
+                TVector<float> tmp1;
+                TVector<float> tmp2;
+                TVector<float> tmp3;
                 auto fullSliceBuffer = buffer.SliceView(buffer.GetMapping().GetObjectsSlice());
                 auto sliceBuffer = buffer.SliceView(TSlice(3, 5));
                 auto constSliceBuffer = constRef.SliceView(TSlice(3, 5));
@@ -198,7 +198,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 const ui32 objectCount = 4096;
                 auto buffer = TStripeBuffer<float>::Create(TStripeMapping::SplitBetweenDevices(objectCount));
 
-                yvector<float> tmp;
+                TVector<float> tmp;
                 for (ui32 i = 0; i < objectCount; ++i) {
                     tmp.push_back((float)i);
                 }
@@ -213,9 +213,9 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 const TSlice quad2Slice = TSlice(objectCount / 4, objectCount / 2);
                 auto quad2 = constRef.SliceView(TSlice(0, objectCount / 2)).SliceView(quad2Slice);
 
-                yvector<float> tmp1;
-                yvector<float> tmp2;
-                yvector<float> tmp3;
+                TVector<float> tmp1;
+                TVector<float> tmp2;
+                TVector<float> tmp3;
 
                 half.Read(tmp1);
                 quad.Read(tmp2);
@@ -254,13 +254,13 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 UNIT_ASSERT_VALUES_EQUAL(buffer.GetMapping().DeviceSlice(0).Right, buffer.GetMapping().DeviceSlice(1).Left);
             }
 
-            yvector<ui32> tmp;
+            TVector<ui32> tmp;
             for (ui32 i = 0; i < count * objectSize; ++i) {
                 tmp.push_back(i);
             }
 
             buffer.CreateWriter(tmp).Write();
-            yvector<ui32> tmp2;
+            TVector<ui32> tmp2;
             buffer.CreateReader().Read(tmp2);
 
             UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize);
@@ -278,7 +278,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     .Write();
             }
             {
-                yvector<ui32> tmp3;
+                TVector<ui32> tmp3;
                 buffer.CreateReader().SetReadSlice(partSlice).Read(tmp3);
                 UNIT_ASSERT_VALUES_EQUAL(tmp3.size(), buffer.GetMapping().MemorySize(partSlice));
 
@@ -299,8 +299,8 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
             TStripeMapping mapping = TStripeMapping(TStripeMapping::SplitBetweenDevices(count));
             auto buffer = TCudaBuffer<float, TStripeMapping>::Create(mapping, 2);
 
-            yvector<float> target;
-            yvector<float> weight;
+            TVector<float> target;
+            TVector<float> weight;
             for (ui32 i = 0; i < count; ++i) {
                 target.push_back(i * 1.0f);
                 weight.push_back(1.0f / i);
@@ -309,9 +309,9 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
             buffer.CreateWriter(target).SetColumnWriteSlice(TSlice(0)).Write();
             buffer.CreateWriter(weight).SetColumnWriteSlice(TSlice(1)).Write();
 
-            yvector<float> tmp2;
-            yvector<float> target2;
-            yvector<float> weights2;
+            TVector<float> tmp2;
+            TVector<float> target2;
+            TVector<float> weights2;
             buffer.CreateReader().Read(tmp2);
             buffer.CreateReader().SetColumnReadSlice(TSlice(0)).Read(target2);
             buffer.CreateReader().SetColumnReadSlice(TSlice(1)).Read(weights2);
@@ -339,7 +339,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
 
             auto buffer = TCudaBuffer<ui64, TStripeMapping>::Create(mapping);
 
-            yvector<ui64> tmp;
+            TVector<ui64> tmp;
             for (ui64 i = 0; i < count * objectSize; ++i) {
                 tmp.push_back(i % 10050);
             }
@@ -350,7 +350,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
             FillBuffer(copyBuffer, static_cast<ui64>(1));
             copyBuffer.Copy(buffer);
 
-            yvector<ui64> tmp2;
+            TVector<ui64> tmp2;
             copyBuffer.CreateReader().Read(tmp2);
 
             UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize);
@@ -362,8 +362,8 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
     }
 
     template <class T, class TBuffer>
-    inline void Validate(const yvector<T>& ref, const TBuffer& buffer) {
-        yvector<T> target;
+    inline void Validate(const TVector<T>& ref, const TBuffer& buffer) {
+        TVector<T> target;
         buffer.Read(target);
         UNIT_ASSERT_VALUES_EQUAL(ref.size(), target.size());
         for (ui64 i = 0; i < ref.size(); ++i) {
@@ -376,7 +376,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                                                     ui64 objectCount,
                                                     ui64 objectSize = 1) {
         const ui64 devCount = GetCudaManager().GetDeviceCount();
-        yvector<TSlice> slices(devCount);
+        TVector<TSlice> slices(devCount);
         const ui64 objectPerDevice = ((objectCount + devCount - 1) / devCount) + rng.NextUniformL() % (objectCount / devCount / 10);
 
         ui64 total = 0;
@@ -401,7 +401,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
             auto stripeMapping = TStripeMapping::SplitBetweenDevices(count, objectSize);
             auto anotherStripeMapping = SplitBetweenDevicesRandom(rng, count, objectSize);
 
-            yvector<float> reference;
+            TVector<float> reference;
             for (ui64 i = 0; i < count * objectSize; ++i) {
                 reference.push_back(((i * count + objectSize) % 10050) * 1.0f);
             }

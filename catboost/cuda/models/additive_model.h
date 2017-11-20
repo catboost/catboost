@@ -8,7 +8,7 @@ namespace NCatboostCuda
     class TAdditiveModel
     {
     public:
-        yvector<TInner> WeakModels;
+        TVector<TInner> WeakModels;
 
         TAdditiveModel()
         {
@@ -67,7 +67,7 @@ namespace NCatboostCuda
             WeakModels.resize(newSize);
         }
 
-        double Value(const yvector<float>& point) const
+        double Value(const TVector<float>& point) const
         {
             double value = 0.0;
             for (ui32 i = 0; i < WeakModels.size(); i++)
@@ -75,7 +75,7 @@ namespace NCatboostCuda
             return value;
         }
 
-        double Value(yvector<float>::const_iterator point) const
+        double Value(TVector<float>::const_iterator point) const
         {
             double value = 0.0;
             for (ui32 i = 0; i < WeakModels.size(); i++)

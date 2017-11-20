@@ -9,9 +9,9 @@
 #undef value_type
 
 template <class Value, class HashFcn, class EqualKey, class Alloc>
-class yhash_set {
+class THashSet {
 private:
-    using ht = yhashtable<Value, Value, HashFcn, ::TIdentity, EqualKey, Alloc>;
+    using ht = THashTable<Value, Value, HashFcn, ::TIdentity, EqualKey, Alloc>;
     ht rep;
 
     using mutable_iterator = typename ht::iterator;
@@ -43,76 +43,76 @@ public:
     }
 
 public:
-    yhash_set() {
+    THashSet() {
     }
     template <class TT>
-    explicit yhash_set(TT* allocParam, size_type n = 0)
+    explicit THashSet(TT* allocParam, size_type n = 0)
         : rep(n, hasher(), key_equal(), allocParam)
     {
     }
-    explicit yhash_set(size_type n)
+    explicit THashSet(size_type n)
         : rep(n, hasher(), key_equal())
     {
     }
-    yhash_set(size_type n, const hasher& hf)
+    THashSet(size_type n, const hasher& hf)
         : rep(n, hf, key_equal())
     {
     }
-    yhash_set(size_type n, const hasher& hf, const key_equal& eql)
+    THashSet(size_type n, const hasher& hf, const key_equal& eql)
         : rep(n, hf, eql)
     {
     }
 
-    yhash_set(std::initializer_list<value_type> list)
+    THashSet(std::initializer_list<value_type> list)
         : rep(list.size(), hasher(), key_equal())
     {
         rep.insert_unique(list.begin(), list.end());
     }
-    yhash_set(std::initializer_list<value_type> list, size_type n)
+    THashSet(std::initializer_list<value_type> list, size_type n)
         : rep(n, hasher(), key_equal())
     {
         rep.insert_unique(list.begin(), list.end());
     }
-    yhash_set(std::initializer_list<value_type> list, size_type n, const hasher& hf)
+    THashSet(std::initializer_list<value_type> list, size_type n, const hasher& hf)
         : rep(n, hf, key_equal())
     {
         rep.insert_unique(list.begin(), list.end());
     }
-    yhash_set(std::initializer_list<value_type> list, size_type n, const hasher& hf, const key_equal& eql)
+    THashSet(std::initializer_list<value_type> list, size_type n, const hasher& hf, const key_equal& eql)
         : rep(n, hf, eql)
     {
         rep.insert_unique(list.begin(), list.end());
     }
 
     template <class InputIterator>
-    yhash_set(InputIterator f, InputIterator l)
+    THashSet(InputIterator f, InputIterator l)
         : rep(0, hasher(), key_equal())
     {
         rep.insert_unique(f, l);
     }
     template <class InputIterator>
-    yhash_set(InputIterator f, InputIterator l, size_type n)
+    THashSet(InputIterator f, InputIterator l, size_type n)
         : rep(n, hasher(), key_equal())
     {
         rep.insert_unique(f, l);
     }
     template <class InputIterator>
-    yhash_set(InputIterator f, InputIterator l, size_type n,
+    THashSet(InputIterator f, InputIterator l, size_type n,
               const hasher& hf)
         : rep(n, hf, key_equal())
     {
         rep.insert_unique(f, l);
     }
     template <class InputIterator>
-    yhash_set(InputIterator f, InputIterator l, size_type n,
+    THashSet(InputIterator f, InputIterator l, size_type n,
               const hasher& hf, const key_equal& eql)
         : rep(n, hf, eql)
     {
         rep.insert_unique(f, l);
     }
 
-    // yhash_set has implicit copy/move constructors and copy-/move-assignment operators
-    // because its implementation is backed by yhashtable.
+    // THashSet has implicit copy/move constructors and copy-/move-assignment operators
+    // because its implementation is backed by THashTable.
     // See hash_ut.cpp
 
 public:
@@ -128,7 +128,7 @@ public:
     explicit operator bool() const noexcept {
         return !empty();
     }
-    void swap(yhash_set& hs) {
+    void swap(THashSet& hs) {
         rep.swap(hs.rep);
     }
 
@@ -263,7 +263,7 @@ public:
 };
 
 template <class Value, class HashFcn, class EqualKey, class Alloc>
-inline bool operator==(const yhash_set<Value, HashFcn, EqualKey, Alloc>& hs1, const yhash_set<Value, HashFcn, EqualKey, Alloc>& hs2) {
+inline bool operator==(const THashSet<Value, HashFcn, EqualKey, Alloc>& hs1, const THashSet<Value, HashFcn, EqualKey, Alloc>& hs2) {
     if (hs1.size() != hs2.size()) {
         return false;
     }
@@ -276,14 +276,14 @@ inline bool operator==(const yhash_set<Value, HashFcn, EqualKey, Alloc>& hs1, co
 }
 
 template <class Value, class HashFcn, class EqualKey, class Alloc>
-inline bool operator!=(const yhash_set<Value, HashFcn, EqualKey, Alloc>& hs1, const yhash_set<Value, HashFcn, EqualKey, Alloc>& hs2) {
+inline bool operator!=(const THashSet<Value, HashFcn, EqualKey, Alloc>& hs1, const THashSet<Value, HashFcn, EqualKey, Alloc>& hs2) {
     return !(hs1 == hs2);
 }
 
 template <class Value, class HashFcn, class EqualKey, class Alloc>
-class yhash_multiset {
+class THashMultiSet {
 private:
-    using ht = yhashtable<Value, Value, HashFcn, ::TIdentity, EqualKey, Alloc>;
+    using ht = THashTable<Value, Value, HashFcn, ::TIdentity, EqualKey, Alloc>;
     ht rep;
 
 public:
@@ -312,58 +312,58 @@ public:
     }
 
 public:
-    yhash_multiset()
+    THashMultiSet()
         : rep(0, hasher(), key_equal())
     {
     }
-    explicit yhash_multiset(size_type n)
+    explicit THashMultiSet(size_type n)
         : rep(n, hasher(), key_equal())
     {
     }
-    yhash_multiset(size_type n, const hasher& hf)
+    THashMultiSet(size_type n, const hasher& hf)
         : rep(n, hf, key_equal())
     {
     }
-    yhash_multiset(size_type n, const hasher& hf, const key_equal& eql)
+    THashMultiSet(size_type n, const hasher& hf, const key_equal& eql)
         : rep(n, hf, eql)
     {
     }
 
     template <class InputIterator>
-    yhash_multiset(InputIterator f, InputIterator l)
+    THashMultiSet(InputIterator f, InputIterator l)
         : rep(0, hasher(), key_equal())
     {
         rep.insert_equal(f, l);
     }
     template <class InputIterator>
-    yhash_multiset(InputIterator f, InputIterator l, size_type n)
+    THashMultiSet(InputIterator f, InputIterator l, size_type n)
         : rep(n, hasher(), key_equal())
     {
         rep.insert_equal(f, l);
     }
     template <class InputIterator>
-    yhash_multiset(InputIterator f, InputIterator l, size_type n,
+    THashMultiSet(InputIterator f, InputIterator l, size_type n,
                    const hasher& hf)
         : rep(n, hf, key_equal())
     {
         rep.insert_equal(f, l);
     }
     template <class InputIterator>
-    yhash_multiset(InputIterator f, InputIterator l, size_type n,
+    THashMultiSet(InputIterator f, InputIterator l, size_type n,
                    const hasher& hf, const key_equal& eql)
         : rep(n, hf, eql)
     {
         rep.insert_equal(f, l);
     }
 
-    yhash_multiset(std::initializer_list<value_type> list)
+    THashMultiSet(std::initializer_list<value_type> list)
         : rep(list.size(), hasher(), key_equal())
     {
         rep.insert_equal(list.begin(), list.end());
     }
 
-    // yhash_multiset has implicit copy/move constructors and copy-/move-assignment operators
-    // because its implementation is backed by yhashtable.
+    // THashMultiSet has implicit copy/move constructors and copy-/move-assignment operators
+    // because its implementation is backed by THashTable.
     // See hash_ut.cpp
 
 public:
@@ -379,7 +379,7 @@ public:
     explicit operator bool() const noexcept {
         return !empty();
     }
-    void swap(yhash_multiset& hs) {
+    void swap(THashMultiSet& hs) {
         rep.swap(hs.rep);
     }
 
@@ -464,7 +464,7 @@ public:
 };
 
 template <class Val, class HashFcn, class EqualKey, class Alloc>
-inline bool operator==(const yhash_multiset<Val, HashFcn, EqualKey, Alloc>& hs1, const yhash_multiset<Val, HashFcn, EqualKey, Alloc>& hs2) {
+inline bool operator==(const THashMultiSet<Val, HashFcn, EqualKey, Alloc>& hs1, const THashMultiSet<Val, HashFcn, EqualKey, Alloc>& hs2) {
     if (hs1.size() != hs2.size()) {
         return false;
     }
@@ -483,6 +483,6 @@ inline bool operator==(const yhash_multiset<Val, HashFcn, EqualKey, Alloc>& hs1,
 }
 
 template <class Val, class HashFcn, class EqualKey, class Alloc>
-inline bool operator!=(const yhash_multiset<Val, HashFcn, EqualKey, Alloc>& hs1, const yhash_multiset<Val, HashFcn, EqualKey, Alloc>& hs2) {
+inline bool operator!=(const THashMultiSet<Val, HashFcn, EqualKey, Alloc>& hs1, const THashMultiSet<Val, HashFcn, EqualKey, Alloc>& hs2) {
     return !(hs1 == hs2);
 }

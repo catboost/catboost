@@ -33,7 +33,7 @@ namespace NCatboostCuda
             return HasHeaderFlag;
         }
 
-        const yvector<TString>& GetClassNames() const
+        const TVector<TString>& GetClassNames() const
         {
             return ClassNames;
         }
@@ -46,7 +46,7 @@ namespace NCatboostCuda
         TString FeaturesName = "features.tsv";
         TString TestName = "";
         TString ColumnDescriptionName = "features.cd";
-        yvector<TString> ClassNames;
+        TVector<TString> ClassNames;
         char Delimiter = '\t';
         bool HasHeaderFlag = false;
     };

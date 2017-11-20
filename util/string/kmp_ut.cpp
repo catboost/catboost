@@ -4,8 +4,8 @@
 
 #include <util/stream/output.h>
 
-static yvector<int> FindAll(const TString& pattern, const TString& string) {
-    yvector<int> result;
+static TVector<int> FindAll(const TString& pattern, const TString& string) {
+    TVector<int> result;
     TKMPMatcher kmp(pattern);
     const char* pResult;
     const char* begin = string.begin();
@@ -25,7 +25,7 @@ class TTestKMP: public TTestBase {
 
 public:
     void Test() {
-        yvector<int> ans = {0, 2};
+        TVector<int> ans = {0, 2};
         UNIT_ASSERT_EQUAL(FindAll("a", "aba"), ans);
         ans = {0};
         UNIT_ASSERT_EQUAL(FindAll("aba", "aba"), ans);

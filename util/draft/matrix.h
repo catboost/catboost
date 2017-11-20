@@ -1,13 +1,12 @@
 #pragma once
 
+#include <util/generic/noncopyable.h>
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
 #include <string.h>
 
 template <typename T>
-class TMatrix {
-    Y_DISABLE_COPY(TMatrix);
-
+class TMatrix : TNonCopyable {
     // Constructor/Destructor
 public:
     TMatrix()

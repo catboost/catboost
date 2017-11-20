@@ -477,8 +477,8 @@ private:
     }
 
 private:
-    using TBaseStr::Start;
     using TBaseStr::Length;
+    using TBaseStr::Start;
 };
 
 //string type -> stringbuf type

@@ -10,7 +10,7 @@ cython.declare(sys=object, os=object, copy=object,
                py_object_type=object, ModuleScope=object, LocalScope=object, ClosureScope=object,
                StructOrUnionScope=object, PyClassScope=object,
                CppClassScope=object, UtilityCode=object, EncodedString=object,
-               absolute_path_length=cython.Py_ssize_t, error_type=object, _py_int_types=object)
+               error_type=object, _py_int_types=object)
 
 import sys, os, copy
 from itertools import chain
@@ -28,9 +28,9 @@ from .StringEncoding import EncodedString
 from . import Future
 from . import Options
 from . import DebugFlags
+from .Pythran import has_np_pythran, pythran_type, is_pythran_buffer
 from ..Utils import add_metaclass
 
-absolute_path_length = 0
 
 if sys.version_info[0] >= 3:
     _py_int_types = int
@@ -39,25 +39,8 @@ else:
 
 
 def relative_position(pos):
-    """
-    We embed the relative filename in the generated C file, since we
-    don't want to have to regenerate and compile all the source code
-    whenever the Python install directory moves (which could happen,
-    e.g,. when distributing binaries.)
+    return (pos[0].get_filenametable_entry(), pos[1])
 
-    INPUT:
-        a position tuple -- (absolute filename, line number column position)
-
-    OUTPUT:
-        relative filename
-        line number
-
-    AUTHOR: William Stein
-    """
-    global absolute_path_length
-    if absolute_path_length == 0:
-        absolute_path_length = len(os.path.abspath(os.getcwd()))
-    return (pos[0].get_filenametable_entry()[absolute_path_length+1:], pos[1])
 
 def embed_position(pos, docstring):
     if not Options.embed_pos_in_docstring:
@@ -85,10 +68,12 @@ def embed_position(pos, docstring):
     return doc
 
 
-def _analyse_signature_annotation(annotation, env):
+def analyse_type_annotation(annotation, env):
     base_type = None
     explicit_pytype = explicit_ctype = False
     if annotation.is_dict_literal:
+        warning(annotation.pos,
+                "Dicts should no longer be used as type annotations. Use 'cython.int' etc. directly.")
         for name, value in annotation.key_value_pairs:
             if not name.is_string_literal:
                 continue
@@ -102,6 +87,13 @@ def _analyse_signature_annotation(annotation, env):
         if explicit_pytype and explicit_ctype:
             warning(annotation.pos, "Duplicate type declarations found in signature annotation")
     arg_type = annotation.analyse_as_type(env)
+    if annotation.is_name and not annotation.cython_attribute and annotation.name in ('int', 'long', 'float'):
+        # ignore 'int' and require 'cython.int' to avoid unsafe integer declarations
+        if arg_type in (PyrexTypes.c_long_type, PyrexTypes.c_int_type, PyrexTypes.c_float_type):
+            arg_type = PyrexTypes.c_double_type if annotation.name == 'float' else py_object_type
+    elif arg_type is not None and annotation.is_string_literal:
+        warning(annotation.pos,
+                "Strings should no longer be used for type declarations. Use 'cython.int' etc. directly.")
     if arg_type is not None:
         if explicit_pytype and not explicit_ctype and not arg_type.is_pyobject:
             warning(annotation.pos,
@@ -109,7 +101,7 @@ def _analyse_signature_annotation(annotation, env):
         base_type = CAnalysedBaseTypeNode(
             annotation.pos, type=arg_type, is_arg=True)
     else:
-        warning(annotation.pos, "Unknown type declaration found in signature annotation")
+        warning(annotation.pos, "Unknown type declaration in annotation, ignoring")
     return base_type, arg_type
 
 
@@ -522,7 +514,7 @@ class CNameDeclaratorNode(CDeclaratorNode):
 
     default = None
 
-    def analyse(self, base_type, env, nonempty=0):
+    def analyse(self, base_type, env, nonempty=0, visibility=None, in_pxd=False):
         if nonempty and self.name == '':
             # May have mistaken the name for the type.
             if base_type.is_ptr or base_type.is_array or base_type.is_buffer:
@@ -548,11 +540,11 @@ class CPtrDeclaratorNode(CDeclaratorNode):
     def analyse_templates(self):
         return self.base.analyse_templates()
 
-    def analyse(self, base_type, env, nonempty=0):
+    def analyse(self, base_type, env, nonempty=0, visibility=None, in_pxd=False):
         if base_type.is_pyobject:
             error(self.pos, "Pointer base type cannot be a Python object")
         ptr_type = PyrexTypes.c_ptr_type(base_type)
-        return self.base.analyse(ptr_type, env, nonempty=nonempty)
+        return self.base.analyse(ptr_type, env, nonempty=nonempty, visibility=visibility, in_pxd=in_pxd)
 
 
 class CReferenceDeclaratorNode(CDeclaratorNode):
@@ -563,11 +555,11 @@ class CReferenceDeclaratorNode(CDeclaratorNode):
     def analyse_templates(self):
         return self.base.analyse_templates()
 
-    def analyse(self, base_type, env, nonempty=0):
+    def analyse(self, base_type, env, nonempty=0, visibility=None, in_pxd=False):
         if base_type.is_pyobject:
             error(self.pos, "Reference base type cannot be a Python object")
         ref_type = PyrexTypes.c_ref_type(base_type)
-        return self.base.analyse(ref_type, env, nonempty=nonempty)
+        return self.base.analyse(ref_type, env, nonempty=nonempty, visibility=visibility, in_pxd=in_pxd)
 
 
 class CArrayDeclaratorNode(CDeclaratorNode):
@@ -576,7 +568,7 @@ class CArrayDeclaratorNode(CDeclaratorNode):
 
     child_attrs = ["base", "dimension"]
 
-    def analyse(self, base_type, env, nonempty=0):
+    def analyse(self, base_type, env, nonempty=0, visibility=None, in_pxd=False):
         if (base_type.is_cpp_class and base_type.is_template_type()) or base_type.is_cfunction:
             from .ExprNodes import TupleNode
             if isinstance(self.dimension, TupleNode):
@@ -590,7 +582,7 @@ class CArrayDeclaratorNode(CDeclaratorNode):
                 base_type = error_type
             else:
                 base_type = base_type.specialize_here(self.pos, values)
-            return self.base.analyse(base_type, env, nonempty=nonempty)
+            return self.base.analyse(base_type, env, nonempty=nonempty, visibility=visibility, in_pxd=in_pxd)
         if self.dimension:
             self.dimension = self.dimension.analyse_const_expression(env)
             if not self.dimension.type.is_int:
@@ -611,7 +603,7 @@ class CArrayDeclaratorNode(CDeclaratorNode):
         if base_type.is_cfunction:
             error(self.pos, "Array element cannot be a function")
         array_type = PyrexTypes.c_array_type(base_type, size)
-        return self.base.analyse(array_type, env, nonempty=nonempty)
+        return self.base.analyse(array_type, env, nonempty=nonempty, visibility=visibility, in_pxd=in_pxd)
 
 
 class CFuncDeclaratorNode(CDeclaratorNode):
@@ -654,7 +646,7 @@ class CFuncDeclaratorNode(CDeclaratorNode):
         else:
             return None
 
-    def analyse(self, return_type, env, nonempty=0, directive_locals=None):
+    def analyse(self, return_type, env, nonempty=0, directive_locals=None, visibility=None, in_pxd=False):
         if directive_locals is None:
             directive_locals = {}
         if nonempty:
@@ -706,6 +698,16 @@ class CFuncDeclaratorNode(CDeclaratorNode):
                 and self.exception_check != '+'):
             error(self.pos, "Exception clause not allowed for function returning Python object")
         else:
+            if self.exception_value is None and self.exception_check and self.exception_check != '+':
+                # Use an explicit exception return value to speed up exception checks.
+                # Even if it is not declared, we can use the default exception value of the return type,
+                # unless the function is some kind of external function that we do not control.
+                if return_type.exception_value is not None and (visibility != 'extern' and not in_pxd):
+                    # Extension types are more difficult because the signature must match the base type signature.
+                    if not env.is_c_class_scope:
+                        from .ExprNodes import ConstNode
+                        self.exception_value = ConstNode(
+                            self.pos, value=return_type.exception_value, type=return_type)
             if self.exception_value:
                 self.exception_value = self.exception_value.analyse_const_expression(env)
                 if self.exception_check == '+':
@@ -760,7 +762,7 @@ class CFuncDeclaratorNode(CDeclaratorNode):
                 error(self.pos, "cannot have both '%s' and '%s' "
                       "calling conventions" % (current, callspec))
             func_type.calling_convention = callspec
-        return self.base.analyse(func_type, env)
+        return self.base.analyse(func_type, env, visibility=visibility, in_pxd=in_pxd)
 
     def declare_optional_arg_struct(self, func_type, env, fused_cname=None):
         """
@@ -800,12 +802,12 @@ class CConstDeclaratorNode(CDeclaratorNode):
 
     child_attrs = ["base"]
 
-    def analyse(self, base_type, env, nonempty=0):
+    def analyse(self, base_type, env, nonempty=0, visibility=None, in_pxd=False):
         if base_type.is_pyobject:
             error(self.pos,
                   "Const base type cannot be a Python object")
         const = PyrexTypes.c_const_type(base_type)
-        return self.base.analyse(const, env, nonempty=nonempty)
+        return self.base.analyse(const, env, nonempty=nonempty, visibility=visibility, in_pxd=in_pxd)
 
 
 class CArgDeclNode(Node):
@@ -875,7 +877,8 @@ class CArgDeclNode(Node):
                 base_type = base_type.base_type
 
             # inject type declaration from annotations
-            if self.annotation and env.directives['annotation_typing'] and self.base_type.name is None:
+            # this is called without 'env' by AdjustDefByDirectives transform before declaration analysis
+            if self.annotation and env and env.directives['annotation_typing'] and self.base_type.name is None:
                 arg_type = self.inject_type_from_annotations(env)
                 if arg_type is not None:
                     base_type = arg_type
@@ -887,7 +890,7 @@ class CArgDeclNode(Node):
         annotation = self.annotation
         if not annotation:
             return None
-        base_type, arg_type = _analyse_signature_annotation(annotation, env)
+        base_type, arg_type = analyse_type_annotation(annotation, env)
         if base_type is not None:
             self.base_type = base_type
         return arg_type
@@ -1145,6 +1148,8 @@ class TemplatedTypeNode(CBaseTypeNode):
                                 for name, value in options.items()])
 
             self.type = PyrexTypes.BufferType(base_type, **options)
+            if has_np_pythran(env) and is_pythran_buffer(self.type):
+                self.type = PyrexTypes.PythranExpr(pythran_type(self.type), self.type)
 
         else:
             # Array
@@ -1319,9 +1324,11 @@ class CVarDefNode(StatNode):
             if create_extern_wrapper:
                 declarator.overridable = False
             if isinstance(declarator, CFuncDeclaratorNode):
-                name_declarator, type = declarator.analyse(base_type, env, directive_locals=self.directive_locals)
+                name_declarator, type = declarator.analyse(
+                    base_type, env, directive_locals=self.directive_locals, visibility=visibility, in_pxd=self.in_pxd)
             else:
-                name_declarator, type = declarator.analyse(base_type, env)
+                name_declarator, type = declarator.analyse(
+                    base_type, env, visibility=visibility, in_pxd=self.in_pxd)
             if not type.is_complete():
                 if not (self.visibility == 'extern' and type.is_array or type.is_memoryviewslice):
                     error(declarator.pos, "Variable type '%s' is incomplete" % type)
@@ -1332,6 +1339,8 @@ class CVarDefNode(StatNode):
             if name == '':
                 error(declarator.pos, "Missing name in declaration.")
                 return
+            if type.is_reference and self.visibility != 'extern':
+                error(declarator.pos, "C++ references cannot be declared; use a pointer instead")
             if type.is_cfunction:
                 if 'staticmethod' in env.directives:
                     type.is_static_method = True
@@ -1571,7 +1580,8 @@ class CTypeDefNode(StatNode):
 
     def analyse_declarations(self, env):
         base = self.base_type.analyse(env)
-        name_declarator, type = self.declarator.analyse(base, env)
+        name_declarator, type = self.declarator.analyse(
+            base, env, visibility=self.visibility, in_pxd=self.in_pxd)
         name = name_declarator.name
         cname = name_declarator.cname
 
@@ -1643,10 +1653,18 @@ class FuncDefNode(StatNode, BlockNode):
             elif default_seen:
                 error(arg.pos, "Non-default argument following default argument")
 
+    def analyse_annotation(self, env, annotation):
+        # Annotations can not only contain valid Python expressions but arbitrary type references.
+        if annotation is None:
+            return None
+        if not env.directives['annotation_typing'] or annotation.analyse_as_type(env) is None:
+            annotation = annotation.analyse_types(env)
+        return annotation
+
     def analyse_annotations(self, env):
         for arg in self.args:
             if arg.annotation:
-                arg.annotation = arg.annotation.analyse_types(env)
+                arg.annotation = self.analyse_annotation(env, arg.annotation)
 
     def align_argument_type(self, env, arg):
         # @cython.locals()
@@ -1787,9 +1805,6 @@ class FuncDefNode(StatNode, BlockNode):
         tempvardecl_code = code.insertion_point()
         self.generate_keyword_list(code)
 
-        # ----- Extern library function declarations
-        lenv.generate_library_function_declarations(code)
-
         # ----- GIL acquisition
         acquire_gil = self.acquire_gil
 
@@ -1823,9 +1838,11 @@ class FuncDefNode(StatNode, BlockNode):
             code.declare_gilstate()
 
         if profile or linetrace:
-            tempvardecl_code.put_trace_declarations()
-            code_object = self.code_object.calculate_result_code(code) if self.code_object else None
-            code.put_trace_frame_init(code_object)
+            if not self.is_generator:
+                # generators are traced when iterated, not at creation
+                tempvardecl_code.put_trace_declarations()
+                code_object = self.code_object.calculate_result_code(code) if self.code_object else None
+                code.put_trace_frame_init(code_object)
 
         # ----- set up refnanny
         if use_refnanny:
@@ -1852,8 +1869,8 @@ class FuncDefNode(StatNode, BlockNode):
             # Scope unconditionally DECREFed on return.
             code.putln("%s = %s;" % (
                 Naming.cur_scope_cname,
-                lenv.scope_class.type.cast_code("Py_None")));
-            code.put_incref("Py_None", py_object_type);
+                lenv.scope_class.type.cast_code("Py_None")))
+            code.put_incref("Py_None", py_object_type)
             code.putln(code.error_goto(self.pos))
             code.putln("} else {")
             code.put_gotref(Naming.cur_scope_cname)
@@ -1880,12 +1897,14 @@ class FuncDefNode(StatNode, BlockNode):
         if profile or linetrace:
             # this looks a bit late, but if we don't get here due to a
             # fatal error before hand, it's not really worth tracing
-            if self.is_wrapper:
-                trace_name = self.entry.name + " (wrapper)"
-            else:
-                trace_name = self.entry.name
-            code.put_trace_call(
-                trace_name, self.pos, nogil=not code.funcstate.gil_owned)
+            if not self.is_generator:
+                # generators are traced when iterated, not at creation
+                if self.is_wrapper:
+                    trace_name = self.entry.name + " (wrapper)"
+                else:
+                    trace_name = self.entry.name
+                code.put_trace_call(
+                    trace_name, self.pos, nogil=not code.funcstate.gil_owned)
             code.funcstate.can_trace = True
         # ----- Fetch arguments
         self.generate_argument_parsing_code(env, code)
@@ -1947,6 +1966,8 @@ class FuncDefNode(StatNode, BlockNode):
                 val = self.return_type.default_value
                 if val:
                     code.putln("%s = %s;" % (Naming.retval_cname, val))
+                elif not self.return_type.is_void:
+                    code.putln("__Pyx_pretend_to_initialize(&%s);" % Naming.retval_cname)
         # ----- Error cleanup
         if code.error_label in code.labels_used:
             if not self.body.is_terminator:
@@ -2001,6 +2022,8 @@ class FuncDefNode(StatNode, BlockNode):
                 err_val = default_retval
             if err_val is not None:
                 code.putln("%s = %s;" % (Naming.retval_cname, err_val))
+            elif not self.return_type.is_void:
+                code.putln("__Pyx_pretend_to_initialize(&%s);" % Naming.retval_cname)
 
             if is_getbuffer_slot:
                 self.getbuffer_error_cleanup(code)
@@ -2082,12 +2105,14 @@ class FuncDefNode(StatNode, BlockNode):
 
         if profile or linetrace:
             code.funcstate.can_trace = False
-            if self.return_type.is_pyobject:
-                code.put_trace_return(
-                    Naming.retval_cname, nogil=not code.funcstate.gil_owned)
-            else:
-                code.put_trace_return(
-                    "Py_None", nogil=not code.funcstate.gil_owned)
+            if not self.is_generator:
+                # generators are traced when iterated, not at creation
+                if self.return_type.is_pyobject:
+                    code.put_trace_return(
+                        Naming.retval_cname, nogil=not code.funcstate.gil_owned)
+                else:
+                    code.put_trace_return(
+                        "Py_None", nogil=not code.funcstate.gil_owned)
 
         if not lenv.nogil:
             # GIL holding function
@@ -2266,10 +2291,10 @@ class CFuncDefNode(FuncDefNode):
         if isinstance(self.declarator, CFuncDeclaratorNode):
             name_declarator, type = self.declarator.analyse(
                 base_type, env, nonempty=2 * (self.body is not None),
-                directive_locals=self.directive_locals)
+                directive_locals=self.directive_locals, visibility=self.visibility)
         else:
             name_declarator, type = self.declarator.analyse(
-                base_type, env, nonempty=2 * (self.body is not None))
+                base_type, env, nonempty=2 * (self.body is not None), visibility=self.visibility)
         if not type.is_cfunction:
             error(self.pos, "Suite attached to non-function declaration")
         # Remember the actual type according to the function header
@@ -2308,7 +2333,7 @@ class CFuncDefNode(FuncDefNode):
             if type_arg.type.is_buffer and 'inline' in self.modifiers:
                 warning(formal_arg.pos, "Buffer unpacking not optimized away.", 1)
 
-            if type_arg.type.is_buffer:
+            if type_arg.type.is_buffer or type_arg.type.is_pythran_expr:
                 if self.type.nogil:
                     error(formal_arg.pos,
                           "Buffer may not be acquired without the GIL. Consider using memoryview slices instead.")
@@ -2656,6 +2681,9 @@ class DefNode(FuncDefNode):
 
     child_attrs = ["args", "star_arg", "starstar_arg", "body", "decorators", "return_type_annotation"]
 
+    is_staticmethod = False
+    is_classmethod = False
+
     lambda_name = None
     reqd_kw_flags_cname = "0"
     is_wrapper = 0
@@ -2692,11 +2720,13 @@ class DefNode(FuncDefNode):
         self.num_required_kw_args = rk
         self.num_required_args = r
 
-    def as_cfunction(self, cfunc=None, scope=None, overridable=True, returns=None, modifiers=None):
+    def as_cfunction(self, cfunc=None, scope=None, overridable=True, returns=None, except_val=None, modifiers=None):
         if self.star_arg:
             error(self.star_arg.pos, "cdef function cannot have star argument")
         if self.starstar_arg:
             error(self.starstar_arg.pos, "cdef function cannot have starstar argument")
+        exception_value, exception_check = except_val or (None, False)
+
         if cfunc is None:
             cfunc_args = []
             for formal_arg in self.args:
@@ -2709,7 +2739,7 @@ class DefNode(FuncDefNode):
                                               args=cfunc_args,
                                               has_varargs=False,
                                               exception_value=None,
-                                              exception_check=False,
+                                              exception_check=exception_check,
                                               nogil=False,
                                               with_gil=False,
                                               is_overridable=overridable)
@@ -2727,11 +2757,10 @@ class DefNode(FuncDefNode):
                 if type is None or type is PyrexTypes.py_object_type:
                     formal_arg.type = type_arg.type
                     formal_arg.name_declarator = name_declarator
-        from . import ExprNodes
-        if cfunc_type.exception_value is None:
-            exception_value = None
-        else:
-            exception_value = ExprNodes.ConstNode(
+
+        if exception_value is None and cfunc_type.exception_value is not None:
+            from .ExprNodes import ConstNode
+            exception_value = ConstNode(
                 self.pos, value=cfunc_type.exception_value, type=cfunc_type.return_type)
         declarator = CFuncDeclaratorNode(self.pos,
                                          base=CNameDeclaratorNode(self.pos, name=self.name, cname=None),
@@ -2768,7 +2797,6 @@ class DefNode(FuncDefNode):
         return True
 
     def analyse_declarations(self, env):
-        self.is_classmethod = self.is_staticmethod = False
         if self.decorators:
             for decorator in self.decorators:
                 func = decorator.decorator
@@ -2797,7 +2825,7 @@ class DefNode(FuncDefNode):
         # if a signature annotation provides a more specific return object type, use it
         if self.return_type is py_object_type and self.return_type_annotation:
             if env.directives['annotation_typing'] and not self.entry.is_special:
-                _, return_type = _analyse_signature_annotation(self.return_type_annotation, env)
+                _, return_type = analyse_type_annotation(self.return_type_annotation, env)
                 if return_type and return_type.is_pyobject:
                     self.return_type = return_type
 
@@ -2825,6 +2853,13 @@ class DefNode(FuncDefNode):
                 name_declarator = None
             else:
                 base_type = arg.base_type.analyse(env)
+                # If we hare in pythran mode and we got a buffer supported by
+                # Pythran, we change this node to a fused type
+                if has_np_pythran(env) and base_type.is_pythran_expr:
+                    base_type = PyrexTypes.FusedType([
+                        base_type,
+                        #PyrexTypes.PythranExpr(pythran_type(self.type, "numpy_texpr")),
+                        base_type.org_buffer])
                 name_declarator, type = \
                     arg.declarator.analyse(base_type, env)
                 arg.name = name_declarator.name
@@ -2864,6 +2899,11 @@ class DefNode(FuncDefNode):
                 if arg.or_none:
                     error(arg.pos, "Only Python type arguments can have 'or None'")
         env.fused_to_specific = f2s
+
+        if has_np_pythran(env):
+            self.np_args_idx = [i for i,a in enumerate(self.args) if a.type.is_numpy_buffer]
+        else:
+            self.np_args_idx = []
 
     def analyse_signature(self, env):
         if self.entry.is_special:
@@ -3020,7 +3060,7 @@ class DefNode(FuncDefNode):
         self.analyse_default_values(env)
         self.analyse_annotations(env)
         if self.return_type_annotation:
-            self.return_type_annotation = self.return_type_annotation.analyse_types(env)
+            self.return_type_annotation = self.analyse_annotation(env, self.return_type_annotation)
 
         if not self.needs_assignment_synthesis(env) and self.decorators:
             for decorator in self.decorators[::-1]:
@@ -3153,6 +3193,8 @@ class DefNodeWrapper(FuncDefNode):
         target_entry.pymethdef_cname = Naming.pymethdef_prefix + prefix + name
 
         self.signature = target_entry.signature
+
+        self.np_args_idx = self.target.np_args_idx
 
     def prepare_argument_coercion(self, env):
         # This is only really required for Cython utility code at this time,
@@ -3529,10 +3571,6 @@ class DefNodeWrapper(FuncDefNode):
             min_positional_args == max_positional_args
         has_kw_only_args = bool(kw_only_args)
 
-        if self.num_required_kw_args:
-            code.globalstate.use_utility_code(
-                UtilityCode.load_cached("RaiseKeywordRequired", "FunctionArguments.c"))
-
         if self.starstar_arg or self.star_arg:
             self.generate_stararg_init_code(max_positional_args, code)
 
@@ -3585,6 +3623,8 @@ class DefNodeWrapper(FuncDefNode):
                 if not arg.default:
                     pystring_cname = code.intern_identifier(arg.name)
                     # required keyword-only argument missing
+                    code.globalstate.use_utility_code(
+                        UtilityCode.load_cached("RaiseKeywordRequired", "FunctionArguments.c"))
                     code.put('__Pyx_RaiseKeywordRequired("%s", %s); ' % (
                         self.name,
                         pystring_cname))
@@ -3608,9 +3648,12 @@ class DefNodeWrapper(FuncDefNode):
                 reversed_args = list(enumerate(positional_args))[::-1]
                 for i, arg in reversed_args:
                     if i >= min_positional_args-1:
+                        if i != reversed_args[0][0]:
+                            code.putln('CYTHON_FALLTHROUGH;')
                         code.put('case %2d: ' % (i+1))
                     code.putln("values[%d] = PyTuple_GET_ITEM(%s, %d);" % (i, Naming.args_cname, i))
                 if min_positional_args == 0:
+                    code.putln('CYTHON_FALLTHROUGH;')
                     code.put('case  0: ')
                 code.putln('break;')
                 if self.star_arg:
@@ -3736,6 +3779,7 @@ class DefNodeWrapper(FuncDefNode):
             code.put('case %2d: ' % (i+1))
             code.putln("values[%d] = PyTuple_GET_ITEM(%s, %d);" % (
                 i, Naming.args_cname, i))
+            code.putln('CYTHON_FALLTHROUGH;')
         code.putln('case  0: break;')
         if not self.star_arg:
             code.put('default: ') # more arguments than allowed
@@ -3766,6 +3810,8 @@ class DefNodeWrapper(FuncDefNode):
                     if self.star_arg and i == max_positional_args:
                         code.putln('default:')
                     else:
+                        if i != 0:
+                            code.putln('CYTHON_FALLTHROUGH;')
                         code.putln('case %2d:' % i)
                 pystring_cname = code.intern_identifier(arg.name)
                 if arg.default:
@@ -3800,6 +3846,8 @@ class DefNodeWrapper(FuncDefNode):
                             code.putln('}')
                     elif arg.kw_only:
                         code.putln('else {')
+                        code.globalstate.use_utility_code(
+                            UtilityCode.load_cached("RaiseKeywordRequired", "FunctionArguments.c"))
                         code.put('__Pyx_RaiseKeywordRequired("%s", %s); ' % (
                             self.name, pystring_cname))
                         code.putln(code.error_goto(self.pos))
@@ -3950,6 +3998,8 @@ class GeneratorDefNode(DefNode):
 
     is_generator = True
     is_coroutine = False
+    is_asyncgen = False
+    gen_type_name = 'Generator'
     needs_closure = True
 
     child_attrs = DefNode.child_attrs + ["gbody"]
@@ -3973,7 +4023,7 @@ class GeneratorDefNode(DefNode):
         code.putln('{')
         code.putln('__pyx_CoroutineObject *gen = __Pyx_%s_New('
                    '(__pyx_coroutine_body_t) %s, (PyObject *) %s, %s, %s, %s); %s' % (
-                       'Coroutine' if self.is_coroutine else 'Generator',
+                       self.gen_type_name,
                        body_cname, Naming.cur_scope_cname, name, qualname, module_name,
                        code.error_goto_if_null('gen', self.pos)))
         code.put_decref(Naming.cur_scope_cname, py_object_type)
@@ -3988,16 +4038,20 @@ class GeneratorDefNode(DefNode):
         code.putln('}')
 
     def generate_function_definitions(self, env, code):
-        env.use_utility_code(UtilityCode.load_cached(
-            'Coroutine' if self.is_coroutine else 'Generator', "Coroutine.c"))
-
+        env.use_utility_code(UtilityCode.load_cached(self.gen_type_name, "Coroutine.c"))
         self.gbody.generate_function_header(code, proto=True)
         super(GeneratorDefNode, self).generate_function_definitions(env, code)
         self.gbody.generate_function_definitions(env, code)
 
 
 class AsyncDefNode(GeneratorDefNode):
+    gen_type_name = 'Coroutine'
     is_coroutine = True
+
+
+class AsyncGenNode(AsyncDefNode):
+    gen_type_name = 'AsyncGen'
+    is_asyncgen = True
 
 
 class GeneratorBodyDefNode(DefNode):
@@ -4006,12 +4060,13 @@ class GeneratorBodyDefNode(DefNode):
 
     is_generator_body = True
     is_inlined = False
+    is_async_gen_body = False
     inlined_comprehension_type = None  # container type for inlined comprehensions
 
-    def __init__(self, pos=None, name=None, body=None):
+    def __init__(self, pos=None, name=None, body=None, is_async_gen_body=False):
         super(GeneratorBodyDefNode, self).__init__(
-            pos=pos, body=body, name=name, doc=None,
-            args=[], star_arg=None, starstar_arg=None)
+            pos=pos, body=body, name=name, is_async_gen_body=is_async_gen_body,
+            doc=None, args=[], star_arg=None, starstar_arg=None)
 
     def declare_generator_body(self, env):
         prefix = env.next_id(env.scope_prefix)
@@ -4028,9 +4083,10 @@ class GeneratorBodyDefNode(DefNode):
         self.declare_generator_body(env)
 
     def generate_function_header(self, code, proto=False):
-        header = "static PyObject *%s(__pyx_CoroutineObject *%s, PyObject *%s)" % (
+        header = "static PyObject *%s(PyObject *%s_obj, CYTHON_UNUSED PyThreadState *%s, PyObject *%s)" % (
             self.entry.func_cname,
             Naming.generator_cname,
+            Naming.local_tstate_cname,
             Naming.sent_value_cname)
         if proto:
             code.putln('%s; /* proto */' % header)
@@ -4053,12 +4109,17 @@ class GeneratorBodyDefNode(DefNode):
         # ----- Function header
         code.putln("")
         self.generate_function_header(code)
+        code.putln("__pyx_CoroutineObject *%s = (__pyx_CoroutineObject *)%s_obj;" % (Naming.generator_cname, Naming.generator_cname))
         closure_init_code = code.insertion_point()
         # ----- Local variables
         code.putln("PyObject *%s = NULL;" % Naming.retval_cname)
         tempvardecl_code = code.insertion_point()
         code.put_declare_refcount_context()
-        code.put_setup_refcount_context(self.entry.name)
+        code.put_setup_refcount_context(self.entry.name or self.entry.qualified_name)
+        profile = code.globalstate.directives['profile']
+        linetrace = code.globalstate.directives['linetrace']
+        if profile or linetrace:
+            tempvardecl_code.put_trace_declarations()
 
         # ----- Resume switch point.
         code.funcstate.init_closure_temps(lenv.scope_class.type.scope)
@@ -4089,7 +4150,7 @@ class GeneratorBodyDefNode(DefNode):
         # ----- Function body
         self.generate_function_body(env, code)
         # ----- Closure initialization
-        if lenv.scope_class.type.scope.entries:
+        if lenv.scope_class.type.scope.var_entries:
             closure_init_code.putln('%s = %s;' % (
                 lenv.scope_class.type.declaration_code(Naming.cur_scope_cname),
                 lenv.scope_class.type.cast_code('%s->closure' %
@@ -4104,9 +4165,10 @@ class GeneratorBodyDefNode(DefNode):
         # on normal generator termination, we do not take the exception propagation
         # path: no traceback info is required and not creating it is much faster
         if not self.is_inlined and not self.body.is_terminator:
-            code.putln('PyErr_SetNone(PyExc_StopIteration);')
+            code.putln('PyErr_SetNone(%s);' % (
+                '__Pyx_PyExc_StopAsyncIteration' if self.is_async_gen_body else 'PyExc_StopIteration'))
         # ----- Error cleanup
-        if code.error_label in code.labels_used:
+        if code.label_used(code.error_label):
             if not self.body.is_terminator:
                 code.put_goto(code.return_label)
             code.put_label(code.error_label)
@@ -4115,8 +4177,7 @@ class GeneratorBodyDefNode(DefNode):
             if Future.generator_stop in env.global_scope().context.future_directives:
                 # PEP 479: turn accidental StopIteration exceptions into a RuntimeError
                 code.globalstate.use_utility_code(UtilityCode.load_cached("pep479", "Coroutine.c"))
-                code.putln("if (unlikely(PyErr_ExceptionMatches(PyExc_StopIteration))) "
-                           "__Pyx_Generator_Replace_StopIteration();")
+                code.putln("__Pyx_Generator_Replace_StopIteration(%d);" % bool(self.is_async_gen_body))
             for cname, type in code.funcstate.all_managed_temps():
                 code.put_xdecref(cname, type)
             code.put_add_traceback(self.entry.qualified_name)
@@ -4127,9 +4188,13 @@ class GeneratorBodyDefNode(DefNode):
             code.put_xgiveref(Naming.retval_cname)
         else:
             code.put_xdecref_clear(Naming.retval_cname, py_object_type)
+        code.putln("__Pyx_Coroutine_ResetAndClearException(%s);" % Naming.generator_cname)
         code.putln('%s->resume_label = -1;' % Naming.generator_cname)
         # clean up as early as possible to help breaking any reference cycles
         code.putln('__Pyx_Coroutine_clear((PyObject*)%s);' % Naming.generator_cname)
+        if profile or linetrace:
+            code.put_trace_return(Naming.retval_cname,
+                                  nogil=not code.funcstate.gil_owned)
         code.put_finish_refcount_context()
         code.putln("return %s;" % Naming.retval_cname)
         code.putln("}")
@@ -4137,13 +4202,20 @@ class GeneratorBodyDefNode(DefNode):
         # ----- Go back and insert temp variable declarations
         tempvardecl_code.put_temp_declarations(code.funcstate)
         # ----- Generator resume code
+        if profile or linetrace:
+            resume_code.put_trace_call(self.entry.qualified_name, self.pos,
+                                       nogil=not code.funcstate.gil_owned)
         resume_code.putln("switch (%s->resume_label) {" % (
                        Naming.generator_cname))
+
         resume_code.putln("case 0: goto %s;" % first_run_label)
 
         for i, label in code.yield_labels:
             resume_code.putln("case %d: goto %s;" % (i, label))
         resume_code.putln("default: /* CPython raises the right error here */")
+        if profile or linetrace:
+            resume_code.put_trace_return("Py_None",
+                                         nogil=not code.funcstate.gil_owned)
         resume_code.put_finish_refcount_context()
         resume_code.putln("return NULL;")
         resume_code.putln("}")
@@ -4533,7 +4605,10 @@ class CClassDefNode(ClassDefNode):
 
         if self.base_class_name:
             if self.base_class_module:
-                base_class_scope = env.find_module(self.base_class_module, self.pos)
+                base_class_scope = env.find_imported_module(self.base_class_module.split('.'), self.pos)
+                if not base_class_scope:
+                    error(self.pos, "'%s' is not a cimported module" % self.base_class_module)
+                    return
             else:
                 base_class_scope = env
             if self.base_class_name == 'object':
@@ -4727,18 +4802,27 @@ class ExprStatNode(StatNode):
 
     def analyse_declarations(self, env):
         from . import ExprNodes
-        if isinstance(self.expr, ExprNodes.GeneralCallNode):
-            func = self.expr.function.as_cython_attribute()
+        expr = self.expr
+        if isinstance(expr, ExprNodes.GeneralCallNode):
+            func = expr.function.as_cython_attribute()
             if func == u'declare':
-                args, kwds = self.expr.explicit_args_kwds()
+                args, kwds = expr.explicit_args_kwds()
                 if len(args):
-                    error(self.expr.pos, "Variable names must be specified.")
+                    error(expr.pos, "Variable names must be specified.")
                 for var, type_node in kwds.key_value_pairs:
                     type = type_node.analyse_as_type(env)
                     if type is None:
                         error(type_node.pos, "Unknown type")
                     else:
                         env.declare_var(var.value, type, var.pos, is_cdef=True)
+                self.__class__ = PassStatNode
+        elif getattr(expr, 'annotation', None) is not None:
+            if expr.is_name:
+                # non-code variable annotation, e.g. "name: type"
+                expr.declare_from_annotation(env)
+                self.__class__ = PassStatNode
+            elif expr.is_attribute or expr.is_subscript:
+                # unused expression with annotation, e.g. "a[0]: type" or "a.xyz : type"
                 self.__class__ = PassStatNode
 
     def analyse_expressions(self, env):
@@ -5470,8 +5554,9 @@ class DelStatNode(StatNode):
                 arg.generate_deletion_code(
                     code, ignore_nonexisting=self.ignore_nonexisting)
             elif arg.type.is_ptr and arg.type.base_type.is_cpp_class:
-                arg.generate_result_code(code)
+                arg.generate_evaluation_code(code)
                 code.putln("delete %s;" % arg.result())
+                arg.generate_disposal_code(code)
             # else error reported earlier
 
     def annotate(self, code):
@@ -5499,6 +5584,7 @@ class IndirectionNode(StatListNode):
 
     def __init__(self, stats):
         super(IndirectionNode, self).__init__(stats[0].pos, stats=stats)
+
 
 class BreakStatNode(StatNode):
 
@@ -5538,10 +5624,12 @@ class ReturnStatNode(StatNode):
     #  value         ExprNode or None
     #  return_type   PyrexType
     #  in_generator  return inside of generator => raise StopIteration
+    #  in_async_gen  return inside of async generator
 
     child_attrs = ["value"]
     is_terminator = True
     in_generator = False
+    in_async_gen = False
 
     # Whether we are in a parallel section
     in_parallel = False
@@ -5553,6 +5641,8 @@ class ReturnStatNode(StatNode):
             error(self.pos, "Return not inside a function body")
             return self
         if self.value:
+            if self.in_async_gen:
+                error(self.pos, "Return with value in async generator")
             self.value = self.value.analyse_types(env)
             if return_type.is_void or return_type.is_returncode:
                 error(self.value.pos, "Return with value in void function")
@@ -5609,6 +5699,8 @@ class ReturnStatNode(StatNode):
         else:
             if self.return_type.is_pyobject:
                 if self.in_generator:
+                    if self.in_async_gen:
+                        code.put("PyErr_SetNone(__Pyx_PyExc_StopAsyncIteration); ")
                     code.putln("%s = NULL;" % Naming.retval_cname)
                 else:
                     code.put_init_to_py_none(Naming.retval_cname, self.return_type)
@@ -5684,6 +5776,8 @@ class RaiseStatNode(StatNode):
         if self.exc_type:
             self.exc_type.generate_evaluation_code(code)
             type_code = self.exc_type.py_result()
+            if self.exc_type.is_name:
+                code.globalstate.use_entry_utility_code(self.exc_type.entry)
         else:
             type_code = "0"
         if self.exc_value:
@@ -6262,12 +6356,11 @@ class AsyncForStatNode(_ForInStatNode):
 
     is_async = True
 
-    def __init__(self, pos, iterator, **kw):
+    def __init__(self, pos, **kw):
         assert 'item' not in kw
         from . import ExprNodes
         # AwaitExprNodes must appear before running MarkClosureVisitor
-        kw['iterator'] = ExprNodes.AIterAwaitExprNode(iterator.pos, arg=iterator)
-        kw['item'] = ExprNodes.AwaitIterNextExprNode(iterator.pos, arg=None)
+        kw['item'] = ExprNodes.AwaitIterNextExprNode(kw['iterator'].pos, arg=None)
         _ForInStatNode.__init__(self, pos, **kw)
 
     def _create_item_node(self):
@@ -6379,11 +6472,14 @@ class ForFromStatNode(LoopNode, StatNode):
             self.loopvar_node.allocate(code)
         if isinstance(self.py_loopvar_node, ExprNodes.TempNode):
             self.py_loopvar_node.allocate(code)
+
+        loopvar_type = PyrexTypes.c_long_type if self.target.type.is_enum else self.target.type
+
         if from_range:
-            loopvar_name = code.funcstate.allocate_temp(self.target.type, False)
+            loopvar_name = code.funcstate.allocate_temp(loopvar_type, False)
         else:
             loopvar_name = self.loopvar_node.result()
-        if self.target.type.is_int and not self.target.type.signed and self.relation2[0] == '>':
+        if loopvar_type.is_int and not loopvar_type.signed and self.relation2[0] == '>':
             # Handle the case where the endpoint of an unsigned int iteration
             # is within step of 0.
             if not self.step:
@@ -6399,14 +6495,20 @@ class ForFromStatNode(LoopNode, StatNode):
                 self.bound1.result(), offset,
                 loopvar_name, self.relation2, self.bound2.result(),
                 loopvar_name, incop))
-        if self.py_loopvar_node:
-            self.py_loopvar_node.generate_evaluation_code(code)
-            self.target.generate_assignment_code(self.py_loopvar_node, code)
-        elif from_range:
-            code.putln("%s = %s;" % (
-                self.target.result(), loopvar_name))
+
+        coerced_loopvar_node = self.py_loopvar_node
+        if coerced_loopvar_node is None and from_range:
+            loopvar_cvalue = loopvar_name
+            if self.target.type.is_enum:
+                loopvar_cvalue = '(%s)%s' % (self.target.type.declaration_code(''), loopvar_cvalue)
+            coerced_loopvar_node = ExprNodes.RawCNameExprNode(self.target.pos, loopvar_type, loopvar_cvalue)
+        if coerced_loopvar_node is not None:
+            coerced_loopvar_node.generate_evaluation_code(code)
+            self.target.generate_assignment_code(coerced_loopvar_node, code)
+
         self.body.generate_execution_code(code)
         code.put_label(code.continue_label)
+
         if self.py_loopvar_node:
             # This mess is to make for..from loops with python targets behave
             # exactly like those with C targets with regards to re-assignment
@@ -6439,7 +6541,9 @@ class ForFromStatNode(LoopNode, StatNode):
             if self.target.entry.is_pyglobal:
                 code.put_decref(target_node.result(), target_node.type)
                 target_node.release(code)
+
         code.putln("}")
+
         if self.py_loopvar_node:
             # This is potentially wasteful, but we don't want the semantics to
             # depend on whether or not the loop is a python type.
@@ -6447,6 +6551,7 @@ class ForFromStatNode(LoopNode, StatNode):
             self.target.generate_assignment_code(self.py_loopvar_node, code)
         if from_range:
             code.funcstate.release_temp(loopvar_name)
+
         break_label = code.break_label
         code.set_loop_labels(old_loop_labels)
         if self.else_clause:
@@ -6639,6 +6744,7 @@ class TryExceptStatNode(StatNode):
     #  else_clause      StatNode or None
 
     child_attrs = ["body", "except_clauses", "else_clause"]
+    in_generator = False
 
     def analyse_declarations(self, env):
         self.body.analyse_declarations(env)
@@ -6674,8 +6780,8 @@ class TryExceptStatNode(StatNode):
         except_error_label = code.new_label('except_error')
         except_return_label = code.new_label('except_return')
         try_return_label = code.new_label('try_return')
-        try_break_label = code.new_label('try_break')
-        try_continue_label = code.new_label('try_continue')
+        try_break_label = code.new_label('try_break') if old_break_label else None
+        try_continue_label = code.new_label('try_continue') if old_continue_label else None
         try_end_label = code.new_label('try_end')
 
         exc_save_vars = [code.funcstate.allocate_temp(py_object_type, False)
@@ -6698,8 +6804,9 @@ class TryExceptStatNode(StatNode):
         if can_raise:
             # inject code before the try block to save away the exception state
             code.globalstate.use_utility_code(reset_exception_utility_code)
-            save_exc.putln("__Pyx_PyThreadState_declare")
-            save_exc.putln("__Pyx_PyThreadState_assign")
+            if not self.in_generator:
+                save_exc.putln("__Pyx_PyThreadState_declare")
+                save_exc.putln("__Pyx_PyThreadState_assign")
             save_exc.putln("__Pyx_ExceptionSave(%s);" % (
                 ', '.join(['&%s' % var for var in exc_save_vars])))
             for var in exc_save_vars:
@@ -6713,7 +6820,8 @@ class TryExceptStatNode(StatNode):
         else:
             # try block cannot raise exceptions, but we had to allocate the temps above,
             # so just keep the C compiler from complaining about them being unused
-            save_exc.putln("if (%s); else {/*mark used*/}" % '||'.join(exc_save_vars))
+            mark_vars_used =  ["(void)%s;" % var for var in exc_save_vars]
+            save_exc.putln("%s /* mark used */" % ' '.join(mark_vars_used))
 
             def restore_saved_exception():
                 pass
@@ -6737,11 +6845,16 @@ class TryExceptStatNode(StatNode):
                     code.put_xdecref_clear(var, py_object_type)
                 code.put_goto(try_end_label)
             code.put_label(our_error_label)
-            code.putln("__Pyx_PyThreadState_assign")  # re-assign in case a generator yielded
             for temp_name, temp_type in temps_to_clean_up:
                 code.put_xdecref_clear(temp_name, temp_type)
+
+            outer_except = code.funcstate.current_except
+            # Currently points to self, but the ExceptClauseNode would also be ok. Change if needed.
+            code.funcstate.current_except = self
             for except_clause in self.except_clauses:
                 except_clause.generate_handling_code(code, except_end_label)
+            code.funcstate.current_except = outer_except
+
             if not self.has_default_clause:
                 code.put_goto(except_error_label)
 
@@ -6756,7 +6869,6 @@ class TryExceptStatNode(StatNode):
                 code.put_label(exit_label)
                 code.mark_pos(self.pos, trace=False)
                 if can_raise:
-                    code.putln("__Pyx_PyThreadState_assign")  # re-assign in case a generator yielded
                     restore_saved_exception()
                 code.put_goto(old_label)
 
@@ -6765,7 +6877,6 @@ class TryExceptStatNode(StatNode):
                 code.put_goto(try_end_label)
             code.put_label(except_end_label)
             if can_raise:
-                code.putln("__Pyx_PyThreadState_assign")  # re-assign in case a generator yielded
                 restore_saved_exception()
         if code.label_used(try_end_label):
             code.put_label(try_end_label)
@@ -6882,8 +6993,8 @@ class ExceptClauseNode(Node):
         exc_args = "&%s, &%s, &%s" % tuple(exc_vars)
         code.putln("if (__Pyx_GetException(%s) < 0) %s" % (
             exc_args, code.error_goto(self.pos)))
-        for x in exc_vars:
-            code.put_gotref(x)
+        for var in exc_vars:
+            code.put_gotref(var)
         if self.target:
             self.exc_value.set_var(exc_vars[1])
             self.exc_value.generate_evaluation_code(code)
@@ -6900,6 +7011,7 @@ class ExceptClauseNode(Node):
         code.funcstate.exc_vars = exc_vars
         self.body.generate_execution_code(code)
         code.funcstate.exc_vars = old_exc_vars
+
         if not self.body.is_terminator:
             for var in exc_vars:
                 code.put_decref_clear(var, py_object_type)
@@ -6941,6 +7053,7 @@ class TryFinallyStatNode(StatNode):
     #  body             StatNode
     #  finally_clause   StatNode
     #  finally_except_clause  deep-copy of finally_clause for exception case
+    #  in_generator     inside of generator => must store away current exception also in return case
     #
     #  Each of the continue, break, return and error gotos runs
     #  into its own deep-copy of the finally block code.
@@ -6958,6 +7071,7 @@ class TryFinallyStatNode(StatNode):
     finally_except_clause = None
 
     is_try_finally_in_nogil = False
+    in_generator = False
 
     @staticmethod
     def create_analysed(pos, env, body, finally_clause):
@@ -7026,8 +7140,10 @@ class TryFinallyStatNode(StatNode):
             code.putln('}')
 
         if preserve_error:
+            code.put_label(new_error_label)
             code.putln('/*exception exit:*/{')
-            code.putln("__Pyx_PyThreadState_declare")
+            if not self.in_generator:
+                code.putln("__Pyx_PyThreadState_declare")
             if self.is_try_finally_in_nogil:
                 code.declare_gilstate()
             if needs_success_cleanup:
@@ -7042,7 +7158,6 @@ class TryFinallyStatNode(StatNode):
             exc_vars = tuple([
                 code.funcstate.allocate_temp(py_object_type, manage_ref=False)
                 for _ in range(6)])
-            code.put_label(new_error_label)
             self.put_error_catcher(
                 code, temps_to_clean_up, exc_vars, exc_lineno_cnames, exc_filename_cname)
             finally_old_labels = code.all_new_labels()
@@ -7076,32 +7191,46 @@ class TryFinallyStatNode(StatNode):
 
         code.set_all_labels(old_labels)
         return_label = code.return_label
+        exc_vars = ()
+
         for i, (new_label, old_label) in enumerate(zip(new_labels, old_labels)):
             if not code.label_used(new_label):
                 continue
             if new_label == new_error_label and preserve_error:
                 continue  # handled above
 
-            code.put('%s: ' % new_label)
-            code.putln('{')
+            code.putln('%s: {' % new_label)
             ret_temp = None
-            if old_label == return_label and not self.finally_clause.is_terminator:
-                # store away return value for later reuse
-                if (self.func_return_type and
-                        not self.is_try_finally_in_nogil and
-                        not isinstance(self.finally_clause, GILExitNode)):
-                    ret_temp = code.funcstate.allocate_temp(
-                        self.func_return_type, manage_ref=False)
-                    code.putln("%s = %s;" % (ret_temp, Naming.retval_cname))
-                    if self.func_return_type.is_pyobject:
-                        code.putln("%s = 0;" % Naming.retval_cname)
+            if old_label == return_label:
+                # return actually raises an (uncatchable) exception in generators that we must preserve
+                if self.in_generator:
+                    exc_vars = tuple([
+                        code.funcstate.allocate_temp(py_object_type, manage_ref=False)
+                        for _ in range(6)])
+                    self.put_error_catcher(code, [], exc_vars)
+                if not self.finally_clause.is_terminator:
+                    # store away return value for later reuse
+                    if (self.func_return_type and
+                            not self.is_try_finally_in_nogil and
+                            not isinstance(self.finally_clause, GILExitNode)):
+                        ret_temp = code.funcstate.allocate_temp(
+                            self.func_return_type, manage_ref=False)
+                        code.putln("%s = %s;" % (ret_temp, Naming.retval_cname))
+                        if self.func_return_type.is_pyobject:
+                            code.putln("%s = 0;" % Naming.retval_cname)
+
             fresh_finally_clause().generate_execution_code(code)
-            if ret_temp:
-                code.putln("%s = %s;" % (Naming.retval_cname, ret_temp))
-                if self.func_return_type.is_pyobject:
-                    code.putln("%s = 0;" % ret_temp)
-                code.funcstate.release_temp(ret_temp)
-                ret_temp = None
+
+            if old_label == return_label:
+                if ret_temp:
+                    code.putln("%s = %s;" % (Naming.retval_cname, ret_temp))
+                    if self.func_return_type.is_pyobject:
+                        code.putln("%s = 0;" % ret_temp)
+                    code.funcstate.release_temp(ret_temp)
+                    ret_temp = None
+                if self.in_generator:
+                    self.put_error_uncatcher(code, exc_vars)
+
             if not self.finally_clause.is_terminator:
                 code.put_goto(old_label)
             code.putln('}')
@@ -7116,16 +7245,16 @@ class TryFinallyStatNode(StatNode):
         self.finally_clause.generate_function_definitions(env, code)
 
     def put_error_catcher(self, code, temps_to_clean_up, exc_vars,
-                          exc_lineno_cnames, exc_filename_cname):
+                          exc_lineno_cnames=None, exc_filename_cname=None):
         code.globalstate.use_utility_code(restore_exception_utility_code)
         code.globalstate.use_utility_code(get_exception_utility_code)
         code.globalstate.use_utility_code(swap_exception_utility_code)
 
-        code.putln(' '.join(["%s = 0;"]*len(exc_vars)) % exc_vars)
         if self.is_try_finally_in_nogil:
             code.put_ensure_gil(declare_gilstate=False)
         code.putln("__Pyx_PyThreadState_assign")
 
+        code.putln(' '.join(["%s = 0;" % var for var in exc_vars]))
         for temp_name, type in temps_to_clean_up:
             code.put_xdecref_clear(temp_name, type)
 
@@ -7149,13 +7278,12 @@ class TryFinallyStatNode(StatNode):
         if self.is_try_finally_in_nogil:
             code.put_release_ensured_gil()
 
-    def put_error_uncatcher(self, code, exc_vars, exc_lineno_cnames, exc_filename_cname):
+    def put_error_uncatcher(self, code, exc_vars, exc_lineno_cnames=None, exc_filename_cname=None):
         code.globalstate.use_utility_code(restore_exception_utility_code)
         code.globalstate.use_utility_code(reset_exception_utility_code)
 
         if self.is_try_finally_in_nogil:
             code.put_ensure_gil(declare_gilstate=False)
-        code.putln("__Pyx_PyThreadState_assign")  # re-assign in case a generator yielded
 
         # not using preprocessor here to avoid warnings about
         # unused utility functions and/or temps
@@ -7171,7 +7299,7 @@ class TryFinallyStatNode(StatNode):
         if self.is_try_finally_in_nogil:
             code.put_release_ensured_gil()
 
-        code.putln(' '.join(["%s = 0;"]*len(exc_vars)) % exc_vars)
+        code.putln(' '.join(["%s = 0;" % var for var in exc_vars]))
         if exc_lineno_cnames:
             code.putln("%s = %s; %s = %s; %s = %s;" % (
                 Naming.lineno_cname, exc_lineno_cnames[0],
@@ -7182,7 +7310,6 @@ class TryFinallyStatNode(StatNode):
         code.globalstate.use_utility_code(reset_exception_utility_code)
         if self.is_try_finally_in_nogil:
             code.put_ensure_gil(declare_gilstate=False)
-        code.putln("__Pyx_PyThreadState_assign")  # re-assign in case a generator yielded
 
         # not using preprocessor here to avoid warnings about
         # unused utility functions and/or temps
@@ -7231,7 +7358,7 @@ class GILStatNode(NogilTryFinallyStatNode):
         from .ParseTreeTransforms import YieldNodeCollector
         collector = YieldNodeCollector()
         collector.visitchildren(body)
-        if not collector.yields and not collector.awaits:
+        if not collector.yields:
             return
 
         if state == 'gil':
@@ -8091,7 +8218,7 @@ class ParallelStatNode(StatNode, ParallelNode):
 
             invalid_value = entry.type.invalid_value()
             if invalid_value:
-                init = ' = ' + invalid_value
+                init = ' = ' + entry.type.cast_code(invalid_value)
             else:
                 init = ''
             # Declare the parallel private in the outer block

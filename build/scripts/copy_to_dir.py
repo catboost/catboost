@@ -14,8 +14,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def copy_file(src, dst):
-    path = os.path.dirname(dst)
+def ensure_dir_exists(path):
     try:
         os.makedirs(path)
     except OSError as e:
@@ -23,7 +22,22 @@ def copy_file(src, dst):
             pass
         else:
             raise
-    shutil.copy(src, dst)
+
+
+def hardlink_or_copy(src, dst):
+    if os.name == 'nt':
+        shutil.copy(src, dst)
+    else:
+        try:
+            os.link(src, dst)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                return
+            elif e.errno == errno.EXDEV:
+                sys.stderr.write("Can't make cross-device hardlink - fallback to copy: {} -> {}\n".format(src, dst))
+                shutil.copy(src, dst)
+            else:
+                raise
 
 
 def main():
@@ -49,7 +63,9 @@ def main():
         if dest_arch and not arg.endswith('.pkg.fake'):
             dest_arch.add(arg, arcname=dst)
 
-        copy_file(arg, os.path.join(opts.dest_dir, dst))
+        dst = os.path.join(opts.dest_dir, dst)
+        ensure_dir_exists(os.path.dirname(dst))
+        hardlink_or_copy(arg, dst)
 
     if dest_arch:
         dest_arch.close()

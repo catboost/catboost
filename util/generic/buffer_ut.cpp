@@ -164,7 +164,7 @@ SIMPLE_UNIT_TEST(TestSpeed) {
     }
 
     {
-        yvector<char> buf;
+        TVector<char> buf;
 
         t2 = MicroSeconds();
 

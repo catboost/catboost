@@ -37,9 +37,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProduct8) {
-        yvector<i8> a(100);
+        TVector<i8> a(100);
         FillWithRandomNumbers(~a, 179, 100);
-        yvector<i8> b(100);
+        TVector<i8> b(100);
         FillWithRandomNumbers(~b, 239, 100);
 
         for (int i = 0; i < 30; ++i) {
@@ -51,9 +51,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProduct32) {
-        yvector<i32> a(100);
+        TVector<i32> a(100);
         FillWithRandomNumbers(~a, 179, 100);
-        yvector<i32> b(100);
+        TVector<i32> b(100);
         FillWithRandomNumbers(~b, 239, 100);
 
         for (int i = 0; i < 30; ++i) {
@@ -65,9 +65,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProductf) {
-        yvector<float> a(100);
+        TVector<float> a(100);
         FillWithRandomFloats(~a, 179, 100);
-        yvector<float> b(100);
+        TVector<float> b(100);
         FillWithRandomFloats(~b, 239, 100);
 
         for (int i = 0; i < 30; ++i) {
@@ -79,9 +79,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProductd) {
-        yvector<double> a(100);
+        TVector<double> a(100);
         FillWithRandomFloats(~a, 179, 100);
-        yvector<double> b(100);
+        TVector<double> b(100);
         FillWithRandomFloats(~b, 239, 100);
 
         for (int i = 0; i < 30; ++i) {
@@ -104,9 +104,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProductFloatStability) {
-        yvector<float> a(1003);
+        TVector<float> a(1003);
         FillWithRandomFloats(~a, 179, a.size());
-        yvector<float> b(1003);
+        TVector<float> b(1003);
         FillWithRandomFloats(~b, 239, b.size());
 
         float res = DotProduct(~a, ~b, a.size());
@@ -120,9 +120,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProductDoubleStability) {
-        yvector<double> a(1003);
+        TVector<double> a(1003);
         FillWithRandomFloats(~a, 13133, a.size());
-        yvector<double> b(1003);
+        TVector<double> b(1003);
         FillWithRandomFloats(~b, 1121, b.size());
 
         double res = DotProduct(~a, ~b, a.size());
@@ -136,9 +136,9 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     SIMPLE_UNIT_TEST(TestDotProductCharStability) {
-        yvector<i8> a(1003);
+        TVector<i8> a(1003);
         FillWithRandomNumbers(~a, 1079, a.size());
-        yvector<i8> b(1003);
+        TVector<i8> b(1003);
         FillWithRandomNumbers(~b, 2139, b.size());
 
         ui32 res = DotProduct(~a, ~b, a.size());

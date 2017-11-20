@@ -191,6 +191,16 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
 int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept;
 
 /**
+  * ASCII case-sensitive string comparison (for proper UTF8 strings
+  * case-sensitive comparison consider using @c library/charset).
+  *
+  * @return                              true iff @c s2 are case-sensitively prefix of @c s1.
+  */
+static inline bool AsciiHasPrefix(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
+    return (s1.Length >= s2.Length) && memcmp(s1.Start, s2.Start, s2.Length) == 0;
+}
+
+/**
   * ASCII case-insensitive string comparison (for proper UTF8 strings
   * case-insensitive comparison consider using @c library/charset).
   *

@@ -13,7 +13,7 @@
 *        RecalcTestApprox();
 *        double testErr = CalcTestErr();
 *
-*        yvector<double> valsToLog;
+*        TVector<double> valsToLog;
 *        errorTracker.AddError(testErr, iteration, testApprox, &valsToLog);
 *
 *        if (errorTracker.GetIsNeedStop()) {
@@ -23,7 +23,7 @@
 *    bestIteration = errorTracker.GetBestIteration();
 */
 
-#include <catboost/libs/overfitting_detector/overfitting_detector.h>
+#include "overfitting_detector.h"
 
 class TErrorTracker {
 public:
@@ -43,7 +43,7 @@ public:
 
     // Saves error in overfitting detector. Pushes current pvalue to
     // valuesToLog.
-    void AddError(double error, int iteration, yvector<double>* valuesToLog) {
+    void AddError(double error, int iteration, TVector<double>* valuesToLog) {
         if (FindBestIteration && ((error < BestError) ^ (OverfittingDetector->GetMaxIsOptimal()))) {
             BestError = error;
             BestIteration = iteration;

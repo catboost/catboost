@@ -168,19 +168,47 @@ static CYTHON_INLINE PyObject *__Pyx_GetAttr3(PyObject *, PyObject *, PyObject *
 
 //////////////////// GetAttr3 ////////////////////
 //@requires: ObjectHandling.c::GetAttr
+//@requires: Exceptions.c::PyThreadStateGet
+//@requires: Exceptions.c::PyErrFetchRestore
+//@requires: Exceptions.c::PyErrExceptionMatches
+
+static PyObject *__Pyx_GetAttr3Default(PyObject *d) {
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    if (unlikely(!__Pyx_PyErr_ExceptionMatches(PyExc_AttributeError)))
+        return NULL;
+    __Pyx_PyErr_Clear();
+    Py_INCREF(d);
+    return d;
+}
 
 static CYTHON_INLINE PyObject *__Pyx_GetAttr3(PyObject *o, PyObject *n, PyObject *d) {
     PyObject *r = __Pyx_GetAttr(o, n);
-    if (unlikely(!r)) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            goto bad;
-        PyErr_Clear();
-        r = d;
-        Py_INCREF(d);
+    return (likely(r)) ? r : __Pyx_GetAttr3Default(d);
+}
+
+//////////////////// HasAttr.proto ////////////////////
+
+static CYTHON_INLINE int __Pyx_HasAttr(PyObject *, PyObject *); /*proto*/
+
+//////////////////// HasAttr ////////////////////
+//@requires: ObjectHandling.c::GetAttr
+
+static CYTHON_INLINE int __Pyx_HasAttr(PyObject *o, PyObject *n) {
+    PyObject *r;
+    if (unlikely(!__Pyx_PyBaseString_Check(n))) {
+        PyErr_SetString(PyExc_TypeError,
+                        "hasattr(): attribute name must be string");
+        return -1;
     }
-    return r;
-bad:
-    return NULL;
+    r = __Pyx_GetAttr(o, n);
+    if (unlikely(!r)) {
+        PyErr_Clear();
+        return 0;
+    } else {
+        Py_DECREF(r);
+        return 1;
+    }
 }
 
 //////////////////// Intern.proto ////////////////////
@@ -203,42 +231,24 @@ static PyObject* __Pyx_Intern(PyObject* s) {
     return s;
 }
 
-//////////////////// abs_int.proto ////////////////////
-
-static CYTHON_INLINE unsigned int __Pyx_abs_int(int x) {
-    if (unlikely(x == -INT_MAX-1))
-        return ((unsigned int)INT_MAX) + 1U;
-    return (unsigned int) abs(x);
-}
-
-//////////////////// abs_long.proto ////////////////////
-
-static CYTHON_INLINE unsigned long __Pyx_abs_long(long x) {
-    if (unlikely(x == -LONG_MAX-1))
-        return ((unsigned long)LONG_MAX) + 1U;
-    return (unsigned long) labs(x);
-}
-
 //////////////////// abs_longlong.proto ////////////////////
 
-static CYTHON_INLINE unsigned PY_LONG_LONG __Pyx_abs_longlong(PY_LONG_LONG x) {
-    if (unlikely(x == -PY_LLONG_MAX-1))
-        return ((unsigned PY_LONG_LONG)PY_LLONG_MAX) + 1U;
+static CYTHON_INLINE PY_LONG_LONG __Pyx_abs_longlong(PY_LONG_LONG x) {
 #if defined (__cplusplus) && __cplusplus >= 201103L
-    return (unsigned PY_LONG_LONG) std::abs(x);
+    return std::abs(x);
 #elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-    return (unsigned PY_LONG_LONG) llabs(x);
-#elif defined (_MSC_VER) && defined (_M_X64)
+    return llabs(x);
+#elif defined (_MSC_VER)
     // abs() is defined for long, but 64-bits type on MSVC is long long.
-    // Use MS-specific _abs64 instead.
-    return (unsigned PY_LONG_LONG) _abs64(x);
+    // Use MS-specific _abs64() instead, which returns the original (negative) value for abs(-MAX-1)
+    return _abs64(x);
 #elif defined (__GNUC__)
     // gcc or clang on 64 bit windows.
-    return (unsigned PY_LONG_LONG) __builtin_llabs(x);
+    return __builtin_llabs(x);
 #else
     if (sizeof(PY_LONG_LONG) <= sizeof(Py_ssize_t))
         return __Pyx_sst_abs(x);
-    return (x<0) ? (unsigned PY_LONG_LONG)-x : (unsigned PY_LONG_LONG)x;
+    return (x<0) ? -x : x;
 #endif
 }
 

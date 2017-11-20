@@ -1,5 +1,7 @@
 PROGRAM(catboost)
 
+DISABLE(USE_ASMLIB)
+
 
 
 SRCS(
@@ -14,10 +16,20 @@ SRCS(
 PEERDIR(
     catboost/libs/algo
     catboost/libs/data
+    catboost/libs/fstr
+    catboost/libs/helpers
     catboost/libs/logging
-    library/getopt
+    catboost/libs/model
+    catboost/libs/params
+    library/getopt/small
     library/grid_creator
+    library/json
+    library/malloc/api
+    library/svnversion
+    library/threading/local_executor
 )
+
+NO_GPL()
 
 ALLOCATOR(LF)
 

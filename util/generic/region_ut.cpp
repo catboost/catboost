@@ -65,7 +65,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
     }
 
     SIMPLE_UNIT_TEST(ToRegionFromVector) {
-        yvector<int> vec;
+        TVector<int> vec;
         vec.push_back(17);
         vec.push_back(19);
         vec.push_back(21);
@@ -76,11 +76,11 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
     }
 
     SIMPLE_UNIT_TEST(ToRegionFromConstVector) {
-        yvector<int> vec;
+        TVector<int> vec;
         vec.push_back(17);
         vec.push_back(19);
         vec.push_back(21);
-        TRegion<const int> r = ToRegion(static_cast<const yvector<int>&>(vec));
+        TRegion<const int> r = ToRegion(static_cast<const TVector<int>&>(vec));
         UNIT_ASSERT_VALUES_EQUAL(21, r[2]);
     }
 
@@ -153,7 +153,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(y[2], 500);
     }
 
-    void CheckRegion(const yvector<char>& expected, const TDataRegion& region) {
+    void CheckRegion(const TVector<char>& expected, const TDataRegion& region) {
         UNIT_ASSERT_VALUES_EQUAL(expected.size(), region.size());
         for (size_t i = 0; i < expected.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(expected[i], region[i]);
@@ -161,13 +161,13 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
     }
 
     SIMPLE_UNIT_TEST(SubRegion) {
-        yvector<char> x;
+        TVector<char> x;
         for (size_t i = 0; i < 42; ++i) {
             x.push_back('a' + (i * 42424243) % 13);
         }
         TDataRegion region(x.data(), 42);
         for (size_t i = 0; i <= 50; ++i) {
-            yvector<char> expected;
+            TVector<char> expected;
             for (size_t j = 0; j <= 100; ++j) {
                 CheckRegion(expected, region.SubRegion(i, j));
                 if (i + j < 42) {

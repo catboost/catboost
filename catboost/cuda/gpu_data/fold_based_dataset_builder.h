@@ -11,7 +11,7 @@
 namespace NCatboostCuda
 {
     inline TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
-                                                   const yvector<float>& targets)
+                                                   const TVector<float>& targets)
     {
         CB_ENSURE(featuresManager.HasTargetBinarization(),
                   "Error: target binarization should be set beforedataSet build");
@@ -27,10 +27,10 @@ namespace NCatboostCuda
     }
 
     template<class T>
-    inline yvector<T> Join(const yvector<T>& left,
-                           const yvector<T>* right)
+    inline TVector<T> Join(const TVector<T>& left,
+                           const TVector<T>* right)
     {
-        yvector<float> result(left.begin(), left.end());
+        TVector<float> result(left.begin(), left.end());
         if (right)
         {
             for (auto& element : *right)
@@ -41,7 +41,7 @@ namespace NCatboostCuda
         return result;
     }
 
-    inline bool IsTrivialWeights(const yvector<float>& weights)
+    inline bool IsTrivialWeights(const TVector<float>& weights)
     {
         for (auto& weight : weights)
         {
@@ -110,7 +110,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TPermutationDataSetBuilder& SetFloatFeatures(const yvector<ui32>& featureIds)
+        TPermutationDataSetBuilder& SetFloatFeatures(const TVector<ui32>& featureIds)
         {
             if (AddFloatFeatures)
             {
@@ -124,7 +124,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TPermutationDataSetBuilder& SetCatFeatures(const yvector<ui32>& featureIds) {
+        TPermutationDataSetBuilder& SetCatFeatures(const TVector<ui32>& featureIds) {
             for (ui32 catFeature : featureIds)
             {
                 if (AddOneHotFeatures && FeaturesManager.UseForOneHotEncoding(catFeature))
@@ -154,7 +154,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        const yvector<ui32>& GetFeatureIds() const
+        const TVector<ui32>& GetFeatureIds() const
         {
             return FeatureIds;
         }
@@ -180,7 +180,7 @@ namespace NCatboostCuda
                                                                                        FeatureIds,
                                                                                        ShuffleFeatures);
 
-            yvector<ui32> gatherIndices;
+            TVector<ui32> gatherIndices;
             Permutation.FillOrder(gatherIndices);
 
             TGpuBinarizedDataSetBuilder<TGridPolicy> learnBuilder(splittedFeatures.Layout,
@@ -205,7 +205,7 @@ namespace NCatboostCuda
                         .UseForOneHotIds(FeaturesManager.GetOneHotIds(featuresToBuild));
             }
 
-            yvector<ui32> ctrs;
+            TVector<ui32> ctrs;
 
             for (auto feature : featuresToBuild)
             {
@@ -328,13 +328,13 @@ namespace NCatboostCuda
             }
             TSingleBuffer<float> floatCtr = CtrHelper->ComputeCtr(ctr.Configuration);
 
-            auto borders = FeaturesManager.GetOrBuildCtrBorders(ctr, [&]() -> yvector<float>
+            auto borders = FeaturesManager.GetOrBuildCtrBorders(ctr, [&]() -> TVector<float>
             {
                 TOnCpuGridBuilderFactory gridBuilderFactory;
                 TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
                 sortedFeature.Copy(floatCtr);
                 RadixSort(sortedFeature);
-                yvector<float> sortedFeatureCpu;
+                TVector<float> sortedFeatureCpu;
                 sortedFeature.Read(sortedFeatureCpu);
 
                 return gridBuilderFactory
@@ -343,7 +343,7 @@ namespace NCatboostCuda
                                        binarizationDescription.Discretization);
             });
 
-            yvector<float> ctrValues;
+            TVector<float> ctrValues;
             floatCtr
                     .CreateReader()
                     .SetReadSlice(CtrTargets.LearnSlice)
@@ -361,7 +361,7 @@ namespace NCatboostCuda
             {
                 CB_ENSURE(testBuilder);
 
-                yvector<float> testCtrValues;
+                TVector<float> testCtrValues;
                 floatCtr.CreateReader()
                         .SetReadSlice(CtrTargets.TestSlice)
                         .Read(testCtrValues);
@@ -411,6 +411,7 @@ namespace NCatboostCuda
 
             CtrHelper.Reset(new TCalcCtrHelper<NCudaLib::TSingleMapping>(CtrSingleDevTargetView,
                                                                          CtrBinBuilder.GetIndices()));
+            CtrHelper->UseFullDataForCatFeatureStats(FeaturesManager.UseFullSetForCatFeatureStatCtrs());
         }
 
         TSingleBuffer<ui64> BuildCompressedBins(const TDataProvider& dataProvider,
@@ -432,7 +433,7 @@ namespace NCatboostCuda
         bool AddOneHotFeatures = true;
         bool AddFloatFeatures = true;
 
-        yvector<ui32> FeatureIds;
+        TVector<ui32> FeatureIds;
         yset<ui32> IgnoredFeatures;
         TBinarizedFeaturesManager& FeaturesManager;
 
@@ -478,7 +479,7 @@ namespace NCatboostCuda
             dataSetsHolder.CtrTargets.Reset(new TCtrTargets<NCudaLib::TMirrorMapping>());
             auto& ctrsTarget = *dataSetsHolder.CtrTargets;
             {
-                yvector<float> joinedTarget = Join(DataProvider.GetTargets(),
+                TVector<float> joinedTarget = Join(DataProvider.GetTargets(),
                                                    LinkedTest ? &LinkedTest->GetTargets() : nullptr);
                 //ctrs
                 BuildCtrTarget(joinedTarget, ctrsTarget);
@@ -590,7 +591,7 @@ namespace NCatboostCuda
         void AddFeaturesToBuilder(TBuilder& builder,
                                   bool skipFloat,
                                   bool skipCat,
-                                  yvector<ui32>& proceededFeatures)
+                                  TVector<ui32>& proceededFeatures)
         {
             builder.SetIgnoredFeatures(proceededFeatures);
             if (!skipFloat)
@@ -633,7 +634,7 @@ namespace NCatboostCuda
                                                                                       buildPermutationIndependent)
                                                                      : nullptr;
 
-            yvector<ui32> proceededFeatures;
+            TVector<ui32> proceededFeatures;
             {
                 auto commonBinFeaturesBuilder = CreateBuilder<TBinaryFeatureGridPolicy>(dataSetsHolder,
                                                                                         permutation,
@@ -729,7 +730,7 @@ namespace NCatboostCuda
             dataSet.Weights.Write(LinkedTest->GetWeights());
         }
 
-        void BuildCtrTarget(const yvector<float>& joinedTarget,
+        void BuildCtrTarget(const TVector<float>& joinedTarget,
                             TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget)
         {
             ctrsTarget.BinarizedTarget = BuildBinarizedTarget(FeaturesManager,
@@ -741,10 +742,10 @@ namespace NCatboostCuda
             ctrsTarget.LearnSlice = TSlice(0, DataProvider.GetSampleCount());
             ctrsTarget.TestSlice = TSlice(DataProvider.GetSampleCount(), joinedTarget.size());
 
-            yvector<float> ctrWeights;
+            TVector<float> ctrWeights;
             ctrWeights.resize(joinedTarget.size(), 1.0f);
 
-            yvector<float> ctrWeightedTargets(joinedTarget.begin(), joinedTarget.end());
+            TVector<float> ctrWeightedTargets(joinedTarget.begin(), joinedTarget.end());
 
             double totalWeight = 0;
             for (ui32 i = (ui32) ctrsTarget.LearnSlice.Right; i < ctrWeights.size(); ++i)

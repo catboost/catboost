@@ -62,7 +62,7 @@ private:
     TAutoPtr<TUnbufferedFileOutput> TraceFile;
     TString TraceFilePath;
     TInstant PrevTime;
-    yvector<TString> ErrorMessages;
+    TVector<TString> ErrorMessages;
 
     inline void Trace(const TString eventName, const NJson::TJsonValue eventValue) {
         NJsonWriter::TBuf json(NJsonWriter::HEM_UNSAFE);
@@ -513,13 +513,13 @@ private:
     bool PrintAfterSuite_;
     bool PrintTimes_;
     bool PrintSummary_;
-    yhash_set<TString> DisabledSuites_;
-    yhash_set<TString> EnabledSuites_;
-    yhash_set<TString> DisabledTests_;
-    yhash_set<TString> EnabledTests_;
+    THashSet<TString> DisabledSuites_;
+    THashSet<TString> EnabledSuites_;
+    THashSet<TString> DisabledTests_;
+    THashSet<TString> EnabledTests_;
     TInstant PrevTime_;
     bool ShowFails;
-    yvector<TString> Fails;
+    TVector<TString> Fails;
     size_t Start;
     size_t End;
     TString AppName;

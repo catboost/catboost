@@ -48,8 +48,8 @@ TStringBuf NResource::KeyByIndex(size_t idx) {
     return CommonStore()->KeyByIndex(idx);
 }
 
-yvector<TStringBuf> NResource::ListAllKeys() {
-    yvector<TStringBuf> res(Reserve(NResource::Count()));
+TVector<TStringBuf> NResource::ListAllKeys() {
+    TVector<TStringBuf> res(Reserve(NResource::Count()));
     for (auto i : xrange(NResource::Count())) {
         res.push_back(NResource::KeyByIndex(i));
     }

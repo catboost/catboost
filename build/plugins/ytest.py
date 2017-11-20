@@ -62,7 +62,7 @@ def validate_test(kw):
 
     if kw.get('SCRIPT-REL-PATH') == 'boost.test':
         project_path = kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith("maps") and not project_path.startswith("devtools"):
+        if not project_path.startswith(("maps", "metrika", "devtools")):
             errors.append("BOOSTTEST is not allowed here")
     elif kw.get('SCRIPT-REL-PATH') == 'ytest.py':
         project_path = kw.get('BUILD-FOLDER-PATH', "")
@@ -122,6 +122,9 @@ def validate_test(kw):
         for req in ["container", "ram", "disk"]:
             if req in requirements and not is_fat:
                 errors.append("Only [[imp]]FAT[[rst]] tests can have [[imp]]{}[[rst]] requirement".format(req))
+
+        if 'ya:privileged' in tags and 'container' not in requirements:
+            errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
 
         if in_autocheck and size == "LARGE" and not is_fat:
             errors.append("LARGE test must have ya:fat tag")

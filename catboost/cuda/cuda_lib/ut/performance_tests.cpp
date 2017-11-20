@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
 
             auto& profiler = GetProfiler();
             for (ui32 i = 0; i < tries; ++i) {
-                yvector<TStripeBuffer<float>> buffers;
+                TVector<TStripeBuffer<float>> buffers;
                 TStripeMapping stripeMapping = TStripeMapping::SplitBetweenDevices(size);
                 auto guard = profiler.Profile("runKernelBatch");
                 for (ui32 k = 0; k < kernelRuns; ++k) {
@@ -46,14 +46,14 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             //            auto& profiler = CudaProfiler();
             auto& profiler = GetProfiler();
             for (ui32 i = 0; i < tries; ++i) {
-                yvector<TStripeBuffer<float>> buffers;
+                TVector<TStripeBuffer<float>> buffers;
                 TStripeMapping stripeMapping = TStripeMapping::SplitBetweenDevices(size);
 
                 auto guard = profiler.Profile("runKernelBatch");
                 for (ui32 k = 0; k < kernelRuns; ++k) {
                     buffers.push_back(TCudaBuffer<float, TStripeMapping>::Create(stripeMapping));
                     FillBuffer(buffers.back(), 1.0f);
-                    yvector<float> tmp;
+                    TVector<float> tmp;
                     buffers.back().Read(tmp);
                 }
             }
@@ -375,8 +375,8 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             const ui32 device = 0;
             for (ui32 size = 10; size < 10000000; size *= 10) {
                 for (ui32 k = 0; k < tries; ++k) {
-                    yvector<float> data(size);
-                    yvector<float> tmp;
+                    TVector<float> data(size);
+                    TVector<float> tmp;
                     TSingleMapping mapping = TSingleMapping(device, size);
 
                     auto cudaVec = TCudaBuffer<float, TSingleMapping>::Create(mapping);

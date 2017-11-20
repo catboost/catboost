@@ -99,7 +99,7 @@ struct TDumper<std::pair<A, B>> {
 
 //sequences
 template <class T, class A>
-struct TDumper<yvector<T, A>>: public TSeqDumper {
+struct TDumper<TVector<T, A>>: public TSeqDumper {
 };
 
 template <class T, class A>
@@ -140,15 +140,15 @@ struct TDumper<yhash<K, V, H, P, A>>: public TAssocDumper {
 };
 
 template <class K, class V, class H, class P, class A>
-struct TDumper<yhash_mm<K, V, H, P, A>>: public TAssocDumper {
+struct TDumper<THashMultiMap<K, V, H, P, A>>: public TAssocDumper {
 };
 
 template <class T, class H, class P, class A>
-struct TDumper<yhash_set<T, H, P, A>>: public TAssocDumper {
+struct TDumper<THashSet<T, H, P, A>>: public TAssocDumper {
 };
 
 template <class T, class H, class P, class A>
-struct TDumper<yhash_multiset<T, H, P, A>>: public TAssocDumper {
+struct TDumper<THashMultiSet<T, H, P, A>>: public TAssocDumper {
 };
 
 //strings

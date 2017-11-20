@@ -37,15 +37,15 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         TStackLikeMemoryPool<CudaDevice> pool(512 * MB);
 
         using TPtr = THolder<std::remove_pointer<decltype(pool.Create(103))>::type>;
-        yvector<char> tmp(255 * MB);
-        yvector<char> tmp2(255 * MB);
+        TVector<char> tmp(255 * MB);
+        TVector<char> tmp2(255 * MB);
         for (ui32 i = 0; i < tmp.size(); ++i) {
             tmp[i] = (char)i;
             tmp2[i] = 2;
         }
 
         {
-            yvector<char> tmp0(511 * MB, 2);
+            TVector<char> tmp0(511 * MB, 2);
             TPtr block0 = pool.Create(511 * MB);
             TMemoryCopier<CudaHost, CudaDevice>::CopyMemorySync<char>(~tmp0, block0->Get(), 511 * MB);
         }
@@ -74,11 +74,11 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         TStackLikeMemoryPool<CudaDevice> pool(512 * MB);
 
         using TPtr = THolder<std::remove_pointer<decltype(pool.Create(0))>::type>;
-        yvector<char> tmp1(128 * MB, 1);
-        yvector<char> tmp2(120 * MB, 2);
-        yvector<char> tmp3(120 * MB, 3);
-        yvector<char> tmp4(120 * MB, 4);
-        yvector<char> tmp5(140 * MB, 5);
+        TVector<char> tmp1(128 * MB, 1);
+        TVector<char> tmp2(120 * MB, 2);
+        TVector<char> tmp3(120 * MB, 3);
+        TVector<char> tmp4(120 * MB, 4);
+        TVector<char> tmp5(140 * MB, 5);
 
         TPtr block1 = pool.Create(tmp1.size());
         TPtr block2 = pool.Create(tmp2.size());
@@ -97,7 +97,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         TMemoryCopier<CudaHost, CudaDevice>::CopyMemorySync<char>(~tmp5, block5->Get(), tmp5.size());
 
         {
-            yvector<char> tmp(tmp1.size());
+            TVector<char> tmp(tmp1.size());
             TMemoryCopier<CudaDevice, CudaHost>::CopyMemorySync<char>(block1->Get(), ~tmp, tmp1.size());
             for (ui32 i = 0; i < tmp1.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp1[i]);
@@ -105,7 +105,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         }
 
         {
-            yvector<char> tmp(tmp3.size());
+            TVector<char> tmp(tmp3.size());
             TMemoryCopier<CudaDevice, CudaHost>::CopyMemorySync<char>(block3->Get(), ~tmp, tmp3.size());
             for (ui32 i = 0; i < tmp3.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp3[i]);
@@ -113,7 +113,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         }
 
         {
-            yvector<char> tmp(tmp4.size());
+            TVector<char> tmp(tmp4.size());
             TMemoryCopier<CudaDevice, CudaHost>::CopyMemorySync<char>(block4->Get(), ~tmp, tmp4.size());
             for (ui32 i = 0; i < tmp4.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp4[i]);
@@ -121,7 +121,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         }
 
         {
-            yvector<char> tmp(tmp5.size());
+            TVector<char> tmp(tmp5.size());
             TMemoryCopier<CudaDevice, CudaHost>::CopyMemorySync<char>(block5->Get(), ~tmp, tmp5.size());
             for (ui32 i = 0; i < tmp5.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp5[i]);

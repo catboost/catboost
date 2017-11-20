@@ -6,7 +6,15 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/ymath.h>
 
-yhash_set<float> BestSplit(yvector<float>& featureVals,
+size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSelectionType type) {
+    size_t bestSplitSize = docsCount * ((bordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
+    if (type == EBorderSelectionType::MinEntropy || type == EBorderSelectionType::MaxLogSum) {
+        bestSplitSize += docsCount * 2 * sizeof(float);
+    }
+    return bestSplitSize;
+}
+
+THashSet<float> BestSplit(TVector<float>& featureVals,
                            int bordersCount,
                            EBorderSelectionType type,
                            bool nanValuesIsInfty) {
@@ -79,9 +87,9 @@ static double Penalty(double weight, double expected_weight, EPenaltyType type) 
 }
 
 template <typename TWeightType>
-static void BestSplit(const yvector<TWeightType>& weights,
+static void BestSplit(const TVector<TWeightType>& weights,
                       size_t bordersCount,
-                      yvector<size_t>& thresholds,
+                      TVector<size_t>& thresholds,
                       EPenaltyType type,
                       ESF mode) {
     size_t bins = bordersCount + 1;
@@ -105,20 +113,20 @@ static void BestSplit(const yvector<TWeightType>& weights,
 
     // Initialize
     const double Eps = 1e-12;
-    yvector<TWeightType> sweights(weights);
+    TVector<TWeightType> sweights(weights);
     for (size_t i = 1; i < wsize; ++i) {
         sweights[i] += sweights[i - 1];
     }
     double expected = double(sweights[wsize - 1]) / bins;
     size_t dsize = ((mode == E_Base) || (mode == E_Old_Linear)) ? wsize : (wsize - bins + 1);
-    yvector<yvector<size_t>> bestSolutions(bins - 2, yvector<size_t>(dsize));
-    yvector<double> current_error(dsize), prevError(dsize);
+    TVector<TVector<size_t>> bestSolutions(bins - 2, TVector<size_t>(dsize));
+    TVector<double> current_error(dsize), prevError(dsize);
     for (size_t i = 0; i < dsize; ++i) {
         current_error[i] = Penalty(double(sweights[i]), expected, type);
     }
     // For 2 loops runs:
-    yvector<size_t> bs1(dsize), bs2(dsize);
-    yvector<double> e1(dsize), e2(dsize);
+    TVector<size_t> bs1(dsize), bs2(dsize);
+    TVector<double> e1(dsize), e2(dsize);
 
     // Main loop
     for (size_t l = 0; l < bins - 2; ++l) {
@@ -562,8 +570,8 @@ static void BestSplit(const yvector<TWeightType>& weights,
 }
 
 // Border before element with value "border"
-static float RegularBorder(float border, const yvector<float>& sortedValues) {
-    yvector<float>::const_iterator lowerBound = LowerBound(sortedValues.begin(), sortedValues.end(), border);
+static float RegularBorder(float border, const TVector<float>& sortedValues) {
+    TVector<float>::const_iterator lowerBound = LowerBound(sortedValues.begin(), sortedValues.end(), border);
 
     if (lowerBound == sortedValues.end()) // binarizing to always false
         return Max(2.f * sortedValues.back(), sortedValues.back() + 1.f);
@@ -579,15 +587,15 @@ static float RegularBorder(float border, const yvector<float>& sortedValues) {
 }
 
 
-static yhash_set<float> BestSplit(const yvector<float>& values,
-                           const yvector<float>& weight,
+static THashSet<float> BestSplit(const TVector<float>& values,
+                           const TVector<float>& weight,
                            size_t bordersCount,
                            EPenaltyType type) {
     // Positions after which threshold should be inserted.
-    yvector<size_t> thresholds;
+    TVector<size_t> thresholds;
     BestSplit(weight, bordersCount, thresholds, type, E_RLM2);
 
-    yhash_set<float> borders;
+    THashSet<float> borders;
     for (auto t : thresholds) {
         if (t + 1 != values.size()) {
             borders.insert((values[t] + values[t + 1]) / 2);
@@ -596,8 +604,8 @@ static yhash_set<float> BestSplit(const yvector<float>& values,
     return borders;
 }
 
-static yhash_set<float> SplitWithGuaranteedOptimum(
-        yvector<float>& featureValues,
+static THashSet<float> SplitWithGuaranteedOptimum(
+        TVector<float>& featureValues,
         int bordersCount,
         EPenaltyType type,
         bool isSorted) {
@@ -605,8 +613,8 @@ static yhash_set<float> SplitWithGuaranteedOptimum(
         Sort(featureValues.begin(), featureValues.end());
     }
 
-    yvector<float> features;
-    yvector<float> weights;
+    TVector<float> features;
+    TVector<float> weights;
     for (auto f : featureValues) {
         if (features.empty() || features.back() != f) {
             features.push_back(f);
@@ -618,9 +626,9 @@ static yhash_set<float> SplitWithGuaranteedOptimum(
     return BestSplit(features, weights, bordersCount, type);
 }
 
-static yhash_set<float> GenerateMedianBorders(
-        const yvector<float>& featureValues, int bordersCount) {
-    yhash_set<float> result;
+static THashSet<float> GenerateMedianBorders(
+        const TVector<float>& featureValues, int bordersCount) {
+    THashSet<float> result;
     ui64 total = featureValues.size();
     if (total == 0 || featureValues.front() == featureValues.back()) {
         return result;
@@ -639,37 +647,37 @@ static yhash_set<float> GenerateMedianBorders(
 
 namespace NSplitSelection {
 
-yhash_set<float> TMinEntropyBinarizer::BestSplit(
-        yvector<float>& featureValues, int bordersCount, bool isSorted) const {
+THashSet<float> TMinEntropyBinarizer::BestSplit(
+        TVector<float>& featureValues, int bordersCount, bool isSorted) const {
     return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MinEntropy, isSorted);
 }
 
-yhash_set<float> TMaxSumLogBinarizer::BestSplit(
-        yvector<float>& featureValues, int bordersCount, bool isSorted) const {
+THashSet<float> TMaxSumLogBinarizer::BestSplit(
+        TVector<float>& featureValues, int bordersCount, bool isSorted) const {
     return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MaxSumLog, isSorted);
 }
 
-yhash_set<float> TMedianBinarizer::BestSplit(
-        yvector<float>& featureValues, int bordersCount, bool isSorted) const {
+THashSet<float> TMedianBinarizer::BestSplit(
+        TVector<float>& featureValues, int bordersCount, bool isSorted) const {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
     return GenerateMedianBorders(featureValues, bordersCount);
 }
 
-yhash_set<float> TMedianPlusUniformBinarizer::BestSplit(
-        yvector<float>& featureValues, int bordersCount, bool isSorted) const {
+THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
+        TVector<float>& featureValues, int bordersCount, bool isSorted) const {
 
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
 
     if (featureValues.empty() || featureValues.front() == featureValues.back()) {
-        return yhash_set<float>();
+        return THashSet<float>();
     }
 
     int halfBorders = bordersCount / 2;
-    yhash_set<float> borders = GenerateMedianBorders(featureValues, bordersCount - halfBorders);
+    THashSet<float> borders = GenerateMedianBorders(featureValues, bordersCount - halfBorders);
 
     // works better on rel approximation with quadratic loss
     float minValue = featureValues.front();
@@ -683,7 +691,7 @@ yhash_set<float> TMedianPlusUniformBinarizer::BestSplit(
     return borders;
 }
 
-yhash_set<float> TUniformBinarizer::BestSplit(yvector<float>& featureValues,
+THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
                                               int bordersCount,
                                               bool isSorted) const {
     if (!isSorted) {
@@ -691,13 +699,13 @@ yhash_set<float> TUniformBinarizer::BestSplit(yvector<float>& featureValues,
     }
 
     if (featureValues.empty() || featureValues.front() == featureValues.back()) {
-        return yhash_set<float>();
+        return THashSet<float>();
     }
 
     float minValue = featureValues.front();
     float maxValue = featureValues.back();
 
-    yhash_set<float> borders;
+    THashSet<float> borders;
     for (int i = 0; i < bordersCount; ++i) {
         borders.insert(minValue + (i + 1) * (maxValue - minValue) / (bordersCount + 1));
     }

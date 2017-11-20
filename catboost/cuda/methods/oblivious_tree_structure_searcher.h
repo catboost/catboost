@@ -245,7 +245,7 @@ namespace NCatboostCuda
 
             if (!FeaturesManager.IsKnown(BestCtr))
             {
-                yvector<float> borders(BestBorders[BestDevice].begin(), BestBorders[BestDevice].end());
+                TVector<float> borders(BestBorders[BestDevice].begin(), BestBorders[BestDevice].end());
                 FeaturesManager.AddCtr(BestCtr, std::move(borders));
             }
 
@@ -270,13 +270,13 @@ namespace NCatboostCuda
             CB_ENSURE(BestBin <= 255);
         }
 
-        void CacheCtrBorders(const ymap<TCtr, yvector<float>>& bordersMap)
+        void CacheCtrBorders(const ymap<TCtr, TVector<float>>& bordersMap)
         {
             for (auto& entry : bordersMap)
             {
                 if (!FeaturesManager.IsKnown(entry.first))
                 {
-                    yvector<float> borders(entry.second.begin(), entry.second.end());
+                    TVector<float> borders(entry.second.begin(), entry.second.end());
                     {
                         TGuard<TAdaptiveLock> guard(Lock);
                         Y_ASSERT(
@@ -287,9 +287,9 @@ namespace NCatboostCuda
             }
         }
 
-        yvector<ui32> GetCtrsBordersToCacheIds(const yvector<TCtr>& ctrs)
+        TVector<ui32> GetCtrsBordersToCacheIds(const TVector<TCtr>& ctrs)
         {
-            yvector<ui32> result;
+            TVector<ui32> result;
             for (ui32 i = 0; i < ctrs.size(); ++i)
             {
                 const auto& ctr = ctrs.at(i);
@@ -368,9 +368,9 @@ namespace NCatboostCuda
         int BestDevice;
         TCtr BestCtr;
 
-        yvector<yvector<float>> BestBorders;
-        yvector<TSingleBuffer<ui64>> BestSplits;
-        yvector<ui64> Seeds;
+        TVector<TVector<float>> BestBorders;
+        TVector<TSingleBuffer<ui64>> BestSplits;
+        TVector<ui64> Seeds;
     };
 
     template<class TTarget,
@@ -677,9 +677,9 @@ namespace NCatboostCuda
 
         //with first zero bit is estimation part, with first 1 bit is evaluation part
         //we store task in first bits of bin
-        yvector<TSlice> MakeTaskSlices()
+        TVector<TSlice> MakeTaskSlices()
         {
-            yvector<TSlice> slices;
+            TVector<TSlice> slices;
             ui32 cursor = 0;
             for (auto& task : FoldBasedTasks)
             {
@@ -728,11 +728,11 @@ namespace NCatboostCuda
             });
         }
 
-        yvector<TDataPartition> WriteFoldBasedInitialBins(TMirrorBuffer<ui32>& bins)
+        TVector<TDataPartition> WriteFoldBasedInitialBins(TMirrorBuffer<ui32>& bins)
         {
             bins.Reset(NCudaLib::TMirrorMapping(GetTotalIndicesSize()));
 
-            yvector<TDataPartition> parts;
+            TVector<TDataPartition> parts;
 
             ui32 currentBin = 0;
             ui32 cursor = 0;
@@ -758,14 +758,14 @@ namespace NCatboostCuda
             return parts;
         }
 
-        yvector<TDataPartition> WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins)
+        TVector<TDataPartition> WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins)
         {
             CB_ENSURE(SingleTaskTarget);
             bins.Reset(NCudaLib::TMirrorMapping(SingleTaskTarget->GetIndices().GetMapping()));
             TDataPartition part;
             part.Size = SingleTaskTarget->GetIndices().GetObjectsSlice().Size();
             part.Offset = 0;
-            yvector<TDataPartition> parts = {part};
+            TVector<TDataPartition> parts = {part};
             FillBuffer(bins, 0u);
             return parts;
         }
@@ -873,7 +873,7 @@ namespace NCatboostCuda
                 double sum2 = 0;
                 double count = 0;
 
-                yvector<TComputationStream> streams;
+                TVector<TComputationStream> streams;
                 const ui32 streamCount = Min<ui32>(FoldBasedTasks.size(), 8);
                 for (ui32 i = 0; i < streamCount; ++i)
                 {
@@ -945,8 +945,8 @@ namespace NCatboostCuda
                     }
                 }
                 MultiplyVector(target.Weights, weights);
+                MultiplyVector(target.WeightedTarget, weights);
             }
-            MultiplyVector(target.WeightedTarget, target.Weights);
 
             return target;
         }
@@ -970,7 +970,7 @@ namespace NCatboostCuda
         double ScoreStdDev = 0.0;
 
         //should one or another, no mixing
-        yvector<TOptimizationTask> FoldBasedTasks;
+        TVector<TOptimizationTask> FoldBasedTasks;
         THolder<TTarget> SingleTaskTarget;
     };
 }

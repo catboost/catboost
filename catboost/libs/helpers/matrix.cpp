@@ -1,9 +1,10 @@
 #include "matrix.h"
+
 #include <util/generic/ymath.h>
 
 // TODO(vitekmel): styleguide
 
-void FindSomeLinearSolution(const TArray2D<double>& matrix, const yvector<double>& proj, yvector<double>* res) {
+void FindSomeLinearSolution(const TArray2D<double>& matrix, const TVector<double>& proj, TVector<double>* res) {
     size_t nSize = proj.size();
     Y_ASSERT(matrix.GetXSize() == nSize && matrix.GetYSize() == nSize);
     res->resize(nSize);

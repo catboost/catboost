@@ -9,8 +9,8 @@ class TFeatureBin {
 private:
     ui32 BinStart;
     ui32 BinEnd;
-    yvector<float>::const_iterator FeaturesStart;
-    yvector<float>::const_iterator FeaturesEnd;
+    TVector<float>::const_iterator FeaturesStart;
+    TVector<float>::const_iterator FeaturesEnd;
 
     ui32 BestSplit;
     double BestScore;
@@ -29,7 +29,7 @@ private:
     }
 
 public:
-    TFeatureBin(ui32 binStart, ui32 binEnd, const yvector<float>::const_iterator featuresStart, const yvector<float>::const_iterator featuresEnd)
+    TFeatureBin(ui32 binStart, ui32 binEnd, const TVector<float>::const_iterator featuresStart, const TVector<float>::const_iterator featuresEnd)
         : BinStart(binStart)
         , BinEnd(binEnd)
         , FeaturesStart(featuresStart)
@@ -81,7 +81,7 @@ public:
     }
 };
 
-yhash_set<float> TMedianInBinBinarizer::BestSplit(yvector<float>& featureValues,
+THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
                                                   int bordersCount, bool isSorted) const {
 
     if (!isSorted) {
@@ -98,7 +98,7 @@ yhash_set<float> TMedianInBinBinarizer::BestSplit(yvector<float>& featureValues,
         splits.push(top);
     }
 
-    yhash_set<float> borders;
+    THashSet<float> borders;
     while (splits.size()) {
         if (!splits.top().IsLast())
             borders.insert(splits.top().Border());

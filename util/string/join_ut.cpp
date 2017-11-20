@@ -6,7 +6,7 @@
 #include <util/stream/output.h>
 
 struct TCustomData {
-    yvector<int> Ints;
+    TVector<int> Ints;
 };
 
 TString ToString(const TCustomData& d) {
@@ -28,7 +28,7 @@ SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
 
     SIMPLE_UNIT_TEST(IntContainerItems) {
         int v[] = {1, 2, 3};
-        yvector<int> vv(v, v + 3);
+        TVector<int> vv(v, v + 3);
         UNIT_ASSERT_EQUAL(JoinSeq(" ", vv), "1 2 3");
         UNIT_ASSERT_EQUAL(JoinSeq(" ", vv), JoinRange(" ", vv.begin(), vv.end()));
         UNIT_ASSERT_EQUAL(JoinRange(" ", v, v + 2), "1 2");
@@ -39,9 +39,9 @@ SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
         // try various overloads and template type arguments
         static const char* const result = "1 22 333";
         static const char* const v[] = {"1", "22", "333"};
-        yvector<const char*> vchar(v, v + sizeof(v) / sizeof(v[0]));
-        yvector<TStringBuf> vbuf(v, v + sizeof(v) / sizeof(v[0]));
-        yvector<TString> vstring(v, v + sizeof(v) / sizeof(v[0]));
+        TVector<const char*> vchar(v, v + sizeof(v) / sizeof(v[0]));
+        TVector<TStringBuf> vbuf(v, v + sizeof(v) / sizeof(v[0]));
+        TVector<TString> vstring(v, v + sizeof(v) / sizeof(v[0]));
 
         // ranges
         UNIT_ASSERT_EQUAL(JoinRange(" ", v, v + 3), result);

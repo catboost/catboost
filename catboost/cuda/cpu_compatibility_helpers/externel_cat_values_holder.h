@@ -31,9 +31,9 @@ namespace NCatboostCuda
             return GetBinFromHash(HashesPtr[line]);
         }
 
-        yvector<ui32> ExtractValues() const override
+        TVector<ui32> ExtractValues() const override
         {
-            yvector<ui32> values(GetSize());
+            TVector<ui32> values(GetSize());
             const auto& perfectHash = FeaturesManager.GetCategoricalFeaturesPerfectHash(FeatureManagerFeatureId);
             for (ui32 i = 0; i < values.size(); ++i)
             {

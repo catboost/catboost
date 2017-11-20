@@ -597,7 +597,7 @@ private:
     TEvent* End_;
 
     TMyMutex CommandLock_;
-    yvector<TCommand> Commands_;
+    TVector<TCommand> Commands_;
 
     SOCKET Signal_[2];
 };

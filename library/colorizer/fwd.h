@@ -8,4 +8,4 @@ namespace NColorizer {
     TColors& StdErr();
     TColors& StdOut();
     TColors& AutoColors(IOutputStream&);
-} // namespace NColorizer
+}

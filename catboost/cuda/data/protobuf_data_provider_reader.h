@@ -89,12 +89,12 @@ namespace NCatboostCuda
     private:
         TBinarizedFeaturesManager& FeaturesManager;
 
-        void AddFeatureColumn(TIFStream& input, yvector<TFeatureColumnPtr>& features, ui32 docCount);
+        void AddFeatureColumn(TIFStream& input, TVector<TFeatureColumnPtr>& features, ui32 docCount);
 
         template<class T>
-        static inline yvector<T> FromProtoToVector(const ::google::protobuf::RepeatedField<T>& data)
+        static inline TVector<T> FromProtoToVector(const ::google::protobuf::RepeatedField<T>& data)
         {
-            return yvector<T>(data.begin(), data.end());
+            return TVector<T>(data.begin(), data.end());
         }
 
         THolder<IFactory < IGridBuilder>> GridBuilderFactory;

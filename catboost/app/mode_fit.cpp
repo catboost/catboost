@@ -2,13 +2,13 @@
 #include "output_fstr.h"
 
 #include <catboost/libs/algo/cv_data_partition.h>
-#include <catboost/libs/algo/calc_fstr.h>
-#include <catboost/libs/data/load_data.h>
-#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/algo/train_model.h>
-#include <catboost/libs/algo/params.h>
 #include <catboost/libs/algo/tree_print.h>
-#include <catboost/libs/algo/eval_helpers.h>
+#include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/fstr/calc_fstr.h>
+#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/params/params.h>
 #include <catboost/libs/model/model.h>
 
 #include <catboost/libs/logging/profile_info.h>
@@ -64,7 +64,7 @@ static void LoadParams(int argc, const char* argv[],
                        int* threadCount,
                        TString* dataDir,
                        bool* verbose,
-                       yvector<TString>* classNames) {
+                       TVector<TString>* classNames) {
     TString paramsPath;
     ParseCommandLine(argc, argv, trainJson, params, &paramsPath);
     if (!paramsPath.empty()) {
@@ -105,7 +105,7 @@ int mode_fit(int argc, const char* argv[]) {
     int threadCount = Min(8, (int)NSystemInfo::CachedNumberOfCpus());
     TString dataDir;
     bool verbose = false;
-    yvector<TString> classNames;
+    TVector<TString> classNames;
     LoadParams(argc, argv, &trainJson, &params, &threadCount, &dataDir, &verbose, &classNames);
 
     TProfileInfo profile(true);
@@ -140,16 +140,17 @@ int mode_fit(int argc, const char* argv[]) {
     }
     MoveFiles(dataDir, &params);
 
-    yvector<yvector<yvector<double>>> testApprox(1); //[evalPeriodIdx][classIdx][objectIdx]
+    TEvalResult evalResult;
     bool allowClearPool = params.FstrRegularFileName.empty() && params.FstrInternalFileName.empty();
     TrainModel(trainJson, Nothing(), Nothing(), learnPool, allowClearPool, testPool, params.ModelFileName,
-                   nullptr, &testApprox[0]);
+                   nullptr, &evalResult);
 
     SetVerboseLogingMode();
     if (params.EvalFileName) {
         MATRIXNET_INFO_LOG << "Writing test eval to: " << params.EvalFileName << Endl;
         TOFStream fileStream(params.EvalFileName);
-        OutputTestEval(testApprox, testPool.Docs, true, &fileStream);
+        evalResult.PostProcess(threadCount);
+        evalResult.OutputToFile(testPool.Docs.Id, &fileStream, true, &testPool.Docs.Target);
     } else {
         MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;
     }

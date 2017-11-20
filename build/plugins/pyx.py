@@ -163,7 +163,7 @@ snippet cimport
 cdef extern from 'factors.h':
 
 cimport util.generic.maybe
-from util.generic.vector cimport yvector
+from util.generic.vector cimport TVector
 
 cimport some.name1, name2, other.path.name3
 cimport xlibrary as xl, some.path.ylibrary as yl, other.zlibrary as zl
@@ -189,5 +189,5 @@ cimport xlibrary as xl, some.path.ylibrary as yl, other.zlibrary as zl
     assert susp_includes == [
         ('zmq/core/context', ['Context']),
         ('lxml/includes/etreepublic', ['elementFactory', 'import_lxml__etree', 'textOf', 'pyunicode']),
-        ('util/generic/vector', ['yvector']),
+        ('util/generic/vector', ['TVector']),
     ]

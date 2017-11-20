@@ -70,10 +70,10 @@ struct TSlice {
         return slice.IsEmpty() || (Left <= slice.Left && slice.Right <= Right);
     }
 
-    static yvector<TSlice> Remove(const TSlice& from, const TSlice& slice) {
+    static TVector<TSlice> Remove(const TSlice& from, const TSlice& slice) {
         CB_ENSURE(from.Contains(slice));
 
-        yvector<TSlice> result;
+        TVector<TSlice> result;
         if (slice.IsEmpty()) {
             result.push_back(from);
             return result;

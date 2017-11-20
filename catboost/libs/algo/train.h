@@ -1,30 +1,26 @@
 #pragma once
 
-#include <util/random/shuffle.h>
-#include <util/random/normal.h>
-
 #include "learn_context.h"
-#include "params.h"
 #include "target_classifier.h"
 #include "full_features.h"
-#include "error_functions.h"
 #include "online_predictor.h"
 #include "bin_tracker.h"
 #include "rand_score.h"
 #include "fold.h"
+#include "projection.h"
 #include "online_ctr.h"
 #include "score_calcer.h"
 #include "approx_calcer.h"
 #include "index_hash_calcer.h"
 #include "greedy_tensor_search.h"
-#include "metric.h"
 #include "logger.h"
+#include "error_functions.h"
 
+#include <catboost/libs/params/params.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/model/hash.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/projection.h>
-#include <catboost/libs/model/tensor_struct.h>
 
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -36,12 +32,16 @@
 #include <util/string/iterator.h>
 #include <util/stream/file.h>
 #include <util/generic/ymath.h>
+#include <util/random/shuffle.h>
+#include <util/random/normal.h>
 
-void ShrinkModel(int itCount, TCoreModel* model);
+void ShrinkModel(int itCount, TLearnProgress* progress);
 
-yvector<int> CountSplits(const yvector<yvector<float>>& borders);
+TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures);
 
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx);
+
+void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCount, TVector<TVector<double>>* treeValues);
 
 template <typename TError>
 TError BuildError(const TFitParams& params) {
@@ -78,24 +78,24 @@ inline TCustomError BuildError<TCustomError>(const TFitParams& params) {
 
 using TTrainFunc = std::function<void(const TTrainData& data,
                                       TLearnContext* ctx,
-                                      yvector<yvector<double>>* testMultiApprox)>;
+                                      TVector<TVector<double>>* testMultiApprox)>;
 
 using TTrainOneIterationFunc = std::function<void(const TTrainData& data,
                                                   TLearnContext* ctx)>;
 
 template <typename TError>
-inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
-                                    const yvector<float>& target,
-                                    const yvector<float>& weight,
-                                    const yvector<ui32>& queriesId,
+inline void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
+                                    const TVector<float>& target,
+                                    const TVector<float>& weight,
+                                    const TVector<ui32>& queriesId,
                                     const yhash<ui32, ui32>& queriesSize,
-                                    const yvector<yvector<TCompetitor>>& competitors,
+                                    const TVector<TVector<TCompetitor>>& competitors,
                                     const TError& error,
                                     int tailFinish,
                                     TLearnContext* ctx,
-                                    yvector<yvector<double>>* derivatives) {
+                                    TVector<TVector<double>>* derivatives) {
     if (error.GetErrorType() == EErrorType::QuerywiseError) {
-        yvector<TDer1Der2> ders((*derivatives)[0].ysize());
+        TVector<TDer1Der2> ders((*derivatives)[0].ysize());
         error.CalcDersForQueries(0, tailFinish, approx[0], target, weight, queriesId, queriesSize, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*derivatives)[0][docId] = ders[docId].Der1;
@@ -120,8 +120,8 @@ inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
             }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
             ctx->LocalExecutor.ExecRange([&](int blockId) {
-                yvector<double> curApprox(approxDimension);
-                yvector<double> curDelta(approxDimension);
+                TVector<double> curApprox(approxDimension);
+                TVector<double> curDelta(approxDimension);
                 NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
                     for (int dim = 0; dim < approxDimension; ++dim) {
                         curApprox[dim] = approx[dim][z];
@@ -136,16 +136,16 @@ inline void CalcWeightedDerivatives(const yvector<yvector<double>>& approx,
     }
 }
 
-inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
-                                  const yvector<float>& target,
-                                  const yvector<float>& weight,
-                                  const yvector<ui32>& queryId,
+inline void CalcAndLogLearnErrors(const TVector<TVector<double>>& avrgApprox,
+                                  const TVector<float>& target,
+                                  const TVector<float>& weight,
+                                  const TVector<ui32>& queryId,
                                   const yhash<ui32, ui32>& queriesSize,
-                                  const yvector<TPair>& pairs,
-                                  const yvector<THolder<IMetric>>& errors,
+                                  const TVector<TPair>& pairs,
+                                  const TVector<THolder<IMetric>>& errors,
                                   int learnSampleCount,
                                   int iteration,
-                                  yvector<yvector<double>>* learnErrorsHistory,
+                                  TVector<TVector<double>>* learnErrorsHistory,
                                   NPar::TLocalExecutor* localExecutor,
                                   TLogger* logger) {
     learnErrorsHistory->emplace_back();
@@ -167,21 +167,21 @@ inline void CalcAndLogLearnErrors(const yvector<yvector<double>>& avrgApprox,
     }
 }
 
-inline void CalcAndLogTestErrors(const yvector<yvector<double>>& avrgApprox,
-                                 const yvector<float>& target,
-                                 const yvector<float>& weight,
-                                 const yvector<ui32>& queryId,
+inline void CalcAndLogTestErrors(const TVector<TVector<double>>& avrgApprox,
+                                 const TVector<float>& target,
+                                 const TVector<float>& weight,
+                                 const TVector<ui32>& queryId,
                                  const yhash<ui32, ui32>& queriesSize,
-                                 const yvector<TPair>& pairs,
-                                 const yvector<THolder<IMetric>>& errors,
+                                 const TVector<TPair>& pairs,
+                                 const TVector<THolder<IMetric>>& errors,
                                  int learnSampleCount,
                                  int sampleCount,
                                  int iteration,
                                  TErrorTracker& errorTracker,
-                                 yvector<yvector<double>>* testErrorsHistory,
+                                 TVector<TVector<double>>* testErrorsHistory,
                                  NPar::TLocalExecutor* localExecutor,
                                  TLogger* logger) {
-    yvector<double> valuesToLog;
+    TVector<double> valuesToLog;
 
     testErrorsHistory->emplace_back();
     for (int i = 0; i < errors.ysize(); ++i) {
@@ -216,17 +216,12 @@ void TrainOneIter(const TTrainData& data,
     const auto sampleCount = data.GetSampleCount();
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
 
-    yvector<THolder<IMetric>> errors = CreateMetrics(ctx->Params, approxDimension);
+    TVector<THolder<IMetric>> errors = CreateMetrics(ctx->Params.EvalMetric, ctx->Params.EvalMetricDescriptor, ctx->Params.CustomLoss, approxDimension);
 
-    auto splitCounts = CountSplits(ctx->LearnProgress.Model.Borders);
-
-    float l2LeafRegularizer = ctx->Params.L2LeafRegularizer;
-    if (l2LeafRegularizer == 0) {
-        l2LeafRegularizer += 1e-20;
-    }
+    auto splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
 
     const int foldCount = ctx->LearnProgress.Folds.ysize();
-    const int currentIteration = ctx->LearnProgress.Model.TreeStruct.ysize();
+    const int currentIteration = ctx->LearnProgress.TreeStruct.ysize();
 
     MATRIXNET_NOTICE_LOG << currentIteration << ": ";
     profile.StartNextIteration();
@@ -235,8 +230,7 @@ void TrainOneIter(const TTrainData& data,
 
     double modelLength = currentIteration * ctx->Params.LearningRate;
 
-    yvector<TSplit> bestSplitTree;
-    TTensorStructure3 bestTree;
+    TSplitTree bestSplitTree;
     {
         TFold* takenFold = &ctx->LearnProgress.Folds[ctx->Rand.GenRand() % foldCount];
 
@@ -259,17 +253,14 @@ void TrainOneIter(const TTrainData& data,
             data,
             splitCounts,
             modelLength,
-            l2LeafRegularizer,
-            ctx->Params.RandomStrength,
             profile,
             takenFold,
             ctx,
-            &bestTree,
             &bestSplitTree);
     }
     CheckInterrupted(); // check after long-lasting operation
     {
-        yvector<TFold*> trainFolds;
+        TVector<TFold*> trainFolds;
         for (int foldId = 0; foldId < foldCount; ++foldId) {
             trainFolds.push_back(&ctx->LearnProgress.Folds[foldId]);
         }
@@ -277,16 +268,16 @@ void TrainOneIter(const TTrainData& data,
         TrimOnlineCTRcache(trainFolds);
         TrimOnlineCTRcache({&ctx->LearnProgress.AveragingFold});
         {
-            yvector<TFold*> allFolds = trainFolds;
+            TVector<TFold*> allFolds = trainFolds;
             allFolds.push_back(&ctx->LearnProgress.AveragingFold);
 
-            yvector<TCalcOnlineCTRsBatchTask> parallelJobsData;
-            for (const auto& split : bestTree.SelectedSplits) {
-                if (split.Type == ESplitType::FloatFeature) {
+            TVector<TCalcOnlineCTRsBatchTask> parallelJobsData;
+            for (const auto& split : bestSplitTree.Splits) {
+                if (split.Type != ESplitType::OnlineCtr) {
                     continue;
                 }
 
-                auto& proj = split.OnlineCtr.Ctr.Projection;
+                auto& proj = split.Ctr.Projection;
                 for (auto* foldPtr : allFolds) {
                     if (!foldPtr->GetCtrs(proj).has(proj)) {
                         parallelJobsData.emplace_back(TCalcOnlineCTRsBatchTask{proj, foldPtr, &foldPtr->GetCtrRef(proj)});
@@ -298,15 +289,12 @@ void TrainOneIter(const TTrainData& data,
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation
 
-        yvector<yvector<yvector<yvector<double>>>> approxDelta;
+        TVector<TVector<TVector<TVector<double>>>> approxDelta;
         CalcApproxForLeafStruct(
             data,
             error,
-            ctx->Params.GradientIterations,
             trainFolds,
             bestSplitTree,
-            ctx->Params.LeafEstimationMethod,
-            l2LeafRegularizer,
             ctx,
             &approxDelta);
         profile.AddOperation("CalcApprox tree struct");
@@ -324,27 +312,29 @@ void TrainOneIter(const TTrainData& data,
                     double* approxData = bt.Approx[dim].data();
                     ctx->LocalExecutor.ExecRange([=](int z) {
                         approxData[z] = UpdateApprox<TError::StoreExpApprox>(approxData[z], ApplyLearningRate<TError::StoreExpApprox>(approxDeltaData[z], learningRate));
-                    }, NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000).WaitCompletion());
+                    }, NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000)
+                     , NPar::TLocalExecutor::WAIT_COMPLETE);
                 }
             }
         }
         profile.AddOperation("Update tree structure approx");
         CheckInterrupted(); // check after long-lasting operation
 
-        yvector<TIndexType> indices;
-        yvector<yvector<double>> treeValues;
+        TVector<TIndexType> indices;
+        TVector<TVector<double>> treeValues;
         CalcLeafValues(data,
-                       ctx->LearnProgress.AveragingFold,
                        bestSplitTree,
                        error,
-                       ctx->Params.GradientIterations,
-                       ctx->Params.LeafEstimationMethod,
-                       l2LeafRegularizer,
                        ctx,
                        &treeValues,
                        &indices);
 
-        yvector<yvector<double>> expTreeValues;
+        // TODO(nikitxskv): if this will be a bottleneck, we can use precalculated counts.
+        if (IsPairwiseError(ctx->Params.LossFunction)) {
+            NormalizeLeafValues(indices, data.LearnSampleCount, &treeValues);
+        }
+
+        TVector<TVector<double>> expTreeValues;
         expTreeValues.yresize(approxDimension);
         for (int dim = 0; dim < approxDimension; ++dim) {
             for (auto& leafVal : treeValues[dim]) {
@@ -375,11 +365,12 @@ void TrainOneIter(const TTrainData& data,
                     approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
                 }
                 avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
-            }, NPar::TLocalExecutor::TBlockParams(0, sampleCount).SetBlockSize(10000).WaitCompletion());
+            }, NPar::TLocalExecutor::TBlockParams(0, sampleCount).SetBlockSize(10000)
+             , NPar::TLocalExecutor::WAIT_COMPLETE);
         }
 
-        ctx->LearnProgress.Model.LeafValues.push_back(treeValues);
-        ctx->LearnProgress.Model.TreeStruct.push_back(bestTree);
+        ctx->LearnProgress.LeafValues.push_back(treeValues);
+        ctx->LearnProgress.TreeStruct.push_back(bestSplitTree);
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation
@@ -387,14 +378,14 @@ void TrainOneIter(const TTrainData& data,
 }
 
 template <typename TError>
-void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>* testMultiApprox) {
+void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
 
     const int sampleCount = data.GetSampleCount();
     const int approxDimension = testMultiApprox->ysize();
     const bool hasTest = sampleCount > data.LearnSampleCount;
 
-    yvector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params, approxDimension);
+    TVector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params.EvalMetric, ctx->Params.EvalMetricDescriptor, ctx->Params.CustomLoss, approxDimension);
 
     // TODO(asaitgalin): Should we have multiple error trackers?
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), hasTest, ctx);
@@ -412,18 +403,25 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
     if (ctx->Params.AllowWritingFiles) {
         logger = CreateLogger(metrics, *ctx, hasTest);
     }
-    yvector<yvector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
-    yvector<double> valuesToLog;
+    TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
+    TVector<double> valuesToLog;
     for (int i = 0; i < errorsHistory.ysize(); ++i) {
         errorTracker.AddError(errorsHistory[i][0], i, &valuesToLog);
     }
 
-    yvector<TFold*> folds;
+    TVector<TFold*> folds;
     for (auto& fold : ctx->LearnProgress.Folds) {
         folds.push_back(&fold);
     }
 
-    for (int iter = ctx->LearnProgress.Model.TreeStruct.ysize(); iter < ctx->Params.Iterations; ++iter) {
+    if (AreStatsFromPrevTreeUsed(ctx->Params)) {
+        ctx->ParamsUsedWithStatsFromPrevTree.Create(*folds[0]); // assume that all folds have the same shape
+        const int approxDimension = folds[0]->GetApproxDimension();
+        const int bodyTailCount = folds[0]->BodyTailArr.ysize();
+        ctx->StatsFromPrevTree.Create(CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), ctx->Params.Depth, approxDimension, bodyTailCount);
+    }
+
+    for (int iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.Iterations; ++iter) {
         TrainOneIter<TError>(data, ctx);
 
         CalcAndLogLearnErrors(
@@ -473,8 +471,8 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
         ctx->SaveProgress();
 
         if (IsNan(ctx->LearnProgress.LearnErrorsHistory.back()[0])) {
-            ctx->LearnProgress.Model.LeafValues.pop_back();
-            ctx->LearnProgress.Model.TreeStruct.pop_back();
+            ctx->LearnProgress.LeafValues.pop_back();
+            ctx->LearnProgress.TreeStruct.pop_back();
             MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
                                   << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
             break;
@@ -503,6 +501,6 @@ void Train(const TTrainData& data, TLearnContext* ctx, yvector<yvector<double>>*
     if (ctx->Params.UseBestModel && ctx->Params.Iterations > 0) {
         const int itCount = errorTracker.GetBestIteration() + 1;
         MATRIXNET_NOTICE_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
-        ShrinkModel(itCount, &ctx->LearnProgress.Model);
+        ShrinkModel(itCount, &ctx->LearnProgress);
     }
 }

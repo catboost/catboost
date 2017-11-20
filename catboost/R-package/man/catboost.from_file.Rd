@@ -4,8 +4,9 @@
 \alias{catboost.from_file}
 \title{catboost.from_file}
 \usage{
-catboost.from_file(pool_path, cd_path = "", delimiter = "\\t",
-  has_header = FALSE, thread_count = 1, verbose = FALSE)
+catboost.from_file(pool_path, cd_path = "", pairs_path = "",
+  delimiter = "\\t", has_header = FALSE, thread_count = 1,
+  verbose = FALSE)
 }
 \arguments{
 \item{pool_path}{The path to the input file that contains the dataset description.
@@ -13,6 +14,8 @@ catboost.from_file(pool_path, cd_path = "", delimiter = "\\t",
 Default value: Required argument}
 
 \item{cd_path}{The path to the input file that contains the column descriptions.}
+
+\item{pairs_path}{The path to the input file that contains the pairs descriptions.}
 
 \item{delimiter}{Delimiter character to use to separate features in a file.}
 

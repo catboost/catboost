@@ -37,7 +37,7 @@ namespace NCatboostCuda
         {
         }
 
-        const yvector<TCtr>& GetCtrs() const
+        const TVector<TCtr>& GetCtrs() const
         {
             return Ctrs;
         }
@@ -79,11 +79,11 @@ namespace NCatboostCuda
             return PermutationKey;
         }
 
-        ymap<TCtr, yvector<float>> ReadBorders(const yvector<ui32>& ids) const
+        ymap<TCtr, TVector<float>> ReadBorders(const TVector<ui32>& ids) const
         {
-            yvector<float> allBorders;
+            TVector<float> allBorders;
             CtrBorders.Read(allBorders);
-            ymap<TCtr, yvector<float>> result;
+            ymap<TCtr, TVector<float>> result;
 
             for (auto id : ids)
             {
@@ -93,9 +93,9 @@ namespace NCatboostCuda
             return result;
         };
 
-        yvector<float> ReadBorders(const ui32 featureId) const
+        TVector<float> ReadBorders(const ui32 featureId) const
         {
-            yvector<float> borders;
+            TVector<float> borders;
             TSlice readSlice = CtrBorderSlices[featureId];
             CtrBorders.CreateReader().SetReadSlice(readSlice).Read(borders);
             return ExtractBorders(borders.data());
@@ -126,16 +126,16 @@ namespace NCatboostCuda
             return CatFeatures;
         }
 
-        const yhash<TFeatureTensor, yvector<TCtrConfig>>& GetCtrConfigs() const
+        const yhash<TFeatureTensor, TVector<TCtrConfig>>& GetCtrConfigs() const
         {
             return CtrConfigs;
         }
 
     private:
-        yvector<float> ExtractBorders(const float* bordersAndSize) const
+        TVector<float> ExtractBorders(const float* bordersAndSize) const
         {
             const ui32 borderCount = static_cast<ui32>(bordersAndSize[0]);
-            yvector<float> borders(borderCount);
+            TVector<float> borders(borderCount);
             for (ui32 i = 0; i < borderCount; ++i)
             {
                 borders[i] = bordersAndSize[i + 1];
@@ -143,7 +143,7 @@ namespace NCatboostCuda
             return borders;
         }
 
-        const yvector<TCtrConfig>& GetCtrsConfigsForTensor(const TFeatureTensor& featureTensor)
+        const TVector<TCtrConfig>& GetCtrsConfigsForTensor(const TFeatureTensor& featureTensor)
         {
             if (CtrConfigs.count(featureTensor) == 0)
             {
@@ -206,7 +206,7 @@ namespace NCatboostCuda
             if (CtrBorderSlices.size())
             {
                 //borders are so small, that it should be almost always faster to write all border vec then by parts
-                yvector<float> borders(CtrBorderSlices.back().Right);
+                TVector<float> borders(CtrBorderSlices.back().Right);
                 bool needWrite = false;
 
                 for (ui32 i = 0; i < Ctrs.size(); ++i)
@@ -258,11 +258,11 @@ namespace NCatboostCuda
         yset<ui32> CatFeatures;
 
         yhash<TCtr, ui32> InverseCtrIndex;
-        yvector<TCtr> Ctrs;
-        yvector<TSlice> CtrBorderSlices;
+        TVector<TCtr> Ctrs;
+        TVector<TSlice> CtrBorderSlices;
         TCudaBuffer<float, TFeaturesMapping> CtrBorders;
-        yvector<bool> AreCtrBordersComputed;
-        yhash<TFeatureTensor, yvector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
+        TVector<bool> AreCtrBordersComputed;
+        yhash<TFeatureTensor, TVector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
 
         THolder<TGpuDataSet> BinarizedDataSet;
         THolder<TScopedCacheHolder> CacheHolder;

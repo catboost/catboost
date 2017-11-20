@@ -4,9 +4,9 @@
 
 using NMetrics::TSample;
 
-yvector<TSample> TSample::FromVectors(const yvector<double>& targets, const yvector<double>& predictions) {
+TVector<TSample> TSample::FromVectors(const TVector<double>& targets, const TVector<double>& predictions) {
     Y_ASSERT(targets.size() == predictions.size());
-    yvector<TSample> result;
+    TVector<TSample> result;
     result.reserve(targets.size());
     for (ui32 i = 0; i < targets.size(); ++i) {
         result.push_back(TSample(targets[i], predictions[i]));
@@ -14,12 +14,12 @@ yvector<TSample> TSample::FromVectors(const yvector<double>& targets, const yvec
     return result;
 }
 
-yvector<TSample> TSample::FromVectors(
-    const yvector<double>& targets, const yvector<double>& predictions, const yvector<double>& weights)
+TVector<TSample> TSample::FromVectors(
+    const TVector<double>& targets, const TVector<double>& predictions, const TVector<double>& weights)
 {
     Y_ASSERT(targets.size() == predictions.size());
     Y_ASSERT(targets.size() == weights.size());
-    yvector<TSample> result;
+    TVector<TSample> result;
     result.reserve(targets.size());
     for (ui32 i = 0; i < targets.size(); ++i) {
         result.push_back(TSample(targets[i], predictions[i], weights[i]));

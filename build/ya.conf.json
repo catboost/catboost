@@ -1327,7 +1327,7 @@
         },
         "clang-format": {
             "tools": {
-                "clang-format": { "bottle": "clang40", "executable": "clang-format" }
+                "clang-format": { "bottle": "clang50", "executable": "clang-format" }
             },
             "platforms": [
                   {"host": {"os": "LINUX"}, "default": true},
@@ -1981,7 +1981,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 166285130,
+                "sandbox_id": 174722246,
                 "match": "YMake"
             },
             "executable": {
@@ -1999,7 +1999,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 165154198,
+                "sandbox_id": 174276902,
                 "match": "test_tool"
             },
             "executable": {
@@ -2273,7 +2273,7 @@
         },
         "deploy": {
             "formula": {
-                "sandbox_id": 166687292,
+                "sandbox_id": 174851497,
                 "match": "DEPLOY"
             },
             "executable": {
@@ -2309,7 +2309,7 @@
         },
         "pyndexer": {
             "formula": {
-                "sandbox_id": 157027072,
+                "sandbox_id": 177084483,
                 "match": "PYNDEXER"
             },
             "executable": {

@@ -1,3 +1,5 @@
+#include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/helpers/eval_helpers.h>
 #include "train.h"
 
 class TGPUModelTrainer: public IModelTrainer
@@ -11,22 +13,22 @@ class TGPUModelTrainer: public IModelTrainer
             const TPool& testPool,
             const TString& outputModelPath,
             TFullModel* model,
-            yvector<yvector<double>>* testApprox) const override
+            TEvalResult* evalResult) const override
     {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         Y_UNUSED(allowClearPool);
         NCatboostCuda::TrainModel(params, learnPool, testPool, outputModelPath, model);
-        testApprox->resize(model->ApproxDimension);
+        evalResult->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
     }
 };
 
-TTrainerFactory::TRegistrator <TGPUModelTrainer> GPURegistrator(EDeviceType::GPU);
+TTrainerFactory::TRegistrator <TGPUModelTrainer> GPURegistrator(ETaskType::GPU);
 
 namespace NCatboostCuda
 {
 
-    inline TCoreModel TrainModelImpl(const TTrainCatBoostOptions& trainCatBoostOptions,
+    inline TFullModel TrainModelImpl(const TTrainCatBoostOptions& trainCatBoostOptions,
                                      const TDataProvider& dataProvider,
                                      const TDataProvider* testProvider,
                                      TBinarizedFeaturesManager& featuresManager)
@@ -92,7 +94,7 @@ namespace NCatboostCuda
 
         }
 
-        TCoreModel result = ConvertToCoreModel(featuresManager,
+        TFullModel result = ConvertToCoreModel(featuresManager,
                                                dataProvider,
                                                *model);
         {
@@ -103,13 +105,13 @@ namespace NCatboostCuda
         return result;
     }
 
-    TCoreModel TrainModel(const TTrainCatBoostOptions& trainCatBoostOptions,
+    TFullModel TrainModel(const TTrainCatBoostOptions& trainCatBoostOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager)
     {
-        std::promise<TCoreModel> resultPromise;
-        std::future<TCoreModel> resultFuture = resultPromise.get_future();
+        std::promise<TFullModel> resultPromise;
+        std::future<TFullModel> resultFuture = resultPromise.get_future();
         std::thread thread([&]()
                            {
                                SetLogingLevel(trainCatBoostOptions.ApplicationOptions.GetLoggingLevel());
@@ -150,22 +152,34 @@ namespace NCatboostCuda
     {
 
         TTrainCatBoostOptions catBoostOptions;
+        TOptionsJsonConverter<TTrainCatBoostOptions>::Load(params, catBoostOptions);
+
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
         if (testPool.Docs.GetDocCount()) {
             testData = MakeHolder<TDataProvider>();
         }
 
-        TOptionsJsonConverter<TTrainCatBoostOptions>::Load(params, catBoostOptions);
+        TVector<size_t> indices(learnPool.Docs.GetDocCount());
+        std::iota(indices.begin(), indices.end(), 0);
+        if (!catBoostOptions.BoostingOptions.HasTime()) {
+            const ui64 shuffleSeed = catBoostOptions.GetShuffleSeed();
+            TRandom random(shuffleSeed);
+            Shuffle(indices.begin(), indices.end(), random);
+            dataProvider.SetShuffleSeed(shuffleSeed);
+        }
+        ::ApplyPermutation(InvertPermutation(indices), &learnPool);
+        auto permutationGuard = Finally([&] { ::ApplyPermutation(indices, &learnPool); });
+
         TBinarizedFeaturesManager featuresManager(catBoostOptions.FeatureManagerOptions);
 
         {
-
             CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
             TCpuPoolBasedDataProviderBuilder builder(featuresManager, learnPool, false, dataProvider);
             builder.AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
                     .Finish(catBoostOptions.ApplicationOptions.GetNumThreads());
         }
+
         if (testData != nullptr) {
             TCpuPoolBasedDataProviderBuilder builder(featuresManager, testPool, true, *testData);
             builder.AddIgnoredFeatures(catBoostOptions.FeatureManagerOptions.GetIgnoredFeatures())
@@ -176,17 +190,19 @@ namespace NCatboostCuda
         UpdateOptionsAndEnableCtrTypes(catBoostOptions, featuresManager);
 
         auto coreModel = TrainModel(catBoostOptions, dataProvider, testData.Get(), featuresManager);
-
+        auto targetClassifiers = CreateTargetClassifiers(featuresManager);
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            MakeFullModel(coreModel,
+            MakeFullModel(std::move(coreModel),
                           learnPool,
+                          targetClassifiers,
                           catBoostOptions.ApplicationOptions.GetNumThreads(),
                           outputModelPath);
         } else
         {
-            MakeFullModel(coreModel,
+            MakeFullModel(std::move(coreModel),
                           learnPool,
+                          targetClassifiers,
                           catBoostOptions.ApplicationOptions.GetNumThreads(),
                           model);
         }

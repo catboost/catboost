@@ -4,15 +4,31 @@
 #include <util/generic/typetraits.h>
 #include "cast.h"
 
-template <typename T>
-inline void AppendToString(TString& dst, const T& t) {
-    dst.AppendNoAlias(ToString(t));
+/*
+ * Default implementation of AppendToString uses a temporary TString object which is inefficient. You can overload it
+ * for your type to speed up string joins. If you already have an Out() or operator<<() implementation you can simply
+ * do the following:
+ *
+ *      inline void AppendToString(TString& dst, const TMyType& t) {
+ *          TStringOutput o(dst);
+ *          o << t;
+ *      }
+ *
+ * Unfortunately we can't do this by default because for some types ToString() is defined while Out() is not.
+ * For standard types (strings of all kinds and arithmetic types) we don't use a temporary TString in AppendToString().
+ */
 
-    // Currently we have only ToString() as a base conversion routine,
-    // which allocates and returns temporary string on each call.
-    // It would be more efficient to define AppendToString() as the base instead,
-    // and then implement ToString(), Out(), Join(), etc. via AppendToString().
-    // See IGNIETFERRO-629.
+template <typename T>
+inline std::enable_if_t<!std::is_arithmetic<std::remove_cv_t<T>>::value, void>
+AppendToString(TString& dst, const T& t) {
+    dst.AppendNoAlias(ToString(t));
+}
+
+template <typename T>
+inline std::enable_if_t<std::is_arithmetic<std::remove_cv_t<T>>::value, void>
+AppendToString(TString& dst, const T& t) {
+    char buf[512];
+    dst.append(buf, ToString<std::remove_cv_t<T>>(t, buf, sizeof(buf)));
 }
 
 inline void AppendToString(TString& dst, const char* t) {

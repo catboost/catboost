@@ -322,7 +322,7 @@ public:
 };
 
 template <class T, class A>
-class TSerializer<yvector<T, A>>: public TVectorSerializer<yvector<T, A>> {
+class TSerializer<TVector<T, A>>: public TVectorSerializer<TVector<T, A>> {
 };
 
 template <class T, class A>
@@ -496,8 +496,8 @@ public:
 };
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
-class TSetSerializerInserter<yhash_mm<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<yhash_mm<T1, T2, T3, T4, T5>, TValue> {
-    using TMap = yhash_mm<T1, T2, T3, T4, T5>;
+class TSetSerializerInserter<THashMultiMap<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<THashMultiMap<T1, T2, T3, T4, T5>, TValue> {
+    using TMap = THashMultiMap<T1, T2, T3, T4, T5>;
     using TBase = TSetSerializerInserterBase<TMap, TValue>;
 
 public:
@@ -509,8 +509,8 @@ public:
 };
 
 template <class T1, class T2, class T3, class T4, class TValue>
-class TSetSerializerInserter<yhash_set<T1, T2, T3, T4>, TValue, false>: public TSetSerializerInserterBase<yhash_set<T1, T2, T3, T4>, TValue> {
-    using TSet = yhash_set<T1, T2, T3, T4>;
+class TSetSerializerInserter<THashSet<T1, T2, T3, T4>, TValue, false>: public TSetSerializerInserterBase<THashSet<T1, T2, T3, T4>, TValue> {
+    using TSet = THashSet<T1, T2, T3, T4>;
     using TBase = TSetSerializerInserterBase<TSet, TValue>;
 
 public:
@@ -582,7 +582,7 @@ class TSerializer<yhash<T1, T2, T3, T4, T5>>: public TMapSerializer<yhash<T1, T2
 };
 
 template <class T1, class T2, class T3, class T4, class T5>
-class TSerializer<yhash_mm<T1, T2, T3, T4, T5>>: public TMapSerializer<yhash_mm<T1, T2, T3, T4, T5>, false> {
+class TSerializer<THashMultiMap<T1, T2, T3, T4, T5>>: public TMapSerializer<THashMultiMap<T1, T2, T3, T4, T5>, false> {
 };
 
 template <class K, class C, class A>
@@ -594,7 +594,7 @@ class TSerializer<std::set<K, C, A>>: public TSetSerializer<std::set<K, C, A>, t
 };
 
 template <class T1, class T2, class T3, class T4>
-class TSerializer<yhash_set<T1, T2, T3, T4>>: public TSetSerializer<yhash_set<T1, T2, T3, T4>, false> {
+class TSerializer<THashSet<T1, T2, T3, T4>>: public TSetSerializer<THashSet<T1, T2, T3, T4>, false> {
 };
 
 template <class T1, class T2>

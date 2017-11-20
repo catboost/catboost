@@ -34,7 +34,7 @@ namespace NCatboostCuda
     template<class TMapping>
     inline TBestSplitProperties BestSplit(const TCudaBuffer<TBestSplitProperties, TMapping>& optimalSplits)
     {
-        yvector<TBestSplitProperties> best;
+        TVector<TBestSplitProperties> best;
         optimalSplits.Read(best);
         TBestSplitProperties minScr = best[0];
 
@@ -189,9 +189,9 @@ namespace NCatboostCuda
             return *this;
         }
 
-        yvector<float> ReadHistograms() const
+        TVector<float> ReadHistograms() const
         {
-            yvector<float> dst;
+            TVector<float> dst;
             TCudaBuffer<float, TFeaturesMapping> gatheredHistogramsByLeaves;
 
             auto currentStripe = DataSet->GetBinaryFeatures().GetMapping().Transform([&](const TSlice& features) -> ui64

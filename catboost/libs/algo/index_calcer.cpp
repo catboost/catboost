@@ -2,20 +2,10 @@
 #include "score_calcer.h"
 #include "online_ctr.h"
 #include "tree_print.h"
+
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/helpers/dense_hash.h>
 
-static bool GetFloatFeatureSplit(const TModelSplit& split, const TAllFeatures& features, int idxOriginal) {
-    const auto& bf = split.BinFeature;
-    bool ans = IsTrueHistogram(features.FloatHistograms[bf.FloatFeature][idxOriginal], bf.SplitIdx);
-    return ans;
-}
-
-static bool GetOneHotFeatureSplit(const TModelSplit& split, const TAllFeatures& features, int idxOriginal) {
-    const TOneHotFeature& ohf = split.OneHotFeature;
-    bool ans = IsTrueOneHotFeature(features.CatFeatures[ohf.CatFeatureIdx][idxOriginal], ohf.Value);
-    return ans;
-}
 
 static bool GetCtrSplit(const TSplit& split, int idxPermuted, const TOnlineCTR& ctr) {
     ui8 ctrValue = ctr.Feature[split.Ctr.CtrIdx]
@@ -29,12 +19,12 @@ static inline ui8 GetFeatureSplitIdx(const TSplit& split) {
     return split.BinBorder;
 }
 
-static inline const yvector<ui8>& GetFloatHistogram(const TSplit& split, const TAllFeatures& features) {
+static inline const TVector<ui8>& GetFloatHistogram(const TSplit& split, const TAllFeatures& features) {
     return features.FloatHistograms[split.FeatureIdx];
 }
 
-static inline const yvector<int>& GetRemappedCatFeatures(const TSplit& split, const TAllFeatures& features) {
-    return features.CatFeaturesRemapped[split.FeatureIdx];
+static inline const TVector<int>& GetRemappedCatFeatures(const TSplit& split, const TAllFeatures& features) {
+    return features.CatFeatures[split.FeatureIdx];
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
@@ -84,13 +74,13 @@ void SetPermutedIndices(const TSplit& split,
                         const TAllFeatures& features,
                         int curDepth,
                         const TFold& fold,
-                        yvector<TIndexType>* indices,
+                        TVector<TIndexType>* indices,
                         TLearnContext* ctx) {
     CB_ENSURE(curDepth > 0);
 
     const int blockSize = 1000;
     NPar::TLocalExecutor::TBlockParams blockParams(0, indices->ysize());
-    blockParams.SetBlockSize(blockSize).WaitCompletion();
+    blockParams.SetBlockSize(blockSize);
 
     const int splitWeight = 1 << (curDepth - 1);
     TIndexType* indicesData = indices->data();
@@ -103,7 +93,7 @@ void SetPermutedIndices(const TSplit& split,
         auto& ctr = fold.GetCtr(split.Ctr.Projection);
         ctx->LocalExecutor.ExecRange([&] (int i) {
             indicesData[i] += GetCtrSplit(split, i, ctr) * splitWeight;
-        }, blockParams);
+        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
         ctx->LocalExecutor.ExecRange([&] (int blockIdx) {
@@ -113,8 +103,8 @@ void SetPermutedIndices(const TSplit& split,
     }
 }
 
-int GetRedundantSplitIdx(int curDepth, const yvector<TIndexType>& indices) {
-    yvector<bool> isEmpty(1 << curDepth, true);
+int GetRedundantSplitIdx(int curDepth, const TVector<TIndexType>& indices) {
+    TVector<bool> isEmpty(1 << curDepth, true);
     for (const auto& idx : indices) {
         isEmpty[idx] = false;
     }
@@ -138,10 +128,8 @@ int GetRedundantSplitIdx(int curDepth, const yvector<TIndexType>& indices) {
     return -1;
 }
 
-void DeleteSplit(int curDepth, int redundantIdx, yvector<TSplit>* tree, TTensorStructure3* tensor3, yvector<TIndexType>* indices) {
+void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TIndexType>* indices) {
     if (redundantIdx != curDepth - 1) {
-        DoSwap(tensor3->SelectedSplits[redundantIdx], tensor3->SelectedSplits.back());
-        DoSwap(tree->at(redundantIdx), tree->back());
         for (auto& idx : *indices) {
             bool isTrueBack = (idx >> (curDepth - 1)) & 1;
             bool isTrueRedundant = (idx >> redundantIdx) & 1;
@@ -150,21 +138,20 @@ void DeleteSplit(int curDepth, int redundantIdx, yvector<TSplit>* tree, TTensorS
         }
     }
 
-    tree->pop_back();
-    tensor3->SelectedSplits.pop_back();
+    tree->Splits.erase(tree->Splits.begin() + redundantIdx);
     for (auto& idx : *indices) {
         idx &= (1 << (curDepth - 1)) - 1;
     }
 }
 
-yvector<TIndexType> BuildIndices(const TFold& fold,
-                                 const yvector<TSplit>& tree,
+TVector<TIndexType> BuildIndices(const TFold& fold,
+                                 const TSplitTree& tree,
                                  const TTrainData& data,
                                  NPar::TLocalExecutor* localExecutor) {
-                                 yvector<TIndexType> indices(fold.EffectiveDocCount);
-    yvector<const TOnlineCTR*> onlineCtrs(tree.ysize());
-    for (int splitIdx = 0; splitIdx < tree.ysize(); ++splitIdx) {
-        const auto& split = tree[splitIdx];
+                                 TVector<TIndexType> indices(fold.EffectiveDocCount);
+    TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
+    for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
+        const auto& split = tree.Splits[splitIdx];
         if (split.Type == ESplitType::OnlineCtr) {
             onlineCtrs[splitIdx] = &fold.GetCtr(split.Ctr.Projection);
         }
@@ -172,11 +159,11 @@ yvector<TIndexType> BuildIndices(const TFold& fold,
 
     const int blockSize = 1000;
     NPar::TLocalExecutor::TBlockParams learnBlockParams(0, data.LearnSampleCount);
-    learnBlockParams.SetBlockSize(blockSize).WaitCompletion();
+    learnBlockParams.SetBlockSize(blockSize);
 
     localExecutor->ExecRange([&](int blockIdx) {
-        for (int splitIdx = 0; splitIdx < tree.ysize(); ++splitIdx) {
-            const auto& split = tree[splitIdx];
+        for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
+            const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
                 OfflineCtrBlock<ui8, IsTrueHistogram>(learnBlockParams, blockIdx, fold, GetFloatHistogram(split, data.AllFeatures).data(),
@@ -195,16 +182,15 @@ yvector<TIndexType> BuildIndices(const TFold& fold,
     }, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     NPar::TLocalExecutor::TBlockParams tailBlockParams(data.LearnSampleCount, fold.EffectiveDocCount);
-    tailBlockParams.SetBlockSize(blockSize).WaitCompletion();
+    tailBlockParams.SetBlockSize(blockSize);
 
     localExecutor->ExecRange([&](int blockIdx) {
-        for (int splitIdx = 0; splitIdx < tree.ysize(); ++splitIdx) {
-            const auto& split = tree[splitIdx];
+        for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
+            const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
                 const ui8 featureSplitIdx = GetFeatureSplitIdx(split);
                 const ui8* floatHistogramData = GetFloatHistogram(split, data.AllFeatures).data();
-
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
                     indices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
                 })(blockIdx);
@@ -237,104 +223,4 @@ int GetDocCount(const TAllFeatures& features) {
             return features.CatFeatures[i].ysize();
     }
     return 0;
-}
-
-yvector<TIndexType> BuildIndices(const TTensorStructure3& tree,
-                                 const TFullModel& model,
-                                 const TAllFeatures& features,
-                                 const TCommonContext& ) {
-    int samplesCount = GetDocCount(features);
-    yvector<TIndexType> indices(samplesCount);
-    const int splitCount = tree.SelectedSplits.ysize();
-    yvector<ui64> ctrHashes;
-
-    for (int splitIdx = 0; splitIdx < splitCount; ++splitIdx) {
-        const auto& split = tree.SelectedSplits[splitIdx];
-
-        if (split.Type == ESplitType::FloatFeature) {
-            for (int doc = 0; doc < samplesCount; ++doc) {
-                indices[doc] |= GetFloatFeatureSplit(split, features, doc) << splitIdx;
-            }
-        } else if (split.Type == ESplitType::OneHotFeature) {
-            for (int doc = 0; doc < samplesCount; ++doc) {
-                indices[doc] |= GetOneHotFeatureSplit(split, features, doc) << splitIdx;
-            }
-        } else {
-            Y_ASSERT(split.Type == ESplitType::OnlineCtr);
-            const auto& ctr = split.OnlineCtr.Ctr;
-            const ECtrType ctrType = ctr.CtrType;
-            const auto& learnCtr = model.CtrCalcerData.LearnCtrs.find(ctr)->second;
-            ctrHashes.resize(samplesCount);
-            const auto& projection = split.OnlineCtr.Ctr.Projection;
-            CalcHashes(projection, features, samplesCount, yvector<int>(), &ctrHashes);
-
-            if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
-                auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
-                for (int doc = 0; doc < samplesCount; ++doc) {
-                    float targetStatisticSum = 0;
-                    int totalCount = 0;
-                    const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
-                    if (idx != TCtrValueTable::UnknownHash) {
-                        const TCtrMeanHistory& ctrMeanHistory = ctrMean[idx];
-                        targetStatisticSum = ctrMeanHistory.Sum;
-                        totalCount = ctrMeanHistory.Count;
-                    }
-                    const float ctrValue = ctr.Calc(targetStatisticSum, totalCount);
-                    indices[doc] |= ((int)(ctrValue > split.OnlineCtr.Border)) << splitIdx;
-                }
-            } else if (ctrType == ECtrType::FeatureFreq || ctrType == ECtrType::Counter) {
-                int denominator = learnCtr.CounterDenominator;
-                TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
-                for (int doc = 0; doc < samplesCount; ++doc) {
-                    const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
-                    int currentBucket = 0;
-                    if (idx != TCtrValueTable::UnknownHash) {
-                        currentBucket = ctrTotal[idx];
-                    }
-                    const float ctrValue = ctr.Calc(currentBucket, denominator);
-                    indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
-                }
-            } else if (ctrType == ECtrType::Buckets) {
-                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
-                const int targetClassesCount = learnCtr.TargetClassesCount;
-                for (int doc = 0; doc < samplesCount; ++doc) {
-                    int goodCount = 0;
-                    int totalCount = 0;
-                    const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
-                    if (idx != TCtrValueTable::UnknownHash) {
-                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + idx * targetClassesCount, targetClassesCount);
-                        goodCount = ctrHistory[ctr.TargetBorderIdx];
-                        for (int classId = 0; classId < targetClassesCount; ++classId) {
-                            totalCount += ctrHistory[classId];
-                        }
-                    }
-                    const float ctrValue = ctr.Calc(goodCount, totalCount);
-                    indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
-                }
-            } else if (ctrType == ECtrType::Borders) {
-                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
-                const int targetClassesCount = learnCtr.TargetClassesCount;
-                for (int doc = 0; doc < samplesCount; ++doc) {
-                    int goodCount = 0;
-                    int totalCount = 0;
-                    const auto idx = learnCtr.ResolveHashToIndex(ctrHashes[doc]);
-                    if (idx != TCtrValueTable::UnknownHash) {
-                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + idx * targetClassesCount, targetClassesCount);
-                        for (int classId = 0; classId < ctr.TargetBorderIdx + 1; ++classId) {
-                            totalCount += ctrHistory[classId];
-                        }
-                        for (int classId = ctr.TargetBorderIdx + 1; classId < targetClassesCount; ++classId) {
-                            goodCount += ctrHistory[classId];
-                        }
-                        totalCount += goodCount;
-                    }
-                    const float ctrValue = ctr.Calc(goodCount, totalCount);
-                    indices[doc] |= (int)(ctrValue > split.OnlineCtr.Border) << splitIdx;
-                }
-            } else {
-                ythrow TCatboostException() << "Unsupported ctr type " << ctrType;
-            }
-        }
-    }
-    return indices;
 }

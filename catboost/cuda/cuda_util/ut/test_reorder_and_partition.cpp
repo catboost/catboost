@@ -21,10 +21,10 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
         for (ui32 i = 0; i < expCount; ++i) {
             auto binsMapping = TStripeMapping::SplitBetweenDevices(devCount * (rand.NextUniformL() % 1000000));
 
-            yvector<int> offsets(binCount * devCount, 0);
-            yvector<int> sizes(binCount * devCount, 0);
+            TVector<int> offsets(binCount * devCount, 0);
+            TVector<int> sizes(binCount * devCount, 0);
 
-            yvector<ui32> binsCpu;
+            TVector<ui32> binsCpu;
             {
                 binsCpu.resize(binsMapping.GetObjectsSlice().Size());
                 for (ui32 dev = 0; dev < devCount; ++dev) {
@@ -51,7 +51,7 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
             MakeSequence(indices);
             ReorderBins(bins, indices, 0, 2);
 
-            yvector<TDataPartition> partsCpu;
+            TVector<TDataPartition> partsCpu;
             auto partsGpuMapping = binsMapping.RepeatOnAllDevices(binCount);
             auto partsGpu = TStripeBuffer<TDataPartition>::Create(partsGpuMapping);
             UpdatePartitionDimensions(bins, partsGpu);

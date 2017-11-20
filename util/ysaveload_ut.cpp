@@ -117,7 +117,7 @@ private:
         }
 
         {
-            yvector<ui16> vec;
+            TVector<ui16> vec;
 
             vec.push_back((ui16)1);
             vec.push_back((ui16)2);
@@ -168,7 +168,7 @@ private:
         }
 
         {
-            yvector<const char*> vec;
+            TVector<const char*> vec;
 
             vec.push_back("1");
             vec.push_back("123");
@@ -209,7 +209,7 @@ private:
         }
 
         {
-            yhash_mm<TString, int> mm;
+            THashMultiMap<TString, int> mm;
 
             mm.insert({"one", 1});
             mm.insert({"two", 2});
@@ -248,7 +248,7 @@ private:
         }
 
         {
-            yvector<ui16> vec;
+            TVector<ui16> vec;
 
             Load(&S_, vec);
             UNIT_ASSERT_EQUAL(+vec, 3);
@@ -275,7 +275,7 @@ private:
             UNIT_ASSERT_EQUAL(multimap.find((ui16)1)->second, 2);
             UNIT_ASSERT_EQUAL(multimap.find((ui16)3)->second, 6);
 
-            yhash_set<ui32> values;
+            THashSet<ui32> values;
             auto range = multimap.equal_range((ui16)2);
             for (auto i = range.first; i != range.second; ++i) {
                 values.insert(i->second);
@@ -309,7 +309,7 @@ private:
         }
 
         {
-            yvector<const char*> vec;
+            TVector<const char*> vec;
             TMemoryPool pool(1024);
 
             Load(&S_, vec, pool);
@@ -359,7 +359,7 @@ private:
         }
 
         {
-            yhash_mm<TString, int> mm;
+            THashMultiMap<TString, int> mm;
 
             Load(&S_, mm);
 
@@ -415,11 +415,11 @@ private:
     }
 
     void TestVariant() {
-        TVariant<int, bool, TString, yvector<char>> v(1);
+        TVariant<int, bool, TString, TVector<char>> v(1);
         TestVariantImpl(v, 42);
         TestVariantImpl(v, true);
         TestVariantImpl(v, TString("foo"));
-        TestVariantImpl(v, yvector<char>{'b', 'a', 'r'});
+        TestVariantImpl(v, TVector<char>{'b', 'a', 'r'});
 
         v = TString("baz");
         TBufferStream s;

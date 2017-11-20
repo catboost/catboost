@@ -435,7 +435,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
             c.insert(std::make_pair(TKey(2), 102));
             c.insert(std::make_pair(TKey(3), 103));
 
-            yvector<int> values;
+            TVector<int> values;
             for (auto& i : c) {
                 values.push_back(i.second);
             }

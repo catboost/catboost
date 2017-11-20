@@ -1,10 +1,11 @@
 #include "online_predictor.h"
+
 #include <catboost/libs/helpers/matrix.h>
 
-void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, yvector<double>* res) {
+void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res) {
     const int approxDimension = ss.SumDerHistory.ysize();
     res->resize(approxDimension);
-    yvector<double> total1st(approxDimension);
+    TVector<double> total1st(approxDimension);
     TArray2D<double> total2nd(approxDimension, approxDimension);
     for (int dimY = 0; dimY < approxDimension; ++dimY) {
         total1st[dimY] = ss.SumDerHistory[dimY].ysize() <= gradientIteration ?

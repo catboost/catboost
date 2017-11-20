@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #if defined(_unix_)
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 using namespace NColorizer;

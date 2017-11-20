@@ -224,7 +224,6 @@
 #include <util/generic/fwd.h>
 #include <util/generic/is_in.h>
 #include <util/generic/buffer.h>
-#include <util/generic/ref.h>
 #include <util/generic/yexception.h>
 #include <util/generic/typelist.h>
 #include <util/generic/utility.h>

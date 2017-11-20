@@ -57,26 +57,34 @@ def test_pairlogit():
     output_eval_path = yatest.common.test_output_path('test.eval')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--loss-function', 'PairLogit',
-        '--eval-metric', 'PairAccuracy',
-        '-f', data_file('zen', 'learn_small.tsv'),
-        '-t', data_file('zen', 'test_small.tsv'),
-        '--column-description', data_file('zen', 'zen.cd'),
-        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
-        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
-        '--ctr', 'Borders,Counter',
-        '-i', '20',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
-        '--learn-err-log', learn_error_path,
-        '--test-err-log', test_error_path
-    )
-    yatest.common.execute(cmd)
+
+    def run_catboost(eval_path, learn_pairs):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('zen', 'learn_small.tsv'),
+            '-t', data_file('zen', 'test_small.tsv'),
+            '--column-description', data_file('zen', 'zen.cd'),
+            '--learn-pairs', data_file('zen', learn_pairs),
+            '--test-pairs', data_file('zen', 'test_pairs.tsv'),
+            '--ctr', 'Borders,Counter',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path, 'learn_pairs.tsv')
+    output_weighted_eval_path = yatest.common.test_output_path('test_weighted.eval')
+    run_catboost(output_weighted_eval_path, 'learn_weighted_pairs.tsv')
+
+    assert filecmp.cmp(output_eval_path, output_weighted_eval_path)
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path),
@@ -287,8 +295,20 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
         '--gradient-iterations', '2'
     )
     yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
 
-    return [local_canonical_file(output_eval_path)]
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('cloudness_small', 'test_small'),
+        '--column-description', data_file('cloudness_small', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 LOSS_FUNCTIONS_SHORT = ['Logloss', 'MultiClass']
@@ -501,7 +521,22 @@ def test_all_targets(loss_function):
     )
     yatest.common.execute(cmd)
 
-    return [local_canonical_file(output_eval_path)]
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    # TODO(kirillovs): uncomment this after resolving MAPE problems
+    # assert(compare_evals(output_eval_path, formula_predict_path))
+
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 def test_cv():
@@ -860,7 +895,19 @@ def test_multi_targets(loss_function):
     )
     yatest.common.execute(cmd)
 
-    return [local_canonical_file(output_eval_path)]
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('cloudness_small', 'test_small'),
+        '--column-description', data_file('cloudness_small', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 BORDER_TYPES = ['MinEntropy', 'Median', 'UniformAndQuantiles', 'MaxLogSum', 'GreedyLogSum', 'Uniform']
@@ -1561,3 +1608,29 @@ def test_only_categorical_features():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_weight_sampling_per_tree():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--weight-sampling-frequency', 'PerTree',
+    )
+    yatest.common.execute(cmd)
+    return local_canonical_file(output_eval_path)

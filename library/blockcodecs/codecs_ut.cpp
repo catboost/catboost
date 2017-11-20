@@ -16,7 +16,7 @@ SIMPLE_UNIT_TEST_SUITE(TBlockCodecsTest) {
     }
 
     void TestAllAtOnce(size_t n, size_t m) {
-        yvector<TBuffer> datas;
+        TVector<TBuffer> datas;
 
         datas.emplace_back();
         datas.push_back(Buffer("na gorshke sidel korol"));
@@ -145,7 +145,7 @@ SIMPLE_UNIT_TEST_SUITE(TBlockCodecsTest) {
     }
 
     void TestStreams(size_t n, size_t m) {
-        yvector<TString> datas;
+        TVector<TString> datas;
         TString res;
 
         for (size_t i = 0; i < 256; ++i) {

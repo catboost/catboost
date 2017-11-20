@@ -39,6 +39,12 @@ namespace NCatboostCuda
         {
         }
 
+
+        void UseFullDataForCatFeatureStats(bool flag)
+        {
+            TCalcCtrHelper::ComputeCatFeatureStatOnFullData = flag;
+        }
+
         template<class TUi32>
         void Reset(const TCudaBuffer<TUi32, TMapping>& sortedByBinIndices)
         {
@@ -56,7 +62,7 @@ namespace NCatboostCuda
         }
 
         template<class TVisitor>
-        inline TCalcCtrHelper& VisitEqualUpToPriorCtrs(const yvector<TCtrConfig>& configs,
+        inline TCalcCtrHelper& VisitEqualUpToPriorCtrs(const TVector<TCtrConfig>& configs,
                                                        TVisitor&& visitor)
         {
             for (auto& config : configs)
@@ -85,16 +91,23 @@ namespace NCatboostCuda
 
             if (IsCatFeatureStatisticCtr(ctrType))
             {
-                TWeightedBinFreqCalcer<TMapping> weightedFreqCalcer(weights,
-                                                                    CtrTargets.TotalWeight,
-                                                                    mask,
-                                                                    Stream);
+                if (ComputeCatFeatureStatOnFullData) {
+                    TCtrBinBuilder<TMapping> binBuilder(Stream);
+                    binBuilder.SetIndices(SortedByBinsIndices, CtrTargets.LearnSlice);
+//
 
-                weightedFreqCalcer
-                        .VisitEqualUpToPriorFreqCtrs(SortedByBinsIndices,
-                                                     configs,
-                                                     std::forward<TVisitor>(visitor));
+                    binBuilder.VisitEqualUpToPriorFreqCtrs(configs,
+                                                           std::forward<TVisitor>(visitor));
+                } else {
+                    TWeightedBinFreqCalcer<TMapping> weightedFreqCalcer(weights,
+                                                                        CtrTargets.TotalWeight,
+                                                                        mask,
+                                                                        Stream);
+                    weightedFreqCalcer.VisitEqualUpToPriorFreqCtrs(SortedByBinsIndices,
+                                                                   configs,
+                                                                   std::forward<TVisitor>(visitor));
 
+                }
             } else if (IsBinarizedTargetCtr(ctrType))
             {
                 if (!HistoryCalcer)
@@ -158,6 +171,7 @@ namespace NCatboostCuda
         const TCtrTargets<TMapping>& CtrTargets;
         TCudaBuffer<const ui32, TMapping> SortedByBinsIndices;
         THolder<THistoryBasedCtrCalcer<TMapping>> HistoryCalcer;
+        bool ComputeCatFeatureStatOnFullData = false;
         ui32 Stream = 0;
     };
 }

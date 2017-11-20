@@ -23,6 +23,16 @@ CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 
+ZEN_TRAIN_FILE = data_file('zen', 'learn_small.tsv')
+ZEN_TRAIN_PAIRS_FILE = data_file('zen', 'learn_pairs.tsv')
+ZEN_TEST_FILE = data_file('zen', 'test_small.tsv')
+ZEN_TEST_PAIRS_FILE = data_file('zen', 'test_pairs.tsv')
+ZEN_CD_FILE = data_file('zen', 'zen.cd')
+
+QUERY_TRAIN_FILE = data_file('querywise_pool', 'train_full3')
+QUERY_TEST_FILE = data_file('querywise_pool', 'test3')
+QUERY_CD_FILE = data_file('querywise_pool', 'train_full3.cd')
+
 OUTPUT_MODEL_PATH = 'model.bin'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
@@ -214,11 +224,58 @@ def test_multiclass():
     return local_canonical_file(PREDS_PATH)
 
 
+def test_pairwise():
+    train_pool = Pool(ZEN_TRAIN_FILE, column_description=ZEN_CD_FILE, pairs=ZEN_TRAIN_PAIRS_FILE)
+    test_pool = Pool(ZEN_TEST_FILE, column_description=ZEN_CD_FILE, pairs=ZEN_TEST_PAIRS_FILE)
+    model = CatBoost(params={'loss_function': 'PairLogit', 'random_seed': 0, 'iterations': 2, 'thread_count': 8})
+    model.fit(train_pool)
+    pred1 = model.predict(test_pool)
+
+    df = read_table(ZEN_TRAIN_FILE, delimiter='\t', header=None, dtype={12: str})
+    train_target = df.loc[:, 1]
+    cat_features = range(13)
+    train_data = df.drop([0, 1, 15], axis=1).astype(str)
+    train_pairs = read_table(ZEN_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
+
+    df = read_table(ZEN_TEST_FILE, delimiter='\t', header=None, dtype={12: str})
+    test_data = df.drop([0, 1, 15], axis=1).astype(str)
+
+    model.fit(train_data, train_target, cat_features, pairs=train_pairs)
+    pred2 = model.predict(test_data)
+
+    pairs_weight = np.ones(train_pairs.shape[0])
+    model.fit(train_data, train_target, cat_features, pairs=train_pairs, pairs_weight=pairs_weight)
+    pred3 = model.predict(test_data)
+
+    assert _check_data(pred1, pred2)
+    assert _check_data(pred1, pred3)
+
+
+def test_querywise():
+    train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
+    test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
+    model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 8})
+    model.fit(train_pool)
+    pred1 = model.predict(test_pool)
+
+    df = read_table(QUERY_TRAIN_FILE, delimiter='\t', header=None)
+    train_query_id = df.loc[:, 0]
+    train_target = df.loc[:, 1]
+    train_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
+
+    df = read_table(QUERY_TEST_FILE, delimiter='\t', header=None)
+    test_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
+
+    model.fit(train_data, train_target, query_id=train_query_id)
+    pred2 = model.predict(test_data)
+    assert _check_data(pred1, pred2)
+
+
 def test_zero_baseline():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    baseline = np.zeros((pool.num_row(), 2))
+    baseline = np.zeros(pool.num_row())
     pool.set_baseline(baseline)
-    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
+    model = CatBoostClassifier(iterations=2, random_seed=0)
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)

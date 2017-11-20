@@ -92,7 +92,7 @@ namespace {
             }
 
         private:
-            yvector<TStoredValue*> Values_;
+            TVector<TStoredValue*> Values_;
             yhash<size_t, TStoredValue*> FarValues_;
             TIntrusiveListWithAutoDelete<TStoredValue, TDelete> Storage_;
         };

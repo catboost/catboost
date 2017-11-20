@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
 
             for (ui32 i = 0; i < tries; ++i) {
                 for (ui32 bitsPerKey = 1; bitsPerKey < bits; ++bitsPerKey) {
-                    yvector<ui32> vec;
+                    TVector<ui32> vec;
                     ui32 uniqueValues = (1 << bitsPerKey);
 
                     ui64 size = 100000 + rand.NextUniformL() % 10000;
@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                     FillBuffer(decompressedGpu, static_cast<ui32>(0));
                     Decompress(compressedGpu, decompressedGpu, uniqueValues);
 
-                    yvector<ui32> decompressedTmp;
+                    TVector<ui32> decompressedTmp;
                     decompressedGpu.Read(decompressedTmp);
 
                     for (ui32 i = 0; i < size; ++i) {
@@ -62,8 +62,8 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
 
             for (ui32 i = 0; i < tries; ++i) {
                 for (ui32 bitsPerKey = 1; bitsPerKey < bits; ++bitsPerKey) {
-                    yvector<ui32> vec;
-                    yvector<ui32> map;
+                    TVector<ui32> vec;
+                    TVector<ui32> map;
                     ui32 uniqueValues = (1 << bitsPerKey);
 
                     ui64 size = 100000 + rand.NextUniformL() % 10000;
@@ -90,7 +90,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                     FillBuffer(decompressedGpu, static_cast<ui32>(0));
                     GatherFromCompressed(compressedGpu, uniqueValues, mapGpu, idxMask, decompressedGpu);
 
-                    yvector<ui32> decompressedTmp;
+                    TVector<ui32> decompressedTmp;
                     decompressedGpu.Read(decompressedTmp);
 
                     for (ui32 i = 0; i < size; ++i) {
@@ -113,7 +113,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
             SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
             for (ui32 bitsPerKey = 1; bitsPerKey < bits; ++bitsPerKey) {
-                yvector<ui32> vec;
+                TVector<ui32> vec;
                 ui32 uniqueValues = (1 << bitsPerKey);
 
                 ui64 size = 10000000;

@@ -11,6 +11,7 @@ import collections
 import py
 import pytest
 import _pytest
+import _pytest.mark
 
 try:
     import resource
@@ -263,6 +264,14 @@ def _collect_test_rusage(item):
             add_metric(*args)
 
 
+def _get_item_tags(item):
+    tags = []
+    for key, value in item.keywords.items():
+        if isinstance(value, _pytest.mark.MarkInfo) or isinstance(value, _pytest.mark.MarkDecorator):
+            tags.append(key)
+    return tags
+
+
 def pytest_runtest_setup(item):
     item.rusage = _get_rusage()
     pytest.config.test_cores_count = 0
@@ -377,11 +386,13 @@ def pytest_collection_modifyitems(items, config):
     elif config.option.mode == RunMode.List:
         tests = []
         for item in items:
-            item = CustomTestItem(item.nodeid, pytest.config.option.test_suffix)
-            tests.append({
+            item = CustomTestItem(item.nodeid, pytest.config.option.test_suffix, item.keywords)
+            record = {
                 "class": item.class_name,
                 "test": item.test_name,
-            })
+                "tags": _get_item_tags(item),
+            }
+            tests.append(record)
         sys.stderr.write(json.dumps(tests))
 
 
@@ -399,7 +410,7 @@ def pytest_runtest_makereport(item, call):
     def makereport(item, call):
         when = call.when
         duration = call.stop-call.start
-        keywords = dict([(x, 1) for x in item.keywords])
+        keywords = item.keywords
         excinfo = call.excinfo
         sections = []
         if not call.excinfo:
@@ -610,13 +621,13 @@ class TestItem(object):
 
 class CustomTestItem(TestItem):
 
-    def __init__(self, nodeid, test_suffix):
+    def __init__(self, nodeid, test_suffix, keywords=None):
         self._result = None
         self.nodeid = nodeid
         self._class_name, self._test_name = tools.split_node_id(nodeid, test_suffix)
         self._duration = 0
         self._error = ""
-        self._keywords = {}
+        self._keywords = keywords if keywords is not None else {}
 
 
 class NotLaunchedTestItem(CustomTestItem):
@@ -680,6 +691,7 @@ class TraceReportGenerator(object):
             'result': result,
             'metrics': pytest.config.test_metrics.get(test_item.nodeid),
             'is_diff_test': 'diff_test' in test_item.keywords,
+            'tags': _get_item_tags(test_item),
         }
         if test_item.nodeid in pytest.config.test_logs:
             message['logs'] = pytest.config.test_logs[test_item.nodeid]

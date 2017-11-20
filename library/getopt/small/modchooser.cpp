@@ -15,9 +15,9 @@ public:
     {
     }
 
-    int operator()(const yvector<TString> &argv) override {
+    int operator()(const TVector<TString> &argv) override {
         const size_t argc = argv.size();
-        yvector<const char*> ptrArgv(argc, nullptr);
+        TVector<const char*> ptrArgv(argc, nullptr);
         for (size_t i=0; i<argc; ++i) {
             ptrArgv[i] = argv[i].c_str();
         }
@@ -35,7 +35,7 @@ public:
     {
     }
 
-    int operator()(const yvector<TString> &argv) override {
+    int operator()(const TVector<TString> &argv) override {
         return Main(argv);
     }
 
@@ -50,9 +50,9 @@ public:
     {
     }
 
-    int operator()(const yvector<TString> &argv) override {
+    int operator()(const TVector<TString> &argv) override {
         const size_t argc = argv.size();
-        yvector<const char*> ptrArgv(argc, nullptr);
+        TVector<const char*> ptrArgv(argc, nullptr);
         for (size_t i=0; i<argc; ++i) {
             ptrArgv[i] = argv[i].c_str();
         }
@@ -144,11 +144,11 @@ void TModChooser::DisableSvnRevisionOption() {
 }
 
 int TModChooser::Run(const int argc, const char** argv) const {
-    yvector<TString> args(argv, argv + argc);
+    TVector<TString> args(argv, argv + argc);
     return Run(args);
 }
 
-int TModChooser::Run(const yvector<TString> &argv) const {
+int TModChooser::Run(const TVector<TString> &argv) const {
     Y_ENSURE(!argv.empty(), "Can't run TModChooser with empty list of arguments.");
 
     if (argv.size() == 1) {
@@ -176,7 +176,7 @@ int TModChooser::Run(const yvector<TString> &argv) const {
         return 1;
     }
 
-    yvector<TString> nargv;
+    TVector<TString> nargv;
     nargv.reserve(argv.size() - 1);
     nargv.push_back(argv[0] + TString(" ") + argv[1]);
 

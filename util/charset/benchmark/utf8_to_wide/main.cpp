@@ -10,7 +10,7 @@
 
 namespace {
     template <size_t N>
-    struct TRandomAsciiString: public yvector<char> {
+    struct TRandomAsciiString: public TVector<char> {
         inline TRandomAsciiString() {
             reserve(N);
             for (size_t i = 0; i < N; ++i) {
@@ -20,9 +20,9 @@ namespace {
     };
 
     template <size_t N>
-    struct TRandomRuString: public yvector<char> {
+    struct TRandomRuString: public TVector<char> {
         inline TRandomRuString() {
-            yvector<unsigned char> data(N * 2);
+            TVector<unsigned char> data(N * 2);
             unsigned char* textEnd = data.begin();
             for (size_t i = 0; i < N; ++i) {
                 size_t runeLen;

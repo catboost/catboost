@@ -14,15 +14,15 @@ namespace NCatboostCuda
 
     struct TCatCtrStat
     {
-        yvector<double> FirstClass;
+        TVector<double> FirstClass;
         double Total = 0;
     };
 
     struct TCpuTargetClassCtrCalcer
     {
         TCpuTargetClassCtrCalcer(ui32 uniqueValues,
-                                 const yvector<ui32>& bins,
-                                 const yvector<float>& weights,
+                                 const TVector<ui32>& bins,
+                                 const TVector<float>& weights,
                                  float prior)
                 : UniqueValues(uniqueValues)
                   , Prior(prior)
@@ -33,15 +33,15 @@ namespace NCatboostCuda
 
         ui32 UniqueValues;
         float Prior;
-        const yvector<ui32>& Bins;
-        const yvector<float>& Weights;
+        const TVector<ui32>& Bins;
+        const TVector<float>& Weights;
 
         template<class T>
-        TArray2D<float> Calc(const yvector<ui32>& cpuIndices,
-                             yvector<T>& classes,
+        TArray2D<float> Calc(const TVector<ui32>& cpuIndices,
+                             TVector<T>& classes,
                              ui32 numClasses)
         {
-            yvector<TCatCtrStat> cpuStat(UniqueValues);
+            TVector<TCatCtrStat> cpuStat(UniqueValues);
 
             TArray2D<float> ctrs(numClasses, cpuIndices.size());
             ctrs.FillZero();
@@ -70,9 +70,9 @@ namespace NCatboostCuda
             return ctrs;
         }
 
-        inline yvector<float> ComputeFreqCtr(const yvector<ui32>* indices = nullptr)
+        inline TVector<float> ComputeFreqCtr(const TVector<ui32>* indices = nullptr)
         {
-            yvector<TCtrStat> cpuStat(UniqueValues);
+            TVector<TCtrStat> cpuStat(UniqueValues);
             double total = 0;
             for (ui32 i = 0; i < Bins.size(); ++i)
             {
@@ -80,7 +80,7 @@ namespace NCatboostCuda
                 cpuStat[bin].FirstClass += Weights[i];
                 total += Weights[i];
             }
-            yvector<float> ctr(Bins.size());
+            TVector<float> ctr(Bins.size());
             for (ui32 i = 0; i < Bins.size(); ++i)
             {
                 const ui32 bin = Bins[indices ? (*indices)[i] : i];

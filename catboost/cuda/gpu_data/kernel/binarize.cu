@@ -116,8 +116,8 @@ namespace NKernel {
         __syncthreads();
 
         if (tid < bordersCount) {
-            const ui32 offset = static_cast<ui32>((tid + 1.0f) * BLOCK_SIZE / (bordersCount + 1.0f));
-            atomicAdd(borders + tid + 1, localBorders[offset] / gridDim.x);
+            const ui32 offset = static_cast<ui32>((tid + 1.0f) * BLOCK_SIZE / bordersCount - 1e-5f);
+            atomicAdd(borders + tid + 1, (localBorders[offset]) * 0.9999 / gridDim.x);
         }
     }
 
@@ -162,13 +162,13 @@ namespace NKernel {
 
 
     __global__ void UniformBordersImpl(const float* values, ui32 size, float* borders, ui32 bordersCount) {
-        
+
         const ui32 tid = threadIdx.x;
         const int blockSize = 1024;
 
         __shared__ float localMin[blockSize];
         __shared__ float localMax[blockSize];
-        
+
         float minValue = PositiveInfty();
         float maxValue = NegativeInfty();
 
@@ -197,8 +197,10 @@ namespace NKernel {
         maxValue = localMax[0];
 
         if (tid < (bordersCount + 1)) {
-            const float borderIdx = (tid  / (bordersCount + 1.0));
-            borders[tid] =  tid == 0 ? bordersCount : minValue + borderIdx * (maxValue - minValue);
+            const float borderIdx = tid * 1.0f / bordersCount;
+            //emulate ui8 rounding in cpu
+            const float val =  (minValue + borderIdx * (maxValue - minValue)) * 0.9999;
+            borders[tid] =  tid == 0 ? bordersCount : val;
         }
     }
 

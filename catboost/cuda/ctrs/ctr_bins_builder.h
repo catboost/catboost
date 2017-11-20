@@ -62,6 +62,21 @@ public:
         return *this;
     }
 
+    template <class TUi32>
+    TCtrBinBuilder& SetIndices(const TCudaBuffer<TUi32, TMapping>& indices,
+                               TSlice learnSlice) {
+        Indices.Reset(indices.GetMapping());
+        Indices.Copy(indices, Stream);
+        LearnSlice = learnSlice;
+        auto rest = TSlice::Remove(Indices.GetObjectsSlice(), learnSlice);
+        if (rest.size()) {
+            CB_ENSURE(rest.size() == 1);
+            TestSlice = rest[0];
+        }
+        Reset();
+        return *this;
+    }
+
     const TCudaBuffer<ui32, TMapping>& GetIndices() const {
         return Indices;
     };
@@ -77,6 +92,7 @@ public:
     TCudaBuffer<ui32, TMapping> MoveIndices() {
         return std::move(Indices);
     };
+
     ui32 GetStream() const {
         return Stream;
     }
@@ -161,7 +177,7 @@ public:
 
     //this function compute pure freq, not weighted one like binFreqCalcer. As a result, it much faster
     template <class TVisitor>
-    TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const yvector<TCtrConfig>& ctrConfigs,
+    TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const TVector<TCtrConfig>& ctrConfigs,
                                                           TVisitor&& visitor) {
         //TODO(noxoomo): change tempFlags to ui8
         Tmp.Reset(Indices.GetMapping());

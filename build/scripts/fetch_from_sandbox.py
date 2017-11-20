@@ -11,6 +11,7 @@ import subprocess
 import json
 import socket
 import shutil
+import errno
 import itertools
 import datetime as dt
 
@@ -39,6 +40,22 @@ def parse_args():
 
 
 SANDBOX_PROXY_URL = "https://proxy.sandbox.yandex-team.ru/{}?origin=fetch-from-sandbox"
+
+
+def hardlink_or_copy(src, dst):
+    if os.name == 'nt':
+        shutil.copy(src, dst)
+    else:
+        try:
+            os.link(src, dst)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                return
+            elif e.errno == errno.EXDEV:
+                sys.stderr.write("Can't make cross-device hardlink - fallback to copy: {} -> {}\n".format(src, dst))
+                shutil.copy(src, dst)
+            else:
+                raise
 
 
 class ResourceFetchingError(Exception):
@@ -321,12 +338,14 @@ def main(resource_id, copy_to, copy_to_dir, untar_to, custom_fetcher, outputs):
             logging.exception(e)
             raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
 
+        os.remove(fetched_file)
+
     if copy_to:
-        shutil.copyfile(fetched_file, copy_to)
+        hardlink_or_copy(fetched_file, copy_to)
         ensure_outputs_not_directories(outputs, copy_to)
 
     if copy_to_dir:
-        shutil.copyfile(fetched_file, os.path.join(copy_to_dir, resource_info['file_name']))
+        hardlink_or_copy(fetched_file, os.path.join(copy_to_dir, resource_info['file_name']))
         ensure_outputs_not_directories(outputs, copy_to_dir)
 
 

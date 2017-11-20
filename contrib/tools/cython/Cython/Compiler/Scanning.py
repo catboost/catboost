@@ -1,4 +1,4 @@
-# cython: infer_types=True, language_level=3, py2_import=True
+# cython: infer_types=True, language_level=3, py2_import=True, auto_pickle=False
 #
 #   Cython Scanner
 #
@@ -62,6 +62,12 @@ class Method(object):
         method = getattr(stream, self.name)
         # self.kwargs is almost always unused => avoid call overhead
         return method(text, **self.kwargs) if self.kwargs is not None else method(text)
+
+    def __copy__(self):
+        return self  # immutable, no need to copy
+
+    def __deepcopy__(self, memo):
+        return self  # immutable, no need to copy
 
 
 #------------------------------------------------------------------
@@ -188,6 +194,12 @@ class SourceDescriptor(object):
         except AttributeError:
             return False
 
+    def __copy__(self):
+        return self  # immutable, no need to copy
+
+    def __deepcopy__(self, memo):
+        return self  # immutable, no need to copy
+
 
 class FileSourceDescriptor(SourceDescriptor):
     """
@@ -201,6 +213,9 @@ class FileSourceDescriptor(SourceDescriptor):
         filename = Utils.decode_filename(filename)
         self.path_description = path_description or filename
         self.filename = filename
+        # Prefer relative paths to current directory (which is most likely the project root) over absolute paths.
+        workdir = os.path.abspath('.') + os.sep
+        self.file_path = filename[len(workdir):] if filename.startswith(workdir) else filename
         self.set_file_type_from_name(filename)
         self._cmp_name = filename
         self._lines = {}
@@ -242,7 +257,7 @@ class FileSourceDescriptor(SourceDescriptor):
         return path
 
     def get_filenametable_entry(self):
-        return self.filename
+        return self.file_path
 
     def __eq__(self, other):
         return isinstance(other, FileSourceDescriptor) and self.filename == other.filename

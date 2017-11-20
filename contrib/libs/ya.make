@@ -7,6 +7,8 @@ RECURSE(
     crcutil
     cxxsupp/libcxx-next
     fastlz
+    flatbuffers
+    flatbuffers/samples
     fmath
     jemalloc
     libbz2

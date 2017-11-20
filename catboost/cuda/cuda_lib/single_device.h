@@ -52,8 +52,8 @@ namespace NCudaLib {
         TGpuOneDeviceWorker& Worker;
 
         TCudaDeviceProperties DeviceProperties;
-        yvector<ui64> FreeHandles;
-        yvector<ui64> UserFreeStreams;
+        TVector<ui64> FreeHandles;
+        TVector<ui64> UserFreeStreams;
 
         template <class T>
         friend class THandleBasedObject;

@@ -29,7 +29,7 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
 
         std::vector<int> emptyCatFeatures;
 
-        yvector<yvector<double>> testApprox;
+        TEvalResult testApprox;
         TPool testPool;
         TFullModel model;
         TrainModel(fitParams, Nothing(), Nothing(), pool, false, testPool, "", &model, &testApprox);
@@ -51,7 +51,7 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
     SIMPLE_UNIT_TEST(TestFeaturesLayout) {
         std::vector<int> catFeatures = {1, 5, 9};
         int featuresCount = 10;
-        TFeaturesLayout layout(featuresCount, catFeatures, yvector<TString>());
+        TFeaturesLayout layout(featuresCount, catFeatures, TVector<TString>());
         UNIT_ASSERT_EQUAL(layout.GetFeatureType(0), EFeatureType::Float);
         UNIT_ASSERT_EQUAL(layout.GetFeatureType(1), EFeatureType::Categorical);
         UNIT_ASSERT_EQUAL(layout.GetFeatureType(3), EFeatureType::Float);

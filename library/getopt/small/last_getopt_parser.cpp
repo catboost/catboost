@@ -150,6 +150,8 @@ bool TOptsParser::ParseOptArg(size_t pos) {
         if (!option) {
             if (singleCharPrefix && !arg.IsInited()) {
                 return ParseShortOptArg(pos);
+            } else if (Opts_->AllowUnknownLongOptions_) {
+                return false;
             } else {
                 ythrow TUsageException() << "unknown option '" << optionName
                     << "' in '" << Argv_[pos] << "'";
@@ -332,8 +334,8 @@ void TOptsParser::Finish() {
     if (optvec.size() == OptsSeen_.size())
         return;
 
-    yvector<TString> missingLong;
-    yvector<char> missingShort;
+    TVector<TString> missingLong;
+    TVector<char> missingShort;
 
     TOpts::TOptsVector::const_iterator it;
     for (it = optvec.begin(); it != optvec.end(); ++it) {

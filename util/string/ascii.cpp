@@ -3,6 +3,7 @@
 #include <util/system/yassert.h>
 #include <util/system/compat.h>
 
+// clang-format off
 extern const unsigned char NPrivate::ASCII_CLASS[256] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -40,6 +41,7 @@ extern const unsigned char NPrivate::ASCII_LOWER[256] = {
     224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
 };
+// clang-format on
 
 int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
     if (s1.Length <= s2.Length) {

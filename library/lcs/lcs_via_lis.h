@@ -11,9 +11,9 @@
 namespace NLCS {
     template <typename TVal>
     struct TLCSCtx {
-        typedef yvector<ui32> TSubsequence;
+        typedef TVector<ui32> TSubsequence;
         typedef yhash<TVal, TSubsequence, THash<TVal>, TEqualTo<TVal>, ::TPoolAllocator> TEncounterIndex;
-        typedef yvector<std::pair<ui32, ui32>> TLastIndex;
+        typedef TVector<std::pair<ui32, ui32>> TLastIndex;
         typedef NPagedVector::TPagedVector<TSubsequence, 4096> TCover;
 
         TMemoryPool Pool;
@@ -183,7 +183,7 @@ namespace NLCS {
 
     template <typename TVal, typename TIter>
     size_t MeasureLCS(TIter beg1, TIter end1, TIter beg2, TIter end2, TLCSCtx<TVal>* ctx = nullptr) {
-        return MakeLCS<TVal>(beg1, end1, beg2, end2, (yvector<TVal>*)nullptr, ctx);
+        return MakeLCS<TVal>(beg1, end1, beg2, end2, (TVector<TVal>*)nullptr, ctx);
     }
 
     template <typename TVal, typename TColl>

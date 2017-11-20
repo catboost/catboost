@@ -1,15 +1,16 @@
 #pragma once
 
 #include "online_predictor.h"
-#include "params.h"
 #include "fold.h"
 #include "online_ctr.h"
 #include "bin_tracker.h"
 #include "rand_score.h"
-#include "error_functions.h"
 #include "index_hash_calcer.h"
 #include "split.h"
-#include <catboost/libs/model/tensor_struct.h>
+#include "error_functions.h"
+#include "calc_score_cache.h"
+
+#include <catboost/libs/params/params.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -30,12 +31,13 @@ struct TFeatureScore {
     }
 };
 
-yvector<double> CalcScore(
+TVector<double> CalcScore(
     const TAllFeatures& af,
-    const yvector<int>& splitsCount,
+    const TVector<int>& splitsCount,
     const TFold& fold,
-    const yvector<TIndexType>& indices,
+    const TVector<TIndexType>& indices,
+    const TSmallestSplitSideFold& ifHistFromPrevLevelUsed,
+    const TFitParams& fitParams,
     const TSplitCandidate& split,
     int depth,
-    int ctrBorderCount,
-    float l2Regularizer);
+    TStatsFromPrevTree* statsFromPrevTree);

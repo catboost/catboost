@@ -1,7 +1,9 @@
 #pragma once
 
 #include "logging_level.h"
+
 #include <library/logger/global/global.h>
+
 #include <util/generic/singleton.h>
 
 class TMatrixnetLogSettings {
@@ -53,8 +55,9 @@ inline void SetSilentLogingMode() {
     SetLogingLevel(ELoggingLevel::Silent);
 }
 
+
 inline void SetVerboseLogingMode() {
-    SetLogingLevel(ELoggingLevel::Verbose);
+    SetLogingLevel(ELoggingLevel::Debug);
 }
 
 

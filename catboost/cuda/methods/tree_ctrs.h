@@ -195,7 +195,7 @@ namespace NCatboostCuda
                 class TFeatureTensorVisitor>
         void VisitCtrBinBuilders(const TSingleBuffer<TUi32>& baseTensorIndices,
                                  const TFeatureTensor& baseTensor,
-                                 const yvector<ui32>& catFeatureIds,
+                                 const TVector<ui32>& catFeatureIds,
                                  TFeatureTensorVisitor& featureTensorVisitor)
         {
             TSingleBuffer<ui32> currentBins;
@@ -266,8 +266,8 @@ namespace NCatboostCuda
         const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& CatFeatures;
         ui32 TensorBuilderStreams;
 
-        yvector<TComputationStream> BuilderStreams;
-        yvector<TBinBuilder> CtrBinBuilders;
+        TVector<TComputationStream> BuilderStreams;
+        TVector<TBinBuilder> CtrBinBuilders;
     };
 
     template<class TCtrVisitor>
@@ -277,7 +277,7 @@ namespace NCatboostCuda
         using TMapping = NCudaLib::TSingleMapping;
 
         TCtrFromTensorCalcer(TCtrVisitor& ctrVisitor,
-                             const yhash<TFeatureTensor, yvector<TCtrConfig>>& ctrConfigs,
+                             const yhash<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
                              const TCtrTargets<TMapping>& ctrTargets)
                 : Target(ctrTargets)
                   , CtrConfigs(ctrConfigs)
@@ -325,10 +325,10 @@ namespace NCatboostCuda
         }
 
     private:
-        yvector<TCtrConfig> GetVisitOrder(const ymap<TCtrConfig, yvector<TCtrConfig>>& ctrs)
+        TVector<TCtrConfig> GetVisitOrder(const ymap<TCtrConfig, TVector<TCtrConfig>>& ctrs)
         {
-            yvector<TCtrConfig> freqCtrs;
-            yvector<TCtrConfig> restCtrs;
+            TVector<TCtrConfig> freqCtrs;
+            TVector<TCtrConfig> restCtrs;
 
             for (auto& entry : ctrs)
             {
@@ -365,7 +365,7 @@ namespace NCatboostCuda
     private:
         using TCtrHelperPtr = THolder<TCalcCtrHelper<TMapping>>;
         const TCtrTargets<TMapping>& Target;
-        const yhash<TFeatureTensor, yvector<TCtrConfig>>& CtrConfigs;
+        const yhash<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
         ymap<ui32, TCtrHelperPtr> CtrHelpers;
         TCtrVisitor& CtrVisitor;
     };
@@ -428,7 +428,7 @@ namespace NCatboostCuda
         THolder<TBinarizedDataSet> CreateBinarizedDataSet()
         {
             THolder<TBinarizedDataSet> dataSet = MakeHolder<TBinarizedDataSet>();
-            const yvector<TCtr>& ctrs = TreeCtrDataSet.GetCtrs();
+            const TVector<TCtr>& ctrs = TreeCtrDataSet.GetCtrs();
             const ui32 featureCount = static_cast<ui32>(ctrs.size());
             dataSet->FeatureIds.resize(featureCount);
             std::iota(dataSet->FeatureIds.begin(), dataSet->FeatureIds.end(), 0);
@@ -610,8 +610,8 @@ namespace NCatboostCuda
                                            {
                                                {
                                                    //this visit order should be best for cache hit
-                                                   yvector<TTreeCtrDataSet*> cachedDataSets;
-                                                   yvector<TTreeCtrDataSet*> withoutCachedIndexDataSets;
+                                                   TVector<TTreeCtrDataSet*> cachedDataSets;
+                                                   TVector<TTreeCtrDataSet*> withoutCachedIndexDataSets;
 
                                                    //cached dataSets doesn't need recalc.
                                                    AddDataSets(DataSets[device], permutationId, true, cachedDataSets);
@@ -630,8 +630,8 @@ namespace NCatboostCuda
         }
 
     private:
-        void AddDataSets(const yvector<TTreeCtrDataSetPtr>& dataSets, ui32 permutationId, bool withCompressedIndexFlag,
-                         yvector<TTreeCtrDataSet*>& dst)
+        void AddDataSets(const TVector<TTreeCtrDataSetPtr>& dataSets, ui32 permutationId, bool withCompressedIndexFlag,
+                         TVector<TTreeCtrDataSet*>& dst)
         {
             for (ui32 i = 0; i < dataSets.size(); ++i)
             {
@@ -680,7 +680,7 @@ namespace NCatboostCuda
 
         template<class TVisitor>
         void ProceedDataSets(const ui32 dataSetPermutationId,
-                             const yvector<TTreeCtrDataSet*>& dataSets,
+                             const TVector<TTreeCtrDataSet*>& dataSets,
                              TVisitor& visitor)
         {
             for (auto dataSetPtr : dataSets)
@@ -699,13 +699,13 @@ namespace NCatboostCuda
         }
 
         template<class TVisitor>
-        yvector<TTreeCtrDataSet*> ProceedDataSets(ui32 dataSetPermutationId,
-                                                  const yvector<TTreeCtrDataSet*>& dataSets,
+        TVector<TTreeCtrDataSet*> ProceedDataSets(ui32 dataSetPermutationId,
+                                                  const TVector<TTreeCtrDataSet*>& dataSets,
                                                   bool withCompressedIndex,
                                                   TVisitor& visitor)
         {
-            yvector<ui32> dataSetIds;
-            yvector<TTreeCtrDataSet*> rest;
+            TVector<ui32> dataSetIds;
+            TVector<TTreeCtrDataSet*> rest;
 
             for (ui32 dataSetId = 0; dataSetId < dataSets.size(); ++dataSetId)
             {
@@ -731,7 +731,7 @@ namespace NCatboostCuda
         }
 
         bool FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet,
-                                  yvector<TTreeCtrDataSetPtr>& dataSets)
+                                  TVector<TTreeCtrDataSetPtr>& dataSets)
         {
             const ui32 deviceId = dataSet.GetDeviceId();
             double freeMemory = GetFreeMemory(deviceId);
@@ -799,7 +799,7 @@ namespace NCatboostCuda
                                                          DataSet.GetCatFeatures(),
                                                          tensorBuilderStreams);
 
-                yvector<ui32> catFeatureIds(dataSet.GetCatFeatures().begin(), dataSet.GetCatFeatures().end());
+                TVector<ui32> catFeatureIds(dataSet.GetCatFeatures().begin(), dataSet.GetCatFeatures().end());
                 TCtrFromTensorCalcer<TTreeCtrDataSetBuilder> ctrFromTensorCalcer(builder,
                                                                                  dataSet.GetCtrConfigs(),
                                                                                  ctrTargets);
@@ -855,7 +855,7 @@ namespace NCatboostCuda
             }
         }
 
-        void UpdateForPack(const yvector<yvector<TTreeCtrDataSetPtr>>& dataSets, yset<ui32>& usedPermutations)
+        void UpdateForPack(const TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, yset<ui32>& usedPermutations)
         {
             for (auto& devDataSets : dataSets)
             {
@@ -885,7 +885,7 @@ namespace NCatboostCuda
             }
         }
 
-        bool AssignForPack(yvector<yvector<TTreeCtrDataSetPtr>>& dataSets, ui32 depth)
+        bool AssignForPack(TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, ui32 depth)
         {
             bool assigned = false;
             for (auto& devDataSets : dataSets)
@@ -913,7 +913,7 @@ namespace NCatboostCuda
         void AddDataSetPacks(const TFeatureTensor& baseTensor,
                              const TSingleBuffer<const ui32>& baseTensorIndices,
                              ui32 deviceId,
-                             yvector<TTreeCtrDataSetPtr>& dst)
+                             TVector<TTreeCtrDataSetPtr>& dst)
         {
             const auto& catFeatures = DataSet.GetCatFeatures();
             auto& devFeatures = catFeatures.GetDeviceFeatures(deviceId);
@@ -1022,11 +1022,11 @@ namespace NCatboostCuda
         const TDataSet<CatFeaturesStoragePtrType>& DataSet;
         const TBinarizedFeaturesManager& FeaturesManager;
 
-        yvector<yvector<TTreeCtrDataSetPtr>> DataSets;
-        yvector<THolder<TTreeCtrDataSetMemoryUsageEstimator>> PackSizeEstimators;
-        yvector<yvector<TTreeCtrDataSetPtr>> PureTreeCtrDataSets;
+        TVector<TVector<TTreeCtrDataSetPtr>> DataSets;
+        TVector<THolder<TTreeCtrDataSetMemoryUsageEstimator>> PackSizeEstimators;
+        TVector<TVector<TTreeCtrDataSetPtr>> PureTreeCtrDataSets;
 
-        yvector<TCudaBuffer<const ui32, NCudaLib::TMirrorMapping>> DepthPermutations;
+        TVector<TCudaBuffer<const ui32, NCudaLib::TMirrorMapping>> DepthPermutations;
         yset<ui32> UsedPermutations;
 
         TFeatureTensorTracker<CatFeaturesStoragePtrType> EmptyTracker;

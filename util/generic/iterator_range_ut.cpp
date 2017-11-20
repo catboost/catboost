@@ -26,7 +26,7 @@ SIMPLE_UNIT_TEST_SUITE(IteratorRange) {
     }
 
     SIMPLE_UNIT_TEST(OperatorsAndReferences) {
-        yvector<size_t> values{1, 2, 3, 4, 5};
+        TVector<size_t> values{1, 2, 3, 4, 5};
         auto range = MakeIteratorRange(values.begin(), values.end());
         UNIT_ASSERT_VALUES_EQUAL(range[2], 3);
         UNIT_ASSERT_VALUES_EQUAL(range[range[2]], 4);
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(IteratorRange) {
         range[0] = 100501;
         UNIT_ASSERT_VALUES_EQUAL(range[0], 100501);
 
-        yvector<bool> valuesBool{false, true, false, false, false, false, true};
+        TVector<bool> valuesBool{false, true, false, false, false, false, true};
         auto rangeBVector = MakeIteratorRange(valuesBool.begin(), valuesBool.end());
         UNIT_ASSERT_VALUES_EQUAL(rangeBVector[1], true);
         rangeBVector[0] = true;

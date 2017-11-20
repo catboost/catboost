@@ -151,9 +151,9 @@ namespace NCudaLib {
 
             //on each pass parts with pass-bit == 0 will flow left, and with pass bit == 1 will flow right
             //on each pass — reduce between dev and (dev | mask) (pass bit in first dev should be zero)
-            inline yvector<TReduceTask> PassTasks(ui32 pass) const {
+            inline TVector<TReduceTask> PassTasks(ui32 pass) const {
                 const ui32 mask = 1 << pass;
-                yvector<TReduceTask> tasks;
+                TVector<TReduceTask> tasks;
 
                 for (ui32 dev = 0; dev < DevCount; ++dev) {
                     if (mask & dev) {

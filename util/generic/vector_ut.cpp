@@ -33,7 +33,7 @@ class TYVectorTest: public TTestBase {
 
 private:
     void TestConstructorsAndAssignments() {
-        using container = yvector<int>;
+        using container = TVector<int>;
 
         container c1;
         c1.push_back(100);
@@ -68,12 +68,12 @@ private:
     }
 
     inline void TestTildeEmptyToNull() {
-        yvector<int> v;
+        TVector<int> v;
         UNIT_ASSERT_EQUAL(nullptr, ~v);
     }
 
     inline void TestTilde() {
-        yvector<int> v;
+        TVector<int> v;
         v.push_back(10);
         v.push_back(20);
 
@@ -92,7 +92,7 @@ private:
     // Copy-paste of STLPort tests
 
     void Test1() {
-        yvector<int> v1; // Empty vector of integers.
+        TVector<int> v1; // Empty vector of integers.
 
         UNIT_ASSERT(v1.empty() == true);
         UNIT_ASSERT(v1.size() == 0);
@@ -108,8 +108,8 @@ private:
         UNIT_ASSERT(v1[0] == 42);
 
         {
-            yvector<yvector<int>> vect(10);
-            yvector<yvector<int>>::iterator it(vect.begin()), end(vect.end());
+            TVector<TVector<int>> vect(10);
+            TVector<TVector<int>>::iterator it(vect.begin()), end(vect.end());
             for (; it != end; ++it) {
                 UNIT_ASSERT((*it).empty());
                 UNIT_ASSERT((*it).size() == 0);
@@ -120,10 +120,10 @@ private:
     }
 
     void Test2() {
-        yvector<double> v1; // Empty vector of doubles.
+        TVector<double> v1; // Empty vector of doubles.
         v1.push_back(32.1);
         v1.push_back(40.5);
-        yvector<double> v2; // Another empty vector of doubles.
+        TVector<double> v2; // Another empty vector of doubles.
         v2.push_back(3.56);
 
         UNIT_ASSERT(v1.size() == 2);
@@ -148,7 +148,7 @@ private:
     }
 
     void Test3() {
-        using vec_type = yvector<char>;
+        using vec_type = TVector<char>;
 
         vec_type v1; // Empty vector of characters.
         v1.push_back('h');
@@ -171,7 +171,7 @@ private:
     }
 
     void Test4() {
-        yvector<int> v(4);
+        TVector<int> v(4);
 
         v[0] = 1;
         v[1] = 4;
@@ -195,7 +195,7 @@ private:
     void Test5() {
         int array[] = {1, 4, 9, 16};
 
-        yvector<int> v(array, array + 4);
+        TVector<int> v(array, array + 4);
 
         UNIT_ASSERT(v.size() == 4);
 
@@ -208,8 +208,8 @@ private:
     void Test6() {
         int array[] = {1, 4, 9, 16, 25, 36};
 
-        yvector<int> v(array, array + 6);
-        yvector<int>::iterator vit;
+        TVector<int> v(array, array + 6);
+        TVector<int>::iterator vit;
 
         UNIT_ASSERT(v.size() == 6);
         UNIT_ASSERT(v[0] == 1);
@@ -249,8 +249,8 @@ private:
         int array1[] = {1, 4, 25};
         int array2[] = {9, 16};
 
-        yvector<int> v(array1, array1 + 3);
-        yvector<int>::iterator vit;
+        TVector<int> v(array1, array1 + 3);
+        TVector<int>::iterator vit;
         vit = v.insert(v.begin(), 0); // Insert before first element.
         UNIT_ASSERT(*vit == 0);
 
@@ -299,7 +299,7 @@ private:
 
     void TestCapacity() {
         {
-            yvector<int> v;
+            TVector<int> v;
 
             UNIT_ASSERT(v.capacity() == 0);
             v.push_back(42);
@@ -309,7 +309,7 @@ private:
         }
 
         {
-            yvector<int> v(Reserve(100));
+            TVector<int> v(Reserve(100));
 
             UNIT_ASSERT(v.capacity() >= 100);
             UNIT_ASSERT(v.size() == 0);
@@ -317,15 +317,15 @@ private:
 
         {
             //Test that used to generate an assertion when using __debug_alloc.
-            yvector<TestStruct> va;
+            TVector<TestStruct> va;
             va.reserve(1);
             va.reserve(2);
         }
     }
 
     void TestAt() {
-        yvector<int> v;
-        yvector<int> const& cv = v;
+        TVector<int> v;
+        TVector<int> const& cv = v;
 
         v.push_back(10);
         UNIT_ASSERT(v.at(0) == 10);
@@ -345,27 +345,27 @@ private:
     }
 
     void TestPointer() {
-        yvector<int*> v1;
-        yvector<int*> v2 = v1;
-        yvector<int*> v3;
+        TVector<int*> v1;
+        TVector<int*> v2 = v1;
+        TVector<int*> v3;
 
         v3.insert(v3.end(), v1.begin(), v1.end());
     }
 
     void TestAutoRef() {
-        yvector<int> ref;
+        TVector<int> ref;
         for (int i = 0; i < 5; ++i) {
             ref.push_back(i);
         }
 
-        yvector<yvector<int>> v_v_int(1, ref);
+        TVector<TVector<int>> v_v_int(1, ref);
         v_v_int.push_back(v_v_int[0]);
         v_v_int.push_back(ref);
         v_v_int.push_back(v_v_int[0]);
         v_v_int.push_back(v_v_int[0]);
         v_v_int.push_back(ref);
 
-        yvector<yvector<int>>::iterator vvit(v_v_int.begin()), vvitEnd(v_v_int.end());
+        TVector<TVector<int>>::iterator vvit(v_v_int.begin()), vvitEnd(v_v_int.end());
         for (; vvit != vvitEnd; ++vvit) {
             UNIT_ASSERT(*vvit == ref);
         }
@@ -389,8 +389,8 @@ private:
     };
 
     void TestIterators() {
-        yvector<int> vint(10, 0);
-        yvector<int> const& crvint = vint;
+        TVector<int> vint(10, 0);
+        TVector<int> const& crvint = vint;
 
         UNIT_ASSERT(vint.begin() == vint.begin());
         UNIT_ASSERT(crvint.begin() == vint.begin());
@@ -416,7 +416,7 @@ private:
     }
 
     void TestShrink() {
-        yvector<int> v;
+        TVector<int> v;
         v.resize(1000);
         v.resize(10);
         v.shrink_to_fit();
@@ -434,7 +434,7 @@ private:
         // representation making executable crash on vector destructor invocation.
         // We prefer a simple memory leak, internal corruption should be reveal
         // by size or capacity checks.
-        using V = yvector<int>;
+        using V = TVector<int>;
         V* pv1 = new V(1, 1);
         V* pv2 = new V(10, 2);
 
@@ -457,7 +457,7 @@ private:
 
     void TestFillInConstructor() {
         for (int k = 0; k < 3; ++k) {
-            yvector<int> v(100);
+            TVector<int> v(100);
             UNIT_ASSERT_VALUES_EQUAL(100u, v.size());
             for (size_t i = 0; i < v.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(0, v[i]);
@@ -501,7 +501,7 @@ private:
 
     template <typename T>
     void TestYResize(bool mustInit) {
-        yvector<T, TDebugAlloc<T>> v;
+        TVector<T, TDebugAlloc<T>> v;
 
         v.reserve(5);
         T* firstBegin = v.begin();
@@ -525,7 +525,7 @@ private:
         TestYResize<TNonPod>(true);
     }
 
-    void CheckInitializeList(const yvector<int>& v) {
+    void CheckInitializeList(const TVector<int>& v) {
         for (size_t i = 0; i < v.size(); ++i) {
             UNIT_ASSERT_EQUAL(v[i], static_cast<int>(i));
         }
@@ -533,21 +533,21 @@ private:
 
     void TestInitializeList() {
         {
-            yvector<int> v;
+            TVector<int> v;
             v.assign({0, 1, 2});
             CheckInitializeList(v);
         }
         {
-            yvector<int> v = {0, 1, 2};
+            TVector<int> v = {0, 1, 2};
             CheckInitializeList(v);
         }
         {
-            yvector<int> v;
+            TVector<int> v;
             v = {0, 1, 2};
             CheckInitializeList(v);
         }
         {
-            yvector<int> v = {0, 3};
+            TVector<int> v = {0, 3};
             v.insert(v.begin() + 1, {1, 2});
             CheckInitializeList(v);
         }

@@ -28,11 +28,11 @@ public:
     ~TValuesContext() throw() override {
     }
 
-    yvector<TString> Values;
+    TVector<TString> Values;
 };
 
-static yvector<TString> ParseEnumValues(const TString& strValues) {
-    yvector<TString> result;
+static TVector<TString> ParseEnumValues(const TString& strValues) {
+    TVector<TString> result;
 
     TValuesContext ctx;
     TCppSaxParser parser(&ctx);

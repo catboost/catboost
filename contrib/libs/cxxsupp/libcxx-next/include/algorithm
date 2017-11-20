@@ -734,15 +734,15 @@ struct __less<_T1, const _T1>
 };
 
 template <class _Predicate>
-class __negate
+class __invert // invert the sense of a comparison
 {
 private:
     _Predicate __p_;
 public:
-    _LIBCPP_INLINE_VISIBILITY __negate() {}
+    _LIBCPP_INLINE_VISIBILITY __invert() {}
 
     _LIBCPP_INLINE_VISIBILITY
-    explicit __negate(_Predicate __p) : __p_(__p) {}
+    explicit __invert(_Predicate __p) : __p_(__p) {}
 
     template <class _T1>
     _LIBCPP_INLINE_VISIBILITY
@@ -750,7 +750,7 @@ public:
 
     template <class _T1, class _T2>
     _LIBCPP_INLINE_VISIBILITY
-    bool operator()(const _T1& __x, const _T2& __y) {return !__p_(__x, __y);}
+    bool operator()(const _T1& __x, const _T2& __y) {return __p_(__y, __x);}
 };
 
 #ifdef _LIBCPP_DEBUG
@@ -3012,6 +3012,7 @@ template<class _Engine, class _UIntType>
 _UIntType
 __independent_bits_engine<_Engine, _UIntType>::__eval(true_type)
 {
+    const size_t _WRt = numeric_limits<result_type>::digits;
     result_type _Sp = 0;
     for (size_t __k = 0; __k < __n0_; ++__k)
     {
@@ -3020,7 +3021,7 @@ __independent_bits_engine<_Engine, _UIntType>::__eval(true_type)
         {
             __u = __e_() - _Engine::min();
         } while (__u >= __y0_);
-        if (__w0_ < _WDt)
+        if (__w0_ < _WRt)
             _Sp <<= __w0_;
         else
             _Sp = 0;
@@ -3033,7 +3034,7 @@ __independent_bits_engine<_Engine, _UIntType>::__eval(true_type)
         {
             __u = __e_() - _Engine::min();
         } while (__u >= __y1_);
-        if (__w0_ < _WDt - 1)
+        if (__w0_ < _WRt - 1)
             _Sp <<= __w0_ + 1;
         else
             _Sp = 0;
@@ -4588,7 +4589,7 @@ __buffered_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterator 
         typedef reverse_iterator<value_type*> _Rv;
         __half_inplace_merge(_Rv(__p), _Rv(__buff),
                              _RBi(__middle), _RBi(__first),
-                             _RBi(__last), __negate<_Compare>(__comp));
+                             _RBi(__last), __invert<_Compare>(__comp));
     }
 }
 

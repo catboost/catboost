@@ -484,16 +484,16 @@ static inline void Split(char* buf, char ch, T* res) {
 /// Old good slow split function.
 /// Field delimter is any number of symbols specified in delim (no empty strings in res vector)
 /// @return number of elements created
-size_t Split(const char* in, const char* delim, yvector<TString>& res);
-size_t Split(const char* in, const char* delim, yvector<TStringBuf>& res);
-size_t Split(const TString& in, const TString& delim, yvector<TString>& res);
+size_t Split(const char* in, const char* delim, TVector<TString>& res);
+size_t Split(const char* in, const char* delim, TVector<TStringBuf>& res);
+size_t Split(const TString& in, const TString& delim, TVector<TString>& res);
 
 /// Old split reimplemented for TStringBuf using the new code
 /// Note that delim can be constructed from char* automatically (it is not cheap though)
-inline size_t Split(const TStringBuf s, const TSetDelimiter<const char>& delim, yvector<TStringBuf>& res) {
+inline size_t Split(const TStringBuf s, const TSetDelimiter<const char>& delim, TVector<TStringBuf>& res) {
     res.clear();
-    TContainerConsumer<yvector<TStringBuf>> res1(&res);
-    TSkipEmptyTokens<TContainerConsumer<yvector<TStringBuf>>> consumer(&res1);
+    TContainerConsumer<TVector<TStringBuf>> res1(&res);
+    TSkipEmptyTokens<TContainerConsumer<TVector<TStringBuf>>> consumer(&res1);
     SplitString(~s, ~s + +s, delim, consumer);
     return res.size();
 }

@@ -17,24 +17,26 @@ enum {
 };
 
 template <typename TKey, typename TValue>
-class TDenseHashAdapter : public TDenseHash<TKey, TValue> {
+class TDenseHashAdapter: public TDenseHash<TKey, TValue> {
 private:
     using TBase = TDenseHash<TKey, TValue>;
+
 public:
     TDenseHashAdapter(const TKey& emptyKey = TKey())
         : TBase(emptyKey)
     {
     }
 
-    Y_FORCE_INLINE TValue& operator[] (const TKey& key) {
+    Y_FORCE_INLINE TValue& operator[](const TKey& key) {
         return this->GetMutable(key);
     }
 };
 
 template <typename TKey>
-class TDenseHashSetAdapter : public TDenseHashSet<TKey> {
+class TDenseHashSetAdapter: public TDenseHashSet<TKey> {
 private:
     using TBase = TDenseHashSet<TKey>;
+
 public:
     TDenseHashSetAdapter(const TKey& emptyKey = TKey())
         : TBase(emptyKey)
@@ -69,8 +71,8 @@ template <class T1, class T2>
 class TSerializer<TGoogleDenseHash<T1, T2>>: public TMapSerializer<TGoogleDenseHash<T1, T2>, false> {
 };
 
-template <typename THashMap>
-void BenchAddingToHashMap(THashMap& hashMap, const yvector<ui32>& keys, const TString& title) {
+template <typename THashMapType>
+void BenchAddingToHashMap(THashMapType& hashMap, const TVector<ui32>& keys, const TString& title) {
     TSimpleTimer timer;
     for (const auto& key : keys) {
         hashMap[key] = key;
@@ -78,8 +80,8 @@ void BenchAddingToHashMap(THashMap& hashMap, const yvector<ui32>& keys, const TS
     Cout << title << ": " << timer.Get() << "\n";
 }
 
-template <typename THashMap>
-size_t BenchGettingFromHashMap(const THashMap& hashMap, const yvector<ui32>& keys, const TString& title) {
+template <typename THashMapType>
+size_t BenchGettingFromHashMap(const THashMapType& hashMap, const TVector<ui32>& keys, const TString& title) {
     TSimpleTimer timer;
     size_t foundCount = 0;
     for (const auto& key : keys) {
@@ -90,8 +92,8 @@ size_t BenchGettingFromHashMap(const THashMap& hashMap, const yvector<ui32>& key
     return foundCount;
 }
 
-template <typename THashMap>
-void BenchAddingToHashSet(THashMap& hashMap, const TString& title) {
+template <typename THashMapType>
+void BenchAddingToHashSet(THashMapType& hashMap, const TString& title) {
     TSimpleTimer timer;
     for (ui32 value = 0; value < ElementsCount; ++value) {
         hashMap.insert(value);
@@ -99,8 +101,8 @@ void BenchAddingToHashSet(THashMap& hashMap, const TString& title) {
     Cout << title << ": " << timer.Get() << "\n";
 }
 
-template <typename THashMap>
-size_t BenchGettingFromHashSet(const THashMap& hashMap, const TString& title) {
+template <typename THashMapType>
+size_t BenchGettingFromHashSet(const THashMapType& hashMap, const TString& title) {
     TSimpleTimer timer;
     size_t foundCount = 0;
     for (ui32 value = 0; value < ElementsCount * 2; ++value) {
@@ -135,12 +137,12 @@ void BenchSerialization(const THash& hash, const TString& title) {
 void BenchMaps() {
     const ui32 seed = 19650218UL; // TODO: take from command line
     TMersenne<ui32> rng(seed);
-    yvector<ui32> keys;
+    TVector<ui32> keys;
     for (size_t i = 0; i < ElementsCount; ++i) {
         keys.push_back(rng.GenRand() % MaxElementValue);
     }
 
-    yvector<ui32> shuffledKeys(keys);
+    TVector<ui32> shuffledKeys(keys);
     Shuffle(shuffledKeys.begin(), shuffledKeys.begin(), rng);
 
     size_t yhashMapFound, denseHashMapFound, stdHashMapFound, googleDenseHashMapFound;
@@ -153,7 +155,7 @@ void BenchMaps() {
     }
     Cout << "---------------" << Endl;
     {
-        TDenseHashAdapter<ui32, ui32> denseHash((ui32) -1);
+        TDenseHashAdapter<ui32, ui32> denseHash((ui32)-1);
         BenchAddingToHashMap(denseHash, keys, "adding to dense hash");
         denseHashMapFound = BenchGettingFromHashMap(denseHash, shuffledKeys, "getting from dense hash");
         BenchSerialization(denseHash, "dense hash");
@@ -186,18 +188,18 @@ void BenchSets() {
     size_t yhashSetFound, denseHashSetFound;
 
     {
-        yhash_set<ui32> yhashSet;
-        BenchAddingToHashSet(yhashSet, "adding to yhash_set");
-        yhashSetFound = BenchGettingFromHashSet(yhashSet, "getting from yhash_set");
+        THashSet<ui32> yhashSet;
+        BenchAddingToHashSet(yhashSet, "adding to THashSet");
+        yhashSetFound = BenchGettingFromHashSet(yhashSet, "getting from THashSet");
         BenchSerialization(yhashSet, "yhash");
     }
     {
-        TDenseHashSetAdapter<ui32> denseHashSet((ui32) -1);
+        TDenseHashSetAdapter<ui32> denseHashSet((ui32)-1);
         BenchAddingToHashSet(denseHashSet, "adding to dense hash set");
         denseHashSetFound = BenchGettingFromHashSet(denseHashSet, "getting from dense hash set");
         BenchSerialization(denseHashSet, "dense hash set");
     }
-    Cout << "found in yhash_set: " << yhashSetFound << "\n";
+    Cout << "found in THashSet: " << yhashSetFound << "\n";
     Cout << "found in dense hash set: " << denseHashSetFound << "\n";
 
     Cout << "\n";

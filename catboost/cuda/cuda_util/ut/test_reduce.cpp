@@ -17,7 +17,7 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
             ui64 tries = 20;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
-                yvector<float> vec;
+                TVector<float> vec;
                 ui64 size = rand.NextUniformL() % 10000000;
                 double sum = 0;
                 for (ui64 i = 0; i < size; ++i) {
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 cVec.Write(vec);
                 ReduceVector(cVec, resultVec);
 
-                yvector<float> result;
+                TVector<float> result;
                 resultVec.Read(result);
 
                 UNIT_ASSERT_DOUBLES_EQUAL(result[0] / vec.size(), sum / vec.size(), 1e-5);
@@ -49,11 +49,11 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
 
             for (ui32 k = 0; k < tries; ++k) {
                 for (ui32 meanSize : {2, 4, 7, 15, 30, 55, 77, 110, 140, 255, 1024, 10000}) {
-                    yvector<float> vec;
+                    TVector<float> vec;
                     ui64 size = 50000 + rand.NextUniformL() % 100;
 
-                    yvector<ui32> segmentOffsets;
-                    yvector<double> segmentSums;
+                    TVector<ui32> segmentOffsets;
+                    TVector<double> segmentSums;
 
                     for (ui32 i = 0; i < size; ++i) {
                         ui32 segmentSize = max(ceil(meanSize * rand.NextUniform()), 1.0);
@@ -82,10 +82,10 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                     cVec.Write(vec);
                     SegmentedReduceVector(cVec, offsetsVec, resultVec);
 
-                    yvector<ui32> offsetsAfterReduce;
+                    TVector<ui32> offsetsAfterReduce;
                     offsetsVec.Read(offsetsAfterReduce);
 
-                    yvector<float> reducedOnGpu;
+                    TVector<float> reducedOnGpu;
                     resultVec.Read(reducedOnGpu);
 
                     for (ui32 i = 0; i < segmentSums.size(); ++i) {
@@ -113,11 +113,11 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
 
             for (ui32 k = 0; k < tries; ++k) {
                 for (ui32 meanSize : {2, 4, 7, 15, 30, 55, 77, 110, 140, 255, 512, 1024, 2048, 4096, 10000, 20000}) {
-                    yvector<float> vec;
+                    TVector<float> vec;
                     ui64 size = 10000000;
 
-                    yvector<ui32> segmentOffsets;
-                    yvector<float> segmentSums;
+                    TVector<ui32> segmentOffsets;
+                    TVector<float> segmentSums;
 
                     for (ui32 i = 0; i < size; ++i) {
                         ui32 segmentSize = max(ceil(meanSize * rand.NextUniform()), 1.0);

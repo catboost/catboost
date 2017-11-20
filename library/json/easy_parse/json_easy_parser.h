@@ -25,10 +25,10 @@ namespace NJson {
         TString Prefix;
 
         struct TField {
-            yvector<TPathElem> Path;
+            TVector<TPathElem> Path;
             bool NonEmpty;
         };
-        yvector<TField> Fields;
+        TVector<TField> Fields;
 
         friend class TRewriteJsonImpl;
 
@@ -39,6 +39,6 @@ namespace NJson {
         }
         void AddField(const TString &path, bool mustExist);
         TString ConvertToTabDelimited(const TString &json) const;
-        bool Parse(const TString &json, yvector<TString> *res) const;
+        bool Parse(const TString &json, TVector<TString> *res) const;
     };
 }

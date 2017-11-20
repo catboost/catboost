@@ -8,23 +8,23 @@
 #include <util/string/split.h>
 #include <util/generic/set.h>
 
-inline void CheckAllFeaturesPresent(const yvector<TColumn>& columns, const yset<int>& parsedColumns) {
+inline void CheckAllFeaturesPresent(const TVector<TColumn>& columns, const yset<int>& parsedColumns) {
     for (int i = 0; i < columns.ysize(); ++i) {
         CB_ENSURE(parsedColumns.has(i), "column not present in cd file: " << i);
     }
 }
 
-yvector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults) {
+TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults) {
     CB_ENSURE(NFs::Exists(TString(fileName)), "column description file is not found");
     int columnsCount = defaults.UseDefaultType ? defaults.ColumnCount : 0;
 
-    yvector<TColumn> columns(columnsCount, TColumn{defaults.DefaultColumnType, TString()});
+    TVector<TColumn> columns(columnsCount, TColumn{defaults.DefaultColumnType, TString()});
     yset<int> parsedColumns;
 
     TString line;
     TIFStream reader(fileName.c_str());
     while (reader.ReadLine(line)) {
-        yvector<TString> tokens;
+        TVector<TString> tokens;
         try {
             Split(line, "\t", tokens);
         } catch (const yexception& e) {

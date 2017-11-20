@@ -126,7 +126,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
         TFailAddQueue queue;
         bool added = queue.AddFunc(
             []() {} // Lambda, I call him 'Lambda'!
-            );
+        );
         UNIT_ASSERT_VALUES_EQUAL(added, false);
     }
 }

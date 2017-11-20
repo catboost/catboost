@@ -92,4 +92,4 @@ namespace NVariant {
         using TType = TEmptyVisitorResult;
     };
 
-} // namespace NVariant
+}

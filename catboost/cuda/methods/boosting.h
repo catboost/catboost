@@ -43,8 +43,8 @@ namespace NCatboostCuda
         const TTargetOptions& TargetOptions;
         const TSnapshotOptions& SnapshotOptions;
 
-        yvector<IListener*> LearnListeners;
-        yvector<IListener*> TestListeners;
+        TVector<IListener*> LearnListeners;
+        TVector<IListener*> TestListeners;
         IOverfittingDetector* Detector = nullptr;
 
         const char* const GpuProgressLabel = "GPU";
@@ -67,7 +67,7 @@ namespace NCatboostCuda
         public:
             TPermutationTarget() = default;
 
-            explicit TPermutationTarget(yvector<THolder<TTarget>>&& targets)
+            explicit TPermutationTarget(TVector<THolder<TTarget>>&& targets)
                     : Targets(std::move(targets))
             {
             }
@@ -78,7 +78,7 @@ namespace NCatboostCuda
             }
 
         private:
-            yvector<THolder<TTarget>> Targets;
+            TVector<THolder<TTarget>> Targets;
         };
 
         template<class TData>
@@ -86,7 +86,7 @@ namespace NCatboostCuda
         {
             TFoldAndPermutationStorage() = default;
 
-            TFoldAndPermutationStorage(yvector<yvector<TData>>&& foldData,
+            TFoldAndPermutationStorage(TVector<TVector<TData>>&& foldData,
                                        TData&& estimationData)
                     : FoldData(std::move(foldData))
                       , Estimation(std::move(estimationData))
@@ -98,7 +98,7 @@ namespace NCatboostCuda
                 return FoldData.at(permutationId).at(foldId);
             }
 
-            yvector<yvector<TData>> FoldData;
+            TVector<TVector<TData>> FoldData;
             TData Estimation;
 
             template<class TFunc>
@@ -151,7 +151,7 @@ namespace NCatboostCuda
 
         TPermutationTarget CreateTargets(const TDataSetsHolder<CatFeaturesStoragePtrType>& dataSets) const
         {
-            yvector<THolder<TTarget>> targets;
+            TVector<THolder<TTarget>> targets;
             for (ui32 i = 0; i < dataSets.PermutationsCount(); ++i)
             {
                 targets.push_back(CreateTarget(dataSets.GetDataSetForPermutation(i)));
@@ -183,14 +183,14 @@ namespace NCatboostCuda
             return Config.GetMinFoldSize();
         }
 
-        yvector<TFold> CreateFolds(ui32 sampleCount,
+        TVector<TFold> CreateFolds(ui32 sampleCount,
                                    double growthRate) const
         {
             const ui32 minEstimationSize = MinEstimationSize(sampleCount);
             CB_ENSURE(minEstimationSize, "Error: min learn size should be positive");
             CB_ENSURE(growthRate > 1.0, "Error: grow rate should be > 1.0");
 
-            yvector<TFold> folds;
+            TVector<TFold> folds;
             if (Config.GetBoostingType() == EBoostingType::Plain)
             {
                 folds.push_back({TSlice(0, sampleCount), TSlice(0, sampleCount)});
@@ -214,7 +214,7 @@ namespace NCatboostCuda
             return folds;
         }
 
-        inline yvector<TFold> CreateFolds(const TTarget& target,
+        inline TVector<TFold> CreateFolds(const TTarget& target,
                                           const TDataSet<CatFeaturesStoragePtrType>& dataSet,
                                           double growthRate) const {
             //TODO: support query-based folds
@@ -228,7 +228,7 @@ namespace NCatboostCuda
         //don't look ahead boosting
         void Fit(const TDataSetsHolder<CatFeaturesStoragePtrType>& dataSet,
                  const TPermutationTarget& target,
-                 const yvector<yvector<TFold>>& permutationFolds,
+                 const TVector<TVector<TFold>>& permutationFolds,
                  TCursor& cursor,
                  const TTarget* testTarget,
                  TVec* testCursor,
@@ -496,6 +496,7 @@ namespace NCatboostCuda
                     if (SnapshotOptions.IsSnapshotEnabled() && ((Now() - lastSnapshotTime).SecondsFloat() > SnapshotOptions.TimeBetweenWritesSec())) {
                         auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
                         TProgressHelper(GpuProgressLabel).Write(SnapshotOptions.GetSnapshotPath(), [&](IOutputStream* out) {
+                            ::Save(out, DataProvider->GetShuffleSeed());
                             ::Save(out, progress);
                         });
                         lastSnapshotTime = Now();
@@ -560,7 +561,7 @@ namespace NCatboostCuda
             TVec TestCursor;
             THolder<TTarget> TestTarget;
 
-            yvector<yvector<TFold>> PermutationFolds;
+            TVector<TVector<TFold>> PermutationFolds;
 
             ui32 GetEstimationPermutation() const
             {
@@ -596,7 +597,7 @@ namespace NCatboostCuda
             {
                 auto& folds = state->PermutationFolds[i];
                 auto& permutation = state->DataSets.GetPermutation(i);
-                yvector<float> baseline;
+                TVector<float> baseline;
                 if (DataProvider->HasBaseline())
                 {
                     baseline = permutation.Gather(DataProvider->GetBaseline());
@@ -621,7 +622,7 @@ namespace NCatboostCuda
             }
             {
                 auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
-                yvector<float> baseline;
+                TVector<float> baseline;
                 if (DataProvider->HasBaseline())
                 {
                     baseline = permutation.Gather(DataProvider->GetBaseline());
@@ -645,6 +646,9 @@ namespace NCatboostCuda
             if (SnapshotOptions.IsSnapshotEnabled() && NFs::Exists(SnapshotOptions.GetSnapshotPath())) {
                 TDynamicBoostingProgress<TResultModel> progress;
                 TProgressHelper(GpuProgressLabel).CheckedLoad(SnapshotOptions.GetSnapshotPath(), [&](TIFStream* in) {
+                    ui64 dataProviderShuffleSeed = 0;
+                    ::Load(in, dataProviderShuffleSeed);
+                    CB_ENSURE(dataProviderShuffleSeed == DataProvider->GetShuffleSeed());
                     ::Load(in, progress);
                 });
                 WriteProgressToGpu(progress,

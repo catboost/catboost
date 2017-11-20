@@ -89,8 +89,8 @@ namespace NDbgDump {
             NColorizer::TColors Colors;
             size_t Depth = 0;
         };
-    } // namespace NColorScheme
-} // namespace NDbgDump
+    }
+}
 
 namespace NPrivate {
     template <typename CS>

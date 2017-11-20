@@ -1,18 +1,5 @@
 #include "error_functions.h"
 
-void CalcSoftmax(const yvector<double>& approx, yvector<double>* softmax) {
-    double maxApprox = *MaxElement(approx.begin(), approx.end());
-    double sumExpApprox = 0;
-    for (int dim = 0; dim < approx.ysize(); ++dim) {
-        double expApprox = exp(approx[dim] - maxApprox);
-        (*softmax)[dim] = expApprox;
-        sumExpApprox += expApprox;
-    }
-    for (auto& curSoftmax : *softmax) {
-        curSoftmax /= sumExpApprox;
-    }
-}
-
 void TLoglossError::CalcFirstDerRange(int start, int count,
                                       const double* __restrict approxes, const double* __restrict approxDeltas,
                                       const float* __restrict targets, const float* __restrict weights,

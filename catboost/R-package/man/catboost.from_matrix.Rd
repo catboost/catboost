@@ -4,8 +4,9 @@
 \alias{catboost.from_matrix}
 \title{catboost.from_matrix}
 \usage{
-catboost.from_matrix(data, target = NULL, weight = NULL, baseline = NULL,
-  cat_features = NULL, feature_names = NULL)
+catboost.from_matrix(data, target = NULL, cat_features = NULL,
+  pairs = NULL, weight = NULL, query_id = NULL, pairs_weight = NULL,
+  baseline = NULL, feature_names = NULL)
 }
 \arguments{
 \item{data}{A matrix with features.
@@ -14,13 +15,20 @@ Default value: Required argument}
 
 \item{target}{The target vector.}
 
+\item{cat_features}{A vector of categorical features indices.
+The indices are zero based and can differ from the given in the Column descriptions file.}
+
+\item{pairs}{A matrix that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.}
+
 \item{weight}{The weights of the target vector.}
+
+\item{query_id}{The query_id of the target vector.}
+
+\item{pairs_weight}{The weights of the pairs.}
 
 \item{baseline}{Vector of initial (raw) values of the target function for the object.
 Used in the calculation of final values of trees.}
-
-\item{cat_features}{A vector of categorical features indices.
-The indices are zero based and can differ from the given in the Column descriptions file.}
 
 \item{feature_names}{A list of names for each feature in the dataset.}
 }

@@ -217,7 +217,7 @@ SIMPLE_UNIT_TEST_SUITE(TFutureTest) {
         TPromise<void> promise1 = NewPromise();
         TPromise<void> promise2 = NewPromise();
 
-        yvector<TFuture<void>> promises;
+        TVector<TFuture<void>> promises;
         promises.push_back(promise1);
         promises.push_back(promise2);
 
@@ -252,7 +252,7 @@ SIMPLE_UNIT_TEST_SUITE(TFutureTest) {
 
     SIMPLE_UNIT_TEST(ShouldWaitAllVectorEmpty)
     {
-        yvector<TFuture<void>> promises;
+        TVector<TFuture<void>> promises;
 
         TFuture<void> future = WaitAll(promises);
         UNIT_ASSERT(future.HasValue());
@@ -263,7 +263,7 @@ SIMPLE_UNIT_TEST_SUITE(TFutureTest) {
         TPromise<void> promise1 = NewPromise();
         TPromise<void> promise2 = NewPromise();
 
-        yvector<TFuture<void>> promises;
+        TVector<TFuture<void>> promises;
         promises.push_back(promise1);
         promises.push_back(promise2);
 
@@ -298,7 +298,7 @@ SIMPLE_UNIT_TEST_SUITE(TFutureTest) {
 
     SIMPLE_UNIT_TEST(ShouldWaitAnyVectorEmpty)
     {
-        yvector<TFuture<void>> promises;
+        TVector<TFuture<void>> promises;
 
         TFuture<void> future = WaitAny(promises);
         UNIT_ASSERT(future.HasValue());

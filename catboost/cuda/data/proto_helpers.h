@@ -16,7 +16,7 @@ namespace NCatboostCuda
         messageReader.GetNext(message);
     }
 
-    inline void ReadUnsignedIntColumn(TIFStream& input, yvector<ui32>& dst)
+    inline void ReadUnsignedIntColumn(TIFStream& input, TVector<ui32>& dst)
     {
         NCompressedPool::TUnsignedIntegerColumn column;
         ReadMessage(input, column);
@@ -24,7 +24,7 @@ namespace NCatboostCuda
         std::copy(column.GetValues().begin(), column.GetValues().end(), dst.begin());
     }
 
-    inline void ReadFloatColumn(TIFStream& input, yvector<float>& dst)
+    inline void ReadFloatColumn(TIFStream& input, TVector<float>& dst)
     {
         NCompressedPool::TFloatColumn column;
         ReadMessage(input, column);

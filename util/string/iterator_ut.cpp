@@ -32,8 +32,8 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestSplitLimited) {
-        yvector<TString> expected = {"1", "2", "3,4,5"};
-        yvector<TString> actual = StringSplitter("1,2,3,4,5").SplitLimited(',', 3).ToList<TString>();
+        TVector<TString> expected = {"1", "2", "3,4,5"};
+        TVector<TString> actual = StringSplitter("1,2,3,4,5").SplitLimited(',', 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -48,8 +48,8 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestSplitBySetLimited) {
-        yvector<TString> expected = {"1", "2", "3,4:5"};
-        yvector<TString> actual = StringSplitter("1,2:3,4:5").SplitBySetLimited(",:", 3).ToList<TString>();
+        TVector<TString> expected = {"1", "2", "3,4:5"};
+        TVector<TString> actual = StringSplitter("1,2:3,4:5").SplitBySetLimited(",:", 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -64,16 +64,16 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestSplitByStringLimited) {
-        yvector<TString> expected = {"1", "2", "3ab4ab5"};
-        yvector<TString> actual = StringSplitter("1ab2ab3ab4ab5").SplitByStringLimited("ab", 3).ToList<TString>();
+        TVector<TString> expected = {"1", "2", "3ab4ab5"};
+        TVector<TString> actual = StringSplitter("1ab2ab3ab4ab5").SplitByStringLimited("ab", 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
     SIMPLE_UNIT_TEST(TestSplitByFunc) {
         TString s = "123 456 \t\n789\n10\t 20";
-        yvector<TString> pattern = {"123", "456", "789", "10", "20"};
+        TVector<TString> pattern = {"123", "456", "789", "10", "20"};
 
-        yvector<TString> tokens;
+        TVector<TString> tokens;
         auto f = [](char a) { return a == ' ' || a == '\t' || a == '\n'; };
         for (auto v : StringSplitter(s).SplitByFunc(f)) {
             if (v.Empty() == false) {
@@ -85,9 +85,9 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestSplitByFuncLimited) {
-        yvector<TString> expected = {"1", "2", "3a4b5"};
+        TVector<TString> expected = {"1", "2", "3a4b5"};
         auto f = [](char a) { return a == 'a' || a == 'b'; };
-        yvector<TString> actual = StringSplitter("1a2b3a4b5").SplitByFuncLimited(f, 3).ToList<TString>();
+        TVector<TString> actual = StringSplitter("1a2b3a4b5").SplitByFuncLimited(f, 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestTake) {
-        yvector<TString> expected = {"1", "2", "3"};
+        TVector<TString> expected = {"1", "2", "3"};
         UNIT_ASSERT_VALUES_EQUAL(expected, StringSplitter("1 2 3 4 5 6 7 8 9 10").Split(' ').Take(3).ToList<TString>());
 
         expected = {"1", "2"};
@@ -153,8 +153,8 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestStringSplitterConsume) {
-        yvector<TString> expected = {"1", "2", "3"};
-        yvector<TString> actual;
+        TVector<TString> expected = {"1", "2", "3"};
+        TVector<TString> actual;
         auto func = [&actual](const TGenericStringBuf<char>& token) {
             actual.push_back(TString(token));
         };
@@ -163,14 +163,14 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestStringSplitterToList) {
-        yvector<TString> expected = {"1", "2", "3"};
-        yvector<TString> actual = StringSplitter("1 2 3").Split(' ').ToList<TString>();
+        TVector<TString> expected = {"1", "2", "3"};
+        TVector<TString> actual = StringSplitter("1 2 3").Split(' ').ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
     SIMPLE_UNIT_TEST(TestStringSplitterCollectPushBack) {
-        yvector<TString> expected = {"1", "2", "3"};
-        yvector<TString> actual;
+        TVector<TString> expected = {"1", "2", "3"};
+        TVector<TString> actual;
         StringSplitter("1 2 3").Split(' ').Collect(&actual);
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }

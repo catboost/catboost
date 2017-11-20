@@ -19,18 +19,18 @@ private:
 
     inline void TestIntVector() {
         const size_t canonicalHash = ULL(1351128487744230578);
-        yvector<int> testVec = {1, 2, 4, 3};
+        TVector<int> testVec = {1, 2, 4, 3};
         UNIT_ASSERT_EQUAL(canonicalHash, TRangeHash<>()(testVec));
     }
 
     inline void TestOneElement() {
         const int testVal = 42;
-        yvector<int> testVec = {testVal};
+        TVector<int> testVec = {testVal};
         UNIT_ASSERT_UNEQUAL(THash<int>()(testVal), TRangeHash<>()(testVec));
     }
 
     inline void TestCollectionIndependancy() {
-        yvector<char> testVec = {'a', 'b', 'c'};
+        TVector<char> testVec = {'a', 'b', 'c'};
         TString testStroka = "abc";
         UNIT_ASSERT_EQUAL(TRangeHash<>()(testVec), TRangeHash<>()(testStroka));
     }

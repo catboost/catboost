@@ -4,6 +4,7 @@
 #include "align.h"
 #include "yassert.h"
 
+#include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/utility.h>
 #include <util/generic/yexception.h>
@@ -273,7 +274,7 @@ private:
     }
 };
 
-class TMappedAllocation {
+class TMappedAllocation : TNonCopyable {
 public:
     TMappedAllocation(size_t size = 0, bool shared = false, void* addr = nullptr);
     ~TMappedAllocation() {
@@ -305,7 +306,6 @@ private:
 #ifdef _win_
     void* Mapping_;
 #endif
-    Y_DISABLE_COPY(TMappedAllocation);
 };
 
 template <class T>
@@ -358,5 +358,4 @@ public:
     void swap(TMappedArray<T>& with) {
         TMappedAllocation::swap(with);
     }
-    Y_DISABLE_COPY(TMappedArray);
 };

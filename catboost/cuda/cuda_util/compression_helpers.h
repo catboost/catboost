@@ -51,14 +51,14 @@ public:
         return (NHelpers::CeilDivide(size, EntriesPerType));
     }
 
-    inline ui32 Extract(const yvector<ui64>& compressedData, ui32 index) const {
+    inline ui32 Extract(const TVector<ui64>& compressedData, ui32 index) const {
         const ui32 offset = Offset(index);
         const ui32 shift = Shift(index);
         return (compressedData[offset] >> shift) & Mask();
     }
 
     template <class T>
-    inline void Write(yvector<ui64>& compressedData, ui32 index, T data) const {
+    inline void Write(TVector<ui64>& compressedData, ui32 index, T data) const {
         const ui32 offset = Offset(index);
         const ui32 shift = Shift(index);
         CB_ENSURE((data & Mask()) == data);
@@ -71,11 +71,11 @@ private:
 };
 
 template <class TStorageType, class T>
-inline yvector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsPerKey) {
+inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsPerKey) {
     CB_ENSURE(bitsPerKey < 32);
     CB_ENSURE(bitsPerKey, "Error: data with zero bits per key. Something went wrong");
 
-    yvector<TStorageType> dst;
+    TVector<TStorageType> dst;
     TIndexHelper<TStorageType> indexHelper(bitsPerKey);
     dst.resize(indexHelper.CompressedSize(size));
     const auto mask = indexHelper.Mask();
@@ -91,20 +91,19 @@ inline yvector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
             CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key" << data[i]);
             dst[offset] |= static_cast<ui64>(data[i]) << shift;
         })(blockIdx);
-    },
-                                    0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, 0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     return dst;
 }
 
 template <class TStorageType, class T>
-inline yvector<TStorageType> CompressVector(const yvector<T>& data, ui32 bitsPerKey) {
+inline TVector<TStorageType> CompressVector(const TVector<T>& data, ui32 bitsPerKey) {
     return CompressVector<TStorageType, T>(data.data(), data.size(), bitsPerKey);
 }
 
 template <class TStorageType, class T>
-inline yvector<T> DecompressVector(const yvector<TStorageType>& compressedData, ui32 keys, ui32 bitsPerKey) {
-    yvector<T> dst;
+inline TVector<T> DecompressVector(const TVector<TStorageType>& compressedData, ui32 keys, ui32 bitsPerKey) {
+    TVector<T> dst;
     CB_ENSURE(bitsPerKey < 32);
     CB_ENSURE(sizeof(T) <= sizeof(TStorageType));
     dst.clear();
@@ -122,7 +121,7 @@ inline yvector<T> DecompressVector(const yvector<TStorageType>& compressedData, 
 }
 
 template <class TBinType>
-inline TBinType Binarize(const yvector<float>& borders,
+inline TBinType Binarize(const TVector<float>& borders,
                          float value) {
     ui32 index = 0;
     while (index < borders.size() && value > borders[index])
@@ -136,10 +135,10 @@ inline TBinType Binarize(const yvector<float>& borders,
 }
 
 template <class TBinType = ui32>
-inline yvector<TBinType> BinarizeLine(const float* values,
+inline TVector<TBinType> BinarizeLine(const float* values,
                                       const ui64 valuesCount,
-                                      const yvector<float>& borders) {
-    yvector<TBinType> result(valuesCount);
+                                      const TVector<float>& borders) {
+    TVector<TBinType> result(valuesCount);
 
     NPar::TLocalExecutor::TBlockParams params(0, (int)valuesCount);
     params.SetBlockSize(16384);

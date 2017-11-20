@@ -14,12 +14,12 @@ NCatboostCuda::TCtr NCatboostCuda::MigrateCtr(TBinarizedFeaturesManager& feature
                                               const TCtr& oldCtr)
 {
     TCtr newCtr = oldCtr;
-    yvector<TBinarySplit> binarySplits = newCtr.FeatureTensor.GetSplits();
+    TVector<TBinarySplit> binarySplits = newCtr.FeatureTensor.GetSplits();
     for (auto& split : binarySplits)
     {
         split.FeatureId = UpdateFeatureId(featuresManager, map, split.FeatureId);
     }
-    yvector<ui32> catFeatures = newCtr.FeatureTensor.GetCatFeatures();
+    TVector<ui32> catFeatures = newCtr.FeatureTensor.GetCatFeatures();
     for (auto& catFeature : catFeatures)
     {
         catFeature = UpdateFeatureId(featuresManager, map, catFeature);
@@ -51,7 +51,7 @@ ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
         } else
         {
             return featuresManager.AddCtr(remapedCtr,
-                                          yvector<float>(info.Borders));
+                                          TVector<float>(info.Borders));
         }
     } else if (map.FloatFeatures.has(featureId))
     {

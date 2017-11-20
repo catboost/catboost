@@ -30,7 +30,7 @@ TString GetEnv(const TString& key, const TString& def) {
         return TString{};
     }
 
-    yvector<char> buffer(len);
+    TVector<char> buffer(len);
     size_t bufferSize;
     do {
         bufferSize = buffer.size();

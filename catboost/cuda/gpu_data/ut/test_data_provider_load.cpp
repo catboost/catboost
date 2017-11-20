@@ -36,7 +36,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
 
             //4th gid column set to cat-feature and takes id
             for (size_t f = 0; f < pool.NumFeatures; ++f) {
-                yvector<float> feature = pool.GetFeature(f);
+                TVector<float> feature = pool.GetFeature(f);
                 Sort(feature.begin(), feature.end());
                 auto borders = binarizer->BuildBorders(feature, binarizationConfiguration.DefaultFloatBinarization.Discretization);
                 auto binarized = BinarizeLine<ui32>(~pool.Features + f * pool.NumSamples, pool.NumSamples, borders);

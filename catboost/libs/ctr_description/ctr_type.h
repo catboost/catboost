@@ -6,5 +6,5 @@ enum class ECtrType {
     BinarizedTargetMeanValue,
     FloatTargetMeanValue,
     Counter,
-    FeatureFreq // TODO(kirillovs, vitekmel): only for cuda models, remove after implementing proper ctr binarization
+    FeatureFreq // TODO(kirillovs): only for cuda models, remove after implementing proper ctr binarization
 };

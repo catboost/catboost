@@ -34,7 +34,7 @@ DEFINE_DUMPER(TMyNS::TMyStruct, A, B)
 SIMPLE_UNIT_TEST_SUITE(TContainerPrintersTest) {
     SIMPLE_UNIT_TEST(TestVectorInt) {
         TStringStream out;
-        out << DbgDump(yvector<int>({1, 2, 3, 4, 5}));
+        out << DbgDump(TVector<int>({1, 2, 3, 4, 5}));
         UNIT_ASSERT_STRINGS_EQUAL(out.Str(), "[1, 2, 3, 4, 5]");
     }
 
@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(TContainerPrintersTest) {
 
     SIMPLE_UNIT_TEST(TestVectorOfVectors) {
         TStringStream out;
-        yvector<yvector<wchar16>> vec(2);
+        TVector<TVector<wchar16>> vec(2);
         vec[0].push_back(0);
         vec[1] = {wchar16('a')};
         out << DbgDump(vec);

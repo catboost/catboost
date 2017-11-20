@@ -1,9 +1,8 @@
 #pragma once
 
-#include "fold.h"
-#include "online_ctr.h"
+#include "projection.h"
 #include "train_data.h"
-#include <catboost/libs/model/tensor_struct.h>
+
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>
@@ -11,9 +10,9 @@
 inline void CalcHashes(const TProjection& proj,
                        const TAllFeatures& af,
                        size_t sampleCount,
-                       const yvector<int>& learnPermutation,
-                       yvector<ui64>* res) {
-    yvector<ui64>& hashArr = *res;
+                       const TVector<int>& learnPermutation,
+                       TVector<ui64>* res) {
+    TVector<ui64>& hashArr = *res;
     Clear(&hashArr, sampleCount);
     const size_t learnSize = learnPermutation.size();
     for (const int featureIdx : proj.CatFeatures) {
@@ -38,7 +37,7 @@ inline void CalcHashes(const TProjection& proj,
         }
     }
 
-    for (const TOneHotFeature& feature : proj.OneHotFeatures) {
+    for (const TOneHotSplit& feature : proj.OneHotFeatures) {
         const int* featureValues = af.CatFeatures[feature.CatFeatureIdx].data();
         for (size_t i = 0; i < learnSize; ++i) {
             const bool isTrueFeature = IsTrueOneHotFeature(featureValues[learnPermutation[i]], feature.Value);
@@ -51,14 +50,6 @@ inline void CalcHashes(const TProjection& proj,
     }
 }
 
-inline void CalcHashes(const TProjection& proj,
-                       const TTrainData& data,
-                       const TFold& fold,
-                       yvector<ui64>* res) {
-    CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, res);
-}
-
-
 
 /* Function for calculation of zero based bucket numbers for given hash values array.
    if number of unique values in hashVecPtr is greater than topSize and topSize + trashMask + 1 > learnSize
@@ -67,4 +58,4 @@ inline void CalcHashes(const TProjection& proj,
 
    Function returns pair of (number of leaves for learn, number of leaves for test)
 */
-std::pair<size_t, size_t> ReindexHash(size_t learnSize, ui64 topSize, yvector<ui64>* hashVecPtr, TDenseHash<ui64, ui32>* reindexHashPtr);
+std::pair<size_t, size_t> ReindexHash(size_t learnSize, ui64 topSize, TVector<ui64>* hashVecPtr, TDenseHash<ui64, ui32>* reindexHashPtr);

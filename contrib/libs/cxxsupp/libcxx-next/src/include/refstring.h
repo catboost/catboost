@@ -18,6 +18,7 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #endif
+#include "atomic_support.h"
 
 #if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG) && !defined(_LIBCPP_USE_ATOMIC)
 #define _LIBCPP_USE_ATOMIC
@@ -95,7 +96,7 @@ __libcpp_refstring::__libcpp_refstring(const __libcpp_refstring &s) _NOEXCEPT
 #ifdef _LIBCPP_USE_ATOMIC
         rep_from_data(__imp_)->count.fetch_add(1);
 #else
-        __sync_add_and_fetch(&rep_from_data(__imp_)->count, 1);
+        __libcpp_atomic_add(&rep_from_data(__imp_)->count, 1);
 #endif
 }
 
@@ -108,7 +109,7 @@ __libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring const& s) _
 #ifdef _LIBCPP_USE_ATOMIC
         rep_from_data(__imp_)->count.fetch_add(1);
 #else
-        __sync_add_and_fetch(&rep_from_data(__imp_)->count, 1);
+        __libcpp_atomic_add(&rep_from_data(__imp_)->count, 1);
 #endif
 
     if (adjust_old_count)
@@ -116,7 +117,7 @@ __libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring const& s) _
 #ifdef _LIBCPP_USE_ATOMIC
         if (old_rep->count.fetch_sub(1) == 0)
 #else
-        if (__sync_add_and_fetch(&old_rep->count, count_t(-1)) < 0)
+        if (__libcpp_atomic_add(&old_rep->count, count_t(-1)) < 0)
 #endif
         {
             ::operator delete(old_rep);

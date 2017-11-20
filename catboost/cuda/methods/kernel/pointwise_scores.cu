@@ -66,13 +66,13 @@ namespace NKernel {
 
 
                     {
-                        const float mu = weightEstimateLeft > 0.0f ? (sumEstimateLeft / (weightEstimateLeft)) : 0;
+                        const float mu = weightEstimateLeft > 0.0f ? (sumEstimateLeft / (weightEstimateLeft + 1e-15f)) : 0;
                         leftScore += -2 * mu * sumTestLeft + weightTestLeft * mu * mu;
                         leftTotalWeight += weightTestLeft;
                     }
 
                     {
-                        const float mu =  weightEstimateRight > 0.0f ? (sumEstimateRight / (weightEstimateRight)) : 0;
+                        const float mu =  weightEstimateRight > 0.0f ? (sumEstimateRight / (weightEstimateRight + 1e-15f)) : 0;
                         rightTotalWeight += weightTestRight;
                         rightScore += -2 * mu * sumTestRight + weightTestRight * mu * mu;
                     }
@@ -114,7 +114,7 @@ namespace NKernel {
 
 
     __forceinline__ __device__ double SolarScore(double sum, double weight) {
-        return  weight > 2 ? (-sum * sum) * weight * (1 + 2 * log(weight + 1.0)) / (weight - 1) /  (weight - 1)  : 0;
+        return  weight > 0 ? (-sum * sum) *  (1 + 2 * log(weight + 1.0)) / (weight + 1e-9f)  : 0;
     }
 
 

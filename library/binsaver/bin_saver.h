@@ -72,7 +72,7 @@ private:
     }
 
     // vector
-    template <class T, class TA> void DoVector(yvector<T,TA> &data) {
+    template <class T, class TA> void DoVector(TVector<T,TA> &data) {
         TStoredSize nSize;
         if (IsReading()) {
             data.clear();
@@ -100,7 +100,7 @@ private:
         }
     }
 
-    template <class T, class TA> void DoDataVector(yvector<T,TA> &data) {
+    template <class T, class TA> void DoDataVector(TVector<T,TA> &data) {
         TStoredSize nSize = data.size();
         CheckOverflow(nSize, data.size());
         Add(1, &nSize);
@@ -117,7 +117,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            yvector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
+            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);
@@ -128,7 +128,7 @@ private:
             CheckOverflow(nSize, data.size());
             Add(3, &nSize);
 
-            yvector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
+            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
             indices.resize(nSize);
             TStoredSize i = 1;
             for (auto pos = data.begin(); pos != data.end(); ++pos, ++i)
@@ -146,7 +146,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            yvector<typename AMM::key_type, typename AMM::allocator_type::template rebind<typename AMM::key_type>::other> indices;
+            TVector<typename AMM::key_type, typename AMM::allocator_type::template rebind<typename AMM::key_type>::other> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);
@@ -265,7 +265,7 @@ private:
     typedef yhash<ui64, TPtr<IObjectBase> > CObjectsHash;
     TAutoPtr<CObjectsHash> Objects;
 
-    yvector<IObjectBase*> ObjectQueue;
+    TVector<IObjectBase*> ObjectQueue;
 public:
     bool IsReading() { return bRead; }
     void AddRawData(const chunk_id, void *pData, i64 nSize) { DataChunk(pData, nSize); }
@@ -310,7 +310,7 @@ public:
         return 0;
     }
     template<class T1, class TA>
-        int Add(const chunk_id, yvector<T1,TA> *pVec)
+        int Add(const chunk_id, TVector<T1,TA> *pVec)
     {
         if (HasNonTrivialSerializer<T1>(0u))
             DoVector(*pVec);
@@ -342,7 +342,7 @@ public:
         return 0;
     }
     template<class T1, class T2, class T3, class T4, class T5>
-        int Add(const chunk_id, yhash_mm<T1,T2,T3,T4,T5> *pHash)
+        int Add(const chunk_id, THashMultiMap<T1,T2,T3,T4,T5> *pHash)
     {
         DoAnyMultiMap(*pHash);
         return 0;
@@ -354,7 +354,7 @@ public:
         return 0;
     }
     template<class T1, class T2, class T3, class T4>
-        int Add(const chunk_id, yhash_set<T1,T2,T3,T4> *pHash)
+        int Add(const chunk_id, THashSet<T1,T2,T3,T4> *pHash)
     {
         DoAnySet(*pHash);
         return 0;

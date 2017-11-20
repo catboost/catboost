@@ -3,7 +3,7 @@
 #include <util/generic/vector.h>
 
 template <class T>
-void Clear(yvector<T>* res, size_t size) {
+void Clear(TVector<T>* res, size_t size) {
     res->yresize(size);
     if (res->empty())
         return;

@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TScopedCacheTest) {
 
         ui64 uniqueId = 42;
 
-        yvector<float> scope;
+        TVector<float> scope;
         TSimpleScope<decltype(scope)> scopeHolder(scope);
         ui64 scope2 = 222;
         TSimpleScope<decltype(scope2)> scopeHolder2(scope2);

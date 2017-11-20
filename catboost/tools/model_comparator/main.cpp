@@ -20,42 +20,24 @@ int main(int argc, char** argv) {
         Clog << "Models equal" << Endl;
         return 0;
     }
-    if (static_cast<TCoreModel&>(model1) != static_cast<TCoreModel&>(model2)) {
-        Clog << "Core model differ" << Endl;
-        const auto& coreModel1 = static_cast<TCoreModel&>(model1);
-        const auto& coreModel2 = static_cast<TCoreModel&>(model2);
-        if (coreModel1.Borders != coreModel2.Borders) {
-            Clog << "Borders differ" << Endl;
-            BordersDiff(coreModel1.Borders, coreModel2.Borders);
-        }
-        if (coreModel1.TreeStruct != coreModel2.TreeStruct) {
-            Clog << "TreeStruct differ" << Endl;
-        }
-        if (coreModel1.LeafValues != coreModel2.LeafValues) {
-            LeavesDiff(coreModel1.LeafValues, coreModel2.LeafValues);
-        }
-        if (coreModel1.CatFeatures != coreModel2.CatFeatures) {
-            Clog << "CatFeatures differ" << Endl;
-        }
-        if (coreModel1.FeatureIds != coreModel2.FeatureIds) {
-            Clog << "FeatureIds differ" << Endl;
-        }
-        if (coreModel1.FeatureCount != coreModel2.FeatureCount) {
-            Clog << "FeatureCount differ" << Endl;
-        }
-        if (coreModel1.TargetClassifiers != coreModel2.TargetClassifiers) {
-            Clog << "TargetClassifiers differ" << Endl;
-        }
-        if (coreModel1.ModelInfo != coreModel2.ModelInfo) {
-            Clog << "ModelInfo differ" << Endl;
-        }
+    Clog << "Core model differ" << Endl;
+    if (model1.ObliviousTrees.FloatFeatures != model2.ObliviousTrees.FloatFeatures) {
+        Clog << "FloatFeatures differ" << Endl;
+        // TODO(kirillovs): fix later
+        // BordersDiff(model1.FloatFeatures, model2.FloatFeatures);
     }
-    if (model1.OneHotFeaturesInfo != model2.OneHotFeaturesInfo) {
-        Clog << "OneHotFeaturesInfo differ" << Endl;
+    if (model1.ObliviousTrees.CatFeatures != model2.ObliviousTrees.CatFeatures) {
+        Clog << "CatFeatures differ" << Endl;
     }
-    if (model1.CtrCalcerData != model2.CtrCalcerData) {
-        Clog << "CtrCalcerData differ" << Endl;
+    if (model1.ObliviousTrees != model2.ObliviousTrees) { //TODO(kirillovs): add detailed tree comparator
+        Clog << "CatFeatures differ" << Endl;
     }
+    if (model1.ModelInfo != model2.ModelInfo) {
+        Clog << "ModelInfo differ" << Endl;
+    }
+//    if (model1.CtrCalcerData != model2.CtrCalcerData) {
+//        Clog << "CtrCalcerData differ" << Endl;
+//    }
     return 1;
 }
 

@@ -22,20 +22,20 @@
 #include <util/generic/singleton.h>
 #include <util/generic/utility.h>
 
+using double_conversion::DoubleToStringConverter;
 using double_conversion::StringBuilder;
 using double_conversion::StringToDoubleConverter;
-using double_conversion::DoubleToStringConverter;
 
 /*
  * ------------------------------ formatters ------------------------------
  */
 
 namespace {
-    static const char IntToChar[] = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    static const char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
 
+    // clang-format off
     static const int LetterToIntMap[] = {
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
@@ -49,16 +49,21 @@ namespace {
         20, 20, 20, 20, 20, 20, 20, 10, 11, 12,
         13, 14, 15,
     };
+    // clang-format on
 
     template <class T>
-    static T NegateSigned(T value, std::enable_if_t<std::is_signed<T>::value && std::is_integral<T>::value>* = nullptr) {
-        return -value;
+    static std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
+        return std::make_unsigned_t<T>(-(value + 1)) + std::make_unsigned_t<T>(1);
     }
 
     template <class T>
-    static T NegateSigned(T, std::enable_if_t<std::is_unsigned<T>::value>* = nullptr) {
-        Y_ASSERT(false); /* Should never be called. */
-        return T();
+    static std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
+        Y_UNREACHABLE();
+    }
+
+    template <class T>
+    static std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
+        return value > 0 ? (-std::make_signed_t<T>(value - 1) - 1) : 0;
     }
 
     template <class T, unsigned base, class TChar>
@@ -102,27 +107,18 @@ namespace {
         static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
         static_assert(std::is_integral<T>::value, "T must be an integral type.");
 
-        enum {
-            IsSigned = std::is_signed<T>::value
-        };
-
-        using TUnsigned = std::make_unsigned_t<T>;
-
         static inline size_t Format(T value, TChar* buf, size_t len) {
-            size_t result = 0;
+            using TUFmt = TBasicIntFormatter<std::make_unsigned_t<T>, base, TChar>;
 
-            if (IsSigned && value < 0) {
+            if (std::is_signed<T>::value && value < 0) {
                 Y_ENSURE(len >= 2, STRINGBUF("not enough room in buffer"));
 
-                value = NegateSigned(value);
-                ++result;
-                --len;
                 *buf = '-';
-                ++buf;
+
+                return 1 + TUFmt::Format(NegateNegativeSigned(value), buf + 1, len - 1);
             }
 
-            result += TBasicIntFormatter<TUnsigned, base, TChar>::Format(static_cast<TUnsigned>(value), buf, len);
-            return result;
+            return TUFmt::Format(value, buf, len);
         }
     };
 
@@ -317,7 +313,7 @@ namespace {
             }
 
             if (IsSigned) {
-                *target = negative ? NegateSigned(static_cast<T>(result)) : static_cast<T>(result);
+                *target = negative ? NegatePositiveSigned(result) : static_cast<T>(result);
             } else {
                 *target = result;
             }
@@ -419,7 +415,7 @@ namespace {
     static constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
     static constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
     static constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
-} // namespace
+}
 
 #define DEF_INT_SPEC_II(TYPE, ITYPE, BASE)                              \
     template <>                                                         \

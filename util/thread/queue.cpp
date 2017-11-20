@@ -211,7 +211,7 @@ private:
     TCondVar QueuePopCond;
     TCondVar StopCond;
     TJobQueue Queue;
-    yvector<TThreadRef> Tharr;
+    TVector<TThreadRef> Tharr;
     TAtomic ShouldTerminate;
     size_t MaxQueueSize;
     size_t ThreadCountExpected;

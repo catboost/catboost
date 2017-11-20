@@ -185,11 +185,11 @@ namespace NCudaLib {
         TTaskQueue InputTaskQueue;
 
         //objects will be deleted lazily.
-        yvector<THolder<IFreeMemoryTask>> ObjectsToFree;
+        TVector<THolder<IFreeMemoryTask>> ObjectsToFree;
 
         //Streams
-        yvector<TComputationStreamPtr> Streams;
-        yvector<ui64> FreeStreams;
+        TVector<TComputationStreamPtr> Streams;
+        TVector<ui64> FreeStreams;
 
         using THostMemoryProvider = TMemoryProviderImplTrait<CudaHost>::TMemoryProvider;
         using THostMemoryProviderPtr = THolder<THostMemoryProvider>;
@@ -198,7 +198,7 @@ namespace NCudaLib {
         THostMemoryProviderPtr HostMemoryProvider;
         TDeviceMemoryProviderPtr DeviceMemoryProvider;
 
-        yvector<TExceptionCallbackPtr> ErrorCallbacks;
+        TVector<TExceptionCallbackPtr> ErrorCallbacks;
         TAdaptiveLock CallbackLock;
 
         std::unique_ptr<std::thread> WorkingThread;
@@ -456,7 +456,7 @@ namespace NCudaLib {
             ErrorCallbacks.push_back(callback);
         }
 
-        yvector<ui64> RequestHandles(ui64 count) {
+        TVector<ui64> RequestHandles(ui64 count) {
             return GetHandleStorage().GetHandle(count);
         }
 

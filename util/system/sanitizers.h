@@ -114,4 +114,4 @@ namespace NSan {
         Y_UNUSED(ptr);
 #endif
     }
-} // namespace NSan
+}

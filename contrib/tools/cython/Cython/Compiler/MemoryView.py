@@ -390,19 +390,15 @@ def get_memoryview_flag(access, packing):
         return 'contiguous'
 
 
-def get_is_contig_func_name(c_or_f, ndim):
-    return "__pyx_memviewslice_is_%s_contig%d" % (c_or_f, ndim)
+def get_is_contig_func_name(contig_type, ndim):
+    assert contig_type in ('C', 'F')
+    return "__pyx_memviewslice_is_contig_%s%d" % (contig_type, ndim)
 
 
-def get_is_contig_utility(c_contig, ndim):
-    C = dict(context, ndim=ndim)
-    if c_contig:
-        utility = load_memview_c_utility("MemviewSliceIsCContig", C,
-                                         requires=[is_contig_utility])
-    else:
-        utility = load_memview_c_utility("MemviewSliceIsFContig", C,
-                                         requires=[is_contig_utility])
-
+def get_is_contig_utility(contig_type, ndim):
+    assert contig_type in ('C', 'F')
+    C = dict(context, ndim=ndim, contig_type=contig_type)
+    utility = load_memview_c_utility("MemviewSliceCheckContig", C, requires=[is_contig_utility])
     return utility
 
 
@@ -809,18 +805,15 @@ context = {
 }
 memviewslice_declare_code = load_memview_c_utility(
         "MemviewSliceStruct",
-        proto_block='utility_code_proto_before_types',
         context=context,
         requires=[])
 
-atomic_utility = load_memview_c_utility("Atomics", context,
-              proto_block='utility_code_proto_before_types')
+atomic_utility = load_memview_c_utility("Atomics", context)
 
 memviewslice_init_code = load_memview_c_utility(
     "MemviewSliceInit",
     context=dict(context, BUF_MAX_NDIMS=Options.buffer_max_dims),
     requires=[memviewslice_declare_code,
-              Buffer.acquire_utility_code,
               atomic_utility],
 )
 
@@ -842,7 +835,7 @@ view_utility_code = load_memview_cy_utility(
         context=context,
         requires=[Buffer.GetAndReleaseBufferUtilityCode(),
                   Buffer.buffer_struct_declare_code,
-                  Buffer.empty_bufstruct_utility,
+                  Buffer.buffer_formats_declare_code,
                   memviewslice_init_code,
                   is_contig_utility,
                   overlapping_utility,

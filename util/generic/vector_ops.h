@@ -116,12 +116,12 @@ namespace NVectorOps {
         using TIterator = T*;
         using TReference = T&;
 
-        using TBase::Data;
+        using TBase::At;
+        using TBase::Back;
         using TBase::Begin;
+        using TBase::Data;
         using TBase::End;
         using TBase::Front;
-        using TBase::Back;
-        using TBase::At;
         using TBase::operator~;
         using TBase::operator[];
 
@@ -169,11 +169,11 @@ namespace NVectorOps {
         using iterator = TIterator;
         using reference = TReference;
 
+        using TBase::at;
+        using TBase::back;
         using TBase::begin;
         using TBase::end;
         using TBase::front;
-        using TBase::back;
-        using TBase::at;
 
         inline iterator begin() noexcept {
             return this->Begin();

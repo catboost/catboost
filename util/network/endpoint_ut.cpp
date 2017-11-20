@@ -7,7 +7,7 @@
 
 SIMPLE_UNIT_TEST_SUITE(TEndpointTest) {
     SIMPLE_UNIT_TEST(TestSimple) {
-        yvector<TNetworkAddress> addrs;
+        TVector<TNetworkAddress> addrs;
 
         TEndpoint ep0;
 
@@ -64,7 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(TEndpointTest) {
 
         ep3_.SetPort(54321);
 
-        yhash_set<TEndpoint> he;
+        THashSet<TEndpoint> he;
 
         he.insert(ep0);
         he.insert(ep1);

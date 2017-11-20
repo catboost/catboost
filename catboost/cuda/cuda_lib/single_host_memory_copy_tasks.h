@@ -182,7 +182,7 @@ namespace NCudaLib {
         void AddDevice(ui32 device);
 
         void operator()() {
-            yvector<TCudaSingleDevice*> devices(DevicesToSync.begin(), DevicesToSync.end());
+            TVector<TCudaSingleDevice*> devices(DevicesToSync.begin(), DevicesToSync.end());
             const ui64 iterations = static_cast<const ui64>(devices.size() ? 1 + MostSignificantBit(devices.size()) : 0);
             for (ui32 iter = 0; iter < iterations; ++iter) {
                 ui64 bit = 1 << (iterations - iter - 1);
@@ -209,7 +209,7 @@ namespace NCudaLib {
             TCudaSingleDevice* Device;
             THolder<IGpuCommand> Cmd;
         };
-        yvector<TTask> MemoryCopyTasks;
+        TVector<TTask> MemoryCopyTasks;
 
     public:
         explicit TDataCopier(ui32 streamId = 0)

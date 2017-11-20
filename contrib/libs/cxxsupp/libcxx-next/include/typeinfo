@@ -56,7 +56,6 @@ public:
 }  // std
 
 */
-
 #include <__config>
 #include <exception>
 #include <cstddef>
@@ -69,18 +68,17 @@ public:
 #pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_ABI_MICROSOFT
-#include <support/win32/typeinfo_win32.h>
-#elif defined(_LIBCPP_NONUNIQUE_RTTI_BIT)
+#if !defined(_LIBCPP_ABI_MICROSOFT)
+#if defined(_LIBCPP_NONUNIQUE_RTTI_BIT)
 #define _LIBCPP_HAS_NONUNIQUE_TYPEINFO
 #else
 #define _LIBCPP_HAS_UNIQUE_TYPEINFO
+#endif
 #endif
 
 namespace std  // purposefully not using versioning namespace
 {
 
-#if !defined(_LIBCPP_ABI_MICROSOFT)
 class _LIBCPP_EXCEPTION_ABI type_info
 {
     type_info& operator=(const type_info&);
@@ -92,7 +90,17 @@ class _LIBCPP_EXCEPTION_ABI type_info
     { return __builtin_strcmp(name(), __arg.name()); }
 #endif
 
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    mutable struct {
+      const char *__undecorated_name;
+      const char __decorated_name[1];
+    } __data;
+
+    int __compare(const type_info &__rhs) const _NOEXCEPT;
+#endif // _LIBCPP_ABI_MICROSOFT
+
 protected:
+#if !defined(_LIBCPP_ABI_MICROSOFT)
 #if defined(_LIBCPP_HAS_NONUNIQUE_TYPEINFO)
     // A const char* with the non-unique RTTI bit possibly set.
     uintptr_t __type_name;
@@ -106,11 +114,27 @@ protected:
     _LIBCPP_INLINE_VISIBILITY
     explicit type_info(const char* __n) : __type_name(__n) {}
 #endif
+#endif // ! _LIBCPP_ABI_MICROSOFT
 
 public:
     _LIBCPP_AVAILABILITY_TYPEINFO_VTABLE
     virtual ~type_info();
 
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    const char *name() const _NOEXCEPT;
+
+    _LIBCPP_INLINE_VISIBILITY
+    bool before(const type_info& __arg) const _NOEXCEPT {
+      return __compare(__arg) < 0;
+    }
+
+    size_t hash_code() const _NOEXCEPT;
+
+    _LIBCPP_INLINE_VISIBILITY
+    bool operator==(const type_info& __arg) const _NOEXCEPT {
+      return __compare(__arg) == 0;
+    }
+#else
 #if defined(_LIBCPP_HAS_NONUNIQUE_TYPEINFO)
     _LIBCPP_INLINE_VISIBILITY
     const char* name() const _NOEXCEPT
@@ -167,6 +191,7 @@ public:
     bool operator==(const type_info& __arg) const _NOEXCEPT
     { return __type_name == __arg.__type_name; }
 #endif
+#endif // _LIBCPP_ABI_MICROSOFT
 
     _LIBCPP_INLINE_VISIBILITY
     bool operator!=(const type_info& __arg) const _NOEXCEPT
@@ -191,9 +216,11 @@ public:
     virtual const char* what() const _NOEXCEPT;
 };
 
-#endif // !_LIBCPP_ABI_MICROSOFT
-
 }  // std
+
+#ifdef _LIBCPP_ABI_MICROSOFT
+class type_info : public std::type_info {};
+#endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 _LIBCPP_NORETURN inline _LIBCPP_ALWAYS_INLINE

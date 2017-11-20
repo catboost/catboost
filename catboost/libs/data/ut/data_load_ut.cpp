@@ -37,7 +37,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataLoadTest) {
             }
         }
         TPool pool;
-        ReadPool("", TestFileName, "", 2, false, '\t', false, yvector<TString>(), &pool);
+        ReadPool("", TestFileName, "", 2, false, '\t', false, TVector<TString>(), &pool);
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), documents.GetDocCount());
         UNIT_ASSERT_EQUAL(pool.Docs.GetFactorsCount(), documents.GetFactorsCount());
         for (int j = 0; j < documents.GetFactorsCount(); ++j) {

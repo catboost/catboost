@@ -227,7 +227,7 @@ private:
     void CheckMoveAlloc() {
         TMemoryPool pool(10 * sizeof(T));
 
-        yvector<T, TPoolAllocator> elems(&pool);
+        TVector<T, TPoolAllocator> elems(&pool);
         elems.reserve(1);
         elems.emplace_back();
         elems.resize(100);

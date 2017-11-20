@@ -92,10 +92,10 @@ void TestConsumerOnRange(TResult& good, I* b, I* e, I* d) {
     UNIT_ASSERT_EQUAL(good, test);
 }
 
-using TStrokaConsumer = TContainerConsumer<yvector<TString>>;
+using TStrokaConsumer = TContainerConsumer<TVector<TString>>;
 
-void TestLimitingConsumerOnString(yvector<TString>& good, const char* str, const char* d, size_t n, const char* last) {
-    yvector<TString> test;
+void TestLimitingConsumerOnString(TVector<TString>& good, const char* str, const char* d, size_t n, const char* last) {
+    TVector<TString> test;
     TStrokaConsumer consumer(&test);
     TLimitingConsumer<TStrokaConsumer, const char> limits(n, &consumer);
     TCharDelimiter<const char> delim(*d);
@@ -105,8 +105,8 @@ void TestLimitingConsumerOnString(yvector<TString>& good, const char* str, const
     UNIT_ASSERT_EQUAL(TString(limits.Last), TString(last)); // Quite unobvious behaviour. Why the last token is not added to slave consumer?
 }
 
-void TestLimitingConsumerOnRange(yvector<TString>& good, const char* b, const char* e, const char* d, size_t n, const char* last) {
-    yvector<TString> test;
+void TestLimitingConsumerOnRange(TVector<TString>& good, const char* b, const char* e, const char* d, size_t n, const char* last) {
+    TVector<TString> test;
     TStrokaConsumer consumer(&test);
     TLimitingConsumer<TStrokaConsumer, const char> limits(n, &consumer);
     TCharDelimiter<const char> delim(*d);
@@ -120,7 +120,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharSingleDelimiter) {
         TString data("qw ab  qwabcab");
         TString canonic[] = {"qw", "ab", "", "qwabcab"};
-        yvector<TString> good(canonic, canonic + 4);
+        TVector<TString> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
         TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
@@ -130,7 +130,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestWideSingleDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab  qwabcab"));
         TUtf16String canonic[] = {ASCIIToWide("qw"), ASCIIToWide("ab"), TUtf16String(), ASCIIToWide("qwabcab")};
-        yvector<TUtf16String> good(canonic, canonic + 4);
+        TVector<TUtf16String> good(canonic, canonic + 4);
         TCharDelimiter<const TChar> delim(' ');
 
         TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
@@ -140,7 +140,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestConvertToIntCharSingleDelimiter) {
         TString data("42 4242 -12345 0");
         i32 canonic[] = {42, 4242, -12345, 0};
-        yvector<i32> good(canonic, canonic + 4);
+        TVector<i32> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
         TestDelimiterOnString<TContainerConvertingConsumer>(good, ~data, delim);
@@ -150,10 +150,10 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestConvertAndSplit) {
         TString data("42 4242 -12345 0");
         i32 canonic[] = {42, 4242, -12345, 0};
-        yvector<i32> good(canonic, canonic + 4);
+        TVector<i32> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
-        yvector<i32> test;
+        TVector<i32> test;
         SplitConvertStringTo(TStringBuf(~data), STRINGBUF(" "), &test);
         Cmp(good, test);
 
@@ -186,7 +186,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharSkipEmty) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab", "qwabcab"};
-        yvector<TString> good(canonic, canonic + 3);
+        TVector<TString> good(canonic, canonic + 3);
 
         TestConsumerOnString<TSkipEmptyTokens<TStrokaConsumer>>(good, ~data, " ");
         TestConsumerOnRange<TSkipEmptyTokens<TStrokaConsumer>>(good, ~data, data.end(), " ");
@@ -195,7 +195,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharKeepDelimiters) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", " ", "ab", " ", "", " ", "qwabcab", " ", ""};
-        yvector<TString> good(canonic, canonic + 9);
+        TVector<TString> good(canonic, canonic + 9);
 
         TestConsumerOnString<TKeepDelimiters<TStrokaConsumer>>(good, ~data, " ");
         TestConsumerOnRange<TKeepDelimiters<TStrokaConsumer>>(good, ~data, data.end(), " ");
@@ -204,7 +204,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharLimit) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab"};
-        yvector<TString> good(canonic, canonic + 2);
+        TVector<TString> good(canonic, canonic + 2);
 
         TestLimitingConsumerOnString(good, ~data, " ", 3, " qwabcab ");
         TestLimitingConsumerOnRange(good, ~data, data.end(), " ", 3, " qwabcab ");
@@ -213,7 +213,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharStringDelimiter) {
         TString data("qw ab qwababcab");
         TString canonic[] = {"qw ", " qw", "", "c", ""};
-        yvector<TString> good(canonic, canonic + 5);
+        TVector<TString> good(canonic, canonic + 5);
         TStringDelimiter<const char> delim("ab");
 
         TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
@@ -223,7 +223,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestWideStringDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab qwababcab"));
         TUtf16String canonic[] = {ASCIIToWide("qw "), ASCIIToWide(" qw"), TUtf16String(), ASCIIToWide("c"), TUtf16String()};
-        yvector<TUtf16String> good(canonic, canonic + 5);
+        TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("ab"));
         TStringDelimiter<const TChar> delim(~wideDelim);
 
@@ -234,7 +234,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestCharSetDelimiter) {
         TString data("qw ab qwababccab");
         TString canonic[] = {"q", " ab q", "abab", "", "ab"};
-        yvector<TString> good(canonic, canonic + 5);
+        TVector<TString> good(canonic, canonic + 5);
         TSetDelimiter<const char> delim("wc");
 
         TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
@@ -244,7 +244,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestWideSetDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab qwababccab"));
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
-        yvector<TUtf16String> good(canonic, canonic + 5);
+        TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("wc"));
         TSetDelimiter<const TChar> delim(~wideDelim);
 
@@ -254,12 +254,12 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestWideSetDelimiterRange) {
         TUtf16String data(ASCIIToWide("qw ab qwababccab"));
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
-        yvector<TUtf16String> good(1);
+        TVector<TUtf16String> good(1);
         TUtf16String wideDelim(ASCIIToWide("wc"));
         TSetDelimiter<const TChar> delim(~wideDelim);
 
-        yvector<TUtf16String> test;
-        TContainerConsumer<yvector<TUtf16String>> consumer(&test);
+        TVector<TUtf16String> test;
+        TContainerConsumer<TVector<TUtf16String>> consumer(&test);
         SplitString(~data, ~data, delim, consumer); // Empty string is still inserted into consumer
         Cmp(good, test);
 
@@ -273,13 +273,13 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestSplit) {
         TString data("qw ab qwababcab");
         TString canonic[] = {"qw ", " qw", "c"};
-        yvector<TString> good(canonic, canonic + 3);
+        TVector<TString> good(canonic, canonic + 3);
         TString delim = "ab";
-        yvector<TString> test;
+        TVector<TString> test;
         Split(data, delim, test);
         Cmp(good, test);
 
-        yvector<TStringBuf> test1;
+        TVector<TStringBuf> test1;
         Split(data, ~delim, test1);
         Cmp(good, test1);
     }

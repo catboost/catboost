@@ -54,7 +54,7 @@ SIMPLE_UNIT_TEST(ProperlyDeducesFutureType) {
     NThreading::TFuture<void> f1 = NThreading::Async([](){}, *queue);
     NThreading::TFuture<int> f2 = NThreading::Async([](){ return 5; }, *queue);
     NThreading::TFuture<double> f3 = NThreading::Async([](){ return 5.0; }, *queue);
-    NThreading::TFuture<yvector<int>> f4 = NThreading::Async([](){ return yvector<int>(); }, *queue);
+    NThreading::TFuture<TVector<int>> f4 = NThreading::Async([](){ return TVector<int>(); }, *queue);
     NThreading::TFuture<int> f5 = NThreading::Async([](){ return NThreading::MakeFuture(5); }, *queue);
 }
 

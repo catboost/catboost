@@ -15,19 +15,19 @@ namespace NCatboostCuda
     public:
         struct TFeaturesSplit
         {
-            yvector<ui32> FeatureIds;
+            TVector<ui32> FeatureIds;
             TLayout Layout;
         };
 
         struct TPolicySplit
         {
-            yvector<ui32> PolicyFeatures;
-            yvector<ui32> RestFeatures;
+            TVector<ui32> PolicyFeatures;
+            TVector<ui32> RestFeatures;
         };
 
         template<class TGridPolicy>
         static TPolicySplit ExtractFeaturesForPolicy(const TBinarizedFeaturesManager& featuresManager,
-                                                     const yvector<ui32>& ids)
+                                                     const TVector<ui32>& ids)
         {
             TPolicySplit result;
 
@@ -52,12 +52,12 @@ namespace NCatboostCuda
         };
 
         static TFeaturesSplit Split(const TBinarizedFeaturesManager& grid,
-                                    const yvector<ui32>& featureIds,
+                                    const TVector<ui32>& featureIds,
                                     bool shuffleFeatures = true)
         {
             TFeaturesSplit split;
 
-            split.FeatureIds = yvector<ui32>(featureIds.begin(), featureIds.end());
+            split.FeatureIds = TVector<ui32>(featureIds.begin(), featureIds.end());
             TRandom rand(0);
             Shuffle(split.FeatureIds.begin(), split.FeatureIds.end(), rand);
             split.Layout = NCudaLib::TStripeMapping::SplitBetweenDevices(featureIds.size());
@@ -135,7 +135,7 @@ namespace NCatboostCuda
             dataSet.Grid.Write(dataSet.HostFeatures);
         }
 
-        static yvector<yvector<TSlice>> Reset(TDataSet& dataSet,
+        static TVector<TVector<TSlice>> Reset(TDataSet& dataSet,
                                               const TFeaturesMapping& featuresMapping,
                                               const TSampleMapping& docsMapping)
         {
@@ -145,9 +145,9 @@ namespace NCatboostCuda
             InitTCFeatures(dataSet);
 
             ui64 cursor = 0;
-            yvector<TSlice> slices;
+            TVector<TSlice> slices;
 
-            yvector<yvector<TSlice>> groupedFeatureSlices;
+            TVector<TVector<TSlice>> groupedFeatureSlices;
             const auto deviceCount = GetDeviceCount();
             groupedFeatureSlices.resize(deviceCount);
 
@@ -235,7 +235,7 @@ namespace NCatboostCuda
 
         TGpuBinarizedDataSetBuilder(TFeaturesMapping& featuresMapping,
                                     TSampleMapping& docsMapping,
-                                    yvector<ui32>* gatherIndex = nullptr)
+                                    TVector<ui32>* gatherIndex = nullptr)
                 : GatherIndex(gatherIndex)
         {
             GroupedFeatureSlices = TGpuBinarizedDataSetBuilderHelper<TDataSet>::Reset(DataSet,
@@ -244,7 +244,7 @@ namespace NCatboostCuda
             TempIndex.resize(NCudaLib::GetCudaManager().GetDeviceCount());
         }
 
-        TGpuBinarizedDataSetBuilder& SetFeatureIds(const yvector<ui32>& featureIds)
+        TGpuBinarizedDataSetBuilder& SetFeatureIds(const TVector<ui32>& featureIds)
         {
             CB_ENSURE(featureIds.size() == DataSet.Grid.GetObjectsSlice().Size());
             DataSet.FeatureIds = featureIds;
@@ -253,7 +253,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TGpuBinarizedDataSetBuilder& UseForOneHotIds(const yvector<ui32>& featureIds)
+        TGpuBinarizedDataSetBuilder& UseForOneHotIds(const TVector<ui32>& featureIds)
         {
             for (auto featureId : featureIds)
             {
@@ -265,7 +265,7 @@ namespace NCatboostCuda
 
         TGpuBinarizedDataSetBuilder& Write(ui32 featureManagerFeatureId,
                                            const ui32 binCount,
-                                           const yvector<ui32>& bins)
+                                           const TVector<ui32>& bins)
         {
             CB_ENSURE(FeaturesAreSet, "Set features first");
             const auto& docsMapping = DataSet.DocsMapping;
@@ -289,7 +289,7 @@ namespace NCatboostCuda
 
                     if (GatherIndex)
                     {
-                        yvector<ui32> gatherBins(bins.size());
+                        TVector<ui32> gatherBins(bins.size());
                         for (ui32 i = 0; i < bins.size(); ++i)
                         {
                             gatherBins[i] = bins[(*GatherIndex)[i]];
@@ -351,7 +351,7 @@ namespace NCatboostCuda
         struct TTempIndex
         {
             TCFeature Feature = {(ui32) -1, (ui32) -1, (ui32) -1, (ui32) -1, (ui32) -1, (ui32) -1, (ui32) -1, false};
-            yvector<ui32> Data;
+            TVector<ui32> Data;
             TSlice Slice;
             bool Synced = true;
 
@@ -418,10 +418,10 @@ namespace NCatboostCuda
         }
 
         yset<ui32> SeenFeatures;
-        yvector<yvector<TSlice>> GroupedFeatureSlices;
-        yvector<TTempIndex> TempIndex;
+        TVector<TVector<TSlice>> GroupedFeatureSlices;
+        TVector<TTempIndex> TempIndex;
 
-        yvector<ui32>* GatherIndex = nullptr;
+        TVector<ui32>* GatherIndex = nullptr;
 
         bool BuildIsDone = false;
         bool FeaturesAreSet = false;

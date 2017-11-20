@@ -1,7 +1,7 @@
 # cython.* namespace for pure mode.
 from __future__ import absolute_import
 
-__version__ = "0.25.2"
+__version__ = "0.27.3"
 
 try:
     from __builtin__ import basestring
@@ -111,7 +111,9 @@ returns = wraparound = boundscheck = initializedcheck = nonecheck = \
     overflowcheck = embedsignature = cdivision = cdivision_warnings = \
     always_allows_keywords = profile = linetrace = infer_type = \
     unraisable_tracebacks = freelist = \
-        lambda arg: _EmptyDecoratorAndManager()
+        lambda _: _EmptyDecoratorAndManager()
+
+exceptval = lambda _=None, check=True: _EmptyDecoratorAndManager()
 
 optimization = _Optimization()
 
@@ -144,6 +146,7 @@ def cdiv(a, b):
     q = a / b
     if q < 0:
         q += 1
+    return q
 
 def cmod(a, b):
     r = a % b
@@ -421,10 +424,13 @@ void = typedef(int, "void")
 
 for t in int_types + float_types + complex_types + other_types:
     for i in range(1, 4):
-        gs["%s_%s" % ('p'*i, t)] = globals()[t]._pointer(i)
+        gs["%s_%s" % ('p'*i, t)] = gs[t]._pointer(i)
 
 void = typedef(None, "void")
-NULL = p_void(0)
+NULL = gs['p_void'](0)
+
+# looks like 'gs' has some users out there by now...
+#del gs
 
 integral = floating = numeric = _FusedType()
 

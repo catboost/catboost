@@ -9,6 +9,21 @@
 #include "winint.h"
 #endif
 
+#if defined(_unix_)
+#include <cxxabi.h>
+
+#if defined(__IOS__)
+namespace __cxxabiv1 {
+    struct __cxa_eh_globals {
+        void* caughtExceptions;
+        unsigned int uncaughtExceptions;
+    };
+
+    extern "C" __cxa_eh_globals* __cxa_get_globals();
+}
+#endif
+#endif
+
 #include <util/stream/output.h>
 #include <util/generic/yexception.h>
 
@@ -129,7 +144,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 {
     TStack stack(c.Stack);
 
-/*
+    /*
      * arg, and align data
      */
 
@@ -280,3 +295,15 @@ void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     Impl_->SwitchTo(next->Impl_.Get());
 }
 #endif
+
+void TExceptionSafeContext::SwitchTo(TExceptionSafeContext* to) noexcept {
+#if defined(_unix_)
+    static_assert(sizeof(__cxxabiv1::__cxa_eh_globals) == sizeof(Buf_), "size mismatch of __cxa_eh_globals structure");
+
+    auto* eh = __cxxabiv1::__cxa_get_globals();
+    ::memcpy(Buf_, eh, sizeof(Buf_));
+    ::memcpy(eh, to->Buf_, sizeof(Buf_));
+#endif
+
+    TContMachineContext::SwitchTo(to);
+}

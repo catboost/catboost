@@ -4,22 +4,22 @@
 
 struct TMxTree {
     struct TValsInLeaf {
-        yvector<double> Vals;
+        TVector<double> Vals;
     };
 
-    yvector<int> SrcFeatures;
-    yvector<TValsInLeaf> Leafs;
+    TVector<int> SrcFeatures;
+    TVector<TValsInLeaf> Leafs;
 };
 
-yvector<double> CalcEffect(const yvector<TMxTree>& trees,
-                           const yvector<yvector<ui64>>& docCountInLeaf);
+TVector<double> CalcEffect(const TVector<TMxTree>& trees,
+                           const TVector<TVector<ui64>>& docCountInLeaf);
 
-yvector<double> CalcFeaturesInfo(yvector<yvector<ui64>> trueDocsPerFeature,
+TVector<double> CalcFeaturesInfo(TVector<TVector<ui64>> trueDocsPerFeature,
                                  const ui64 docCount,
                                  bool symmetric);
 
-yvector<double> CalculateEffectToInfoRate(const yvector<double>& effect,
-                                          const yvector<double>& info);
+TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
+                                          const TVector<double>& info);
 
 struct TFeaturePairInteractionInfo {
     double Score;
@@ -45,5 +45,5 @@ struct TFeaturePairInteractionInfo {
 
 const int EXISTING_PAIRS_COUNT = -1;
 
-yvector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const yvector<TMxTree>& trees,
+TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
                                                                  int topPairsCount = EXISTING_PAIRS_COUNT);

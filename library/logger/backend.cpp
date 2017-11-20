@@ -6,7 +6,7 @@
 namespace {
     class TGlobalLogsStorage {
     private:
-        yvector<TLogBackend*> Backends;
+        TVector<TLogBackend*> Backends;
         TMutex Mutex;
 
     public:

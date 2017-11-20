@@ -16,7 +16,7 @@
 
 struct TPoolColumnsMetaInfo {
     ui32 FactorCount;
-    yvector<int> CatFeatureIds;
+    TVector<int> CatFeatureIds;
 
     ui32 BaselineCount = 0;
 
@@ -33,16 +33,16 @@ public:
     virtual float GetCatFeatureValue(const TStringBuf& feature) = 0;
     virtual void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) = 0;
     virtual void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) = 0;
-    virtual void AddAllFloatFeatures(ui32 localIdx, const yvector<float>& features) = 0;
+    virtual void AddAllFloatFeatures(ui32 localIdx, const TVector<float>& features) = 0;
     virtual void AddTarget(ui32 localIdx, float value) = 0;
     virtual void AddWeight(ui32 localIdx, float value) = 0;
     virtual void AddQueryId(ui32 localIdx, ui32 value) = 0;
     virtual void AddBaseline(ui32 localIdx, ui32 offset, double value) = 0;
     virtual void AddDocId(ui32 localIdx, const TStringBuf& value) = 0;
-    virtual void SetFeatureIds(const yvector<TString>& featureIds) = 0;
-    virtual void SetPairs(const yvector<TPair>& pairs) = 0;
+    virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
+    virtual void SetPairs(const TVector<TPair>& pairs) = 0;
     virtual int GetDocCount() const = 0;
-
+    virtual void GenerateDocIds(int offset) = 0;
     virtual void Finish() = 0;
     virtual ~IPoolBuilder() = default;
 };
@@ -51,22 +51,22 @@ class TTargetConverter {
     public:
     static constexpr float UNDEFINED_CLASS = -1;
 
-    explicit TTargetConverter(const yvector<TString>& classNames);
+    explicit TTargetConverter(const TVector<TString>& classNames);
 
     float operator()(const TString& word) const;
 
     private:
-    yvector<TString> ClassNames;
+    TVector<TString> ClassNames;
 };
 
-void StartBuilder(const yvector<TString>& FeatureIds, const TPoolColumnsMetaInfo& PoolMetaInfo, int docCount,
-                        bool hasHeader, IPoolBuilder* poolBuilder);
-void FinalizeBuilder(const yvector<TColumn>& ColumnsDescription, const TString& pairsFile, IPoolBuilder* poolBuilder);
+void StartBuilder(const TVector<TString>& FeatureIds, const TPoolColumnsMetaInfo& PoolMetaInfo, int docCount,
+                        bool hasHeader, int offset, IPoolBuilder* poolBuilder);
+void FinalizeBuilder(const TVector<TColumn>& ColumnsDescription, const TString& pairsFile, IPoolBuilder* poolBuilder);
 
 class TPoolReader {
 public:
-    TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, int threadCount, char fieldDelimiter,
-                bool hasHeader, const yvector<TString>& classNames, IPoolBuilder* poolBuilder, int blockSize);
+    TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, char fieldDelimiter,
+                bool hasHeader, const TVector<TString>& classNames, int blockSize, IPoolBuilder* poolBuilder, NPar::TLocalExecutor* localExecutor);
 
     bool ReadBlock();
     int GetBlockSize() const {
@@ -74,22 +74,21 @@ public:
     }
     void ProcessBlock();
     TString PairsFile;
-    yvector<TString> FeatureIds;
+    TVector<TString> FeatureIds;
     TPoolColumnsMetaInfo PoolMetaInfo;
-    yvector<TColumn> ColumnsDescription;
+    TVector<TColumn> ColumnsDescription;
 
 private:
-    int ThreadCount;
     size_t LinesRead;
     char FieldDelimiter;
     bool HasHeader;
     TTargetConverter ConvertTarget;
     const size_t BlockSize;
     TIFStream Reader;
-    yvector<TString> ParseBuffer;
-    yvector<TString> ReadBuffer;
+    TVector<TString> ParseBuffer;
+    TVector<TString> ReadBuffer;
     IPoolBuilder& PoolBuilder;
-    NPar::TLocalExecutor LocalExecutor;
+    NPar::TLocalExecutor* LocalExecutor;
     TAutoEvent BlockReadCompletedEvent;
 
     void ReadBlockAsync();
@@ -97,7 +96,7 @@ private:
     void FinishBuild();
 };
 
-THolder<IPoolBuilder> InitBuilder(TPool* pool);
+THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor);
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
@@ -106,17 +105,17 @@ void ReadPool(const TString& cdFile,
               bool verbose,
               char fieldDelimiter,
               bool hasHeader,
-              const yvector<TString>& classNames,
+              const TVector<TString>& classNames,
               TPool* pool);
 
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               const TString& pairsFile,
-              int threadCount,
               bool verbose,
               char fieldDelimiter,
               bool hasHeader,
-              const yvector<TString>& classNames,
+              const TVector<TString>& classNames,
+              NPar::TLocalExecutor* localExecutor,
               IPoolBuilder* poolBuilder);
 
 void ReadPool(const TString& cdFile,

@@ -12,6 +12,8 @@ from .Errors import error
 invisible = ['__cinit__', '__dealloc__', '__richcmp__',
              '__nonzero__', '__bool__']
 
+richcmp_special_methods = ['__eq__', '__ne__', '__lt__', '__gt__', '__le__', '__ge__']
+
 
 class Signature(object):
     #  Method slot signature descriptor.
@@ -303,11 +305,11 @@ class MethodSlot(SlotDescriptor):
 
     def slot_code(self, scope):
         entry = scope.lookup_here(self.method_name)
-        if entry and entry.func_cname:
+        if entry and entry.is_special and entry.func_cname:
             return entry.func_cname
         for method_name in self.alternatives:
             entry = scope.lookup_here(method_name)
-            if entry and entry.func_cname:
+            if entry and entry.is_special and entry.func_cname:
                 return entry.func_cname
         return "0"
 
@@ -363,12 +365,13 @@ class ConstructorSlot(InternalMethodSlot):
         self.method = method
 
     def slot_code(self, scope):
+        entry = scope.lookup_here(self.method)
         if (self.slot_name != 'tp_new'
                 and scope.parent_type.base_type
                 and not scope.has_pyobject_attrs
                 and not scope.has_memoryview_attrs
                 and not scope.has_cpp_class_attrs
-                and not scope.lookup_here(self.method)):
+                and not (entry and entry.is_special)):
             # if the type does not have object attributes, it can
             # delegate GC methods to its parent - iff the parent
             # functions are defined in the same module
@@ -377,6 +380,8 @@ class ConstructorSlot(InternalMethodSlot):
                 entry = scope.parent_scope.lookup_here(scope.parent_type.base_type.name)
                 if entry.visibility != 'extern':
                     return self.slot_code(parent_type_scope)
+        if entry and not entry.is_special:
+            return "0"
         return InternalMethodSlot.slot_code(self, scope)
 
 
@@ -394,10 +399,21 @@ class SyntheticSlot(InternalMethodSlot):
         self.default_value = default_value
 
     def slot_code(self, scope):
-        if scope.defines_any(self.user_methods):
+        if scope.defines_any_special(self.user_methods):
             return InternalMethodSlot.slot_code(self, scope)
         else:
             return self.default_value
+
+
+class RichcmpSlot(MethodSlot):
+    def slot_code(self, scope):
+        entry = scope.lookup_here(self.method_name)
+        if entry and entry.is_special and entry.func_cname:
+            return entry.func_cname
+        elif scope.defines_any_special(richcmp_special_methods):
+            return scope.mangle_internal(self.slot_name)
+        else:
+            return "0"
 
 
 class TypeFlagsSlot(SlotDescriptor):
@@ -519,7 +535,7 @@ class DictOffsetSlot(SlotDescriptor):
     #  Slot descriptor for a class' dict offset, for dynamic attributes.
 
     def slot_code(self, scope):
-        dict_entry = scope.lookup_here("__dict__")
+        dict_entry = scope.lookup_here("__dict__") if not scope.is_closure_class_scope else None
         if dict_entry and dict_entry.is_variable:
             if getattr(dict_entry.type, 'cname', None) != 'PyDict_Type':
                 error(dict_entry.pos, "__dict__ slot must be of type 'dict'")
@@ -559,6 +575,8 @@ def get_special_method_signature(name):
     slot = method_name_to_slot.get(name)
     if slot:
         return slot.signature
+    elif name in richcmp_special_methods:
+        return ibinaryfunc
     else:
         return None
 
@@ -694,7 +712,7 @@ property_accessor_signatures = {
 #
 #------------------------------------------------------------------------------------------
 
-PyNumberMethods_Py3_GUARD = "PY_MAJOR_VERSION < 3 || CYTHON_COMPILING_IN_PYPY"
+PyNumberMethods_Py3_GUARD = "PY_MAJOR_VERSION < 3 || (CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX < 0x03050000)"
 
 PyNumberMethods = (
     MethodSlot(binaryfunc, "nb_add", "__add__"),
@@ -823,8 +841,7 @@ slot_table = (
     GCDependentSlot("tp_traverse"),
     GCClearReferencesSlot("tp_clear"),
 
-    # Later -- synthesize a method to split into separate ops?
-    MethodSlot(richcmpfunc, "tp_richcompare", "__richcmp__", inherited=False),  # Py3 checks for __hash__
+    RichcmpSlot(richcmpfunc, "tp_richcompare", "__richcmp__", inherited=False),  # Py3 checks for __hash__
 
     EmptySlot("tp_weaklistoffset"),
 
@@ -874,6 +891,7 @@ MethodSlot(objargproc, "", "__delitem__")
 MethodSlot(ssizessizeobjargproc, "", "__setslice__")
 MethodSlot(ssizessizeargproc, "", "__delslice__")
 MethodSlot(getattrofunc, "", "__getattr__")
+MethodSlot(getattrofunc, "", "__getattribute__")
 MethodSlot(setattrofunc, "", "__setattr__")
 MethodSlot(delattrofunc, "", "__delattr__")
 MethodSlot(descrgetfunc, "", "__get__")

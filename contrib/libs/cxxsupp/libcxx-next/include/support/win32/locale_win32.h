@@ -97,7 +97,11 @@ long double strtold_l(const char*, char**, locale_t);
 #define iswxdigit_l _iswxdigit_l
 #define towupper_l _towupper_l
 #define towlower_l _towlower_l
+#if defined(__MINGW32__) && __MSVCRT_VERSION__ < 0x0800
+#define strftime_l( __s, __l, __f, __tm, __loc) strftime( __s, __l, __f, __tm )
+#else
 #define strftime_l _strftime_l
+#endif
 #define sscanf_l( __s, __l, __f, ...) _sscanf_l( __s, __f, __l, ##__VA_ARGS__ )
 #define vsscanf_l( __s, __l, __f, ...) _sscanf_l( __s, __f, __l, ##__VA_ARGS__ )
 #define sprintf_l( __s, __l, __f, ... ) _sprintf_l( __s, __f, __l, ##__VA_ARGS__ )

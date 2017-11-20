@@ -14,9 +14,9 @@ struct TSample {
         , Weight(weight)
     {}
 
-    static yvector<TSample> FromVectors(
-        const yvector<double>& targets, const yvector<double>& predictions);
-    static yvector<TSample> FromVectors(
-        const yvector<double>& targets, const yvector<double>& predictions, const yvector<double>& weights);
+    static TVector<TSample> FromVectors(
+        const TVector<double>& targets, const TVector<double>& predictions);
+    static TVector<TSample> FromVectors(
+        const TVector<double>& targets, const TVector<double>& predictions, const TVector<double>& weights);
 };
 }  // NMetrics

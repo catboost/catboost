@@ -191,7 +191,7 @@ struct TClosedir {
     }
 };
 
-void TFsPath::ListNames(yvector<TString>& children) const {
+void TFsPath::ListNames(TVector<TString>& children) const {
     CheckDefined();
     THolder<DIR, TClosedir> dir(opendir(~*this));
     if (!dir) {
@@ -213,8 +213,8 @@ void TFsPath::ListNames(yvector<TString>& children) const {
     }
 }
 
-void TFsPath::List(yvector<TFsPath>& files) const {
-    yvector<TString> names;
+void TFsPath::List(TVector<TFsPath>& files) const {
+    TVector<TString> names;
     ListNames(names);
     for (auto& name : names) {
         files.push_back(Child(name));
@@ -316,7 +316,7 @@ void TFsPath::MkDirs(const int mode) const {
 
 void TFsPath::ForceDelete() const {
     if (IsDirectory() && !IsSymlink()) {
-        yvector<TFsPath> children;
+        TVector<TFsPath> children;
         List(children);
         for (auto& i : children) {
             i.ForceDelete();
@@ -332,7 +332,7 @@ void TFsPath::CopyTo(const TString& newPath, bool force) const {
         } else if (!TFsPath(newPath).IsDirectory()) {
             ythrow TIoException() << "Target path is not a directory " << newPath;
         }
-        yvector<TFsPath> children;
+        TVector<TFsPath> children;
         List(children);
         for (auto&& i : children) {
             i.CopyTo(newPath + "/" + i.GetName(), force);

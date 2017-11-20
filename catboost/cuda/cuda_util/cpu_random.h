@@ -5,14 +5,21 @@
 
 struct TRandom {
     TMersenne<ui64> Rng;
+    ui64 Seed = 0;
 
     explicit TRandom(ui64 seed = 0)
         : Rng(seed)
-    {
+        , Seed(seed) {
     }
 
     ptrdiff_t operator()(ptrdiff_t i) {
         return Rng.GenRand64() % i;
+    }
+
+    inline void Advance(ui32 n) {
+        for (ui32 i = 0; i < n; ++i) {
+            NextUniformL();
+        }
     }
 
     unsigned long NextUniformL() {

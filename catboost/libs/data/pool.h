@@ -13,8 +13,8 @@
 struct TDocInfo {
     float Target = 0;
     float Weight = 1;
-    yvector<float> Factors;
-    yvector<double> Baseline;
+    TVector<float> Factors;
+    TVector<double> Baseline;
     TString Id;
 
     void Swap(TDocInfo& other) {
@@ -27,12 +27,12 @@ struct TDocInfo {
 };
 
 struct TDocumentStorage {
-    yvector<yvector<float>> Factors; // [factorIdx][docIdx]
-    yvector<yvector<double>> Baseline; // [dim][docIdx]
-    yvector<float> Target; // [docIdx]
-    yvector<float> Weight; // [docIdx]
-    yvector<TString> Id; // [docIdx]
-    yvector<ui32> QueryId; // [docIdx]
+    TVector<TVector<float>> Factors; // [factorIdx][docIdx]
+    TVector<TVector<double>> Baseline; // [dim][docIdx]
+    TVector<float> Target; // [docIdx]
+    TVector<float> Weight; // [docIdx]
+    TVector<TString> Id; // [docIdx]
+    TVector<ui32> QueryId; // [docIdx]
 
     inline int GetBaselineDimension() const {
         return Baseline.ysize();
@@ -139,8 +139,8 @@ struct TDocumentStorage {
 
 struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are processed by PrepareAllFeatures and PrepareAllFeaturesFromPermutedDocs to reduce memory footprint
-    yvector<int> CatFeatures;
-    yvector<TString> FeatureId;
+    TVector<int> CatFeatures;
+    TVector<TString> FeatureId;
     yhash<int, TString> CatFeaturesHashToString;
-    yvector<TPair> Pairs;
+    TVector<TPair> Pairs;
 };

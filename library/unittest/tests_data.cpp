@@ -44,6 +44,14 @@ TString GetWorkPath() {
     return TString(getcwd(nullptr, 0));
 }
 
+TFsPath GetYaPath() {
+    TString envPath = GetEnv("YA_CACHE_DIR");
+    if (!envPath) {
+        envPath = GetHomeDir() + "/.ya";
+    }
+    return envPath;
+}
+
 class TPortManager::TPortManagerImpl {
 public:
     ui16 GetUdpPort(ui16 port) {
@@ -107,7 +115,7 @@ private:
     }
 
 private:
-    yvector<THolder<TBaseSocket>> Sockets;
+    TVector<THolder<TBaseSocket>> Sockets;
 };
 
 TPortManager::TPortManager()
@@ -132,4 +140,62 @@ ui16 TPortManager::GetUdpPort(ui16 port) {
 
 ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
     return Impl_->GetTcpAndUdpPort(port);
+}
+
+TPortsRangeManager::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
+    : Path(root / ::ToString(port))
+    , Port(port)
+    , Lock(Path)
+{
+    if (Lock.TryAcquire()) {
+        Socket.Reset(new TInet6StreamSocket());
+
+        TSockAddrInet6 addr("::", port);
+        SetSockOpt(*Socket, SOL_SOCKET, SO_REUSEADDR, 1);
+
+        if (Socket->Bind(&addr) == 0) {
+            Locked = true;
+        }
+    }
+}
+
+bool TPortsRangeManager::TPortGuard::IsLocked() const {
+    return Locked;
+}
+
+ui16 TPortsRangeManager::TPortGuard::GetPort() const {
+    return Port;
+}
+
+TPortsRangeManager::TPortGuard::~TPortGuard() {
+    if (Locked) {
+        NFs::Remove(Path.GetPath());
+        Lock.Release();
+    }
+}
+
+TPortsRangeManager::TPortsRangeManager(const TString& syncDir)
+    : WorkDir(syncDir)
+{
+    NFs::MakeDirectoryRecursive(WorkDir.GetPath());
+}
+
+ui16 TPortsRangeManager::GetPortsRange(const ui16 startPort, const ui16 range) {
+    Y_ENSURE(range > 0);
+    TGuard<TMutex> g(Lock);
+
+    TVector<TPortGuard::TPtr> candidates;
+
+    for (ui16 port = startPort; candidates.size() < range && port < Max<ui16>() - range; ++port) {
+        TPortGuard::TPtr guard(new TPortGuard(WorkDir, port));
+        if (!guard->IsLocked()) {
+            candidates.clear();
+        } else {
+            candidates.push_back(guard);
+        }
+    }
+
+    Y_ENSURE(candidates.size() == range);
+    ReservedPorts.insert(ReservedPorts.end(), candidates.begin(), candidates.end());
+    return candidates.front()->GetPort();
 }

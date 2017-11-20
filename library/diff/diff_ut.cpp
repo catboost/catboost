@@ -6,7 +6,7 @@ using namespace NDiff;
 
 struct TDiffTester {
     TStringStream Res;
-    yvector<TChunk<char>> Chunks;
+    TVector<TChunk<char>> Chunks;
 
     TStringBuf Special(const TStringBuf& str) const {
         return str;

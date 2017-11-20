@@ -51,7 +51,7 @@ public:
     template<class TT>
     int GetTypeID( TT *p = 0 ) { (void)p; return VFT2TypeID( &typeid(TT) ); }
 
-    void GetAllTypeIDs( yvector<int>& typeIds ) const {
+    void GetAllTypeIDs( TVector<int>& typeIds ) const {
         typeIds.clear();
         for ( typename CTypeNewHash::const_iterator iter = typeInfo.begin();
               iter != typeInfo.end();

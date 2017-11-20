@@ -4,20 +4,20 @@
 
 #include <util/generic/algorithm.h>
 
-static yvector<float> GetMultiClassBorders(int cnt) {
-    yvector<float> borders(cnt);
+static TVector<float> GetMultiClassBorders(int cnt) {
+    TVector<float> borders(cnt);
     for (int i = 0; i < cnt; ++i) {
         borders[i] = 0.5 + i;
     }
     return borders;
 }
 
-static yvector<float> SelectBorders(const yvector<float>& target, int learnSampleCount,
+static TVector<float> SelectBorders(const TVector<float>& target, int learnSampleCount,
                                     int targetBorderCount, EBorderSelectionType targetBorderType) {
-    yvector<float> learnTarget(target.begin(), target.begin() + learnSampleCount);
+    TVector<float> learnTarget(target.begin(), target.begin() + learnSampleCount);
 
-    yhash_set<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
-    yvector<float> borders(borderSet.begin(), borderSet.end());
+    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
+    TVector<float> borders(borderSet.begin(), borderSet.end());
     CB_ENSURE(borders.ysize() > 0, "0 target borders");
 
     Sort(borders.begin(), borders.end());
@@ -25,7 +25,7 @@ static yvector<float> SelectBorders(const yvector<float>& target, int learnSampl
     return borders;
 }
 
-TTargetClassifier BuildTargetClassifier(const yvector<float>& target,
+TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
                                         int learnSampleCount,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -50,15 +50,13 @@ TTargetClassifier BuildTargetClassifier(const yvector<float>& target,
         case ELossFunction::MAPE:
         case ELossFunction::PairLogit:
         case ELossFunction::QueryRMSE:
+        case ELossFunction::Logloss:
+        case ELossFunction::CrossEntropy:
             return TTargetClassifier(SelectBorders(
                 target,
                 learnSampleCount,
                 targetBorderCount,
                 targetBorderType));
-
-        case ELossFunction::Logloss:
-        case ELossFunction::CrossEntropy:
-            return TTargetClassifier({0.5});
 
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll:

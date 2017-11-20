@@ -10,7 +10,7 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
         const ui32 addition = 20;
         const ui32 sumValuesTarget = sumKeysTarget + addition * elementsCount;
 
-        TDenseHash<ui32, ui32> denseHash((ui32) -1);
+        TDenseHash<ui32, ui32> denseHash((ui32)-1);
 
         for (ui32 i = 0; i < elementsCount; ++i) {
             denseHash.GetMutable(i) = i + addition;
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
 
-        TDenseHashSet<ui32> denseHashSet((ui32) -1);
+        TDenseHashSet<ui32> denseHashSet((ui32)-1);
 
         for (ui32 i = 0; i < elementsCount; ++i) {
             denseHashSet.Insert(i);
@@ -99,5 +99,77 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
             sumKeys += key;
         }
         UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
+    }
+
+    SIMPLE_UNIT_TEST(TestGenerativeDenseHash) {
+        const ui32 elementsCount = 32;
+        const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
+
+        const ui32 addition = 20;
+        const ui32 defaultValue = 5;
+        const ui32 sumValuesTarget = sumKeysTarget + addition * elementsCount + defaultValue * elementsCount;
+
+        TGenerativeDenseHash<ui32, ui32> denseHash(5, 10);
+
+        for (ui32 i = 0; i < elementsCount; ++i) {
+            denseHash.GetMutable(i) += i + addition;
+        }
+
+        for (ui32 i = 0; i < elementsCount; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(defaultValue + i + addition, denseHash.GetMutable(i));
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(elementsCount, denseHash.Size());
+        size_t firstRunCapacity = denseHash.Capacity();
+
+        {
+            ui32 sumKeys = 0;
+            ui32 sumValues = 0;
+            for (auto it : denseHash) {
+                UNIT_ASSERT_VALUES_EQUAL(denseHash.GetUserKey(it.Key()) + addition + defaultValue, it.Value());
+
+                sumKeys += denseHash.GetUserKey(it.Key());
+                sumValues += it.Value();
+            }
+            UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
+            UNIT_ASSERT_VALUES_EQUAL(sumValues, sumValuesTarget);
+        }
+
+        denseHash.NewEraClear();
+        UNIT_ASSERT_VALUES_EQUAL(0, denseHash.Size());
+        UNIT_ASSERT_VALUES_EQUAL(firstRunCapacity, denseHash.Capacity());
+
+        {
+            ui32 sumKeys = 0;
+            ui32 sumValues = 0;
+            for (auto it : denseHash) {
+                UNIT_ASSERT_VALUES_EQUAL(denseHash.GetUserKey(it.Key()) + addition, it.Value());
+
+                sumKeys += denseHash.GetUserKey(it.Key());
+                sumValues += it.Value();
+            }
+            UNIT_ASSERT_VALUES_EQUAL(sumKeys, 0);
+            UNIT_ASSERT_VALUES_EQUAL(sumValues, 0);
+        }
+
+        for (ui32 i = 0; i < elementsCount; ++i) {
+            denseHash.GetMutable(i) += i + addition;
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(elementsCount, denseHash.Size());
+        UNIT_ASSERT_VALUES_EQUAL(firstRunCapacity, denseHash.Capacity());
+
+        {
+            ui32 sumKeys = 0;
+            ui32 sumValues = 0;
+            for (auto it : denseHash) {
+                UNIT_ASSERT_VALUES_EQUAL(denseHash.GetUserKey(it.Key()) + addition + defaultValue, it.Value());
+
+                sumKeys += denseHash.GetUserKey(it.Key());
+                sumValues += it.Value();
+            }
+            UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
+            UNIT_ASSERT_VALUES_EQUAL(sumValues, sumValuesTarget);
+        }
     }
 }

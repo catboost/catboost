@@ -73,7 +73,7 @@ int GetValue();
 void SetValue(int val);
 ```
 
-*Exception:* The names of functions, classes, and so on that mimic or extend functions of standard libraries (libc, stl, etc.) should follow the library's naming convention. Examples are yvector, fget, autoarray, sprintf, equivalents of the main function. These classes and functions are usually located in /util.
+*Exception:* The names of functions, classes, and so on that mimic or extend functions of standard libraries (libc, stl, etc.) should follow the library's naming convention. Examples are TVector, fget, autoarray, sprintf, equivalents of the main function. These classes and functions are usually located in /util.
 
 #### Macros
 
@@ -420,7 +420,7 @@ namespace NStl {
         //the namespace nesting level is restricted to two
     }
 
-    class TVector {
+    class TVectorType {
     };
 }
 ```

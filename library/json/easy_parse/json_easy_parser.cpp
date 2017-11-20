@@ -9,8 +9,8 @@ static TString MAP_IDENTIFIER = "{}";
 static TString ARRAY_IDENTIFIER = "[]";
 static TString ANY_IDENTIFIER = "*";
 
-static void ParsePath(TString path, yvector<TPathElem> *res) {
-    yvector<const char*> parts;
+static void ParsePath(TString path, TVector<TPathElem> *res) {
+    TVector<const char*> parts;
     Split(path.begin(), '/', &parts);
     for (size_t n = 0; n < parts.size(); ++n) {
         TString part = strip(parts[n]);
@@ -46,8 +46,8 @@ TString TJsonParser::ConvertToTabDelimited(const TString &json) const {
 
 class TRewriteJsonImpl: public NJson::TJsonCallbacks {
     const TJsonParser &Parent;
-    yvector<TString> FieldValues;
-    yvector<TPathElem> Stack;
+    TVector<TString> FieldValues;
+    TVector<TPathElem> Stack;
     bool ShouldUpdateOnArrayChange;
     int CurrentFieldIdx;
     bool HasFormatError;
@@ -63,7 +63,7 @@ private:
         return true;
     }
 
-    bool CheckFilter(const yvector<TPathElem> &path) const {
+    bool CheckFilter(const TVector<TPathElem> &path) const {
         if (Stack.size() < path.size())
             return false;
         for (size_t n = 0; n < +path; ++n) {
@@ -197,7 +197,7 @@ public:
             out << "\t" << FieldValues[n];
     }
 
-    void WriteTo(yvector<TString> *res) const {
+    void WriteTo(TVector<TString> *res) const {
         *res = FieldValues;
     }
 };
@@ -212,7 +212,7 @@ void TJsonParser::ConvertToTabDelimited(IInputStream &in, IOutputStream &out) co
     }
 }
 
-bool TJsonParser::Parse(const TString &json, yvector<TString> *res) const {
+bool TJsonParser::Parse(const TString &json, TVector<TString> *res) const {
     TRewriteJsonImpl impl(*this);
     TStringInput in(json);
     ReadJson(&in, &impl);

@@ -1,27 +1,27 @@
-70.3584505	c8
-4.767270262	f3
-3.514556935	f13
-2.16163997	f7
-2.144363586	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-2.09449327	{c9} prior_num=1 prior_denom=1 targetborder=0 type=Counter
-1.661482385	{c6, f13 b2} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-1.625778716	{c6, f3 b17} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-1.480827033	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-1.223526839	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-1.068379201	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-1.06535105	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.8711332341	{c6, c9} prior_num=1 prior_denom=1 targetborder=0 type=Counter
-0.8553134999	f5
-0.8477037797	c16
-0.827713952	{c6} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.7287422525	{c9, f3 b17} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.7063554749	{c9, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.6599729799	{c9, f15 b14, c8 val = -2019910086, c16 val = -1576664757, c16 val = 1736516096} prior_num=0.5 prior_denom=1 targetborder=0 type=Counter
-0.4971671241	c4
-0.3234748799	{c6, c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.2417378855	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Counter
-0.1261931464	{c6, c9, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.07923565188	{c6, c8 val = -2019910086} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.06897243551	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Counter
-0.0001639563358	f15
-0	{c9, c8 val = -2019910086} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+58.13000189	c8
+11.20178293	c10
+8.275443462	f7
+2.631463088	f3
+2.274181725	{c9, c10 val = 60472414} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+2.238203759	f13
+2.222574348	{c9, c8 val = -2019910086, c16 val = 972041323} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+1.719260374	f15
+1.542370546	c4
+1.485848154	{c6, c9, c8 val = -2019910086, c16 val = 972041323} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+1.40835516	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.9945184976	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Counter
+0.8644254332	f5
+0.8125676995	{c9, f5 border=474910, c8 val = -2019910086} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.7855313236	{c6, c8 val = -2019910086} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.7675091465	{c9} prior_num=1 prior_denom=1 targetborder=0 type=Counter
+0.5403616413	{c6, c9, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.4612438508	c16
+0.4249218092	f14
+0.3595040044	{c9, c10 val = 60472414} prior_num=1 prior_denom=1 targetborder=0 type=Counter
+0.2214093755	{c9, f14 border=1738, f15 border=46.5, c10 val = 60472414} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.1935585352	{c6, c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.1607066072	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1552073975	{c6} prior_num=1 prior_denom=1 targetborder=0 type=Counter
+0.08708246412	{c6, c8 val = -2019910086} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.03728310245	{c6, c9, c8 val = -2019910086} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.004683672205	{c6, f13 border=3280, f7 border=13.5, c4 val = -447941100} prior_num=0 prior_denom=1 targetborder=0 type=Borders

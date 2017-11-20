@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/algo/params.h>
+#include <catboost/libs/params/params.h>
 
 #include <library/getopt/small/last_getopt.h>
 #include <library/json/json_reader.h>
@@ -15,9 +15,9 @@ struct TAnalyticalModeCommonParams {
     TString OutputPath;
     TString InputPath;
     TString CdFile;
-    EPredictionType PredictionType = EPredictionType::RawFormulaVal;
+    TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
     EFstrType FstrType = EFstrType::FeatureImportance;
-    yvector<TString> ClassNames;
+    TVector<TString> ClassNames;
     int ThreadCount = 1;
     char Delimiter = '\t';
     bool HasHeader = false;

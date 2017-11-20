@@ -29,8 +29,8 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
 
             auto data = TStripeBuffer<float>::Create(beforeReduceMapping);
 
-            yvector<float> dataCpu;
-            yvector<float> reducedDataCpu;
+            TVector<float> dataCpu;
+            TVector<float> reducedDataCpu;
 
             dataCpu.resize(beforeReduceMapping.MemorySize());
             reducedDataCpu.resize(partCount * partSize);
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
                 reducer(data, afterReduceMapping);
             }
 
-            yvector<float> reducedGpu;
+            TVector<float> reducedGpu;
             data.Read(reducedGpu);
 
             for (ui32 i = 0; i < reducedDataCpu.size(); ++i) {

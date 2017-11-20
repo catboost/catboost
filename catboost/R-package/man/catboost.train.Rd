@@ -90,16 +90,18 @@ Format:
 
 Supported loss functions:
       \itemize{
-        \item 'RMSE'
         \item 'Logloss'
-        \item 'MAE'
         \item 'CrossEntropy'
+        \item 'RMSE'
+        \item 'MAE'
         \item 'Quantile'
         \item 'LogLinQuantile'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
+        \item 'QueryRMSE'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
+        \item 'PairLogit'
       }
 
 Supported parameters:
@@ -126,24 +128,27 @@ c(<Loss function 1>[:<parameter>=<value>],<Loss function 2>[:<parameter>=<value>
 
 Supported loss functions:
       \itemize{
-        \item 'RMSE'
         \item 'Logloss'
-        \item 'MAE'
         \item 'CrossEntropy'
+        \item 'RMSE'
+        \item 'MAE'
         \item 'Quantile'
         \item 'LogLinQuantile'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
-        \item 'Recall'
+        \item 'QueryRMSE'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
+        \item 'PairLogit'
+        \item 'R2'
+        \item 'AUC'
+        \item 'Accuracy'
         \item 'Precision'
+        \item 'Recall'
         \item 'F1'
         \item 'TotalF1'
         \item 'MCC'
-        \item 'AUC'
-        \item 'Accuracy'
-        \item 'R2'
+        \item 'PairAccuracy'
       }
 
 Supported parameters:
@@ -168,24 +173,27 @@ The loss function used for overfitting detection (if enabled) and best model sel
 
 Supported loss functions:
       \itemize{
-        \item 'RMSE'
         \item 'Logloss'
-        \item 'MAE'
         \item 'CrossEntropy'
+        \item 'RMSE'
+        \item 'MAE'
         \item 'Quantile'
         \item 'LogLinQuantile'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
         \item 'MAPE'
         \item 'Poisson'
-        \item 'Recall'
+        \item 'QueryRMSE'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
+        \item 'PairLogit'
+        \item 'R2'
+        \item 'AUC'
+        \item 'Accuracy'
         \item 'Precision'
+        \item 'Recall'
         \item 'F1'
         \item 'TotalF1'
         \item 'MCC'
-        \item 'AUC'
-        \item 'Accuracy'
-        \item 'R2'
+        \item 'PairAccuracy'
       }
 
 Format:
@@ -517,7 +525,7 @@ Possible values:
           \item \code{'Median'}
           \item \code{'Uniform'}
           \item \code{'UniformAndQuantiles'}
-          \item \code{'MaxSumLog'}
+          \item \code{'MaxLogSum'}
           \item \code{'MinEntropy'}
           \item \code{'GreedyLogSum'}
         }
@@ -607,7 +615,7 @@ Possible values:
         \item \code{'Median'}
         \item \code{'Uniform'}
         \item \code{'UniformAndQuantiles'}
-        \item \code{'MaxSumLog'}
+        \item \code{'MaxLogSum'}
         \item \code{'MinEntropy'}
         \item \code{'GreedyLogSum'}
       }

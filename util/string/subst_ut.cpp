@@ -6,8 +6,8 @@
 
 SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
     static const size_t MIN_FROM_CTX = 4;
-    static const yvector<TString> ALL_FROM{TString("F"), TString("FF")};
-    static const yvector<TString> ALL_TO{TString(""), TString("T"), TString("TT"), TString("TTT")};
+    static const TVector<TString> ALL_FROM{TString("F"), TString("FF")};
+    static const TVector<TString> ALL_TO{TString(""), TString("T"), TString("TT"), TString("TTT")};
 
     static void AssertSubstGlobal(const TString& sFrom, const TString& sTo, const TString& from, const TString& to, const size_t fromPos, const size_t numSubst) {
         TString s = sFrom;
@@ -61,7 +61,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         }
     }
 
-    static void DoTestSubstGlobal(yvector<TString> & parts, const size_t minBeg, const size_t sz,
+    static void DoTestSubstGlobal(TVector<TString> & parts, const size_t minBeg, const size_t sz,
                                   const TString& from, const size_t fromPos, const size_t numSubst) {
         const size_t numLeft = numSubst - parts.size();
         for (size_t fromBeg = minBeg; fromBeg <= sz - numLeft * +from; ++fromBeg) {
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
     }
 
     static void DoTestSubstGlobal(size_t numSubst) {
-        yvector<TString> parts;
+        TVector<TString> parts;
         for (const auto& from : ALL_FROM) {
             const size_t fromSz = +from;
             const size_t minSz = numSubst * fromSz;

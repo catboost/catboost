@@ -1,6 +1,6 @@
 #include "cv_data_partition.h"
+#include "helpers.h"
 
-#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -17,7 +17,7 @@ void BuildCvPools(
 {
     CB_ENSURE(foldIdx >= 0 && foldIdx < foldCount);
     TFastRng64 rand(seed);
-    yvector<size_t> permutation;
+    TVector<size_t> permutation;
     permutation.yresize(learnPool->Docs.GetDocCount());
     std::iota(permutation.begin(), permutation.end(), /*starting value*/ 0);
     Shuffle(permutation.begin(), permutation.end(), rand);

@@ -180,8 +180,8 @@ struct TJsonTraits {
     }
 
     // validation ops
-    static inline yvector<TString> GetKeys(TConstValueRef v) {
-        yvector<TString> res;
+    static inline TVector<TString> GetKeys(TConstValueRef v) {
+        TVector<TString> res;
         for (const auto& it : v->GetMap()) {
             res.push_back(it.first);
         }

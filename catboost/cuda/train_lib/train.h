@@ -61,7 +61,7 @@ namespace NCatboostCuda
         }
         if (options.FeatureManagerOptions.IsCtrTypeEnabled(ECtrType::FeatureFreq))
         {
-            yvector<float> prior = {0.5f};
+            TVector<float> prior = {0.5f};
             featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
         }
 
@@ -71,13 +71,13 @@ namespace NCatboostCuda
                                                          ECtrType::FloatTargetMeanValue);
         if (isFloatTargetMeanCtrEnabled)
         {
-            yvector<float> prior = {0.0, 3.0};
+            TVector<float> prior = {0.0, 3.0};
             featuresManager.EnableCtrType(ECtrType::FloatTargetMeanValue, prior);
         }
 
         if (options.TargetOptions.GetTargetType() == ETargetFunction::RMSE)
         {
-            yvector<float> prior = {0.5f};
+            TVector<float> prior = {0.5f};
             if (options.FeatureManagerOptions.IsCtrTypeEnabled(ECtrType::Borders))
             {
                 featuresManager.EnableCtrType(ECtrType::Borders, prior);
@@ -98,7 +98,7 @@ namespace NCatboostCuda
             }
             if (options.FeatureManagerOptions.IsCtrTypeEnabled(ECtrType::Buckets))
             {
-                yvector<float> prior = {0.5, 0.5};
+                TVector<float> prior = {0.5, 0.5};
                 featuresManager.EnableCtrType(ECtrType::Buckets, prior);
 
                 prior = {1.0, 0.0};
@@ -253,7 +253,7 @@ namespace NCatboostCuda
     };
 
 
-    TCoreModel TrainModel(const TTrainCatBoostOptions& trainCatBoostOptions,
+    TFullModel TrainModel(const TTrainCatBoostOptions& trainCatBoostOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager);

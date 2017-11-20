@@ -85,7 +85,7 @@ namespace NCatboostCuda
                                     ui32 featureId,
                                     ui64 size,
                                     ui32 bitsPerKey,
-                                    yvector<ui64>&& data,
+                                    TVector<ui64>&& data,
                                     TString featureName = "")
                 : IFeatureValuesHolder(type, featureId, size, std::move(featureName))
                   , Values(std::move(data))
@@ -98,9 +98,9 @@ namespace NCatboostCuda
             return IndexHelper.Extract(Values, docId);
         }
 
-        yvector<ui32> ExtractValues() const
+        TVector<ui32> ExtractValues() const
         {
-            yvector<ui32> dst;
+            TVector<ui32> dst;
             dst.clear();
             dst.resize(GetSize());
 
@@ -113,7 +113,7 @@ namespace NCatboostCuda
         }
 
     private:
-        yvector<ui64> Values;
+        TVector<ui64> Values;
         TIndexHelper<ui64> IndexHelper;
     };
 
@@ -122,8 +122,8 @@ namespace NCatboostCuda
     public:
         TBinarizedFloatValuesHolder(ui32 featureId,
                                     ui64 size,
-                                    const yvector<float>& borders,
-                                    yvector<ui64>&& data,
+                                    const TVector<float>& borders,
+                                    TVector<ui64>&& data,
                                     TString featureName)
                 : TCompressedValuesHolderImpl(EFeatureValuesType::BinarizedFloat,
                                               featureId,
@@ -140,13 +140,13 @@ namespace NCatboostCuda
             return (ui32) Borders.size();
         }
 
-        const yvector<float>& GetBorders() const
+        const TVector<float>& GetBorders() const
         {
             return Borders;
         }
 
     private:
-        yvector<float> Borders;
+        TVector<float> Borders;
     };
 
 
@@ -154,13 +154,13 @@ namespace NCatboostCuda
     {
     public:
         TFloatValuesHolder(ui32 featureId,
-                           yvector<float>&& values,
+                           TVector<float>&& values,
                            TString featureName = "")
                 : IFeatureValuesHolder(EFeatureValuesType::Float,
                                        featureId,
                                        values.size(),
                                        std::move(featureName))
-                  , Values(MakeHolder<yvector<float>>(std::move(values)))
+                  , Values(MakeHolder<TVector<float>>(std::move(values)))
                   , ValuesPtr(Values->data())
         {
         }
@@ -185,14 +185,14 @@ namespace NCatboostCuda
             return ValuesPtr;
         }
 
-        const yvector<float>& GetValues() const
+        const TVector<float>& GetValues() const
         {
             CB_ENSURE(Values, "Error: this values holder contains only reference for external features");
             return *Values;
         }
 
     private:
-        THolder<yvector<float>> Values;
+        THolder<TVector<float>> Values;
         float* ValuesPtr;
     };
 
@@ -215,7 +215,7 @@ namespace NCatboostCuda
 
         virtual ui32 GetValue(ui32 line) const = 0;
 
-        virtual yvector<ui32> ExtractValues() const = 0;
+        virtual TVector<ui32> ExtractValues() const = 0;
     };
 
 
@@ -224,7 +224,7 @@ namespace NCatboostCuda
     public:
         TCatFeatureValuesHolder(ui32 featureId,
                                 ui64 size,
-                                yvector<ui64>&& compressedValues,
+                                TVector<ui64>&& compressedValues,
                                 ui32 uniqueValues,
                                 TString featureName = "")
                 : ICatFeatureValuesHolder(featureId, size, std::move(featureName))
@@ -244,7 +244,7 @@ namespace NCatboostCuda
             return IndexHelper.Extract(Values, line);
         }
 
-        yvector<ui32> ExtractValues() const override
+        TVector<ui32> ExtractValues() const override
         {
             return DecompressVector<ui64, ui32>(Values,
                                                 GetSize(),
@@ -254,12 +254,12 @@ namespace NCatboostCuda
     private:
         ui32 UniqueValues;
         TIndexHelper<ui64> IndexHelper;
-        yvector<ui64> Values;
+        TVector<ui64> Values;
     };
 
 
     inline TFeatureColumnPtr FloatToBinarizedColumn(const TFloatValuesHolder& floatValuesHolder,
-                                                    const yvector<float>& borders)
+                                                    const TVector<float>& borders)
     {
         if (!borders.empty())
         {

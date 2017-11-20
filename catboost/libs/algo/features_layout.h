@@ -1,12 +1,12 @@
 #pragma once
 
-#include "params.h"
+#include <catboost/libs/params/params.h>
 
 #include <util/generic/vector.h>
 
 class TFeaturesLayout {
 public:
-    TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const yvector<TString>& featureId);
+    TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const TVector<TString>& featureId);
 
     TString GetExternalFeatureDescription(int internalFeatureIdx, EFeatureType type) const {
         if (FeatureId.empty()) {
@@ -39,9 +39,9 @@ public:
     }
 
 private:
-    yvector<EFeatureType> FeatureType;
-    yvector<int> InternalFeatureIdx;
-    yvector<int> CatFeatureExternalId;
-    yvector<int> FloatFeatureExternalId;
-    yvector<TString> FeatureId;
+    TVector<EFeatureType> FeatureType;
+    TVector<int> InternalFeatureIdx;
+    TVector<int> CatFeatureExternalId;
+    TVector<int> FloatFeatureExternalId;
+    TVector<TString> FeatureId;
 };

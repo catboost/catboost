@@ -61,7 +61,7 @@ private:
 
     inline void TestAllocate() {
         TClass::TPool pool(TDefaultAllocator::Instance());
-        yhash_set<TClass*> alloced;
+        THashSet<TClass*> alloced;
 
         for (size_t i = 0; i < 10000; ++i) {
             TClass* c = new (&pool) TClass;

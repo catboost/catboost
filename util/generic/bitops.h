@@ -197,8 +197,8 @@ namespace NBitOps {
         }
 #endif
 #endif
-    } // NPrivate
-} // NBitOps
+    }
+}
 
 /**
  * Compute the next highest power of 2 of integer paramter `t`.
@@ -428,7 +428,7 @@ constexpr T RotateBitsRightCT(T value, const ui8 shift) noexcept {
 /* Remain `size` bits to current `offset` of `value`
    size, offset are less than number of bits in size_type
  */
-template<size_t Offset, size_t Size, class T>
+template <size_t Offset, size_t Size, class T>
 Y_FORCE_INLINE T SelectBits(T value) {
     Y_ASSERT(Size < sizeof(T) * 8);
     Y_ASSERT(Offset < sizeof(T) * 8);
@@ -436,11 +436,10 @@ Y_FORCE_INLINE T SelectBits(T value) {
     return (value >> Offset) & ((id << Size) - id);
 }
 
-
 /* Set `size` bits of `bits` to current offset of `value`. Requires that bits <= (1 << size) - 1
    size, offset are less than number of bits in size_type
  */
-template<size_t Offset, size_t Size, class T>
+template <size_t Offset, size_t Size, class T>
 void SetBits(T& value, T bits) {
     Y_ASSERT(Size < sizeof(T) * 8);
     Y_ASSERT(Offset < sizeof(T) * 8);

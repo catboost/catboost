@@ -105,8 +105,6 @@ namespace NPrivateGlobalLogger {
     Y_UNLIKELY(false && !(expr)) && NPrivateGlobalLogger::TEatStream() | NPrivateGlobalLogger::TNullStream()
 #endif
 
-
-
 #define CHECK_EQ_WITH_LOG(a, b) CHECK_WITH_LOG((a) == (b)) << a << " != " << b;
 #define CHECK_LEQ_WITH_LOG(a, b) CHECK_WITH_LOG((a) <= (b)) << a << " > " << b;
 

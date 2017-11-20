@@ -1,5 +1,6 @@
-#include <library/binsaver/bin_saver.h>
 #include <library/binsaver/util_stream_io.h>
+#include <library/binsaver/mem_io.h>
+#include <library/binsaver/bin_saver.h>
 #include <library/unittest/registar.h>
 
 #include <util/stream/buffer.h>
@@ -75,11 +76,11 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
         UNIT_ASSERT( IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializer>(0u) );
         UNIT_ASSERT( IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmpl>(0u) );
         UNIT_ASSERT( IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmplDerived>(0u) );
-        UNIT_ASSERT( IBinSaver::HasNonTrivialSerializer<yvector<TCustomSerializer>>(0u) );
+        UNIT_ASSERT( IBinSaver::HasNonTrivialSerializer<TVector<TCustomSerializer>>(0u) );
     }
 
     template<typename T>
-    void TestSerialization(const T& original) {
+    void TestSerializationToBuffer(const T& original) {
         TBufferOutput out;
         {
             TYaStreamOutput yaOut(out);
@@ -97,16 +98,37 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
         UNIT_ASSERT_EQUAL(original, restored);
     }
 
+    template<typename T>
+    void TestSerializationToVector(const T& original) {
+        TVector<char> out;
+        SerializeToMem(&out, *const_cast<T*>(&original));
+        T restored;
+        SerializeFromMem(&out, restored);
+        UNIT_ASSERT_EQUAL(original, restored);
+
+        TVector<TVector<char>> out2D;
+        SerializeToMem(&out2D, *const_cast<T*>(&original));
+        T restored2D;
+        SerializeFromMem(&out2D, restored2D);
+        UNIT_ASSERT_EQUAL(original, restored2D);
+    }
+
+    template<typename T>
+    void TestSerialization(const T& original) {
+        TestSerializationToBuffer(original);
+        TestSerializationToVector(original);
+    }
+
     SIMPLE_UNIT_TEST(TestStroka) {
         TestSerialization(TString("QWERTY"));
     }
 
     SIMPLE_UNIT_TEST(TestMoveOnlyType) {
-        TestSerialization(TMoveOnlyType());
+        TestSerializationToBuffer(TMoveOnlyType());
     }
 
     SIMPLE_UNIT_TEST(TestVectorStrok) {
-        TestSerialization(yvector<TString>{"A", "B", "C"});
+        TestSerialization(TVector<TString>{"A", "B", "C"});
     }
 
     SIMPLE_UNIT_TEST(TestCArray) {
@@ -114,7 +136,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
     }
 
     SIMPLE_UNIT_TEST(TestSets) {
-        TestSerialization(yhash_set<TString>{"A", "B", "C"});
+        TestSerialization(THashSet<TString>{"A", "B", "C"});
         TestSerialization(yset<TString>{"A", "B", "C"});
     }
 
@@ -140,7 +162,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
         custom.A = 25;
         custom.B = 37;
         TestSerialization(custom);
-        TestSerialization(yvector<TPod>{ custom });
+        TestSerialization(TVector<TPod>{ custom });
     }
 
     SIMPLE_UNIT_TEST(TestSubPod) {
@@ -151,7 +173,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
                     return X == other.X;
                 }
             };
-            yvector<TSub> B;
+            TVector<TSub> B;
             int operator & (IBinSaver& f) {
                 f.Add(0, &B);
                 return 0;
@@ -165,7 +187,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
         sub.X = 1;
         TPod custom;
         custom.B = { sub };
-        TestSerialization(yvector<TPod>{ custom });
+        TestSerialization(TVector<TPod>{ custom });
     }
 
 

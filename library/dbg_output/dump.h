@@ -59,7 +59,7 @@ namespace NPrivate {
                 }
             }
 
-            yhash_set<size_t> Visited;
+            THashSet<size_t> Visited;
         };
     };
 

@@ -52,14 +52,14 @@ struct TDocWithSize {
 };
 
 template <typename TSortPred>
-yvector<TDocWithSize> FillDocsWithSizes(
+TVector<TDocWithSize> FillDocsWithSizes(
         int docsInQuery,
         const double* approx,
         const double* target,
         const double* docWeights,
         TSortPred sortPred)
 {
-    yvector<TDocWithSize> docs;
+    TVector<TDocWithSize> docs;
     docs.reserve(docsInQuery);
 
     for (int i = 0; i < docsInQuery; ++i) {
@@ -88,7 +88,7 @@ yvector<TDocWithSize> FillDocsWithSizes(
     return docs;
 }
 
-double CalcAuc(const yvector<TDocWithSize>& docs) {
+double CalcAuc(const TVector<TDocWithSize>& docs) {
     double result = 0;
     for (const auto& doc : docs) {
         result += doc.EffTarget * doc.SumSizesAfter;

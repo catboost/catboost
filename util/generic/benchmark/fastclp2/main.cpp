@@ -19,7 +19,7 @@ namespace {
             }
         }
 
-        yvector<T> Examples;
+        TVector<T> Examples;
     };
 }
 

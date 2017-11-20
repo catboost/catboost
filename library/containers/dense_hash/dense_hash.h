@@ -9,7 +9,7 @@
 /*
  * There are 2 classes in this file:
  *   - TDenseHash - analog of yhash
- *   - TDenseHashSet - analog of yhash_set
+ *   - TDenseHashSet - analog of THashSet
  */
 
 /*
@@ -26,7 +26,7 @@ template <typename TKey,
           typename TEmptyMarker = TKey>
 class TDenseHash {
 public:
-    TDenseHash(const TEmptyMarker& emptyMarker = TEmptyMarker(), const TValue& defaultValue = TValue(), size_t initSize=0)
+    TDenseHash(const TEmptyMarker& emptyMarker = TEmptyMarker(), const TValue& defaultValue = TValue(), size_t initSize = 0)
         : EmptyMarker(emptyMarker)
         , DefaultValue(defaultValue)
     {
@@ -39,9 +39,9 @@ public:
         Swap(init);
     }
 
-    TDenseHash& operator= (const TDenseHash&) = default;
+    TDenseHash& operator=(const TDenseHash&) = default;
 
-    bool operator== (const TDenseHash& rhs) const {
+    bool operator==(const TDenseHash& rhs) const {
         if (Size() != rhs.Size()) {
             return false;
         }
@@ -60,7 +60,7 @@ public:
         NumFilled = 0;
     }
 
-    void MakeEmpty(size_t initSize=0) {
+    void MakeEmpty(size_t initSize = 0) {
         if (!initSize) {
             initSize = 1 << LogInitSize;
         } else {
@@ -68,7 +68,7 @@ public:
         }
         BucketMask = initSize - 1;
         NumFilled = 0;
-        yvector<TItem>(initSize, TItem(EmptyMarker, DefaultValue)).swap(Buckets);
+        TVector<TItem>(initSize, TItem(EmptyMarker, DefaultValue)).swap(Buckets);
         GrowThreshold = Max<size_t>(1, initSize * MaxLoadFactor / 100) - 1;
     }
 
@@ -77,8 +77,7 @@ public:
         return ProcessBucket<TValue*>(
             key,
             [&](size_t idx) { return &Buckets[idx].Value; },
-            [](size_t) { return nullptr; }
-        );
+            [](size_t) { return nullptr; });
     }
 
     template <typename K>
@@ -86,8 +85,7 @@ public:
         return ProcessBucket<const TValue*>(
             key,
             [&](size_t idx) { return &Buckets[idx].Value; },
-            [](size_t) { return nullptr; }
-        );
+            [](size_t) { return nullptr; });
     }
 
     template <typename K>
@@ -95,8 +93,7 @@ public:
         return ProcessBucket<bool>(
             key,
             [](size_t) { return true; },
-            [](size_t) { return false; }
-        );
+            [](size_t) { return false; });
     }
 
     template <typename K>
@@ -104,8 +101,7 @@ public:
         return ProcessBucket<const TValue&>(
             key,
             [&](size_t idx) -> const TValue& { return Buckets[idx].Value; },
-            [&](size_t) -> const TValue& { return DefaultValue; }
-        );
+            [&](size_t) -> const TValue& { return DefaultValue; });
     }
 
     // gets existing item or inserts new
@@ -234,12 +230,12 @@ private:
             return Hash;
         }
 
-        bool operator== (const TIteratorBase& rhs) const {
+        bool operator==(const TIteratorBase& rhs) const {
             Y_ASSERT(Hash == rhs.Hash);
             return Idx == rhs.Idx;
         }
 
-        bool operator!= (const TIteratorBase& rhs) const {
+        bool operator!=(const TIteratorBase& rhs) const {
             return !(*this == rhs);
         }
     };
@@ -269,8 +265,7 @@ public:
         return ProcessBucket<TIterator>(
             key,
             [&](size_t idx) { return TIterator(this, idx); },
-            [&](size_t) { return end(); }
-        );
+            [&](size_t) { return end(); });
     }
 
     template <typename K>
@@ -278,8 +273,7 @@ public:
         return ProcessBucket<TConstIterator>(
             key,
             [&](size_t idx) { return TConstIterator(this, idx); },
-            [&](size_t) { return end(); }
-        );
+            [&](size_t) { return end(); });
     }
 
     template <typename TIteratorType>
@@ -301,7 +295,7 @@ public:
                 return false;
             }
         }
-        yvector<TItem> oldBuckets(to, TItem(EmptyMarker, DefaultValue));
+        TVector<TItem> oldBuckets(to, TItem(EmptyMarker, DefaultValue));
         oldBuckets.swap(Buckets);
 
         BucketMask = Buckets.size() - 1;
@@ -312,12 +306,15 @@ public:
                 ProcessBucket<void>(
                     item.Key,
                     [&](size_t idx) { Buckets[idx] = std::move(item); },
-                    [&](size_t idx) { Buckets[idx] = std::move(item); }
-                );
+                    [&](size_t idx) { Buckets[idx] = std::move(item); });
             }
         }
         return true;
     }
+
+protected:
+    TEmptyMarker EmptyMarker;
+    size_t NumFilled;
 
 private:
     struct TItem {
@@ -330,10 +327,10 @@ private:
         {
         }
 
-        TItem (const TItem&) = default;
-        TItem& operator= (const TItem&) = default;
+        TItem(const TItem&) = default;
+        TItem& operator=(const TItem&) = default;
 
-        TItem& operator= (TItem&& rhs) {
+        TItem& operator=(TItem&& rhs) {
             Key = std::move(rhs.Key);
             Value = std::move(rhs.Value);
             return *this;
@@ -343,11 +340,8 @@ private:
     };
 
     size_t BucketMask;
-    size_t NumFilled;
     size_t GrowThreshold;
-    yvector<TItem> Buckets;
-
-    TEmptyMarker EmptyMarker;
+    TVector<TItem> Buckets;
     TValue DefaultValue;
 
     template <typename K>
@@ -366,9 +360,8 @@ private:
                 if (!!newValueWasInserted) {
                     *newValueWasInserted = true;
                 }
-                return Buckets[idx].Value;
-            }
-        );
+                return (Buckets[idx].Value = DefaultValue);
+            });
     }
 
     Y_FORCE_INLINE bool MaybeGrow() {
@@ -384,8 +377,7 @@ private:
         return ProcessBucket<size_t>(
             key,
             [](size_t idx) { return idx; },
-            [](size_t idx) { return idx; }
-        );
+            [](size_t idx) { return idx; });
     }
 
     template <typename TResult, typename TAnyKey, typename TOnFound, typename TOnEmpty>
@@ -414,14 +406,13 @@ private:
     }
 };
 
-
 template <typename TKey,
           typename TKeyHash = THash<TKey>,
           int MaxLoadFactor = 50,
           int LogInitSize = 8>
 class TDenseHashSet {
 public:
-    TDenseHashSet(const TKey& emptyMarker = TKey(), size_t initSize=0)
+    TDenseHashSet(const TKey& emptyMarker = TKey(), size_t initSize = 0)
         : EmptyMarker(emptyMarker)
     {
         MakeEmpty(initSize);
@@ -434,7 +425,7 @@ public:
         NumFilled = 0;
     }
 
-    void MakeEmpty(size_t initSize=0) {
+    void MakeEmpty(size_t initSize = 0) {
         if (!initSize) {
             initSize = 1 << LogInitSize;
         } else {
@@ -442,7 +433,7 @@ public:
         }
         BucketMask = initSize - 1;
         NumFilled = 0;
-        yvector<TKey>(initSize, EmptyMarker).swap(Buckets);
+        TVector<TKey>(initSize, EmptyMarker).swap(Buckets);
         GrowThreshold = Max<size_t>(1, initSize * MaxLoadFactor / 100) - 1;
     }
 
@@ -529,7 +520,7 @@ private:
             return Idx < Hash->Buckets.size();
         }
 
-        const TKey& operator* () const {
+        const TKey& operator*() const {
             return Key();
         }
 
@@ -537,12 +528,12 @@ private:
             return Hash->Buckets[Idx];
         }
 
-        bool operator== (const TIteratorBase& rhs) const {
+        bool operator==(const TIteratorBase& rhs) const {
             Y_ASSERT(Hash == rhs.Hash);
             return Idx == rhs.Idx;
         }
 
-        bool operator!= (const TIteratorBase& rhs) const {
+        bool operator!=(const TIteratorBase& rhs) const {
             return !(*this == rhs);
         }
     };
@@ -562,7 +553,7 @@ private:
     size_t BucketMask;
     size_t NumFilled;
     size_t GrowThreshold;
-    yvector<TKey> Buckets;
+    TVector<TKey> Buckets;
 
     TKey EmptyMarker;
 
@@ -582,14 +573,14 @@ private:
             return false;
         }
 
-        yvector<TKey> oldBuckets(Buckets.size() * 2, EmptyMarker);
+        TVector<TKey> oldBuckets(Buckets.size() * 2, EmptyMarker);
         oldBuckets.swap(Buckets);
 
         BucketMask = Buckets.size() - 1;
         GrowThreshold = Max<size_t>(1, Buckets.size() * (MaxLoadFactor / 100.f)) - 1;
 
         NumFilled = 0;
-        for (const TKey& key: oldBuckets) {
+        for (const TKey& key : oldBuckets) {
             if (key != EmptyMarker) {
                 InsertNoGrow(key);
             }
@@ -611,7 +602,7 @@ private:
     }
 };
 
-template<i64 Value>
+template <i64 Value>
 struct TConstIntEmptyMarker {
     template <typename T>
     operator T() const {
@@ -619,12 +610,110 @@ struct TConstIntEmptyMarker {
     }
 
     template <typename T>
-    bool operator== (T rhs) const {
+    bool operator==(T rhs) const {
         return (T)Value == rhs;
     }
 
     template <typename T>
-    bool operator!= (T rhs) const {
+    bool operator!=(T rhs) const {
         return (T)Value != rhs;
     }
+};
+
+namespace NDenseHashPrivate {
+    template <class T>
+    struct TGenerationEmptyMarker {
+        i32* GenerationIdx = nullptr;
+
+        TGenerationEmptyMarker() = default;
+        TGenerationEmptyMarker(i32* p)
+            : GenerationIdx(p)
+        {
+        }
+
+        std::pair<T, i32> GetActualKey(const T& v) const {
+            return std::make_pair(v, *GenerationIdx);
+        }
+
+        operator std::pair<T, i32>() const {
+            return std::make_pair(T{}, -1);
+        }
+
+        //is Empty
+        bool operator==(const std::pair<T, i32>& rhs) const {
+            return rhs.second < *GenerationIdx;
+        }
+
+        //not Empty
+        bool operator!=(const std::pair<T, i32>& rhs) const {
+            return rhs.second == *GenerationIdx;
+        }
+    };
+
+    template <class TKeyHash>
+    struct THashForwarder {
+        template <class TKey>
+        size_t operator()(const std::pair<TKey, i32>& v) const {
+            return TKeyHash()(v.first);
+        }
+    };
+
+}
+
+template <typename TKey,
+          typename TValue,
+          typename TKeyHash = THash<TKey>,
+          int MaxLoadFactor = 50, // in percents
+          int LogInitSize = 8>
+class TGenerativeDenseHash: private TDenseHash<
+                                 std::pair<TKey, i32>,
+                                 TValue,
+                                 NDenseHashPrivate::THashForwarder<TKeyHash>,
+                                 MaxLoadFactor,
+                                 LogInitSize,
+                                 NDenseHashPrivate::TGenerationEmptyMarker<TKey>> {
+public:
+    using TParent = TDenseHash<
+        std::pair<TKey, i32>,
+        TValue,
+        NDenseHashPrivate::THashForwarder<TKeyHash>,
+        MaxLoadFactor,
+        LogInitSize,
+        NDenseHashPrivate::TGenerationEmptyMarker<TKey>>;
+    using TKeyType = std::pair<TKey, i32>;
+
+    TGenerativeDenseHash(const TValue& defaultValue = TValue(), size_t initSize = 0)
+        : TParent(NDenseHashPrivate::TGenerationEmptyMarker<TKey>(&GenerationId), defaultValue, initSize)
+    {
+        GenerationId = 0;
+    }
+
+    void NewEraClear() {
+        Y_ENSURE(GenerationId < Max<i32>());
+        GenerationId += 1;
+        TParent::NumFilled = 0;
+    }
+
+    TKey GetUserKey(const TKeyType& k) {
+        return k.first;
+    }
+
+    TValue& GetMutable(TKey key, bool* newValueInserted = nullptr) {
+        TValue& res = TParent::GetMutable(
+            TParent::EmptyMarker.GetActualKey(key),
+            newValueInserted);
+        return res;
+    }
+
+    using TParent::Capacity;
+    using TParent::Size;
+    using TParent::begin;
+    using TParent::end;
+
+    const TParent& GetStorageView() const {
+        return *this;
+    }
+
+private:
+    i32 GenerationId = -1;
 };

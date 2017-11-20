@@ -120,8 +120,8 @@ public:
     void MkDirs(const int mode = MODE0777) const;
 
     // XXX: rewrite to return iterator
-    void List(yvector<TFsPath>& children) const;
-    void ListNames(yvector<TString>& children) const;
+    void List(TVector<TFsPath>& children) const;
+    void ListNames(TVector<TString>& children) const;
 
     // fails to delete non-empty directory
     void DeleteIfExists() const;

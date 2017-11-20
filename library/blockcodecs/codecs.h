@@ -65,7 +65,7 @@ namespace NBlockCodecs {
     const ICodec* Codec(const TStringBuf& name);
 
     //some aux methods
-    typedef yvector<TStringBuf> TCodecList;
+    typedef TVector<TStringBuf> TCodecList;
     TCodecList ListAllCodecs();
     TString ListAllCodecsAsString();
 }

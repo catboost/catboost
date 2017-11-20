@@ -42,8 +42,8 @@ enum EHasArg {
 */
 class TOpt {
 public:
-    typedef yvector<char> TShortNames;
-    typedef yvector<TString> TLongNames;
+    typedef TVector<char> TShortNames;
+    typedef TVector<TString> TLongNames;
 
 protected:
     TShortNames Chars_;
@@ -52,7 +52,7 @@ protected:
 
 private:
     typedef TMaybe<TString> TdOptVal;
-    typedef yvector<TSimpleSharedPtr<IOptHandler> > TOptHandlers;
+    typedef TVector<TSimpleSharedPtr<IOptHandler> > TOptHandlers;
 
 public:
     bool Hidden_ = false; // is visible in help
@@ -452,8 +452,8 @@ public:
 
     // Appends FromString<T>(arg) to *target for each argument
     template <typename T>
-    TOpt& AppendTo(yvector<T>* target) {
-        void (yvector<T>::*functionPointer)(const T&) = &yvector<T>::push_back;
+    TOpt& AppendTo(TVector<T>* target) {
+        void (TVector<T>::*functionPointer)(const T&) = &TVector<T>::push_back;
         return Handler1T<T>(std::bind(functionPointer, target, std::placeholders::_1));
     }
 

@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                 numClasses += seen[i];
             }
         }
-        yvector<ui32> indices;
+        TVector<ui32> indices;
         permutation.FillOrder(indices);
 
         ymap<ui32, TArray2D<float>> ctrsCache;
@@ -40,14 +40,14 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
             TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
-            yvector<ui32> compressedIndex;
+            TVector<ui32> compressedIndex;
             dataSet.GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
 
 
             for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
                 const ui32 featureId = dataSet.GetFeatureId(f);
 
-                yvector<ui32> bins;
+                TVector<ui32> bins;
                 ui32 binarization = 0;
                 if (featuresManager.IsFloat(featureId)) {
                     auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(featureId)));
@@ -85,7 +85,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                                                                   binarizedTarget,
                                                                   numClasses);
                         }
-                        yvector<float> values;
+                        TVector<float> values;
                         for (ui32 i = 0; i < catFeatureBins.size(); ++i) {
                             values.push_back(ctrsCache[catFeatureId][i][ctr.Configuration.ParamId]);
                         }
@@ -163,7 +163,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         auto featuresMapping = NCudaLib::TStripeMapping::SplitBetweenDevices(pool.NumFeatures);
 
         TDataPermutation permutation = GetPermutation(dataProvider, permutationId);
-        yvector<ui32> order;
+        TVector<ui32> order;
         permutation.FillOrder(order);
 
         using TDataSet = TGpuBinarizedDataSet<TGridPolicy>;
@@ -173,7 +173,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                                                              docsMapping,
                                                              &order);
 
-            yvector<ui32> features(pool.NumFeatures);
+            TVector<ui32> features(pool.NumFeatures);
             std::iota(features.begin(), features.end(), 1);
             builder.SetFeatureIds(features)
                 .UseForOneHotIds(binarizedFeaturesManager.GetOneHotIds(features));
@@ -195,7 +195,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
             TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
-            yvector<ui32> compressedIndex;
+            TVector<ui32> compressedIndex;
             binarizedDataSet.GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
 
             for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
@@ -215,21 +215,21 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
     template <class TMapping>
     void CheckCtrTargets(const TCtrTargets<TMapping>& targets,
-                         const yvector<ui32>& binarizedTargetRef,
+                         const TVector<ui32>& binarizedTargetRef,
                          const TDataProvider& dataProvider) {
-        yvector<float> targetsCpu;
+        TVector<float> targetsCpu;
         targets.WeightedTarget.Read(targetsCpu);
         for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
             UNIT_ASSERT_DOUBLES_EQUAL(dataProvider.GetTargets()[i] * dataProvider.GetWeights()[i], targetsCpu[i], 1e-9);
         }
 
-        yvector<ui8> binTargetsCpu;
+        TVector<ui8> binTargetsCpu;
         targets.BinarizedTarget.Read(binTargetsCpu);
         for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(binTargetsCpu[i], binarizedTargetRef[i]);
         }
 
-        yvector<float> weightsCpu;
+        TVector<float> weightsCpu;
         targets.Weights.Read(weightsCpu);
         for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(weightsCpu[i], dataProvider.GetWeights()[i]);
@@ -240,14 +240,14 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataSetsHolder<>& dataSet) {
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             auto permutation = GetPermutation(dataProvider, i);
-            yvector<ui32> order;
+            TVector<ui32> order;
             permutation.FillOrder(order);
-            yvector<ui32> inverseOrder;
+            TVector<ui32> inverseOrder;
             permutation.FillInversePermutation(inverseOrder);
 
             auto& ds = dataSet.GetDataSetForPermutation(i);
             {
-                yvector<ui32> tmp;
+                TVector<ui32> tmp;
                 ds.GetIndices().Read(tmp);
                 for (ui32 i = 0; i < order.size(); ++i) {
                     UNIT_ASSERT_VALUES_EQUAL(order[i], tmp[i]);
@@ -299,7 +299,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         }
 
         {
-            yvector<float> prior = {0.5};
+            TVector<float> prior = {0.5};
             featuresManager.EnableCtrType(ECtrType::Buckets, prior);
             featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
         }

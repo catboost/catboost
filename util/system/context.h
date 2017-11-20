@@ -169,3 +169,13 @@ static inline size_t MachineContextSize() noexcept {
 #undef STACK_CNT
 #undef EXTRA_PUSH_ARGS
 #endif
+
+struct TExceptionSafeContext: public TContMachineContext {
+    using TContMachineContext::TContMachineContext;
+
+    void SwitchTo(TExceptionSafeContext* to) noexcept;
+
+#if defined(_unix_)
+    void* Buf_[2] = {0, 0};
+#endif
+};

@@ -4,8 +4,9 @@
 \alias{catboost.from_data_frame}
 \title{catboost.from_data_frame}
 \usage{
-catboost.from_data_frame(data, target = NULL, weight = NULL,
-  baseline = NULL, feature_names = NULL)
+catboost.from_data_frame(data, target = NULL, pairs = NULL, weight = NULL,
+  query_id = NULL, pairs_weight = NULL, baseline = NULL,
+  feature_names = NULL)
 }
 \arguments{
 \item{data}{A data.frame with features.
@@ -25,7 +26,14 @@ Default value: Required argument}
 
 \item{target}{The target vector.}
 
+\item{pairs}{A data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.}
+
 \item{weight}{The weights of the target vector.}
+
+\item{query_id}{The query_id of the target vector.}
+
+\item{pairs_weight}{The weights of the pairs.}
 
 \item{baseline}{Vector of initial (raw) values of the target function for the object.
 Used in the calculation of final values of trees.}

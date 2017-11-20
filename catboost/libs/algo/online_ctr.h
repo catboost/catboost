@@ -1,12 +1,13 @@
 #pragma once
 
+#include "index_hash_calcer.h"
 #include "full_features.h"
-#include "train_data.h"
+#include "projection.h"
 #include "target_classifier.h"
-#include "bin_tracker.h"
+#include "train_data.h"
 
-#include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/online_ctr.h>
 
 
 struct TFold;
@@ -15,7 +16,7 @@ const int SIMPLE_CLASSES_COUNT = 2;
 
 
 struct TOnlineCTR {
-    yvector<TArray2D<yvector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
+    TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
 };
 
 using TOnlineCTRHash = yhash<TProjection, TOnlineCTR>;
@@ -25,7 +26,7 @@ inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift,
     return (ctr + shift) / norm * borderCount;
 }
 
-void CalcNormalization(const yvector<float>& priors, yvector<float>* shift, yvector<float>* norm);
+void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm);
 int GetCtrBorderCount(int targetClassesCount, ECtrType ctrType);
 
 class TLearnContext;
@@ -48,30 +49,28 @@ struct TCalcOnlineCTRsBatchTask {
     TOnlineCTR* Ctr;
 };
 
-void CalcOnlineCTRsBatch(const yvector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
+void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
 
-void CalcFinalCtrs(const TModelCtrBase& ctr,
-                   const TAllFeatures& features,
-                   const ui64 learnSampleCount,
-                   const yvector<int>& learnPermutation,
-                   const yvector<int>& permutedTargetClass,
-                   int targetClassesCount,
-                   ui64 ctrLeafCountLimit,
-                   bool storeAllSimpleCtr,
-                   TCtrValueTable* result);
+void CalcFinalCtrs(
+    const ECtrType ctrType,
+    const TProjection& projection,
+    const TTrainData& data,
+    const TVector<int>& learnPermutation,
+    const TVector<int>& permutedTargetClass,
+    int targetClassesCount,
+    ui64 ctrLeafCountLimit,
+    bool storeAllSimpleCtr,
+    ECounterCalc counterCalcMethod,
+    TCtrValueTable* result);
 
-inline void CalcFinalCtrs(const TModelCtrBase& ctr,
-                          const TTrainData& data,
-                          const yvector<int>& learnPermutation,
-                          const yvector<int>& permutedTargetClass,
-                          int targetClassesCount,
-                          ui64 ctrLeafCountLimit,
-                          bool storeAllSimpleCtr,
-                          ECounterCalc counterCalcMethod,
-                          TCtrValueTable* result) {
-    ui64 sampleCount = data.LearnSampleCount;
-    if (ctr.CtrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
-        sampleCount = data.GetSampleCount();
-    }
-    CalcFinalCtrs(ctr, data.AllFeatures, sampleCount, learnPermutation, permutedTargetClass, targetClassesCount, ctrLeafCountLimit, storeAllSimpleCtr, result);
-}
+void CalcFinalCtrs(
+    const ECtrType ctrType,
+    const TFeatureCombination& projection,
+    const TPool& pool,
+    ui64 sampleCount,
+    const TVector<int>& permutedTargetClass,
+    const TVector<float>& permutedTargets,
+    int targetClassesCount,
+    ui64 ctrLeafCountLimit,
+    bool storeAllSimpleCtr,
+    TCtrValueTable* result);

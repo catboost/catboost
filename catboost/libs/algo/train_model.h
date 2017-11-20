@@ -1,11 +1,12 @@
 #pragma once
 
-#include "params.h"
 #include "learn_context.h"
 #include "full_features.h"
 
+#include <catboost/libs/params/params.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/helpers/eval_helpers.h>
 
 #include <util/generic/maybe.h>
 
@@ -23,7 +24,7 @@ public:
         const TPool& testPool,
         const TString& outputModelPath,
         TFullModel* model,
-        yvector<yvector<double>>* testApprox) const = 0;
+        TEvalResult* evalResult) const = 0;
 
     virtual ~IModelTrainer() = default;
 };
@@ -37,10 +38,10 @@ void TrainModel(
     const TPool& testPool,
     const TString& outputModelPath,
     TFullModel* model,
-    yvector<yvector<double>>* testApprox);
+    TEvalResult* testResult);
 
 void TrainOneIteration(
     const TTrainData& trainData,
     TLearnContext* ctx);
 
-using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, EDeviceType>;
+using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

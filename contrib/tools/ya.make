@@ -1,4 +1,5 @@
 RECURSE(
+    flatc
     protoc
     python
     python/src/Modules/expat

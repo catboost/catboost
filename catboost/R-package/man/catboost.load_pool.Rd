@@ -5,8 +5,9 @@
 \title{Create a dataset}
 \usage{
 catboost.load_pool(data, label = NULL, cat_features = NULL,
-  column_description = NULL, delimiter = "\\t", has_header = FALSE,
-  weight = NULL, baseline = NULL, feature_names = NULL,
+  column_description = NULL, pairs = NULL, delimiter = "\\t",
+  has_header = FALSE, weight = NULL, query_id = NULL,
+  pairs_weight = NULL, baseline = NULL, feature_names = NULL,
   thread_count = 1)
 }
 \arguments{
@@ -32,11 +33,18 @@ The indices are zero based and can differ from the given in the Column descripti
 
 \item{column_description}{The path to the input file that contains the column descriptions.}
 
+\item{pairs}{A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
+The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.}
+
 \item{delimiter}{Delimiter character to use to separate features in a file.}
 
 \item{has_header}{Read column names from first line, if this parameter is set to True.}
 
 \item{weight}{The weights of the target vector.}
+
+\item{query_id}{The query_id of the target vector.}
+
+\item{pairs_weight}{The weights of the pairs.}
 
 \item{baseline}{Vector of initial (raw) values of the target function for the object.
 Used in the calculation of final values of trees.}

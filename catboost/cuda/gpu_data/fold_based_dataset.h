@@ -65,14 +65,14 @@ namespace NCatboostCuda
             return GetBinaryFeatures().NotEmpty() || GetHalfByteFeatures().NotEmpty() || GetFeatures().NotEmpty();
         }
 
-        yvector<ui32> ComputeAllFeatureIds() const
+        TVector<ui32> ComputeAllFeatureIds() const
         {
-            yvector<ui32> result;
-            const yvector<ui32>& binaryFeatureIds = GetBinaryFeatures().GetFeatureIds();
+            TVector<ui32> result;
+            const TVector<ui32>& binaryFeatureIds = GetBinaryFeatures().GetFeatureIds();
             result.insert(result.end(), binaryFeatureIds.begin(), binaryFeatureIds.end());
-            const yvector<ui32>& halfByteFeatureIds = GetHalfByteFeatures().GetFeatureIds();
+            const TVector<ui32>& halfByteFeatureIds = GetHalfByteFeatures().GetFeatureIds();
             result.insert(result.end(), halfByteFeatureIds.begin(), halfByteFeatureIds.end());
-            const yvector<ui32>& byteFeatureIds = GetFeatures().GetFeatureIds();
+            const TVector<ui32>& byteFeatureIds = GetFeatures().GetFeatureIds();
             result.insert(result.end(), byteFeatureIds.begin(), byteFeatureIds.end());
             return result;
         }
@@ -309,7 +309,7 @@ namespace NCatboostCuda
         //ctr_type
         TSimpleSharedPtr<TCtrTargets<NCudaLib::TMirrorMapping>> CtrTargets;
 
-        yvector<TSimpleSharedPtr<TDataSet<CatFeaturesStoragePtrType>>> PermutationDataSets;
+        TVector<TSimpleSharedPtr<TDataSet<CatFeaturesStoragePtrType>>> PermutationDataSets;
         THolder<TDataSet<CatFeaturesStoragePtrType>> TestDataSet;
 
         template<NCudaLib::EPtrType CatFeatureStoragePtrType>

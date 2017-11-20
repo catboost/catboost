@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/logging/logging.h>
+#include "logging.h"
 
 #include <util/ysaveload.h>
 #include <util/generic/map.h>
@@ -11,7 +11,7 @@
 struct TProfileInfoData {
     TProfileInfoData() = default;
     TProfileInfoData(const ymap<TString, double>& operationToTimeInAllIterations,
-            const yvector<yvector<ui64>>& timeLeftHistory, int passedIterations,
+            const TVector<TVector<ui64>>& timeLeftHistory, int passedIterations,
             int badIterations, double passedTime)
         : OperationToTimeInAllIterations(operationToTimeInAllIterations)
         , TimeLeftHistory(timeLeftHistory)
@@ -29,7 +29,7 @@ struct TProfileInfoData {
     }
 
     ymap<TString, double> OperationToTimeInAllIterations;
-    yvector<yvector<ui64>> TimeLeftHistory;
+    TVector<TVector<ui64>> TimeLeftHistory;
     int PassedIterations;
     int BadIterations;
     double PassedTime;
@@ -157,7 +157,7 @@ private:
     static constexpr int MAX_TIME_RATIO = 100;
     ymap<TString, double> OperationToTime;
     ymap<TString, double> OperationToTimeInAllIterations;
-    yvector<yvector<ui64>> TimeLeftHistory;
+    TVector<TVector<ui64>> TimeLeftHistory;
     THPTimer Timer;
     int PassedIterations;
     int InitIterations;

@@ -11,9 +11,9 @@ namespace NCatboostCuda
 
     template <class TModel>
     struct TDynamicBoostingProgress {
-        yvector<yvector<yvector<float>>> PermutationCursor;
-        yvector<float> EstimationCursor;
-        yvector<float> TestCursor;
+        TVector<TVector<TVector<float>>> PermutationCursor;
+        TVector<float> EstimationCursor;
+        TVector<float> TestCursor;
         TModel Model;
         TModelFeaturesMap ModelFeaturesMap;
 

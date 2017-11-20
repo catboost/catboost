@@ -224,9 +224,9 @@ void TPollTest::TestPollInOut() {
 
     ui32 localIp = ntohl(inet_addr("127.0.0.1"));
 
-    yvector<TSimpleSharedPtr<TSocketHolder>> clientSockets;
-    yvector<TSimpleSharedPtr<TSocketHolder>> connectedSockets;
-    yvector<pollfd> fds;
+    TVector<TSimpleSharedPtr<TSocketHolder>> clientSockets;
+    TVector<TSimpleSharedPtr<TSocketHolder>> connectedSockets;
+    TVector<pollfd> fds;
 
     for (size_t i = 0; i < socketCount; ++i) {
         TSimpleSharedPtr<TSocketHolder> clientSocket(new TSocketHolder(StartClientSocket(localIp, port)));

@@ -74,7 +74,7 @@ catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs,
             y = as.double(y) - 1
         }
     }
-    pool <- catboost.from_data_frame(x, y, wts)
+    pool <- catboost.from_data_frame(x, y, weight = wts)
     model <- catboost.train(pool, NULL, param)
     model$lev <- lev
     return(model)

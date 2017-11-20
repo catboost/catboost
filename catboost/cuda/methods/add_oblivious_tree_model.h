@@ -63,7 +63,7 @@ namespace NCatboostCuda
         {
             Y_ASSERT(model.GetStructure() == ModelStructure);
             Tasks.push_back({std::move(indices), &cursor, &dataSet});
-            const yvector<float>& modelValues = model.GetValues();
+            const TVector<float>& modelValues = model.GetValues();
             CB_ENSURE(modelValues.size() == 1 << ModelStructure.GetDepth());
 
             for (ui32 i = 0; i < modelValues.size(); ++i)
@@ -119,11 +119,11 @@ namespace NCatboostCuda
         }
 
     private:
-        yvector<TComputationStream> Streams;
-        yvector<TAddModelTask> Tasks;
+        TVector<TComputationStream> Streams;
+        TVector<TAddModelTask> Tasks;
         TScopedCacheHolder& CacheHolder;
         const TBinarizedFeaturesManager& FeaturesManager;
         TObliviousTreeStructure ModelStructure;
-        yvector<float> CpuLeaves;
+        TVector<float> CpuLeaves;
     };
 }

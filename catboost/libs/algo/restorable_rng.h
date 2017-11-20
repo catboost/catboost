@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/random/fast.h>
-
 #include <util/ysaveload.h>
 
 struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {

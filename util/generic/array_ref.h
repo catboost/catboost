@@ -91,7 +91,7 @@ public:
         return TArrayRef<T>(data() + offset, size() - offset);
     }
 
-    TArrayRef<T> Slice(size_t offset, size_t size) {
+    TArrayRef<T> Slice(size_t offset, size_t size) const {
         Y_ASSERT(offset + size <= this->size());
 
         return TArrayRef<T>(data() + offset, data() + offset + size);

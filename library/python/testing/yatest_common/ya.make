@@ -18,6 +18,7 @@ PY_SRCS(
     yatest/common/process.py
     yatest/common/runtime.py
     yatest/common/runtime_java.py
+    yatest/common/tags.py
     yatest/__init__.py
 
 )
