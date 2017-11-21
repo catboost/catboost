@@ -21,6 +21,7 @@ install:
   
 artifacts:
   - path: catboost/cuda/app/cb_cuda.exe
+  - path: catboost/app/catboost.exe
   - path: 'catboost\**\*.whl'
 
 build_script:
@@ -38,15 +39,22 @@ build_script:
     dir "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
     dir "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin"
 
-    set PATH=%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin;%PATH%
+    xcopy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA" "C:\CUDA" /e /i /h
+
+    dir "C:\CUDA"
+    dir "C:\CUDA\v8.0"
+    dir "C:\CUDA\v8.0\bin"
+    dir "C:\CUDA\v8.0\include"
+
+    set PATH=C:\CUDA\v8.0\bin;%PATH%
 
     nvcc -V
     cd c:\projects\catboost
     call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
     call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
-    call ya.bat make -o . --verbose --stat -r catboost\cuda\app -DCUDA_ROOT="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
+    call ya.bat make -o . --verbose --stat -r catboost\app
+    call ya.bat make -o . --verbose --stat -r catboost\cuda\app -DCUDA_ROOT="C:\\CUDA\\v8.0"
     cd catboost\python-package
-    C:\Python27-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
-    C:\Python35-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
-    C:\Python36-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
-
+    C:\Python27-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\\CUDA\\v8.0"
+    C:\Python35-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\\CUDA\\v8.0"
+    C:\Python36-x64\python.exe mk_wheel.py -DCUDA_ROOT="C:\\CUDA\\v8.0"
