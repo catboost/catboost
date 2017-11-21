@@ -4,7 +4,8 @@
 [Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) |
 [Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
-[![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost) 
+[![Build Status](https://travis-ci.org/catboost/catboost.svg?branch=master)](https://travis-ci.org/catboost/catboost)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/catboost/catboost?branch=master&svg=true)](https://ci.appveyor.com/project/sab/catboost)
 [![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
 
 CatBoost is a machine learning method based on gradient boosting over decision trees.
