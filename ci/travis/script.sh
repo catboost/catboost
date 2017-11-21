@@ -24,19 +24,19 @@ fi
 if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
      install_cuda_linux;
      cd catboost/python-package;
-     python2 ./mk_wheel.py -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
+     python2 ./mk_wheel.py -T -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'python35-linux-x86_64-release' ]; then
      install_cuda_linux;
      cd catboost/python-package;
-     python3 ./mk_wheel.py -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
+     python3 ./mk_wheel.py -T -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'python36-linux-x86_64-release' ]; then
      install_cuda_linux;
      cd catboost/python-package;
-     python3 ./mk_wheel.py -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
+     python3 ./mk_wheel.py -T -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0;
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
