@@ -3,7 +3,7 @@
 
 #pragma push_macro("std");
 #undef std
-#include _LIBCPP_MSVC_INCLUDE(vcruntime_exception.h)
+#include <vcruntime_exception.h>
 #pragma pop_macro("std");
 
 #ifdef std

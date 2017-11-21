@@ -23,7 +23,7 @@ except ImportError:
         pass
 
 try:
-    from gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
 except ImportError:
     try:
         from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger

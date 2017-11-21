@@ -86,7 +86,7 @@ namespace NCudaLib {
             TAdaptiveLock Lock;
         };
 
-        TSimpleSharedPtr<TCudaManagerState> State;
+        TAtomicSharedPtr<TCudaManagerState> State;
         TCudaProfiler* Profiler = nullptr;
         TCudaProfiler* ParentProfiler = nullptr;
 
@@ -448,7 +448,7 @@ namespace NCudaLib {
             return Initialize(TDevicesList(1ULL << dev));
         }
 
-        TChildCudaManagerInitializer(TCudaManager& parent)
+        explicit TChildCudaManagerInitializer(TCudaManager& parent)
             : Parent(parent)
         {
         }

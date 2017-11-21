@@ -8,6 +8,7 @@
 #include <future>
 
 namespace NKernelHost {
+
     class TWaitStreamSubmitSingleHostKernel: public TKernelBase<void, true> {
     private:
         NThreading::TPromise<ui64> Promise;
@@ -240,7 +241,7 @@ namespace NCudaLib {
         template <class TFunc>
         auto LaunchFunc(TFunc&& func) -> TDeviceFuture<decltype(func())> {
             using TTask = THostTask<TFunc>;
-            auto task = MakeHolder<TTask>(std::move(func));
+            auto task = MakeHolder<TTask>(std::forward<TFunc>(func));
             auto futureResult = task->GetResult();
             Worker.AddTask(std::move(task));
             return futureResult;

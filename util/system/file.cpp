@@ -79,9 +79,17 @@ namespace {
 // FreeBSD has performance loss when it is greater than 1GB.
 const size_t MaxPortion = size_t(1 << 30);
 
+static bool IsStupidFlagCombination(EOpenMode oMode) {
+    // ForAppend will actually not be applied in the following combinations:
+    return (oMode & (CreateAlways | ForAppend)) == (CreateAlways | ForAppend)
+        || (oMode & (TruncExisting | ForAppend)) == (TruncExisting | ForAppend)
+        || (oMode & (CreateNew | ForAppend)) == (CreateNew | ForAppend);
+}
+
 TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     ui32 fcMode = 0;
     EOpenMode createMode = oMode & MaskCreation;
+    Y_VERIFY_DEBUG(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
     if (!(oMode & MaskRW))
         oMode |= RdWr;
     if (!(oMode & AMask))

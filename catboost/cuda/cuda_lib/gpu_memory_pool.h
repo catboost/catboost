@@ -17,7 +17,7 @@ namespace NCudaLib {
     template <EPtrType PtrType>
     class TCudaMallocWrapper {
     public:
-        TCudaMallocWrapper(ui64 memorySize) {
+        explicit TCudaMallocWrapper(ui64 memorySize) {
             Y_UNUSED(memorySize);
             MATRIXNET_WARNING_LOG << "We don't support maxMemorySize for CUDA-malloc wrapper" << Endl;
         }

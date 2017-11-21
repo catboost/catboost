@@ -151,9 +151,9 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
             char arr[2];                                                                               \
         };                                                                                             \
         template <class T1>                                                                            \
-        static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = 0);                    \
+        static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr);              \
         static TYes CheckMember(...);                                                                  \
-        enum { Result = (sizeof(TYes) == sizeof(CheckMember((THelper*)0))) };                          \
+        enum { Result = (sizeof(TYes) == sizeof(CheckMember((THelper*)nullptr))) };                    \
     };                                                                                                 \
     template <class T, bool isClassType>                                                               \
     struct TBaseHas##name {                                                                            \
@@ -210,7 +210,7 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
         static TYes CheckSubtype(typename T1::subtype*);                \
         template <class T1>                                             \
         static TNo CheckSubtype(...);                                   \
-        enum { Result = (sizeof(TYes) == sizeof(CheckSubtype<T>(0))) }; \
+        enum { Result = (sizeof(TYes) == sizeof(CheckSubtype<T>(nullptr))) }; \
     }
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)

@@ -703,6 +703,7 @@ template <class T>
 using TSingleBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TSingleMapping>;
 
 namespace NCudaLib {
+
     template <class T, EPtrType Type>
     inline TCudaBuffer<const T, TStripeMapping, Type> StripeView(const TCudaBuffer<const T, TMirrorMapping, Type>& buffer,
                                                                  const TStripeMapping& stripeMapping,

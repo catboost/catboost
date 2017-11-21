@@ -69,6 +69,7 @@ struct TCtrParams {
     int CtrBorderCount = 15;
     int MaxCtrComplexity = 4;
     TVector<float> DefaultPriors = {0, 0.5, 1};
+    TVector<float> DefaultCounterPriors = {0};
     TVector<std::pair<int, TVector<float>>> PerFeaturePriors;
     TVector<TCtrDescription> Ctrs = {TCtrDescription(), TCtrDescription(ECtrType::Counter)};
 };

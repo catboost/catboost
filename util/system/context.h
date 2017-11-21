@@ -176,6 +176,6 @@ struct TExceptionSafeContext: public TContMachineContext {
     void SwitchTo(TExceptionSafeContext* to) noexcept;
 
 #if defined(_unix_)
-    void* Buf_[2] = {0, 0};
+    void* Buf_[2] = {nullptr, nullptr};
 #endif
 };

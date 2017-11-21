@@ -50,6 +50,10 @@ inline TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool)
 inline TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model,
                                            const TVector<ui8>& binarizedFeatures,
                                            size_t treeId) {
+    if (model.ObliviousTrees.GetBinaryFeaturesCount() == 0) {
+        return TVector<TIndexType>();
+    }
+
     auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetBinaryFeaturesCount();
     TVector<TIndexType> indexesVec(docCount);
     const int* treeSplitsCurPtr =

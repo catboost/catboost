@@ -46,7 +46,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 #include <__config>
 #include <cstddef>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 
 #include <support/win32/initializer_list_win32.h>
 

@@ -13,4 +13,7 @@ namespace NKernel {
     void UpdatePartitionOffsets(ui32* offsets, ui32 partCount,
                                 const ui32* sortedBins, ui32 size, TCudaStream stream);
 
+    void ComputeSegmentSizes(const ui32* offsets, ui32 size,
+                             float* dst, TCudaStream stream);
+
 }

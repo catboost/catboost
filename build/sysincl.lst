@@ -4602,6 +4602,8 @@ timelib.h
 ../include/fcntl.h
 ../include/fcntl.h
 ../include/math.h
+vcruntime_exception.h
+vcruntime_new.h
 #endif
 #if defined(_LIBC) && CONTRIB && TRASH
 not-cancel.h

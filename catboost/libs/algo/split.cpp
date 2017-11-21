@@ -29,7 +29,7 @@ TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx) const {
             ref.CatFeatureIdx = oheFeature.CatFeatureIdx;
             ref.Value = oheFeature.Value;
         }
-        const TVector<float>& priors = ctx.Priors.GetPriors(Ctr.Projection);
+        const TVector<float>& priors = ctx.Priors.GetPriors(Ctr.Projection, Ctr.CtrIdx);
         TVector<float> shift;
         TVector<float> norm;
         CalcNormalization(priors, &shift, &norm);

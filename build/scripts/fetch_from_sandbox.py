@@ -337,8 +337,12 @@ def main(resource_id, copy_to, copy_to_dir, untar_to, custom_fetcher, outputs):
         except tarfile.ReadError as e:
             logging.exception(e)
             raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
-
-        os.remove(fetched_file)
+        # Don't remove resource if fetcher specified - it can cache the resource on the discretion
+        if not custom_fetcher:
+            try:
+                os.remove(fetched_file)
+            except OSError:
+                pass
 
     if copy_to:
         hardlink_or_copy(fetched_file, copy_to)

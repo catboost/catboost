@@ -329,8 +329,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
         &hashArr,
         rehashHashTlsVal.GetPtr());
 
-    const TVector<float>& priors = ctx->Priors.GetPriors(proj);
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
+        const TVector<float>& priors = ctx->Priors.GetPriors(proj, ctrIdx);
         int targetClassesCount = fold.TargetClassesCount[ctrIdx];
         ECtrType ctrType = ctx->Params.CtrParams.Ctrs[ctrIdx].CtrType;
         auto borderCount = GetCtrBorderCount(targetClassesCount, ctrType);

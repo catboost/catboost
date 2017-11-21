@@ -49,7 +49,7 @@ public:
         , Layout(featureCount, catFeatures, featureId)
         , CatFeatures(catFeatures.begin(), catFeatures.end()) {
         LocalExecutor.RunAdditionalThreads(Params.ThreadCount - 1);
-        Priors.Init(Params.CtrParams.DefaultPriors, Params.CtrParams.PerFeaturePriors, Layout);
+        Priors.Init(Params.CtrParams.DefaultPriors, Params.CtrParams.DefaultCounterPriors, Params.CtrParams.PerFeaturePriors, Params.CtrParams.Ctrs, Layout);
     }
 
 public:

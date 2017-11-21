@@ -34,6 +34,15 @@ namespace NKernel {
         }
     }
 
+
+    __global__ void ComputeSizes(ui32* beginOffsets, ui32* endOffsets, ui32 count, float* dst) {
+
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        if (i < count) {
+            dst[i] = static_cast<float>(endOffsets[i] - beginOffsets[i]);
+        }
+    }
+
     struct TPartitionOffsetWriter {
         using TStorageType = TDataPartition;
         TDataPartition* Parts;
@@ -120,6 +129,25 @@ namespace NKernel {
             const ui32 numBlocksClear = (partCount + blockSize - 1) / blockSize;
             ZeroPartitions<<<numBlocksClear, blockSize, 0, stream>>>(parts, partCount);
         }
+    }
+
+    __global__ void ComputeSegmentSizesImpl(const ui32* beginOffsets, const ui32* endOffsets, ui32 count, float* dst) {
+
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        if (i < count) {
+            dst[i] = static_cast<float>(endOffsets[i] - beginOffsets[i]);
+        }
+    }
+
+    void ComputeSegmentSizes(const ui32* offsets, ui32 size,
+                             float* dst, TCudaStream stream) {
+        size -= 1;
+        const ui32* begin = offsets;
+        const ui32* end = offsets + 1;
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = (size + blockSize - 1) / blockSize;
+        ComputeSegmentSizesImpl <<< numBlocks, blockSize, 0, stream >>> (begin, end, size, dst);
     }
 
     void UpdatePartitionOffsets(ui32* partOffsets, ui32 partCount,
