@@ -9,7 +9,7 @@
 SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     SIMPLE_UNIT_TEST(ConstructorsAndAssignments) {
         {
-            using container = yqueue<int>;
+            using container = TQueue<int>;
 
             container c1;
             UNIT_ASSERT(!c1);
@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         }
 
         {
-            using container = ypriority_queue<int>;
+            using container = TPriorityQueue<int>;
 
             container c1;
             UNIT_ASSERT(!c1);
@@ -74,7 +74,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(pqueue1) {
-        ypriority_queue<int, ydeque<int>, TLess<int>> q;
+        TPriorityQueue<int, TDeque<int>, TLess<int>> q;
 
         q.push(42);
         q.push(101);
@@ -92,7 +92,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(pqueue2) {
-        using TPQueue = ypriority_queue<int, ydeque<int>, TLess<int>>;
+        using TPQueue = TPriorityQueue<int, TDeque<int>, TLess<int>>;
         TPQueue q;
 
         {
@@ -118,7 +118,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(pqueue3) {
-        ypriority_queue<int, ydeque<int>, TLess<int>> q;
+        TPriorityQueue<int, TDeque<int>, TLess<int>> q;
 
         q.push(42);
         q.push(101);
@@ -129,12 +129,12 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(pqueue4) {
-        ydeque<int> c;
+        TDeque<int> c;
         c.push_back(42);
         c.push_back(101);
         c.push_back(69);
 
-        ypriority_queue<int, ydeque<int>, TLess<int>> q(TLess<int>(), std::move(c));
+        TPriorityQueue<int, TDeque<int>, TLess<int>> q(TLess<int>(), std::move(c));
 
         UNIT_ASSERT(c.empty());
 
@@ -153,7 +153,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(queue1) {
-        yqueue<int, ylist<int>> q;
+        TQueue<int, ylist<int>> q;
 
         q.push(42);
         q.push(101);
@@ -171,11 +171,11 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(queue2) {
-        using TQueue = yqueue<int>;
-        TQueue q;
+        using TQueueType = TQueue<int>;
+        TQueueType q;
 
         {
-            TQueue qq;
+            TQueueType qq;
 
             qq.push(42);
             qq.push(101);
@@ -197,8 +197,8 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(queue3) {
-        using TQueue = yqueue<int>;
-        TQueue q;
+        using TQueueType = TQueue<int>;
+        TQueueType q;
 
         q.push(42);
         q.push(101);

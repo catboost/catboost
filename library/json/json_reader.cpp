@@ -164,7 +164,7 @@ namespace {
 
         NJson::TJsonValue& V;
 
-        ystack<TItem> S;
+        TStack<TItem> S;
 
         TJsonValueBuilder(NJson::TJsonValue& v)
             : V(v)

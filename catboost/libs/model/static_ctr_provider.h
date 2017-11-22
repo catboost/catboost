@@ -73,9 +73,9 @@ public:
     ~TStaticCtrProvider() override {}
     TCtrData CtrData;
 private:
-    yhash<TFloatSplit, int> FloatFeatureIndexes;
-    yhash<int, int> CatFeatureIndex;
-    yhash<TOneHotSplit, int> OneHotFeatureIndexes;
+    THashMap<TFloatSplit, int> FloatFeatureIndexes;
+    THashMap<int, int> CatFeatureIndex;
+    THashMap<TOneHotSplit, int> OneHotFeatureIndexes;
 };
 
 struct TStaticCtrOnFlightSerializationProvider: public ICtrProvider {

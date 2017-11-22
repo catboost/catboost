@@ -243,8 +243,8 @@ private:
  * from IMtpQueue and implement them using functions with same name from
  * pointer to TSlave.
  */
-template <class TQueue, class TSlave>
-class TMtpQueueBinder: public TQueue {
+template <class TQueueType, class TSlave>
+class TMtpQueueBinder: public TQueueType {
 public:
     inline TMtpQueueBinder(TSlave* slave)
         : Slave_(slave)
@@ -253,7 +253,7 @@ public:
 
     template <class T1>
     inline TMtpQueueBinder(TSlave* slave, const T1& t1)
-        : TQueue(t1)
+        : TQueueType(t1)
         , Slave_(slave)
     {
     }

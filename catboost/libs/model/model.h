@@ -209,7 +209,7 @@ private:
 struct TFullModel {
     TObliviousTrees ObliviousTrees;
 
-    yhash<TString, TString> ModelInfo;
+    THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
 
     void Swap(TFullModel& other) {

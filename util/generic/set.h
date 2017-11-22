@@ -62,33 +62,33 @@ public:
 };
 
 template <class K, class L, class A>
-class ymultiset: public std::multiset<K, L, TReboundAllocator<A, K>> {
+class TMultiSet: public std::multiset<K, L, TReboundAllocator<A, K>> {
     using TBase = std::multiset<K, L, TReboundAllocator<A, K>>;
-    using TSelf = ymultiset<K, L, A>;
+    using TSelf = TMultiSet<K, L, A>;
     using TKeyCompare = typename TBase::key_compare;
     using TAllocatorType = typename TBase::allocator_type;
 
 public:
-    inline ymultiset() {
+    inline TMultiSet() {
     }
 
     template <class It>
-    inline ymultiset(It f, It l)
+    inline TMultiSet(It f, It l)
         : TBase(f, l)
     {
     }
 
-    inline ymultiset(std::initializer_list<K> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
+    inline TMultiSet(std::initializer_list<K> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
         : TBase(il, comp, alloc)
     {
     }
 
-    inline ymultiset(const TSelf& src)
+    inline TMultiSet(const TSelf& src)
         : TBase(src)
     {
     }
 
-    inline ymultiset(TSelf&& src) noexcept {
+    inline TMultiSet(TSelf&& src) noexcept {
         this->swap(src);
     }
 

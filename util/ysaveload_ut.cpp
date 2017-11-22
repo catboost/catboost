@@ -178,7 +178,7 @@ private:
         }
 
         {
-            ydeque<ui16> deq;
+            TDeque<ui16> deq;
 
             deq.push_back(1);
             deq.push_back(2);
@@ -321,7 +321,7 @@ private:
         }
 
         {
-            ydeque<ui16> deq;
+            TDeque<ui16> deq;
 
             Load(&S_, deq);
 

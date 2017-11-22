@@ -52,9 +52,9 @@ extern "C" void __mylongjmp(__myjmp_buf env, int val) __attribute__((__noreturn_
 extern "C" int __mysetjmp(__myjmp_buf env) __attribute__((__returns_twice__));
 
 namespace {
-    class TStack {
+    class TStackType {
     public:
-        inline TStack(TMemRegion range) noexcept
+        inline TStackType(TMemRegion range) noexcept
 #if defined(STACK_GROW_DOWN)
             : Data_(range.Data() + range.Size())
 #else
@@ -64,7 +64,7 @@ namespace {
             ReAlign();
         }
 
-        inline ~TStack() = default;
+        inline ~TStackType() = default;
 
         inline void ReAlign() noexcept {
             Data_ = AlignStackPtr(Data_);
@@ -142,7 +142,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
     : San_(c)
 #endif
 {
-    TStack stack(c.Stack);
+    TStackType stack(c.Stack);
 
     /*
      * arg, and align data

@@ -56,7 +56,7 @@ public:
         result.ApproxDimension = ApproxDimension;
         result.LeafValues = LeafValues;
         // indexing binary tree splits
-        yhash<TModelSplit, int> binFeatureIndexes;
+        THashMap<TModelSplit, int> binFeatureIndexes;
         TVector<TModelSplit> usedSplits(ModelSplitSet.begin(), ModelSplitSet.end());
         for (int i = 0; i < usedSplits.ysize(); ++i) {
             int binFeatureIdx = binFeatureIndexes.ysize();

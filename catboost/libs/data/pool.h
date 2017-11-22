@@ -141,6 +141,6 @@ struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are processed by PrepareAllFeatures and PrepareAllFeaturesFromPermutedDocs to reduce memory footprint
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
-    yhash<int, TString> CatFeaturesHashToString;
+    THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
 };

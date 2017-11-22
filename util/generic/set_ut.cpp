@@ -228,7 +228,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         }
 
         {
-            using container = ymultiset<int>;
+            using container = TMultiSet<int>;
 
             container c1;
             c1.insert(100);
@@ -358,7 +358,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
             UNIT_ASSERT(ckeySet.equal_range(2) != std::make_pair(ckeySet.begin(), ckeySet.end()));
         }
         {
-            using KeySet = ymultiset<TKey, TKeyCmp>;
+            using KeySet = TMultiSet<TKey, TKeyCmp>;
             KeySet keySet;
             keySet.insert(TKey(1));
             keySet.insert(TKey(2));
@@ -382,7 +382,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         }
 
         {
-            using KeySet = ymultiset<TKey const volatile*, TKeyCmpPtr>;
+            using KeySet = TMultiSet<TKey const volatile*, TKeyCmpPtr>;
             KeySet keySet;
             TKey key1(1), key2(2), key3(3), key4(4);
             keySet.insert(&key1);

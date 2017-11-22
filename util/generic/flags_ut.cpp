@@ -83,7 +83,7 @@ SIMPLE_UNIT_TEST_SUITE(TFlagsTest) {
     SIMPLE_UNIT_TEST(TestHash) {
         ETest1 value0 = nullptr, value1 = Test1;
 
-        yhash<ETest1, int> hash;
+        THashMap<ETest1, int> hash;
         hash[value0] = 0;
         hash[value1] = 1;
 

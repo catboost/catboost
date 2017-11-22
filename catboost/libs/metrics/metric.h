@@ -99,7 +99,7 @@ struct IMetric {
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
                                        const TVector<ui32>& queriesId,
-                                       const yhash<ui32, ui32>& queriesSize,
+                                       const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const = 0;
 
     virtual TString GetDescription() const = 0;
@@ -119,7 +119,7 @@ struct TMetric: public IMetric {
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
                                        const TVector<ui32>& queriesId,
-                                       const yhash<ui32, ui32>& queriesSize,
+                                       const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
@@ -147,7 +147,7 @@ struct TPairwiseMetric : public IMetric {
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
                                        const TVector<ui32>& queriesId,
-                                       const yhash<ui32, ui32>& queriesSize,
+                                       const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
@@ -289,7 +289,7 @@ struct TQueryRMSEMetric : public TQuerywiseAdditiveMetric {
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
                                        const TVector<ui32>& queriesId,
-                                       const yhash<ui32, ui32>& queriesSize,
+                                       const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
@@ -431,7 +431,7 @@ public:
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
                                        const TVector<ui32>& queriesId,
-                                       const yhash<ui32, ui32>& queriesSize,
+                                       const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const override;
 
     virtual TString GetDescription() const override;
@@ -448,7 +448,7 @@ private:
 
 
 
-TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString, TString>& params, int approxDimension);
+TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, TString>& params, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension);
 
@@ -457,5 +457,5 @@ TVector<THolder<IMetric>> CreateMetrics(const TMaybe<TString>& evalMetric, const
 
 ELossFunction GetLossType(const TString& lossDescription);
 
-yhash<TString, float> GetLossParams(const TString& lossDescription);
+THashMap<TString, float> GetLossParams(const TString& lossDescription);
 

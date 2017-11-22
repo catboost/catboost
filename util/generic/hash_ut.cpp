@@ -108,7 +108,7 @@ protected:
 UNIT_TEST_SUITE_REGISTRATION(THashTest);
 
 void THashTest::TestHMapConstructorsAndAssignments() {
-    using container = yhash<TString, int>;
+    using container = THashMap<TString, int>;
 
     container c1;
     c1["one"] = 1;
@@ -156,7 +156,7 @@ void THashTest::TestHMapConstructorsAndAssignments() {
 }
 
 void THashTest::TestHMap1() {
-    using maptype = yhash<char, TString, THash<char>, TEqualTo<char>>;
+    using maptype = THashMap<char, TString, THash<char>, TEqualTo<char>>;
     maptype m;
     // Store mappings between roman numerals and decimals.
     m['l'] = "50";
@@ -193,7 +193,7 @@ void THashTest::TestHMap1() {
 }
 
 void THashTest::TestHMapEqualityOperator() {
-    using container = yhash<TString, int>;
+    using container = THashMap<TString, int>;
 
     container base;
     base["one"] = 1;
@@ -545,7 +545,7 @@ void THashTest::TestHMSetEqualityOperator() {
 }
 
 void THashTest::TestInsertErase() {
-    using hmap = yhash<TString, size_t, THash<TString>, TEqualTo<TString>>;
+    using hmap = THashMap<TString, size_t, THash<TString>, TEqualTo<TString>>;
     using val_type = hmap::value_type;
 
     {
@@ -642,7 +642,7 @@ static void EmptyAndInsertTest(typename T::value_type v) {
 
 void THashTest::TestEmpty() {
     EmptyAndInsertTest<THashSet<int>>(1);
-    EmptyAndInsertTest<yhash<int, int>>(std::pair<int, int>(1, 2));
+    EmptyAndInsertTest<THashMap<int, int>>(std::pair<int, int>(1, 2));
     EmptyAndInsertTest<THashMultiMap<int, int>>(std::pair<int, int>(1, 2));
 }
 
@@ -664,8 +664,8 @@ void THashTest::TestSizeOf() {
 
     size_t expectedSize = sizeof(uintptr_t) + 2 * sizeof(size_t);
 
-    UNIT_ASSERT_VALUES_EQUAL(sizeof(yhash<int, int>), expectedSize);
-    UNIT_ASSERT_VALUES_EQUAL(sizeof(yhash<std::pair<int, int>, std::pair<int, int>>), expectedSize);
+    UNIT_ASSERT_VALUES_EQUAL(sizeof(THashMap<int, int>), expectedSize);
+    UNIT_ASSERT_VALUES_EQUAL(sizeof(THashMap<std::pair<int, int>, std::pair<int, int>>), expectedSize);
 }
 
 void THashTest::TestInvariants() {
@@ -817,14 +817,14 @@ public:
 };
 
 void THashTest::TestInsertCopy() {
-    yhash<int, int> hash;
+    THashMap<int, int> hash;
 
     /* Insertion should not make copies of the provided key. */
     hash[TNonCopyableInt<0>(0)] = 0;
 }
 
 void THashTest::TestEmplace() {
-    using hash_t = yhash<int, TNonCopyableInt<0>>;
+    using hash_t = THashMap<int, TNonCopyableInt<0>>;
     hash_t hash;
     hash.emplace(std::piecewise_construct, std::forward_as_tuple(1), std::forward_as_tuple(0));
     auto it = hash.find(1);
@@ -832,7 +832,7 @@ void THashTest::TestEmplace() {
 }
 
 void THashTest::TestEmplaceNoresize() {
-    using hash_t = yhash<int, TNonCopyableInt<0>>;
+    using hash_t = THashMap<int, TNonCopyableInt<0>>;
     hash_t hash;
     hash.reserve(1);
     hash.emplace_noresize(std::piecewise_construct, std::forward_as_tuple(1), std::forward_as_tuple(0));
@@ -841,7 +841,7 @@ void THashTest::TestEmplaceNoresize() {
 }
 
 void THashTest::TestEmplaceDirect() {
-    using hash_t = yhash<int, TNonCopyableInt<0>>;
+    using hash_t = THashMap<int, TNonCopyableInt<0>>;
     hash_t hash;
     hash_t::insert_ctx ins;
     hash.find(1, ins);
@@ -919,7 +919,7 @@ void THashTest::TestNonCopyable() {
         }
     };
 
-    yhash<int, TValue> hash;
+    THashMap<int, TValue> hash;
     hash.emplace(std::piecewise_construct, std::forward_as_tuple(1), std::forward_as_tuple(5));
     auto&& value = hash[1];
     UNIT_ASSERT_VALUES_EQUAL(static_cast<int>(value), 5);
@@ -928,7 +928,7 @@ void THashTest::TestNonCopyable() {
 }
 
 void THashTest::TestValueInitialization() {
-    yhash<int, int> hash;
+    THashMap<int, int> hash;
 
     int& value = hash[0];
 
@@ -940,14 +940,14 @@ void THashTest::TestAssignmentClear() {
     /* This one tests that assigning an empty hash resets the buckets array.
      * See operator= for details. */
 
-    yhash<int, int> hash;
+    THashMap<int, int> hash;
     size_t emptyBucketCount = hash.bucket_count();
 
     for (int i = 0; i < 100; i++) {
         hash[i] = i;
     }
 
-    hash = yhash<int, int>();
+    hash = THashMap<int, int>();
 
     UNIT_ASSERT_VALUES_EQUAL(hash.bucket_count(), emptyBucketCount);
 }
@@ -983,15 +983,15 @@ void THashTest::TestReleaseNodes() {
 void THashTest::TestAt() {
 #define TEST_AT_THROWN_EXCEPTION(SRC_TYPE, DST_TYPE, KEY_TYPE, KEY, MESSAGE)                                                                               \
     {                                                                                                                                                      \
-        yhash<SRC_TYPE, DST_TYPE> testMap;                                                                                                                 \
+        THashMap<SRC_TYPE, DST_TYPE> testMap;                                                                                                                 \
         try {                                                                                                                                              \
             KEY_TYPE testKey = KEY;                                                                                                                        \
             testMap.at(testKey);                                                                                                                           \
-            UNIT_ASSERT_C(false, "yhash::at(\"" << KEY << "\") should throw");                                                                             \
+            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw");                                                                             \
         } catch (const yexception& e) {                                                                                                                    \
             UNIT_ASSERT_C(e.AsStrBuf().Contains(MESSAGE), "Incorrect exception description: got \"" << e.what() << "\", expected: \"" << MESSAGE << "\""); \
         } catch (...) {                                                                                                                                    \
-            UNIT_ASSERT_C(false, "yhash::at(\"" << KEY << "\") should throw yexception");                                                                  \
+            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw yexception");                                                                  \
         }                                                                                                                                                  \
     }
 
@@ -1017,8 +1017,8 @@ void THashTest::TestAt() {
 }
 
 void THashTest::TestHMapInitializerList() {
-    yhash<TString, TString> h1 = {{"foo", "bar"}, {"bar", "baz"}, {"baz", "qux"}};
-    yhash<TString, TString> h2;
+    THashMap<TString, TString> h1 = {{"foo", "bar"}, {"bar", "baz"}, {"baz", "qux"}};
+    THashMap<TString, TString> h2;
     h2.insert(std::pair<TString, TString>("foo", "bar"));
     h2.insert(std::pair<TString, TString>("bar", "baz"));
     h2.insert(std::pair<TString, TString>("baz", "qux"));

@@ -19,7 +19,7 @@ namespace {
 
     typedef std::pair<TStringBuf, TStringBuf> TDescriptor;
 
-    struct TStore: public IStore, public yhash<TStringBuf, TDescriptor*> {
+    struct TStore: public IStore, public THashMap<TStringBuf, TDescriptor*> {
         void Store(const TStringBuf& key, const TStringBuf& data) override {
             if (has(key)) {
                 if ((*this)[key]->second != data) {
@@ -62,7 +62,7 @@ namespace {
             return D_.at(idx).first;
         }
 
-        typedef ydeque<TDescriptor> TDescriptors;
+        typedef TDeque<TDescriptor> TDescriptors;
         TDescriptors D_;
     };
 }

@@ -231,7 +231,7 @@ public:
     IOutputStream* OutputStream;
     IOutputStream* ErrorStream;
     TUserOptions User;
-    yhash<TString, TString> Environment;
+    THashMap<TString, TString> Environment;
     int Nice;
 
     static const size_t DefaultSyncPollDelay = 1000; // ms

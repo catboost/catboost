@@ -5,7 +5,7 @@
 #include <util/system/guard.h>
 
 struct TCtrData {
-    yhash<TModelCtrBase, TCtrValueTable> LearnCtrs;
+    THashMap<TModelCtrBase, TCtrValueTable> LearnCtrs;
 
     bool operator==(const TCtrData& other) const {
         return LearnCtrs == other.LearnCtrs;

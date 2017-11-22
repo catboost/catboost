@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TMapFindPtrTest) {
     }
 
     SIMPLE_UNIT_TEST(TestTemplateFind) {
-        yhash<TString, int> m;
+        THashMap<TString, int> m;
 
         m[TString("x")] = 2;
 

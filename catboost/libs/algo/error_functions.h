@@ -76,7 +76,7 @@ public:
                             const TVector<float>& /*target*/,
                             const TVector<float>& /*weight*/,
                             const TVector<ui32>& /*queriesId*/,
-                            const yhash<ui32, ui32>& /*queriesSize*/,
+                            const THashMap<ui32, ui32>& /*queriesSize*/,
                             TVector<TDer1Der2>* /*ders*/) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -420,7 +420,7 @@ public:
                             const TVector<float>& targets,
                             const TVector<float>& weights,
                             const TVector<ui32>& queriesId,
-                            const yhash<ui32, ui32>& queriesSize,
+                            const THashMap<ui32, ui32>& queriesSize,
                             TVector<TDer1Der2>* ders) const {
         int offset = 0;
         while (offset < count) {

@@ -124,7 +124,7 @@ public:
 
 private:
     struct THashPart {
-        yhash<int, TString> CatFeatureHashes;
+        THashMap<int, TString> CatFeatureHashes;
     };
     TPool* Pool;
     static constexpr const int NotSet = -1;
@@ -190,6 +190,9 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
 
 void StartBuilder(const TVector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo, int docCount,
                 bool hasHeader, int offset, IPoolBuilder* poolBuilder) {
+    if (hasHeader) {
+        --docCount;
+    }
     poolBuilder->Start(poolMetaInfo, docCount);
     if (hasHeader) {
         poolBuilder->SetFeatureIds(featureIds);

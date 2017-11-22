@@ -1,7 +1,7 @@
 from libcpp.pair cimport pair
 
 cdef extern from "util/generic/hash.h" nogil:
-    cdef cppclass yhash[T, U]:
+    cdef cppclass THashMap[T, U]:
         cppclass iterator:
             pair[T, U]& operator*()
             iterator operator++()
@@ -12,17 +12,17 @@ cdef extern from "util/generic/hash.h" nogil:
         cppclass const_iterator(iterator):
             pass
 
-        yhash() except +
-        yhash(yhash&) except +
+        THashMap() except +
+        THashMap(THashMap&) except +
         U& operator[](T&)
-        yhash& operator=(yhash&)
+        THashMap& operator=(THashMap&)
 
-        bint operator==(yhash&)
-        bint operator!=(yhash&)
-        bint operator<(yhash&)
-        bint operator>(yhash&)
-        bint operator<=(yhash&)
-        bint operator>=(yhash&)
+        bint operator==(THashMap&)
+        bint operator!=(THashMap&)
+        bint operator<(THashMap&)
+        bint operator>(THashMap&)
+        bint operator<=(THashMap&)
+        bint operator>=(THashMap&)
 
         U& at(T&) except +
         iterator begin()
@@ -43,4 +43,4 @@ cdef extern from "util/generic/hash.h" nogil:
         iterator insert(iterator, pair[T, U]) # XXX pair[T,U]&
         size_t max_size()
         size_t size()
-        void swap(yhash&)
+        void swap(THashMap&)

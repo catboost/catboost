@@ -126,7 +126,7 @@ namespace NCatboostCuda
             return CatFeatures;
         }
 
-        const yhash<TFeatureTensor, TVector<TCtrConfig>>& GetCtrConfigs() const
+        const THashMap<TFeatureTensor, TVector<TCtrConfig>>& GetCtrConfigs() const
         {
             return CtrConfigs;
         }
@@ -257,12 +257,12 @@ namespace NCatboostCuda
         TCudaBuffer<const ui32, TSampleMapping> BaseTensorIndices;
         yset<ui32> CatFeatures;
 
-        yhash<TCtr, ui32> InverseCtrIndex;
+        THashMap<TCtr, ui32> InverseCtrIndex;
         TVector<TCtr> Ctrs;
         TVector<TSlice> CtrBorderSlices;
         TCudaBuffer<float, TFeaturesMapping> CtrBorders;
         TVector<bool> AreCtrBordersComputed;
-        yhash<TFeatureTensor, TVector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
+        THashMap<TFeatureTensor, TVector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
 
         THolder<TGpuDataSet> BinarizedDataSet;
         THolder<TScopedCacheHolder> CacheHolder;

@@ -35,8 +35,8 @@ static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
     return true;
 }
 
-static yhash<ui32, ui32> CalcQueriesSize(const TVector<ui32>& queriesId) {
-    yhash<ui32, ui32> queriesSize;
+static THashMap<ui32, ui32> CalcQueriesSize(const TVector<ui32>& queriesId) {
+    THashMap<ui32, ui32> queriesSize;
     for (int docId = 0; docId < queriesId.ysize(); ++docId) {
         ++queriesSize[queriesId[docId]];
     }
@@ -288,7 +288,7 @@ class TCPUModelTrainer : public IModelTrainer {
         evalResult->SetPredictionTypes(ctx.Params.PredictionTypes);
 
         TObliviousTrees obliviousTrees;
-        yhash<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
+        THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
         {
             TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures);
             for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {

@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TestContext) {
             char Buf[1000000];
         };
 
-        static ydeque<TW> w;
+        static TDeque<TW> w;
 
         auto& tw = w.emplace_back(&f);
 

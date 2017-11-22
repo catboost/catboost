@@ -65,7 +65,7 @@ private:
         }
 
     private:
-        yhash<TKey, TValue> Data;
+        THashMap<TKey, TValue> Data;
     };
 
     template <class TScope, class TKey, class TValue>
@@ -80,7 +80,7 @@ private:
     }
 
 private:
-    yhash<TGUID, ymap<ui64, THolder<IScopedCache>>> ScopeCaches;
+    THashMap<TGUID, ymap<ui64, THolder<IScopedCache>>> ScopeCaches;
 
 public:
     template <class TScope, class TKey, class TBuilder>

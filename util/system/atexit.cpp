@@ -72,8 +72,8 @@ namespace {
     private:
         TAdaptiveLock Lock_;
         TAtomic FinishStarted_;
-        ydeque<TFunc> Store_;
-        ypriority_queue<TFunc*, TVector<TFunc*>, TCmp> Items_;
+        TDeque<TFunc> Store_;
+        TPriorityQueue<TFunc*, TVector<TFunc*>, TCmp> Items_;
     };
 
     static TAtomic atExitLock = 0;

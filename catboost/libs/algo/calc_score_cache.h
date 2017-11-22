@@ -51,7 +51,7 @@ inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TVec
 
 struct TStatsFromPrevTree {
     TAdaptiveLock Lock;
-    yhash<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
+    THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
     THolder<TMemoryPool> MemoryPool;
     inline void Create(int bucketCount, int depth, int approxDimension, int bodyTailCount) {
         const size_t initialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * approxDimension * bodyTailCount;

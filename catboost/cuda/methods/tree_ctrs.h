@@ -277,7 +277,7 @@ namespace NCatboostCuda
         using TMapping = NCudaLib::TSingleMapping;
 
         TCtrFromTensorCalcer(TCtrVisitor& ctrVisitor,
-                             const yhash<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
+                             const THashMap<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
                              const TCtrTargets<TMapping>& ctrTargets)
                 : Target(ctrTargets)
                   , CtrConfigs(ctrConfigs)
@@ -365,7 +365,7 @@ namespace NCatboostCuda
     private:
         using TCtrHelperPtr = THolder<TCalcCtrHelper<TMapping>>;
         const TCtrTargets<TMapping>& Target;
-        const yhash<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
+        const THashMap<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
         ymap<ui32, TCtrHelperPtr> CtrHelpers;
         TCtrVisitor& CtrVisitor;
     };

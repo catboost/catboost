@@ -8,12 +8,12 @@
 
 /*
  * There are 2 classes in this file:
- *   - TDenseHash - analog of yhash
+ *   - TDenseHash - analog of THashMap
  *   - TDenseHashSet - analog of THashSet
  */
 
 /*
- * Implements dense-hash, in some circumstances it is a lot (2x) faster than yhash.
+ * Implements dense-hash, in some circumstances it is a lot (2x) faster than THashMap.
  * We support only adding new elements.
  * TKey value equal to EmptyMarker (by default, it is TKey()) can not be inserted into hash - it is used as marker of empty element.
  */

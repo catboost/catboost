@@ -28,7 +28,7 @@ namespace {
         }
     };
 
-    struct TFormulas: public yhash<size_t, TAutoPtr<TFml>> {
+    struct TFormulas: public THashMap<size_t, TAutoPtr<TFml>> {
         inline TFormulas() {
             TBlob b = TBlob::NoCopy(MxFormulas, MxFormulasSize);
             TArchiveReader ar(b);

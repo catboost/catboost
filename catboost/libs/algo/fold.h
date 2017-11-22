@@ -59,7 +59,7 @@ struct TFold {
 
     TVector<float> LearnWeights;
     TVector<ui32> LearnQueryId;
-    yhash<ui32, ui32> LearnQuerySize;
+    THashMap<ui32, ui32> LearnQuerySize;
     TVector<int> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;

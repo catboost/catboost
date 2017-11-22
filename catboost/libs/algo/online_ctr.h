@@ -19,7 +19,7 @@ struct TOnlineCTR {
     TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
 };
 
-using TOnlineCTRHash = yhash<TProjection, TOnlineCTR>;
+using TOnlineCTRHash = THashMap<TProjection, TOnlineCTR>;
 
 inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift, float norm, int borderCount) {
     float ctr = (countInClass + prior) / (totalCount + 1);

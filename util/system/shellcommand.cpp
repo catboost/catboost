@@ -187,7 +187,7 @@ private:
     bool CloseStreams;
     TAtomic ShouldCloseInput;
     TShellCommandOptions::TUserOptions User;
-    yhash<TString, TString> Environment;
+    THashMap<TString, TString> Environment;
     int Nice;
 
     struct TProcessInfo {

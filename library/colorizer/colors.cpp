@@ -117,7 +117,7 @@ TStringBuf TColors::ColorImpl(int val, int bold) const {
     size_t idx = val * 2 + bold;
     {
         TReadGuard guard(Mutex);
-        yhash<int, TString>::iterator i = ColorBufs.find(idx);
+        THashMap<int, TString>::iterator i = ColorBufs.find(idx);
         if (!i.IsEnd())
             return i->second;
     }

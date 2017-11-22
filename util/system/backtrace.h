@@ -21,6 +21,7 @@ void PrintBackTrace();
 using TFormatBackTraceFn = void (*)(IOutputStream*);
 
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f);
+TFormatBackTraceFn GetFormatBackTraceFn();
 
 class TBackTrace {
 private:

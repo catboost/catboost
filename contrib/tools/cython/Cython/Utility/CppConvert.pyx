@@ -292,30 +292,30 @@ cdef object {{cname}}(const TVector[X]& v):
     return [v[i] for i in range(v.size())]
 
 
-#################### arcadia_yhash.from_py ####################
+#################### arcadia_THashMap.from_py ####################
 
 cdef extern from *:
     cdef cppclass pair "std::pair" [T, U]:
         pair(T&, U&)
-    cdef cppclass yhash [T, U]:
+    cdef cppclass THashMap [T, U]:
         void insert(pair[T, U]&)
 
 
 @cname("{{cname}}")
-cdef yhash[X,Y] {{cname}}(object o) except *:
+cdef THashMap[X,Y] {{cname}}(object o) except *:
     cdef dict d = o
-    cdef yhash[X,Y] m
+    cdef THashMap[X,Y] m
     for key, value in d.iteritems():
         m.insert(pair[X,Y](<X>key, <Y>value))
     return m
 
 
-#################### arcadia_yhash.to_py ####################
+#################### arcadia_THashMap.to_py ####################
 
 cimport cython
 
 cdef extern from *:
-    cdef cppclass yhash [T, U]:
+    cdef cppclass THashMap [T, U]:
         cppclass value_type:
             T first
             U second
@@ -327,10 +327,10 @@ cdef extern from *:
         const_iterator end()
 
 @cname("{{cname}}")
-cdef dict {{cname}}(const yhash[X,Y]& s):
+cdef dict {{cname}}(const THashMap[X,Y]& s):
     cdef dict result = {}
-    cdef const yhash[X,Y].value_type *key_value
-    cdef yhash[X,Y].const_iterator iter = s.begin()
+    cdef const THashMap[X,Y].value_type *key_value
+    cdef THashMap[X,Y].const_iterator iter = s.begin()
     while iter != s.end():
         key_value = &cython.operator.dereference(iter)
         result[key_value.first] = key_value.second

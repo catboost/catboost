@@ -485,7 +485,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
         } else if (mode == E_DaC)
         {
             typedef std::tuple<size_t, size_t, size_t, size_t> t4;
-            yqueue<t4> qr;
+            TQueue<t4> qr;
             qr.push(std::make_tuple(0, dsize, 0, dsize));
             while (!qr.empty())
             {

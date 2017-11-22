@@ -1,4 +1,4 @@
-import os
+import subprocess
 import sys
 
 
@@ -11,12 +11,37 @@ def fix(s):
     # disable dbg DEVTOOLS-2744
     if s == '-g':
         return None
+    if s == '/Z7':
+        return None
 
-    return s
+    # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
+    return s.replace('\\', '/')
+
+
+def fix_path(p):
+    try:
+        i = p.rfind('/bin/clang')
+        p = p[:i] + '/bin/clang-cl'
+    except ValueError:
+        pass
+    return p
 
 
 if __name__ == '__main__':
-    path = sys.argv[1]
-    args = filter(None, [fix(s) for s in [path] + sys.argv[2:]])
+    is_on_win = sys.argv[1] == 'yes'
+    path = sys.argv[2]
+    args = filter(None, [fix(s) for s in sys.argv[3:]])
+    if is_on_win:
+        path = fix_path(path)
+        try:
+            i = args.index('-emit-llvm')
+            args[i:i+1] = ['-Xclang', '-emit-llvm']
+        except ValueError:
+            pass
+        args.append('-fms-compatibility-version=19')
 
-    os.execv(path, args)
+    cmd = [path] + args
+
+    rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
+    sys.exit(rc)
+

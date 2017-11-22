@@ -43,11 +43,11 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
     SIMPLE_UNIT_TEST(IsInTest) {
         TestIsInWithCont<ymap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<ymultimap<TString, TString>>(std::make_pair("found", "1"));
-        TestIsInWithCont<yhash<TString, TString>>(std::make_pair("found", "1"));
+        TestIsInWithCont<THashMap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<THashMultiMap<TString, TString>>(std::make_pair("found", "1"));
 
         TestIsInWithCont<yset<TString>>("found");
-        TestIsInWithCont<ymultiset<TString>>("found");
+        TestIsInWithCont<TMultiSet<TString>>("found");
         TestIsInWithCont<THashSet<TString>>("found");
         TestIsInWithCont<THashMultiSet<TString>>("found");
 

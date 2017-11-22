@@ -67,7 +67,7 @@ private:
         }
 
         inline int Type(const TString& path) {
-            yhash<TString, TPath>::const_iterator it = Srch_.find(path);
+            THashMap<TString, TPath>::const_iterator it = Srch_.find(path);
 
             UNIT_ASSERT(it != Srch_.end());
 
@@ -86,7 +86,7 @@ private:
 
     private:
         TVector<TPath> Paths_;
-        yhash<TString, TPath> Srch_;
+        THashMap<TString, TPath> Srch_;
     };
 
     inline void TestLocal() {

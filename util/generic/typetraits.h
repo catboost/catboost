@@ -237,7 +237,7 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
  * >;
  *
  * static_assert(TIsAssocCont<TVector<int>>::value == false, "");
- * static_assert(TIsAssocCont<yhash<int>>::value == true, "");
+ * static_assert(TIsAssocCont<THashMap<int>>::value == true, "");
  * @endcode
  */
 #define Y_HAS_SUBTYPE(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_HAS_SUBTYPE_IMPL_2, Y_HAS_SUBTYPE_IMPL_1)(__VA_ARGS__))

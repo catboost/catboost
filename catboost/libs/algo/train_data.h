@@ -12,7 +12,7 @@ public:
     TVector<float> Target;
     TVector<float> Weights;
     TVector<ui32> QueryId;
-    yhash<ui32, ui32> QuerySize;
+    THashMap<ui32, ui32> QuerySize;
     TVector<TPair> Pairs;
 
     ssize_t GetSampleCount() const {

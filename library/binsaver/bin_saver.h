@@ -259,10 +259,10 @@ private:
     // or serves as a sign that some object has been already stored - during storing
     bool StableOutput;
 
-    typedef yhash<void*, ui32, TPtrHash> PtrIdHash;
+    typedef THashMap<void*, ui32, TPtrHash> PtrIdHash;
     TAutoPtr<PtrIdHash> PtrIds;
 
-    typedef yhash<ui64, TPtr<IObjectBase> > CObjectsHash;
+    typedef THashMap<ui64, TPtr<IObjectBase> > CObjectsHash;
     TAutoPtr<CObjectsHash> Objects;
 
     TVector<IObjectBase*> ObjectQueue;
@@ -336,7 +336,7 @@ public:
         return 0;
     }
     template<class T1, class T2, class T3, class T4, class T5>
-        int Add(const chunk_id, yhash<T1,T2,T3,T4,T5> *pHash)
+        int Add(const chunk_id, THashMap<T1,T2,T3,T4,T5> *pHash)
     {
         DoAnyMap(*pHash);
         return 0;

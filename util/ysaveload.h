@@ -346,7 +346,7 @@ class TSerializer<TUtf16String>: public TVectorSerializer<TUtf16String> {
 };
 
 template <class T, class A>
-class TSerializer<ydeque<T, A>>: public TVectorSerializer<ydeque<T, A>> {
+class TSerializer<TDeque<T, A>>: public TVectorSerializer<TDeque<T, A>> {
 };
 
 template <class T, class A>
@@ -483,8 +483,8 @@ private:
 };
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
-class TSetSerializerInserter<yhash<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<yhash<T1, T2, T3, T4, T5>, TValue> {
-    using TMap = yhash<T1, T2, T3, T4, T5>;
+class TSetSerializerInserter<THashMap<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<THashMap<T1, T2, T3, T4, T5>, TValue> {
+    using TMap = THashMap<T1, T2, T3, T4, T5>;
     using TBase = TSetSerializerInserterBase<TMap, TValue>;
 
 public:
@@ -578,7 +578,7 @@ class TSerializer<std::multimap<K, T, C, A>>: public TMapSerializer<std::multima
 };
 
 template <class T1, class T2, class T3, class T4, class T5>
-class TSerializer<yhash<T1, T2, T3, T4, T5>>: public TMapSerializer<yhash<T1, T2, T3, T4, T5>, false> {
+class TSerializer<THashMap<T1, T2, T3, T4, T5>>: public TMapSerializer<THashMap<T1, T2, T3, T4, T5>, false> {
 };
 
 template <class T1, class T2, class T3, class T4, class T5>
@@ -598,23 +598,23 @@ class TSerializer<THashSet<T1, T2, T3, T4>>: public TSetSerializer<THashSet<T1, 
 };
 
 template <class T1, class T2>
-class TSerializer<yqueue<T1, T2>> {
+class TSerializer<TQueue<T1, T2>> {
 public:
-    static inline void Save(IOutputStream* rh, const yqueue<T1, T2>& v) {
+    static inline void Save(IOutputStream* rh, const TQueue<T1, T2>& v) {
         ::Save(rh, v.Container());
     }
-    static inline void Load(IInputStream* in, yqueue<T1, T2>& t) {
+    static inline void Load(IInputStream* in, TQueue<T1, T2>& t) {
         ::Load(in, t.Container());
     }
 };
 
 template <class T1, class T2, class T3>
-class TSerializer<ypriority_queue<T1, T2, T3>> {
+class TSerializer<TPriorityQueue<T1, T2, T3>> {
 public:
-    static inline void Save(IOutputStream* rh, const ypriority_queue<T1, T2, T3>& v) {
+    static inline void Save(IOutputStream* rh, const TPriorityQueue<T1, T2, T3>& v) {
         ::Save(rh, v.Container());
     }
-    static inline void Load(IInputStream* in, ypriority_queue<T1, T2, T3>& t) {
+    static inline void Load(IInputStream* in, TPriorityQueue<T1, T2, T3>& t) {
         ::Load(in, t.Container());
     }
 };

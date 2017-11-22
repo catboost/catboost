@@ -27,7 +27,7 @@ protected:
 UNIT_TEST_SUITE_REGISTRATION(TDequeTest);
 
 void TDequeTest::TestConstructorsAndAssignments() {
-    using container = ydeque<int>;
+    using container = TDeque<int>;
 
     container c1;
     c1.push_back(100);
@@ -66,7 +66,7 @@ void TDequeTest::TestConstructorsAndAssignments() {
 }
 
 void TDequeTest::TestDeque1() {
-    ydeque<int> d;
+    TDeque<int> d;
     UNIT_ASSERT(!d);
 
     d.push_back(4);
@@ -89,8 +89,8 @@ void TDequeTest::TestDeque1() {
     UNIT_ASSERT(d[2] == 25);
 
     //Some compile time tests:
-    ydeque<int>::iterator dit = d.begin();
-    ydeque<int>::const_iterator cdit(d.begin());
+    TDeque<int>::iterator dit = d.begin();
+    TDeque<int>::const_iterator cdit(d.begin());
 
     UNIT_ASSERT((dit - cdit) == 0);
     UNIT_ASSERT((cdit - dit) == 0);
@@ -100,14 +100,14 @@ void TDequeTest::TestDeque1() {
 }
 
 void TDequeTest::TestInsert() {
-    ydeque<int> d;
+    TDeque<int> d;
     d.push_back(0);
     d.push_back(1);
     d.push_back(2);
 
     UNIT_ASSERT(d.size() == 3);
 
-    ydeque<int>::iterator dit;
+    TDeque<int>::iterator dit;
 
     //Insertion before begin:
     dit = d.insert(d.begin(), 3);
@@ -177,8 +177,8 @@ void TDequeTest::TestInsert() {
 }
 
 void TDequeTest::TestAt() {
-    ydeque<int> d;
-    ydeque<int> const& cd = d;
+    TDeque<int> d;
+    TDeque<int> const& cd = d;
 
     d.push_back(10);
     UNIT_ASSERT(d.at(0) == 10);
@@ -197,12 +197,12 @@ void TDequeTest::TestAt() {
 
 void TDequeTest::TestAutoRef() {
     int i;
-    ydeque<int> ref;
+    TDeque<int> ref;
     for (i = 0; i < 5; ++i) {
         ref.push_back(i);
     }
 
-    ydeque<ydeque<int>> d_d_int(1, ref);
+    TDeque<TDeque<int>> d_d_int(1, ref);
     d_d_int.push_back(d_d_int[0]);
     d_d_int.push_back(ref);
     d_d_int.push_back(d_d_int[0]);
@@ -215,7 +215,7 @@ void TDequeTest::TestAutoRef() {
 }
 
 void TDequeTest::TestErase() {
-    ydeque<int> dint;
+    TDeque<int> dint;
     dint.push_back(3);
     dint.push_front(2);
     dint.push_back(4);
@@ -224,7 +224,7 @@ void TDequeTest::TestErase() {
     dint.push_front(0);
     dint.push_back(6);
 
-    ydeque<int>::iterator it(dint.begin() + 1);
+    TDeque<int>::iterator it(dint.begin() + 1);
     UNIT_ASSERT(*it == 1);
 
     dint.erase(dint.begin());

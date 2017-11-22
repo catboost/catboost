@@ -252,7 +252,7 @@ class TManyOneQueue: private TNonCopyable {
         ui64 Tag;
     };
 
-    struct TQueue: public TOneOneQueue<TEntry, ChunkSize> {
+    struct TQueueType: public TOneOneQueue<TEntry, ChunkSize> {
         TAtomic WriteLock = 0;
 
         using TOneOneQueue<TEntry, ChunkSize>::PrepareWrite;
@@ -268,7 +268,7 @@ private:
         char Pad[PLATFORM_CACHE_LINE];
     };
 
-    TQueue Queues[Concurrency];
+    TQueueType Queues[Concurrency];
 
 public:
     using TItem = T;
@@ -315,7 +315,7 @@ private:
     bool TryEnqueue(TT&& value, ui64 tag)
     {
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[i];
+            TQueueType& queue = Queues[i];
             if (AtomicTryAndTryLock(&queue.WriteLock)) {
                 TEntry* entry = queue.PrepareWrite();
                 Y_ASSERT(entry);
@@ -404,7 +404,7 @@ public:
 
 template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
 class TRelaxedManyOneQueue: private TNonCopyable {
-    struct TQueue: public TOneOneQueue<T, ChunkSize> {
+    struct TQueueType: public TOneOneQueue<T, ChunkSize> {
         TAtomic WriteLock = 0;
     };
 
@@ -414,7 +414,7 @@ private:
         char Pad[PLATFORM_CACHE_LINE];
     };
 
-    TQueue Queues[Concurrency];
+    TQueueType Queues[Concurrency];
 
 public:
     using TItem = T;
@@ -430,7 +430,7 @@ public:
     bool Dequeue(T& value)
     {
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[ReadPos++ % Concurrency];
+            TQueueType& queue = Queues[ReadPos++ % Concurrency];
             if (queue.Dequeue(value)) {
                 return true;
             }
@@ -454,7 +454,7 @@ private:
     {
         size_t writePos = GetCycleCount();
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[writePos++ % Concurrency];
+            TQueueType& queue = Queues[writePos++ % Concurrency];
             if (AtomicTryAndTryLock(&queue.WriteLock)) {
                 queue.Enqueue(std::forward<TT>(value));
                 AtomicUnlock(&queue.WriteLock);
@@ -471,7 +471,7 @@ private:
 
 template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
 class TRelaxedManyManyQueue: private TNonCopyable {
-    struct TQueue: public TOneOneQueue<T, ChunkSize> {
+    struct TQueueType: public TOneOneQueue<T, ChunkSize> {
         union {
             TAtomic WriteLock = 0;
             char Pad1[PLATFORM_CACHE_LINE];
@@ -483,7 +483,7 @@ class TRelaxedManyManyQueue: private TNonCopyable {
     };
 
 private:
-    TQueue Queues[Concurrency];
+    TQueueType Queues[Concurrency];
 
 public:
     using TItem = T;
@@ -500,7 +500,7 @@ public:
     {
         size_t readPos = GetCycleCount();
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[readPos++ % Concurrency];
+            TQueueType& queue = Queues[readPos++ % Concurrency];
             if (AtomicTryAndTryLock(&queue.ReadLock)) {
                 bool dequeued = queue.Dequeue(value);
                 AtomicUnlock(&queue.ReadLock);
@@ -515,7 +515,7 @@ public:
     bool IsEmpty()
     {
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[i];
+            TQueueType& queue = Queues[i];
             if (AtomicTryAndTryLock(&queue.ReadLock)) {
                 bool empty = queue.IsEmpty();
                 AtomicUnlock(&queue.ReadLock);
@@ -533,7 +533,7 @@ private:
     {
         size_t writePos = GetCycleCount();
         for (size_t i = 0; i < Concurrency; ++i) {
-            TQueue& queue = Queues[writePos++ % Concurrency];
+            TQueueType& queue = Queues[writePos++ % Concurrency];
             if (AtomicTryAndTryLock(&queue.WriteLock)) {
                 queue.Enqueue(std::forward<TT>(value));
                 AtomicUnlock(&queue.WriteLock);

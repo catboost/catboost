@@ -57,16 +57,16 @@ template <class T, class A = std::allocator<T>>
 class TVector;
 
 template <class T, class A = std::allocator<T>>
-class ydeque;
+class TDeque;
 
-template <class T, class S = ydeque<T>>
-class yqueue;
+template <class T, class S = TDeque<T>>
+class TQueue;
 
 template <class T, class S = TVector<T>, class C = TLess<T>>
-class ypriority_queue;
+class TPriorityQueue;
 
 template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
-class yhash;
+class THashMap;
 
 template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
 class THashMultiMap;
@@ -90,10 +90,10 @@ template <class K, class L = TLess<K>, class A = std::allocator<K>>
 class yset;
 
 template <class K, class L = TLess<K>, class A = std::allocator<K>>
-class ymultiset;
+class TMultiSet;
 
-template <class T, class S = ydeque<T>>
-class ystack;
+template <class T, class S = TDeque<T>>
+class TStack;
 
 template <size_t BitCount, typename TChunkType = ui64>
 class TBitMap;

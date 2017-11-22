@@ -6,7 +6,7 @@
 
 inline void OneHotBinsFromTransposedCatFeatures(
     const TVector<TOneHotFeature>& OneHotFeatures,
-    const yhash<int, int> catFeaturePackedIndex,
+    const THashMap<int, int> catFeaturePackedIndex,
     const size_t docCount,
     TVector<ui8>& result,
     TVector<int>& transposedHash,
@@ -115,7 +115,7 @@ inline void BinarizeFeatures(
                 idx += docCount;
             }
         }
-        yhash<int, int> catFeaturePackedIndexes;
+        THashMap<int, int> catFeaturePackedIndexes;
         for (int i = 0; i < model.ObliviousTrees.CatFeatures.ysize(); ++i) {
             catFeaturePackedIndexes[model.ObliviousTrees.CatFeatures[i].FeatureIndex] = i;
         }

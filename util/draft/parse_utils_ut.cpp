@@ -11,7 +11,7 @@ class TUtilDraftParseUtilsTest: public TTestBase {
 
 private:
     template <class T>
-    static void CheckHash(const yhash<TString, T>& hm, const char* k, const T* v);
+    static void CheckHash(const THashMap<TString, T>& hm, const char* k, const T* v);
 
 public:
     void testAddToNameValueHash();
@@ -22,8 +22,8 @@ public:
 UNIT_TEST_SUITE_REGISTRATION(TUtilDraftParseUtilsTest);
 
 template <class T>
-void TUtilDraftParseUtilsTest::CheckHash(const yhash<TString, T>& hm, const char* k, const T* v) {
-    typename yhash<TString, T>::const_iterator it = hm.find(k);
+void TUtilDraftParseUtilsTest::CheckHash(const THashMap<TString, T>& hm, const char* k, const T* v) {
+    typename THashMap<TString, T>::const_iterator it = hm.find(k);
     if (v) {
         UNIT_ASSERT(it != hm.end());
         UNIT_ASSERT_EQUAL(it->second, *v);
@@ -35,7 +35,7 @@ void TUtilDraftParseUtilsTest::CheckHash(const yhash<TString, T>& hm, const char
 void TUtilDraftParseUtilsTest::testAddToNameValueHash() {
     const char* nvString = "a=4\tb=0.03\tc=12\trt=0.23";
 
-    yhash<TString, float> nvMap;
+    THashMap<TString, float> nvMap;
     AddToNameValueHash(nvString, nvMap);
 
     float v;

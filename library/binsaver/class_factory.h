@@ -14,8 +14,8 @@ public:
     typedef const std::type_info *VFT;
 private:
     typedef T* (*newFunc)();
-    typedef yhash<int, newFunc> CTypeNewHash;                // typeID->newFunc()
-    typedef yhash<VFT, int, ::TPtrHash> CTypeIndexHash; // vftable->typeID
+    typedef THashMap<int, newFunc> CTypeNewHash;                // typeID->newFunc()
+    typedef THashMap<VFT, int, ::TPtrHash> CTypeIndexHash; // vftable->typeID
 
     CTypeIndexHash typeIndex;
     CTypeNewHash typeInfo;

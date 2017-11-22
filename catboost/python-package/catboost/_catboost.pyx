@@ -19,7 +19,7 @@ from util.generic.string cimport TString
 from util.generic.string cimport TStringBuf
 from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
-from util.generic.hash cimport yhash
+from util.generic.hash cimport THashMap
 
 
 class CatboostError(Exception):
@@ -66,7 +66,7 @@ cdef extern from "catboost/libs/data/pool.h":
         TDocumentStorage Docs
         TVector[int] CatFeatures
         TVector[TString] FeatureId
-        yhash[int, TString] CatFeaturesHashToString
+        THashMap[int, TString] CatFeaturesHashToString
         TVector[TPair] Pairs
 
 cdef extern from "catboost/libs/data/load_data.h":
@@ -103,7 +103,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
 
-        yhash[TString, TString] ModelInfo
+        THashMap[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
 

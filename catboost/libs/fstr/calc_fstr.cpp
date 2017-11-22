@@ -34,7 +34,7 @@ struct TFeatureHash {
     }
 };
 
-static TVector<TMxTree> BuildTrees(const yhash<TFeature, int, TFeatureHash>& featureToIdx,
+static TVector<TMxTree> BuildTrees(const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
                                    const TFullModel& model) {
     TVector<TMxTree> trees(model.ObliviousTrees.GetTreeCount());
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
@@ -90,7 +90,7 @@ static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
 }
 
 TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>* features) {
-    yhash<TFeature, int, TFeatureHash> featureToIdx;
+    THashMap<TFeature, int, TFeatureHash> featureToIdx;
     const auto& modelBinFeatures = model.ObliviousTrees.GetBinFeatures();
     for (auto binSplit : model.ObliviousTrees.TreeSplits) {
         TFeature feature = GetFeature(modelBinFeatures[binSplit]);
@@ -227,7 +227,7 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
 
 TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
                                                           const TFeaturesLayout& layout) {
-    yhash<std::pair<int, int>, double> sumInteraction;
+    THashMap<std::pair<int, int>, double> sumInteraction;
     double totalEffect = 0;
 
     for (const auto& effectWithFeaturePair : internalFeatureInteraction) {

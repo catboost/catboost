@@ -21,7 +21,7 @@ public:
         return result;\
     }\
 private:\
-    yhash<TNativeType, flatbuffers::Offset<TFlatbuffersType>> OffsetsFor##TNativeType;
+    THashMap<TNativeType, flatbuffers::Offset<TFlatbuffersType>> OffsetsFor##TNativeType;
 
     GENERATE_OFFSET_HELPER(TModelCtrBase, NCatBoostFbs::TModelCtrBase)
     GENERATE_OFFSET_HELPER(TModelCtr, NCatBoostFbs::TModelCtr)

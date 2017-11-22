@@ -111,7 +111,7 @@ struct TDumper<std::array<T, N>>: public TSeqDumper {
 };
 
 template <class T, class A>
-struct TDumper<ydeque<T, A>>: public TSeqDumper {
+struct TDumper<TDeque<T, A>>: public TSeqDumper {
 };
 
 template <class T, class A>
@@ -132,11 +132,11 @@ struct TDumper<yset<T, P, A>>: public TAssocDumper {
 };
 
 template <class T, class P, class A>
-struct TDumper<ymultiset<T, P, A>>: public TAssocDumper {
+struct TDumper<TMultiSet<T, P, A>>: public TAssocDumper {
 };
 
 template <class K, class V, class H, class P, class A>
-struct TDumper<yhash<K, V, H, P, A>>: public TAssocDumper {
+struct TDumper<THashMap<K, V, H, P, A>>: public TAssocDumper {
 };
 
 template <class K, class V, class H, class P, class A>

@@ -25,7 +25,7 @@ TMetricHolder TMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
                                     const TVector<float>& /*target*/,
                                     const TVector<float>& /*weight*/,
                                     const TVector<ui32>& /*queriesId*/,
-                                    const yhash<ui32, ui32>& /*queriesSize*/,
+                                    const THashMap<ui32, ui32>& /*queriesSize*/,
                                     int /*begin*/, int /*end*/) const {
     CB_ENSURE(false, "This eval is only for Querywise");
 }
@@ -52,7 +52,7 @@ TMetricHolder TPairwiseMetric::EvalQuerywise(const TVector<TVector<double>>& /*a
                                             const TVector<float>& /*target*/,
                                             const TVector<float>& /*weight*/,
                                             const TVector<ui32>& /*queriesId*/,
-                                            const yhash<ui32, ui32>& /*queriesSize*/,
+                                            const THashMap<ui32, ui32>& /*queriesSize*/,
                                             int /*begin*/, int /*end*/) const {
     CB_ENSURE(false, "This eval is not for Pairwise");
 }
@@ -461,7 +461,7 @@ TMetricHolder TQueryRMSEMetric::EvalQuerywise(const TVector<TVector<double>>& ap
                                          const TVector<float>& target,
                                          const TVector<float>& weight,
                                          const TVector<ui32>& queriesId,
-                                         const yhash<ui32, ui32>& queriesSize,
+                                         const THashMap<ui32, ui32>& queriesSize,
                                          int begin, int end) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryRMSE supports only single-dimensional data");
 
@@ -977,7 +977,7 @@ TMetricHolder TCustomMetric::EvalQuerywise(const TVector<TVector<double>>& /*app
                                           const TVector<float>& /*target*/,
                                           const TVector<float>& /*weight*/,
                                           const TVector<ui32>& /*queriesId*/,
-                                          const yhash<ui32, ui32>& /*queriesSize*/,
+                                          const THashMap<ui32, ui32>& /*queriesSize*/,
                                           int /*begin*/, int /*end*/) const {
     CB_ENSURE(false, "This eval is only for QueryRMSE");
 }
@@ -1000,7 +1000,7 @@ double TCustomMetric::GetFinalError(const TMetricHolder& error) const {
 
 /* Create */
 
-TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const yhash<TString, float>& params, int approxDimension) {
+TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, float>& params, int approxDimension) {
     if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
     }
@@ -1171,7 +1171,7 @@ ELossFunction GetLossType(const TString& lossDescription) {
     return customLoss;
 }
 
-yhash<TString, float> GetLossParams(const TString& lossDescription) {
+THashMap<TString, float> GetLossParams(const TString& lossDescription) {
     const char* errorMessage = "Invalid metric description, it should be in the form "
                                "\"metric_name:param1=value1;...;paramN=valueN\"";
 
@@ -1179,7 +1179,7 @@ yhash<TString, float> GetLossParams(const TString& lossDescription) {
     CB_ENSURE(!tokens.empty(), "Metric description should not be empty");
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
-    yhash<TString, float> params;
+    THashMap<TString, float> params;
     if (tokens.size() == 2) {
         TVector<TString> paramsTokens = StringSplitter(tokens[1]).Split(';').ToList<TString>();
 

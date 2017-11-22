@@ -41,6 +41,7 @@ fi
 
 if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
     ./ya make --stat -T -r -j 1 catboost/app;
-    cp $(readlink -f catboost/app/catboost) catboost-darwin;
+    cp $(readlink catboost/app/catboost) catboost-darwin;
 fi
+
 

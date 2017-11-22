@@ -48,7 +48,7 @@ namespace {
             ythrow yexception() << "can not find codec by id " << id;
         }
 
-        typedef yhash<TCodecID, const ICodec*> TByID;
+        typedef THashMap<TCodecID, const ICodec*> TByID;
         TByID ByID;
     };
 

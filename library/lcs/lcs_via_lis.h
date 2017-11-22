@@ -12,7 +12,7 @@ namespace NLCS {
     template <typename TVal>
     struct TLCSCtx {
         typedef TVector<ui32> TSubsequence;
-        typedef yhash<TVal, TSubsequence, THash<TVal>, TEqualTo<TVal>, ::TPoolAllocator> TEncounterIndex;
+        typedef THashMap<TVal, TSubsequence, THash<TVal>, TEqualTo<TVal>, ::TPoolAllocator> TEncounterIndex;
         typedef TVector<std::pair<ui32, ui32>> TLastIndex;
         typedef NPagedVector::TPagedVector<TSubsequence, 4096> TCover;
 

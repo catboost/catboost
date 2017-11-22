@@ -145,7 +145,7 @@ TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
 TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
                                                                  int topPairsCount) {
     int featureCount = GetMaxSrcFeature(trees) + 1;
-    yhash<std::pair<int, int>, double> sumInteractions;
+    THashMap<std::pair<int, int>, double> sumInteractions;
 
     for (int i = 0; i < trees.ysize(); ++i) {
         const TMxTree& tree = trees[i];

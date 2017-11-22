@@ -105,7 +105,7 @@ private:
 
     void UpdatePValue();
 
-    ydeque<double> Errors;
+    TDeque<double> Errors;
 
     double LocalMax;
     double ExpectedInc;

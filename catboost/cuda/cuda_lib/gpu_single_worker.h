@@ -62,7 +62,7 @@ namespace NCudaLib {
 
         private:
             TCudaStream Stream;
-            yqueue<TKernelTask> WaitingTasks;
+            TQueue<TKernelTask> WaitingTasks;
             TKernelTask RunningTask;
             mutable bool IsActiveFlag;
 

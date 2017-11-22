@@ -1129,7 +1129,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-Dyhash=THashMap')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
         append('CXXFLAGS', '$CXX_WARNING_OPTS', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1335,7 +1335,7 @@ class LD(Linker):
             self.ld_stripflag = '-s'
             self.soname_option = '-soname'
 
-        if target.is_macos:
+        if target.is_macos or target.is_ios:
             self.use_stdlib = '-nodefaultlibs'
             self.soname_option = '-install_name'
             if not preset('NO_DEBUGINFO'):
@@ -1418,12 +1418,14 @@ class LD(Linker):
              ld_env_style)
 
         if self.dwarf_command is None:
-            emit('APPEND_DWARF_COMMAND')
+            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE')
+            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB')
+            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD')
         else:
-            emit('APPEND_DWARF_COMMAND', '&&', self.dwarf_command, ld_env_style)
-        emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE $APPEND_DWARF_COMMAND')
-        emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB $APPEND_DWARF_COMMAND')
-        emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD $APPEND_DWARF_COMMAND')
+            emit('DWARF_TOOL_COMMAND', self.dwarf_command, ld_env_style)
+            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
+            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
+            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD', '&&', '$DWARF_TOOL_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
 
@@ -1551,7 +1553,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dyhash=THashMap']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1982,7 +1984,7 @@ class Cuda(object):
                 if target.is_x86_64:
                     nvcc_flags.append('--compiler-bindir=$(CUDA_XCODE)/usr/bin')
 
-        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\\\bin\\\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
 
         if preset('CUDA_NVCC_FLAGS') is None:

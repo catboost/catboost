@@ -57,7 +57,7 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
     // long_alias has a form "long-name1=A,long-name2=B", etc.
     // This implementation is limited to aliasing a single long option
     // with single short option (extend it if you really need).
-    yhash<const char*, char> long2short;
+    THashMap<const char*, char> long2short;
     long2short["help"] = '?';
     long_alias = long_alias? long_alias : "";
     alias_copy = long_alias;
@@ -105,7 +105,7 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
             // long option always spans one argv (--switch or --option-name=value)
             const char *eq = strchr(s, '=');
             TString lname(s, eq ? (size_t)(eq - s) : (size_t)strlen(s));
-            yhash<const char*, char>::iterator i = long2short.find(~lname);
+            THashMap<const char*, char>::iterator i = long2short.find(~lname);
             if (i == long2short.end()) {
                 UnknownLongOption = strdup(~lname); // free'd in AutoUsage()
                 HasErrors = true;

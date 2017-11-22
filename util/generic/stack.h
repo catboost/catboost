@@ -6,16 +6,16 @@
 #include <stack>
 
 template <class T, class S>
-class ystack: public std::stack<T, S> {
+class TStack: public std::stack<T, S> {
     using TBase = std::stack<T, S>;
 
 public:
-    inline ystack()
+    inline TStack()
         : TBase()
     {
     }
 
-    explicit ystack(const S& s)
+    explicit TStack(const S& s)
         : TBase(s)
     {
     }

@@ -287,6 +287,10 @@ TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f) {
     return prevFn;
 }
 
+TFormatBackTraceFn GetFormatBackTraceFn() {
+    return FormatBackTraceFn;
+}
+
 void PrintBackTrace() {
     FormatBackTrace(&Cerr);
 }

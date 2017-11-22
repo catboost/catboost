@@ -60,7 +60,7 @@ namespace NUnitTest {
     };
 
     struct TTestContext {
-        using TMetrics = yhash<TString, double>;
+        using TMetrics = THashMap<TString, double>;
         TMetrics Metrics;
     };
 

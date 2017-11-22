@@ -15,7 +15,7 @@
 
   Use segpool_alloc_vt as allocator template parameter for container.
   Example:
-  using TSomething = yhash<A, B, hash<A>, TEqualTo<A>, segpool_alloc_vt>;
+  using TSomething = THashMap<A, B, hash<A>, TEqualTo<A>, segpool_alloc_vt>;
   ...
   TSomething something;
   something.GetNodeAllocator().pool = &alloc_pool;
@@ -25,7 +25,7 @@
   hack them, or fix segpool_alloc so that it would create ref-counted
   segmented_pool object on it's own
 
-  ! Only tested with yhash
+  ! Only tested with THashMap
 */
 
 template <class _Tp>

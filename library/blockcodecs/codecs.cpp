@@ -462,7 +462,7 @@ namespace {
         TNullCodec Null;
         TSnappyCodec Snappy;
         TVector<TCodecPtr> Codecs;
-        typedef yhash<TStringBuf, ICodec*> TRegistry;
+        typedef THashMap<TStringBuf, ICodec*> TRegistry;
         TRegistry Registry;
     };
 }

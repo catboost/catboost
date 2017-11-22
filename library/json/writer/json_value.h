@@ -35,8 +35,8 @@ class TJsonValue {
     void Clear() noexcept;
 public:
 
-    typedef yhash<TString, TJsonValue> TMap;
-    typedef ydeque<TJsonValue> TArray;
+    typedef THashMap<TString, TJsonValue> TMap;
+    typedef TDeque<TJsonValue> TArray;
 
     TJsonValue() noexcept = default;
     TJsonValue(EJsonValueType type);

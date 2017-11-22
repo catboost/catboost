@@ -148,10 +148,10 @@ void BenchMaps() {
     size_t yhashMapFound, denseHashMapFound, stdHashMapFound, googleDenseHashMapFound;
 
     {
-        yhash<ui32, ui32> yhashMap;
-        BenchAddingToHashMap(yhashMap, keys, "adding to yhash");
-        yhashMapFound = BenchGettingFromHashMap(yhashMap, shuffledKeys, "getting from yhash");
-        BenchSerialization(yhashMap, "yhash");
+        THashMap<ui32, ui32> yhashMap;
+        BenchAddingToHashMap(yhashMap, keys, "adding to THashMap");
+        yhashMapFound = BenchGettingFromHashMap(yhashMap, shuffledKeys, "getting from THashMap");
+        BenchSerialization(yhashMap, "THashMap");
     }
     Cout << "---------------" << Endl;
     {
@@ -176,7 +176,7 @@ void BenchMaps() {
     }
     Cout << "---------------" << Endl;
 
-    Cout << "found in yhash: " << yhashMapFound << "\n";
+    Cout << "found in THashMap: " << yhashMapFound << "\n";
     Cout << "found in dense hash: " << denseHashMapFound << "\n";
     Cout << "found in std hash: " << stdHashMapFound << "\n";
     Cout << "found in google dense hash: " << googleDenseHashMapFound << "\n";
@@ -191,7 +191,7 @@ void BenchSets() {
         THashSet<ui32> yhashSet;
         BenchAddingToHashSet(yhashSet, "adding to THashSet");
         yhashSetFound = BenchGettingFromHashSet(yhashSet, "getting from THashSet");
-        BenchSerialization(yhashSet, "yhash");
+        BenchSerialization(yhashSet, "THashMap");
     }
     {
         TDenseHashSetAdapter<ui32> denseHashSet((ui32)-1);
