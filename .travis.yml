@@ -37,6 +37,8 @@ matrix:
         api_key: $GITHUB_OAUTH_TOKEN
         file: catboost-cuda-linux
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
     - os: linux
@@ -49,6 +51,8 @@ matrix:
         api_key: $GITHUB_OAUTH_TOKEN
         file: catboost-linux
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
     - os: linux
@@ -63,6 +67,8 @@ matrix:
         file_glob: true
         file: catboost/python-package/*.whl
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
     - os: linux
@@ -77,6 +83,8 @@ matrix:
         file_glob: true
         file: catboost/python-package/*.whl
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
     - os: linux
@@ -91,6 +99,8 @@ matrix:
         file_glob: true
         file: catboost/python-package/*.whl
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
     - os: osx
@@ -103,6 +113,8 @@ matrix:
         api_key: $GITHUB_OAUTH_TOKEN
         file: catboost-darwin
         skip_cleanup: true
+        prerelease: true
+        draft: true
         on:
           tags: true
 
