@@ -34,7 +34,7 @@ namespace NCatboostCuda
                   , CatFeaturesCount(catFeaturesCount)
                   , BinFeatureCountPerCatFeature(featuresManager.MaxTreeCtrBinFeaturesCount())
                   , CatFeaturesStoragePtrType(ptrType)
-                  , CtrPerCatFeature(featuresManager.CtrsPerFeatureTensorCount())
+                  , CtrPerCatFeature(featuresManager.CtrsPerTreeCtrFeatureTensor())
         {
             MaxPackSize = EstimateMaxPackSize();
         }
@@ -295,7 +295,7 @@ namespace NCatboostCuda
             CB_ENSURE(CtrConfigs.has(tensor), "Error: unknown feature tensor");
             const auto& configs = CtrConfigs.at(tensor);
 
-            auto grouppedConfigs = CreateEqualUpToPriorCtrsGroupping(configs);
+            auto grouppedConfigs = CreateEqualUpToPriorAndBinarizationCtrsGroupping(configs);
 
             //TODO(noxoomo): it should be done another way. we use helper implementation here
             // dirty hack for memory usage. BinFreq ctrs aren't cached in ctr-helper, so they'll stop the world after
@@ -438,8 +438,7 @@ namespace NCatboostCuda
                                                                         GatherIndices.GetMapping());
             for (ui32 i = 0; i < ctrs.size(); ++i)
             {
-                dataSet->HostFeatures[i].Folds = TreeCtrDataSet.FeaturesManager.GetCtrBinarization(
-                        ctrs[i]).Discretization;
+                dataSet->HostFeatures[i].Folds = TreeCtrDataSet.FeaturesManager.GetCtrBinarization(ctrs[i]).BorderCount;
             }
 
             //grid
@@ -477,12 +476,12 @@ namespace NCatboostCuda
         }
 
         void ComputeCtrBorders(const TVec& ctr,
-                               const TBinarizationDescription& binarizationDescription,
+                               const NCatboostOptions::TBinarizationOptions& binarizationDescription,
                                ui32 stream,
                                TVec& dst)
         {
             auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Build ctr borders");
-            CB_ENSURE(dst.GetMapping().GetObjectsSlice().Size() == binarizationDescription.Discretization + 1);
+            CB_ENSURE(dst.GetMapping().GetObjectsSlice().Size() == binarizationDescription.BorderCount + 1);
             ComputeBordersOnDevice(ctr,
                                    binarizationDescription,
                                    dst,

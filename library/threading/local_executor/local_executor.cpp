@@ -71,6 +71,40 @@ namespace NPar {
         }
     };
 
+    class TFunctionWrapperWithPromise : public ILocallyExecutable {
+    private:
+        TLocallyExecutableFunction Exec;
+        int FirstId, LastId;
+        TVector<NThreading::TPromise<void>> Promises;
+    public:
+       TFunctionWrapperWithPromise(TLocallyExecutableFunction exec, int firstId, int lastId)
+            : Exec(exec)
+            , FirstId(firstId)
+            , LastId(lastId)
+        {
+            Y_ASSERT(FirstId <= LastId);
+            const int rangeSize = LastId - FirstId;
+            Promises.resize(rangeSize, NThreading::NewPromise());
+            for (auto& promise : Promises) {
+                promise = NThreading::NewPromise();
+            }
+        }
+
+        void LocalExec(int id) override {
+            Y_ASSERT(FirstId <= id && id < LastId);
+            NThreading::NImpl::SetValue(Promises[id - FirstId], [=] { Exec(id); });
+        }
+
+        TVector<NThreading::TFuture<void>> GetFutures() const {
+            TVector<NThreading::TFuture<void>> out;
+            out.reserve(Promises.ysize());
+            for (auto& promise : Promises) {
+                out.push_back(promise.GetFuture());
+            }
+            return out;
+        }
+    };
+
     //////////////////////////////////////////////////////////////////////////
     const int FAST_ITERATIONS = 200;
     void* TLocalExecutor::HostWorkerThread(void* p) {
@@ -225,6 +259,21 @@ namespace NPar {
 
     void TLocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
         ExecRange(new TFunctionWrapper(exec), firstId, lastId, flags);
+    }
+
+    void TLocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+        Y_VERIFY((flags & WAIT_COMPLETE) != 0, "ExecRangeWithThrow() requires WAIT_COMPLETE to wait if exceptions arise.");
+        TVector<NThreading::TFuture<void>> currentRun = ExecRangeWithFutures(exec, firstId, lastId, flags);
+        for (auto& result : currentRun) {
+            result.GetValueSync(); // Exception will be rethrown if exists. If several exception - only the one with minimal id is rethrown.
+        }
+    }
+
+    TVector<NThreading::TFuture<void>> TLocalExecutor::ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+        TFunctionWrapperWithPromise* execWrapper = new TFunctionWrapperWithPromise(exec, firstId, lastId);
+        TVector<NThreading::TFuture<void>> out = execWrapper->GetFutures();
+        ExecRange(execWrapper, firstId, lastId, flags);
+        return out;
     }
 
     void TLocalExecutor::ClearLPQueue() {

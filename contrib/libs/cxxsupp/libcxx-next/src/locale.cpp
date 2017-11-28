@@ -37,7 +37,6 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
-#include "include/atomic_support.h"
 #include "__undef_macros"
 
 // On Linux, wint_t and wchar_t have different signed-ness, and this causes

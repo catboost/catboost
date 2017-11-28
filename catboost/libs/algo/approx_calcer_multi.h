@@ -114,16 +114,17 @@ void CalcApproxDeltaMulti(const TFold& ff,
 
         const int leafCount = tree.GetLeafCount();
         TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
-        const int gradientIterations = ctx->Params.GradientIterations;
-        const ELeafEstimation estimationMethod = ctx->Params.LeafEstimationMethod;
-        const float l2Regularizer = ctx->Params.L2LeafRegularizer;
+        const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
+        const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
+        const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
+        const float l2Regularizer = treeLearnerOptions.L2Reg;
         for (int it = 0; it < gradientIterations; ++it) {
-            if (estimationMethod == ELeafEstimation::Newton) {
+            if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
                                               indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
             } else {
-                Y_ASSERT(estimationMethod == ELeafEstimation::Gradient);
+                Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
                 CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
                                               indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
@@ -190,16 +191,17 @@ void CalcLeafValuesMulti(const TTrainData& data,
     }
 
     TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
-    const int gradientIterations = ctx->Params.GradientIterations;
-    const ELeafEstimation estimationMethod = ctx->Params.LeafEstimationMethod;
-    const float l2Regularizer = ctx->Params.L2LeafRegularizer;
+    const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
+    const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
+    const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
+    const float l2Regularizer = treeLearnerOptions.L2Reg;
     for (int it = 0; it < gradientIterations; ++it) {
-        if (estimationMethod == ELeafEstimation::Newton) {
+        if (estimationMethod == ELeavesEstimation::Newton) {
             CalcLeafValuesIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
                                          indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
                                          &buckets, &approx);
         } else {
-            Y_ASSERT(estimationMethod == ELeafEstimation::Gradient);
+            Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
             CalcLeafValuesIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
                                          indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
                                          &buckets, &approx);
@@ -210,7 +212,7 @@ void CalcLeafValuesMulti(const TTrainData& data,
     leafValues->assign(approxDimension, TVector<double>(leafCount));
     for (int leaf = 0; leaf < leafCount; ++leaf) {
         for (int it = 0; it < gradientIterations; ++it) {
-            if (estimationMethod == ELeafEstimation::Newton) {
+            if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcModelNewtonMulti(buckets[leaf], it, l2Regularizer, &avrg);
             } else {
                 CalcModelGradientMulti(buckets[leaf], it, l2Regularizer, &avrg);

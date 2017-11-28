@@ -13,10 +13,13 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
         GenerateTestPool(pool);
         SavePoolToFile(pool, "test-pool.txt");
         SavePoolCDToFile("test-pool.txt.cd");
+        const ui32 binarization = 32;
 
-        TBinarizationConfiguration binarizationConfiguration;
-        TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, 6);
-        TBinarizedFeaturesManager binarizedFeaturesManager(featureManagerOptions);
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.MaxTensorComplexity = 3;
+        catFeatureParams.OneHotMaxSize = 6;
+        TBinarizedFeaturesManager binarizedFeaturesManager(catFeatureParams, floatBinarization);
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder builder(binarizedFeaturesManager, dataProvider);
@@ -32,13 +35,13 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.Queries.size(), dataProvider.GetQueries().size());
         {
-            auto binarizer = gridBuilderFactory.Create(binarizationConfiguration.DefaultFloatBinarization.BorderSelectionType);
+            auto binarizer = gridBuilderFactory.Create(floatBinarization.BorderSelectionType);
 
             //4th gid column set to cat-feature and takes id
             for (size_t f = 0; f < pool.NumFeatures; ++f) {
                 TVector<float> feature = pool.GetFeature(f);
                 Sort(feature.begin(), feature.end());
-                auto borders = binarizer->BuildBorders(feature, binarizationConfiguration.DefaultFloatBinarization.Discretization);
+                auto borders = binarizer->BuildBorders(feature, floatBinarization.BorderCount);
                 auto binarized = BinarizeLine<ui32>(~pool.Features + f * pool.NumSamples, pool.NumSamples, borders);
 
                 auto& featureHolder = dataProvider.GetFeatureById(f + 1);

@@ -235,7 +235,7 @@ Default value:
 
 0.5
 
-\item gradient_iterations
+\item leaf_estimation_iterations
 
 The number of gradient steps when calculating the values in leaves.
 
@@ -638,13 +638,19 @@ Min(number of processor cores, 8)
   }
   \item Output settings
   \itemize{
-    \item verbose
+    \item logging_level
 
-Verbose output to stdout.
+Possible values:
+      \itemize{
+        \item \code{'Silent'}
+        \item \code{'Verbose'}
+        \item \code{'Info'}
+        \item \code{'Debug'}
+      }
 
 Default value:
 
-FALSE (not used)
+'Silent'
 
 \item train_dir
 

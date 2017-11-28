@@ -5,14 +5,16 @@
 #include "split.h"
 #include "train_data.h"
 
-#include <catboost/libs/params/params.h>
+#include <catboost/libs/options/restrictions.h>
+#include <catboost/libs/options/oblivious_tree_options.h>
 
 #include <util/memory/pool.h>
+#include <util/system/atomic.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
 
-inline bool AreStatsFromPrevTreeUsed(const TFitParams& fitParams) {
-    return fitParams.WeightSamplingFrequency == EWeightSamplingFrequency::PerTree;
+inline bool AreStatsFromPrevTreeUsed(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams) {
+    return fitParams.WeightSamplingFrequency.Get() == EWeightSamplingFrequency::PerTree;
 }
 
 struct TBucketStats {
@@ -21,14 +23,14 @@ struct TBucketStats {
     double SumDelta;
     double Count;
 
-    void Add(const TBucketStats& other) {
+    inline void Add(const TBucketStats& other) {
         SumWeightedDelta += other.SumWeightedDelta;
         SumDelta += other.SumDelta;
         SumWeight += other.SumWeight;
         Count += other.Count;
     }
 
-    void Remove(const TBucketStats& other) {
+    inline void Remove(const TBucketStats& other) {
         SumWeightedDelta -= other.SumWeightedDelta;
         SumDelta -= other.SumDelta;
         SumWeight -= other.SumWeight;
@@ -75,23 +77,77 @@ struct TStatsFromPrevTree {
     }
 };
 
-// Reference implementation -- to be parallelized
 struct TSmallestSplitSideFold {
     struct TBodyTail {
         TVector<TVector<double>> Derivatives;
         TVector<TVector<double>> WeightedDer;
 
-        int BodyFinish = 0;
-        int TailFinish = 0;
+        alignas(64) TAtomic BodyFinish = 0;
+        alignas(64) TAtomic TailFinish = 0;
     };
 
+    struct TVectorSlicing {
+        int Total;
+        struct TSlice {
+            static const constexpr int InvalidOffset = -1;
+            int Offset = InvalidOffset;
+            static const constexpr int InvalidSize = -1;
+            int Size = InvalidSize;
+            TSlice Clip(int newSize) const {
+                TSlice clippedSlice;
+                clippedSlice.Offset = Offset;
+                clippedSlice.Size = Min(Max(newSize - Offset, 0), Size);
+                return clippedSlice;
+            }
+            template<typename TData>
+            inline TArrayRef<const TData> GetConstRef(const TVector<TData>& vector) const {
+                return MakeArrayRef(vector.data() + Offset, Size);
+            }
+            template<typename TData>
+            inline TArrayRef<TData> GetRef(TVector<TData>& vector) const {
+                return MakeArrayRef(vector.data() + Offset, Size);
+            }
+        };
+        TVector<TSlice> Slices;
+        inline void Create(const NPar::TLocalExecutor::TExecRangeParams& blockParams) {
+            Total = blockParams.LastId;
+            Slices.yresize(blockParams.GetBlockCount());
+            for (int sliceIdx = 0; sliceIdx < Slices.ysize(); ++sliceIdx) {
+                Slices[sliceIdx].Offset = blockParams.GetBlockSize() * sliceIdx;
+                Slices[sliceIdx].Size = Min(blockParams.GetBlockSize(), Total - Slices[sliceIdx].Offset);
+            }
+        }
+        inline void CreateForSmallestSide(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TIndexType* indices, int curDepth, NPar::TLocalExecutor* localExecutor) {
+            Y_ASSERT(curDepth > 0);
+            Slices.yresize(blockParams.GetBlockCount());
+            localExecutor->ExecRange([&](int sliceIdx) {
+                int blockTrueCount = 0; // use a local var instead of Slices[sliceIdx].Size so that the compiler can use a register
+                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &blockTrueCount](int doc) { blockTrueCount += indices[doc] >> (curDepth - 1); })(sliceIdx);
+                Slices[sliceIdx].Size = blockTrueCount;
+            }, 0, Slices.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            int offset = 0;
+            for (auto& slice : Slices) {
+                slice.Offset = offset;
+                offset += slice.Size;
+            }
+            Total = offset;
+        }
+        inline void Complement(const TVectorSlicing& slicing) {
+            Y_ASSERT(slicing.Total >= Total && slicing.Slices.ysize() == Slices.ysize());
+            Total = slicing.Total - Total;
+            for (int sliceIdx = 0; sliceIdx < Slices.ysize(); ++sliceIdx) {
+                Slices[sliceIdx].Offset = slicing.Slices[sliceIdx].Offset - Slices[sliceIdx].Offset;
+                Slices[sliceIdx].Size = slicing.Slices[sliceIdx].Size - Slices[sliceIdx].Size;
+            }
+        }
+    };
     TVector<TIndexType> Indices;
     TVector<int> LearnPermutation;
     TVector<int> IndexInFold;
     TVector<float> LearnWeights;
     TVector<float> SampleWeights;
     TVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
-    ui32 SmallestSplitSideValue;
+    bool SmallestSplitSideValue;
     int DocCount;
 
     inline void Create(const TFold& fold) {
@@ -116,28 +172,55 @@ struct TSmallestSplitSideFold {
             }
         }
     }
-    inline void SelectParametersForSmallestSplitSide(int curDepth, const TFold& fold, const TVector<TIndexType>& indices) {
+    inline void SelectParametersForSmallestSplitSide(int curDepth, const TFold& fold, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
         CB_ENSURE(curDepth > 0);
-        int trueCount = 0;
-        for (TIndexType docIdx : indices) {
-            trueCount += docIdx >> (curDepth - 1);
+
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, indices.ysize());
+        blockParams.SetBlockSize(2000);
+        const int blockCount = blockParams.GetBlockCount();
+
+        TVectorSlicing srcBlocks;
+        srcBlocks.Create(blockParams);
+
+        TVectorSlicing dstBlocks;
+        dstBlocks.CreateForSmallestSide(blockParams, indices.data(), curDepth, localExecutor);
+        SmallestSplitSideValue = true;
+        if (dstBlocks.Total * 2 > indices.ysize()) {
+            dstBlocks.Complement(srcBlocks);
+            SmallestSplitSideValue = false;
         }
-        SmallestSplitSideValue = trueCount * 2 < indices.ysize();
-        SetDocCount(Min(trueCount, indices.ysize() - trueCount));
+
+        SetDocCount(dstBlocks.Total);
         const TIndexType splitWeight = 1 << (curDepth - 1);
-        int ignored;
-        SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, indices, [=](const TIndexType* source, size_t j, TIndexType* destination) { *destination = source[j] | splitWeight; }, &Indices, &ignored);
-        SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, fold.LearnPermutation, CopyElement<int>, &LearnPermutation, &ignored);
-        SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, TVector<int>(), [](const int*, size_t j, int* destination) { *destination = j; }, &IndexInFold, &ignored);
-        SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, fold.LearnWeights, CopyElement<float>, &LearnWeights, &ignored);
-        SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, fold.SampleWeights, CopyElement<float>, &SampleWeights, &ignored);
-        for (int bodyTailIdx = 0; bodyTailIdx < fold.BodyTailArr.ysize(); ++bodyTailIdx) {
-            const auto& foldBodyTail = fold.BodyTailArr[bodyTailIdx];
-            for (int dim = 0; dim < fold.GetApproxDimension(); ++dim) {
-                SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, foldBodyTail.Derivatives[dim], CopyElement<double>, &BodyTailArr[bodyTailIdx].Derivatives[dim], &BodyTailArr[bodyTailIdx].BodyFinish);
-                SetSelectedElements(SmallestSplitSideValue, splitWeight, indices, foldBodyTail.WeightedDer[dim], CopyElement<double>, &BodyTailArr[bodyTailIdx].WeightedDer[dim], &BodyTailArr[bodyTailIdx].TailFinish);
-            }
-        }
+        localExecutor->ExecRange([&](int blockIdx) {
+            const auto srcBlock = srcBlocks.Slices[blockIdx];
+            const auto srcIndicesRef = srcBlock.GetConstRef(indices);
+            const auto SetElements = [=] (auto srcRef, auto GetElementFunc, auto dstRef, int* dstCount) {
+                const TIndexType* indicesData = srcIndicesRef.data();
+                const auto* sourceData = srcRef.data();
+                const size_t sourceCount = srcRef.size();
+                auto* __restrict destinationData = dstRef.data();
+                const size_t destinationCount = dstRef.size();
+                size_t endElementIdx = 0;
+                if (SmallestSplitSideValue) {
+                    const TIndexType splitMask = splitWeight - 1; // see below -- clang generates a smaller loop body for strict comparisons
+                    #pragma unroll(4)
+                    for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
+                        destinationData[endElementIdx] = GetElementFunc(sourceData, sourceIdx);
+                        endElementIdx += indicesData[sourceIdx] > splitMask;
+                    }
+                } else {
+                    #pragma unroll(4)
+                    for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
+                        destinationData[endElementIdx] = GetElementFunc(sourceData, sourceIdx);
+                        endElementIdx += indicesData[sourceIdx] < splitWeight;
+                    }
+                }
+                *dstCount = endElementIdx;
+            };
+            const auto dstBlock = dstBlocks.Slices[blockIdx];
+            SelectBlockFromFold(fold, SetElements, [=] (const TIndexType*, size_t i) { return srcIndicesRef[i] | splitWeight; }, srcBlock, dstBlock);
+        }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     }
     int GetApproxDimension() const {
         return BodyTailArr[0].Derivatives.ysize();
@@ -150,27 +233,31 @@ private:
         }
     }
     template<typename TData>
-    static inline void CopyElement(const TData* source, size_t j, TData* destination) {
-        *destination = source[j];
-    };
-    template<typename TSetElementFunc, typename TVectorType>
-    static inline void SetSelectedElements(bool splitValue, TIndexType splitWeight, const TVector<TIndexType>& indices, const TVectorType& source, const TSetElementFunc& SetElementFunc, TVectorType* destination, int* elementCount) {
-        auto* __restrict destinationData = destination->data();
-        const auto* sourceData = source.data();
-        const TIndexType* indicesData = indices.data();
-        const size_t count = destination->size();
-        size_t endElementIdx = 0;
-        if (splitValue) {
-            for (size_t sourceIdx = 0; sourceIdx < count; ++sourceIdx) {
-                SetElementFunc(sourceData, sourceIdx, destinationData + endElementIdx);
-                endElementIdx += indicesData[sourceIdx] > splitWeight - 1; // clang generates a smaller loop body for strict comparisons
+    static inline TData GetElement(const TData* source, size_t j) {
+        return source[j];
+    }
+    using TSlice = TVectorSlicing::TSlice;
+    template<typename TSetElementsFunc, typename TGetIndexFunc>
+    inline void SelectBlockFromFold(const TFold& fold, TSetElementsFunc SetElementsFunc, TGetIndexFunc GetIndexFunc, TSlice srcBlock, TSlice dstBlock) {
+        int ignored;
+        SetElementsFunc(srcBlock.GetConstRef(TVector<TIndexType>()), GetIndexFunc, dstBlock.GetRef(Indices), &ignored);
+        SetElementsFunc(srcBlock.GetConstRef(fold.LearnPermutation), GetElement<int>, dstBlock.GetRef(LearnPermutation), &ignored);
+        SetElementsFunc(srcBlock.GetConstRef(TVector<int>()), [=](const int*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
+        SetElementsFunc(srcBlock.GetConstRef(fold.LearnWeights), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
+        SetElementsFunc(srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
+        for (int bodyTailIdx = 0; bodyTailIdx < fold.BodyTailArr.ysize(); ++bodyTailIdx) {
+            const auto& srcBodyTail = fold.BodyTailArr[bodyTailIdx];
+            auto& dstBodyTail = BodyTailArr[bodyTailIdx];
+            const auto srcBodyBlock = srcBlock.Clip(srcBodyTail.BodyFinish);
+            const auto srcTailBlock = srcBlock.Clip(srcBodyTail.TailFinish);
+            int bodyCount = 0;
+            int tailCount = 0;
+            for (int dim = 0; dim < fold.GetApproxDimension(); ++dim) {
+                SetElementsFunc(srcBodyBlock.GetConstRef(srcBodyTail.Derivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.Derivatives[dim]), &bodyCount);
+                SetElementsFunc(srcTailBlock.GetConstRef(srcBodyTail.WeightedDer[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.WeightedDer[dim]), &tailCount);
             }
-        } else {
-            for (size_t sourceIdx = 0; sourceIdx < count; ++sourceIdx) {
-                SetElementFunc(sourceData, sourceIdx, destinationData + endElementIdx);
-                endElementIdx += indicesData[sourceIdx] < splitWeight;
-            }
+            AtomicAdd(dstBodyTail.BodyFinish, bodyCount); // these atomics may take up to 2-3% of iteration time
+            AtomicAdd(dstBodyTail.TailFinish, tailCount);
         }
-        *elementCount = endElementIdx;
     }
 };

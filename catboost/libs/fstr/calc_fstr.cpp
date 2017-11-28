@@ -112,7 +112,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, 
     }
     int featureCount = pool.Docs.GetFactorsCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    jsonParams.InsertValue("thread_count", threadCount);
+    jsonParams["system_options"].InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     CB_ENSURE(model.GetTreeCount() != 0, "model should not be empty");

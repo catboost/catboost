@@ -1129,8 +1129,8 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
-        append('CXXFLAGS', '$CXX_WARNING_OPTS', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-Dymap=TMap')
+        append('CXXFLAGS', '$CXX_WARNING_OPTS', '-std=c++14', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
@@ -1182,8 +1182,6 @@ class GnuCompiler(Compiler):
 
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
-        append('CXXFLAGS', '-std=c++14')
-
         emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output:SRC%s.o}' % self.cross_suffix, '${input:SRC} ${pre=-I:INCLUDE}')
         emit('EXTRA_C_FLAGS')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide:SRC%s.gcno}' % self.cross_suffix)
@@ -1228,6 +1226,13 @@ class Clang(GnuCompiler):
 
         if self.tc.version_at_least(3, 6):
             self.c_flags.append('-Wno-inconsistent-missing-override')
+
+        if self.tc.version_at_least(5, 0):
+            self.c_flags.append('-Wno-unknown-warning-option')
+            self.c_flags.append('-Wno-c++17-extensions')
+            self.c_flags.append('-Wno-instantiation-after-specialization')
+            self.c_flags.append('-Wno-exceptions')
+            self.c_flags.append('-Wno-address-of-packed-member')
 
 
 class Linker(object):
@@ -1418,14 +1423,12 @@ class LD(Linker):
              ld_env_style)
 
         if self.dwarf_command is None:
-            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE')
-            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB')
-            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD')
+            emit('DWARF_COMMAND')
         else:
-            emit('DWARF_TOOL_COMMAND', self.dwarf_command, ld_env_style)
-            emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE', '&&', '$DWARF_TOOL_COMMAND')
-            emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB', '&&', '$DWARF_TOOL_COMMAND')
-            emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD', '&&', '$DWARF_TOOL_COMMAND')
+            emit('DWARF_COMMAND', self.dwarf_command, ld_env_style)
+        emit('LINK_EXE', '$GENERATE_MF && $REAL_LINK_EXE && $DWARF_COMMAND')
+        emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB && $DWARF_COMMAND')
+        emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
 
@@ -1553,7 +1556,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dymap=TMap']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1763,6 +1766,8 @@ class MSVCLinker(MSVC, Linker):
             'advapi32.lib',
             'crypt32.lib',
         ]
+        link_flags_debug.append('libcpmtd.lib')
+        link_flags_release.append('libcpmt.lib')
 
         emit('LINK_LIB_CMD', linker_lib)
         emit('LINK_EXE_CMD', linker)

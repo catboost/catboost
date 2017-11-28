@@ -7,7 +7,9 @@
 #include <catboost/libs/helpers/dense_hash.h>
 
 
-static bool GetCtrSplit(const TSplit& split, int idxPermuted, const TOnlineCTR& ctr) {
+static bool GetCtrSplit(const TSplit& split, int idxPermuted,
+                        const TOnlineCTR& ctr) {
+
     ui8 ctrValue = ctr.Feature[split.Ctr.CtrIdx]
                               [split.Ctr.TargetBorderIdx]
                               [split.Ctr.PriorIdx]
@@ -49,7 +51,7 @@ void BuildIndicesKernel(const int* permutation, const TCount* histogram, TCount 
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount)>
-void OfflineCtrBlock(const NPar::TLocalExecutor::TBlockParams& params,
+void OfflineCtrBlock(const NPar::TLocalExecutor::TExecRangeParams& params,
                      int blockIdx,
                      const TFold& fold,
                      const TCount* histogram,
@@ -79,7 +81,7 @@ void SetPermutedIndices(const TSplit& split,
     CB_ENSURE(curDepth > 0);
 
     const int blockSize = 1000;
-    NPar::TLocalExecutor::TBlockParams blockParams(0, indices->ysize());
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, indices->ysize());
     blockParams.SetBlockSize(blockSize);
 
     const int splitWeight = 1 << (curDepth - 1);
@@ -158,7 +160,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
     }
 
     const int blockSize = 1000;
-    NPar::TLocalExecutor::TBlockParams learnBlockParams(0, data.LearnSampleCount);
+    NPar::TLocalExecutor::TExecRangeParams learnBlockParams(0, data.LearnSampleCount);
     learnBlockParams.SetBlockSize(blockSize);
 
     localExecutor->ExecRange([&](int blockIdx) {
@@ -181,7 +183,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
         }
     }, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
-    NPar::TLocalExecutor::TBlockParams tailBlockParams(data.LearnSampleCount, fold.EffectiveDocCount);
+    NPar::TLocalExecutor::TExecRangeParams tailBlockParams(data.LearnSampleCount, fold.EffectiveDocCount);
     tailBlockParams.SetBlockSize(blockSize);
 
     localExecutor->ExecRange([&](int blockIdx) {

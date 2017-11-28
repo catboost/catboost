@@ -53,9 +53,9 @@ bool SkipUntilFieldFound(It& it, const It& eIt, TStringBuf fieldName, TStringBuf
     return false;
 }
 
-template <class TMap>
-void AddToNameValueHash(TStringBuf input, TMap& nameValueMap) {
-    using T = typename TMap::mapped_type;
+template <class TMapType>
+void AddToNameValueHash(TStringBuf input, TMapType& nameValueMap) {
+    using T = typename TMapType::mapped_type;
 
     TStringBuf name;
     TStringBuf value;
@@ -64,7 +64,7 @@ void AddToNameValueHash(TStringBuf input, TMap& nameValueMap) {
             ythrow yexception() << "Failed to extract field from \"" << *it << "\"";
 
         T val = FromString<T>(value);
-        std::pair<typename TMap::iterator, bool> insertionResult =
+        std::pair<typename TMapType::iterator, bool> insertionResult =
             nameValueMap.insert(std::make_pair(ToString(name), val));
         if (!insertionResult.second) // "name" already exists
             insertionResult.first->second += val;

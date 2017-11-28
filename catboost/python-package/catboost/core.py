@@ -477,7 +477,7 @@ class CatBoost(_CatBoostBase):
         params['kwargs'] = kwargs
 
         if 'verbose' in params:
-            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead.", FutureWarning, 2)
+            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (posible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning, 2)
             del params['verbose']
 
         self._check_params(params)
@@ -499,11 +499,11 @@ class CatBoost(_CatBoostBase):
         if 'ctr_description' in params:
             if not isinstance(params['ctr_description'], Sequence):
                 raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
-        if 'custom_loss' in params:
-            if isinstance(params['custom_loss'], STRING_TYPES):
-                params['custom_loss'] = [params['custom_loss']]
-            if not isinstance(params['custom_loss'], Sequence):
-                raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
+        if 'custom_metric' in params:
+            if isinstance(params['custom_metric'], STRING_TYPES):
+                params['custom_metric'] = [params['custom_metric']]
+            if not isinstance(params['custom_metric'], Sequence):
+                raise CatboostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
         if 'kwargs' in params:
             for param in params['kwargs'].keys():
                 if param not in self._additional_params:
@@ -522,7 +522,7 @@ class CatBoost(_CatBoostBase):
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
         if verbose is not None:
-            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead.", FutureWarning)
+            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (posible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning)
         if logging_level is not None:
             params['logging_level'] = logging_level
         if use_best_model is not None:
@@ -647,8 +647,9 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
-        loss_function = self.get_param('loss_function')
-        if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
+        loss_function_type = self.get_param('loss_function')
+        # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
+        if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         if prediction_type == 'Probability':
@@ -757,6 +758,54 @@ class CatBoost(_CatBoostBase):
         prediction : generator numpy.array for each iteration
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count):
+        if not self.is_fitted_:
+            raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
+        if not isinstance(data, Pool):
+            data = Pool(data=data, cat_features=self._get_cat_feature_indices())
+        elif not np.all(set(self._get_cat_feature_indices()).issubset(data.get_cat_feature_indices())):
+            raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
+        if data.is_empty_:
+            raise CatboostError("Data is empty.")
+        if not isinstance(metrics, ARRAY_TYPES):
+            raise CatboostError("Invalid metrics type={}: must be list().".format(type(metrics)))
+        if not all(map(lambda metric : isinstance(metric, string_types), metrics)):
+            raise CatboostError("Invalid metric type: must be string().")
+        metrics_score = self._base_eval_metrics(data, ','.join(metrics), ntree_start, ntree_end, eval_period, thread_count)
+        return dict(zip(metrics, metrics_score))
+
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1):
+        """
+        Calculate metrics.
+
+        Parameters
+        ----------
+        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+            Data to predict.
+
+        metrics : list of strings
+            List of eval metrics.
+
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        thread_count : int (default=1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+
+        Returns
+        -------
+        prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
+        """
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count)
 
     @property
     def feature_importances_(self):
@@ -979,9 +1028,9 @@ class CatBoostClassifier(CatBoost):
             - 'SkipTest' - Objects from test dataset are not considered
             - 'Full' - all objects are considered for both learn and test dataset
         If None, then counter_calc_method=PrefixTest.
-    gradient_iterations : int, [default=None]
+    leaf_estimation_iterations : int, [default=None]
         The number of steps in the gradient when calculating the values in the leaves.
-        If None, then gradient_iterations=1.
+        If None, then leaf_estimation_iterations=1.
         range: [1,+inf]
     leaf_estimation_method : string, [default='Gradient']
         The method used to calculate the values in the leaves.
@@ -1081,8 +1130,8 @@ class CatBoostClassifier(CatBoost):
         Indices of features that should be excluded when training.
     train_dir : string, [default=None]
         The directory in which you want to record generated in the process of learning files.
-    custom_loss : object, [default=None]
-        To use your own error function.
+    custom_metric : object, [default=None]
+        To use your own metric function.
     eval_metric : string or object, [default=None]
         To optimize your custom metric in loss.
     bagging_temperature : float, [default=None]
@@ -1118,43 +1167,43 @@ class CatBoostClassifier(CatBoost):
     """
     def __init__(
         self,
-        iterations=500,
-        learning_rate=0.03,
-        depth=6,
-        l2_leaf_reg=3,
+        iterations=None,
+        learning_rate=None,
+        depth=None,
+        l2_leaf_reg=None,
         rsm=None,
         loss_function='Logloss',
         border=None,
         border_count=None,
-        feature_border_type='MinEntropy',
+        feature_border_type=None,
         fold_permutation_block_size=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
         nan_mode=None,
         counter_calc_method=None,
-        gradient_iterations=None,
+        leaf_estimation_iterations=None,
         leaf_estimation_method=None,
         thread_count=None,
         random_seed=None,
         use_best_model=None,
         verbose=None,
-        logging_level='Silent',
+        logging_level=None,
         ctr_description=None,
         ctr_border_count=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
         priors=None,
-        has_time=False,
+        has_time=None,
         classes_count=None,
         class_weights=None,
         one_hot_max_size=None,
-        random_strength=1,
-        name='experiment',
+        random_strength=None,
+        name=None,
         ignored_features=None,
         train_dir=None,
-        custom_loss=None,
+        custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
         save_snapshot=None,
@@ -1410,41 +1459,41 @@ class CatBoostRegressor(CatBoost):
     """
     def __init__(
         self,
-        iterations=500,
-        learning_rate=0.03,
-        depth=6,
-        l2_leaf_reg=3,
+        iterations=None,
+        learning_rate=None,
+        depth=None,
+        l2_leaf_reg=None,
         rsm=None,
         loss_function='RMSE',
         border=None,
         border_count=None,
-        feature_border_type='MinEntropy',
+        feature_border_type=None,
         fold_permutation_block_size=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
         nan_mode=None,
         counter_calc_method=None,
-        gradient_iterations=None,
+        leaf_estimation_iterations=None,
         leaf_estimation_method=None,
         thread_count=None,
         random_seed=None,
         use_best_model=None,
         verbose=None,
-        logging_level='Silent',
+        logging_level=None,
         ctr_description=None,
         ctr_border_count=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
         priors=None,
-        has_time=False,
+        has_time=None,
         one_hot_max_size=None,
-        random_strength=1,
-        name='experiment',
+        random_strength=None,
+        name=None,
         ignored_features=None,
         train_dir=None,
-        custom_loss=None,
+        custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
         save_snapshot=None,

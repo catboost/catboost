@@ -91,8 +91,7 @@ namespace NCatboostCuda
             return static_cast<bool>(WeightedSample.GetObjectsSlice().Size());
         }
 
-        THistoryBasedCtrCalcer& SetBinarizedSample(TCudaBuffer<const ui8, TMapping>&& binarizedSample)
-        {
+        THistoryBasedCtrCalcer& SetBinarizedSample(TCudaBuffer<const ui8, TMapping>&& binarizedSample) {
             BinarizedSample = std::move(binarizedSample);
             IsBinarizedSampleWasGathered = false;
             return *this;
@@ -126,7 +125,7 @@ namespace NCatboostCuda
 
             for (auto& ctrConfig : ctrConfigs)
             {
-                CB_ENSURE(IsEqualUpToPrior(ctrConfig, referenceCtrConfig));
+                CB_ENSURE(IsEqualUpToPriorAndBinarization(ctrConfig, referenceCtrConfig));
                 const float firstClassPriorCount = GetNumeratorShift(ctrConfig);
                 const float totalPriorCount = GetDenumeratorShift(ctrConfig);
                 DivideWithPriors(Tmp, ScannedScatteredWeights, firstClassPriorCount, totalPriorCount, Dst, Stream);
@@ -174,7 +173,7 @@ namespace NCatboostCuda
             for (auto& ctrConfig : ctrConfigs)
             {
                 CB_ENSURE(ctrConfig.Prior.size() == 2, "Error: float mean ctr need 2 priors");
-                CB_ENSURE(IsEqualUpToPrior(ctrConfig, ctrConfigs[0]));
+                CB_ENSURE(IsEqualUpToPriorAndBinarization(ctrConfig, ctrConfigs[0]));
 
                 const float priorSum = GetNumeratorShift(ctrConfig);
                 const float priorWeight = GetDenumeratorShift(ctrConfig);

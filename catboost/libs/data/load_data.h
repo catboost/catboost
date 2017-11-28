@@ -3,6 +3,7 @@
 #include "pool.h"
 #include "pair.h"
 
+#include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/column_description/column.h>
 

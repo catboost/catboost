@@ -23,15 +23,19 @@ static TEvalResult Apply(
     NPar::TLocalExecutor* executor)
 {
     TEvalResult resultApprox;
+    TVector<TVector<double>>& rawValues = resultApprox.GetRawValuesRef();
+    if (pool.Docs.Baseline.ysize() > 0) {
+        rawValues.assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
+    }
     for (; begin < end; begin += evalPeriod) {
         TVector<TVector<double>> approx = ApplyModelMulti(model, pool, EPredictionType::RawFormulaVal,
                                                           begin, Min(begin + evalPeriod, end), *executor);
-        if (resultApprox.GetRawValuesRef().empty()) {
-            resultApprox.GetRawValuesRef().swap(approx);
+        if (rawValues.empty()) {
+            rawValues.swap(approx);
         } else {
             for (size_t i = 0; i < approx.size(); ++i) {
                 for (size_t j = 0; j < approx[0].size(); ++j) {
-                    resultApprox.GetRawValuesRef()[i][j] += approx[i][j];
+                    rawValues[i][j] += approx[i][j];
                 }
             }
         }

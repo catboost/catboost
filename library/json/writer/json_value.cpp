@@ -21,15 +21,15 @@ AreJsonMapsEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {
     if (rhs.GetType() != JSON_MAP)
         return false;
 
-    typedef TJsonValue::TMap TMap;
-    const TMap& lhsMap = lhs.GetMap();
-    const TMap& rhsMap = rhs.GetMap();
+    typedef TJsonValue::TMapType TMapType;
+    const TMapType& lhsMap = lhs.GetMap();
+    const TMapType& rhsMap = rhs.GetMap();
 
     if (lhsMap.size() != rhsMap.size())
         return false;
 
     for (const auto& lhsIt : lhsMap) {
-        TMap::const_iterator rhsIt = rhsMap.find(lhsIt.first);
+        TMapType::const_iterator rhsIt = rhsMap.find(lhsIt.first);
         if (rhsIt == rhsMap.end())
             return false;
 
@@ -89,7 +89,7 @@ TJsonValue::TJsonValue(const TJsonValue &val)
         new (&Value.String) TString(val.GetString());
         break;
     case JSON_MAP:
-        Value.Map = new TMap(val.GetMap());
+        Value.Map = new TMapType(val.GetMap());
         break;
     case JSON_ARRAY:
         Value.Array = new TArray(val.GetArray());
@@ -197,7 +197,7 @@ TJsonValue& TJsonValue::SetType(const EJsonValueType type) {
         new (&Value.String) TString();
         break;
     case JSON_MAP:
-        Value.Map = new TMap();
+        Value.Map = new TMapType();
         break;
     case JSON_ARRAY:
         Value.Array = new TArray();
@@ -277,7 +277,7 @@ TJsonValue& TJsonValue::AppendValue(TJsonValue&& value) {
 
 void TJsonValue::EraseValue(const TStringBuf key) {
     if (IsMap()) {
-        TMap::iterator it = Value.Map->find(key);
+        TMapType::iterator it = Value.Map->find(key);
         if (it != Value.Map->end())
             Value.Map->erase(it);
     }
@@ -332,7 +332,7 @@ TJsonValue &TJsonValue::operator[] (const TStringBuf& key) {
 namespace {
     struct TDefaultsHolder {
         const TString String{};
-        const TJsonValue::TMap Map{};
+        const TJsonValue::TMapType Map{};
         const TJsonValue::TArray Array{};
         const TJsonValue Value{};
     };
@@ -422,7 +422,7 @@ const TString& TJsonValue::GetString() const {
     return Type != JSON_STRING ? Singleton<TDefaultsHolder>()->String : Value.String;
 }
 
-const TJsonValue::TMap& TJsonValue::GetMap() const {
+const TJsonValue::TMapType& TJsonValue::GetMap() const {
     return Type != JSON_MAP ? Singleton<TDefaultsHolder>()->Map : *Value.Map;
 }
 
@@ -500,15 +500,15 @@ TString TJsonValue::GetStringSafe(const TString& defaultValue) const {
     return GetStringSafe();
 }
 
-const TJsonValue::TMap& TJsonValue::GetMapSafe() const {
+const TJsonValue::TMapType& TJsonValue::GetMapSafe() const {
     if (Type != JSON_MAP)
         ythrow TJsonException() << "Not a map";
 
     return *Value.Map;
 }
 
-TJsonValue::TMap& TJsonValue::GetMapSafe() {
-    return const_cast<TJsonValue::TMap&>(const_cast<const TJsonValue*>(this)->GetMapSafe());
+TJsonValue::TMapType& TJsonValue::GetMapSafe() {
+    return const_cast<TJsonValue::TMapType&>(const_cast<const TJsonValue*>(this)->GetMapSafe());
 }
 
 const TJsonValue::TArray& TJsonValue::GetArraySafe() const {
@@ -687,7 +687,7 @@ bool TJsonValue::GetString(TString *value) const {
     return true;
 }
 
-bool TJsonValue::GetMap(TJsonValue::TMap *value) const {
+bool TJsonValue::GetMap(TJsonValue::TMapType *value) const {
     if (Type != JSON_MAP)
         return false;
 
@@ -703,7 +703,7 @@ bool TJsonValue::GetArray(TJsonValue::TArray *value) const {
     return true;
 }
 
-bool TJsonValue::GetMapPointer(const TJsonValue::TMap **value) const noexcept {
+bool TJsonValue::GetMapPointer(const TJsonValue::TMapType **value) const noexcept {
     if (Type != JSON_MAP)
         return false;
 
@@ -748,7 +748,7 @@ bool TJsonValue::GetValuePointer(const size_t index, const TJsonValue **value) c
 
 bool TJsonValue::GetValuePointer(const TStringBuf key, const TJsonValue **value) const noexcept {
     if (Type == JSON_MAP) {
-        const TMap::const_iterator it = Value.Map->find(key);
+        const TMapType::const_iterator it = Value.Map->find(key);
         if (it != Value.Map->end()) {
             *value = &(it->second);
             return true;
@@ -1000,7 +1000,7 @@ void TJsonValue::Swap(TJsonValue& rhs) noexcept {
 //****************************************************************
 
 
-bool GetMapPointer(const TJsonValue &jv, const size_t index, const TJsonValue::TMap **value) {
+bool GetMapPointer(const TJsonValue &jv, const size_t index, const TJsonValue::TMapType **value) {
     const TJsonValue* v;
     if (!jv.GetValuePointer(index, &v) || !v->IsMap())
         return false;
@@ -1019,7 +1019,7 @@ bool GetArrayPointer(const TJsonValue &jv, const size_t index, const TJsonValue:
 }
 
 
-bool GetMapPointer(const TJsonValue &jv, const TStringBuf key, const TJsonValue::TMap **value) {
+bool GetMapPointer(const TJsonValue &jv, const TStringBuf key, const TJsonValue::TMapType **value) {
     const TJsonValue *v;
     if (!jv.GetValuePointer(key, &v) || !v->IsMap())
         return false;

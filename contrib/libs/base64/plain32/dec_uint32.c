@@ -8,7 +8,8 @@ while (srclen >= 8)
 	uint32_t str, res, dec;
 
 	// Load string:
-	str = *(uint32_t *)c;
+	//str = *(uint32_t *)c;
+    memcpy(&str, c, sizeof(str));
 
 	// Shuffle bytes to 32-bit bigendian:
 	str = cpu_to_be32(str);
@@ -39,7 +40,8 @@ while (srclen >= 8)
 	res = be32_to_cpu(res);
 
 	// Store back:
-	*(uint32_t *)o = res;
+	//*(uint32_t *)o = res;
+    memcpy(o, &res, sizeof(res));
 
 	c += 4;
 	o += 3;

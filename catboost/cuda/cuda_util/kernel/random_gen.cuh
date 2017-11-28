@@ -19,7 +19,9 @@ namespace NKernel {
         for (int i = 0; i < k; ++i) {
             AdvanceSeed(seed);
         }
+        return *seed;
     }
+
 
     __forceinline__ __device__ double NextUniform(ui64* seed) {
         ui64 x = AdvanceSeed(seed);

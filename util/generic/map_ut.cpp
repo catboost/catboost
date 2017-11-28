@@ -6,19 +6,19 @@
 
 SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     template <typename TAlloc>
-    void DoTestMap1(ymap<char, int, TLess<char>, TAlloc> & m);
+    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m);
 
     template <typename TAlloc>
     void DoTestMMap1(ymultimap<char, int, TLess<char>, TAlloc> & mm);
 
     SIMPLE_UNIT_TEST(TestMap1) {
         {
-            ymap<char, int, TLess<char>> m;
+            TMap<char, int, TLess<char>> m;
             DoTestMap1(m);
         }
         {
             TMemoryPool p(100);
-            ymap<char, int, TLess<char>, TPoolAllocator> m(&p);
+            TMap<char, int, TLess<char>, TPoolAllocator> m(&p);
             DoTestMap1(m);
         }
     }
@@ -36,8 +36,8 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     template <typename TAlloc>
-    void DoTestMap1(ymap<char, int, TLess<char>, TAlloc> & m) {
-        using maptype = ymap<char, int, TLess<char>, TAlloc>;
+    void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m) {
+        using maptype = TMap<char, int, TLess<char>, TAlloc>;
         // Store mappings between roman numerals and decimals.
         m['l'] = 50;
         m['x'] = 20; // Deliberate mistake.
@@ -126,7 +126,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestIterators) {
-        using int_map = ymap<int, char, TLess<int>>;
+        using int_map = TMap<int, char, TLess<int>>;
         int_map imap;
 
         {
@@ -189,7 +189,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestEqualRange) {
-        using maptype = ymap<char, int, TLess<char>>;
+        using maptype = TMap<char, int, TLess<char>>;
 
         {
             maptype m;
@@ -277,7 +277,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
 
     SIMPLE_UNIT_TEST(TestTemplateMethods) {
         {
-            using Container = ymap<TKey, int, TKeyCmp>;
+            using Container = TMap<TKey, int, TKeyCmp>;
             using value = Container::value_type;
 
             Container cont;
@@ -305,7 +305,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
 
         {
-            using Container = ymap<TKey*, int, TKeyCmpPtr>;
+            using Container = TMap<TKey*, int, TKeyCmpPtr>;
             using value = Container::value_type;
 
             Container cont;
@@ -400,7 +400,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestEmpty) {
-        EmptyAndInsertTest<ymap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
+        EmptyAndInsertTest<TMap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
         EmptyAndInsertTest<ymultimap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
     }
 
@@ -448,7 +448,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestMapInitializerList) {
-        ymap<TString, int> m = {
+        TMap<TString, int> m = {
             {"one", 1},
             {"two", 2},
             {"three", 3},
@@ -479,7 +479,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestMovePoolAlloc) {
-        using TMapInPool = ymap<int, int, TLess<int>, TPoolAllocator>;
+        using TMapInPool = TMap<int, int, TLess<int>, TPoolAllocator>;
 
         TMemoryPool pool(1);
 

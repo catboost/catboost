@@ -8,7 +8,6 @@
 
 namespace NCatboostCuda
 {
-
     template <class TModel>
     struct TDynamicBoostingProgress {
         TVector<TVector<TVector<float>>> PermutationCursor;

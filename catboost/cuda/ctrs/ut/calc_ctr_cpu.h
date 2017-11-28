@@ -23,16 +23,20 @@ namespace NCatboostCuda
         TCpuTargetClassCtrCalcer(ui32 uniqueValues,
                                  const TVector<ui32>& bins,
                                  const TVector<float>& weights,
-                                 float prior)
+                                 float prior,
+                                 float priorDenum = 1.0
+        )
                 : UniqueValues(uniqueValues)
-                  , Prior(prior)
+                  , PriorNum(prior)
+                  , PriorDenum(priorDenum)
                   , Bins(bins)
                   , Weights(weights)
         {
         }
 
         ui32 UniqueValues;
-        float Prior;
+        float PriorNum;
+        float PriorDenum;
         const TVector<ui32>& Bins;
         const TVector<float>& Weights;
 
@@ -46,8 +50,8 @@ namespace NCatboostCuda
             TArray2D<float> ctrs(numClasses, cpuIndices.size());
             ctrs.FillZero();
 
-            const float prior = 0.5;
-            const float denumPrior = prior * numClasses;
+            const float prior = PriorNum;
+            const float denumPrior = PriorDenum;
 
             for (ui32 i = 0; i < cpuIndices.size(); ++i)
             {
@@ -84,7 +88,7 @@ namespace NCatboostCuda
             for (ui32 i = 0; i < Bins.size(); ++i)
             {
                 const ui32 bin = Bins[indices ? (*indices)[i] : i];
-                ctr[i] = (cpuStat[bin].FirstClass + Prior) / (total + Prior * UniqueValues);
+                ctr[i] = (cpuStat[bin].FirstClass + PriorNum) / (total + PriorDenum);
             }
             return ctr;
         }

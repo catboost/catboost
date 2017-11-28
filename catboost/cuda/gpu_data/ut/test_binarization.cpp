@@ -61,7 +61,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                     CB_ENSURE(featuresManager.IsCtr(featureId));
                     const auto& ctr = featuresManager.GetCtr(featureId);
                     CB_ENSURE(ctr.IsSimple());
-                    CB_ENSURE(ctr.Configuration.Prior[0] == 0.5f);
 
                     const ui32 catFeatureId = ctr.FeatureTensor.GetCatFeatures()[0];
                     auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(catFeatureId)));
@@ -72,11 +71,9 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                     TCpuTargetClassCtrCalcer calcer(valuesHolder.GetUniqueValues(),
                                                     catFeatureBins,
                                                     dataProvider.GetWeights(),
-                                                    ctr.Configuration.Prior[0]);
+                                                    ctr.Configuration.Prior[0], ctr.Configuration.Prior[1]);
 
                     if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
-                        CB_ENSURE(ctr.Configuration.Prior[1] == ctr.Configuration.Prior[0] * static_cast<float>(valuesHolder.GetUniqueValues()));
-
                         auto freqCtr = calcer.ComputeFreqCtr();
                         bins = BinarizeLine<ui32>(~freqCtr, +freqCtr, borders);
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
@@ -140,10 +137,10 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         SavePoolToFile(pool, "test-pool.txt");
         SavePoolCDToFile("test-pool.txt.cd");
 
-        TBinarizationConfiguration binarizationConfiguration;
-        binarizationConfiguration.DefaultFloatBinarization.Discretization = binarization;
-        TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, 6);
-        TBinarizedFeaturesManager binarizedFeaturesManager(featureManagerOptions);
+        NCatboostOptions::TBinarizationOptions binarizationOptions(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.OneHotMaxSize = 6;
+        TBinarizedFeaturesManager binarizedFeaturesManager(catFeatureParams, binarizationOptions);
 
         TDataProvider dataProvider;
         TDataProviderBuilder dataProviderBuilder(binarizedFeaturesManager, dataProvider);
@@ -262,7 +259,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
     void TestDatasetHolderBuilder(ui32 binarization,
                                   ui32 permutationCount,
-                                  ui32 targetCtrBinarization=32,
+                                  ui32 bucketsCtrBinarization=32,
                                   ui32 freqCtrBinarization=15) {
         TBinarizedPool pool;
 
@@ -271,13 +268,25 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         SavePoolToFile(pool, "test-pool.txt");
         SavePoolCDToFile("test-pool.txt.cd");
 
-        TBinarizationConfiguration binarizationConfiguration;
-        binarizationConfiguration.DefaultFloatBinarization.Discretization = binarization;
-        binarizationConfiguration.DefaultCtrBinarization.Discretization = targetCtrBinarization;
-        binarizationConfiguration.FreqCtrBinarization.Discretization = freqCtrBinarization;
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, bucketsCtrBinarization);
+        NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, freqCtrBinarization);
 
-        TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, 0);
-        TBinarizedFeaturesManager featuresManager(featureManagerOptions);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.MaxTensorComplexity = 3;
+        catFeatureParams.OneHotMaxSize = 0;
+        {
+            TVector<TVector<float>> prior = {{0.5, 1.0}};
+            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior, bucketsBinarization);
+            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior, freqBinarization);
+            catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
+            catFeatureParams.AddSimpleCtrDescription(freqCtr);
+
+            catFeatureParams.AddTreeCtrDescription(bucketsCtr);
+            catFeatureParams.AddTreeCtrDescription(freqCtr);
+        }
+        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
+
 
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
@@ -292,17 +301,12 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
         {
             featuresManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             dataProvider.GetTargets())(binarizationConfiguration.DefaultFloatBinarization));
+                                                             dataProvider.GetTargets())(floatBinarization));
 
-            auto targetBorders = featuresManager.GetTargetBorders();
+            const auto& targetBorders = featuresManager.GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
         }
 
-        {
-            TVector<float> prior = {0.5};
-            featuresManager.EnableCtrType(ECtrType::Buckets, prior);
-            featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
-        }
 
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());

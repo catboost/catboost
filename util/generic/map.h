@@ -12,40 +12,40 @@
 #include <memory>
 
 template <class K, class V, class Less, class A>
-class ymap: public std::map<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>>, public TMapOps<ymap<K, V, Less, A>> {
+class TMap: public std::map<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>>, public TMapOps<TMap<K, V, Less, A>> {
     using TBase = std::map<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>>;
-    using TSelf = ymap<K, V, Less, A>;
+    using TSelf = TMap<K, V, Less, A>;
     using TAllocatorType = typename TBase::allocator_type;
     using TKeyCompare = typename TBase::key_compare;
     using TValueType = typename TBase::value_type;
 
 public:
-    inline ymap() {
+    inline TMap() {
     }
 
     template <typename TAllocParam>
-    inline explicit ymap(TAllocParam* allocator)
+    inline explicit TMap(TAllocParam* allocator)
         : TBase(Less(), allocator)
     {
     }
 
     template <class It>
-    inline ymap(It f, It l)
+    inline TMap(It f, It l)
         : TBase(f, l)
     {
     }
 
-    inline ymap(std::initializer_list<TValueType> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
+    inline TMap(std::initializer_list<TValueType> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
         : TBase(il, comp, alloc)
     {
     }
 
-    inline ymap(const TSelf& src)
+    inline TMap(const TSelf& src)
         : TBase(src)
     {
     }
 
-    inline ymap(TSelf&& src) noexcept
+    inline TMap(TSelf&& src) noexcept
         : TBase(std::forward<TSelf>(src))
     {
     }

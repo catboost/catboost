@@ -74,26 +74,19 @@ int mode_plot(int argc, const char* argv[]) {
     }
 
     TVector<THolder<IMetric>> metrics;
-
-    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
-        TString metricStr = TString(metricDescription.Token());
-        auto metricsBatch = CreateMetricFromDescription(metricStr, model.ObliviousTrees.ApproxDimension);
-        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
-            metrics.push_back(std::move(metricsBatch[i]));
-        }
-    }
-
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
-    TMetricsPlotCalcer plotCalcer(model, executor, plotParams.TmpDir);
-    plotCalcer
-        .SetFirstIteration(plotParams.FirstIteration)
-        .SetLastIteration(plotParams.LastIteration)
-        .SetCustomStep(plotParams.Step);
 
-    for (auto& metric : metrics) {
-        plotCalcer.AddMetric(*metric);
-    }
+    TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
+        model,
+        plotParams.MetricsDescription,
+        plotParams.FirstIteration,
+        plotParams.LastIteration,
+        plotParams.Step,
+        executor,
+        plotParams.TmpDir,
+        &metrics
+    );
 
     ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
         plotCalcer.ProceedDataSet(poolPart);

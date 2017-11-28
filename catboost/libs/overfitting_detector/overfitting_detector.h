@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/options/overfitting_detector_options.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -9,11 +10,6 @@
 
 #include <library/logger/global/global.h>
 
-enum class EOverfittingDetectorType {
-    Wilcoxon,
-    IncToDec,
-    Iter
-};
 
 class IOverfittingDetector {
 public:
@@ -127,16 +123,32 @@ inline bool DetectOverfitting(double testError,
     return detector->IsNeedStop();
 }
 
-inline TAutoPtr<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDetectorType type,
+inline THolder<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDetectorType type,
                                                                 bool maxIsOptimal,
                                                                 double threshold,
                                                                 int iterationsWait,
                                                                 bool hasTest) {
-    // TODO(annaveronika): if !hasTest create empty detector
-    if (type == EOverfittingDetectorType::IncToDec) {
-        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, threshold, iterationsWait, hasTest));
-    } else {
-        Y_ASSERT(type == EOverfittingDetectorType::Iter);
-        return TAutoPtr<IOverfittingDetector>(new TOverfittingDetectorIncToDec(maxIsOptimal, 1.0, iterationsWait, hasTest));
+    switch (type)
+    {
+        case EOverfittingDetectorType::IncToDec:
+        {
+            return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, threshold, iterationsWait, hasTest);
+        }
+        case EOverfittingDetectorType::Iter:
+        {
+            return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, 1.0, iterationsWait, hasTest);
+        }
+        case EOverfittingDetectorType::Wilcoxon:
+        {
+            return MakeHolder<TOverfittingDetectorWilcoxon>(maxIsOptimal, threshold, iterationsWait, hasTest);
+        }
+        default:
+        {
+            CB_ENSURE(false, "Unknown OD type: " << type);
+        }
     }
+}
+
+inline THolder<IOverfittingDetector> CreateOverfittingDetector(const NCatboostOptions::TOverfittingDetectorOptions& options, bool maxIsOptimal, bool hasTest) {
+    return CreateOverfittingDetector(options.OverfittingDetectorType, maxIsOptimal, options.AutoStopPValue, options.IterationsWait, hasTest);
 }

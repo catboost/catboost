@@ -127,7 +127,7 @@ private:
         }
 
         {
-            ymap<ui16, ui32> map;
+            TMap<ui16, ui32> map;
 
             map[(ui16)1] = 2;
             map[(ui16)2] = 3;
@@ -258,7 +258,7 @@ private:
         }
 
         {
-            ymap<ui16, ui32> map;
+            TMap<ui16, ui32> map;
 
             Load(&S_, map);
             UNIT_ASSERT_EQUAL(map.size(), 3);

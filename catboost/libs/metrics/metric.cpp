@@ -114,7 +114,7 @@ TMetricHolder TCrossEntropyMetric::Eval(const TVector<TVector<double>>& approx,
     const auto& approxVec = approx.front();
     Y_ASSERT(approxVec.size() == target.size());
 
-    NPar::TLocalExecutor::TBlockParams blockParams(begin, end);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
     blockParams.SetBlockCount(executor.GetThreadCount() + 1);
     TVector<TMetricHolder> errorHolders(blockParams.GetBlockCount());
 
@@ -998,9 +998,66 @@ double TCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
 
+/* UserDefinedPerObjectMetric */
+
+TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const THashMap<TString, float>& params)
+    : Alpha(0.0)
+{
+    if (params.has("alpha")) {
+        Alpha = params.at("alpha");
+    }
+}
+
+TMetricHolder TUserDefinedPerObjectMetric::Eval(const TVector<TVector<double>>& /*approx*/,
+                                                const TVector<float>& /*target*/,
+                                                const TVector<float>& /*weight*/,
+                                                int /*begin*/, int /*end*/,
+                                                NPar::TLocalExecutor& /* executor */) const {
+    CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectMetric metric.");
+    TMetricHolder metric;
+    return metric;
+}
+
+TString TUserDefinedPerObjectMetric::GetDescription() const {
+    return "UserDefinedPerObjectMetric";
+}
+
+bool TUserDefinedPerObjectMetric::IsMaxOptimal() const {
+    return false;
+}
+
+/* UserDefinedQuerywiseMetric */
+
+TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const THashMap<TString, float>& params)
+    : Alpha(0.0)
+{
+    if (params.has("alpha")) {
+        Alpha = params.at("alpha");
+    }
+}
+
+TMetricHolder TUserDefinedQuerywiseMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
+                                                         const TVector<float>& /*target*/,
+                                                         const TVector<float>& /*weight*/,
+                                                         const TVector<ui32>& /*queriesId*/,
+                                                         const THashMap<ui32, ui32>& /*queriesSize*/,
+                                                         int /*begin*/, int /*end*/) const {
+    CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
+    TMetricHolder metric;
+    return metric;
+}
+
+TString TUserDefinedQuerywiseMetric::GetDescription() const {
+    return "TUserDefinedQuerywiseMetric";
+}
+
+bool TUserDefinedQuerywiseMetric::IsMaxOptimal() const {
+    return false;
+}
+
 /* Create */
 
-TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, float>& params, int approxDimension) {
+inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, float>& params, int approxDimension) {
     if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
     }
@@ -1130,31 +1187,44 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TStr
             result.emplace_back(new TPairAccuracyMetric());
             return result;
 
+        case ELossFunction::UserPerObjErr: {
+            result.emplace_back(new TUserDefinedPerObjectMetric(params));
+            return result;
+        }
+
+        case ELossFunction::UserQuerywiseErr: {
+            result.emplace_back(new TUserDefinedQuerywiseMetric(params));
+            return result;
+        }
+
         default:
             Y_ASSERT(false);
             return TVector<THolder<IMetric>>();
     }
 }
 
-TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension) {
-    ELossFunction metric = GetLossType(description);
-    auto params = GetLossParams(description);
+TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension) {
+    auto metric = description.GetLossFunction();
+    THashMap<TString, float> params;
+    for (const auto& param : description.GetLossParams()) {
+        params[param.first] = FromString<float>(param.second);
+    }
     return CreateMetric(metric, params, approxDimension);
 }
 
-TVector<THolder<IMetric>> CreateMetrics(const TMaybe<TString>& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                                        const TVector<TString>& customLoss, int approxDimension) {
+TVector<THolder<IMetric>> CreateMetrics(const NCatboostOptions::TLossDescription& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                        const TVector<NCatboostOptions::TLossDescription>& customLoss, int approxDimension) {
     TVector<THolder<IMetric>> errors;
-    if (GetLossType(*evalMetric) == ELossFunction::Custom) {
+    if (evalMetric.GetLossFunction() == ELossFunction::Custom) {
         errors.emplace_back(new TCustomMetric(*evalMetricDescriptor));
     } else {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(*evalMetric, approxDimension);
+        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetric, approxDimension);
         for (auto& metric : createdMetrics) {
             errors.push_back(std::move(metric));
         }
     }
 
-    for (const TString& description : customLoss) {
+    for (const auto& description : customLoss) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(description, approxDimension);
         for (auto& metric : createdMetrics) {
             errors.push_back(std::move(metric));
@@ -1163,6 +1233,7 @@ TVector<THolder<IMetric>> CreateMetrics(const TMaybe<TString>& evalMetric, const
     return errors;
 }
 
+//TODO: used in mode_eval. remove it after json-options implementation for eval-mode
 ELossFunction GetLossType(const TString& lossDescription) {
     TVector<TString> tokens = StringSplitter(lossDescription).SplitLimited(':', 2).ToList<TString>();
     CB_ENSURE(!tokens.empty(), "custom loss is missing in desctiption: " << lossDescription);
@@ -1192,3 +1263,8 @@ THashMap<TString, float> GetLossParams(const TString& lossDescription) {
     return params;
 }
 
+TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension) {
+    ELossFunction metric = GetLossType(description);
+    auto params = GetLossParams(description);
+    return CreateMetric(metric, params, approxDimension);
+}

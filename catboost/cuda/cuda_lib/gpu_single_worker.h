@@ -206,6 +206,7 @@ namespace NCudaLib {
         std::future<void> Stop;
 
         TManualEvent JobsEvent;
+        TAdaptiveLock Lock;
 
         void WaitAllTaskToSubmit() {
             while (CheckRunningTasks()) {
@@ -465,10 +466,12 @@ namespace NCudaLib {
         }
 
         ui64 GetGpuRamSize() const {
+            TGuard<TAdaptiveLock> guard(Lock);
             return DeviceMemoryProvider ? DeviceMemoryProvider->GpuRamSize() : 0;
         }
 
         ui64 GetFreeMemory() const {
+            TGuard<TAdaptiveLock> guard(Lock);
             return DeviceMemoryProvider ? DeviceMemoryProvider->GetFreeMemorySize() : 0;
         }
 

@@ -7,9 +7,6 @@
 
 namespace NKernel {
 
-
-
-
     template <int BLOCK_SIZE>
     __global__ void MseImpl(const float* relevs, const float* weights, ui32 size,
                             const float* predictions,
@@ -78,7 +75,7 @@ namespace NKernel {
             const float targetClass = scale[j];
 
             const float expVal = idx < size ? __expf(val) : 0;
-            const float p = max(min(isfinite(expVal) ? expVal / (1.0f + expVal) : 1.0f, 1.0f - 1e-20f), 1e-20f);
+            const float p = max(min(isfinite(expVal) ? expVal / (1.0f + expVal) : 1.0f, 1.0f - 1e-40f), 1e-40f);
             const float c = HAS_BORDER ? targetClass > border : targetClass;
 
             direction[j] = c - p; //c * (1 - p) - (1-c) * p;

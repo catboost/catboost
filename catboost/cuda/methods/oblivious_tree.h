@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bootstrap.h"
-#include "oblivious_tree_options.h"
 #include "helpers.h"
 #include "oblivious_tree_structure_searcher.h"
 #include "oblivious_tree_leaves_estimator.h"
@@ -25,9 +24,11 @@ namespace NCatboostCuda
         using TWeakModelStructure = TObliviousTreeStructure;
 
         TObliviousTree(TBinarizedFeaturesManager& featuresManager,
-                       const TObliviousTreeLearnerOptions& config)
+                       const NCatboostOptions::TObliviousTreeLearnerOptions& config,
+                       ui64 randomSeed = 0)
                 : FeaturesManager(featuresManager)
                   , TreeConfig(config)
+                , RandomSeed(randomSeed)
         {
         }
 
@@ -48,9 +49,10 @@ namespace NCatboostCuda
         {
             if (Bootstrap == nullptr)
             {
-                auto& bootstrapConfig = TreeConfig.GetBootstrapConfig();
+                const NCatboostOptions::TBootstrapConfig& bootstrapConfig = TreeConfig.BootstrapConfig;
                 Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(dataSet.GetTarget().GetMapping(),
-                                                                             bootstrapConfig);
+                                                                             bootstrapConfig,
+                                                                             RandomSeed);
             }
             CB_ENSURE(Bootstrap);
 
@@ -68,11 +70,11 @@ namespace NCatboostCuda
             return TObliviousTreeLeavesEstimator<TTarget, TDataSet>(structure,
                                                                     FeaturesManager,
                                                                     cache,
-                                                                    TreeConfig.IsUseNewton(),
-                                                                    TreeConfig.GetL2Reg(),
-                                                                    TreeConfig.GetLeavesEstimationIters(),
-                                                                    TreeConfig.IsNormalize(),
-                                                                    TreeConfig.AddRidgeToTargetFunction());
+                                                                    TreeConfig.LeavesEstimationMethod == ELeavesEstimation::Newton,
+                                                                    TreeConfig.L2Reg,
+                                                                    TreeConfig.LeavesEstimationIterations,
+                                                                    TreeConfig.FoldSizeLossNormalization,
+                                                                    TreeConfig.AddRidgeToTargetFunctionFlag);
         }
 
         template<class TDataSet>
@@ -87,7 +89,8 @@ namespace NCatboostCuda
     private:
         THolder<TBootstrap<NCudaLib::TMirrorMapping>> Bootstrap;
         TBinarizedFeaturesManager& FeaturesManager;
-        TObliviousTreeLearnerOptions TreeConfig;
+        const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
+        ui64 RandomSeed;
     };
 }
 

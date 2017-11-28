@@ -2,14 +2,16 @@
 
 #include "approx_util.h"
 
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/metrics/ders_holder.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/auc.h>
 #include <catboost/libs/data/pair.h>
-#include <catboost/libs/params/params.h>
+#include <catboost/libs/helpers/eval_helpers.h>
 
 #include <library/containers/2d_array/2d_array.h>
 #include <library/threading/local_executor/local_executor.h>
+#include <library/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
@@ -21,7 +23,15 @@ class IDerCalcer {
 public:
     static const constexpr bool StoreExpApprox = StoreExpApproxParam;
 
-    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, double* ders) const {
+    void CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        double* ders
+    ) const {
         if (approxDeltas != nullptr) {
             for (int i = start; i < start + count; ++i) {
                 ders[i] = CalcDer(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i]);
@@ -38,7 +48,15 @@ public:
         }
     }
 
-    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, TDer1Der2* ders) const {
+    void CalcDersRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        TDer1Der2* ders
+    ) const {
         if (approxDeltas != nullptr) {
             for (int i = start; i < start + count; ++i) {
                 CalcDers(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i], &ders[i]);
@@ -56,28 +74,36 @@ public:
         }
     }
 
-    void CalcDersMulti(const TVector<double>& /*approx*/,
-                       float /*target*/,
-                       float /*weight*/,
-                       TVector<double>* /*der*/,
-                       TArray2D<double>* /*der2*/) const {
+    void CalcDersMulti(
+        const TVector<double>& /*approx*/,
+        float /*target*/,
+        float /*weight*/,
+        TVector<double>* /*der*/,
+        TArray2D<double>* /*der2*/
+    ) const {
         CB_ENSURE(false, "Not implemented");
     }
 
-    void CalcDersPairs(const TVector<double>& /*approxes*/,
-                       const TVector<TVector<TCompetitor>>& /*competitors*/,
-                       int /*start*/, int /*count*/,
-                       TVector<double>* /*ders*/) const {
+    void CalcDersPairs(
+        const TVector<double>& /*approxes*/,
+        const TVector<TVector<TCompetitor>>& /*competitors*/,
+        int /*start*/,
+        int /*count*/,
+        TVector<double>* /*ders*/
+    ) const {
         CB_ENSURE(false, "Not implemented");
     }
 
-    void CalcDersForQueries(int /*start*/, int /*count*/,
-                            const TVector<double>& /*approx*/,
-                            const TVector<float>& /*target*/,
-                            const TVector<float>& /*weight*/,
-                            const TVector<ui32>& /*queriesId*/,
-                            const THashMap<ui32, ui32>& /*queriesSize*/,
-                            TVector<TDer1Der2>* /*ders*/) const {
+    void CalcDersForQueries(
+        int /*start*/,
+        int /*count*/,
+        const TVector<double>& /*approx*/,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<ui32>& /*queriesId*/,
+        const THashMap<ui32, ui32>& /*queriesSize*/,
+        TVector<TDer1Der2>* /*ders*/
+    ) const {
         CB_ENSURE(false, "Not implemented");
     }
 
@@ -121,8 +147,26 @@ public:
         ders->Der1 = target - p;
         ders->Der2 = -p * (1 - p);
     }
-    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, double* ders) const;
-    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets, const float* weights, TDer1Der2* ders) const;
+
+    void CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        double* ders
+    ) const;
+
+    void CalcDersRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        TDer1Der2* ders
+    ) const;
 };
 
 class TCrossEntropyError : public IDerCalcer<TCrossEntropyError, /*StoreExpApproxParam*/ true> {
@@ -148,7 +192,15 @@ public:
         ders->Der2 = -p * (1 - p);
     }
 
-    void CalcDersRange(int start, int count, const double* approxes, const double* approxDelta, const float* probs, const float* weights, TDer1Der2* ders) const;
+    void CalcDersRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDelta,
+        const float* probs,
+        const float* weights,
+        TDer1Der2* ders
+    ) const;
 };
 
 class TRMSEError : public IDerCalcer<TRMSEError, /*StoreExpApproxParam*/ false> {
@@ -277,7 +329,13 @@ public:
         CB_ENSURE(false, "Not implemented for MultiClass error.");
     }
 
-    void CalcDersMulti(const TVector<double>& approx, float target, float weight, TVector<double>* der, TArray2D<double>* der2) const {
+    void CalcDersMulti(
+        const TVector<double>& approx,
+        float target,
+        float weight,
+        TVector<double>* der,
+        TArray2D<double>* der2
+    ) const {
         int approxDimension = approx.ysize();
 
         TVector<double> softmax(approxDimension);
@@ -327,7 +385,13 @@ public:
         CB_ENSURE(false, "Not implemented for MultiClassOneVsAll error.");
     }
 
-    void CalcDersMulti(const TVector<double>& approx, float target, float weight, TVector<double>* der, TArray2D<double>* der2) const {
+    void CalcDersMulti(
+        const TVector<double>& approx,
+        float target,
+        float weight,
+        TVector<double>* der,
+        TArray2D<double>* der2
+    ) const {
         int approxDimension = approx.ysize();
 
         TVector<double> prob(approxDimension);
@@ -379,10 +443,13 @@ public:
         return EErrorType::PairwiseError;
     }
 
-    void CalcDersPairs(const TVector<double>& expApproxes,
-                       const TVector<TVector<TCompetitor>>& competitors,
-                       int start, int count,
-                       TVector<double>* ders) const {
+    void CalcDersPairs(
+        const TVector<double>& expApproxes,
+        const TVector<TVector<TCompetitor>>& competitors,
+        int start,
+        int count,
+        TVector<double>* ders
+    ) const {
         for (int docId = start; docId < start + count; ++docId) {
             double curDer = 0;
             for (const auto& competitor : competitors[docId]) {
@@ -415,13 +482,16 @@ public:
         return EErrorType::QuerywiseError;
     }
 
-    void CalcDersForQueries(int start, int count,
-                            const TVector<double>& approxes,
-                            const TVector<float>& targets,
-                            const TVector<float>& weights,
-                            const TVector<ui32>& queriesId,
-                            const THashMap<ui32, ui32>& queriesSize,
-                            TVector<TDer1Der2>* ders) const {
+    void CalcDersForQueries(
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        const TVector<ui32>& queriesId,
+        const THashMap<ui32, ui32>& queriesSize,
+        TVector<TDer1Der2>* ders
+    ) const {
         int offset = 0;
         while (offset < count) {
             ui32 querySize = queriesSize.find(queriesId[start + offset])->second;
@@ -436,11 +506,13 @@ public:
         }
     }
 private:
-    double CalcQueryAvrg(int start, int count,
-                         const TVector<double>& approxes,
-                         const TVector<float>& targets,
-                         const TVector<float>& weights) const
-    {
+    double CalcQueryAvrg(
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights
+    ) const {
         double querySum = 0;
         double queryCount = 0;
         for (int docId = start; docId < start + count; ++docId) {
@@ -459,21 +531,34 @@ private:
 
 class TCustomError : public IDerCalcer<TCustomError, /*StoreExpApproxParam*/ false> {
 public:
-    TCustomError(const TFitParams& params)
-        : Descriptor(*params.ObjectiveDescriptor)
+    TCustomError(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& descriptor
+    )
+        : Descriptor(*descriptor)
     {
-        CB_ENSURE(params.StoreExpApprox == StoreExpApprox, "Approx format does not match");
+        CB_ENSURE(IsStoreExpApprox(params) == StoreExpApprox, "Approx format does not match");
     }
 
-    void CalcDersMulti(const TVector<double>& approx, float target, float weight,
-                       TVector<double>* der, TArray2D<double>* der2) const
-    {
+    void CalcDersMulti(
+        const TVector<double>& approx,
+        float target,
+        float weight,
+        TVector<double>* der,
+        TArray2D<double>* der2
+    ) const {
         Descriptor.CalcDersMulti(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
-    void CalcDersRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets,
-                       const float* weights, TDer1Der2* ders) const
-    {
+    void CalcDersRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        TDer1Der2* ders
+    ) const {
         if (approxDeltas != nullptr) {
             TVector<double> updatedApproxes(count);
             for (int i = start; i < start + count; ++i) {
@@ -485,9 +570,15 @@ public:
         }
     }
 
-    void CalcFirstDerRange(int start, int count, const double* approxes, const double* approxDeltas, const float* targets,
-                           const float* weights, double* ders) const
-    {
+    void CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        double* ders
+    ) const {
         TVector<TDer1Der2> derivatives(count, {0.0, 0.0});
         CalcDersRange(start, count, approxes, approxDeltas, targets, weights, derivatives.data() - start);
         for (int i = start; i < start + count; ++i) {
@@ -497,3 +588,71 @@ public:
 private:
     TCustomObjectiveDescriptor Descriptor;
 };
+
+class TUserDefinedPerObjectError : public IDerCalcer<TUserDefinedPerObjectError, /*StoreExpApproxParam*/ false> {
+public:
+
+    double Alpha;
+    SAVELOAD(Alpha);
+
+    TUserDefinedPerObjectError(const ymap<TString, TString>& params, bool storeExpApprox)
+        : Alpha(0.0)
+    {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+        if (params.has("alpha")) {
+            Alpha = FromString<double>(params.at("alpha"));
+        }
+    }
+
+    double CalcDer(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectError error.");
+        return 0.0;
+    }
+
+    double CalcDer2(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectError error.");
+        return 0.0;
+    }
+};
+
+class TUserDefinedQuerywiseError : public IDerCalcer<TUserDefinedQuerywiseError, /*StoreExpApproxParam*/ false> {
+public:
+
+    double Alpha;
+    SAVELOAD(Alpha);
+
+    TUserDefinedQuerywiseError(const ymap<TString, TString>& params, bool storeExpApprox)
+        : Alpha(0.0)
+    {
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+        if (params.has("alpha")) {
+            Alpha = FromString<double>(params.at("alpha"));
+        }
+    }
+
+    double CalcDer(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
+    }
+
+    double CalcDer2(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
+    }
+
+    void CalcDersForQueries(
+        int /*start*/,
+        int /*count*/,
+        const TVector<double>& /*approxes*/,
+        const TVector<float>& /*targets*/,
+        const TVector<float>& /*weights*/,
+        const TVector<ui32>& /*queriesId*/,
+        const THashMap<ui32, ui32>& /*queriesSize*/,
+        TVector<TDer1Der2>* /*ders*/
+    ) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
+    }
+
+    EErrorType GetErrorType() const {
+        return EErrorType::QuerywiseError;
+    }
+};
+

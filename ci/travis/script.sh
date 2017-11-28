@@ -44,4 +44,3 @@ if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
     cp $(readlink catboost/app/catboost) catboost-darwin;
 fi
 
-

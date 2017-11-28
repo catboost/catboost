@@ -1,7 +1,6 @@
 #include "load_data.h"
 #include "load_helpers.h"
 
-#include <catboost/libs/params/params.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/split.h>
@@ -428,7 +427,7 @@ void TPoolReader::ProcessBlock() {
                   LinesRead + lineIdx + 1 << ": expected " << ColumnsDescription.ysize() << ", found " << tokenCount);
     };
     const int threadCount = LocalExecutor->GetThreadCount() + 1;
-    LocalExecutor->ExecRange(parseBlock, NPar::TLocalExecutor::TBlockParams(0, ParseBuffer.ysize()).SetBlockCount(threadCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    LocalExecutor->ExecRange(parseBlock, NPar::TLocalExecutor::TExecRangeParams(0, ParseBuffer.ysize()).SetBlockCount(threadCount), NPar::TLocalExecutor::WAIT_COMPLETE);
     LinesRead += ParseBuffer.ysize();
 }
 

@@ -147,7 +147,7 @@ namespace NCatboostCuda
         {
             if (CtrConfigs.count(featureTensor) == 0)
             {
-                CtrConfigs[featureTensor] = FeaturesManager.CreateCtrsConfigsForTensor(featureTensor);
+                CtrConfigs[featureTensor] = FeaturesManager.CreateTreeCtrConfigs();
             }
             return CtrConfigs[featureTensor];
         }
@@ -179,9 +179,9 @@ namespace NCatboostCuda
                     const ui32 idx = static_cast<const ui32>(InverseCtrIndex.size());
                     InverseCtrIndex[ctr] = idx;
                     Ctrs.push_back(ctr);
-                    CB_ENSURE(FeaturesManager.GetCtrBinarization(ctr).Discretization <= 15,
+                    CB_ENSURE(FeaturesManager.GetCtrBinarization(ctr).BorderCount <= 15,
                               "Error: maximum tree-ctrs border count is compile-time constant and currently set to 15 for optimal performance");
-                    const ui32 bordersSize = 1 + FeaturesManager.GetCtrBinarization(ctr).Discretization;
+                    const ui32 bordersSize = 1 + FeaturesManager.GetCtrBinarization(ctr).BorderCount;
                     const ui32 offset = static_cast<const ui32>(CtrBorderSlices.size() ? CtrBorderSlices.back().Right
                                                                                        : 0);
                     const TSlice bordersSlice = TSlice(offset, offset + bordersSize);

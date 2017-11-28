@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/algo/train_model.h>
+#include <catboost/libs/train_lib/train_model.h>
 
 TFullModel TrainFloatCatboostModel() {
     TPool pool;

@@ -33,4 +33,4 @@ constexpr size_t GetEnumItemsCount();
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
-const ymap<EnumT, TString>& GetEnumNames();
+const TMap<EnumT, TString>& GetEnumNames();

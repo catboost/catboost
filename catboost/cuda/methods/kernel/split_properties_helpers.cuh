@@ -50,7 +50,7 @@ namespace NKernel {
         }
 
 
-        __forceinline__ __device__ void ShiftPartAndBinSumsPtr(const TDataPartition*& partition, float*& binSums, ui32 totalFeatureCount, bool fullPass) {
+        __forceinline__ __device__ void ShiftPartAndBinSumsPtr(const TDataPartition* __restrict__& partition, float* __restrict__& binSums, ui32 totalFeatureCount, bool fullPass) {
             if (fullPass) {
                 partition += GetDataPartitionOffset(blockIdx.y, blockIdx.z);
                 binSums +=  GetHistogramOffset(blockIdx.y, blockIdx.z) * 2 * totalFeatureCount;

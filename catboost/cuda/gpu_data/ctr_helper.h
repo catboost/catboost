@@ -67,7 +67,7 @@ namespace NCatboostCuda
         {
             for (auto& config : configs)
             {
-                CB_ENSURE(IsEqualUpToPrior(config, configs[0]), "Error: could visit only one-type ctrs only");
+                CB_ENSURE(IsEqualUpToPriorAndBinarization(config, configs[0]), "Error: could visit only one-type ctrs only");
             }
             auto ctrType = configs[0].Type;
             const ui32 mask = TCtrBinBuilder<TMapping>::GetMask();
@@ -89,8 +89,7 @@ namespace NCatboostCuda
                 }
             };
 
-            if (IsCatFeatureStatisticCtr(ctrType))
-            {
+            if (IsCatFeatureStatisticCtr(ctrType)) {
                 if (ComputeCatFeatureStatOnFullData) {
                     TCtrBinBuilder<TMapping> binBuilder(Stream);
                     binBuilder.SetIndices(SortedByBinsIndices, CtrTargets.LearnSlice);
@@ -108,8 +107,7 @@ namespace NCatboostCuda
                                                                    std::forward<TVisitor>(visitor));
 
                 }
-            } else if (IsBinarizedTargetCtr(ctrType))
-            {
+            } else if (IsBinarizedTargetCtr(ctrType)) {
                 if (!HistoryCalcer)
                 {
                     createHistoryCalcer();

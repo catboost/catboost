@@ -42,8 +42,7 @@ test_that("test caret train and parameter tuning on adult pool", {
                       border_count=64)
 
   report <- caret::train(X, as.factor(make.names(y)),
-                         method=catboost::catboost.caret,
-                         verbose=FALSE, preProc=NULL,
+                         method=catboost::catboost.caret, preProc=NULL,
                          tuneGrid=grid, trControl=fit_control)
 
   expect_true(report$results$Accuracy > 0.75)

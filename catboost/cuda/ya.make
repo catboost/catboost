@@ -1,5 +1,4 @@
 RECURSE(
-    app
     cuda_lib
     cuda_util
     cuda_lib/ut

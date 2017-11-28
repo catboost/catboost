@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/options/catboost_options.h>
+
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
 
@@ -39,4 +41,14 @@ static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* 
     for (auto& approx : *approxMulti) {
         ExpApproxIf(storeExpApproxes, &approx);
     }
+}
+
+
+inline bool IsStoreExpApprox(const NCatboostOptions::TCatBoostOptions& options) {
+    return EqualToOneOf(options.LossFunctionDescription->GetLossFunction(),
+                        ELossFunction::Logloss,
+                        ELossFunction::LogLinQuantile,
+                        ELossFunction::Poisson,
+                        ELossFunction::CrossEntropy,
+                        ELossFunction::PairLogit);
 }

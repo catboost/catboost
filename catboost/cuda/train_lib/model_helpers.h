@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/cuda/data/load_config.h>
+#include <catboost/libs/options/load_options.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/load_data.h>
@@ -35,20 +35,21 @@ namespace NCatboostCuda
     }
 
     inline void MakeFullModel(const TString& coreModelPath,
-                              const TPoolLoadOptions& poolLoadOptions,
+                              const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
+                              const TVector<TString>& classNames,
                               const TVector<TTargetClassifier>& targetClassifiers,
                               const ui32 numThreads,
                               const TString& fullModelPath)
     {
         TPool pool;
-        ReadPool(poolLoadOptions.GetColumnDescriptionName(),
-                 poolLoadOptions.GetFeaturesFilename(),
+        ReadPool(poolLoadOptions.CdFile,
+                 poolLoadOptions.LearnFile,
                  "",
                  numThreads,
                  false,
-                 poolLoadOptions.GetDelimiter(),
-                 poolLoadOptions.HasHeader(),
-                 poolLoadOptions.GetClassNames(),
+                 poolLoadOptions.Delimiter,
+                 poolLoadOptions.HasHeader,
+                 classNames,
                  &pool);
 
         TFullModel coreModel;

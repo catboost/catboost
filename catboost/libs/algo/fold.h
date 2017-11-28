@@ -67,7 +67,7 @@ struct TFold {
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;
     size_t EffectiveDocCount = 0;
-    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int PermutationBlockSize = 0;
 
     TOnlineCTRHash& GetCtrs(const TProjection& proj) {
         return HasSingleFeature(proj) ? OnlineSingleCtrs : OnlineCTR;

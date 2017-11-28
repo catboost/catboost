@@ -3,7 +3,7 @@
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
-#include <catboost/cuda/methods/score_function.h>
+#include <catboost/libs/options/enums.h>
 
 namespace NKernel {
 

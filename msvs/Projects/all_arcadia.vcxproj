@@ -42,9 +42,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\app\catboost.vcxproj">
       <Project>F5E5CE4E-6D98-67E2-8A01-37BFA83D2DE3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\app\cb_cuda.vcxproj">
-      <Project>CC08883D-9C83-00CA-F7B2-C10BC80FE8BC</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
       <Project>25AC1B6D-6F5F-550C-B8D7-D7E344784C2E</Project>
     </ProjectReference>
@@ -144,17 +141,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\catboostmodel.vcxproj">
       <Project>4D7E3A2D-8534-FF5D-5F6B-AFAF877D2578</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
+      <Project>D350B71A-438C-3D20-8D8E-292B20D81461</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\ut\json_options_ut.vcxproj">
+      <Project>4ACFE55B-9AAC-E7D7-5C3F-543620CDF721</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\params\catboost-libs-params.vcxproj">
-      <Project>AFF86C9B-6E36-5463-A269-12BE720A04BA</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\tensorboard_logger\catboost-libs-tensorboard_logger.vcxproj">
       <Project>6F9BA27F-7853-1464-BB51-1321A3D1AC80</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\tensorboard_logger\example\example.vcxproj">
       <Project>E5D091F1-0A82-06F4-6DBC-26A72018D76F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
+      <Project>B6361F28-19AC-62AF-82F3-98822E01D227</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\catboost-pytest.vcxproj">
       <Project>1DA15BE1-5F6A-2408-1DFC-F862D643AFD9</Project>
@@ -546,4 +549,7 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <Natvis Include="arcadia.natvis"/>
+  </ItemGroup>
 </Project>

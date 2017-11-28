@@ -52,6 +52,10 @@ TFsPath GetYaPath() {
     return envPath;
 }
 
+TFsPath GetOutputPath() {
+    return GetWorkPath() + "/testing_out_stuff";
+}
+
 class TPortManager::TPortManagerImpl {
 public:
     ui16 GetUdpPort(ui16 port) {

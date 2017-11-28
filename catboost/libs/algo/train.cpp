@@ -26,10 +26,11 @@ TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
 }
 
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx) {
-    return TErrorTracker(ctx->Params.OdParams.OverfittingDetectorType,
+    const auto& odOptions = ctx->Params.BoostingOptions->OverfittingDetector;
+    return TErrorTracker(odOptions->OverfittingDetectorType,
                          isMaxOptimal,
-                         ctx->Params.OdParams.AutoStopPval,
-                         ctx->Params.OdParams.OverfittingDetectorIterationsWait,
+                         odOptions->AutoStopPValue,
+                         odOptions->IterationsWait,
                          true,
                          hasTest);
 }

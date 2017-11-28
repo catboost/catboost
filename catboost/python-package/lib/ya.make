@@ -6,13 +6,14 @@ SRCDIR(catboost/python-package/catboost)
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/train_lib
     catboost/libs/data
     catboost/libs/fstr
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/params
+    catboost/libs/options
     library/containers/2d_array
     library/json/writer
 )

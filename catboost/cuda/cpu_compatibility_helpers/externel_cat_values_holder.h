@@ -46,8 +46,7 @@ namespace NCatboostCuda
 
     private:
 
-        ui32 GetBinFromHash(int hash) const
-        {
+        ui32 GetBinFromHash(int hash) const {
             const auto& perfectHash = FeaturesManager.GetCategoricalFeaturesPerfectHash(FeatureManagerFeatureId);
             return perfectHash.at(hash);
         }

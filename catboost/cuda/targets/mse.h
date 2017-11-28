@@ -2,8 +2,8 @@
 
 #include "target_base.h"
 #include "kernel.h"
-#include "target_options.h"
 #include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 
@@ -20,12 +20,12 @@ namespace NCatboostCuda {
         TL2(const TDataSet& dataSet,
             TRandom& random,
             TSlice slice,
-            const TTargetOptions& targetOptions
+            const NCatboostOptions::TLossDescription& targetOptions
         )
             : TParent(dataSet,
                       random,
                       slice) {
-            CB_ENSURE(targetOptions.GetTargetType() == ETargetFunction::RMSE);
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::RMSE);
         }
 
         TL2(const TL2& target,

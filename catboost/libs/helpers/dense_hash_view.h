@@ -29,6 +29,10 @@ namespace NCatboost {
             Y_ENSURE(IsPowerOf2(bucketsRef.size()), "Dense hash view must have 2^k buckets");
         }
 
+        size_t GetBucketCount() const {
+            return Buckets.size();
+        }
+
         ui32 GetIndex(ui64 idx) const {
 
             for (ui64 zz = idx & HashMask; Buckets[zz].Hash != TBucket::InvalidHashValue; zz = (zz + 1) & HashMask) {

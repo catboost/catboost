@@ -5,4 +5,5 @@ RECURSE(
     future/perf
     future/ut
     local_executor
+    local_executor/ut
 )

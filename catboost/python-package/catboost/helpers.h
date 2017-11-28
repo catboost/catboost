@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/algo/plot.h>
+
 #include <util/generic/noncopyable.h>
 
 class TGilGuard : public TNonCopyable {
@@ -18,3 +20,14 @@ private:
 void ProcessException();
 void SetPythonInterruptHandler();
 void ResetPythonInterruptHandler();
+
+TVector<TVector<double>> EvalMetrics(
+    const TFullModel& model,
+    const TPool& pool,
+    const TString& metricDescription,
+    int begin,
+    int end,
+    int evalPeriod,
+    int threadCount,
+    const TString& tmpDir
+);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/params/params.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
 

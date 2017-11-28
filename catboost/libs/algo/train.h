@@ -16,7 +16,6 @@
 #include "logger.h"
 #include "error_functions.h"
 
-#include <catboost/libs/params/params.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/model/hash.h>
@@ -43,37 +42,49 @@ TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* 
 
 void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCount, TVector<TVector<double>>* treeValues);
 
+
 template <typename TError>
-TError BuildError(const TFitParams& params) {
-    return TError(params.StoreExpApprox);
+TError BuildError(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
+    return TError(IsStoreExpApprox(params));
 }
 
 template <>
-inline TQuantileError BuildError<TQuantileError>(const TFitParams& params) {
-    auto lossParams = GetLossParams(params.Objective);
+inline TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
+    auto lossParams = params.LossFunctionDescription->GetLossParams();
     if (lossParams.empty()) {
-        return TQuantileError(params.StoreExpApprox);
+        return TQuantileError(IsStoreExpApprox(params));
     } else {
-        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << params.Objective);
-        return TQuantileError(lossParams["alpha"], params.StoreExpApprox);
+        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+        return TQuantileError(FromString<float>(lossParams["alpha"]), IsStoreExpApprox(params));
     }
 }
 
 template <>
-inline TLogLinQuantileError BuildError<TLogLinQuantileError>(const TFitParams& params) {
-    auto lossParams = GetLossParams(params.Objective);
+inline TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
+    auto lossParams = params.LossFunctionDescription->GetLossParams();
     if (lossParams.empty()) {
-        return TLogLinQuantileError(params.StoreExpApprox);
+        return TLogLinQuantileError(IsStoreExpApprox(params));
     } else {
-        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << params.Objective);
-        return TLogLinQuantileError(lossParams["alpha"], params.StoreExpApprox);
+        CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+        return TLogLinQuantileError(FromString<float>(lossParams["alpha"]), IsStoreExpApprox(params));
     }
 }
 
 template <>
-inline TCustomError BuildError<TCustomError>(const TFitParams& params) {
-    Y_ASSERT(params.ObjectiveDescriptor.Defined());
-    return TCustomError(params);
+inline TCustomError BuildError<TCustomError>(const NCatboostOptions::TCatBoostOptions& params,
+                                             const TMaybe<TCustomObjectiveDescriptor>& descriptor) {
+    Y_ASSERT(descriptor.Defined());
+    return TCustomError(params, descriptor);
+}
+
+template <>
+inline TUserDefinedPerObjectError BuildError<TUserDefinedPerObjectError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
+    return TUserDefinedPerObjectError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params));
+}
+
+template <>
+inline TUserDefinedQuerywiseError BuildError<TUserDefinedQuerywiseError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
+    return TUserDefinedQuerywiseError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params));
 }
 
 using TTrainFunc = std::function<void(const TTrainData& data,
@@ -104,7 +115,7 @@ inline void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
         error.CalcDersPairs(approx[0], competitors, 0, tailFinish, &(*derivatives)[0]);
     } else {
         int approxDimension = approx.ysize();
-        NPar::TLocalExecutor::TBlockParams blockParams(0, tailFinish);
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
         blockParams.SetBlockSize(1000);
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
@@ -210,13 +221,17 @@ inline void CalcAndLogTestErrors(const TVector<TVector<double>>& avrgApprox,
 template <typename TError>
 void TrainOneIter(const TTrainData& data,
                   TLearnContext* ctx) {
-    TError error = BuildError<TError>(ctx->Params);
+    TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     TProfileInfo& profile = ctx->Profile;
 
     const auto sampleCount = data.GetSampleCount();
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
 
-    TVector<THolder<IMetric>> errors = CreateMetrics(ctx->Params.EvalMetric, ctx->Params.EvalMetricDescriptor, ctx->Params.CustomLoss, approxDimension);
+    const auto& metricOptions = ctx->Params.MetricOptions.Get();
+    TVector<THolder<IMetric>> errors = CreateMetrics(metricOptions.EvalMetric,
+                                                     ctx->EvalMetricDescriptor,
+                                                     metricOptions.CustomMetrics,
+                                                     approxDimension);
 
     auto splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
 
@@ -228,7 +243,7 @@ void TrainOneIter(const TTrainData& data,
 
     CheckInterrupted(); // check after long-lasting operation
 
-    double modelLength = currentIteration * ctx->Params.LearningRate;
+    double modelLength = currentIteration * ctx->Params.BoostingOptions->LearningRate;
 
     TSplitTree bestSplitTree;
     {
@@ -300,7 +315,7 @@ void TrainOneIter(const TTrainData& data,
         profile.AddOperation("CalcApprox tree struct");
         CheckInterrupted(); // check after long-lasting operation
 
-        const double learningRate = ctx->Params.LearningRate;
+        const double learningRate = ctx->Params.BoostingOptions->LearningRate;
 
         for (int foldId = 0; foldId < foldCount; ++foldId) {
             TFold& ff = ctx->LearnProgress.Folds[foldId];
@@ -312,7 +327,7 @@ void TrainOneIter(const TTrainData& data,
                     double* approxData = bt.Approx[dim].data();
                     ctx->LocalExecutor.ExecRange([=](int z) {
                         approxData[z] = UpdateApprox<TError::StoreExpApprox>(approxData[z], ApplyLearningRate<TError::StoreExpApprox>(approxDeltaData[z], learningRate));
-                    }, NPar::TLocalExecutor::TBlockParams(0, bt.TailFinish).SetBlockSize(10000)
+                    }, NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(10000)
                      , NPar::TLocalExecutor::WAIT_COMPLETE);
                 }
             }
@@ -330,7 +345,7 @@ void TrainOneIter(const TTrainData& data,
                        &indices);
 
         // TODO(nikitxskv): if this will be a bottleneck, we can use precalculated counts.
-        if (IsPairwiseError(ctx->Params.LossFunction)) {
+        if (IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
             NormalizeLeafValues(indices, data.LearnSampleCount, &treeValues);
         }
 
@@ -365,7 +380,7 @@ void TrainOneIter(const TTrainData& data,
                     approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
                 }
                 avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
-            }, NPar::TLocalExecutor::TBlockParams(0, sampleCount).SetBlockSize(10000)
+            }, NPar::TLocalExecutor::TExecRangeParams(0, sampleCount).SetBlockSize(10000)
              , NPar::TLocalExecutor::WAIT_COMPLETE);
         }
 
@@ -385,12 +400,17 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     const int approxDimension = testMultiApprox->ysize();
     const bool hasTest = sampleCount > data.LearnSampleCount;
 
-    TVector<THolder<IMetric>> metrics = CreateMetrics(ctx->Params.EvalMetric, ctx->Params.EvalMetricDescriptor, ctx->Params.CustomLoss, approxDimension);
+    const auto& metricOptions = ctx->Params.MetricOptions.Get();
+    TVector<THolder<IMetric>> metrics =  CreateMetrics(metricOptions.EvalMetric,
+                                                       ctx->EvalMetricDescriptor,
+                                                       metricOptions.CustomMetrics,
+                                                       approxDimension);
 
     // TODO(asaitgalin): Should we have multiple error trackers?
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), hasTest, ctx);
 
-    CB_ENSURE(hasTest || !ctx->Params.UseBestModel, "cannot select best model, no test provided");
+    const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
+    CB_ENSURE(hasTest || !useBestModel, "cannot select best model, no test provided");
 
     THolder<TLogger> logger;
 
@@ -400,7 +420,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
                     ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
         }
     }
-    if (ctx->Params.AllowWritingFiles) {
+    if (ctx->OutputOptions.AllowWriteFiles()) {
         logger = CreateLogger(metrics, *ctx, hasTest);
     }
     TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
@@ -414,14 +434,15 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         folds.push_back(&fold);
     }
 
-    if (AreStatsFromPrevTreeUsed(ctx->Params)) {
+
+    if (AreStatsFromPrevTreeUsed(ctx->Params.ObliviousTreeOptions.Get())) {
         ctx->ParamsUsedWithStatsFromPrevTree.Create(*folds[0]); // assume that all folds have the same shape
         const int approxDimension = folds[0]->GetApproxDimension();
         const int bodyTailCount = folds[0]->BodyTailArr.ysize();
-        ctx->StatsFromPrevTree.Create(CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), ctx->Params.Depth, approxDimension, bodyTailCount);
+        ctx->StatsFromPrevTree.Create(CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth), approxDimension, bodyTailCount);
     }
 
-    for (int iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.Iterations; ++iter) {
+    for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         TrainOneIter<TError>(data, ctx);
 
         CalcAndLogLearnErrors(
@@ -459,7 +480,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
 
             profile.AddOperation("Calc test errors");
 
-            if (ctx->Params.UseBestModel && iter == errorTracker.GetBestIteration() || !ctx->Params.UseBestModel) {
+            if ((useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) || !useBestModel) {
                 for (int dim = 0; dim < approxDimension; ++dim) {
                     (*testMultiApprox)[dim].assign(
                         ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
@@ -494,11 +515,11 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         MATRIXNET_NOTICE_LOG << "\n";
     }
 
-    if (ctx->Params.DetailedProfile || ctx->Params.DeveloperMode) {
+    if (ctx->Params.IsProfile || ctx->Params.LoggingLevel == ELoggingLevel::Debug) {
         profile.PrintAverages();
     }
 
-    if (ctx->Params.UseBestModel && ctx->Params.Iterations > 0) {
+    if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
         const int itCount = errorTracker.GetBestIteration() + 1;
         MATRIXNET_NOTICE_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
         ShrinkModel(itCount, &ctx->LearnProgress);

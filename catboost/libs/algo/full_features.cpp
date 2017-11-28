@@ -27,7 +27,7 @@ static void AddReason(TVector<ui8>* hist,
         } else {
             histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
         }
-    }, NPar::TLocalExecutor::TBlockParams(0, docStorage.GetDocCount()).SetBlockSize(1000)
+    }, NPar::TLocalExecutor::TExecRangeParams(0, docStorage.GetDocCount()).SetBlockSize(1000)
      , NPar::TLocalExecutor::WAIT_COMPLETE);
     CB_ENSURE(!hasNans || nanInLearn, "There are nans in test dataset (feature number " << idx << ") but there were not nans in learn dataset");
 }

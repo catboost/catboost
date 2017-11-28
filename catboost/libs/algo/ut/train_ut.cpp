@@ -1,5 +1,6 @@
-#include <catboost/libs/algo/train_model.h>
+#include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/algo/features_layout.h>
+#include <catboost/libs/options/plain_options_helper.h>
 
 #include <library/unittest/registar.h>
 #include <library/json/json_reader.h>
@@ -22,19 +23,17 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
             }
         }
         TPool poolCopy(pool);
-
-        NJson::TJsonValue fitParams;
-        fitParams.InsertValue("random_seed", 5);
-        fitParams.InsertValue("iterations", 0);
-
+        NJson::TJsonValue plainFitParams;
+        plainFitParams.InsertValue("random_seed", 5);
+        plainFitParams.InsertValue("iterations", 1);
         std::vector<int> emptyCatFeatures;
 
         TEvalResult testApprox;
         TPool testPool;
         TFullModel model;
-        TrainModel(fitParams, Nothing(), Nothing(), pool, false, testPool, "", &model, &testApprox);
+        TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, testPool, "", &model, &testApprox);
         {
-            TrainModel(fitParams, Nothing(), Nothing(), pool, false, testPool, "model_for_test.cbm", nullptr, &testApprox);
+            TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, testPool, "model_for_test.cbm", nullptr, &testApprox);
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }

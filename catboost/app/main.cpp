@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) {
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);
     } catch (...) {
-        Cerr << CurrentExceptionMessage() << Endl;
+        Cerr << "AN EXCEPTION OCCURRED. " << CurrentExceptionMessage() << Endl;
         return EXIT_FAILURE;
     }
 }

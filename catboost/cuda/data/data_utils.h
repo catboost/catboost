@@ -1,12 +1,12 @@
 #pragma once
 
 #include "grid_creator.h"
-#include "binarization_config.h"
 
 #include <catboost/cuda/cuda_util/cpu_random.h>
 #include <library/grid_creator/binarization.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
+#include <catboost/libs/options/binarization_options.h>
 
 namespace NCatboostCuda
 {
@@ -56,7 +56,7 @@ namespace NCatboostCuda
 
     inline TVector<float> BuildBorders(const TVector<float>& floatFeature,
                                        const ui32 seed,
-                                       const TBinarizationDescription& config)
+                                       const NCatboostOptions::TBinarizationOptions& config)
     {
         TOnCpuGridBuilderFactory gridBuilderFactory;
         ui32 sampleSize = GetSampleSizeForBorderSelectionType(floatFeature.size(),

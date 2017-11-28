@@ -61,6 +61,19 @@ public:
         return *this;
     }
 
+    TVector<TVector<double>> GetMetricsScore() {
+        if (HasNonAdditiveMetric()) {
+            ComputeNonAdditiveMetrics();
+        }
+        TVector<TVector<double>> metricsScore(Metrics.size(), TVector<double>(Iterations.size()));
+        for (ui32 i = 0; i < Iterations.size(); ++i) {
+            for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
+                metricsScore[metricId][i] = Metrics[metricId]->GetFinalError(MetricPlots[metricId][i]);
+            }
+        }
+        return metricsScore;
+    }
+
     void ClearTempFiles() {
         for (const auto& tmpFile : NonAdditiveMetricsData.ApproxFiles) {
             if (!tmpFile.Empty()) {
@@ -166,7 +179,6 @@ private:
         return false;
     }
 
-
 private:
     const TFullModel& Model;
     NPar::TLocalExecutor& Executor;
@@ -183,3 +195,14 @@ private:
 
     TNonAdditiveMetricData NonAdditiveMetricsData;
 };
+
+TMetricsPlotCalcer CreateMetricCalcer(
+    const TFullModel& model,
+    const TString& metricDescription,
+    int begin,
+    int end,
+    int evalPeriod,
+    NPar::TLocalExecutor& executor,
+    const TString& tmpDir,
+    TVector<THolder<IMetric>>* metrics
+);

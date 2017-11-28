@@ -7,7 +7,7 @@
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/methods/kernel/pointwise_hist2.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
-#include <catboost/cuda/methods/score_function.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/cuda/cuda_util/compression_helpers.h>
 #include <catboost/cuda/gpu_data/binarized_dataset.h>
 

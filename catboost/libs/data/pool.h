@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/string/cast.h>
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>
@@ -95,6 +96,9 @@ struct TDocumentStorage {
         Target.resize(docCount);
         Weight.resize(docCount, 1.0f);
         Id.resize(docCount);
+        for (int ind = 0; ind < docCount; ++ ind) {
+            Id[ind] = ToString(ind);
+        }
         QueryId.resize(docCount);
     }
 

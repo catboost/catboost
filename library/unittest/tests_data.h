@@ -12,6 +12,7 @@ class TInet6StreamSocket;
 TString GetArcadiaTestsData();
 TString GetWorkPath();
 TFsPath GetYaPath();
+TFsPath GetOutputPath();
 
 class TPortManager: public TNonCopyable {
 public:

@@ -8,6 +8,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/train_lib
 )
 
 END()

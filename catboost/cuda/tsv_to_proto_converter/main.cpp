@@ -1,8 +1,8 @@
 #include "pool_converter.h"
-#include <catboost/cuda/data/binarization_config.h>
 #include <library/protobuf/protofile/protofile.h>
 #include <library/getopt/opt.h>
 #include <library/threading/local_executor/local_executor.h>
+#include <catboost/libs/options/binarization_options.h>
 
 using namespace NCatboostCuda;
 
@@ -19,7 +19,7 @@ struct TPoolConvertConfig {
     TString OutputGridFile = "";
 
     bool DontBinarizeIt = false;
-    TBinarizationConfiguration Binarization;
+    NCatboostOptions::TBinarizationOptions FloatBinarization;
 };
 
 void ParseCommandLine(int argc, const char** argv, TPoolConvertConfig& settings) {
@@ -46,16 +46,6 @@ void ParseCommandLine(int argc, const char** argv, TPoolConvertConfig& settings)
         .Required()
         .RequiredArgument()
         .StoreResult(&settings.Output);
-
-    parser.AddLongOption('x', "discretization", "Discretization for binarization")
-        .Optional()
-        .RequiredArgument()
-        .StoreResult(&settings.Binarization.DefaultFloatBinarization.Discretization);
-
-    parser.AddLongOption('g', "grid", "Grid")
-        .Optional()
-        .RequiredArgument()
-        .StoreResult(&settings.Binarization.DefaultFloatBinarization.BorderSelectionType);
 
     parser.AddLongOption("dont-binarize", "Don't binarize pool")
         .Optional()
@@ -90,7 +80,7 @@ int DoMain(int argc, const char** argv) {
 
     if (!config.DontBinarizeIt && config.InputGridFile.empty()) {
         converter.SetGridBuilderFactory(gridBuilderFactory)
-            .SetBinarization(config.Binarization);
+            .SetBinarization(config.FloatBinarization);
     }
     if (config.InputGridFile.size()) {
         converter.SetInputBinarizationFile(config.InputGridFile);

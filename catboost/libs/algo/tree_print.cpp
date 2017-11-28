@@ -3,6 +3,7 @@
 #include <catboost/libs/data/pool.h>
 
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 
 TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
     TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(internalFeatureIdx, type);

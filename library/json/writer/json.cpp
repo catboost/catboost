@@ -380,7 +380,7 @@ TValueContext TBuf::WriteJsonValue(const NJson::TJsonValue* v, bool sortKeys) {
         break;
     } case JSON_MAP: {
         BeginObject();
-        const TJsonValue::TMap& map = v->GetMap();
+        const TJsonValue::TMapType& map = v->GetMap();
         if (sortKeys) {
             const size_t oldsz = Keys.size();
             Keys.reserve(map.size() + oldsz);
@@ -389,7 +389,7 @@ TValueContext TBuf::WriteJsonValue(const NJson::TJsonValue* v, bool sortKeys) {
             }
             Sort(Keys.begin() + oldsz, Keys.end(), LessStrPtr);
             for (size_t i = oldsz, sz = Keys.size(); i < sz; ++i) {
-                TJsonValue::TMap::const_iterator kv = map.find(*Keys[i]);
+                TJsonValue::TMapType::const_iterator kv = map.find(*Keys[i]);
                 WriteKey(kv->first);
                 WriteJsonValue(&kv->second, sortKeys);
             }

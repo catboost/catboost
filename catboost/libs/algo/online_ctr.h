@@ -27,10 +27,10 @@ inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift,
 }
 
 void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm);
-int GetCtrBorderCount(int targetClassesCount, ECtrType ctrType);
 
 class TLearnContext;
 class TTrainData;
+
 
 void ComputeOnlineCTRs(const TTrainData& data,
                        const TProjection& proj,

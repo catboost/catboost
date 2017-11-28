@@ -1,6 +1,5 @@
 #pragma once
 
-#include "oblivious_tree_options.h"
 #include "histograms_helper.h"
 #include "bootstrap.h"
 #include "helpers.h"
@@ -15,6 +14,7 @@
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_base.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
+#include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda
 {
@@ -23,16 +23,16 @@ namespace NCatboostCuda
     inline THolder<TScoreHelper<TGridPolicy, TLayoutPolicy>>
     CreateScoreHelper(const TGpuBinarizedDataSet<TGridPolicy, TLayoutPolicy>& dataSet,
                       ui32 foldCount,
-                      const TObliviousTreeLearnerOptions& treeConfig,
+                      const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                       bool requestStream = false)
     {
         using TFeatureScoresHelper = TScoreHelper<TGridPolicy, TLayoutPolicy>;
         return MakeHolder<TFeatureScoresHelper>(dataSet,
                                                 foldCount,
-                                                treeConfig.GetMaxDepth(),
-                                                treeConfig.GetScoreFunction(),
-                                                treeConfig.GetL2Reg(),
-                                                treeConfig.IsNormalize(),
+                                                treeConfig.MaxDepth,
+                                                treeConfig.ScoreFunction,
+                                                treeConfig.L2Reg,
+                                                treeConfig.FoldSizeLossNormalization,
                                                 requestStream);
     };
 
@@ -42,7 +42,7 @@ namespace NCatboostCuda
     {
     public:
         TGpuFeaturesScoreCalcer(const TGpuFeatures<>& features,
-                                const TObliviousTreeLearnerOptions& treeConfig,
+                                const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                 ui32 foldCount,
                                 bool requestStream)
                 : Features(features)
@@ -155,7 +155,7 @@ namespace NCatboostCuda
 
     private:
         const TGpuFeatures<>& Features;
-        const TObliviousTreeLearnerOptions& TreeConfig;
+        const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         ui32 FoldCount;
 
 
@@ -171,7 +171,7 @@ namespace NCatboostCuda
 
         TTreeCtrDataSetVisitor(TBinarizedFeaturesManager& featuresManager,
                                const ui32 foldCount,
-                               const TObliviousTreeLearnerOptions& treeConfig,
+                               const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                const TOptimizationSubsets& subsets)
                 : FeaturesManager(featuresManager)
                   , FoldCount(foldCount)
@@ -304,7 +304,7 @@ namespace NCatboostCuda
         bool IsNeedToCacheBorders(const TCtr& ctr)
         {
             return ctr.FeatureTensor.GetSplits().size() == 0 &&
-                   ctr.FeatureTensor.GetCatFeatures().size() < TreeConfig.GetMaxCtrComplexityForBordersCaching();
+                   ctr.FeatureTensor.GetCatFeatures().size() < TreeConfig.MaxCtrComplexityForBordersCaching;
         }
 
         void UpdateBestSplit(const TTreeCtrDataSet& dataSet,
@@ -357,7 +357,7 @@ namespace NCatboostCuda
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const ui32 FoldCount;
-        const TObliviousTreeLearnerOptions& TreeConfig;
+        const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         const TOptimizationSubsets& Subsets;
 
         TAdaptiveLock Lock;
@@ -384,7 +384,7 @@ namespace NCatboostCuda
                                         TBinarizedFeaturesManager& featuresManager,
                                         const TDataSet& dataSet,
                                         TBootstrap<NCudaLib::TMirrorMapping>& bootstrap,
-                                        const TObliviousTreeLearnerOptions& learnerOptions)
+                                        const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions)
                 : ScopedCache(cache)
                   , FeaturesManager(featuresManager)
                   , DataSet(dataSet)
@@ -413,7 +413,7 @@ namespace NCatboostCuda
 
         TObliviousTreeStructureSearcher& SetRandomStrength(double strength)
         {
-            RandomStrength = strength;
+            RandomStrengthMultipiler = strength;
             return *this;
         }
 
@@ -431,7 +431,7 @@ namespace NCatboostCuda
 
             TL2Target target = BuildTreeSearchTarget();
 
-            TOptimizationSubsets subsets = CreateSubsets(TreeConfig.GetMaxDepth(), target);
+            TOptimizationSubsets subsets = CreateSubsets(TreeConfig.MaxDepth, target);
 
             auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
             TMirrorBuffer<ui32> directObservationIndices;
@@ -452,7 +452,7 @@ namespace NCatboostCuda
 
             THolder<TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>> ctrDataSetsHelperPtr;
 
-            for (ui32 depth = 0; depth < TreeConfig.GetMaxDepth(); ++depth)
+            for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth)
             {
                 //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
                 //best score stage
@@ -506,7 +506,7 @@ namespace NCatboostCuda
                         using TCtrHelperType = TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>;
                         ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
                                                                           FeaturesManager,
-                                                                          TreeConfig.GetMaxDepth(),
+                                                                          TreeConfig.MaxDepth,
                                                                           foldCount,
                                                                           *treeUpdater.CreateEmptyTensorTracker());
                     }
@@ -608,7 +608,7 @@ namespace NCatboostCuda
                     }
                 }
 
-                if ((depth + 1) != TreeConfig.GetMaxDepth())
+                if ((depth + 1) != TreeConfig.MaxDepth)
                 {
                     {
                         auto guard = profiler.Profile(TStringBuilder() << "Update subsets");
@@ -623,15 +623,6 @@ namespace NCatboostCuda
                 }
 
                 result.Splits.push_back(bestSplit);
-                if (TreeConfig.IsDumpFreeMemory())
-                {
-                    NCudaLib::GetCudaManager().DumpFreeMemory(
-                            TStringBuilder() << "Free gpu memory after depth " << depth);
-                }
-            }
-            if (TreeConfig.IsDumpFreeMemory())
-            {
-                NCudaLib::GetCudaManager().DumpFreeMemory(TStringBuilder() << "Free gpu memory after tree searcher");
             }
 
             CacheBinsForModel(ScopedCache,
@@ -902,7 +893,7 @@ namespace NCatboostCuda
                     testWeights.Copy(task.TestTarget.GetWeights(), streams[(2 * i + 1) % streamCount].GetId());
                 }
 
-                if (RandomStrength)
+                if (RandomStrengthMultipiler)
                 {
                     for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2)
                     {
@@ -912,7 +903,7 @@ namespace NCatboostCuda
                                            streams[(2 * i + 1) % streamCount].GetId());
                         count += testSlice.Size();
                     }
-                    ScoreStdDev = RandomStrength * sqrt(sum2 / (count + 1e-100));
+                    ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100)) * TreeConfig.RandomStrength;
                 }
                 NCudaLib::GetCudaManager().WaitComplete();
             } else
@@ -922,12 +913,12 @@ namespace NCatboostCuda
                 target.Weights.Reset(SingleTaskTarget->GetTarget().GetMapping());
                 SingleTaskTarget->GradientAtZero(target.WeightedTarget);
                 target.Weights.Copy(SingleTaskTarget->GetWeights());
-                if (RandomStrength)
+                if (RandomStrengthMultipiler)
                 {
                     const double sum2 = DotProduct(target.WeightedTarget, target.WeightedTarget,
                                                    (decltype(&target.WeightedTarget)) nullptr);
                     const double count = target.WeightedTarget.GetObjectsSlice().Size();
-                    ScoreStdDev = RandomStrength * sqrt(sum2 / (count + 1e-100));
+                    ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100));
                 }
             }
 
@@ -935,10 +926,10 @@ namespace NCatboostCuda
             {
                 auto weights = Bootstrap.BootstrapedWeights(target.Weights.GetMapping());
                 //TODO(noxoomo): remove tiny overhead from bootstrap learn also
-                if (TreeConfig.IsBootstrapTestOnly())
+                if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly)
                 {
-                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2)
-                    {
+                    //make learn weights equal to 1
+                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2) {
                         const auto& learnSlice = slices[j];
                         auto learnWeights = weights.SliceView(learnSlice);
                         FillBuffer(learnWeights, 1.0f);
@@ -965,8 +956,8 @@ namespace NCatboostCuda
         const TCtrTargets<NCudaLib::TMirrorMapping>& CtrTargets;
 
         TBootstrap<NCudaLib::TMirrorMapping>& Bootstrap;
-        const TObliviousTreeLearnerOptions& TreeConfig;
-        double RandomStrength = 0.0;
+        const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
+        double RandomStrengthMultipiler = 0.0;
         double ScoreStdDev = 0.0;
 
         //should one or another, no mixing

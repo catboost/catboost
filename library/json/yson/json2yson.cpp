@@ -36,7 +36,7 @@ namespace NJson2Yson {
             }
             case NJson::JSON_MAP: {
                 adapter->OnOpenMap();
-                const NJson::TJsonValue::TMap& map = jsonValue.GetMap();
+                const NJson::TJsonValue::TMapType& map = jsonValue.GetMap();
                 for (const auto& it : map) {
                     adapter->OnMapKey(it.first);
                     WriteJsonValue(it.second, adapter);

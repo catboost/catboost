@@ -484,11 +484,11 @@ private:
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
 class TSetSerializerInserter<THashMap<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<THashMap<T1, T2, T3, T4, T5>, TValue> {
-    using TMap = THashMap<T1, T2, T3, T4, T5>;
-    using TBase = TSetSerializerInserterBase<TMap, TValue>;
+    using TMapType = THashMap<T1, T2, T3, T4, T5>;
+    using TBase = TSetSerializerInserterBase<TMapType, TValue>;
 
 public:
-    inline TSetSerializerInserter(TMap& m, size_t cnt)
+    inline TSetSerializerInserter(TMapType& m, size_t cnt)
         : TBase(m)
     {
         m.reserve(cnt);
@@ -497,11 +497,11 @@ public:
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
 class TSetSerializerInserter<THashMultiMap<T1, T2, T3, T4, T5>, TValue, false>: public TSetSerializerInserterBase<THashMultiMap<T1, T2, T3, T4, T5>, TValue> {
-    using TMap = THashMultiMap<T1, T2, T3, T4, T5>;
-    using TBase = TSetSerializerInserterBase<TMap, TValue>;
+    using TMapType = THashMultiMap<T1, T2, T3, T4, T5>;
+    using TBase = TSetSerializerInserterBase<TMapType, TValue>;
 
 public:
-    inline TSetSerializerInserter(TMap& m, size_t cnt)
+    inline TSetSerializerInserter(TMapType& m, size_t cnt)
         : TBase(m)
     {
         m.reserve(cnt);
@@ -553,8 +553,8 @@ public:
     }
 };
 
-template <class TMap, bool sorted = false>
-struct TMapSerializer: public TSetSerializerBase<TMap, std::pair<typename TMap::key_type, typename TMap::mapped_type>, sorted> {
+template <class TMapType, bool sorted = false>
+struct TMapSerializer: public TSetSerializerBase<TMapType, std::pair<typename TMapType::key_type, typename TMapType::mapped_type>, sorted> {
 };
 
 template <class TSet, bool sorted = false>
@@ -562,7 +562,7 @@ struct TSetSerializer: public TSetSerializerBase<TSet, typename TSet::value_type
 };
 
 template <class T1, class T2, class T3, class T4>
-class TSerializer<ymap<T1, T2, T3, T4>>: public TMapSerializer<ymap<T1, T2, T3, T4>, true> {
+class TSerializer<TMap<T1, T2, T3, T4>>: public TMapSerializer<TMap<T1, T2, T3, T4>, true> {
 };
 
 template <class K, class T, class C, class A>

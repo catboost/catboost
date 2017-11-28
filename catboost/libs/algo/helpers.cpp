@@ -9,8 +9,10 @@
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
     auto& docStorage = pool.Docs;
     const THashSet<int>& categFeatures = ctx->CatFeatures;
-    const int borderCount = ctx->Params.BorderCount;
-    const EBorderSelectionType borderType = ctx->Params.FeatureBorderType;
+    const auto& floatFeatureBorderOptions = ctx->Params.DataProcessingOptions->FloatFeaturesBinarization.Get();
+    const int borderCount = floatFeatureBorderOptions.BorderCount;
+    const ENanMode nanMode = floatFeatureBorderOptions.NanMode;
+    const EBorderSelectionType borderType = floatFeatureBorderOptions.BorderSelectionType;
 
     size_t reasonCount = docStorage.GetFactorsCount() - categFeatures.size();
     floatFeatures->resize(reasonCount);
@@ -38,13 +40,14 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, docStorage.GetDocCount(), borderType);
     const size_t bytesGenerateBorders = sizeof(float) * docStorage.GetDocCount();
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
-    const size_t threadCount = Min(reasonCount, (ctx->Params.UsedRAMLimit - bytesUsed) / bytesRequiredPerThread);
-    if (!(ctx->Params.UsedRAMLimit >= bytesUsed && threadCount > 0)) {
+    const auto usedRamLimit = ctx->Params.SystemOptions->CpuUsedRamLimit;
+    const size_t threadCount = Min(reasonCount, (usedRamLimit - bytesUsed) / bytesRequiredPerThread);
+    if (!(usedRamLimit >= bytesUsed && threadCount > 0)) {
         MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
     }
 
     TAtomic taskFailedBecauseOfNans = 0;
-    THashSet<int> ignoredFeatureIndexes(ctx->Params.IgnoredFeatures.begin(), ctx->Params.IgnoredFeatures.end());
+    THashSet<int> ignoredFeatureIndexes(ctx->Params.DataProcessingOptions->IgnoredFeatures->begin(), ctx->Params.DataProcessingOptions->IgnoredFeatures->end());
     auto calcOneFeatureBorder = [&](int idx) {
         auto& floatFeature = floatFeatures->at(idx);
         const auto floatFeatureIdx = floatFeatures->at(idx).FlatFeatureIndex;
@@ -68,12 +71,12 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         TVector<float> bordersBlock(borderSet.begin(), borderSet.end());
         Sort(bordersBlock.begin(), bordersBlock.end());
         if (floatFeature.HasNans) {
-            if (ctx->Params.NanMode == ENanMode::Min) {
+            if (nanMode == ENanMode::Min) {
                 bordersBlock.insert(bordersBlock.begin(), std::numeric_limits<float>::lowest());
-            } else if (ctx->Params.NanMode == ENanMode::Max) {
+            } else if (nanMode == ENanMode::Max) {
                 bordersBlock.push_back(std::numeric_limits<float>::max());
             } else {
-                Y_ASSERT(ctx->Params.NanMode == ENanMode::Forbidden);
+                Y_ASSERT(nanMode == ENanMode::Forbidden);
                 taskFailedBecauseOfNans = 1;
             }
         }

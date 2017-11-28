@@ -32,3 +32,35 @@ void SetPythonInterruptHandler() {
 void ResetPythonInterruptHandler() {
     ResetInterruptHandler();
 }
+
+TVector<TVector<double>> EvalMetrics(
+    const TFullModel& model,
+    const TPool& pool,
+    const TString& metricDescription,
+    int begin,
+    int end,
+    int evalPeriod,
+    int threadCount,
+    const TString& tmpDir
+) {
+    TVector<THolder<IMetric>> metrics;
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+
+    TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
+        model,
+        metricDescription,
+        begin,
+        end,
+        evalPeriod,
+        executor,
+        tmpDir,
+        &metrics
+    );
+    plotCalcer.ProceedDataSet(pool);
+
+    TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
+
+    plotCalcer.ClearTempFiles();
+    return metricsScore;
+}

@@ -18,4 +18,13 @@ SIMPLE_UNIT_TEST_SUITE(TCompilerTest) {
 
         Y_PRAGMA_DIAGNOSTIC_POP
     }
+
+    SIMPLE_UNIT_TEST(TestHaveIntrinsicInt128) {
+#ifdef Y_HAVE_INT128
+        // will be compiled without errors
+        unsigned __int128 a = 1;
+        __int128 b = 1;
+        UNIT_ASSERT_EQUAL(a, b);
+#endif
+    }
 }

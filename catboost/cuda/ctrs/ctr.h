@@ -84,29 +84,30 @@ inline yset<ECtrType> GetPermutationIndependentCtrs() {
 }
 
 struct TCtrConfig {
-    ECtrType Type = ECtrType::FloatTargetMeanValue;
+    ECtrType Type = ECtrType::Borders;
     TVector<float> Prior;
     ui32 ParamId = 0;
+    ui32 CtrBinarizationConfigId = 0;
 
     ui64 GetHash() const {
-        return MultiHash(Type, VecCityHash(Prior), ParamId);
+        return MultiHash(Type, VecCityHash(Prior), ParamId, CtrBinarizationConfigId);
     }
 
     bool operator<(const TCtrConfig& other) const {
-        return std::tie(Type, Prior, ParamId) <
-               std::tie(other.Type, other.Prior, other.ParamId);
+        return std::tie(Type, Prior, ParamId, CtrBinarizationConfigId) <
+               std::tie(other.Type, other.Prior, other.ParamId, CtrBinarizationConfigId);
     }
 
     bool operator==(const TCtrConfig& other) const {
-        return std::tie(Type, Prior, ParamId) == std::tie(other.Type, other.Prior, other.ParamId);
+        return std::tie(Type, Prior, ParamId, CtrBinarizationConfigId) == std::tie(other.Type, other.Prior, other.ParamId, CtrBinarizationConfigId);
     }
 
     bool operator!=(const TCtrConfig& other) const {
         return !(*this == other);
     }
 
-    SAVELOAD(Type, Prior, ParamId);
-    Y_SAVELOAD_DEFINE(Type, Prior, ParamId);
+    SAVELOAD(Type, Prior, ParamId, CtrBinarizationConfigId);
+    Y_SAVELOAD_DEFINE(Type, Prior, ParamId, CtrBinarizationConfigId);
 };
 
 inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {
@@ -115,59 +116,30 @@ inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {
     return result;
 }
 
-inline ymap<TCtrConfig, TVector<TCtrConfig>> CreateEqualUpToPriorCtrsGroupping(const TVector<TCtrConfig>& configs) {
+inline ymap<TCtrConfig, TVector<TCtrConfig>> CreateEqualUpToPriorAndBinarizationCtrsGroupping(const TVector<TCtrConfig>& configs) {
     ymap<TCtrConfig, TVector<TCtrConfig>> result;
     for (auto& config : configs) {
         TCtrConfig withoutPriorConfig = RemovePrior(config);
+        withoutPriorConfig.CtrBinarizationConfigId = -1;
         result[withoutPriorConfig].push_back(config);
     }
     return result;
 }
 
 // equal configs factor
-inline bool IsEqualUpToPrior(const TCtrConfig& left, const TCtrConfig& right) {
+inline bool IsEqualUpToPriorAndBinarization(const TCtrConfig& left, const TCtrConfig& right) {
     return (left.ParamId == right.ParamId) && (left.Type == right.Type);
 }
 
-inline float GetPriorsSum(const TCtrConfig& config) {
-    float total = 0;
-    for (auto& val : config.Prior) {
-        total += val;
-    }
-    return total;
-}
 
 inline float GetNumeratorShift(const TCtrConfig& config) {
-    switch (config.Type) {
-        case ECtrType::FloatTargetMeanValue:
-        case ECtrType::FeatureFreq: {
-            return config.Prior.at(0);
-        }
-        case ECtrType::Buckets:
-        case ECtrType::Borders: {
-            return config.Prior.at(config.ParamId);
-        }
-        default: {
-            ythrow TCatboostException() << "unknown type";
-        }
-    }
+    return config.Prior.at(0);
 }
 
 inline float GetDenumeratorShift(const TCtrConfig& config) {
-    switch (config.Type) {
-        case ECtrType::FloatTargetMeanValue:
-        case ECtrType::FeatureFreq: {
-            return config.Prior.at(1);
-        }
-        case ECtrType::Buckets:
-        case ECtrType::Borders: {
-            return GetPriorsSum(config);
-        }
-        default: {
-            ythrow TCatboostException() << "unknown type";
-        }
-    }
+    return config.Prior.at(1);
 }
+
 inline TCtrConfig CreateCtrConfigForFeatureFreq(float prior,
                                                 ui32 uniqueValues) {
     TCtrConfig config;
@@ -177,25 +149,5 @@ inline TCtrConfig CreateCtrConfigForFeatureFreq(float prior,
     return config;
 }
 
-//dim without total stat
-inline ui32 SufficientSpaceDim(const TCtrConfig& config) {
-    Y_ENSURE(config.Prior.size(), "Error: provide prior");
-    switch (config.Type) {
-        case ECtrType::Buckets:
-        case ECtrType::Borders: {
-            return (ui32)(config.Prior.size() - 1);
-        }
-        case ECtrType::FloatTargetMeanValue: {
-            Y_ENSURE(config.Prior.size() == 2);
-            return 1;
-        }
-        case ECtrType::FeatureFreq: {
-            return config.Prior.size() - 1;
-        }
-        default: {
-            ythrow TCatboostException() << "unknown ctr type type " << config.Type;
-        }
-    }
-}
 }
 

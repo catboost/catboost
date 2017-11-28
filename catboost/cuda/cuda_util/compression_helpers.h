@@ -80,7 +80,7 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     dst.resize(indexHelper.CompressedSize(size));
     const auto mask = indexHelper.Mask();
 
-    NPar::TLocalExecutor::TBlockParams params(0, size);
+    NPar::TLocalExecutor::TExecRangeParams params(0, size);
     //alignment by entries per int allows parallel compression
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
@@ -140,7 +140,7 @@ inline TVector<TBinType> BinarizeLine(const float* values,
                                       const TVector<float>& borders) {
     TVector<TBinType> result(valuesCount);
 
-    NPar::TLocalExecutor::TBlockParams params(0, (int)valuesCount);
+    NPar::TLocalExecutor::TExecRangeParams params(0, (int)valuesCount);
     params.SetBlockSize(16384);
 
     NPar::LocalExecutor().ExecRange([&](int blockIdx) {

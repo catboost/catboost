@@ -111,7 +111,7 @@ inline ui64 SwapBytes64(ui64 val) noexcept {
 #undef HAVE_SWAP_BYTES_64
 #endif
 
-//for convinience
+//for convenience
 static inline ui8 SwapBytes8(ui8 v) noexcept {
     return v;
 }

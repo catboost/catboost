@@ -2,10 +2,10 @@
 
 #include "target_base.h"
 #include "kernel.h"
-#include "target_options.h"
 #include <catboost/cuda/targets/kernel/pointwise_targets.cuh>
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/options/loss_description.h>
 
 namespace NCatboostCuda
 {
@@ -25,7 +25,7 @@ namespace NCatboostCuda
         TCrossEntropy(const TDataSet& dataSet,
                       TRandom& random,
                       TSlice slice,
-                      const TTargetOptions& targetOptions)
+                      const NCatboostOptions::TLossDescription& targetOptions)
                 : TParent(dataSet,
                           random,
                           slice) {
@@ -156,13 +156,13 @@ namespace NCatboostCuda
         TLogloss(const TDataSet& dataSet,
                   TRandom& random,
                   TSlice slice,
-                  const TTargetOptions& targetOptions)
+                  const NCatboostOptions::TLossDescription& targetOptions)
                 : TParent(dataSet,
                           random,
                           slice,
                           targetOptions)
-                , Border(targetOptions.GetBinClassBorder()) {
-            CB_ENSURE(targetOptions.GetTargetType() == ETargetFunction::Logloss);
+                , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
         }
 
         TLogloss(const TLogloss& target,

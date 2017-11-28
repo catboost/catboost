@@ -7,7 +7,6 @@
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
-#include <catboost/cuda/targets/target_options.h>
 #include <util/stream/format.h>
 
 namespace NCatboostCuda
@@ -47,11 +46,14 @@ namespace NCatboostCuda
         explicit TMetricLogger(const TString& messagePrefix,
                                TString outputPath = "",
                                TString noticeLogSuffix = "\t",
-                               TString bestPrefix = "")
+                               TString bestPrefix = "",
+                               ui64 printPeriod = 1
+        )
                 : MessagePrefix(messagePrefix)
                   , OutputPath(outputPath)
                   , BestPrefix(bestPrefix)
                   , NoticeLogSuffix(std::move(noticeLogSuffix))
+                  , PrintPeriod(printPeriod)
         {
             if (OutputPath) {
                 Out.Reset(new TOFStream(outputPath));
@@ -95,11 +97,15 @@ namespace NCatboostCuda
                 BestEnsembleSize = static_cast<ui32>(newEnsemble.Size());
             }
 
-            MATRIXNET_NOTICE_LOG << MessagePrefix << metricHelper.Score();
-            if (BestPrefix.Size()) {
-                MATRIXNET_NOTICE_LOG << BestPrefix <<  metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")";
+            if (newEnsemble.Size() % PrintPeriod == 0) {
+                MATRIXNET_NOTICE_LOG << MessagePrefix << metricHelper.Score();
+                if (BestPrefix.Size())
+                {
+                    MATRIXNET_NOTICE_LOG
+                    << BestPrefix << metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")";
+                }
+                MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
             }
-            MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
 
             if (Out)
             {
@@ -117,6 +123,7 @@ namespace NCatboostCuda
         TString OutputPath;
         TString BestPrefix;
         TString NoticeLogSuffix;
+        ui32 PrintPeriod;
         THolder<TOFStream> Out;
         IOverfittingDetector* OdDetector = nullptr;
     };

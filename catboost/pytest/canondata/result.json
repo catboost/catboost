@@ -107,6 +107,10 @@
         {
             "checksum": "76b4d0fd50f9f8ed928eb501ec861a45",
             "uri": "file://test.test_baseline/test.eval"
+        },
+        {
+            "checksum": "dd4d1f43518ee8f01c861ef6491c66f7",
+            "uri": "file://test.test_baseline/predict_test.eval"
         }
     ],
     "test.test_calc_prediction_type": {
@@ -185,16 +189,16 @@
             "uri": "file://test.test_ctr_buckets/test.eval"
         }
     ],
-    "test.test_ctr_type[BinarizedTargetMeanValue:10]": [
+    "test.test_ctr_type[BinarizedTargetMeanValue:TargetBorderCount=10]": [
         {
             "checksum": "221f479f388d4d2c18c68fab33196752",
-            "uri": "file://test.test_ctr_type_BinarizedTargetMeanValue_10_/test.eval"
+            "uri": "file://test.test_ctr_type_BinarizedTargetMeanValue_TargetBorderCount=10_/test.eval"
         }
     ],
-    "test.test_ctr_type[Borders,BinarizedTargetMeanValue:10]": [
+    "test.test_ctr_type[Borders,BinarizedTargetMeanValue:TargetBorderCount=10]": [
         {
             "checksum": "6aea8537f7976b8cf471f0c891e1778e",
-            "uri": "file://test.test_ctr_type_Borders_BinarizedTargetMeanValue_10_/test.eval"
+            "uri": "file://test.test_ctr_type_Borders_BinarizedTargetMeanValue_TargetBorderCount=10_/test.eval"
         }
     ],
     "test.test_ctr_type[Borders]": [

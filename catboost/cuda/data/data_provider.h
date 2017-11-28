@@ -1,7 +1,6 @@
 #pragma once
 
 #include "columns.h"
-#include "binarization_config.h"
 #include <util/generic/yexception.h>
 
 namespace NCatboostCuda
@@ -9,18 +8,22 @@ namespace NCatboostCuda
     class TDataProvider: public TMoveOnly
     {
     public:
-        TDataProvider() = default;
+        explicit TDataProvider()
+        : HasTimeFlag(false)
+        , ShuffleSeed(0) {
+
+        }
+
+        bool HasTime() const {
+            CB_ENSURE(!(HasTimeFlag && IsShuffledFlag), "Error: dataProvider with time was shuffled");
+            return HasTimeFlag;
+        }
 
         bool IsEmpty() const
         {
             return GetSampleCount() == 0;
         }
 
-        void SetShuffleSeed(ui64 seed)  {
-            IsShuffledFlag = true;
-            ShuffleSeed = seed;
-
-        }
         ui64 GetShuffleSeed() const {
             return ShuffleSeed;
         }
@@ -128,6 +131,16 @@ namespace NCatboostCuda
             return Baseline[0];
         }
 
+        void SetShuffleSeed(ui64 seed)  {
+            CB_ENSURE(!HasTimeFlag, "Error: unset has time flag first");
+            IsShuffledFlag = true;
+            ShuffleSeed = seed;
+        }
+
+        void SetHasTimeFlag(bool flag) {
+            HasTimeFlag = flag;
+        }
+
     private:
         TVector<TFeatureColumnPtr> Features;
 
@@ -157,6 +170,7 @@ namespace NCatboostCuda
         TVector<TString> FeatureNames;
         yset<int> CatFeatureIds;
 
+        bool HasTimeFlag = false;
         ui64 ShuffleSeed = 0;
         bool IsShuffledFlag = false;
 
@@ -166,4 +180,17 @@ namespace NCatboostCuda
 
         friend class TCatBoostProtoPoolReader;
     };
+
+
+
+    //TODO(noxoomo): move to proper place
+    inline void Reweight(const TVector<float>& targets, const TVector<float>& targetWeights, TVector<float>* weights) {
+        CB_ENSURE(targets.size() == weights->size());
+        if (targetWeights.size()) {
+            for (ui32 doc = 0; doc < targets.size(); ++doc) {
+                CB_ENSURE(static_cast<ui32>(targets[doc]) == targets[doc], "Error: target should be natural for reweighting");
+                (*weights)[doc] *= targetWeights[doc];
+            }
+        }
+    }
 }

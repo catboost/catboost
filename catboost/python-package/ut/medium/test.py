@@ -390,7 +390,7 @@ def test_real_numbers_cat_features():
 def test_wrong_ctr_for_classification():
     with pytest.raises(CatboostError):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(ctr_description=['Borders:5:Uniform'])
+        model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'])
         model.fit(pool)
 
 
@@ -502,7 +502,7 @@ def test_custom_objective():
                                loss_function=LoglossObjective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
-                               leaf_estimation_method="Newton", gradient_iterations=10)
+                               leaf_estimation_method="Newton", leaf_estimation_iterations=10)
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
@@ -525,7 +525,7 @@ def test_pool_after_fit():
 
 def test_priors():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, has_time=True, priors=[0, 0.6, 1, 5])
+    model = CatBoostClassifier(iterations=5, random_seed=0, has_time=True, ctr_description=["Borders:Prior=0:Prior=0.6:Prior=1:Prior=5", "Counter:Prior=0:Prior=0.6:Prior=1:Prior=5"])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -563,7 +563,7 @@ def test_classification_ctr():
 
 def test_regression_ctr():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:5:Uniform', 'Counter:10:MinEntropy'])
+    model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -636,7 +636,7 @@ def test_od():
 
 def test_clone():
     estimator = CatBoostClassifier(
-        custom_loss="Accuracy",
+        custom_metric="Accuracy",
         loss_function="MultiClass",
         iterations=400)
 

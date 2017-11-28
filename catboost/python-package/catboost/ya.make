@@ -17,6 +17,7 @@ IF(HAVE_CUDA)
 ENDIF()
 
 PEERDIR(
+    catboost/libs/train_lib
     catboost/libs/algo
     catboost/libs/data
     catboost/libs/fstr
@@ -24,7 +25,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/params
+    catboost/libs/options
     library/containers/2d_array
     library/json/writer
 )

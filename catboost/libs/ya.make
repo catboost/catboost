@@ -3,7 +3,7 @@ RECURSE(
     helpers
     logging
     metrics
-    params
+    train_lib
     model
     model/ut
     model_interface
@@ -13,4 +13,6 @@ RECURSE(
     algo
     data
     data/ut
+    options
+    options/ut
 )

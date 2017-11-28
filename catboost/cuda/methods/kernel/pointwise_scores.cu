@@ -394,13 +394,13 @@ namespace NKernel {
             if (foldCount == 1) {
                 switch (scoreFunction)
                 {
-                    case EScoreFunction::SolarL2:
+                    case  EScoreFunction::SolarL2:
                     {
                         FindOptimalSplitSolarSingleFoldImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
                                                                                                       (binaryFeatures, binaryFeatureCount, splits, parts, pCount, result);
                         break;
                     }
-                    case EScoreFunction::Correlation:
+                    case  EScoreFunction::Correlation:
                     {
                         FindOptimalSplitCorrelationSingleFoldImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
                                                                                                             (binaryFeatures, binaryFeatureCount, splits, parts, pCount, l2, normalize, scoreStdDev, seed, result);
@@ -414,13 +414,13 @@ namespace NKernel {
             } else {
                 switch (scoreFunction)
                 {
-                    case EScoreFunction::SolarL2:
+                    case  EScoreFunction::SolarL2:
                     {
                         FindOptimalSplitSolarImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
                                                                                             (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result);
                         break;
                     }
-                    case EScoreFunction::Correlation:
+                    case  EScoreFunction::Correlation:
                     {
                         FindOptimalSplitCorrelationImpl<blockSize> << < resultSize, blockSize, 0, stream >> >
                                                                                                   (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, l2, normalize, scoreStdDev, seed, result);

@@ -82,7 +82,7 @@ struct TJsonTraits {
         return v->GetMap().size();
     }
 
-    using TDictIterator = NJson::TJsonValue::TMap::const_iterator;
+    using TDictIterator = NJson::TJsonValue::TMapType::const_iterator;
 
     static inline TDictIterator DictBegin(TConstValueRef v) {
         return v->GetMap().begin();

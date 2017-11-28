@@ -17,16 +17,15 @@ SRCS(
     model_build_helper.cpp
     online_ctr.cpp
     online_predictor.cpp
+    ctr_helper.cpp
     restorable_rng.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp
     train.cpp
     tree_print.cpp
-    cross_validation.cpp
     helpers.cpp
     cv_data_partition.cpp
-    GLOBAL train_model.cpp
 )
 
 PEERDIR(
@@ -36,7 +35,6 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/overfitting_detector
-    catboost/libs/params
     catboost/libs/tensorboard_logger
     library/binsaver
     library/containers/2d_array

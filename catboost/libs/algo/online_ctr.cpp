@@ -65,12 +65,7 @@ void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVec
     }
 }
 
-int GetCtrBorderCount(int targetClassesCount, ECtrType ctrType) {
-    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::Counter) {
-        return 1;
-    }
-    return ctrType == ECtrType::Buckets ? targetClassesCount : targetClassesCount - 1;
-}
+
 
 static void UpdateGoodCount(int curCount, ECtrType ctrType, int* goodCount) {
     if (ctrType == ECtrType::Buckets) {
@@ -84,12 +79,11 @@ static void CalcOnlineCTRClasses(const TTrainData& data,
                                  const TVector<ui64>& enumeratedCatFeatures,
                                  size_t leafCount,
                                  const TVector<int>& permutedTargetClass,
-                                 int targetClassesCount,
+                                 int targetClassesCount, int targetBorderCount,
                                  const TVector<float>& priors,
                                  int ctrBorderCount,
                                  ECtrType ctrType,
                                  TArray2D<TVector<ui8>>* feature) {
-    const int targetBorderCount = GetCtrBorderCount(targetClassesCount, ctrType);
     const int docCount = enumeratedCatFeatures.ysize();
 
     TBucketsView bv(leafCount, targetClassesCount);
@@ -311,7 +305,11 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TOnlineCTR* dst) {
-    dst->Feature.resize(ctx->Params.CtrParams.Ctrs.size());
+
+    const TCtrHelper& ctrHelper = ctx->CtrsHelper;
+    const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
+    dst->Feature.resize(ctrInfo.size());
+
     using THashArr = TVector<ui64>;
     using TRehashHash = TDenseHash<ui64, ui32>;
     Y_STATIC_THREAD(THashArr) tlsHashArr;
@@ -319,8 +317,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
     TVector<ui64>& hashArr = tlsHashArr.Get();
     CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, &hashArr);
     rehashHashTlsVal.Get().MakeEmpty(fold.LearnPermutation.size());
-    ui64 topSize = ctx->Params.CtrLeafCountLimit;
-    if (proj.IsSingleCatFeature() && ctx->Params.StoreAllSimpleCtr) {
+    ui64 topSize = ctx->Params.CatFeatureParams->CtrLeafCountLimit;
+    if (proj.IsSingleCatFeature() && ctx->Params.CatFeatureParams->StoreAllSimpleCtrs) {
         topSize = Max<ui64>();
     }
     auto leafCount = ReindexHash(
@@ -330,45 +328,53 @@ void ComputeOnlineCTRs(const TTrainData& data,
         rehashHashTlsVal.GetPtr());
 
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
-        const TVector<float>& priors = ctx->Priors.GetPriors(proj, ctrIdx);
-        int targetClassesCount = fold.TargetClassesCount[ctrIdx];
-        ECtrType ctrType = ctx->Params.CtrParams.Ctrs[ctrIdx].CtrType;
-        auto borderCount = GetCtrBorderCount(targetClassesCount, ctrType);
-        dst->Feature[ctrIdx].SetSizes(priors.size(), borderCount);
-        for (int border = 0; border < borderCount; ++border) {
+        const ECtrType ctrType = ctrInfo[ctrIdx].Type;
+        const ui32 classifierId = ctrInfo[ctrIdx].TargetClassifierIdx;
+        int targetClassesCount = fold.TargetClassesCount[classifierId];
+
+        const ui32 targetBorderCount = GetTargetBorderCount(ctrInfo[ctrIdx], targetClassesCount);
+        const ui32 ctrBorderCount = ctrInfo[ctrIdx].BorderCount;
+        const auto& priors = ctrInfo[ctrIdx].Priors;
+        dst->Feature[ctrIdx].SetSizes(priors.size(), targetBorderCount);
+
+        for (ui32 border = 0; border < targetBorderCount; ++border) {
             for (int prior = 0; prior < priors.ysize(); ++prior) {
                 Clear(&dst->Feature[ctrIdx][border][prior], data.GetSampleCount());
             }
         }
+
         if (ctrType == ECtrType::Borders && targetClassesCount == SIMPLE_CLASSES_COUNT) {
             CalcOnlineCTRSimple(
                 data,
                 hashArr,
                 leafCount.second,
-                fold.LearnTargetClass[ctrIdx],
+                fold.LearnTargetClass[classifierId],
                 priors,
-                ctx->Params.CtrParams.CtrBorderCount,
+                ctrBorderCount,
                 &dst->Feature[ctrIdx]);
+
         } else if (ctrType == ECtrType::BinarizedTargetMeanValue) {
             CalcOnlineCTRMean(
                 data,
                 hashArr,
                 leafCount.second,
-                fold.LearnTargetClass[ctrIdx],
+                fold.LearnTargetClass[classifierId],
                 targetClassesCount - 1,
                 priors,
-                ctx->Params.CtrParams.CtrBorderCount,
+                ctrBorderCount,
                 &dst->Feature[ctrIdx]);
+
         } else if (ctrType == ECtrType::Buckets ||
                    (ctrType == ECtrType::Borders && targetClassesCount > SIMPLE_CLASSES_COUNT)) {
             CalcOnlineCTRClasses(
                 data,
                 hashArr,
                 leafCount.second,
-                fold.LearnTargetClass[ctrIdx],
+                fold.LearnTargetClass[classifierId],
                 targetClassesCount,
+                GetTargetBorderCount(ctrInfo[ctrIdx], targetClassesCount),
                 priors,
-                ctx->Params.CtrParams.CtrBorderCount,
+                ctrBorderCount,
                 ctrType,
                 &dst->Feature[ctrIdx]);
         } else {
@@ -378,8 +384,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
                 hashArr,
                 leafCount.second,
                 priors,
-                ctx->Params.CtrParams.CtrBorderCount,
-                ctx->Params.CounterCalcMethod,
+                ctrBorderCount,
+                ctx->Params.CatFeatureParams->CounterCalcMethod,
                 &dst->Feature[ctrIdx]);
         }
     }

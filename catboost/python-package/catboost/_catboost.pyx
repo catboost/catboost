@@ -35,6 +35,14 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ProcessException()
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
+    cdef TVector[TVector[double]] EvalMetrics(const TFullModel& model,
+                                              const TPool& pool,
+                                              const TString& metricsDescription,
+                                              int begin,
+                                              int end,
+                                              int evalPeriod,
+                                              int threadCount,
+                                              const TString& tmpDir) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data/pair.h":
     cdef cppclass TPair:
@@ -138,10 +146,7 @@ cdef extern from "catboost/libs/metrics/ders_holder.h":
         double Der1
         double Der2
 
-cdef extern from "catboost/libs/params/params.h":
-    cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
-    cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
-
+cdef extern from "catboost/libs/options/enums.h":
     cdef cppclass EPredictionType:
         pass
 
@@ -149,6 +154,10 @@ cdef extern from "catboost/libs/params/params.h":
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
+cdef extern from "catboost/libs/options/enum_helpers.h":
+    cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
+
+cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
         TMetricHolder (*EvalFunc)(const TVector[TVector[double]]& approx,
@@ -166,6 +175,7 @@ cdef extern from "catboost/libs/params/params.h":
         void (*CalcDersMulti)(const TVector[double]& approx, float target, float weight,
                               TVector[double]* ders, TArray2D[double]* der2, void* customData) except * with gil
 
+cdef extern from "catboost/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
         size_t FoldCount
         bool_t Inverted
@@ -173,11 +183,15 @@ cdef extern from "catboost/libs/params/params.h":
         bool_t Shuffle
         int EvalPeriod
 
+cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void CheckFitParams(const TJsonValue& tree,
-                     const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
-                     const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor) nogil except +ProcessException
+                             const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+                             const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/train_model.h":
+cdef extern from "catboost/libs/options/json_helper.h":
+    cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
+
+cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(const TJsonValue& params,
                          const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
                          const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
@@ -188,7 +202,7 @@ cdef extern from "catboost/libs/algo/train_model.h":
                          TFullModel* model,
                          TEvalResult* testApprox) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/cross_validation.h":
+cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
         TVector[double] AverageTrain
@@ -781,6 +795,10 @@ cdef class _CatBoost:
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
+    cpdef _base_eval_metrics(self, _PoolBase pool, str metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count):
+        metrics = EvalMetrics(dereference(self.__model), dereference(pool.__pool), TString(<const char*>metrics_description), ntree_start, ntree_end, eval_period, thread_count, TString(<const char*>"tmp"))
+        return [[value for value in vec] for vec in metrics]
+
     cpdef _calc_fstr(self, _PoolBase pool, fstr_type, int thread_count):
         fstr_type = to_binary_str(fstr_type)
         cdef TVector[TVector[double]] fstr = GetFeatureImportances(dereference(self.__model),
@@ -818,7 +836,7 @@ cdef class _CatBoost:
         params_json = to_native_str(py_params_json)
         params = {}
         if params_json:
-            for key, value in loads(params_json).iteritems():
+            for key, value in loads(params_json)["flat_params"].iteritems():
                 if key != 'random_seed':
                     params[str(key)] = value
         return params
@@ -831,7 +849,7 @@ cdef class _CatBoost:
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
         if params_json:
-            return loads(params_json).get('random_seed', 0)
+            return loads(params_json)["flat_params"].get('random_seed', 0)
         return 0
 
 class _CatBoostBase(object):
@@ -915,6 +933,9 @@ class _CatBoostBase(object):
 
     def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+
+    def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count):
+        return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count)
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)

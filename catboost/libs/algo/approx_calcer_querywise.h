@@ -60,7 +60,7 @@ void CalcApproxDersQueriesRange(const TVector<TIndexType>& indices,
 
     for (int leafId = 0; leafId < leafCount; ++leafId) {
         if (bucketWeights[leafId] > FLT_EPSILON) {
-            UpdateBucket<ELeafEstimation::Gradient>(bucketDers[leafId], bucketWeights[leafId], iteration, &(*buckets)[leafId]);
+            UpdateBucket<ELeavesEstimation::Gradient>(bucketDers[leafId], bucketWeights[leafId], iteration, &(*buckets)[leafId]);
         }
     }
 }

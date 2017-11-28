@@ -1,7 +1,8 @@
+#include "score_calcer.h"
 #include "calc_score_cache.h"
 #include "index_calcer.h"
-#include "score_calcer.h"
 #include "split.h"
+#include <catboost/libs/options/defaults_helper.h>
 
 static double CountDp(double avrg, const TBucketStats& leafStats) {
     return avrg * leafStats.SumWeightedDelta;
@@ -21,10 +22,9 @@ struct TScoreBin {
 
 static int GetSplitCount(const TVector<int>& splitsCount,
                          const TVector<TVector<int>>& oneHotValues,
-                         const TSplitCandidate& split,
-                         int ctrBorderCount) {
+                         const TSplitCandidate& split) {
     if (split.Type == ESplitType::OnlineCtr) {
-        return ctrBorderCount;
+        return split.Ctr.BorderCount;
     } else if (split.Type == ESplitType::FloatFeature) {
         return splitsCount[split.FeatureIdx];
     } else {
@@ -184,7 +184,7 @@ static TVector<double> CalcScoreImpl(const TAllFeatures& af,
                                      const TFold& fold,
                                      const TVector<TIndexType>& indices,
                                      const TSplitCandidate& split,
-                                     const TFitParams& fitParams,
+                                     const NCatboostOptions::TCatBoostOptions& fitParams,
                                      const TStatsIndexer& indexer,
                                      int depth,
                                      int splitStatsCount,
@@ -193,7 +193,7 @@ static TVector<double> CalcScoreImpl(const TAllFeatures& af,
     BuildSingleIndex(indices.ysize(), af, fold, indices.data(), split, fold.LearnPermutation.data(), nullptr, indexer, &singleIdx);
     const int approxDimension = fold.GetApproxDimension();
     const int leafCount = 1 << depth;
-    const float l2Regularizer = fitParams.L2LeafRegularizer;
+    const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
     TVector<TScoreBin> scoreBin(indexer.BucketCount);
     for (int bodyTailIdx = 0; bodyTailIdx < fold.BodyTailArr.ysize(); ++bodyTailIdx) {
         const auto& bt = fold.BodyTailArr[bodyTailIdx];
@@ -217,7 +217,7 @@ static TVector<double> CachedCalcScoreImpl(const TAllFeatures& af,
                                            const TFold& fold,
                                            const TSmallestSplitSideFold& prevLevelData,
                                            const TSplitCandidate& split,
-                                           const TFitParams& fitParams,
+                                           const NCatboostOptions::TCatBoostOptions& fitParams,
                                            const TStatsIndexer& indexer,
                                            int depth,
                                            int splitStatsCount,
@@ -227,7 +227,7 @@ static TVector<double> CachedCalcScoreImpl(const TAllFeatures& af,
     BuildSingleIndex(prevLevelData.DocCount, af, fold, prevLevelData.Indices.data(), split, prevLevelData.LearnPermutation.data(), prevLevelData.IndexInFold.data(), indexer, &singleIdx);
     const int approxDimension = prevLevelData.GetApproxDimension();
     const int leafCount = 1 << depth;
-    const float l2Regularizer = fitParams.L2LeafRegularizer;
+    const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
     TVector<TScoreBin> scoreBin(indexer.BucketCount);
     for (int bodyTailIdx = 0; bodyTailIdx < prevLevelData.BodyTailArr.ysize(); ++bodyTailIdx) {
         const auto& bt = prevLevelData.BodyTailArr[bodyTailIdx];
@@ -252,14 +252,17 @@ TVector<double> CalcScore(const TAllFeatures& af,
                           const TFold& fold,
                           const TVector<TIndexType>& indices,
                           const TSmallestSplitSideFold& prevLevelData,
-                          const TFitParams& fitParams,
+                          const NCatboostOptions::TCatBoostOptions& fitParams,
                           const TSplitCandidate& split,
                           int depth,
                           TStatsFromPrevTree* statsFromPrevTree) {
-    const int splitCount = GetSplitCount(splitsCount, af.OneHotValues, split, fitParams.CtrParams.CtrBorderCount);
+
+    const int splitCount = GetSplitCount(splitsCount, af.OneHotValues, split);
     const TStatsIndexer indexer(splitCount + 1);
-    const int bucketIndexBits = GetValueBitCount(GetSplitCount(splitsCount, af.OneHotValues, split, fitParams.CtrParams.CtrBorderCount) + 1) + depth + 1;
-    if (!AreStatsFromPrevTreeUsed(fitParams)) {
+    const int bucketIndexBits = GetValueBitCount(GetSplitCount(splitsCount, af.OneHotValues, split) + 1) + depth + 1;
+
+    const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
+    if (!AreStatsFromPrevTreeUsed(treeOptions)) {
         TVector<TBucketStats> scratchSplitStats;
         scratchSplitStats.yresize(indexer.CalcSize(depth));
         if (bucketIndexBits <= 8) {
@@ -270,7 +273,7 @@ TVector<double> CalcScore(const TAllFeatures& af,
             return CalcScoreImpl<ui32>(af, fold, indices, split, fitParams, indexer, depth, /*splitStatsCount*/ 0, scratchSplitStats.data());
         }
     } else {
-        const int splitStatsCount = indexer.CalcSize(fitParams.Depth);
+        const int splitStatsCount = indexer.CalcSize(treeOptions.MaxDepth);
         const int statsCount = fold.BodyTailArr.ysize() * fold.GetApproxDimension() * splitStatsCount;
         bool areStatsDirty;
         TVector<TBucketStats, TPoolAllocator>& splitStats = statsFromPrevTree->GetStats(split, statsCount, &areStatsDirty); // thread-safe access

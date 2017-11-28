@@ -89,12 +89,13 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                     targetsGpu.Write(targets);
 
                     const float prior = 0.5;
-                    TCpuTargetClassCtrCalcer ctrCalcer(uniqueValues, bins, cpuWeights, prior);
+                    const float priorDenum = 1.0;
+                    TCpuTargetClassCtrCalcer ctrCalcer(uniqueValues, bins, cpuWeights, prior, priorDenum);
                     auto ctrs = ctrCalcer.Calc(cpuIndices, targets, numClasses);
 
                     TMirrorBuffer<float> cudaCtr;
 
-                    TVector<float> priorParams(numClasses, prior);
+                    TVector<float> priorParams = {0.5, 1};
                     builder.SetBinarizedSample(targetsGpu.ConstCopyView());
 
                     for (ui32 clazz = 0; clazz < numClasses; ++clazz) {
@@ -273,8 +274,8 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
 
                     TCtrConfig config = CreateCtrConfigForFeatureFreq(0.5, uniqueValues);
 
-                    TCpuTargetClassCtrCalcer calcer(uniqueValues, bins, cpuWeights, 0.5);
-                    TCpuTargetClassCtrCalcer calcer2(uniqueValues, bins, cpuWeights2, 0.5);
+                    TCpuTargetClassCtrCalcer calcer(uniqueValues, bins, cpuWeights, GetNumeratorShift(config), GetDenumeratorShift(config));
+                    TCpuTargetClassCtrCalcer calcer2(uniqueValues, bins, cpuWeights2, GetNumeratorShift(config), GetDenumeratorShift(config));
                     auto ctrsCpu = calcer.ComputeFreqCtr();
                     auto ctrsCpu2 = calcer2.ComputeFreqCtr();
 

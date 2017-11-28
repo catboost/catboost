@@ -1,14 +1,9 @@
 #pragma once
 
-#include <catboost/libs/params/params.h>
-
+#include <catboost/libs/options/enums.h>
 #include <library/getopt/small/last_getopt.h>
 #include <library/json/json_reader.h>
 
-void ParseCommandLine(int argc, const char* argv[],
-                      NJson::TJsonValue* trainJson,
-                      TCmdLineParams* params,
-                      TString* paramsPath);
 
 struct TAnalyticalModeCommonParams {
     TString ModelFileName;

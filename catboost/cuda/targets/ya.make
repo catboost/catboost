@@ -31,6 +31,5 @@ CUDA_NVCC_FLAGS(
 )
 
 
-GENERATE_ENUM_SERIALIZATION(target_options.h)
 
 END()

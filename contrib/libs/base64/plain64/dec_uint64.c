@@ -8,7 +8,8 @@ while (srclen >= 13)
 	uint64_t str, res, dec;
 
 	// Load string:
-	str = *(uint64_t *)c;
+	//str = *(uint64_t *)c;
+    memcpy(&str, c, sizeof(str));
 
 	// Shuffle bytes to 64-bit bigendian:
 	str = cpu_to_be64(str);
@@ -59,7 +60,8 @@ while (srclen >= 13)
 	res = be64_to_cpu(res);
 
 	// Store back:
-	*(uint64_t *)o = res;
+	//*(uint64_t *)o = res;
+    memcpy(o, &res, sizeof(res));
 
 	c += 8;
 	o += 6;

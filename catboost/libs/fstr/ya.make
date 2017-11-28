@@ -12,7 +12,6 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/data
     catboost/libs/model
-    catboost/libs/params
     library/containers/2d_array
 )
 

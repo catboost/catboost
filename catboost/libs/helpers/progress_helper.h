@@ -49,7 +49,7 @@ public:
                              const TString savedMessage = "Saved progress",
                              bool calcMd5 = true)
             : Label(label)
-            ,  ExceptionMessage(exceptionMessage)
+            , ExceptionMessage(exceptionMessage)
             , SavedMessage(savedMessage)
             , CalcMd5(calcMd5) {
     }

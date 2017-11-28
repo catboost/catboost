@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/threading/future/future.h>
+
 #include <util/generic/ptr.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/event.h>
@@ -83,28 +85,28 @@ namespace NPar {
             WAIT_COMPLETE = 4
         };
 
-        class TBlockParams {
+        class TExecRangeParams {
         public:
-            TBlockParams(int firstId, int lastId) // [firstId..lastId)
+            TExecRangeParams(int firstId, int lastId) // [firstId..lastId)
                 : FirstId(firstId)
                 , LastId(lastId)
             {
                 Y_ASSERT(lastId >= firstId);
                 SetBlockSize(1);
             }
-            TBlockParams& SetBlockCount(int blockCount) {
+            TExecRangeParams& SetBlockCount(int blockCount) {
                 BlockSize = CeilDiv(LastId - FirstId, blockCount);
                 BlockCount = CeilDiv(LastId - FirstId, BlockSize);
                 BlockEqualToThreads = false;
                 return *this;
             }
-            TBlockParams& SetBlockSize(int blockSize) {
+            TExecRangeParams& SetBlockSize(int blockSize) {
                 BlockSize = blockSize;
                 BlockCount = CeilDiv(LastId - FirstId, blockSize);
                 BlockEqualToThreads = false;
                 return *this;
             }
-            TBlockParams& SetBlockCountToThreadCount() {
+            TExecRangeParams& SetBlockCountToThreadCount() {
                 BlockEqualToThreads = true;
                 return *this;
             }
@@ -133,7 +135,7 @@ namespace NPar {
         };
 
         template<typename TBody>
-        inline static auto BlockedLoopBody(const TLocalExecutor::TBlockParams& params, const TBody& body) {
+        inline static auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
             return [=] (int blockId) {
                 const int blockFirstId = params.FirstId + blockId * params.BlockSize;
                 const int blockLastId = Min(params.LastId, blockFirstId + params.BlockSize);
@@ -157,8 +159,10 @@ namespace NPar {
         void ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags); // [firstId..lastId)
         void Exec(TLocallyExecutableFunction exec, int id, int flags);
         void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags); // [firstId..lastId)
+        void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+        TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
         template <typename TBody>
-        inline void ExecRange(TBody&& body, TBlockParams params, int flags) {
+        inline void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
             if (params.BlockEqualToThreads) {
                 params.SetBlockCount(ThreadCount + ((flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
             }
@@ -191,7 +195,7 @@ namespace NPar {
     template <typename TBody>
     inline void ParallelFor(TLocalExecutor& executor,
                             ui32 from, ui32 to, TBody&& body) {
-        TLocalExecutor::TBlockParams params(from, to);
+        TLocalExecutor::TExecRangeParams params(from, to);
         params.SetBlockCountToThreadCount();
         executor.ExecRange(std::forward<TBody>(body), params, TLocalExecutor::WAIT_COMPLETE);
     }
@@ -203,7 +207,7 @@ namespace NPar {
 
     template <typename TBody>
     inline void AsyncParallelFor(ui32 from, ui32 to, TBody&& body) {
-        TLocalExecutor::TBlockParams params(from, to);
+        TLocalExecutor::TExecRangeParams params(from, to);
         params.SetBlockCountToThreadCount();
         LocalExecutor().ExecRange(std::forward<TBody>(body), params, 0);
     }

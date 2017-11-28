@@ -203,8 +203,8 @@ def test_overfit_detector_iter():
         '-n', '8',
         '-w', '0.5',
         '--rsm', '1',
-        '--overfitting-detector-type', 'Iter',
-        '--overfitting-detector-iterations-wait', '1'
+        '--od-type', 'Iter',
+        '--od-wait', '1'
     )
     yatest.common.execute(cmd)
 
@@ -259,7 +259,7 @@ def test_shrink_model():
         '-x', '1',
         '-n', '8',
         '-w', '1',
-        '--auto-stop-pval', '0.99',
+        '--od-pval', '0.99',
         '--rsm', '1',
         '--use-best-model'
     )
@@ -292,7 +292,7 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--leaf-estimation-method', leaf_estimation_method,
-        '--gradient-iterations', '2'
+        '--leaf-estimation-iterations', '2'
     )
     yatest.common.execute(cmd)
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
@@ -455,7 +455,19 @@ def test_baseline():
     )
     yatest.common.execute(cmd)
 
-    return [local_canonical_file(output_eval_path)]
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult_weight', 'test_weight'),
+        '--column-description', data_file('train_adult_baseline.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 def test_weights():
@@ -661,8 +673,11 @@ def test_custom_priors():
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '--priors', '-2:0:8:1:-1:3',
-        '--feature-priors', '4:0.444,6:0.666,8:-0.888:0.888',
+        '--ctr', 'Borders:Prior=-2:Prior=0:Prior=8:Prior=1:Prior=-1:Prior=3,'
+                 'Counter:Prior=0',
+        '--per-feature-ctr', '4:Borders:Prior=0.444,Counter:Prior=0.444;'
+                             '6:Borders:Prior=0.666,Counter:Prior=0.666;'
+                             '8:Borders:Prior=-0.888:Prior=0.888,Counter:Prior=-0.888:Prior=0.888',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -930,7 +945,7 @@ def test_target_border(border_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--ctr', 'Borders:3:' + border_type
+        '--ctr', 'Borders:TargetBorderCount=3:TargetBorderType=' + border_type
     )
     yatest.common.execute(cmd)
 
@@ -964,7 +979,7 @@ def test_counter_calc(counter_calc_method):
     return [local_canonical_file(output_eval_path)]
 
 
-CTR_TYPES = ['Borders', 'Buckets', 'BinarizedTargetMeanValue:10', 'Borders,BinarizedTargetMeanValue:10', 'Buckets,Borders']
+CTR_TYPES = ['Borders', 'Buckets', 'BinarizedTargetMeanValue:TargetBorderCount=10', 'Borders,BinarizedTargetMeanValue:TargetBorderCount=10', 'Buckets,Borders']
 
 
 @pytest.mark.parametrize('ctr_type', CTR_TYPES)
@@ -1035,7 +1050,7 @@ def test_custom_loss_for_classification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
+        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1061,7 +1076,7 @@ def test_custom_loss_for_multiclassification():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
+        '--custom-metric', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1279,7 +1294,7 @@ def test_custom_loss(custom_loss_function):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-loss', custom_loss_function,
+        '--custom-metric', custom_loss_function,
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )

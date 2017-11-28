@@ -5,41 +5,45 @@
 #include <catboost/cuda/gpu_data/kernel/binarize.cuh>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/data/grid_creator.h>
+#include <catboost/libs/options/binarization_options.h>
 
 namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Feature;
-        NCatboostCuda::TBinarizationDescription BinarizationDescription;
+        EBorderSelectionType BorderType;
+        ui32 BorderCount;
         TCudaBufferPtr<float> Dst;
 
     public:
         TFindBordersKernel() = default;
 
         TFindBordersKernel(TCudaBufferPtr<const float> feature,
-                           NCatboostCuda::TBinarizationDescription description,
+                           EBorderSelectionType borderType,
+                           ui32 borderCount,
                            TCudaBufferPtr<float> dst)
             : Feature(feature)
-            , BinarizationDescription(description)
+            , BorderType(borderType)
+            , BorderCount(borderCount)
             , Dst(dst)
         {
         }
 
-        SAVELOAD(Feature, Dst, BinarizationDescription);
+        SAVELOAD(Feature, Dst, BorderCount, BorderType);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(Dst.Size() > BinarizationDescription.Discretization);
+            CB_ENSURE(Dst.Size() > BorderCount);
 
-            if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Median) {
+            if (BorderType == EBorderSelectionType::Median) {
                 NKernel::FastGpuBorders(Feature.Get(), Feature.Size(), Dst.Get(),
-                                        BinarizationDescription.Discretization, stream.GetStream());
-            } else if (BinarizationDescription.BorderSelectionType == EBorderSelectionType::Uniform) {
+                                        BorderCount, stream.GetStream());
+            } else if (BorderType == EBorderSelectionType::Uniform) {
                 NKernel::ComputeUniformBorders(Feature.Get(), static_cast<ui32>(Feature.Size()),
-                                               Dst.Get(), BinarizationDescription.Discretization,
+                                               Dst.Get(), BorderCount,
                                                stream.GetStream());
             } else {
                 ythrow TCatboostException() << "Error: unsupported binarization for tree ctrs "
-                                            << BinarizationDescription.BorderSelectionType;
+                                            << BorderType;
             }
         }
     };
@@ -81,10 +85,10 @@ namespace NKernelHost {
 
 template <class TFloat, class TMapping>
 inline void ComputeBordersOnDevice(const TCudaBuffer<TFloat, TMapping>& feature,
-                                   const NCatboostCuda::TBinarizationDescription& description,
+                                   const NCatboostOptions::TBinarizationOptions& description,
                                    TCudaBuffer<float, TMapping>& dst,
                                    ui32 stream = 0) {
-    LaunchKernels<NKernelHost::TFindBordersKernel>(feature.NonEmptyDevices(), stream, feature, description, dst);
+    LaunchKernels<NKernelHost::TFindBordersKernel>(feature.NonEmptyDevices(), stream, feature, description.BorderSelectionType, description.BorderCount, dst);
 }
 
 template <class TValuesFloatType, class TBordersFloatType, class TUi32, class TMapping>

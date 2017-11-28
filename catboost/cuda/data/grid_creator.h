@@ -1,11 +1,12 @@
 #pragma once
 
-#include "binarization_config.h"
+#include <catboost/libs/options/binarization_options.h>
 
 #include <library/grid_creator/binarization.h>
 #include <util/system/types.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
+
 namespace NCatboostCuda
 {
     class IGridBuilder
@@ -135,10 +136,10 @@ namespace NCatboostCuda
         {
         }
 
-        TVector<float> operator()(const TBinarizationDescription& description)
+        TVector<float> operator()(const NCatboostOptions::TBinarizationOptions& description)
         {
             auto builder = BuilderFactory.Create(description.BorderSelectionType);
-            builder->AddFeature(Values, description.Discretization);
+            builder->AddFeature(Values, description.BorderCount);
             return builder->Borders()[0];
         }
 

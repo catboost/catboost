@@ -24,7 +24,7 @@ inline auto MapFindPtr(const Map& map, const K& key) {
     return (i == map.end() ? nullptr : &i->second);
 }
 
-/** helper for THashMap/ymap */
+/** helper for THashMap/TMap */
 template <class Derived>
 struct TMapOps {
     template <class K>

@@ -21,6 +21,7 @@
 #include <util/system/tempfile.h>
 #include <util/string/split.h>
 #include <util/system/mktemp.h>
+#include <catboost/libs/options/binarization_options.h>
 
 namespace NCatboostCuda
 {
@@ -202,7 +203,7 @@ namespace NCatboostCuda
         }
 
         TFloatColumnConverter& BuildBinarized(IFactory<IGridBuilder>& gridBuilderFactory,
-                                              const TBinarizationDescription& config)
+                                              const NCatboostOptions::TBinarizationOptions& config)
         {
             CB_ENSURE(FloatColumn.size(), "Set float column first");
             auto borders = TBordersBuilder(gridBuilderFactory, FloatColumn)(config);
@@ -373,7 +374,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TCatBoostProtoPoolConverter& SetBinarization(const TBinarizationConfiguration& binarizationConfig)
+        TCatBoostProtoPoolConverter& SetBinarization(const NCatboostOptions::TBinarizationOptions& binarizationConfig)
         {
             BinarizationConfiguration = &binarizationConfig;
             return *this;
@@ -547,7 +548,7 @@ namespace NCatboostCuda
                                 {
                                     Y_ENSURE(GridBuilderFactory);
                                     converter.BuildBinarized(*GridBuilderFactory,
-                                                             BinarizationConfiguration->DefaultFloatBinarization);
+                                                             *BinarizationConfiguration);
                                 } else
                                 {
                                     ReadMessage(*InputBinarization, floatFeatureBinarization);
@@ -653,7 +654,7 @@ namespace NCatboostCuda
         TVector<TColumn> ColumnsDescription;
         TSplittedByColumnsTempPool SplittedPool;
 
-        const TBinarizationConfiguration* BinarizationConfiguration;
+        const NCatboostOptions::TBinarizationOptions* BinarizationConfiguration;
         IFactory<IGridBuilder>* GridBuilderFactory = nullptr;
     };
 }

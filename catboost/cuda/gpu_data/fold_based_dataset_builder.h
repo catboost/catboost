@@ -241,8 +241,7 @@ namespace NCatboostCuda
             if (ctrs.size())
             {
                 MATRIXNET_INFO_LOG << "Start building ctrs " << ctrs.size() << Endl;
-                for (auto& ctrId : ctrs)
-                {
+                for (auto& ctrId : ctrs) {
                     AddCtr(ctrId, learnBuilder, test ? testBuilderPtr.Get() : nullptr);
                 }
             }
@@ -340,7 +339,7 @@ namespace NCatboostCuda
                 return gridBuilderFactory
                         .Create(binarizationDescription.BorderSelectionType)
                         ->BuildBorders(sortedFeatureCpu,
-                                       binarizationDescription.Discretization);
+                                       binarizationDescription.BorderCount);
             });
 
             TVector<float> ctrValues;
@@ -419,8 +418,7 @@ namespace NCatboostCuda
                                                 ui32 devId = 0)
         {
             const ui32 featureId = FeaturesManager.GetDataProviderId(featureManagerFeatureId);
-            const ICatFeatureValuesHolder& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(dataProvider.GetFeatureById(
-                    featureId));
+            const ICatFeatureValuesHolder& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(dataProvider.GetFeatureById(featureId));
             auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
             const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
             auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
@@ -814,9 +812,9 @@ namespace NCatboostCuda
                 binaryFeatureBuilder
                         .UseFloatFeatures(true)
                         .UseOneHot(true)
-                        .UseCtrs(TakePermutationIndependent(FeaturesManager.GetEnabledCtrTypes()));
+                        .UseCtrs(TakePermutationIndependent(FeaturesManager.GetKnownSimpleCtrTypes()));
             } else {
-                yset<ECtrType> ctrs = TakePermutationDependent(FeaturesManager.GetEnabledCtrTypes());
+                yset<ECtrType> ctrs = TakePermutationDependent(FeaturesManager.GetKnownSimpleCtrTypes());
 
                 binaryFeatureBuilder
                         .UseFloatFeatures(false)

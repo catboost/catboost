@@ -14,7 +14,6 @@ SRCS(
     oblivious_tree_leaves_estimator.cpp
     boosting.cpp
     boosting_listeners.cpp
-    boosting_options.cpp
     bootstrap.cpp
     tree_ctrs.cpp
     serialization_helper.cpp
@@ -41,8 +40,5 @@ CUDA_NVCC_FLAGS(
     --ptxas-options=-v
 )
 
-GENERATE_ENUM_SERIALIZATION(bootstrap.h)
-GENERATE_ENUM_SERIALIZATION(score_function.h)
-GENERATE_ENUM_SERIALIZATION(boosting_options.h)
 
 END()

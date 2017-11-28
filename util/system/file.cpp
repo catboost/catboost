@@ -89,7 +89,7 @@ static bool IsStupidFlagCombination(EOpenMode oMode) {
 TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     ui32 fcMode = 0;
     EOpenMode createMode = oMode & MaskCreation;
-    Y_VERIFY_DEBUG(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
+    Y_VERIFY(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
     if (!(oMode & MaskRW))
         oMode |= RdWr;
     if (!(oMode & AMask))

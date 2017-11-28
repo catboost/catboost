@@ -501,8 +501,8 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
             expectedJson.InsertValue("foo", "bar");
             UNIT_ASSERT(json == expectedJson);
 
-            TJsonValue::TMap jsonMap = std::move(json.GetMapSafe());
-            TJsonValue::TMap expectedMap = {{"foo", TJsonValue{"bar"}}};
+            TJsonValue::TMapType jsonMap = std::move(json.GetMapSafe());
+            TJsonValue::TMapType expectedMap = {{"foo", TJsonValue{"bar"}}};
             UNIT_ASSERT(jsonMap == expectedMap);
         }
     }
@@ -581,7 +581,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
 
             outer.AppendValue(json);
         }
-        const TJsonValue::TMap *map = nullptr;
+        const TJsonValue::TMapType *map = nullptr;
         GetMapPointer(outer, 0, &map);
         UNIT_ASSERT_VALUES_EQUAL((*map).at("b"), 2);
     }
@@ -596,7 +596,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
 
             outer.InsertValue("x", json);
         }
-        const TJsonValue::TMap *map = nullptr;
+        const TJsonValue::TMapType *map = nullptr;
         GetMapPointer(outer, "x", &map);
         UNIT_ASSERT_VALUES_EQUAL((*map).at("b"), 2);
     }

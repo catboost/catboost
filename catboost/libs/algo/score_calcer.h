@@ -10,7 +10,6 @@
 #include "error_functions.h"
 #include "calc_score_cache.h"
 
-#include <catboost/libs/params/params.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -37,7 +36,7 @@ TVector<double> CalcScore(
     const TFold& fold,
     const TVector<TIndexType>& indices,
     const TSmallestSplitSideFold& ifHistFromPrevLevelUsed,
-    const TFitParams& fitParams,
+    const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
     TStatsFromPrevTree* statsFromPrevTree);

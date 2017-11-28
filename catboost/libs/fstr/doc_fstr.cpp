@@ -144,10 +144,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
     return MapFunctionToTrees(model, binarizedFeatures, 0, 0, CalcFeatureImportanceForTree, featureCount, ctx);
 }
 
-static void CalcApproxForTree(
-                       const TFullModel& model,
-
-                       const TVector<ui8>& binarizedFeatures,
+static void CalcApproxForTree(const TFullModel& model, const TVector<ui8>& binarizedFeatures,
         size_t treeIdx,
                        TVector<TVector<double>>* resultPtr) {
     TVector<TVector<double>>& approx = *resultPtr;
@@ -171,7 +168,7 @@ TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     CB_ENSURE(model.GetTreeCount() != 0, "Model is empty. Did you fit the model?");
     int featureCount = pool.Docs.GetFactorsCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    jsonParams.InsertValue("thread_count", threadCount);
+    jsonParams["system_options"].InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     const int approxDimension = model.ObliviousTrees.ApproxDimension;

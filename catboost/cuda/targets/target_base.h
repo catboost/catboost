@@ -1,7 +1,6 @@
 #pragma once
 
 #include "quality_metric_helpers.h"
-#include "target_options.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/dot_product.h>

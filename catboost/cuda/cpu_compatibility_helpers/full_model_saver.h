@@ -133,7 +133,6 @@ namespace NCatboostCuda
         const TPool& Pool;
         const TVector<TTargetClassifier>& TargetClassifiers;
         NPar::TLocalExecutor& LocalExecutor;
-        ENanMode NanMode = ENanMode::Forbidden;
         ui32 CtrLeafCountLimit = std::numeric_limits<ui32>::max();
         bool StoreAllSimpleCtrsFlag = false;
     };

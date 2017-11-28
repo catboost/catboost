@@ -94,29 +94,6 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 }
 
 
-#' catboost.from_file
-#'
-#' Create a dataset from the given file.
-#'
-#' @param pool_path The path to the input file that contains the dataset description.
-#'
-#' Default value: Required argument
-#' @param cd_path The path to the input file that contains the column descriptions.
-#' @param pairs_path The path to the input file that contains the pairs descriptions.
-#' @param delimiter Delimiter character to use to separate features in a file.
-#' @param has_header Read column names from first line, if this parameter is set to True.
-#' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
-#' @param verbose Verbose output to stdout.
-#'
-#' @return catboost.Pool
-#'
-#' @examples
-#' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
-#' test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
-#' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
-#' pool <- catboost.from_file(pool_path, cd_path)
-#' test_pool <- catboost.from_file(test_pool_path, cd_path)
-#'
 catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE, thread_count = 1, verbose = FALSE) {
     if (missing(pool_path))
         stop("Need to specify pool path.")
@@ -131,39 +108,6 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 }
 
 
-#' catboost.from_matrix
-#'
-#' Create a dataset from the given matrix.
-#' Only numeric features are supported (their type should be double or factor).
-#' Categorical features must be converted to numerical first.
-#' For example, use \code{as.factor()} or the \code{colClasses} argument of the \code{read.table} method.
-#' The target type should be double.
-#'
-#' @param data A matrix with features.
-#'
-#' Default value: Required argument
-#' @param target The target vector.
-#' @param cat_features A vector of categorical features indices.
-#' The indices are zero based and can differ from the given in the Column descriptions file.
-#' @param pairs A matrix that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
-#' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
-#' @param weight The weights of the target vector.
-#' @param query_id The query_id of the target vector.
-#' @param pairs_weight The weights of the pairs.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
-#' Used in the calculation of final values of trees.
-#' @param feature_names A list of names for each feature in the dataset.
-#'
-#' @return catboost.Pool
-#'
-#' @examples
-#' pool_path <- 'train_full3'
-#' data <- read.table(pool_path, head = F, sep = "\t", colClasses = rep('numeric', 10))
-#' target <- c(1)
-#' cat_features <- seq(1,8)
-#' data_matrix <- as.matrix(data)
-#' pool <- catboost.from_matrix(data = as.matrix(data[,-target]), target = as.matrix(data[,target]), cat_features = cat_features)
-#'
 catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
                                  query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
   if (!is.matrix(data))
@@ -220,51 +164,6 @@ catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs
 }
 
 
-#' catboost.from_data_frame
-#'
-#' Create a dataset from the given data.frame.
-#' Only numeric features are supported (their type should be double or factor).
-#' Categorical features must be converted to numerical first.
-#' For example, use \code{as.factor()} or the \code{colClasses} argument of the \code{read.table} method. The target type should be double.
-#'
-#' @param data A data.frame with features.
-#' The following column types are supported:
-#' \itemize{
-#'     \item double
-#'     \item factor.
-#'     It is assumed that categorical features are given in this type of columns.
-#'     A standard CatBoost processing procedure is applied to this type of columns:
-#'     \describe{
-#'         \item{1.}{The values are converted to strings.}
-#'         \item{2.}{The ConvertCatFeatureToFloat function is applied to the resulting string.}
-#'     }
-#' }
-#'
-#' Default value: Required argument
-#' @param target The target vector.
-#' @param pairs A data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
-#' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
-#' @param weight The weights of the target vector.
-#' @param query_id The query_id of the target vector.
-#' @param pairs_weight The weights of the pairs.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
-#' Used in the calculation of final values of trees.
-#' @param feature_names A list of names for each feature in the dataset.
-#'
-#' @return catboost.Pool
-#'
-#' @examples
-#' pool_path <- 'train_full3'
-#' cd_vector <- c('numeric',  rep('numeric',2), rep('factor',7))
-#' data <- read.table(pool_path, head = F, sep = "\t", colClasses = cd_vector)
-#' target <- c(1)
-#' learn_size <- floor(0.8 * nrow(data))
-#' learn_ind <- sample(nrow(data), learn_size)
-#' learn <- data[learn_ind,]
-#' test <- data[-learn_ind,]
-#' learn_pool <- catboost.from_data_frame(data = learn[,-target], target = learn[,target])
-#' test_pool <- catboost.from_data_frame(data = test[,-target], target = test[,target])
-#'
 catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight = NULL, query_id = NULL,
                                      pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
     if (!is.data.frame(data)) {
@@ -305,7 +204,8 @@ catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight =
 #'     \item Column descriptions
 #' }
 #' Use the catboost.load_pool function to read the resulting files.
-#' These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version} and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
+#' These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version}
+#' and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
 #'
 #' @param data A data.frame with features.
 #' The following column types are supported:
@@ -668,7 +568,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       0.5
 #'
-#'     \item gradient_iterations
+#'     \item leaf_estimation_iterations
 #'
 #'       The number of gradient steps when calculating the values in leaves.
 #'
@@ -1432,12 +1332,6 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
 }
 
 
-#' Number of trees in the model
-#'
-#' Return the number of trees in the model.
-#' @param model The model obtained as the result of training.
-#'
-#' Default value: Required argument
 catboost.ntrees <- function(model) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(pool))

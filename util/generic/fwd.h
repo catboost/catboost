@@ -81,7 +81,7 @@ template <class T, class A = std::allocator<T>>
 class ylist;
 
 template <class K, class V, class Less = TLess<K>, class A = std::allocator<K>>
-class ymap;
+class TMap;
 
 template <class K, class V, class Less = TLess<K>, class A = std::allocator<K>>
 class ymultimap;

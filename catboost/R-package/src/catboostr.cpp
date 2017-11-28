@@ -1,7 +1,7 @@
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
-#include <catboost/libs/algo/train_model.h>
+#include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>

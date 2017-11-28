@@ -9,60 +9,8 @@
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
+#include <catboost/libs/options/loss_description.h>
 
-enum class ELossFunction {
-    /* binary classification errors */
-
-    Logloss,
-    CrossEntropy,
-
-    /* regression errors */
-
-    RMSE,
-    MAE,
-    Quantile,
-    LogLinQuantile,
-    MAPE,
-    Poisson,
-    QueryRMSE,
-
-    /* multiclassification errors */
-
-    MultiClass,
-    MultiClassOneVsAll,
-
-    /* pair errors */
-
-    PairLogit,
-
-    /* regression metrics */
-
-    R2,
-
-    /* classification metrics */
-
-    AUC,
-    Accuracy,
-    Precision,
-    Recall,
-    F1,
-    TotalF1,
-    MCC,
-
-    /* pair metrics */
-
-    PairAccuracy,
-
-    /* custom errors */
-
-    Custom
-};
-
-enum EErrorType {
-    PerObjectError,
-    PairwiseError,
-    QuerywiseError
-};
 
 struct TCustomMetricDescriptor {
     void* CustomData;
@@ -446,14 +394,46 @@ private:
     TCustomMetricDescriptor Descriptor;
 };
 
+class TUserDefinedPerObjectMetric : public TAdditiveMetric {
+public:
+    explicit TUserDefinedPerObjectMetric(const THashMap<TString, float>& params);
+
+    virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
+                              const TVector<float>& target,
+                              const TVector<float>& weight,
+                              int begin, int end,
+                              NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+
+private:
+    double Alpha;
+};
+
+class TUserDefinedQuerywiseMetric : public TQuerywiseAdditiveMetric {
+public:
+    explicit TUserDefinedQuerywiseMetric(const THashMap<TString, float>& params);
+
+    virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
+                                       const TVector<float>& target,
+                                       const TVector<float>& weight,
+                                       const TVector<ui32>& queriesId,
+                                       const THashMap<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+
+private:
+    double Alpha;
+};
 
 
-TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, TString>& params, int approxDimension);
+TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
+
+TVector<THolder<IMetric>> CreateMetrics(const NCatboostOptions::TLossDescription& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                        const TVector<NCatboostOptions::TLossDescription>& customLoss, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension);
-
-TVector<THolder<IMetric>> CreateMetrics(const TMaybe<TString>& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                                        const TVector<TString>& customLoss, int approxDimension);
 
 ELossFunction GetLossType(const TString& lossDescription);
 

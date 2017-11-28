@@ -5,7 +5,7 @@ const size_t TSplitCandidate::FloatFeatureBaseHash = 12321;
 const size_t TSplitCandidate::CtrBaseHash = 89321;
 const size_t TSplitCandidate::OneHotFeatureBaseHash = 517931;
 
-TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx) const {
+TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx) const   {
     TModelSplit split;
     split.Type = Type;
     if (Type == ESplitType::FloatFeature) {
@@ -29,17 +29,22 @@ TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx) const {
             ref.CatFeatureIdx = oheFeature.CatFeatureIdx;
             ref.Value = oheFeature.Value;
         }
-        const TVector<float>& priors = ctx.Priors.GetPriors(Ctr.Projection, Ctr.CtrIdx);
+        auto& ctrHelper = ctx.CtrsHelper;
+        const auto ctrIdx = Ctr.CtrIdx;
+        const auto& ctrInfo =  ctrHelper.GetCtrInfo(Ctr.Projection)[ctrIdx];
+        const TVector<float>& priors =  ctrInfo.Priors;
+
+
         TVector<float> shift;
         TVector<float> norm;
         CalcNormalization(priors, &shift, &norm);
-        ctrBase.CtrType = ctx.Params.CtrParams.Ctrs[Ctr.CtrIdx].CtrType;
-        ctrBase.TargetBorderClassifierIdx = Ctr.CtrIdx;
-        split.OnlineCtr.Ctr.TargetBorderIdx = Ctr.TargetBorderIdx;
+        ctrBase.CtrType = ctrInfo.Type;
+        ctrBase.TargetBorderClassifierIdx  = ctrInfo.TargetClassifierIdx;
+        split.OnlineCtr.Ctr.TargetBorderIdx  = Ctr.TargetBorderIdx;
         split.OnlineCtr.Ctr.PriorNum = priors[Ctr.PriorIdx];
         split.OnlineCtr.Ctr.PriorDenom = 1.0f;
         split.OnlineCtr.Ctr.Shift = shift[Ctr.PriorIdx];
-        split.OnlineCtr.Ctr.Scale = ctx.Params.CtrParams.CtrBorderCount / norm[Ctr.PriorIdx];
+        split.OnlineCtr.Ctr.Scale = ctrInfo.BorderCount / norm[Ctr.PriorIdx];
         split.OnlineCtr.Border = EmulateUi8Rounding(BinBorder);
     }
     return split;

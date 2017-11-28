@@ -4,12 +4,12 @@
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tree_print.h>
 
-#include <catboost/libs/params/params.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/digest/multi.h>
 #include <util/string/builder.h>
+#include <catboost/libs/options/enums.h>
 
 struct TRegularFeature {
     EFeatureType Type;

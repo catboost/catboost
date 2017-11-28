@@ -35,7 +35,7 @@ class TJsonValue {
     void Clear() noexcept;
 public:
 
-    typedef THashMap<TString, TJsonValue> TMap;
+    typedef THashMap<TString, TJsonValue> TMapType;
     typedef TDeque<TJsonValue> TArray;
 
     TJsonValue() noexcept = default;
@@ -102,7 +102,7 @@ public:
     unsigned long long GetUInteger() const;
     double GetDouble() const;
     const TString& GetString() const;
-    const TMap& GetMap() const;
+    const TMapType& GetMap() const;
     const TArray& GetArray() const;
 
     //throwing TJsonException possible
@@ -111,8 +111,8 @@ public:
     unsigned long long GetUIntegerSafe() const;
     double GetDoubleSafe() const;
     const TString& GetStringSafe() const;
-    const TMap& GetMapSafe() const;
-    TMap& GetMapSafe();
+    const TMapType& GetMapSafe() const;
+    TMapType& GetMapSafe();
     const TArray& GetArraySafe() const;
     TArray& GetArraySafe();
 
@@ -133,11 +133,11 @@ public:
     bool GetInteger(long long* value) const noexcept;
     bool GetUInteger(unsigned long long* value) const noexcept;
     bool GetDouble(double* value) const noexcept;
-    bool GetMapPointer(const TMap** value) const noexcept;
+    bool GetMapPointer(const TMapType** value) const noexcept;
     bool GetArrayPointer(const TArray** value) const noexcept;
 
     bool GetString(TString* value) const;
-    bool GetMap(TMap* value) const;
+    bool GetMap(TMapType* value) const;
     bool GetArray(TArray* value) const;
     bool GetValue(size_t index, TJsonValue* value) const;
     bool GetValue(TStringBuf key, TJsonValue* value) const;
@@ -188,7 +188,7 @@ private:
         unsigned long long UInteger;
         double Double;
         TString String;
-        TMap* Map;
+        TMapType* Map;
         TArray* Array;
 
         TValueUnion() noexcept {}
@@ -220,7 +220,7 @@ inline bool GetString(const TJsonValue &jv, size_t index, TString *value) {
     return jv[index].GetString(value);
 }
 
-bool GetMapPointer(const TJsonValue& jv, size_t index, const TJsonValue::TMap **value);
+bool GetMapPointer(const TJsonValue& jv, size_t index, const TJsonValue::TMapType **value);
 bool GetArrayPointer(const TJsonValue& jv, size_t index, const TJsonValue::TArray **value);
 
 inline bool GetBoolean(const TJsonValue &jv, TStringBuf key, bool *value) noexcept {
@@ -243,7 +243,7 @@ inline bool GetString(const TJsonValue &jv, TStringBuf key, TString *value) {
     return jv[key].GetString(value);
 }
 
-bool GetMapPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TMap **value);
+bool GetMapPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TMapType **value);
 bool GetArrayPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TArray **value);
 
 }

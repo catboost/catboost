@@ -3,34 +3,36 @@
 #include "projection.h"
 
 struct TCtr {
-    Y_SAVELOAD_DEFINE(Projection, CtrIdx, TargetBorderIdx, PriorIdx);
+    Y_SAVELOAD_DEFINE(Projection, CtrIdx, TargetBorderIdx, PriorIdx, BorderCount);
 
     TProjection Projection;
     ui8 CtrIdx = 0;
     ui8 TargetBorderIdx = 0;
     ui8 PriorIdx = 0;
+    ui8 BorderCount = 0;
 
     TCtr() = default;
 
     bool operator==(const TCtr& other) const {
-        return std::tie(Projection, CtrIdx, TargetBorderIdx, PriorIdx) ==
-               std::tie(other.Projection, other.CtrIdx, other.TargetBorderIdx, other.PriorIdx);
+        return std::tie(Projection, CtrIdx, TargetBorderIdx, PriorIdx, BorderCount) ==
+               std::tie(other.Projection, other.CtrIdx, other.TargetBorderIdx, other.PriorIdx, other.BorderCount);
     }
 
     bool operator!=(const TCtr& other) const {
         return !(*this == other);
     }
 
-    TCtr(const TProjection& proj, ui8 ctrTypeIdx, ui8 targetBorderIdx, ui8 priorIdx)
+    TCtr(const TProjection& proj, ui8 ctrTypeIdx, ui8 targetBorderIdx, ui8 priorIdx, ui8 borderCount)
         : Projection(proj)
           , CtrIdx(ctrTypeIdx)
           , TargetBorderIdx(targetBorderIdx)
           , PriorIdx(priorIdx)
+          , BorderCount(borderCount)
     {
     }
 
     size_t GetHash() const {
-        return MultiHash(Projection.GetHash(), CtrIdx, TargetBorderIdx, PriorIdx);
+        return MultiHash(Projection.GetHash(), CtrIdx, TargetBorderIdx, PriorIdx, BorderCount);
     }
 };
 

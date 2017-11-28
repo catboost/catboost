@@ -1,17 +1,13 @@
 #pragma once
 
+#include <catboost/libs/options/enums.h>
 #include <library/threading/local_executor/local_executor.h>
+#include <library/digest/crc32c/crc32c.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/maybe.h>
 #include <util/stream/output.h>
 
-
-enum class EPredictionType {
-    Probability,
-    Class,
-    RawFormulaVal
-};
 
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax);
 
@@ -48,3 +44,12 @@ private:
     TVector<EPredictionType> PredictionTypes;
     TVector<TString> ColumnNames;
 };
+
+template <typename T>
+ui32 CalcMatrixCheckSum(ui32 init, const TVector<TVector<T>>& matrix) {
+    ui32 checkSum = init;
+    for (const auto& row : matrix) {
+        checkSum = Crc32cExtend(checkSum, row.data(), row.size() * sizeof(T));
+    }
+    return checkSum;
+}

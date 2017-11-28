@@ -44,8 +44,8 @@ THolder<TLogger> CreateLogger(const TVector<THolder<IMetric>>& errors, TLearnCon
     if (hasTest) {
         logger->TestErrLog = CreateErrLog(errors, ctx.LearnProgress.TestErrorsHistory, ctx.Files.TestErrorLogFile);
     }
-    logger->LearnTensorBoardLogger = CreateTensorBoardLog(errors, ctx.LearnProgress.LearnErrorsHistory, JoinFsPaths(ctx.Params.TrainDir, "train"));
-    logger->TestTensorBoardLogger = CreateTensorBoardLog(errors, ctx.LearnProgress.TestErrorsHistory, JoinFsPaths(ctx.Params.TrainDir, "test"));
+    logger->LearnTensorBoardLogger = CreateTensorBoardLog(errors, ctx.LearnProgress.LearnErrorsHistory, JoinFsPaths(ctx.OutputOptions.GetTrainDir(), "train"));
+    logger->TestTensorBoardLogger = CreateTensorBoardLog(errors, ctx.LearnProgress.TestErrorsHistory, JoinFsPaths(ctx.OutputOptions.GetTrainDir(), "test"));
     return logger;
 }
 

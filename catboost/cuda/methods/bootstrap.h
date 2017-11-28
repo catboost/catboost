@@ -1,91 +1,22 @@
 #pragma once
 
+#include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_util/cpu_random.h>
 #include <catboost/cuda/cuda_util/bootstrap.h>
 #include <catboost/cuda/cuda_util/fill.h>
+
 namespace NCatboostCuda
 {
-    enum class EBootstrapType
-    {
-        Poisson,
-        Bayesian,
-        DiscreteUniform,
-        NoBootstrap
-    };
-
-    template<EBootstrapType>
-    struct IsDiscreteWeights
-    {
-        bool Value = true;
-    };
-
-    template<>
-    struct IsDiscreteWeights<EBootstrapType::Bayesian>
-    {
-        bool Value = false;
-    };
-
-    class TBootstrapConfig
-    {
-    public:
-        float GetTakenFraction() const
-        {
-            return TakenFraction;
-        }
-
-        float GetLambda() const
-        {
-            return TakenFraction < 1 ? -log(1 - TakenFraction) : -1;
-        }
-
-        EBootstrapType GetBootstrapType() const
-        {
-            if (TakenFraction == 1.0)
-            {
-                return EBootstrapType::NoBootstrap;
-            }
-            return BootstrapType;
-        }
-
-        ui64 GetSeed() const
-        {
-            return Seed;
-        }
-
-        float GetBaggingTemperature() const
-        {
-            return BaggingTemperature;
-        }
-
-        void Validate() const
-        {
-            CB_ENSURE((TakenFraction > 0) && (TakenFraction <= 1.0f), "Taken fraction should in in (0,1]");
-            CB_ENSURE(BaggingTemperature, "Bagging temperature >= 0");
-        }
-
-        template<class TConfig>
-        friend
-        class TOptionsBinder;
-
-        template<class TConfig>
-        friend
-        class TOptionsJsonConverter;
-
-    private:
-        float TakenFraction = 0.66;
-        float BaggingTemperature = 1.0;
-        EBootstrapType BootstrapType = EBootstrapType::Bayesian;
-        ui64 Seed = 0;
-    };
-
     template<class TMapping>
     class TBootstrap
     {
     public:
         TBootstrap(const TMapping& suggestedSeedsMapping,
-                   const TBootstrapConfig& config)
+                   const NCatboostOptions::TBootstrapConfig& config,
+                   ui64 seed
+        )
                 : Config(config)
         {
             ui64 maxSeedCount = 512 * 256;
@@ -99,7 +30,7 @@ namespace NCatboostCuda
 
             Seeds.Reset(mapping);
 
-            TRandom random(config.GetSeed());
+            TRandom random(seed);
             WriteSeedsPointwise(Seeds, random);
         }
 
@@ -109,7 +40,7 @@ namespace NCatboostCuda
             {
                 case EBootstrapType::Poisson:
                 {
-                    PoissonBootstrap(Seeds, weights, Config.GetLambda());
+                    PoissonBootstrap(Seeds, weights, Config.GetPoissonLambda());
                     break;
                 }
                 case EBootstrapType::Bayesian:
@@ -117,12 +48,12 @@ namespace NCatboostCuda
                     BayesianBootstrap(Seeds, weights, Config.GetBaggingTemperature());
                     break;
                 }
-                case EBootstrapType::DiscreteUniform:
+                case EBootstrapType::Bernoulli:
                 {
                     UniformBootstrap(Seeds, weights, Config.GetTakenFraction());
                     break;
                 }
-                case EBootstrapType::NoBootstrap:
+                case EBootstrapType::No:
                 {
                     break;
                 }
@@ -143,7 +74,7 @@ namespace NCatboostCuda
         }
 
     private:
-        TBootstrapConfig Config;
+        const NCatboostOptions::TBootstrapConfig& Config;
         TCudaBuffer<ui64, TMapping> Seeds;
 
         inline void WriteSeedsPointwise(TCudaBuffer<ui64, TMapping>& seeds,

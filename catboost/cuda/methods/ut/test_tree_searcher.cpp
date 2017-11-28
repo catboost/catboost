@@ -1,7 +1,6 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <library/unittest/registar.h>
 #include <catboost/cuda/cuda_util/cpu_random.h>
-#include <catboost/cuda/data/binarization_config.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/grid_creator.h>
@@ -386,8 +385,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
         auto directObservationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
 
-        TObliviousTreeLearnerOptions treeConfig;
-        treeConfig.SetMaxDepth(maxDepth);
+        NCatboostOptions::TObliviousTreeLearnerOptions treeConfig(ETaskType::GPU);
+        treeConfig.MaxDepth = maxDepth;
 
         TGpuFeaturesScoreCalcer<> featuresScoreCalcer(dataSet.GetFeatures(), treeConfig, foldCount, true);
         TGpuFeaturesScoreCalcer<> simpleCtrScoreCalcer(dataSet.GetPermutationFeatures(), treeConfig, foldCount, true);
@@ -472,10 +471,11 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     void TestPointwiseHist(ui32 binarization,
                            ui32 oneHotLimit,
                            ui32 permutationCount) {
-        TBinarizationConfiguration binarizationConfiguration;
-        binarizationConfiguration.DefaultFloatBinarization.Discretization = binarization;
-        TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, oneHotLimit);
-        TBinarizedFeaturesManager featuresManager(featureManagerOptions);
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.MaxTensorComplexity = 3;
+        catFeatureParams.OneHotMaxSize = oneHotLimit;
+        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
@@ -490,9 +490,17 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                  dataProviderBuilder.SetShuffleFlag(false));
 
         {
-            TVector<float> prior = {0.5};
-            featuresManager.EnableCtrType(ECtrType::Buckets, prior);
-            featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
+            NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+            NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+
+            TVector<TVector<float>> prior = {{0.5, 1.0}};
+            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior, bucketsBinarization);
+            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior, freqBinarization);
+            catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
+            catFeatureParams.AddSimpleCtrDescription(freqCtr);
+
+            catFeatureParams.AddTreeCtrDescription(bucketsCtr);
+            catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
         TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,

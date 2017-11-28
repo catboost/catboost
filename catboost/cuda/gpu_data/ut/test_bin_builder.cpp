@@ -129,7 +129,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                 TCpuTargetClassCtrCalcer calcer(treeSplit.UniqueCount,
                                                 treeSplit.Bins,
                                                 DataProvider.GetWeights(),
-                                                ctr.Configuration.Prior[0]);
+                                                ctr.Configuration.Prior[0], ctr.Configuration.Prior[1]);
 
                 TVector<ui32> featureBins;
                 if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
@@ -185,11 +185,21 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         SavePoolToFile(pool, "test-pool.txt");
         SavePoolCDToFile("test-pool.txt.cd", numCatFeatures);
 
-        TBinarizationConfiguration binarizationConfiguration;
-        binarizationConfiguration.DefaultFloatBinarization.Discretization = binarization;
-        TFeatureManagerOptions featureManagerOptions(binarizationConfiguration, 6);
-        featureManagerOptions.SetMaxTensorComplexity(3);
-        TBinarizedFeaturesManager featuresManager(featureManagerOptions);
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.MaxTensorComplexity = 3;
+        catFeatureParams.OneHotMaxSize = 6;
+        {
+            TVector<TVector<float>> prior = {{0.5, 1.0}};
+            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior);
+            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior);
+            catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
+            catFeatureParams.AddSimpleCtrDescription(freqCtr);
+
+            catFeatureParams.AddTreeCtrDescription(bucketsCtr);
+            catFeatureParams.AddTreeCtrDescription(freqCtr);
+        }
+        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
@@ -204,9 +214,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                  dataProviderBuilder.SetShuffleFlag(false));
 
         {
-            TVector<float> prior = {0.5};
-            featuresManager.EnableCtrType(ECtrType::Buckets, prior);
-            featuresManager.EnableCtrType(ECtrType::FeatureFreq, prior);
+
         }
 
         TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
@@ -251,7 +259,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             if (treeCtr.Configuration.Type == ECtrType::Buckets) {
                 treeCtr.Configuration.Prior.resize(featuresManager.GetTargetBorders().size() + 1, 0.5f);
             } else {
-                treeCtr.Configuration.Prior = {0.5f, (float)featuresManager.GetMaxUniqueValues(treeCtr.FeatureTensor)};
+                treeCtr.Configuration.Prior = {0.5f, 1};
             }
         }
         {

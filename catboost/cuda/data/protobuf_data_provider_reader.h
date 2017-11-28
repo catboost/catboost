@@ -100,4 +100,5 @@ namespace NCatboostCuda
         THolder<IFactory < IGridBuilder>> GridBuilderFactory;
         NCompressedPool::TFeatureColumn FeatureColumn;
     };
+
 }

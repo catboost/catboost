@@ -2,7 +2,6 @@
 
 #include "dynamic_boosting_progress.h"
 #include "boosting_listeners.h"
-#include "boosting_options.h"
 #include "learning_rate.h"
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
@@ -12,12 +11,25 @@
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
-#include <catboost/cuda/targets/target_options.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <util/stream/format.h>
+#include <catboost/libs/options/boosting_options.h>
+#include <catboost/libs/options/loss_description.h>
 
 namespace NCatboostCuda
 {
+
+    inline TString GpuProgressLabel() {
+        return ToString<ETaskType>(ETaskType::GPU);
+    }
+
+//TODO(noxoomo): vector of external serializers/deserializers instead of task options. we should correctly restore overffitting-detector state, best iteration, etc
+    struct TSnapshotMeta {
+        TString Path;
+        TString TaskOptions;
+        ui64 SaveIntervalSeconds;
+    };
+
     template<template<class TMapping, class> class TTargetTemplate,
              class TWeakLearner,
              NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
@@ -37,22 +49,23 @@ namespace NCatboostCuda
         const TDataProvider* DataProvider;
         const TDataProvider* TestDataProvider;
 
+
         TRandom& Random;
         TWeakLearner& Weak;
-        const TBoostingOptions& Config;
-        const TTargetOptions& TargetOptions;
-        const TSnapshotOptions& SnapshotOptions;
+        const NCatboostOptions::TBoostingOptions& Config;
+        const NCatboostOptions::TLossDescription& TargetOptions;
+
 
         TVector<IListener*> LearnListeners;
         TVector<IListener*> TestListeners;
         IOverfittingDetector* Detector = nullptr;
+        THolder<TSnapshotMeta> SnapstotMeta;
 
-        const char* const GpuProgressLabel = "GPU";
 
 
         inline bool Stop(const ui32 iteration)
         {
-            return iteration >= Config.GetIterationCount() || (Detector && Detector->IsNeedStop());
+            return iteration >= Config.IterationCount || (Detector && Detector->IsNeedStop());
         }
 
     private:
@@ -119,7 +132,7 @@ namespace NCatboostCuda
 
         ui32 GetPermutationBlockSize(ui32 sampleCount) const
         {
-            ui32 suggestedBlockSize = Config.GetPermutationBlockSize();
+            ui32 suggestedBlockSize = Config.PermutationBlockSize;
             if (sampleCount < 50000)
             {
                 return 1;
@@ -146,7 +159,8 @@ namespace NCatboostCuda
                                                                                     true,
                                                                                     permutationBlockSize);
 
-            return dataSetsHolderBuilder.BuildDataSet(Config.GetPermutationCount());
+            const auto permutationCount = DataProvider->HasTime() ? 1 : Config.PermutationCount;
+            return dataSetsHolderBuilder.BuildDataSet(permutationCount);
         }
 
         TPermutationTarget CreateTargets(const TDataSetsHolder<CatFeaturesStoragePtrType>& dataSets) const
@@ -169,18 +183,18 @@ namespace NCatboostCuda
 
         inline ui32 MinEstimationSize(ui32 docCount) const
         {
-            if (docCount < Config.GetMinFoldSize())
+            if (docCount < Config.MinFoldSize)
             {
                 return docCount / 2;
             }
             const ui32 maxFolds = 18;
-            const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.GetMinFoldSize()));
+            const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.MinFoldSize));
             if (folds >= maxFolds)
             {
                 return NHelpers::CeilDivide(docCount, 1 << maxFolds);
             }
 
-            return Config.GetMinFoldSize();
+            return Config.MinFoldSize;
         }
 
         TVector<TFold> CreateFolds(ui32 sampleCount,
@@ -191,7 +205,7 @@ namespace NCatboostCuda
             CB_ENSURE(growthRate > 1.0, "Error: grow rate should be > 1.0");
 
             TVector<TFold> folds;
-            if (Config.GetBoostingType() == EBoostingType::Plain)
+            if (Config.BoostingType == EBoostingType::Plain)
             {
                 folds.push_back({TSlice(0, sampleCount), TSlice(0, sampleCount)});
                 return folds;
@@ -242,7 +256,7 @@ namespace NCatboostCuda
             const ui32 estimationPermutation = permutationCount - 1;
             const ui32 learnPermutationCount = estimationPermutation ? permutationCount - 1 : 1; //fallback
 
-            auto learningRate = Config.GetLearningRate();
+            const double step = Config.LearningRate;
 
             auto startTimeBoosting = Now();
             auto lastSnapshotTime = Now();
@@ -274,7 +288,6 @@ namespace NCatboostCuda
                         //cache
                         THolder<TScopedCacheHolder> iterationCacheHolderPtr;
                         iterationCacheHolderPtr.Reset(new TScopedCacheHolder);
-                        const double step = learningRate.Step(iteration);
 
                         auto weakModelStructure = [&]() -> TWeakModelStructure
                         {
@@ -296,7 +309,7 @@ namespace NCatboostCuda
                             optimizer.SetRandomStrength(
                                     CalcScoreStDevMult(dataSet.GetDataProvider().GetSampleCount(), iteration * step));
 
-                            if ((Config.GetBoostingType() == EBoostingType::Plain))
+                            if ((Config.BoostingType == EBoostingType::Plain))
                             {
                                 CB_ENSURE(taskFolds.size() == 1);
                                 auto allSlice = taskTarget.GetIndices().GetObjectsSlice();
@@ -391,7 +404,7 @@ namespace NCatboostCuda
                                 }
                             }
 
-                            if (!((Config.GetBoostingType() == EBoostingType::Plain) &&
+                            if (!((Config.BoostingType == EBoostingType::Plain) &&
                                   estimationPermutation == 0 /*no avereging permutation case*/))
                             {
                                 auto allSlice = dataSet.GetDataSetForPermutation(
@@ -411,7 +424,7 @@ namespace NCatboostCuda
                                        });
 
                         //TODO: make more robust fallback if we disable dontLookAhead
-                        if (((Config.GetBoostingType() == EBoostingType::Plain)) && estimationPermutation == 0)
+                        if (((Config.BoostingType == EBoostingType::Plain)) && estimationPermutation == 0)
                         {
                             models.Estimation = models.FoldData[0][0];
                         }
@@ -466,37 +479,35 @@ namespace NCatboostCuda
                         result->AddWeakModel(models.Estimation);
                     }
 
-                    if (iteration % Config.GetPrintPeriod() == 0)
+
                     {
-                        {
-                            auto learnListenerTimeGuard = profiler.Profile("Boosting listeners time: Learn");
+                        auto learnListenerTimeGuard = profiler.Profile("Boosting listeners time: Learn");
 
-                            for (auto& listener : LearnListeners)
-                            {
-                                listener->UpdateEnsemble(*result,
-                                                         target.GetTarget(estimationPermutation),
-                                                         cursor.Estimation);
-                            }
+                        for (auto& listener : LearnListeners)
+                        {
+                            listener->UpdateEnsemble(*result,
+                                                     target.GetTarget(estimationPermutation),
+                                                     cursor.Estimation);
                         }
+                    }
 
-                        if (dataSet.HasTestDataSet())
+                    if (dataSet.HasTestDataSet())
+                    {
+                        auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
+
+                        for (auto& listener : TestListeners)
                         {
-                            auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
-
-                            for (auto& listener : TestListeners)
-                            {
-                                listener->UpdateEnsemble(*result,
-                                                         *testTarget,
-                                                         *testCursor);
-                            }
+                            listener->UpdateEnsemble(*result,
+                                                     *testTarget,
+                                                     *testCursor);
                         }
                     }
 
                     iteration++;
-                    if (SnapshotOptions.IsSnapshotEnabled() && ((Now() - lastSnapshotTime).SecondsFloat() > SnapshotOptions.TimeBetweenWritesSec())) {
+                    if (SnapstotMeta && ((Now() - lastSnapshotTime).SecondsFloat() > SnapstotMeta->SaveIntervalSeconds)) {
                         auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
-                        TProgressHelper(GpuProgressLabel).Write(SnapshotOptions.GetSnapshotPath(), [&](IOutputStream* out) {
-                            ::Save(out, DataProvider->GetShuffleSeed());
+                        TProgressHelper(GpuProgressLabel()).Write(SnapstotMeta->Path, [&](IOutputStream* out) {
+                            ::Save(out, SnapstotMeta->TaskOptions);
                             ::Save(out, progress);
                         });
                         lastSnapshotTime = Now();
@@ -508,17 +519,15 @@ namespace NCatboostCuda
 
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
-                         const TBoostingOptions& config,
-                         const TTargetOptions& targetOptions,
-                         const TSnapshotOptions& snapshotOptions,
+                         const NCatboostOptions::TBoostingOptions& config,
+                         const NCatboostOptions::TLossDescription& targetOptions,
                          TRandom& random,
                          TWeakLearner& weak)
                 : FeaturesManager(binarizedFeaturesManager)
                   , Random(random)
                   , Weak(weak)
                   , Config(config)
-                  , TargetOptions(targetOptions)
-                  , SnapshotOptions(snapshotOptions) {
+                  , TargetOptions(targetOptions) {
 
         }
 
@@ -548,6 +557,12 @@ namespace NCatboostCuda
         TDynamicBoosting& AddOverfitDetector(IOverfittingDetector& detector)
         {
             Detector = &detector;
+            return *this;
+        }
+
+        TDynamicBoosting& SaveSnapshot(const TString& snapshotPath, const TString& taskOptions, ui64 snapshotInterval)
+        {
+            SnapstotMeta = MakeHolder<TSnapshotMeta>(snapshotPath, taskOptions, snapshotInterval);
             return *this;
         }
 
@@ -608,7 +623,7 @@ namespace NCatboostCuda
 
                 folds = CreateFolds(state->Targets.GetTarget(i),
                                     state->DataSets.GetDataSetForPermutation(i),
-                                    Config.GetGrowthRate());
+                                    Config.FoldLenMultiplier);
 
                 auto& foldCursors = state->Cursor.FoldData[i];
                 foldCursors.resize(folds.size());
@@ -643,12 +658,11 @@ namespace NCatboostCuda
             auto state = CreateState();
             THolder<TResultModel> resultModel = MakeHolder<TResultModel>();
 
-            if (SnapshotOptions.IsSnapshotEnabled() && NFs::Exists(SnapshotOptions.GetSnapshotPath())) {
+            if (SnapstotMeta && NFs::Exists(SnapstotMeta->Path)) {
                 TDynamicBoostingProgress<TResultModel> progress;
-                TProgressHelper(GpuProgressLabel).CheckedLoad(SnapshotOptions.GetSnapshotPath(), [&](TIFStream* in) {
-                    ui64 dataProviderShuffleSeed = 0;
-                    ::Load(in, dataProviderShuffleSeed);
-                    CB_ENSURE(dataProviderShuffleSeed == DataProvider->GetShuffleSeed());
+                TProgressHelper(GpuProgressLabel()).CheckedLoad(SnapstotMeta->Path, [&](TIFStream* in) {
+                    TString optionsStr;
+                    ::Load(in, optionsStr);
                     ::Load(in, progress);
                 });
                 WriteProgressToGpu(progress,
@@ -673,7 +687,7 @@ namespace NCatboostCuda
         {
             double modelExpLength = log(sampleCount);
             double modelLeft = exp(modelExpLength - modelSize);
-            return Config.GetRandomStrength() * modelLeft / (1 + modelLeft);
+            return modelLeft / (1 + modelLeft);
         }
     };
 }

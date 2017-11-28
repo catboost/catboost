@@ -6,8 +6,6 @@ NO_WERROR()
 
 SRCS(
     GLOBAL train.cpp
-    application_options.cpp
-    json_options.cpp
 )
 
 PEERDIR(
@@ -24,6 +22,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/data
     catboost/libs/algo
+    catboost/libs/train_lib
     catboost/libs/helpers
     library/grid_creator
 )

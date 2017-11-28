@@ -19,6 +19,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/data
+    catboost/libs/options
     catboost/cuda/data/pool_proto
 )
 

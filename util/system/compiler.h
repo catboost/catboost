@@ -507,3 +507,20 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #if !defined(Y_PURE_FUNCTION)
 #define Y_PURE_FUNCTION
 #endif
+
+/**
+ * @ def Y_HAVE_INT128
+ *
+ * Defined when the compiler supports __int128 extension
+ *
+ * @code
+ *
+ * #if defined(Y_HAVE_INT128)
+ *     __int128 myVeryBigInt = 12345678901234567890;
+ * #endif
+ *
+ * @endcode
+ */
+#if defined(__SIZEOF_INT_128__)
+#define Y_HAVE_INT128 1
+#endif
