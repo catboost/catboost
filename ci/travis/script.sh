@@ -11,14 +11,8 @@ function install_cuda_linux()
 
 if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-release-cuda' ]; then
     install_cuda_linux;
-    ./ya make --stat -T -r -j 1 catboost/cuda/app -DCUDA_ROOT=/usr/local/cuda-8.0;
-    cp $(readlink -f catboost/cuda/app/cb_cuda) catboost-cuda-linux;
-fi
-
-
-if [ "${CB_BUILD_AGENT}" == 'clang-linux-x86_64-release' ]; then
-    ./ya make --stat -T -r -j 1 catboost/app;
-    cp $(readlink -f catboost/app/catboost) catboost-linux;
+    ./ya make --stat -T -r -j 1 catboost/app -DCUDA_ROOT=/usr/local/cuda-8.0;
+    cp $(readlink -f catboost/app/catboost) catboost-cuda-linux;
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
