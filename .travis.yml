@@ -41,18 +41,6 @@ matrix:
           tags: true
     - os: linux
       dist: trusty
-      language: cpp
-      env: CB_BUILD_AGENT='clang-linux-x86_64-release'
-      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file: catboost-linux
-        skip_cleanup: true
-        on:
-          tags: true
-    - os: linux
-      dist: trusty
       language: python
       python: 2.7
       env: CB_BUILD_AGENT='python2-linux-x86_64-release'
