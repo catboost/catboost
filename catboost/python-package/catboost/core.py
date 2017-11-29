@@ -499,6 +499,11 @@ class CatBoost(_CatBoostBase):
         if 'ctr_description' in params:
             if not isinstance(params['ctr_description'], Sequence):
                 raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
+        if 'custom_loss' in params:
+            if isinstance(params['custom_loss'], STRING_TYPES):
+                params['custom_loss'] = [params['custom_loss']]
+            if not isinstance(params['custom_loss'], Sequence):
+                raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
         if 'custom_metric' in params:
             if isinstance(params['custom_metric'], STRING_TYPES):
                 params['custom_metric'] = [params['custom_metric']]
@@ -522,7 +527,7 @@ class CatBoost(_CatBoostBase):
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
         if verbose is not None:
-            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (posible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning)
+            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (possible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning)
         if logging_level is not None:
             params['logging_level'] = logging_level
         if use_best_model is not None:
@@ -1132,6 +1137,7 @@ class CatBoostClassifier(CatBoost):
         The directory in which you want to record generated in the process of learning files.
     custom_metric : object, [default=None]
         To use your own metric function.
+    custom_loss: alias to custom_metric, deprecated and will be removed in future
     eval_metric : string or object, [default=None]
         To optimize your custom metric in loss.
     bagging_temperature : float, [default=None]
@@ -1203,6 +1209,7 @@ class CatBoostClassifier(CatBoost):
         name=None,
         ignored_features=None,
         train_dir=None,
+        custom_loss=None,
         custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
@@ -1226,6 +1233,10 @@ class CatBoostClassifier(CatBoost):
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
+
+        if custom_loss is not None and custom_metric is not None:
+            raise CatboostError("Custom loss and custom metric can't be set at the same time. Use custom_metric instead of custom_loss (custom_loss is deprecated)")
+
         super(CatBoostClassifier, self).__init__(params)
 
     @property

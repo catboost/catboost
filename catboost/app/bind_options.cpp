@@ -89,6 +89,7 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser.AddLongOption("custom-metric",
                          "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
+            .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
         .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {
             for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',')) {

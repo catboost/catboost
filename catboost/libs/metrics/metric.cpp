@@ -1058,7 +1058,7 @@ bool TUserDefinedQuerywiseMetric::IsMaxOptimal() const {
 /* Create */
 
 inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, float>& params, int approxDimension) {
-    if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile) {
+    if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile && metric != ELossFunction::Logloss) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
     }
     TVector<THolder<IMetric>> result;

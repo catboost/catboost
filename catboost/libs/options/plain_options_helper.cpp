@@ -70,8 +70,11 @@ namespace NCatboostOptions {
             trainOptions["metrics"]["eval_metric"] = LossDescriptionToJson(plainOptions["eval_metric"].GetStringSafe());
             seenKeys.insert("eval_metric");
         }
-        if (plainOptions.Has("custom_metric")) {
-            const NJson::TJsonValue& metrics = plainOptions["custom_metric"];
+        if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
+            if (plainOptions.Has("custom_metric") && plainOptions.Has("custom_loss")) {
+                ythrow TCatboostException() << "Error: don't set custom_metric and custom_loss at the same time. Could be used only one option";
+            }
+            const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
             if (metrics.IsArray()) {
                 for (const auto& metric : metrics.GetArraySafe()) {
                     trainOptions["metrics"]["custom_metrics"].AppendValue(LossDescriptionToJson(metric.GetStringSafe()));
@@ -79,7 +82,7 @@ namespace NCatboostOptions {
             } else {
                 trainOptions["metrics"]["custom_metrics"].AppendValue(LossDescriptionToJson(metrics.GetStringSafe()));
             }
-            seenKeys.insert("custom_metric");
+            seenKeys.insert(plainOptions.Has("custom_metric") ? "custom_metric" : "custom_loss");
         }
 
 
