@@ -275,7 +275,7 @@ namespace NCatboostCuda
         {
         }
 
-        TCatFeatureColumnConverter& AddExistingBinarization(ymap<TString, ui32>&& binarization)
+        TCatFeatureColumnConverter& AddExistingBinarization(TMap<TString, ui32>&& binarization)
         {
             Binarization = std::move(binarization);
             return *this;
@@ -353,7 +353,7 @@ namespace NCatboostCuda
         }
 
     private:
-        ymap<TString, ui32> Binarization;
+        TMap<TString, ui32> Binarization;
         TVector<ui32> BinarizedData;
     };
 
@@ -575,7 +575,7 @@ namespace NCatboostCuda
                             if (InputBinarization)
                             {
                                 ReadMessage(*InputBinarization, binarization);
-                                ymap<TString, ui32> bins;
+                                TMap<TString, ui32> bins;
                                 for (int i = 0; i < binarization.GetBins().size(); ++i)
                                 {
                                     bins[binarization.GetKeys(i)] = binarization.GetBins().Get(i);

@@ -270,7 +270,7 @@ namespace NCatboostCuda
             CB_ENSURE(BestBin <= 255);
         }
 
-        void CacheCtrBorders(const ymap<TCtr, TVector<float>>& bordersMap)
+        void CacheCtrBorders(const TMap<TCtr, TVector<float>>& bordersMap)
         {
             for (auto& entry : bordersMap)
             {

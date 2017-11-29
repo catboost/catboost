@@ -1048,7 +1048,7 @@ class CatBoostClassifier(CatBoost):
     use_best_model : bool, [default=None]
         To limit the number of trees in predict() using information about the optimal value of the error function.
         Can be used only with eval_set.
-    logging_level : string, [default='Silent']
+    logging_level : string, [default='Verbose']
         Possible values:
             - 'Silent'
             - 'Verbose'

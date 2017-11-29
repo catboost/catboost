@@ -104,7 +104,7 @@ private:
         TMode(const TString& name, TMainClassV* main, const TString& descr);
     };
 
-    typedef ymap<TString, TMode> TModes;
+    typedef TMap<TString, TMode> TModes;
 
 private:
     //! Main program description.

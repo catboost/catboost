@@ -330,7 +330,7 @@ public:
     }
 
     template<class T1, class T2, class T3, class T4>
-        int Add(const chunk_id, ymap<T1,T2,T3,T4> *pMap)
+        int Add(const chunk_id, TMap<T1,T2,T3,T4> *pMap)
     {
         DoAnyMap(*pMap);
         return 0;

@@ -56,7 +56,7 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         TCtrDescription description2(ETaskType::CPU);
         description2.Load(ctr2Json);
 
-        ymap<ui32, TVector<TCtrDescription>> perFeatureCtr;
+        TMap<ui32, TVector<TCtrDescription>> perFeatureCtr;
         TJsonFieldHelper<decltype(perFeatureCtr)>::Read(perFeatureCtrJson, &perFeatureCtr);
 
         UNIT_ASSERT_VALUES_EQUAL(description1.GetPriors()[0], TVector<float>({1, 2}));

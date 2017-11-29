@@ -95,9 +95,9 @@ namespace NCatboostOptions {
     };
 
     template <class TKey, class T>
-    class TJsonFieldHelper<ymap<TKey, T>, false> {
+    class TJsonFieldHelper<TMap<TKey, T>, false> {
     public:
-        static void Read(const NJson::TJsonValue& src, ymap<TKey, T>* dst) {
+        static void Read(const NJson::TJsonValue& src, TMap<TKey, T>* dst) {
             dst->clear();
             if (src.IsMap()) {
                 const auto& data = src.GetMapSafe();
@@ -109,7 +109,7 @@ namespace NCatboostOptions {
             }
         }
 
-        static void Write(const ymap<TKey, T>& src, NJson::TJsonValue* dst) {
+        static void Write(const TMap<TKey, T>& src, NJson::TJsonValue* dst) {
             (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_MAP);
             for (const auto& entry : src) {
                 NJson::TJsonValue value;

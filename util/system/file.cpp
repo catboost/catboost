@@ -81,9 +81,7 @@ const size_t MaxPortion = size_t(1 << 30);
 
 static bool IsStupidFlagCombination(EOpenMode oMode) {
     // ForAppend will actually not be applied in the following combinations:
-    return (oMode & (CreateAlways | ForAppend)) == (CreateAlways | ForAppend)
-        || (oMode & (TruncExisting | ForAppend)) == (TruncExisting | ForAppend)
-        || (oMode & (CreateNew | ForAppend)) == (CreateNew | ForAppend);
+    return (oMode & (CreateAlways | ForAppend)) == (CreateAlways | ForAppend) || (oMode & (TruncExisting | ForAppend)) == (TruncExisting | ForAppend) || (oMode & (CreateNew | ForAppend)) == (CreateNew | ForAppend);
 }
 
 TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {

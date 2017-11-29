@@ -169,8 +169,8 @@ void GenerateEnum(
     out << "namespace { namespace " << nsName << " {\n";
     out << "    class TNameBufs {\n";
     out << "    private:\n";
-    out << "        ymap<" << name << ", TString> Names;\n";
-    out << "        ymap<TString, " << name << "> Values;\n";
+    out << "        TMap<" << name << ", TString> Names;\n";
+    out << "        TMap<TString, " << name << "> Values;\n";
     out << "        TString AllNames;\n";
     out << "        TVector<" << name << "> AllValues;\n";
     out << "        TVector<TString> AllCppNames;\n";
@@ -311,8 +311,8 @@ void GenerateEnum(
     out << "            return AllNames;\n";
     out << "        }\n\n";
 
-    // const ymap<EnumType, TString>& EnumNames()
-    out << "        const ymap<" << name << ", TString>& EnumNames() const {\n";
+    // const TMap<EnumType, TString>& EnumNames()
+    out << "        const TMap<" << name << ", TString>& EnumNames() const {\n";
     out << "            return Names;\n";
     out << "        }\n\n";
 
@@ -379,7 +379,7 @@ void GenerateEnum(
 
     // template<> GetEnumNames<EnumType>
     out << "template<>\n";
-    out << "const ymap<" << name << ", TString>& GetEnumNames<" << name << ">() {\n";
+    out << "const TMap<" << name << ", TString>& GetEnumNames<" << name << ">() {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.EnumNames();\n";
     out << "}\n\n";

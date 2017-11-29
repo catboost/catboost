@@ -120,7 +120,7 @@ struct TDumper<ylist<T, A>>: public TSeqDumper {
 
 //associatives
 template <class K, class V, class P, class A>
-struct TDumper<ymap<K, V, P, A>>: public TAssocDumper {
+struct TDumper<TMap<K, V, P, A>>: public TAssocDumper {
 };
 
 template <class K, class V, class P, class A>

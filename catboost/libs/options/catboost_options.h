@@ -147,9 +147,6 @@ namespace NCatboostOptions {
         //little hack. JSON parsing needs to known device_type
         TOption<ETaskType> taskType("task_type", ETaskType::CPU);
         TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
-        if (!taskType.IsSet()) {
-            MATRIXNET_WARNING_LOG << "Task type was not set. Will use CPU learning by default" << Endl;
-        }
         TCatBoostOptions options(taskType.Get());
         options.Load(source);
         return options;

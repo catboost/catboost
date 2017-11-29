@@ -158,7 +158,7 @@ static TString MakeTestName(const NUnitTest::ITestSuiteProcessor::TTest& test) {
     return TStringBuilder() << test.unit->name << "::" << test.name;
 }
 
-static size_t CountTests(const ymap<TString, size_t>& testErrors, bool succeeded) {
+static size_t CountTests(const TMap<TString, size_t>& testErrors, bool succeeded) {
     size_t cnt = 0;
     for (const auto& t : testErrors) {
         if (succeeded && t.second == 0) {

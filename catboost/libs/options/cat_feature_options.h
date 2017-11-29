@@ -125,7 +125,7 @@ namespace NCatboostOptions {
         explicit TCatFeatureParams(ETaskType taskType)
             : SimpleCtrs("simple_ctrs", TVector<TCtrDescription>())
             , CombinationCtrs("combinations_ctrs", TVector<TCtrDescription>())
-            , PerFeatureCtrs("per_feature_ctrs", ymap<ui32, TVector<TCtrDescription>>())
+            , PerFeatureCtrs("per_feature_ctrs", TMap<ui32, TVector<TCtrDescription>>())
             , MaxTensorComplexity("max_ctr_complexity", 4)
             , OneHotMaxSize("one_hot_max_size", 0)
             , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
@@ -178,7 +178,7 @@ namespace NCatboostOptions {
 
         TOption<TVector<TCtrDescription>> SimpleCtrs;
         TOption<TVector<TCtrDescription>> CombinationCtrs;
-        TOption<ymap<ui32, TVector<TCtrDescription>>> PerFeatureCtrs;
+        TOption<TMap<ui32, TVector<TCtrDescription>>> PerFeatureCtrs;
 
         TOption<ui32> MaxTensorComplexity;
         TOption<ui32> OneHotMaxSize;

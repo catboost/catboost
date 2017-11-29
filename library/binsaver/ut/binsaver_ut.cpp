@@ -142,7 +142,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
 
     SIMPLE_UNIT_TEST(TestMaps) {
         TestSerialization(THashMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
-        TestSerialization(ymap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
+        TestSerialization(TMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
     }
 
     SIMPLE_UNIT_TEST(TestBlob) {

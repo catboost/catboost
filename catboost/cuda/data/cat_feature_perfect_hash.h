@@ -15,7 +15,7 @@ namespace NCatboostCuda {
 
         ~TCatFeaturesPerfectHash() = default;
 
-        const ymap<int, ui32>& GetFeatureIndex(ui32 featureId) const {
+        const TMap<int, ui32>& GetFeatureIndex(ui32 featureId) const {
             if (!HasHashInRam) {
                 Load();
             }
@@ -25,7 +25,7 @@ namespace NCatboostCuda {
 
         void RegisterId(ui32 featureId) {
             CB_ENSURE(HasHashInRam, "Can't register new features if hash is stored in file");
-            FeaturesPerfectHash[featureId] = ymap<int, ui32>();
+            FeaturesPerfectHash[featureId] = TMap<int, ui32>();
             CatFeatureUniqueValues[featureId] = 0;
         }
 
@@ -44,7 +44,7 @@ namespace NCatboostCuda {
 
         void FreeRam() const {
             Save();
-            ymap<ui32, ymap<int, ui32>> empty;
+            TMap<ui32, TMap<int, ui32>> empty;
             FeaturesPerfectHash.swap(empty);
             HasHashInRam = false;
         }
@@ -70,8 +70,8 @@ namespace NCatboostCuda {
         friend class TCatFeaturesPerfectHashHelper;
     private:
         TTempFile StorageTempFile;
-        ymap<ui32, ui32> CatFeatureUniqueValues;
-        mutable ymap<ui32, ymap<int, ui32>> FeaturesPerfectHash;
+        TMap<ui32, ui32> CatFeatureUniqueValues;
+        mutable TMap<ui32, TMap<int, ui32>> FeaturesPerfectHash;
         mutable bool HasHashInRam = true;
     };
 }

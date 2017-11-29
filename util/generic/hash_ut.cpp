@@ -983,15 +983,15 @@ void THashTest::TestReleaseNodes() {
 void THashTest::TestAt() {
 #define TEST_AT_THROWN_EXCEPTION(SRC_TYPE, DST_TYPE, KEY_TYPE, KEY, MESSAGE)                                                                               \
     {                                                                                                                                                      \
-        THashMap<SRC_TYPE, DST_TYPE> testMap;                                                                                                                 \
+        THashMap<SRC_TYPE, DST_TYPE> testMap;                                                                                                              \
         try {                                                                                                                                              \
             KEY_TYPE testKey = KEY;                                                                                                                        \
             testMap.at(testKey);                                                                                                                           \
-            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw");                                                                             \
+            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw");                                                                          \
         } catch (const yexception& e) {                                                                                                                    \
             UNIT_ASSERT_C(e.AsStrBuf().Contains(MESSAGE), "Incorrect exception description: got \"" << e.what() << "\", expected: \"" << MESSAGE << "\""); \
         } catch (...) {                                                                                                                                    \
-            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw yexception");                                                                  \
+            UNIT_ASSERT_C(false, "THashMap::at(\"" << KEY << "\") should throw yexception");                                                               \
         }                                                                                                                                                  \
     }
 

@@ -380,7 +380,7 @@ namespace NCatboostCuda
             yset<ui32> resultIds;
 
             if (PerFeatureCtrs.has(featureId)) {
-                const ymap<ECtrType, yset<TCtrConfig>>& perFeatureCtrs = PerFeatureCtrs.at(featureId);
+                const TMap<ECtrType, yset<TCtrConfig>>& perFeatureCtrs = PerFeatureCtrs.at(featureId);
                 if (perFeatureCtrs.has(type)) {
                     CreateSimpleCtrs(featureId, perFeatureCtrs.at(type), &resultIds);
                 }
@@ -496,7 +496,7 @@ namespace NCatboostCuda
         }
 
         //store perfect hash by featureManager id
-        const ymap<int, ui32>& GetCategoricalFeaturesPerfectHash(const ui32 featureId) const
+        const TMap<int, ui32>& GetCategoricalFeaturesPerfectHash(const ui32 featureId) const
         {
             CB_ENSURE(CatFeaturesPerfectHash.HasFeature(featureId));
             return CatFeaturesPerfectHash.GetFeatureIndex(featureId);
@@ -542,7 +542,7 @@ namespace NCatboostCuda
 
 
         TBinarizedFeaturesManager& CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                                                   ymap<ECtrType, yset<TCtrConfig>>* grouppedConfigs)
+                                                                   TMap<ECtrType, yset<TCtrConfig>>* grouppedConfigs)
         {
             for (const auto& prior : ctrDescription.GetPriors())
             {
@@ -621,18 +621,18 @@ namespace NCatboostCuda
         friend class TCatFeaturesPerfectHashHelper;
 
     private:
-        mutable ymap<TCtr, ui32> KnownCtrs;
-        mutable ymap<ui32, TCtr> InverseCtrs;
+        mutable TMap<TCtr, ui32> KnownCtrs;
+        mutable TMap<ui32, TCtr> InverseCtrs;
 
-        mutable ymap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
-        mutable ymap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
-        mutable ymap<ui32, ui32> FeatureManagerIdToDataProviderId;
+        mutable TMap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
+        mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
+        mutable TMap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
         mutable ui32 Cursor = 0;
 
-        ymap<ECtrType, yset<TCtrConfig>> TreeCtrConfigs;
-        ymap<ECtrType, yset<TCtrConfig>> DefaultCtrConfigs;
-        ymap<ui32, ymap<ECtrType, yset<TCtrConfig>>> PerFeatureCtrs;
+        TMap<ECtrType, yset<TCtrConfig>> TreeCtrConfigs;
+        TMap<ECtrType, yset<TCtrConfig>> DefaultCtrConfigs;
+        TMap<ui32, TMap<ECtrType, yset<TCtrConfig>>> PerFeatureCtrs;
 
         TVector<NCatboostOptions::TBinarizationOptions> CtrBinarizationOptions;
 
@@ -642,7 +642,7 @@ namespace NCatboostCuda
         const NCatboostOptions::TBinarizationOptions& FloatFeaturesBinarization;
 
         //float and ctr features
-        ymap<ui32, TVector<float>> Borders;
+        TMap<ui32, TVector<float>> Borders;
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
 
     };

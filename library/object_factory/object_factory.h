@@ -80,7 +80,7 @@ protected:
 
 private:
     typedef TSimpleSharedPtr< IFactoryObjectCreator<TProduct, TArgs...>  > ICreatorPtr;
-    typedef ymap<TKey, ICreatorPtr> ICreators;
+    typedef TMap<TKey, ICreatorPtr> ICreators;
     ICreators Creators;
     TRWMutex CreatorsLock;
 };

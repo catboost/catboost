@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(TContainerPrintersTest) {
     SIMPLE_UNIT_TEST(TestMapCharToCharArray) {
         TStringStream out;
 
-        ymap<char, const char*> m;
+        TMap<char, const char*> m;
 
         m['a'] = "SMALL LETTER A";
         m['b'] = nullptr;
@@ -78,7 +78,7 @@ SIMPLE_UNIT_TEST_SUITE(TContainerPrintersTest) {
     }
 
     SIMPLE_UNIT_TEST(TestColors) {
-        using TComplex = ymap<TString, ymap<int, char>>;
+        using TComplex = TMap<TString, TMap<int, char>>;
         TComplex test;
         test["a"][1] = '7';
         test["b"][2] = '6';

@@ -49,9 +49,9 @@ namespace NCatboostCuda
 
         };
 
-        ymap<ui32, TCtrFeature> Ctrs;
-        ymap<ui32, TFloatFeature> FloatFeatures;
-        ymap<ui32, ui32> CatFeaturesMap;
+        TMap<ui32, TCtrFeature> Ctrs;
+        TMap<ui32, TFloatFeature> FloatFeatures;
+        TMap<ui32, ui32> CatFeaturesMap;
 
         Y_SAVELOAD_DEFINE(Ctrs, FloatFeatures, CatFeaturesMap);
     };

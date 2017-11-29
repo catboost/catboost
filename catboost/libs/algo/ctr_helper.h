@@ -55,6 +55,6 @@ private:
     TVector<TTargetClassifier> TargetClassifiers;
 
     TVector<TCtrInfo> SimpleCtrs;
-    ymap<int, TVector<TCtrInfo>> PerFeatureCtrs;
+    TMap<int, TVector<TCtrInfo>> PerFeatureCtrs;
     TVector<TCtrInfo> TreeCtrs;
 };

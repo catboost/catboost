@@ -34,7 +34,7 @@ namespace {
             s = ::ToString(Prng.GenRand());
         }
 
-        template <typename T, typename ...TArgs>
+        template <typename T, typename... TArgs>
         void Randomize(T& t, TArgs&... args) {
             Randomize(t);
             Randomize(args...);
@@ -44,7 +44,7 @@ namespace {
         TFastRng<ui64> Prng;
     };
 
-    template <size_t N, typename ...T>
+    template <size_t N, typename... T>
     struct TExamplesHolder {
         using TExamples = TVector<std::tuple<T...>>;
         TExamples Examples;
@@ -54,26 +54,26 @@ namespace {
         {
             TRandomizer r{N * sizeof(typename TExamples::value_type) * 42};
             for (auto& x : Examples) {
-                Apply([&r](T&... t){r.Randomize(t...);}, x);
+                Apply([&r](T&... t) { r.Randomize(t...); }, x);
             }
         }
     };
 
-    template <typename ...TArgs>
+    template <typename... TArgs>
     TString JoinTuple(std::tuple<TArgs...> t) {
         return Apply([](TArgs... x) -> TString { return Join("-", x...); }, t);
     }
 }
 
-#define DEFINE_BENCHMARK(count, types, ...)                                                        \
-    Y_CPU_BENCHMARK(Join_##count##_##types, iface) {                                               \
-        const auto& examples = Default<TExamplesHolder<count, __VA_ARGS__>>().Examples;            \
-        for (const auto i : xrange(iface.Iterations())) {                                          \
-            Y_UNUSED(i);                                                                           \
-            for (const auto e : examples) {                                                        \
-                Y_DO_NOT_OPTIMIZE_AWAY(JoinTuple(e));                                              \
-            }                                                                                      \
-        }                                                                                          \
+#define DEFINE_BENCHMARK(count, types, ...)                                             \
+    Y_CPU_BENCHMARK(Join_##count##_##types, iface) {                                    \
+        const auto& examples = Default<TExamplesHolder<count, __VA_ARGS__>>().Examples; \
+        for (const auto i : xrange(iface.Iterations())) {                               \
+            Y_UNUSED(i);                                                                \
+            for (const auto e : examples) {                                             \
+                Y_DO_NOT_OPTIMIZE_AWAY(JoinTuple(e));                                   \
+            }                                                                           \
+        }                                                                               \
     }
 
 DEFINE_BENCHMARK(100, SS, TString, TString);

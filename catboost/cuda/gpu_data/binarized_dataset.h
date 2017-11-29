@@ -159,7 +159,7 @@ namespace NCatboostCuda
 
     private:
         TVector<ui32> FeatureIds;
-        ymap<ui32, ui32> LocalFeatureIndex;
+        TMap<ui32, ui32> LocalFeatureIndex;
         TCudaBuffer<ui32, TCompressedIndexMapping> CompressedIndex;
         //features
         TCudaBuffer<TCFeature, TFeaturesMapping> Grid;

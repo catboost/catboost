@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
         }
 
         {
-            ymap<ui32, ui32> gidsBins;
+            TMap<ui32, ui32> gidsBins;
 
             for (size_t i = 0; i < pool.Gids.size(); ++i) {
                 if (gidsBins.count(pool.Gids[i]) == 0) {

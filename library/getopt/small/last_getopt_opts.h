@@ -55,7 +55,7 @@ private:
     ui32 FreeArgsMin_; // minimal number of free args
     ui32 FreeArgsMax_; // maximal number of free args
 
-    ymap<ui32, TFreeArgSpec> FreeArgSpecs_;                // mapping [free arg position] -> [free art specification]
+    TMap<ui32, TFreeArgSpec> FreeArgSpecs_;                // mapping [free arg position] -> [free art specification]
     TFreeArgSpec DefaultFreeArgSpec = TFreeArgSpec("ARG"); // rule for parsing free arguments by default
     bool CustomDefaultArg_ = false;                        //true if DefaultFreeArgSpec have been reset
 

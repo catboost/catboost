@@ -32,7 +32,6 @@ RECURSE(
     tensorboard
     yaml
     zlib
-    zstd01
     zstd06
     zstd
 )

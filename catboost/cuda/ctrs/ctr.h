@@ -116,8 +116,8 @@ inline TCtrConfig RemovePrior(const TCtrConfig& ctrConfig) {
     return result;
 }
 
-inline ymap<TCtrConfig, TVector<TCtrConfig>> CreateEqualUpToPriorAndBinarizationCtrsGroupping(const TVector<TCtrConfig>& configs) {
-    ymap<TCtrConfig, TVector<TCtrConfig>> result;
+inline TMap<TCtrConfig, TVector<TCtrConfig>> CreateEqualUpToPriorAndBinarizationCtrsGroupping(const TVector<TCtrConfig>& configs) {
+    TMap<TCtrConfig, TVector<TCtrConfig>> result;
     for (auto& config : configs) {
         TCtrConfig withoutPriorConfig = RemovePrior(config);
         withoutPriorConfig.CtrBinarizationConfigId = -1;

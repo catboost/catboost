@@ -198,7 +198,6 @@
 #undef SIZEOF_SIZE_T // in case we include <Python.h> which defines it, too
 #define SIZEOF_SIZE_T SIZEOF_PTR
 
-
 #if defined(__INTEL_COMPILER)
 #pragma warning(disable 1292)
 #pragma warning(disable 1469)

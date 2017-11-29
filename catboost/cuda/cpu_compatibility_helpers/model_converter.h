@@ -240,8 +240,8 @@ namespace NCatboostCuda
         const TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
         TVector<TVector<int>> CatFeatureBinToHashIndex;
-        ymap<ui32, ui32> CatFeaturesRemap;
-        ymap<ui32, ui32> FloatFeaturesRemap;
+        TMap<ui32, ui32> CatFeaturesRemap;
+        TMap<ui32, ui32> FloatFeaturesRemap;
         TVector<TVector<float>> Borders;
     };
 

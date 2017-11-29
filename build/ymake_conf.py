@@ -1556,7 +1556,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm1000', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dymap=TMap']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dymap=TMap']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]

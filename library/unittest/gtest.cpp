@@ -55,7 +55,7 @@ namespace {
 }
 
 IGTestFactory* NUnitTest::NPrivate::ByName(const char* name) {
-    static ymap<TStringBuf, TAutoPtr<TGTestFactory>> tests;
+    static TMap<TStringBuf, TAutoPtr<TGTestFactory>> tests;
 
     auto& ret = tests[name];
 

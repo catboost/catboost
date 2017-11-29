@@ -325,7 +325,7 @@ namespace NCatboostCuda
         }
 
     private:
-        TVector<TCtrConfig> GetVisitOrder(const ymap<TCtrConfig, TVector<TCtrConfig>>& ctrs)
+        TVector<TCtrConfig> GetVisitOrder(const TMap<TCtrConfig, TVector<TCtrConfig>>& ctrs)
         {
             TVector<TCtrConfig> freqCtrs;
             TVector<TCtrConfig> restCtrs;
@@ -366,7 +366,7 @@ namespace NCatboostCuda
         using TCtrHelperPtr = THolder<TCalcCtrHelper<TMapping>>;
         const TCtrTargets<TMapping>& Target;
         const THashMap<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
-        ymap<ui32, TCtrHelperPtr> CtrHelpers;
+        TMap<ui32, TCtrHelperPtr> CtrHelpers;
         TCtrVisitor& CtrVisitor;
     };
 
@@ -1029,7 +1029,7 @@ namespace NCatboostCuda
         yset<ui32> UsedPermutations;
 
         TFeatureTensorTracker<CatFeaturesStoragePtrType> EmptyTracker;
-        ymap<TFeatureTensor, TFeatureTensorTracker<CatFeaturesStoragePtrType>> TensorTrackers;
+        TMap<TFeatureTensor, TFeatureTensorTracker<CatFeaturesStoragePtrType>> TensorTrackers;
 
         TFeatureTensorTracker<CatFeaturesStoragePtrType> PureTreeCtrTensorTracker;
         TFeatureTensor CurrentTensor;

@@ -251,9 +251,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
       <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd01\contrib-libs-zstd01.vcxproj">
-      <Project>F2A1D92A-7737-7A89-BAE3-4E9214D488D0</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
     </ProjectReference>

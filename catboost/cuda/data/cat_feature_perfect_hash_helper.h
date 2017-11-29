@@ -36,7 +36,7 @@ namespace NCatboostCuda
             const ui32 featureId = FeaturesManager.GetFeatureManagerIdForCatFeature(dataProviderId);
             auto& featuresHash = FeaturesManager.CatFeaturesPerfectHash;
 
-            ymap<int, ui32> binarization;
+            TMap<int, ui32> binarization;
             {
                 TGuard<TAdaptiveLock> guard(UpdateLock);
                 if (!featuresHash.HasHashInRam)

@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         TVector<ui32> indices;
         permutation.FillOrder(indices);
 
-        ymap<ui32, TArray2D<float>> ctrsCache;
+        TMap<ui32, TArray2D<float>> ctrsCache;
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
             TSlice featuresSlice = featuresMapping.DeviceSlice(dev);

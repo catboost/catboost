@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     int limit;
     bool longopt;
     bool extract;
-    ymap<TString, TString> keyval;
+    TMap<TString, TString> keyval;
 
     using namespace NLastGetopt;
     TOpts opts = NLastGetopt::TOpts::Default();

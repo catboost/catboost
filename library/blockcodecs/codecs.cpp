@@ -411,8 +411,6 @@ namespace {
                 Codecs.push_back(new TLzmaCodec(i));
             }
 
-            Codecs.push_back(LegacyZStdCodec());
-
             for (auto& codec : LegacyZStd06Codec()) {
                 Codecs.emplace_back(std::move(codec));
             }

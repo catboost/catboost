@@ -14,6 +14,10 @@ def fix(s):
     if s == '/Z7':
         return None
 
+    # disable sanitizers for generated code
+    if s.startswith('-fsanitize') or s == '-Dmemory_sanitizer_enabled' or s.startswith('-fsanitize-blacklist'):
+        return None
+
     # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
     return s.replace('\\', '/')
 

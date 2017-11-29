@@ -99,7 +99,7 @@ namespace NCudaLib {
 
     class TCudaProfiler {
     private:
-        ymap<TString, THolder<TLabeledInterval>> Labels;
+        TMap<TString, THolder<TLabeledInterval>> Labels;
         EProfileMode DefaultProfileMode;
         ui64 MinProfileLevel;
         TLabeledInterval EmptyLabel;

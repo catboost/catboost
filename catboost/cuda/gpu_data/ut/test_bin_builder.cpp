@@ -51,7 +51,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
 
         inline TTreeCtrSplit BuildTreeCtrSplitCpu(const TFeatureTensor& featureTensor) {
             TTreeCtrSplit ctrSplit;
-            ymap<ui64, ui32> uniqueBins;
+            TMap<ui64, ui32> uniqueBins;
 
             const size_t sampleCount = DataProvider.GetSampleCount();
             TVector<ui64> keys(sampleCount, 0);

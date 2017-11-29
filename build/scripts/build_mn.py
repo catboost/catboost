@@ -113,12 +113,12 @@ class BuildMns(BuildMnBase):
         self.mnrankingSuffix = mnrankingSuffix
         self.mnlistname = listname + mnrankingSuffix
         self.mnlistelem = "const NMatrixnet::TMnSsePtr*"
-        mnlisttype = "ymap< TString, {0} >".format(self.mnlistelem)
+        mnlisttype = "TMap< TString, {0} >".format(self.mnlistelem)
         self.mnlist = "const {0} {1}".format(mnlisttype, self.mnlistname)
 
         self.mnmultilistname = "{0}{1}Multi".format(listname, self.mnrankingSuffix)
         self.mnmultilistelem = "const NMatrixnet::TMnMultiCategPtr*"
-        mnmultilisttype = "ymap< TString, {0} >".format(self.mnmultilistelem)
+        mnmultilisttype = "TMap< TString, {0} >".format(self.mnmultilistelem)
         self.mnmultilist = "const {0} {1}".format(mnmultilisttype, self.mnmultilistname)
 
     def InitForAll(self, argv):

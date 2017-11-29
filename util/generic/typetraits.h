@@ -197,19 +197,19 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
  */
 #define Y_HAS_MEMBER(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_HAS_MEMBER_IMPL_2, Y_HAS_MEMBER_IMPL_1)(__VA_ARGS__))
 
-#define Y_HAS_SUBTYPE_IMPL_2(subtype, name)                             \
-    template <class T>                                                  \
-    struct THas##name {                                                 \
-        struct TNo {                                                    \
-            char ch;                                                    \
-        };                                                              \
-        struct TYes {                                                   \
-            char arr[2];                                                \
-        };                                                              \
-        template <class T1>                                             \
-        static TYes CheckSubtype(typename T1::subtype*);                \
-        template <class T1>                                             \
-        static TNo CheckSubtype(...);                                   \
+#define Y_HAS_SUBTYPE_IMPL_2(subtype, name)                                   \
+    template <class T>                                                        \
+    struct THas##name {                                                       \
+        struct TNo {                                                          \
+            char ch;                                                          \
+        };                                                                    \
+        struct TYes {                                                         \
+            char arr[2];                                                      \
+        };                                                                    \
+        template <class T1>                                                   \
+        static TYes CheckSubtype(typename T1::subtype*);                      \
+        template <class T1>                                                   \
+        static TNo CheckSubtype(...);                                         \
         enum { Result = (sizeof(TYes) == sizeof(CheckSubtype<T>(nullptr))) }; \
     }
 

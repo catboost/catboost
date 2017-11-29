@@ -185,7 +185,7 @@ namespace NCatboostCuda
         {
             if (docCount < Config.MinFoldSize)
             {
-                return docCount / 2;
+                return NHelpers::CeilDivide(docCount, 50);
             }
             const ui32 maxFolds = 18;
             const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.MinFoldSize));

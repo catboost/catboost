@@ -80,7 +80,7 @@ private:
     }
 
 private:
-    THashMap<TGUID, ymap<ui64, THolder<IScopedCache>>> ScopeCaches;
+    THashMap<TGUID, TMap<ui64, THolder<IScopedCache>>> ScopeCaches;
 
 public:
     template <class TScope, class TKey, class TBuilder>

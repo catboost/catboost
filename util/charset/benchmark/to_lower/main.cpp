@@ -20,35 +20,34 @@ static const auto LongRussian = UTF8ToWide(
     "Большая часть таблицы занята китайско-японскими иероглифами и своеобразными корейскими"
     "буквами. В Юникоде 10.0 в этой плоскости представлены следующие блоки");
 
-
-#define DEFINE_INPLACE_BENCH(s)                                         \
-    Y_CPU_BENCHMARK(s##CopyDetach, iface) {                             \
-        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) {  \
-            NBench::Clobber();                                          \
-            auto copy = s;                                              \
-            NBench::Escape(copy.Detach());                              \
-            NBench::Clobber();                                          \
-        }                                                               \
-    }                                                                   \
-                                                                        \
-    Y_CPU_BENCHMARK(s##Inplace, iface) {                                \
-        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) {  \
-            NBench::Clobber();                                          \
-            auto copy = s;                                              \
-            ToLower(copy);                                              \
-            NBench::Escape(copy.data());                                \
-            NBench::Clobber();                                          \
-        }                                                               \
+#define DEFINE_INPLACE_BENCH(s)                                        \
+    Y_CPU_BENCHMARK(s##CopyDetach, iface) {                            \
+        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) { \
+            NBench::Clobber();                                         \
+            auto copy = s;                                             \
+            NBench::Escape(copy.Detach());                             \
+            NBench::Clobber();                                         \
+        }                                                              \
+    }                                                                  \
+                                                                       \
+    Y_CPU_BENCHMARK(s##Inplace, iface) {                               \
+        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) { \
+            NBench::Clobber();                                         \
+            auto copy = s;                                             \
+            ToLower(copy);                                             \
+            NBench::Escape(copy.data());                               \
+            NBench::Clobber();                                         \
+        }                                                              \
     }
 
-#define DEFINE_RET_BENCH(s)                                             \
-    Y_CPU_BENCHMARK(s##Ret, iface) {                                    \
-        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) {  \
-            NBench::Clobber();                                          \
-            const auto res = ToLowerRet(TWtringBuf{s});                 \
-            NBench::Escape(res.data());                                 \
-            NBench::Clobber();                                          \
-        }                                                               \
+#define DEFINE_RET_BENCH(s)                                            \
+    Y_CPU_BENCHMARK(s##Ret, iface) {                                   \
+        for (size_t i = 0, iEnd = iface.Iterations(); i < iEnd; ++i) { \
+            NBench::Clobber();                                         \
+            const auto res = ToLowerRet(TWtringBuf{s});                \
+            NBench::Escape(res.data());                                \
+            NBench::Clobber();                                         \
+        }                                                              \
     }
 
 DEFINE_INPLACE_BENCH(ShortAscii)

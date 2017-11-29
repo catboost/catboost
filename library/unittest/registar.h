@@ -148,8 +148,8 @@ namespace NUnitTest {
         void AddTestFinish(const TTest& test);
 
     private:
-        ymap<TString, size_t> TestErrors_;
-        ymap<TString, size_t> CurTestErrors_;
+        TMap<TString, size_t> TestErrors_;
+        TMap<TString, size_t> CurTestErrors_;
     };
 
     class TTestBase;

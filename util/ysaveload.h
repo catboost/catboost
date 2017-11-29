@@ -255,14 +255,23 @@ static inline void LoadArray(IInputStream* in, T* t, size_t len, TStorage& pool)
 }
 
 static inline void SaveSize(IOutputStream* rh, size_t len) {
-    ::Save(rh, (ui32)len);
+    if ((ui64)len < 0xffffffff) {
+        ::Save(rh, (ui32)len);
+    } else {
+        ythrow yexception() << "It's not allowed to save size which is more than or equal to max value of ui32";
+    }
 }
 
 static inline size_t LoadSize(IInputStream* rh) {
-    ui32 s;
-
-    ::Load(rh, s);
-    return s;
+    ui32 oldVerSize;
+    ui64 newVerSize;
+    ::Load(rh, oldVerSize);
+    if (oldVerSize != 0xffffffff) {
+        return oldVerSize;
+    } else {
+        ::Load(rh, newVerSize);
+        return newVerSize;
+    }
 }
 
 template <class C>

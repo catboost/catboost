@@ -40,7 +40,7 @@ void TCtrHelper::Init(const NCatboostOptions::TCatFeatureParams& catFeatureParam
     using TCtrsDescription = TVector<NCatboostOptions::TCtrDescription>;
     const TCtrsDescription& treeCtrs = catFeatureParams.CombinationCtrs;
     const TCtrsDescription& simpleCtrs = catFeatureParams.SimpleCtrs;
-    const ymap<ui32, TCtrsDescription>& perFeatureCtrs = catFeatureParams.PerFeatureCtrs;
+    const TMap<ui32, TCtrsDescription>& perFeatureCtrs = catFeatureParams.PerFeatureCtrs;
 
     THashMap<NCatboostOptions::TBinarizationOptions, ui32> targetClassifierIds;
     {

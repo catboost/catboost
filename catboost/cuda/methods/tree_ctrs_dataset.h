@@ -79,11 +79,11 @@ namespace NCatboostCuda
             return PermutationKey;
         }
 
-        ymap<TCtr, TVector<float>> ReadBorders(const TVector<ui32>& ids) const
+        TMap<TCtr, TVector<float>> ReadBorders(const TVector<ui32>& ids) const
         {
             TVector<float> allBorders;
             CtrBorders.Read(allBorders);
-            ymap<TCtr, TVector<float>> result;
+            TMap<TCtr, TVector<float>> result;
 
             for (auto id : ids)
             {

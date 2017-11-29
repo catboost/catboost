@@ -849,7 +849,7 @@ cdef class _CatBoost:
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
         if params_json:
-            return loads(params_json)["flat_params"].get('random_seed', 0)
+            return loads(params_json).get('random_seed', 0)
         return 0
 
 class _CatBoostBase(object):

@@ -69,7 +69,7 @@ namespace NCatboostCuda
     private:
         TVector<TCompressedCatFeatureVec> CompressedCatIndex;
         TVector<TVector<ui32>> DeviceFeatures;
-        ymap<ui32, TCatFeature> Features;
+        TMap<ui32, TCatFeature> Features;
         const TDataProvider* DataProvider = nullptr;
 
         template<NCudaLib::EPtrType Type>

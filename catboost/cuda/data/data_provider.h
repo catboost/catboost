@@ -153,7 +153,7 @@ namespace NCatboostCuda
         TVector<float> Weights;
         TVector<TVector<float>> Baseline;
 
-        ymap<ui32, ui32> IndicesToLocalIndicesRemap;
+        TMap<ui32, ui32> IndicesToLocalIndicesRemap;
 
         void BuildIndicesRemap()
         {

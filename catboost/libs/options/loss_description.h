@@ -11,7 +11,7 @@ namespace NCatboostOptions {
     public:
         explicit TLossDescription()
             : LossFunction("type", ELossFunction::RMSE)
-            , LossParams("params", ymap<TString, TString>())
+            , LossParams("params", TMap<TString, TString>())
         {
         }
 
@@ -32,7 +32,7 @@ namespace NCatboostOptions {
                    std::tie(rhs.LossFunction, rhs.LossParams);
         }
 
-        const ymap<TString, TString>& GetLossParams() const {
+        const TMap<TString, TString>& GetLossParams() const {
             return LossParams.Get();
         };
 
@@ -42,7 +42,7 @@ namespace NCatboostOptions {
 
     private:
         TOption<ELossFunction> LossFunction;
-        TOption<ymap<TString, TString>> LossParams;
+        TOption<TMap<TString, TString>> LossParams;
     };
 
     inline double GetLogLossBorder(const TLossDescription& lossFunctionConfig) {

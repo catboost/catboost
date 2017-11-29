@@ -10,7 +10,7 @@
 
 struct TProfileInfoData {
     TProfileInfoData() = default;
-    TProfileInfoData(const ymap<TString, double>& operationToTimeInAllIterations,
+    TProfileInfoData(const TMap<TString, double>& operationToTimeInAllIterations,
             const TVector<TVector<ui64>>& timeLeftHistory, int passedIterations,
             int badIterations, double passedTime)
         : OperationToTimeInAllIterations(operationToTimeInAllIterations)
@@ -28,7 +28,7 @@ struct TProfileInfoData {
         ::LoadMany(s, OperationToTimeInAllIterations, TimeLeftHistory, PassedIterations, BadIterations, PassedTime);
     }
 
-    ymap<TString, double> OperationToTimeInAllIterations;
+    TMap<TString, double> OperationToTimeInAllIterations;
     TVector<TVector<ui64>> TimeLeftHistory;
     int PassedIterations;
     int BadIterations;
@@ -155,8 +155,8 @@ public:
 
 private:
     static constexpr int MAX_TIME_RATIO = 100;
-    ymap<TString, double> OperationToTime;
-    ymap<TString, double> OperationToTimeInAllIterations;
+    TMap<TString, double> OperationToTime;
+    TMap<TString, double> OperationToTimeInAllIterations;
     TVector<TVector<ui64>> TimeLeftHistory;
     THPTimer Timer;
     int PassedIterations;
