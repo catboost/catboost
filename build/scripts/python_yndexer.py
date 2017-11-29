@@ -41,10 +41,8 @@ if __name__ == '__main__':
     yndexer = sys.argv[1]
     timeout = int(sys.argv[2])
     output_file = sys.argv[3]
-    input_file = sys.argv[sys.argv.index('-o') + 1]
-    tail_args = sys.argv[4:]
+    input_file = sys.argv[4]
 
-    subprocess.check_call(tail_args)
     process = Process([yndexer, '-f', input_file, '-y', output_file])
     result = process.wait(timeout=timeout)
 

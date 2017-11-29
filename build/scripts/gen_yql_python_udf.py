@@ -18,6 +18,10 @@ extern "C" UDF_API void Register(IRegistrator& registrator, ui32 flags)
     {
         return CurrentAbiVersion();
     }
+
+    extern "C" UDF_API void SetBackTraceCallback(TBackTraceCallback callback) {
+        SetBackTraceCallbackImpl(callback);
+    }
 #endif
 """
 

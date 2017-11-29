@@ -6,7 +6,7 @@ NO_PLATFORM()
 
 IF (NOT USE_STL_SYSTEM)
     PEERDIR(
-        contrib/libs/cxxsupp/libcxx-next
+        contrib/libs/cxxsupp/libcxx
     )
 ELSE()
     PEERDIR(

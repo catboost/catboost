@@ -770,7 +770,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Data is empty.")
         if not isinstance(metrics, ARRAY_TYPES):
             raise CatboostError("Invalid metrics type={}: must be list().".format(type(metrics)))
-        if not all(map(lambda metric : isinstance(metric, string_types), metrics)):
+        if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
             raise CatboostError("Invalid metric type: must be string().")
         metrics_score = self._base_eval_metrics(data, ','.join(metrics), ntree_start, ntree_end, eval_period, thread_count)
         return dict(zip(metrics, metrics_score))

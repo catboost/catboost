@@ -5,7 +5,7 @@ RECURSE(
     clapack
     coreml
     crcutil
-    cxxsupp/libcxx-next
+    cxxsupp/libcxx
     fastlz
     flatbuffers
     flatbuffers/samples
