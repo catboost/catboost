@@ -137,7 +137,9 @@ namespace {
 
         inline void Add(const TSample& s) noexcept {
             S_[(C_++) % N] = s;
-            ReCalc();
+            if (C_ > 1) {
+                ReCalc();
+            }
         }
 
         inline B Predict(A a) const noexcept {

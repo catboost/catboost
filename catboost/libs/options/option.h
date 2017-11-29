@@ -82,6 +82,16 @@ namespace NCatboostOptions {
             return !(rhs == *this);
         }
 
+        template<typename TComparableType>
+        bool operator==(const TComparableType& otherValue) const {
+            return Value == otherValue;
+        }
+
+        template<typename TComparableType>
+        bool operator!=(const TComparableType& otherValue) const {
+            return Value != otherValue;
+        }
+
         inline TOption& operator=(const TValue& value) {
             Set(value);
             return *this;

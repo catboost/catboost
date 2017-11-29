@@ -136,6 +136,16 @@ namespace NCatboostOptions {
             return !(rhs == *this);
         }
 
+        template<typename TComparableType>
+        bool operator==(const TComparableType& otherValue) const {
+            return TOption<TValue>::operator==(otherValue);
+        }
+
+        template<typename TComparableType>
+        bool operator!=(const TComparableType& otherValue) const {
+            return TOption<TValue>::operator!=(otherValue);
+        }
+
     private:
         ETaskType TaskType;
         ELoadUnimplementedPolicy LoadUnimplementedPolicy;

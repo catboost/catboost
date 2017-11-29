@@ -330,6 +330,7 @@ void GreedyTensorSearch(const TTrainData& data,
     const bool useStatsFromPrevTree = AreStatsFromPrevTreeUsed(ctx->Params.ObliviousTreeOptions.Get());
     if (useStatsFromPrevTree) {
         AssignRandomWeights(data.LearnSampleCount, ctx, fold);
+        ctx->StatsFromPrevTree.GarbageCollect();
     }
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {

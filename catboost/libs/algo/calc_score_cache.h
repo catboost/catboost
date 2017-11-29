@@ -56,9 +56,9 @@ struct TStatsFromPrevTree {
     THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
     THolder<TMemoryPool> MemoryPool;
     inline void Create(int bucketCount, int depth, int approxDimension, int bodyTailCount) {
-        const size_t initialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * approxDimension * bodyTailCount;
-        Y_ASSERT(initialSize > 0);
-        MemoryPool = new TMemoryPool(initialSize);
+        InitialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * approxDimension * bodyTailCount;
+        Y_ASSERT(InitialSize > 0);
+        MemoryPool = new TMemoryPool(InitialSize);
     }
     inline TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty) {
         TVector<TBucketStats, TPoolAllocator>* splitStats;
@@ -75,6 +75,14 @@ struct TStatsFromPrevTree {
         }
         return *splitStats;
     }
+    inline void GarbageCollect() {
+        if (MemoryPool->MemoryWaste() > InitialSize) { // limit memory overhead
+            Stats.clear();
+            MemoryPool->Clear();
+        }
+    }
+private:
+    size_t InitialSize;
 };
 
 struct TSmallestSplitSideFold {

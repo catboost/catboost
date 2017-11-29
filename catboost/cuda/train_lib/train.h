@@ -61,7 +61,7 @@ namespace NCatboostCuda
         }
 
         NCatboostOptions::TOption<ui32>& blockSizeOption = options.BoostingOptions->PermutationBlockSize;
-        if (!blockSizeOption.IsSet() || blockSizeOption == 0) {
+        if (!blockSizeOption.IsSet() || blockSizeOption == 0u) {
             blockSizeOption.Set(64);
         }
     }

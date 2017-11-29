@@ -243,7 +243,7 @@ namespace NCatboostOptions {
         {
             CB_ENSURE(leavesEstimation != ELeavesEstimation::Newton,
                       "Newton leave estimation method is not supported for " << lossFunction << " loss function");
-            CB_ENSURE(ObliviousTreeOptions->LeavesEstimationIterations == 1,
+            CB_ENSURE(ObliviousTreeOptions->LeavesEstimationIterations == 1U,
                       "gradient_iterations should equals 1 for this mode");
         }
 
