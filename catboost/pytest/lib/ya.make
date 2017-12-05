@@ -7,4 +7,6 @@ PY_SRCS(
     __init__.py
 )
 
+ALLOCATOR(LF)
+
 END()

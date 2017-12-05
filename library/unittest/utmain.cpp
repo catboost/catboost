@@ -463,7 +463,7 @@ private:
             return f();
         }
 
-        ylist<TString> args(1, "--is-forked-internal");
+        TList<TString> args(1, "--is-forked-internal");
         args.push_back(Sprintf("+%s::%s", ~suite, name));
 
         // stdin is ignored - unittest should not need them...

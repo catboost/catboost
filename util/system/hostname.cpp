@@ -50,7 +50,7 @@ namespace {
             hints.ai_flags = AI_CANONNAME;
             res = getaddrinfo(buf, nullptr, &hints, &ais);
             if (res) {
-                ythrow TSystemError() << "can not get FQDN";
+                ythrow TSystemError() << "can not get FQDN (return code is " << res << ")";
             }
             FQDNHostName = ais->ai_canonname;
             FQDNHostName.to_lower();

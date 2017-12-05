@@ -26,7 +26,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
             const auto& binarizedData = FeatureColumn.GetBinarizedColumn().GetData();
             auto values = FromProtoToVector(binarizedData);
             CB_ENSURE(borders.size(), "Error: binarization should be positive");
-            auto feature = MakeHolder<TBinarizedFloatValuesHolder>(featureId, docCount, borders, std::move(values), featureName);
+            auto feature = MakeHolder<TBinarizedFloatValuesHolder>(featureId, docCount, ENanMode::Forbidden, borders, std::move(values), featureName);
             FeaturesManager.RegisterDataProviderFloatFeature(feature->GetId());
             if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(feature->GetId()))
             {

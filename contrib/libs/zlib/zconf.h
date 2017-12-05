@@ -14,10 +14,6 @@
 // because of "hack for buggy compilers", see zlib.h:1751 for example.
 #define NO_DUMMY_DECL
 
-#if !defined(Y_BUILD_AS_ORIGIN)
-#   define Z_PREFIX
-#endif
-
 /*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.

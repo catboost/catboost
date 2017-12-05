@@ -41,7 +41,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
-                       TOnlineCTR* dst);
+                       TOnlineCTR* dst,
+                       size_t* totalLeafCount);
 
 struct TCalcOnlineCTRsBatchTask {
     TProjection Projection;

@@ -1,12 +1,15 @@
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
+#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/helpers/eval_helpers.h>
+
+#include <util/generic/singleton.h>
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
@@ -20,6 +23,7 @@
         TString slicedStr(str, 0, len);                             \
         Rprintf("%s", slicedStr.c_str());                           \
     });                                                             \
+    *Singleton<TRPackageInitializer>();                             \
     try {                                                           \
 
 
@@ -35,6 +39,13 @@ typedef std::unique_ptr<TPool> TPoolPtr;
 
 typedef TFullModel* TFullModelHandle;
 typedef std::unique_ptr<TFullModel> TFullModelPtr;
+
+class TRPackageInitializer {
+    Y_DECLARE_SINGLETON_FRIEND();
+    TRPackageInitializer() {
+        ConfigureMalloc();
+    }
+};
 
 template<typename T>
 void _Finalizer(SEXP ext) {

@@ -445,7 +445,7 @@ unsigned NUnitTest::TTestFactory::Execute() {
     Items_.QuickSort(TCmp());
     Processor_->Start();
 
-    yset<TString> types;
+    TSet<TString> types;
     size_t cnt = 0;
 
     for (TIntrusiveList<ITestBaseFactory>::TIterator factory = Items_.Begin(); factory != Items_.End(); ++factory) {

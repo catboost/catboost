@@ -50,10 +50,10 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         NJson::TJsonValue ctr1Json = ParseCtrDescription(ctr1);
         NJson::TJsonValue ctr2Json = ParseCtrDescription(ctr2);
         NJson::TJsonValue perFeatureCtrJson = ParsePerFeatureCtrs(perFeatureCtrs);
-        TCtrDescription description1(ETaskType::CPU);
+        TCtrDescription description1;
         description1.Load(ctr1Json);
 
-        TCtrDescription description2(ETaskType::CPU);
+        TCtrDescription description2;
         description2.Load(ctr2Json);
 
         TMap<ui32, TVector<TCtrDescription>> perFeatureCtr;

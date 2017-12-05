@@ -340,7 +340,7 @@ namespace {
 
     template <class TData>
     bool ReadJsonTreeImpl(TData *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError) {
-        typename std::conditional<std::is_same<TData, TStringBuf>::value, TStringBufStreamWrapper, TInputStreamWrapper>::type is(*in);
+        std::conditional_t<std::is_same<TData, TStringBuf>::value, TStringBufStreamWrapper, TInputStreamWrapper> is(*in);
         return ReadJsonTree(is, config, out, throwOnError);
     }
 

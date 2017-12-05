@@ -25,7 +25,7 @@ def pb2_grpc_arg(path, mod, unit):
 
 
 def ev_arg(path, mod, unit):
-    return '{}_ev.proto={}_ev'.format(stripext(to_build_root(path, unit)), mod)
+    return '{}_ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
 
 def mangle(name):
@@ -161,6 +161,10 @@ def onpy_srcs(unit, *args):
             unit.onpy_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
 
     if evs:
+        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+
+        unit.ongenerate_py_evs([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
     if swigs:

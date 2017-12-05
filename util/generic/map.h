@@ -70,45 +70,45 @@ public:
 };
 
 template <class K, class V, class Less, class A>
-class ymultimap: public std::multimap<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>> {
+class TMultiMap: public std::multimap<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>> {
     using TBase = std::multimap<K, V, Less, TReboundAllocator<A, std::pair<const K, V>>>;
-    using TSelf = ymultimap<K, V, Less, A>;
+    using TSelf = TMultiMap<K, V, Less, A>;
     using TAllocatorType = typename TBase::allocator_type;
     using TKeyCompare = typename TBase::key_compare;
     using TValueType = typename TBase::value_type;
 
 public:
-    inline ymultimap() {
+    inline TMultiMap() {
     }
 
     template <typename TAllocParam>
-    inline explicit ymultimap(TAllocParam* allocator)
+    inline explicit TMultiMap(TAllocParam* allocator)
         : TBase(Less(), allocator)
     {
     }
 
-    inline explicit ymultimap(const Less& less, const TAllocatorType& alloc = TAllocatorType())
+    inline explicit TMultiMap(const Less& less, const TAllocatorType& alloc = TAllocatorType())
         : TBase(less, alloc)
     {
     }
 
     template <class It>
-    inline ymultimap(It f, It l)
+    inline TMultiMap(It f, It l)
         : TBase(f, l)
     {
     }
 
-    inline ymultimap(std::initializer_list<TValueType> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
+    inline TMultiMap(std::initializer_list<TValueType> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
         : TBase(il, comp, alloc)
     {
     }
 
-    inline ymultimap(const TSelf& src)
+    inline TMultiMap(const TSelf& src)
         : TBase(src)
     {
     }
 
-    inline ymultimap(TSelf&& src) noexcept {
+    inline TMultiMap(TSelf&& src) noexcept {
         this->swap(src);
     }
 

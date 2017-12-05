@@ -2,8 +2,12 @@ import os
 import re
 import sys
 import json
+import copy
 import base64
 import _common
+import _metric_resolvers as mr
+import _test_const as consts
+import _requirements as reqs
 import StringIO
 import subprocess
 import collections
@@ -40,55 +44,64 @@ def validate_test(kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
-    def resolve_size_metric(val):
-        metrics = {
-            "tb": 1000 ** 4, "tib": 1024 ** 4,
-            "gb": 1000 ** 3, "gib": 1024 ** 3,
-            "mb": 1000 ** 2, "mib": 1024 ** 2,
-            "kb": 1000, "kib": 1024, "b": 1,
-        }
-        match = re.match(r"(\d*\.?\d+|\d+)(.*)", val)
-        if not match:
-            return None
-
-        val, metric = match.groups()
-        if not metric:
-            return int(val)
-        if metric in metrics:
-            return int(float(val) * metrics[metric])
-        return None
-
+    valid_kw = copy.deepcopy(kw)
     errors = []
+    has_fatal_error = False
 
-    if kw.get('SCRIPT-REL-PATH') == 'boost.test':
-        project_path = kw.get('BUILD-FOLDER-PATH', "")
+    if valid_kw.get('SCRIPT-REL-PATH') == 'boost.test':
+        project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith(("maps", "metrika", "devtools")):
             errors.append("BOOSTTEST is not allowed here")
-    elif kw.get('SCRIPT-REL-PATH') == 'ytest.py':
-        project_path = kw.get('BUILD-FOLDER-PATH', "")
+            has_fatal_error = True
+    elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
+        project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools") and not project_path.startswith("robot/gemini/pygemini/test"):
             errors.append("FLEUR test is not allowed here")
+            has_fatal_error = True
+    elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
+        project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
+        if not project_path.startswith(("mail", "devtools")):
+            errors.append("GTEST is not allowed here")
+            has_fatal_error = True
 
-    size_timeout = collections.OrderedDict(sorted({
-        "SMALL": 60,
-        "MEDIUM": 600,
-        "LARGE": 3600,  # XXX remove -1 when size FAT is gone
-        "FAT": 3600,
-    }.items(), key=lambda t: t[1]))
+    size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
 
-    size = kw.get('SIZE', 'SMALL')
+    size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
     tags = get_list("TAG")
     requirements = {}
     valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb'}
-    memory_requirements = {'disk_usage', 'ram', 'ram_disk'}
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
             if req_name not in valid_requirements:
                 errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(valid_requirements))))
-            elif req_name in memory_requirements:
-                if not resolve_size_metric(req_value.lower()):
+                continue
+            elif req_name in ('disk_usage', 'ram_disk'):
+                if not mr.resolve_size_metric(req_value.lower()):
                     errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
+                    continue
+            # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
+            elif size == consts.TestSize.Fat and req_name in ('ram', 'cpu'):
+                if req_name == 'cpu':
+                    if req_value.strip() == 'all':
+                        pass
+                    elif mr.resolve_value(req_value) is None:
+                        errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
+                        continue
+                elif req_name == 'ram':
+                    if not mr.resolve_size_metric(req_value.lower()):
+                        errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
+                        continue
+            elif req_name == 'ram':
+                ram_errors = reqs.check_ram(mr.resolve_value(req_value), size)
+                errors += ram_errors
+                if ram_errors:
+                    req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Ram))
+            elif req_name == 'cpu':
+                # XXX
+                # errors += reqs.check_cpu(mr.resolve_value(req_value), size)
+                if reqs.check_cpu(mr.resolve_value(req_value), size):
+                    req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
 
             requirements[req_name] = req_value
         else:
@@ -98,9 +111,10 @@ def validate_test(kw):
 
     if size not in size_timeout:
         errors.append("Unknown test size: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(size, ", ".join(size_timeout.keys())))
+        has_fatal_error = True
     else:
         try:
-            timeout = int(kw.get('TEST-TIMEOUT', size_timeout[size]) or size_timeout[size])
+            timeout = int(valid_kw.get('TEST-TIMEOUT', size_timeout[size]) or size_timeout[size])
             if timeout < 0:
                 raise Exception("Timeout must be > 0")
             if size_timeout[size] < timeout and in_autocheck:
@@ -115,19 +129,30 @@ def validate_test(kw):
                 else:
                     suggested_size = ""
                 errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]]{}".format(size, size_timeout[size], suggested_size))
+                has_fatal_error = True
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
+            has_fatal_error = True
 
-        is_fat = size == "FAT" or 'ya:fat' in tags
-        for req in ["container", "ram", "disk"]:
+        is_fat = size == consts.TestSize.Fat or 'ya:fat' in tags
+        for req in ["container", "disk"]:
             if req in requirements and not is_fat:
                 errors.append("Only [[imp]]FAT[[rst]] tests can have [[imp]]{}[[rst]] requirement".format(req))
 
         if 'ya:privileged' in tags and 'container' not in requirements:
             errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
 
-        if in_autocheck and size == "LARGE" and not is_fat:
+        if 'ya:privileged' in tags and not is_fat:
+            errors.append("Only fat tests can have 'ya:privileged' tag")
+
+        if in_autocheck and size == consts.TestSize.Large and not is_fat:
             errors.append("LARGE test must have ya:fat tag")
+            has_fatal_error = True
+
+        requiremtens_list = []
+        for req_name, req_value in requirements.iteritems():
+            requiremtens_list.append(req_name + ":" + req_value)
+        valid_kw['REQUIREMENTS'] = serialize_list(requiremtens_list)
 
     data = get_list("TEST-DATA")
     data_prefixes = ["arcadia", "arcadia_tests_data", "sbr://"]
@@ -135,47 +160,59 @@ def validate_test(kw):
     for d in data:
         if not validate_re.match(d):
             errors.append("Path [[imp]]{}[[rst]] in the test data section should start with one of the following prefixes: [[imp]]{}[[rst]]".format(d, ", ".join(data_prefixes)))
+            has_fatal_error = True
 
-    if kw.get("FUZZ-OPTS"):
+    if valid_kw.get("FUZZ-OPTS"):
         for option in get_list("FUZZ-OPTS"):
             if not option.startswith("-"):
                 errors.append("Unrecognized fuzzer option '[[imp]]{}[[rst]]'. All fuzzer options should start with '-'".format(option))
+                has_fatal_error = True
                 break
             eqpos = option.find("=")
             if eqpos == -1 or len(option) == eqpos + 1:
                 errors.append("Unrecognized fuzzer option '[[imp]]{}[[rst]]'. All fuzzer options should obtain value specified after '='".format(option))
+                has_fatal_error = True
                 break
             if option[eqpos - 1] == " " or option[eqpos + 1] == " ":
                 errors.append("Spaces are not allowed: '[[imp]]{}[[rst]]'".format(option))
+                has_fatal_error = True
                 break
             if option[:eqpos] in ("-runs", "-dict", "-jobs", "-workers", "-artifact_prefix", "-print_final_stats"):
                 errors.append("You can't use '[[imp]]{}[[rst]]' - it will be automatically calculated or configured during run".format(option))
+                has_fatal_error = True
                 break
 
-    if kw.get("USE_ARCADIA_PYTHON") == "yes" and kw.get("SCRIPT-REL-PATH") == "py.test":
+    if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
+        has_fatal_error = True
 
-    if kw.get('SPLIT-FACTOR'):
-        if kw.get('FORK-MODE') == 'none':
+    if valid_kw.get('SPLIT-FACTOR'):
+        if valid_kw.get('FORK-MODE') == 'none':
             errors.append('SPLIT_FACTOR must be use with FORK_TESTS() or FORK_SUBTESTS() macro')
+            has_fatal_error = True
         try:
-            value = int(kw.get('SPLIT-FACTOR'))
+            value = int(valid_kw.get('SPLIT-FACTOR'))
             if value <= 0:
                 raise ValueError("must be > 0")
         except ValueError as e:
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
+            has_fatal_error = True
 
-    return errors
+    if has_fatal_error:
+        return None, errors
+
+    return valid_kw, errors
 
 
 def dump_test(kw):
-    errors = validate_test(kw)
+    valid_kw, errors = validate_test(kw)
     if errors:
         for e in errors:
             ymake.report_configure_error(e)
+    if valid_kw is None:
         return None
     string_handler = StringIO.StringIO()
-    for k, v in kw.iteritems():
+    for k, v in valid_kw.iteritems():
         print >>string_handler, k + ': ' + v
     print >>string_handler, BLOCK_SEPARATOR
     data = string_handler.getvalue()
@@ -270,7 +307,7 @@ def onadd_ytest(unit, *args):
 
 def onadd_test(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                             "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
+                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     test_type = flat_args[0]
     test_files = flat_args[1:]
     if test_type in ["PEP8", "PY_FLAKES"]:
@@ -314,7 +351,7 @@ def onadd_test(unit, *args):
 
 def onadd_check(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                             "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
+                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
     test_dir = unit.resolve(os.path.join(unit.path()))
 

@@ -100,7 +100,7 @@ namespace NCatboostOptions {
 
     TCtrDescription TCatboostOptions::CreateDefaultCounter(EProjectionType projectionType) const {
         if (GetTaskType() == ETaskType::CPU) {
-            return TCtrDescription(ETaskType::CPU, ECtrType::Counter, GetDefaultPriors(ECtrType::Counter));
+            return TCtrDescription(ECtrType::Counter, GetDefaultPriors(ECtrType::Counter));
         } else {
             CB_ENSURE(GetTaskType() == ETaskType::GPU);
             EBorderSelectionType borderSelectionType;
@@ -117,8 +117,7 @@ namespace NCatboostOptions {
                     ythrow TCatboostException() << "Unknown projection type " << projectionType;
                 }
             }
-            return TCtrDescription(ETaskType::GPU,
-                                   ECtrType::FeatureFreq,
+            return TCtrDescription(ECtrType::FeatureFreq,
                                    GetDefaultPriors(ECtrType::FeatureFreq),
                                    TBinarizationOptions(borderSelectionType, 15));
         }
@@ -146,16 +145,16 @@ namespace NCatboostOptions {
                 break;
             }
             default: {
-                defaultSimpleCtrs = {TCtrDescription(GetTaskType(), ECtrType::Borders, GetDefaultPriors(ECtrType::Borders)), CreateDefaultCounter(EProjectionType::SimpleCtr)};
-                defaultTreeCtrs = {TCtrDescription(GetTaskType(), ECtrType::Borders, GetDefaultPriors(ECtrType::Borders)), CreateDefaultCounter(EProjectionType::TreeCtr)};
+                defaultSimpleCtrs = {TCtrDescription(ECtrType::Borders, GetDefaultPriors(ECtrType::Borders)), CreateDefaultCounter(EProjectionType::SimpleCtr)};
+                defaultTreeCtrs = {TCtrDescription(ECtrType::Borders, GetDefaultPriors(ECtrType::Borders)), CreateDefaultCounter(EProjectionType::TreeCtr)};
             }
         }
 
         if (catFeatureParams.SimpleCtrs.IsSet() && catFeatureParams.CombinationCtrs.NotSet()) {
-            MATRIXNET_WARNING_LOG << "Change of simpleCtr will not affect tree ctrs." << Endl;
+            MATRIXNET_WARNING_LOG << "Change of simpleCtr will not affect combinations ctrs." << Endl;
         }
         if (catFeatureParams.CombinationCtrs.IsSet() && catFeatureParams.SimpleCtrs.NotSet()) {
-            MATRIXNET_WARNING_LOG << "Change of treeCtr will not affect simple ctrs" << Endl;
+            MATRIXNET_WARNING_LOG << "Change of combinations ctrs will not affect simple ctrs" << Endl;
         }
         if (catFeatureParams.SimpleCtrs.NotSet()) {
             CatFeatureParams->SimpleCtrs = defaultSimpleCtrs;
@@ -176,7 +175,7 @@ namespace NCatboostOptions {
     }
 
     void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const {
-        if (!ctr.TargetBinarization.IsUnimplementedForCurrentTask() && (ctr.TargetBinarization->BorderCount > 1)) {
+        if (ctr.TargetBinarization->BorderCount > 1) {
             CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                           lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
                           lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE,
@@ -184,32 +183,47 @@ namespace NCatboostOptions {
         }
         CB_ENSURE(ctr.GetPriors().size(), "Provide at least one prior for CTR" << ToString(*this));
 
-        if (GetTaskType() == ETaskType::GPU) {
-            CB_ENSURE(IsSupportedOnGpu(ctr.Type),
-                      "Ctr type " << ctr.Type << " is not implemented on GPU yet");
+        const ETaskType taskType = GetTaskType();
+        const ECtrType ctrType = ctr.Type;
+
+        if (taskType == ETaskType::GPU) {
+            CB_ENSURE(IsSupportedOnGpu(ctrType),
+                      "Ctr type " << ctrType << " is not implemented on GPU yet");
+            CB_ENSURE(ctr.TargetBinarization.IsDefault(), "Error: GPU doesn't not support target binarization per CTR description currently. Please use target_borders option instead");
         } else {
-            CB_ENSURE(GetTaskType() == ETaskType::CPU);
-            CB_ENSURE(IsSupportedOnCpu(ctr.Type),
-                      "Ctr type " << ctr.Type << " is not implemented on CPU yet");
+            CB_ENSURE(taskType == ETaskType::CPU);
+            CB_ENSURE(IsSupportedOnCpu(ctrType),
+                      "Ctr type " << ctrType << " is not implemented on CPU yet");
+            CB_ENSURE(ctr.PriorEstimation == EPriorEstimation::No, "Error: CPU doesn't not support prior estimation currently");
         }
 
         const EBorderSelectionType borderSelectionType = ctr.CtrBinarization->BorderSelectionType;
-        if (GetTaskType() == ETaskType::CPU) {
+        if (taskType == ETaskType::CPU) {
             CB_ENSURE(borderSelectionType == EBorderSelectionType::Uniform,
                       "Error: custom ctr binarization is not supported on CPU yet");
         } else {
-            CB_ENSURE(GetTaskType() == ETaskType::GPU);
+            CB_ENSURE(taskType == ETaskType::GPU);
             if (isTreeCtrs) {
                 EBorderSelectionType borderType = borderSelectionType;
                 CB_ENSURE(borderType == EBorderSelectionType::Uniform || borderType == EBorderSelectionType::Median,
-                          "Error: GPU supports Median and Uniform tree-ctr binarization only currently");
+                          "Error: GPU supports Median and Uniform combinations-ctr binarization only");
 
-                CB_ENSURE(ctr.CtrBinarization->BorderCount <= GetMaxTreeCtrBinarizationForGpu(), "Error: max tree-ctr binarization for GPU is " << GetMaxTreeCtrBinarizationForGpu());
+                CB_ENSURE(ctr.CtrBinarization->BorderCount <= GetMaxTreeCtrBinarizationForGpu(), "Error: max combinations-ctr binarization for GPU is " << GetMaxTreeCtrBinarizationForGpu());
+                CB_ENSURE(ctr.PriorEstimation == EPriorEstimation::No, "Error: prior estimation is not available for combinations-ctr");
+            } else {
+                switch (ctrType) {
+                    case ECtrType::Borders: {
+                        break;
+                    }
+                    default: {
+                        CB_ENSURE(ctr.PriorEstimation == EPriorEstimation::No, "Error: prior estimation is not available for ctr type " << ctrType);
+                    }
+                }
             }
         }
 
-        if ((ctr.Type.Get() == ECtrType::FeatureFreq) && borderSelectionType == EBorderSelectionType::Uniform) {
-            MATRIXNET_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for tree-ctrs instead";
+        if ((ctrType == ECtrType::FeatureFreq) && borderSelectionType == EBorderSelectionType::Uniform) {
+            MATRIXNET_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for combinations-ctrs instead" << Endl;
         }
     }
 

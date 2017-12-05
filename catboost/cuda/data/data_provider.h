@@ -116,7 +116,7 @@ namespace NCatboostCuda
             return FeatureNames;
         }
 
-        const yset<int>& GetCatFeatureIds() const
+        const TSet<int>& GetCatFeatureIds() const
         {
             return CatFeatureIds;
         }
@@ -168,7 +168,7 @@ namespace NCatboostCuda
 
         //for cpu model conversion
         TVector<TString> FeatureNames;
-        yset<int> CatFeatureIds;
+        TSet<int> CatFeatureIds;
 
         bool HasTimeFlag = false;
         ui64 ShuffleSeed = 0;

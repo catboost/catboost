@@ -97,6 +97,14 @@ namespace NKernel {
     }
 
 
+    #if __CUDA_ARCH__ < 350
+    template <typename T>
+    __forceinline__ __device__ T __ldg(const T* data) {
+        return cub::ThreadLoad<cub::LOAD_LDG>(data);
+    }
+    #endif
+
+
     template <typename T>
     __forceinline__ __device__ T StreamLoad(const T* data) {
         return cub::ThreadLoad<cub::LOAD_CS>(data);

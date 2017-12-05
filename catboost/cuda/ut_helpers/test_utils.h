@@ -39,7 +39,7 @@ struct TBinarizedPool {
     //
     //
 
-    void CreateCompressedIndex(yset<int> skipFeatures) {
+    void CreateCompressedIndex(TSet<int> skipFeatures) {
         CompressedIndex.clear();
         ui32 i = 0;
         for (ui32 f = 0; f < NumFeatures; ++f) {

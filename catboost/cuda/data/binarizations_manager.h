@@ -51,6 +51,18 @@ namespace NCatboostCuda
             return Borders.has(GetId(feature));
         }
 
+        ENanMode GetOrCreateNanMode(const TFloatValuesHolder& feature) {
+            if (!NanModes.has(feature.GetId())) {
+                NanModes[feature.GetId()] = ComputeNanMode(feature.GetValues());
+            }
+            return NanModes.at(feature.GetId());
+        }
+
+        ENanMode GetNanMode(const ui32 featureId) const {
+            CB_ENSURE(IsFloat(featureId));
+            return NanModes.at(FeatureManagerIdToDataProviderId[featureId]);
+        }
+
         const TVector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const
         {
             CB_ENSURE(IsKnown(feature));
@@ -221,8 +233,7 @@ namespace NCatboostCuda
         }
 
         ui32 SetFloatFeatureBorders(const TFloatValuesHolder& feature,
-                                    TVector<float>&& borders)
-        {
+                                    TVector<float>&& borders) {
             CB_ENSURE(IsKnown(feature));
 
             const ui32 id = GetFeatureManagerId(feature);
@@ -297,7 +308,8 @@ namespace NCatboostCuda
 
         ui32 CtrsPerTreeCtrFeatureTensor() const {
             ui32 totalCount = 0;
-            for (const auto& treeCtr : TreeCtrConfigs) {
+            auto treeCtrConfigs = CreateGrouppedTreeCtrConfigs();
+            for (const auto& treeCtr : treeCtrConfigs) {
                 totalCount += treeCtr.second.size();
             }
             return totalCount;
@@ -353,13 +365,15 @@ namespace NCatboostCuda
             return KnownCtrs[ctr];
         }
 
-        yset<ECtrType> GetKnownSimpleCtrTypes() const
+        TSet<ECtrType> GetKnownSimpleCtrTypes() const
         {
-            yset<ECtrType> result;
-            for (const auto& simpleCtr : DefaultCtrConfigs) {
+            TSet<ECtrType> result;
+            auto simpleCtrs = CreateGrouppedSimpleCtrConfigs();
+            for (const auto& simpleCtr : simpleCtrs) {
                 result.insert(simpleCtr.first);
             }
-            for (const auto& perFeatureCtr : PerFeatureCtrs) {
+            auto perFeatureCtrs = CreateGrouppedPerFeatureCtrs();
+            for (const auto& perFeatureCtr : perFeatureCtrs) {
                 for (const auto& grouppedCtr : perFeatureCtr.second) {
                     result.insert(grouppedCtr.first);
                 }
@@ -367,31 +381,26 @@ namespace NCatboostCuda
             return result;
         }
 
-        const yset<TCtrConfig>& GetDefaultConfigForType(ECtrType type) const
-        {
-            return TreeCtrConfigs.at(type);
-        }
-
         TVector<ui32> CreateSimpleCtrsForType(ui32 featureId,
                                               ECtrType type) {
             CB_ENSURE(UseForCtr(featureId));
-            CB_ENSURE(DefaultCtrConfigs.at(type), "Simple ctr type is not enabled " << type);
+            TSet<ui32> resultIds;
 
-            yset<ui32> resultIds;
-
-            if (PerFeatureCtrs.has(featureId)) {
-                const TMap<ECtrType, yset<TCtrConfig>>& perFeatureCtrs = PerFeatureCtrs.at(featureId);
+            if (HasPerFeatureCtr(featureId)) {
+                auto perFeatureCtrs = CreateGrouppedPerFeatureCtr(featureId);
                 if (perFeatureCtrs.has(type)) {
                     CreateSimpleCtrs(featureId, perFeatureCtrs.at(type), &resultIds);
                 }
             } else {
-                CreateSimpleCtrs(featureId, DefaultCtrConfigs.at(type), &resultIds);
+                auto simpleCtrConfigs = CreateGrouppedSimpleCtrConfigs();
+                CB_ENSURE(simpleCtrConfigs.at(type), "Simple ctr type is not enabled " << type);
+                CreateSimpleCtrs(featureId, simpleCtrConfigs.at(type), &resultIds);
             }
 
             return TVector<ui32>(resultIds.begin(), resultIds.end());
         }
 
-        void CreateSimpleCtrs(const ui32 featureId, const yset<TCtrConfig>& configs, yset<ui32>* resultIds)
+        void CreateSimpleCtrs(const ui32 featureId, const TSet<TCtrConfig>& configs, TSet<ui32>* resultIds)
         {
             for (const auto& ctrConfig : configs) {
                 TCtr ctr;
@@ -408,7 +417,9 @@ namespace NCatboostCuda
 
         TVector<TCtrConfig> CreateTreeCtrConfigs() const {
             TVector<TCtrConfig> result;
-            for (const auto& ctrConfigs: TreeCtrConfigs)
+            auto treeCtrConfigs = CreateGrouppedTreeCtrConfigs();
+
+            for (const auto& ctrConfigs: treeCtrConfigs)
             {
                 auto ctrType = ctrConfigs.first;
                 CB_ENSURE(IsSupportedCtrType(ctrType));
@@ -419,10 +430,20 @@ namespace NCatboostCuda
             return result;
         }
 
+        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedTreeCtrConfigs() const {
+            TMap<ECtrType, TSet<TCtrConfig>> treeCtrConfigs;
+            for (const auto& treeCtr : CatFeatureOptions.CombinationCtrs.Get()) {
+                CreateCtrConfigsFromDescription(treeCtr, &treeCtrConfigs);
+            }
+            return treeCtrConfigs;
+        }
+
+
         ui32 MaxTreeCtrBinFeaturesCount() const
         {
             ui32 total = 0;
-            for (const auto& treeCtrConfig : TreeCtrConfigs) {
+            auto treeCtrConfigs = CreateGrouppedTreeCtrConfigs();
+            for (const auto& treeCtrConfig : treeCtrConfigs) {
                 for (auto& config : treeCtrConfig.second) {
                     ui32 binarization = GetCtrBinarizationForConfig(config).BorderCount + 1;
                     total += binarization;
@@ -467,7 +488,6 @@ namespace NCatboostCuda
 
         TBinarizedFeaturesManager& SetTargetBorders(TVector<float>&& borders) {
             TargetBorders = borders;
-            UpdateCtrConfigs();
             return *this;
         }
 
@@ -511,28 +531,45 @@ namespace NCatboostCuda
             return CatFeatureOptions.CounterCalcMethod.Get() == ECounterCalc::Full;
         }
 
-        void UpdateCtrConfigs() {
-            DefaultCtrConfigs.clear();
-            TreeCtrConfigs.clear();
-            PerFeatureCtrs.clear();
+        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedSimpleCtrConfigs() const {
+            TMap<ECtrType, TSet<TCtrConfig>> simpleCtrs;
 
             for (const auto& simpleCtr : CatFeatureOptions.SimpleCtrs.Get()) {
-                CreateCtrConfigsFromDescription(simpleCtr, &DefaultCtrConfigs);
+                CreateCtrConfigsFromDescription(simpleCtr, &simpleCtrs);
             }
+            return simpleCtrs;
+        };
 
-            for (const auto& treeCtr : CatFeatureOptions.CombinationCtrs.Get()) {
-                CreateCtrConfigsFromDescription(treeCtr, &TreeCtrConfigs);
-            }
+        TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> CreateGrouppedPerFeatureCtrs() const {
+            TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> perFeatureCtrs;
 
             for (const auto& perFeatureCtr : CatFeatureOptions.PerFeatureCtrs.Get()) {
                 CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.has(perFeatureCtr.first),
-                          "Error: Feature with id #" <<perFeatureCtr.first << " is not categorical. Can't create ctr");
+                          "Error: Feature with id #" << perFeatureCtr.first << " is not categorical. Can't create ctr");
                 const ui32 featureId = DataProviderCatFeatureIdToFeatureManagerId[perFeatureCtr.first];
                 for (const auto& ctrDescription : perFeatureCtr.second) {
-                    CreateCtrConfigsFromDescription(ctrDescription, &PerFeatureCtrs[featureId]);
+                    CreateCtrConfigsFromDescription(ctrDescription, &perFeatureCtrs[featureId]);
                 }
             }
+            return perFeatureCtrs;
+        };
+
+        bool HasPerFeatureCtr(ui32 featureId) const {
+            ui32 featureIdInPool = GetDataProviderId(featureId);
+            return CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool);
         }
+
+        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedPerFeatureCtr(ui32 featureId) const {
+            CB_ENSURE(IsCat(featureId), "Feature #" << featureId <<  " is not categorical. Can't create per feature CTRs");
+            ui32 featureIdInPool = GetDataProviderId(featureId);
+            CB_ENSURE(CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool), "No perFeatureCtr for feature #" << featureIdInPool << " was found");
+            TMap<ECtrType, TSet<TCtrConfig>> perFeatureCtr;
+            for (const auto& ctrDescription : CatFeatureOptions.PerFeatureCtrs->at(featureIdInPool)) {
+                CreateCtrConfigsFromDescription(ctrDescription, &perFeatureCtr);
+            }
+            return perFeatureCtr;
+        };
+
 
         const NCatboostOptions::TCatFeatureParams& GetCatFeatureOptions() const {
             return CatFeatureOptions;
@@ -541,8 +578,8 @@ namespace NCatboostCuda
     private:
 
 
-        TBinarizedFeaturesManager& CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                                                   TMap<ECtrType, yset<TCtrConfig>>* grouppedConfigs)
+        void CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
+                                             TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const
         {
             for (const auto& prior : ctrDescription.GetPriors())
             {
@@ -579,7 +616,6 @@ namespace NCatboostCuda
                     (*grouppedConfigs)[type].insert(defaultConfig);
                 }
             }
-            return *this;
         }
 
         const NCatboostOptions::TBinarizationOptions& GetCtrBinarizationForConfig(const TCtrConfig& config) const {
@@ -588,7 +624,7 @@ namespace NCatboostCuda
         }
 
         //stupid line-search here is not issue :)
-        inline ui32 GetOrCreateCtrBinarizationId(const NCatboostOptions::TBinarizationOptions& binarization) {
+        inline ui32 GetOrCreateCtrBinarizationId(const NCatboostOptions::TBinarizationOptions& binarization) const {
             for (ui32 i = 0; i < CtrBinarizationOptions.size(); ++i) {
                 if (CtrBinarizationOptions[i] == binarization) {
                     return i;
@@ -620,6 +656,24 @@ namespace NCatboostCuda
 
         friend class TCatFeaturesPerfectHashHelper;
 
+
+        inline ENanMode ComputeNanMode(const TVector<float>& values) const {
+            if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
+                return ENanMode::Forbidden;
+            }
+            bool hasNans = false;
+            for (const auto& val : values) {
+                if (IsNan(val)) {
+                    hasNans = true;
+                    break;
+                }
+            }
+            if (hasNans) {
+                return FloatFeaturesBinarization.NanMode;
+            }
+            return ENanMode::Forbidden;
+        }
+
     private:
         mutable TMap<TCtr, ui32> KnownCtrs;
         mutable TMap<ui32, TCtr> InverseCtrs;
@@ -630,11 +684,8 @@ namespace NCatboostCuda
 
         mutable ui32 Cursor = 0;
 
-        TMap<ECtrType, yset<TCtrConfig>> TreeCtrConfigs;
-        TMap<ECtrType, yset<TCtrConfig>> DefaultCtrConfigs;
-        TMap<ui32, TMap<ECtrType, yset<TCtrConfig>>> PerFeatureCtrs;
 
-        TVector<NCatboostOptions::TBinarizationOptions> CtrBinarizationOptions;
+        mutable TVector<NCatboostOptions::TBinarizationOptions> CtrBinarizationOptions;
 
         TVector<float> TargetBorders;
 
@@ -643,6 +694,7 @@ namespace NCatboostCuda
 
         //float and ctr features
         TMap<ui32, TVector<float>> Borders;
+        TMap<ui32, ENanMode> NanModes;
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
 
     };

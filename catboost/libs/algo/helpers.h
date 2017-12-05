@@ -14,3 +14,5 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
 void ApplyPermutation(const TVector<size_t>& permutation, TPool* pool);
 TVector<size_t> InvertPermutation(const TVector<size_t>& permutation);
 int GetClassesCount(const TVector<float>& target, int classesCount);
+
+void ConfigureMalloc();

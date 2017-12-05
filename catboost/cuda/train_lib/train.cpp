@@ -1,6 +1,7 @@
 #include "train.h"
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/cuda/ctrs/prior_estimator.h>
 
 class TGPUModelTrainer: public IModelTrainer
 {
@@ -48,15 +49,94 @@ namespace NCatboostCuda
     inline void CheckForSnapshotAndReloadOptions(const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                  NCatboostOptions::TCatBoostOptions* options)
     {
-        if (outputOptions.SaveSnapshot() && NFs::Exists(outputOptions.CreateSnapshotFullPath())) {
-            TString jsonOptions;
-            TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(
-                    outputOptions.CreateSnapshotFullPath(), [&](TIFStream* in) {
-                ::Load(in, jsonOptions);
-            });
-            options->Load(jsonOptions);
+        auto snapshotFullPath = outputOptions.CreateSnapshotFullPath();
+        if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFullPath)) {
+            if (GetFileLength(snapshotFullPath) == 0) {
+                MATRIXNET_WARNING_LOG << "Empty snapshot file. Something is wrong" << Endl;
+            } else {
+                TString jsonOptions;
+                TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(
+                        snapshotFullPath, [&](TIFStream* in)
+                        {
+                            ::Load(in, jsonOptions);
+                        });
+                options->Load(jsonOptions);
+            }
         }
     }
+
+    static inline bool NeedPriorEstimation(const TVector<NCatboostOptions::TCtrDescription>& descriptions) {
+        for (const auto& description : descriptions) {
+            if (description.PriorEstimation != EPriorEstimation::No) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static inline void EstimatePriors(const TDataProvider& dataProvider,
+                                      TBinarizedFeaturesManager& featureManager,
+                                      NCatboostOptions::TCatFeatureParams& options) {
+
+        CB_ENSURE(&(featureManager.GetCatFeatureOptions()) == &options, "Error: for consistent catFeature options should be equal to one in feature manager");
+
+        bool needSimpleCtrsPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
+
+        const auto& borders = featureManager.GetTargetBorders();
+        if (borders.size() > 1) {
+            return;
+        }
+        auto binarizedTarget = BinarizeLine<ui8>(dataProvider.GetTargets().data(), dataProvider.GetTargets().size(), ENanMode::Forbidden, borders);
+
+
+        TVector<int> catFeatureIds(dataProvider.GetCatFeatureIds().begin(), dataProvider.GetCatFeatureIds().end());
+        TAdaptiveLock lock;
+
+        //TODO(noxoomo): locks here are ugly and error prone
+        NPar::ParallelFor(0, catFeatureIds.size(), [&](int i) {
+            ui32 catFeature = catFeatureIds[i];
+            if (!dataProvider.HasFeatureId(catFeature)) {
+                return;
+            }
+            const TCatFeatureValuesHolder& catFeatureValues = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(catFeature));
+
+            bool hasPerFeatureCtr = false;
+
+            with_lock(lock) {
+                if (needSimpleCtrsPriorEstimation && !options.PerFeatureCtrs->has(catFeature)) {
+                    options.PerFeatureCtrs.Get()[catFeature] = options.SimpleCtrs;
+                }
+                hasPerFeatureCtr = options.PerFeatureCtrs->has(catFeature);
+            }
+
+            if (hasPerFeatureCtr) {
+                TVector<NCatboostOptions::TCtrDescription> currentFeatureDescription;
+                with_lock(lock) {
+                    currentFeatureDescription = options.PerFeatureCtrs->at(catFeature);
+                }
+                if (!NeedPriorEstimation(currentFeatureDescription)) {
+                    return;
+                }
+                auto values = catFeatureValues.ExtractValues();
+
+                for (ui32 i = 0; i < currentFeatureDescription.size(); ++i) {
+                    if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBorders->BorderCount == 1u) {
+                        TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),
+                                                                                                       values.data(), values.size(), catFeatureValues.GetUniqueValues());
+
+                        MATRIXNET_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeature << ": " << prior.Alpha << " / " << prior.Beta << Endl;
+                        currentFeatureDescription[i].Priors = {{(float)prior.Alpha, (float)(prior.Alpha + prior.Beta)}};
+                    } else {
+                        CB_ENSURE(currentFeatureDescription[i].PriorEstimation == EPriorEstimation::No, "Error: auto prior estimation is not available for ctr type " << currentFeatureDescription[i].Type);
+                    }
+                }
+                with_lock (lock) {
+                    options.PerFeatureCtrs.Get()[catFeature] = currentFeatureDescription;
+                }
+            }
+        });
+    }
+
 
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -177,6 +257,7 @@ namespace NCatboostCuda
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         catBoostOptions.Load(params);
         CheckForSnapshotAndReloadOptions(outputOptions, &catBoostOptions);
+        SetLogingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
         if (testPool.Docs.GetDocCount()) {
@@ -220,6 +301,7 @@ namespace NCatboostCuda
 
         UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
+        EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
 
         auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
@@ -241,11 +323,12 @@ namespace NCatboostCuda
     }
 
 
-
     void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     const NJson::TJsonValue& jsonOptions) {
         auto catBoostOptions = NCatboostOptions::LoadOptions(jsonOptions);
+        CheckForSnapshotAndReloadOptions(outputOptions, &catBoostOptions);
+        SetLogingLevel(catBoostOptions.LoggingLevel);
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
         TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 
@@ -322,6 +405,8 @@ namespace NCatboostCuda
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
             UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
             UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
+            EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
+
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);

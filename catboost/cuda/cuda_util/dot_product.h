@@ -82,7 +82,7 @@ inline float DotProduct(const TCudaBuffer<T1, TMapping>& x,
                         const TCudaBuffer<T2, TMapping>& y,
                         const TCudaBuffer<T3, TMapping>* weights = nullptr,
                         ui64 stream = 0) {
-    using T = typename std::remove_const<T1>::type;
+    using T = std::remove_const_t<T1>;
     using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaHost>;
     using TKernel = NKernelHost::TDotProductKernel<T>;
 

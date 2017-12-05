@@ -515,6 +515,10 @@ class Build(object):
         return self.build_type == 'coverage'
 
     @property
+    def is_sanitized(self):
+        return preset('SANITIZER_TYPE')
+
+    @property
     def with_ndebug(self):
         return self.build_type in ('release', 'valgrind-release', 'profile', 'gprof')
 
@@ -1129,7 +1133,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}', '-Dymap=TMap')
+               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
         append('CXXFLAGS', '$CXX_WARNING_OPTS', '-std=c++14', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1353,7 +1357,7 @@ class LD(Linker):
             self.ld_flags.extend(('-fprofile-arcs', '-ftest-coverage'))
 
         # TODO(somov): Единое условие на coverage.
-        if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or preset('SANITIZER_TYPE'):
+        if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or self.build.is_sanitized:
             self.use_stdlib = None
 
         # TODO(somov): Что-нибудь починить.
@@ -1556,7 +1560,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID', '/Dymap=TMap']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1849,7 +1853,7 @@ class Ragel(object):
         if isinstance(compiler, MSVCCompiler):
             self.set_default_flags(optimized=False)
         elif isinstance(compiler, GnuCompiler):
-            self.set_default_flags(optimized=build.is_release)
+            self.set_default_flags(optimized=build.is_release and not build.is_sanitized)
         else:
             raise ConfigureError('Unexpected compiler {}'.format(compiler))
 
@@ -1896,6 +1900,8 @@ class Python(object):
         # They are not used separately and get overriden together, so it is safe.
         # TODO(somov): Удалить эту переменную и PYTHON_LIBRARIES из makelist-ов.
         self.libraries = ''
+        if preset('USE_ARCADIA_PYTHON') == 'no' and not preset('USE_SYSTEM_PYTHON') and preset('OS_SDK') != 'local':
+            raise Exception('System non fixed python can be used only with OS_SDK=local')
 
     def print_variables(self):
         variables = Variables({

@@ -226,8 +226,8 @@ namespace NCatboostOptions {
 
     private:
         const NJson::TJsonValue& Source;
-        yset<TString> ValidKeys;
-        yset<TString> UnimplementedKeys;
+        TSet<TString> ValidKeys;
+        TSet<TString> UnimplementedKeys;
     };
 
     template <typename... Fields>

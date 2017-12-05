@@ -286,7 +286,7 @@ namespace NCudaLib {
                 }
 
                 CB_ENSURE(!broadcastSlice.IsEmpty());
-                Y_ASSERT(devicesToBroadcast.size() == yset<ui32>(devicesToBroadcast.begin(), devicesToBroadcast.end()).size());
+                Y_ASSERT(devicesToBroadcast.size() == TSet<ui32>(devicesToBroadcast.begin(), devicesToBroadcast.end()).size());
 
                 TVector<TBroadcastTask> slices = GetSrcSlicesByDevices(broadcastSlice);
                 CB_ENSURE(slices.size());

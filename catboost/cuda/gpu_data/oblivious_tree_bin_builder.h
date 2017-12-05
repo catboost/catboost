@@ -224,7 +224,7 @@ namespace NCatboostCuda
                                             TMirrorBuffer<ui32>& dst,
                                             ui32 depth)
         {
-            CB_ENSURE(FeaturesManager.IsTreeCtr(split.FeatureId), "Feature id should be tree ctr");
+            CB_ENSURE(FeaturesManager.IsTreeCtr(split.FeatureId), "Feature id should be combinations ctr");
 
             const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
 
@@ -440,12 +440,8 @@ namespace NCatboostCuda
             bool floatCtrBuilderWasCalledFlag = false;
             auto floatCtrBuilder = [&]() -> TMirrorBuffer<float>
             {
-                auto tracker = CreateEmptyTensorTracker();
-                if (!CanContinueTensorTracker(ctr.FeatureTensor))
-                {
+                if (!CanContinueTensorTracker(ctr.FeatureTensor)) {
                     TensorTracker = CreateEmptyTensorTracker();
-                } else
-                {
                 }
 
                 TensorTracker->AddFeatureTensor(ctr.FeatureTensor);

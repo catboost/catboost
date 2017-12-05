@@ -139,9 +139,9 @@ namespace NKernelHost {
             }
         }
 
-        TVector<typename std::remove_const<T>::type> Read(const TCudaStream& stream) const {
+        TVector<std::remove_const_t<T>> Read(const TCudaStream& stream) const {
             const ui64 size = Size();
-            TVector<typename std::remove_const<T>::type> result;
+            TVector<std::remove_const_t<T>> result;
             result.resize(size);
             NCudaLib::TMemoryCopier<Type, EPtrType::Host>::CopyMemoryAsync(Get(), ~result, size, stream);
             stream.Synchronize();

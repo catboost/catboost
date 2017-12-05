@@ -134,11 +134,11 @@
 </Type>
 
 <Type Name="ystd::map&lt;*&gt;">
-  <AlternativeType Name="ymap&lt;*&gt;" />
+  <AlternativeType Name="TMap&lt;*&gt;" />
   <AlternativeType Name="ystd::multimap&lt;*&gt;" />
-  <AlternativeType Name="ymultimap&lt;*&gt;" />
+  <AlternativeType Name="TMultiMap&lt;*&gt;" />
   <AlternativeType Name="ystd::set&lt;*&gt;" />
-  <AlternativeType Name="yset&lt;*&gt;" />
+  <AlternativeType Name="TSet&lt;*&gt;" />
   <AlternativeType Name="ystd::multiset&lt;*&gt;" />
   <AlternativeType Name="TMultiSet&lt;*&gt;" />
   <DisplayString>{__tree_}</DisplayString>

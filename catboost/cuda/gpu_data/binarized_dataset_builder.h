@@ -417,7 +417,7 @@ namespace NCatboostCuda
             return index;
         }
 
-        yset<ui32> SeenFeatures;
+        TSet<ui32> SeenFeatures;
         TVector<TVector<TSlice>> GroupedFeatureSlices;
         TVector<TTempIndex> TempIndex;
 

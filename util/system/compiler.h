@@ -521,6 +521,23 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
  *
  * @endcode
  */
-#if defined(__SIZEOF_INT_128__)
+#if defined(__SIZEOF_INT128__)
 #define Y_HAVE_INT128 1
+#endif
+
+/**
+ * XRAY macro must be passed to compiler if XRay is enabled.
+ *
+ * Define everything XRay-specific as a macro so that it doesn't cause errors
+ * for compilers that doesn't support XRay.
+ */
+#if defined(XRAY) && defined(__cplusplus)
+#include <xray/xray_interface.h>
+#define Y_XRAY_ALWAYS_INSTRUMENT [[clang::xray_always_instrument]]
+#define Y_XRAY_NEVER_INSTRUMENT [[clang::xray_never_instrument]]
+#define Y_XRAY_CUSTOM_EVENT(__string, __length) do { __xray_customevent(__string, __length); } while (0)
+#else
+#define Y_XRAY_ALWAYS_INSTRUMENT
+#define Y_XRAY_NEVER_INSTRUMENT
+#define Y_XRAY_CUSTOM_EVENT(__string, __length) do {} while (0)
 #endif

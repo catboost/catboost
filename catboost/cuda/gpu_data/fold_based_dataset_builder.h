@@ -17,7 +17,9 @@ namespace NCatboostCuda
                   "Error: target binarization should be set beforedataSet build");
         auto& borders = featuresManager.GetTargetBorders();
 
-        auto binarizedTarget = BinarizeLine<ui8>(~targets, targets.size(),
+        auto binarizedTarget = BinarizeLine<ui8>(~targets,
+                                                 targets.size(),
+                                                 ENanMode::Forbidden,
                                                  borders);
 
         TMirrorBuffer<ui8> binarizedTargetGpu = TMirrorBuffer<ui8>::Create(
@@ -96,7 +98,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TPermutationDataSetBuilder& UseCtrs(const yset<ECtrType>& ctrs)
+        TPermutationDataSetBuilder& UseCtrs(const TSet<ECtrType>& ctrs)
         {
             CtrTypes.insert(ctrs.begin(), ctrs.end());
             return *this;
@@ -212,8 +214,8 @@ namespace NCatboostCuda
                 if (FeaturesManager.IsCtr(feature))
                 {
                     ctrs.push_back(feature);
-                } else if (FeaturesManager.IsFloat(feature))
-                {
+                } else if (FeaturesManager.IsFloat(feature)) {
+
                     WriteFloatFeature(feature,
                                       DataProvider,
                                       learnBuilder);
@@ -274,8 +276,10 @@ namespace NCatboostCuda
                 const auto& featuresHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(featureStorage);
                 CB_ENSURE(featuresHolder.GetBorders() == FeaturesManager.GetBorders(feature),
                           "Error: unconsistent borders for feature #" << feature);
+
+                const ui32 binCount =  featuresHolder.BinCount();
                 builder.Write(feature,
-                              static_cast<const ui32>(featuresHolder.GetBorders().size() + 1),
+                              binCount,
                               featuresHolder.ExtractValues());
 
             } else
@@ -284,13 +288,16 @@ namespace NCatboostCuda
 
                 const auto& holder = dynamic_cast<const TFloatValuesHolder&>(featureStorage);
                 const auto& borders = FeaturesManager.GetBorders(feature);
+                const ENanMode nanMode = FeaturesManager.GetOrCreateNanMode(holder);
 
                 auto bins = BinarizeLine<ui32>(holder.GetValuesPtr(),
                                                holder.GetSize(),
+                                               nanMode,
                                                borders);
+                const ui32 binCount = borders.size() + 1 + (nanMode != ENanMode::Forbidden);
 
                 builder.Write(feature,
-                              static_cast<const ui32>(borders.size() + 1),
+                              binCount,
                               bins);
             }
         }
@@ -350,6 +357,7 @@ namespace NCatboostCuda
 
             auto binarizedValues = BinarizeLine<ui32>(~ctrValues,
                                                       ctrValues.size(),
+                                                      ENanMode::Forbidden,
                                                       borders);
 
             learnBuilder.Write(feature,
@@ -367,6 +375,7 @@ namespace NCatboostCuda
 
                 auto testBinValues = BinarizeLine<ui32>(~testCtrValues,
                                                         testCtrValues.size(),
+                                                        ENanMode::Forbidden,
                                                         borders);
 
                 testBuilder->Write(feature, borders.size() + 1, testBinValues);
@@ -427,12 +436,12 @@ namespace NCatboostCuda
             return compressedBinsGpu;
         }
 
-        yset<ECtrType> CtrTypes;
+        TSet<ECtrType> CtrTypes;
         bool AddOneHotFeatures = true;
         bool AddFloatFeatures = true;
 
         TVector<ui32> FeatureIds;
-        yset<ui32> IgnoredFeatures;
+        TSet<ui32> IgnoredFeatures;
         TBinarizedFeaturesManager& FeaturesManager;
 
         const TDataProvider& DataProvider;
@@ -814,7 +823,7 @@ namespace NCatboostCuda
                         .UseOneHot(true)
                         .UseCtrs(TakePermutationIndependent(FeaturesManager.GetKnownSimpleCtrTypes()));
             } else {
-                yset<ECtrType> ctrs = TakePermutationDependent(FeaturesManager.GetKnownSimpleCtrTypes());
+                TSet<ECtrType> ctrs = TakePermutationDependent(FeaturesManager.GetKnownSimpleCtrTypes());
 
                 binaryFeatureBuilder
                         .UseFloatFeatures(false)

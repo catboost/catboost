@@ -16,8 +16,8 @@ namespace NHelpers {
         return false;
     }
 
-    static inline yset<ui32> ParseRangeString(const TString& str) {
-        yset<ui32> data;
+    static inline TSet<ui32> ParseRangeString(const TString& str) {
+        TSet<ui32> data;
         size_t cur = 0, prev = 0;
         while (cur != TString::npos) {
             cur = str.find(':', prev);

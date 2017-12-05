@@ -176,8 +176,8 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
     }
 
     SIMPLE_UNIT_TEST(TestStringSplitterCollectInsert) {
-        yset<TString> expected = {"1", "2", "3"};
-        yset<TString> actual;
+        TSet<TString> expected = {"1", "2", "3"};
+        TSet<TString> actual;
         StringSplitter("1 2 3 1 2 3").Split(' ').Collect(&actual);
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }

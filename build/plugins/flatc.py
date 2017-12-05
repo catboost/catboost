@@ -77,16 +77,3 @@ class FlatcParser(object):
 def init():
     iw.addrule('fbs', Flatc)
     iw.addparser('fbs', FlatcParser)
-
-
-# ----------------Plugin test------------------ #
-def test_include_parser():
-    text = '''
-aaaaa
-include "incl1.fbs";
-include   "incl2.fbs";
-// include "none.fbs";
-'''
-    includes, induced = FlatcParser.parse_includes(text.split('\n'))
-    assert includes == ['incl1.fbs', 'incl2.fbs', ]
-    assert induced == ['incl1.fbs.h', 'incl2.fbs.h', ]

@@ -54,7 +54,7 @@ private:
     typedef THashSet<const TOpt *> TdOptSet;
     TdOptSet OptsSeen_;  //the set of options that have been met during parsing
 
-    ylist<const TOpt *> OptsDefault_;
+    TList<const TOpt *> OptsDefault_;
 
 private:
     void Init(const TOpts* options, int argc, const char* argv[]);

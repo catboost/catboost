@@ -68,7 +68,7 @@ namespace NCatboostCuda
 
     private:
 
-        void RegisterFeaturesInFeatureManager(const yset<int>& catFeatureIds) const
+        void RegisterFeaturesInFeatureManager(const TSet<int>& catFeatureIds) const
         {
             const ui32 factorsCount = Pool.Docs.GetFactorsCount();
             for (ui32 featureId = 0; featureId < factorsCount; ++featureId)
@@ -92,7 +92,7 @@ namespace NCatboostCuda
         const TPool& Pool;
         bool IsTest ;
         TCatFeaturesPerfectHashHelper CatFeaturesPerfectHashHelper;
-        yset<ui32> IgnoreFeatures;
+        TSet<ui32> IgnoreFeatures;
         TVector<float> ClassesWeights;
     };
 

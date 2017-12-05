@@ -50,7 +50,7 @@ private:
 };
 
 template <class TCallback>
-TFinallyGuard<typename std::decay<TCallback>::type> Finally(TCallback&& callback)
+TFinallyGuard<std::decay_t<TCallback>> Finally(TCallback&& callback)
 {
-    return TFinallyGuard<typename std::decay<TCallback>::type>(std::forward<TCallback>(callback));
+    return TFinallyGuard<std::decay_t<TCallback>>(std::forward<TCallback>(callback));
 }

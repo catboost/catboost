@@ -266,7 +266,7 @@ namespace NCudaLib {
 
         template <class TKernel>
         struct TKernelContextTrait {
-            using TKernelContext = typename std::remove_pointer<decltype(TKernel::EmptyContext())>::type;
+            using TKernelContext = std::remove_pointer_t<decltype(TKernel::EmptyContext())>;
         };
 
         template <class TKernel>

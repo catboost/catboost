@@ -33,16 +33,12 @@ namespace NVariant {
     struct TVisitTraits<> {
         template <class Result, class Visitor>
         static Result Visit(int /*tag*/, const void* /*storage*/, Visitor&& /*visitor*/) {
-            // Invalid TVariant tag.
-            assert(false);
-            return Result();
+            Y_FAIL("Invalid TVariant tag");
         }
 
         template <class Result, class Visitor>
         static Result Visit(int /*tag*/, void* /*storage*/, Visitor&& /*visitor*/) {
-            // Invalid TVariant tag.
-            assert(false);
-            return Result();
+            Y_FAIL("Invalid TVariant tag");
         }
     };
 

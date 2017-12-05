@@ -166,10 +166,10 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestConvertAndSplitSet) {
         TString data("42 4242 -12345 0 0 42");
         i32 canonic[] = {42, 4242, -12345, 0};
-        yset<i32> good(canonic, canonic + 4);
+        TSet<i32> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
-        yset<i32> test;
+        TSet<i32> test;
         SplitConvertStringTo(TStringBuf(~data), STRINGBUF(" "), &test);
         Cmp(good, test);
     }
@@ -177,8 +177,8 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
     SIMPLE_UNIT_TEST(TestSplitSet) {
         TString data("ab,bc,cd,cd,defgh");
         TString canonic[] = {"ab", "bc", "cd", "defgh"};
-        yset<TString> good(canonic, canonic + 4);
-        yset<TString> test;
+        TSet<TString> good(canonic, canonic + 4);
+        TSet<TString> test;
         SplitStringTo(data, ',', &test);
         Cmp(good, test);
     }

@@ -18,7 +18,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataProvider& dataProvider) {
         const auto& featuresMapping = dataSet.GetGrid().GetMapping();
 
-        auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(), featuresManager.GetTargetBorders());
+        auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(),  ENanMode::Forbidden, featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
         {
             std::array<bool, 255> seen;
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                 if (featuresManager.IsFloat(featureId)) {
                     auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(featureId)));
                     bins = valuesHolder.ExtractValues();
-                    binarization = valuesHolder.Discretization() + 1;
+                    binarization = valuesHolder.BinCount();
                 } else if (featuresManager.IsCat(featureId)) {
                     auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(featureId)));
                     bins = valuesHolder.ExtractValues();
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
                     if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
                         auto freqCtr = calcer.ComputeFreqCtr();
-                        bins = BinarizeLine<ui32>(~freqCtr, +freqCtr, borders);
+                        bins = BinarizeLine<ui32>(~freqCtr, +freqCtr, ENanMode::Forbidden, borders);
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                         if (!ctrsCache.has(catFeatureId)) {
                             ctrsCache[catFeatureId] = calcer.Calc(indices,
@@ -88,6 +88,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                         }
                         bins = BinarizeLine<ui32>(~values,
                                                   binarizedTarget.size(),
+                                                  ENanMode::Forbidden,
                                                   borders);
 
                     } else {
@@ -200,7 +201,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                 auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(dataProvider.GetFeatureById(featureId));
                 auto bins = valuesHolder.ExtractValues();
                 TCFeature feature = binarizedDataSet.GetFeatureByGlobalId(featureId);
-                UNIT_ASSERT_VALUES_EQUAL(valuesHolder.Discretization(), feature.Folds);
+                UNIT_ASSERT_VALUES_EQUAL(valuesHolder.BinCount() - 1, feature.Folds);
                 UNIT_ASSERT_VALUES_EQUAL(feature.Index, f);
 
                 for (ui32 i = 0; i < bins.size(); ++i) {
@@ -277,8 +278,8 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         catFeatureParams.OneHotMaxSize = 0;
         {
             TVector<TVector<float>> prior = {{0.5, 1.0}};
-            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior, bucketsBinarization);
-            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior, freqBinarization);
+            NCatboostOptions::TCtrDescription bucketsCtr(ECtrType::Buckets, prior, bucketsBinarization);
+            NCatboostOptions::TCtrDescription freqCtr(ECtrType::FeatureFreq, prior, freqBinarization);
             catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
             catFeatureParams.AddSimpleCtrDescription(freqCtr);
 
@@ -319,6 +320,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             auto binarizedTargetRef = BinarizeLine<ui32>(~dataProvider.GetTargets(),
                                                          dataProvider.GetTargets().size(),
+                                                         ENanMode::Forbidden,
                                                          featuresManager.GetTargetBorders());
             CheckCtrTargets(dataSet.GetCtrTargets(), binarizedTargetRef, dataProvider);
         }

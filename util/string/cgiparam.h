@@ -13,7 +13,7 @@ struct TStringLess {
     }
 };
 
-class TCgiParameters: public ymultimap<TString, TString> {
+class TCgiParameters: public TMultiMap<TString, TString> {
 public:
     TCgiParameters() {
     }

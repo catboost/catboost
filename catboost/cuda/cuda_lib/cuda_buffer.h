@@ -56,7 +56,7 @@ namespace NCudaLib {
 
     public:
         using T = typename TCudaBuffer::TValueType;
-        using NonConstT = typename std::remove_const<typename TCudaBuffer::TValueType>::type;
+        using NonConstT = std::remove_const_t<typename TCudaBuffer::TValueType>;
 
         TCudaBufferReader(const TCudaBuffer& buffer)
             : Buffer(&buffer)
@@ -588,7 +588,7 @@ namespace NCudaLib {
             CreateWriter(src).SetCustomWritingStream(stream).Write();
         }
 
-        void Read(TVector<typename std::remove_const<T>::type>& dst, ui32 stream = 0) const {
+        void Read(TVector<std::remove_const_t<T>>& dst, ui32 stream = 0) const {
             CreateReader().SetCustomReadingStream(stream).Read(dst);
         }
 

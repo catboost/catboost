@@ -56,7 +56,7 @@ inline TString Printable(ui8 val) {
 
 template <class TBuffer>
 inline void Dump(const TBuffer& data, TString message, ui32 size = 100) {
-    using T = typename std::remove_const<typename TBuffer::TValueType>::type;
+    using T = std::remove_const_t<typename TBuffer::TValueType>;
     TVector<T> res;
     data.CreateReader().SetReadSlice(TSlice(0, size)).Read(res);
     Cout << message << Endl;
@@ -70,7 +70,7 @@ inline void Dump(const TBuffer& data, TString message, ui32 size = 100) {
 
 template <class TBuffer>
 inline void DumpToFile(const TBuffer& data, TString file) {
-    using T = typename std::remove_const<typename TBuffer::TValueType>::type;
+    using T = std::remove_const_t<typename TBuffer::TValueType>;
     TVector<T> res;
     data.CreateReader().Read(res);
     TOFStream out(file);
@@ -81,7 +81,7 @@ inline void DumpToFile(const TBuffer& data, TString file) {
 
 template <class TBuffer>
 inline ui64 DumpHash(const TBuffer& data, TString message) {
-    using T = typename std::remove_const<typename TBuffer::TValueType>::type;
+    using T = std::remove_const_t<typename TBuffer::TValueType>;
     TVector<T> res;
     data.CreateReader().Read(res);
     Cout << message << Endl;
@@ -109,7 +109,7 @@ inline void DumpPtr(const TCudaBuffer<T, TMapping>& data,
 
 template <class TBuffer>
 inline void DumpCast(const TBuffer& data, TString message, ui32 size = 16) {
-    using T = typename std::remove_const<typename TBuffer::TValueType>::type;
+    using T = std::remove_const_t<typename TBuffer::TValueType>;
     TVector<T> res;
     data.Read(res);
     Cout << message << Endl;

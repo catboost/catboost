@@ -304,7 +304,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
-                       TOnlineCTR* dst) {
+                       TOnlineCTR* dst,
+                       size_t* totalLeafCount) {
 
     const TCtrHelper& ctrHelper = ctx->CtrsHelper;
     const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
@@ -326,6 +327,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
         topSize,
         &hashArr,
         rehashHashTlsVal.GetPtr());
+    *totalLeafCount = leafCount.second;
 
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
         const ECtrType ctrType = ctrInfo[ctrIdx].Type;
@@ -399,20 +401,25 @@ void ComputeOnlineCTRs(const TTrainData& data,
     if (ctrs.has(proj)) {
         return;
     }
+
+    size_t totalLeafCount;
     ComputeOnlineCTRs(data,
                       *fold,
                       proj,
                       ctx,
-                      &ctrs[proj]);
+                      &ctrs[proj],
+                      &totalLeafCount);
 }
 
 void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx) {
+    size_t totalLeafCount;
     auto calcer = [&](int i) {
         ComputeOnlineCTRs(data,
                           *tasks[i].Fold,
                           tasks[i].Projection,
                           ctx,
-                          tasks[i].Ctr);
+                          tasks[i].Ctr,
+                          &totalLeafCount);
     };
     ctx->LocalExecutor.ExecRange(calcer, 0, tasks.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }

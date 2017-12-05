@@ -70,7 +70,7 @@ namespace NCudaLib {
         }
 
         friend class TSingleHostDevicesProvider;
-        yset<TCudaSingleDevice*> PeerDevices;
+        TSet<TCudaSingleDevice*> PeerDevices;
 
     public:
         template <class T>

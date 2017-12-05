@@ -19,6 +19,7 @@ PEERDIR(
     library/containers/2d_array
     library/digest/md5
     library/digest/crc32c
+    library/malloc/api
     library/threading/local_executor
 )
 

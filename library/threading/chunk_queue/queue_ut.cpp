@@ -146,7 +146,7 @@ SIMPLE_UNIT_TEST_SUITE(TRelaxedManyOneQueueTest) {
 
     SIMPLE_UNIT_TEST(ShouldReturnEntries)
     {
-        yset<int> items = { 1, 2, 3};
+        TSet<int> items = { 1, 2, 3};
 
         TRelaxedManyOneQueue<int> queue;
         for (int item: items) {
@@ -185,7 +185,7 @@ SIMPLE_UNIT_TEST_SUITE(TRelaxedManyManyQueueTest) {
 
     SIMPLE_UNIT_TEST(ShouldReturnEntries)
     {
-        yset<int> items = { 1, 2, 3};
+        TSet<int> items = { 1, 2, 3};
 
         TRelaxedManyManyQueue<int> queue;
         for (int item: items) {

@@ -58,7 +58,7 @@ public:
             ythrow yexception() << "Product with key " << key << " already registered";
     }
 
-    void GetKeys(yset<TKey>& keys) const {
+    void GetKeys(TSet<TKey>& keys) const {
         TReadGuard guard(CreatorsLock);
         keys.clear();
         for (typename ICreators::const_iterator i = Creators.begin(), e = Creators.end(); i != e; ++i) {
@@ -95,7 +95,7 @@ public:
     }
 
     static TString KeysDebugString() {
-        yset<TString> keys;
+        TSet<TString> keys;
         Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
         TString keysStr;
         for (auto&& k : keys) {
@@ -118,7 +118,7 @@ public:
 
     }
 
-    static void GetRegisteredKeys(yset<TString>& keys) {
+    static void GetRegisteredKeys(TSet<TString>& keys) {
         return Singleton<TObjectFactory<TProduct, TKey> >()->GetKeys(keys);
     }
 
@@ -152,7 +152,7 @@ public:
         return Singleton< TParametrizedObjectFactory<TProduct, TKey, TArgs...> >()->Create(key, args...);
     }
 
-    static void GetRegisteredKeys(yset<TKey>& keys) {
+    static void GetRegisteredKeys(TSet<TKey>& keys) {
         return Singleton< TParametrizedObjectFactory<TProduct, TKey, TArgs...> >()->GetKeys(keys);
     }
 

@@ -137,7 +137,7 @@ SIMPLE_UNIT_TEST_SUITE(BinSaver) {
 
     SIMPLE_UNIT_TEST(TestSets) {
         TestSerialization(THashSet<TString>{"A", "B", "C"});
-        TestSerialization(yset<TString>{"A", "B", "C"});
+        TestSerialization(TSet<TString>{"A", "B", "C"});
     }
 
     SIMPLE_UNIT_TEST(TestMaps) {

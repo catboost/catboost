@@ -1,3 +1,33 @@
+# Release 0.5
+
+## Breaking Changes
+Cmdline:
+- Training parameter `gradient-iterations` renamed to `leaf-estimation-iterations`.
+- `border` option removed. If you want to specify border for binary classification mode you need to specify it in the following way: `loss-function Logloss:Border=0.5`
+- CTR parameters are changed:
+   - Removed `priors`, `per-feature-priors`, `ctr-binarization`;
+   - Added `simple-ctr`, `combintations-ctr`, `per-feature-ctr`;
+   More details will be published in our documentation.
+
+Python:
+- Training parameter `gradient_iterations` renamed to `leaf_estimation_iterations`.
+- `border` option removed. If you want to specify border for binary classification mode you need to specify it in the following way: `loss_function='Logloss:Border=0.5'`
+- CTR parameters are changed:
+   - Removed `priors`, `per_feature_priors`, `ctr_binarization`;
+   - Added `simple_ctr`, `combintations_ctr`, `per_feature_ctr`;
+   More details will be published in our documentation.
+  
+## Major Features And Improvements
+- In Python we added a new method `eval_metrics`: now it's possible for a given model to calculate specified metric values for each iteration on specified dataset.
+- One command-line binary for CPU and GPU: in CatBoost you can switch between CPU and GPU training by changing single parameter value `task-type CPU` or `GPU` (task_type 'CPU', 'GPU' in python bindings). Windows build still contains two binaries.
+- We have speed up the training up to 30% for datasets with a lot of objects.
+- Up to 10% speed-up of GPU implementation on Pascal cards
+
+## Bug Fixes and Other Changes
+- Stability improvements and bug fixes
+
+As usual we are grateful to all who filed issues, asked and answered questions.
+
 # Release 0.4
 
 ## Breaking Changes
@@ -11,7 +41,7 @@ FlatBuffers model format: new CatBoost versions wouldn’t break model compatibi
 
 ## Bug Fixes and Other Changes
 * **We have fixed a bug that caused quality degradation when using weights < 1.**
-* `Verbose` flag is now deprecated, please use `logging_level` instead.
+* `Verbose` flag is now deprecated, please use `logging_level` instead. You could set the following levels: `Silent`, `Verbose`, `Info`, `Debug`.
 * And some other bugs.
 
 ## Thanks to our Contributors

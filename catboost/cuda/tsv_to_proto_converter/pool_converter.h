@@ -217,7 +217,7 @@ namespace NCatboostCuda
             WriteCommonDescription(*description);
             if (BinarizeIt)
             {
-                auto binarizedFeature = BinarizeLine(~FloatColumn, FloatColumn.size(), Borders);
+                auto binarizedFeature = BinarizeLine(~FloatColumn, FloatColumn.size(), ENanMode::Forbidden, Borders);
                 const auto bitsPerKey = IntLog2(Borders.size() + 1);
                 auto compressedLine = CompressVector<ui64>(binarizedFeature, bitsPerKey);
                 MATRIXNET_INFO_LOG << "Compressed feature " << description->GetFeatureId() << " from "

@@ -5,6 +5,7 @@
 #include <catboost/cuda/cuda_lib/helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/options/enums.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -12,6 +13,7 @@
 #include <util/system/types.h>
 #include <util/generic/yexception.h>
 #include <util/string/builder.h>
+#include <util/generic/ymath.h>
 
 inline ui32 IntLog2(ui32 values) {
     return (ui32)ceil(log2(values));
@@ -134,9 +136,11 @@ inline TBinType Binarize(const TVector<float>& borders,
     return index;
 }
 
+//this routine assumes NanMode = Min/Max means we have nans in float-values
 template <class TBinType = ui32>
 inline TVector<TBinType> BinarizeLine(const float* values,
                                       const ui64 valuesCount,
+                                      const ENanMode nanMode,
                                       const TVector<float>& borders) {
     TVector<TBinType> result(valuesCount);
 
@@ -145,10 +149,20 @@ inline TVector<TBinType> BinarizeLine(const float* values,
 
     NPar::LocalExecutor().ExecRange([&](int blockIdx) {
         NPar::LocalExecutor().BlockedLoopBody(params, [&](int i) {
-            result[i] = Binarize<TBinType>(borders, values[i]);
+            float value = values[i];
+            if (IsNan(value)) {
+                CB_ENSURE(nanMode != ENanMode::Forbidden, "Error, NaNs for current feature are forbidden. (All NaNs are forbidden or test has NaNs and learn not)");
+                result[i] = nanMode == ENanMode::Min ? 0 : borders.size();
+            } else {
+                ui32 bin =  Binarize<TBinType>(borders, values[i]);
+                if (nanMode == ENanMode::Min) {
+                    result[i] = bin + 1;
+                } else {
+                    result[i] = bin;
+                }
+            }
         })(blockIdx);
-    },
-                                    0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, 0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     return result;
 }

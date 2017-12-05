@@ -144,3 +144,9 @@ enum class EProjectionType {
     TreeCtr,
     SimpleCtr
 };
+
+
+enum class EPriorEstimation {
+    No,
+    BetaPrior
+};

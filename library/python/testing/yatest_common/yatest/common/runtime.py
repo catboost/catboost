@@ -236,6 +236,11 @@ class Context(object):
 
     @property
     def sanitize(self):
+        """
+        Detect if current test run is under sanitizer
+
+        :return: one of `None`, 'address', 'memory', 'thread', 'undefined'
+        """
         return _get_ya_plugin_instance().get_context("sanitize")
 
     @property

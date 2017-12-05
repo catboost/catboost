@@ -59,8 +59,8 @@ inline bool IsPermutationDependentCtrType(const ECtrType& ctrType) {
     }
 }
 
-inline yset<ECtrType> TakePermutationDependent(const yset<ECtrType>& types) {
-    yset<ECtrType> result;
+inline TSet<ECtrType> TakePermutationDependent(const TSet<ECtrType>& types) {
+    TSet<ECtrType> result;
     for (auto type : types) {
         if (IsPermutationDependentCtrType(type)) {
             result.insert(type);
@@ -69,8 +69,8 @@ inline yset<ECtrType> TakePermutationDependent(const yset<ECtrType>& types) {
     return result;
 }
 
-inline yset<ECtrType> TakePermutationIndependent(const yset<ECtrType>& types) {
-    yset<ECtrType> result;
+inline TSet<ECtrType> TakePermutationIndependent(const TSet<ECtrType>& types) {
+    TSet<ECtrType> result;
     for (auto type : types) {
         if (!IsPermutationDependentCtrType(type)) {
             result.insert(type);
@@ -79,9 +79,10 @@ inline yset<ECtrType> TakePermutationIndependent(const yset<ECtrType>& types) {
     return result;
 }
 
-inline yset<ECtrType> GetPermutationIndependentCtrs() {
+inline TSet<ECtrType> GetPermutationIndependentCtrs() {
     return {ECtrType::FeatureFreq};
 }
+
 
 struct TCtrConfig {
     ECtrType Type = ECtrType::Borders;
@@ -89,17 +90,18 @@ struct TCtrConfig {
     ui32 ParamId = 0;
     ui32 CtrBinarizationConfigId = 0;
 
+
     ui64 GetHash() const {
         return MultiHash(Type, VecCityHash(Prior), ParamId, CtrBinarizationConfigId);
     }
 
     bool operator<(const TCtrConfig& other) const {
         return std::tie(Type, Prior, ParamId, CtrBinarizationConfigId) <
-               std::tie(other.Type, other.Prior, other.ParamId, CtrBinarizationConfigId);
+               std::tie(other.Type, other.Prior, other.ParamId, other.CtrBinarizationConfigId);
     }
 
     bool operator==(const TCtrConfig& other) const {
-        return std::tie(Type, Prior, ParamId, CtrBinarizationConfigId) == std::tie(other.Type, other.Prior, other.ParamId, CtrBinarizationConfigId);
+        return std::tie(Type, Prior, ParamId, CtrBinarizationConfigId) == std::tie(other.Type, other.Prior, other.ParamId, other.CtrBinarizationConfigId);
     }
 
     bool operator!=(const TCtrConfig& other) const {

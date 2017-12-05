@@ -30,4 +30,6 @@ PY_SRCS(
     widget/ipythonwidget.py
 )
 
+ALLOCATOR(LF)
+
 END()

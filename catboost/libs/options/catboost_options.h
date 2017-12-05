@@ -74,15 +74,6 @@ namespace NCatboostOptions {
         void Validate() const;
 
         void SetNotSpecifiedOptionsToDefaults() {
-            if (GetTaskType() == ETaskType::GPU) {
-                const bool nanSupportEnabled =
-                    DataProcessingOptions->FloatFeaturesBinarization->NanMode.IsSet() && DataProcessingOptions->FloatFeaturesBinarization->NanMode.Get() != ENanMode::Forbidden;
-                if (nanSupportEnabled) {
-                    MATRIXNET_WARNING_LOG << "NaN features are not implemented on GPU yet. Will try to load pool with NanMode:Forbidden" << Endl;
-                }
-                DataProcessingOptions->FloatFeaturesBinarization->NanMode = ENanMode::Forbidden;
-            }
-
             SetLeavesEstimationDefault();
             SetCtrDefaults();
             SetMetricDefaults(LossFunctionDescription.Get());

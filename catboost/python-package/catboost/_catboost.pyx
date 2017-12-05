@@ -234,6 +234,8 @@ cdef extern from "catboost/libs/algo/apply.h":
                                                   int end,
                                                   int threadCount) nogil except +ProcessException
 
+cdef extern from "catboost/libs/algo/helpers.h":
+    cdef void ConfigureMalloc() nogil except *
 
 cdef extern from "catboost/libs/helpers/eval_helpers.h":
     cdef TVector[TVector[double]] PrepareEval(const EPredictionType predictionType,
@@ -1098,3 +1100,6 @@ cpdef _set_logger(out):
 
 cpdef _reset_logger():
     RestoreOriginalLogger()
+
+cpdef _configure_malloc():
+    ConfigureMalloc()

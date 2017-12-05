@@ -348,7 +348,7 @@ public:
         return 0;
     }
     template<class K, class L, class A>
-        int Add(const chunk_id, yset<K, L, A> *pSet)
+        int Add(const chunk_id, TSet<K, L, A> *pSet)
     {
         DoAnySet(*pSet);
         return 0;
@@ -370,9 +370,9 @@ public:
         return 0;
     }
     template<class T1>
-        int Add(const chunk_id, ylist<T1> *pList)
+        int Add(const chunk_id, TList<T1> *pList)
     {
-        ylist<T1> &data = *pList;
+        TList<T1> &data = *pList;
         if (IsReading())
         {
             int nSize;
@@ -386,7 +386,7 @@ public:
             Add(2, &nSize);
         }
         int i = 1;
-        for (typename ylist<T1>::iterator k = data.begin(); k != data.end(); ++k, ++i)
+        for (typename TList<T1>::iterator k = data.begin(); k != data.end(); ++k, ++i)
             Add(i + 2, &(*k));
         return 0;
     }

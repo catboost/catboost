@@ -153,7 +153,7 @@ namespace NCudaLib {
     private:
         ui32 StreamId;
 
-        yset<TCudaSingleDevice*> DevicesToSync;
+        TSet<TCudaSingleDevice*> DevicesToSync;
 
         void SubmitTwoDevicesSync(TCudaSingleDevice* leftDevice,
                                   TCudaSingleDevice* rightDevice) {
@@ -259,7 +259,7 @@ namespace NCudaLib {
 
         template <class T>
         static inline char* ToCopyPointerType(const T* ptr) {
-            return reinterpret_cast<char*>(const_cast<typename std::remove_const<T>::type*>(ptr));
+            return reinterpret_cast<char*>(const_cast<std::remove_const_t<T>*>(ptr));
         }
 
         template <typename T, EPtrType DevicePtr>
@@ -276,7 +276,7 @@ namespace NCudaLib {
         };
 
         template <typename T, EPtrType DevicePtr>
-        static TDeviceEvent AsyncRead(const TCudaSingleDevice::TSingleBuffer<T, DevicePtr>& from, ui32 stream, ui64 fromOffset, typename std::remove_const<T>::type* to, ui64 writeSize) {
+        static TDeviceEvent AsyncRead(const TCudaSingleDevice::TSingleBuffer<T, DevicePtr>& from, ui32 stream, ui64 fromOffset, std::remove_const_t<T>* to, ui64 writeSize) {
             TCopyTask copyTask;
             copyTask.Size = writeSize * sizeof(T);
             copyTask.ToOffset = 0;

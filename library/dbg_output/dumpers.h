@@ -115,7 +115,7 @@ struct TDumper<TDeque<T, A>>: public TSeqDumper {
 };
 
 template <class T, class A>
-struct TDumper<ylist<T, A>>: public TSeqDumper {
+struct TDumper<TList<T, A>>: public TSeqDumper {
 };
 
 //associatives
@@ -124,11 +124,11 @@ struct TDumper<TMap<K, V, P, A>>: public TAssocDumper {
 };
 
 template <class K, class V, class P, class A>
-struct TDumper<ymultimap<K, V, P, A>>: public TAssocDumper {
+struct TDumper<TMultiMap<K, V, P, A>>: public TAssocDumper {
 };
 
 template <class T, class P, class A>
-struct TDumper<yset<T, P, A>>: public TAssocDumper {
+struct TDumper<TSet<T, P, A>>: public TAssocDumper {
 };
 
 template <class T, class P, class A>

@@ -41,7 +41,6 @@
         "ant": { "description": "Ant build system", "visible": false },
         "mvn": { "description": "Maven build system", "visible": false },
         "gcov": { "description": "Run gcov" },
-        "protoc": { "description": "Run protoc", "visible": false },
         "hg": { "description": "Run mercurial", "visible": false },
         "bloat": { "description": "Run bloat2 tool", "visible": false },
         "ipython": { "description": "Run IPython console", "visible": false },
@@ -1629,7 +1628,6 @@
                 "kwmqbuild": { "bottle": "kwmqbuild", "executable": "kwmqbuild" },
                 "kwfeed": { "bottle": "kwfeed", "executable": "kwfeed" },
                 "metaquery.sh": { "bottle": "kwfeed", "executable": "metaquery.sh" },
-                "protoc": { "bottle": "protoc", "executable": "protoc" },
                 "protobin_diff": { "bottle": "protobin_diff", "executable": "protobin_diff" },
                 "multipb_convert": { "bottle": "multipb_convert", "executable": "multipb_convert" },
                 "kwworm": { "bottle": "kwworm", "executable": "kwworm" }
@@ -1981,7 +1979,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 180438900,
+                "sandbox_id": 183721404,
                 "match": "YMake"
             },
             "executable": {
@@ -1999,7 +1997,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 177821399,
+                "sandbox_id": 181844738,
                 "match": "test_tool"
             },
             "executable": {
@@ -2008,7 +2006,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 179749290,
+                "sandbox_id": 184108784,
                 "match": "coverage_uploader"
             },
             "executable": {
@@ -2641,15 +2639,6 @@
             "executable": {
                 "kwfeed": ["kwfeed"],
                 "metaquery.sh": ["metaquery.sh"]
-            }
-        },
-        "protoc": {
-            "formula": {
-                "sandbox_id": 32993876,
-                "match": "Protoc"
-            },
-            "executable": {
-                "protoc": ["protoc"]
             }
         },
         "protobin_diff": {

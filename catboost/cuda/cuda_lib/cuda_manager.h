@@ -17,7 +17,7 @@ namespace NCudaLib {
     template <class T>
     class TDeviceObjectExtractor {
     public:
-        using TRemoteObject = typename std::remove_const<typename std::remove_reference<T>::type>::type;
+        using TRemoteObject = std::remove_const_t<std::remove_reference_t<T>>;
 
         static TRemoteObject At(ui32 devId, const T& object) {
             Y_UNUSED(devId);
@@ -144,8 +144,8 @@ namespace NCudaLib {
 
         template <typename TDistributedObject>
         inline static auto GetDeviceObject(ui32 devId,
-                                           TDistributedObject& object) -> decltype(TDeviceObjectExtractor<typename std::remove_reference<TDistributedObject>::type>::At(devId, object)) {
-            return TDeviceObjectExtractor<typename std::remove_reference<TDistributedObject>::type>::At(devId, object);
+                                           TDistributedObject& object) -> decltype(TDeviceObjectExtractor<std::remove_reference_t<TDistributedObject>>::At(devId, object)) {
+            return TDeviceObjectExtractor<std::remove_reference_t<TDistributedObject>>::At(devId, object);
         }
 
         template <class TKernel, class... Args>

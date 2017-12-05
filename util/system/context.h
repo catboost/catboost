@@ -21,7 +21,7 @@
 /*
  * switch method
  */
-#if defined(_bionic_)
+#if defined(_bionic_) || defined(__IOS__)
 #define USE_GENERIC_CONT
 #elif defined(_cygwin_)
 #define USE_UCONTEXT_CONT

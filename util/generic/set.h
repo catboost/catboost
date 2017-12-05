@@ -10,33 +10,33 @@
 #include <set>
 
 template <class K, class L, class A>
-class yset: public std::set<K, L, TReboundAllocator<A, K>> {
+class TSet: public std::set<K, L, TReboundAllocator<A, K>> {
     using TBase = std::set<K, L, TReboundAllocator<A, K>>;
-    using TSelf = yset<K, L, A>;
+    using TSelf = TSet<K, L, A>;
     using TKeyCompare = typename TBase::key_compare;
     using TAllocatorType = typename TBase::allocator_type;
 
 public:
-    inline yset() {
+    inline TSet() {
     }
 
     template <class It>
-    inline yset(It f, It l)
+    inline TSet(It f, It l)
         : TBase(f, l)
     {
     }
 
-    inline yset(std::initializer_list<K> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
+    inline TSet(std::initializer_list<K> il, const TKeyCompare& comp = TKeyCompare(), const TAllocatorType& alloc = TAllocatorType())
         : TBase(il, comp, alloc)
     {
     }
 
-    inline yset(const TSelf& src)
+    inline TSet(const TSelf& src)
         : TBase(src)
     {
     }
 
-    inline yset(TSelf&& src) noexcept
+    inline TSet(TSelf&& src) noexcept
         : TBase(std::forward<TSelf>(src))
     {
     }

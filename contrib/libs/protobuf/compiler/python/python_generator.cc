@@ -83,10 +83,16 @@ string StripProto(const string& filename) {
   return StripSuffixString(filename, suffix);
 }
 
+string FixEv(const string& filename) {
+  if (HasSuffixString(filename, ".ev")) {
+    return StripSuffixString(filename, ".ev") + "_ev.proto";
+  }
+  return filename;
+}
 
 // Returns the Python module name expected for a given .proto filename.
 string ModuleName(const string& filename) {
-  string basename = StripProto(filename);
+  string basename = StripProto(FixEv(filename));
   StripString(&basename, "-", '_');
   StripString(&basename, "/", '.');
   return basename + "_pb2";

@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
                 TVector<float> feature = pool.GetFeature(f);
                 Sort(feature.begin(), feature.end());
                 auto borders = binarizer->BuildBorders(feature, floatBinarization.BorderCount);
-                auto binarized = BinarizeLine<ui32>(~pool.Features + f * pool.NumSamples, pool.NumSamples, borders);
+                auto binarized = BinarizeLine<ui32>(~pool.Features + f * pool.NumSamples, pool.NumSamples, ENanMode::Forbidden, borders);
 
                 auto& featureHolder = dataProvider.GetFeatureById(f + 1);
                 UNIT_ASSERT_VALUES_EQUAL(featureHolder.GetType(), EFeatureValuesType::BinarizedFloat);

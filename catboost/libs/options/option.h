@@ -13,6 +13,7 @@ namespace NCatboostOptions {
         TOption(TString key,
                 const TValue& defaultValue)
             : Value(defaultValue)
+            , DefaultValue(defaultValue)
             , OptionName(std::move(key))
         {
         }
@@ -44,6 +45,10 @@ namespace NCatboostOptions {
         //disabled options would not be serialized/deserialized
         bool IsDisabled() const {
             return IsDisabledFlag;
+        }
+
+        bool IsDefault() const {
+            return Value == DefaultValue;
         }
 
         void SetDisabledFlag(bool flag) {
@@ -108,6 +113,7 @@ namespace NCatboostOptions {
 
     private:
         TValue Value;
+        TValue DefaultValue;
         TString OptionName;
         bool IsSetFlag = false;
         bool IsDisabledFlag = false;

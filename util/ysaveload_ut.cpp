@@ -137,7 +137,7 @@ private:
         }
 
         {
-            ymultimap<ui16, ui32> multimap;
+            TMultiMap<ui16, ui32> multimap;
 
             multimap.emplace((ui16)1, 2);
             multimap.emplace((ui16)2, 3);
@@ -268,7 +268,7 @@ private:
         }
 
         {
-            ymultimap<ui16, ui32> multimap;
+            TMultiMap<ui16, ui32> multimap;
 
             Load(&S_, multimap);
             UNIT_ASSERT_EQUAL(multimap.size(), 5);
@@ -377,7 +377,7 @@ private:
     void TestList() {
         TBufferStream s;
 
-        ylist<int> list = {0, 1, 10};
+        TList<int> list = {0, 1, 10};
         Save(&s, list);
 
         list.clear();

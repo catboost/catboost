@@ -163,7 +163,7 @@ class TShellCommand::TImpl
 private:
     TPid Pid;
     TString Command;
-    ylist<TString> Arguments;
+    TList<TString> Arguments;
     TString WorkDir;
     TShellCommand::ECommandStatus ExecutionStatus;
     TMaybe<int> ExitCode;
@@ -238,7 +238,7 @@ private:
 #endif
 
 public:
-    inline TImpl(const TStringBuf cmd, const ylist<TString>& args, const TShellCommandOptions& options, const TString& workdir)
+    inline TImpl(const TStringBuf cmd, const TList<TString>& args, const TShellCommandOptions& options, const TString& workdir)
         : Pid(0)
         , Command(cmd.ToString())
         , Arguments(args)
@@ -904,14 +904,14 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
     TerminateIsRequired(pi);
 }
 
-TShellCommand::TShellCommand(const TStringBuf cmd, const ylist<TString>& args, const TShellCommandOptions& options,
+TShellCommand::TShellCommand(const TStringBuf cmd, const TList<TString>& args, const TShellCommandOptions& options,
                              const TString& workdir)
     : Impl(new TImpl(cmd, args, options, workdir))
 {
 }
 
 TShellCommand::TShellCommand(const TStringBuf cmd, const TShellCommandOptions& options, const TString& workdir)
-    : Impl(new TImpl(cmd, ylist<TString>(), options, workdir))
+    : Impl(new TImpl(cmd, TList<TString>(), options, workdir))
 {
 }
 

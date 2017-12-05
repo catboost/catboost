@@ -146,7 +146,7 @@ namespace NCudaLib {
                 switch (ptrType) {
                     case CudaHost: {
                         auto rawPtr = Owner->HostMemoryProvider->Create(size);
-                        using TType = typename std::remove_pointer<decltype(rawPtr)>::type;
+                        using TType = std::remove_pointer_t<decltype(rawPtr)>;
                         auto cmd = new TRemoveObjectCommand<CudaHost>(THolder<TType>(rawPtr));
                         void* ptr = cmd->GetPtr();
                         Owner->AddFreeMemoryTask(cmd);
@@ -154,7 +154,7 @@ namespace NCudaLib {
                     }
                     case CudaDevice: {
                         auto rawPtr = Owner->DeviceMemoryProvider->Create(size);
-                        using TType = typename std::remove_pointer<decltype(rawPtr)>::type;
+                        using TType = std::remove_pointer_t<decltype(rawPtr)>;
                         auto cmd = new TRemoveObjectCommand<CudaDevice>(THolder<TType>(rawPtr));
                         void* ptr = cmd->GetPtr();
                         Owner->AddFreeMemoryTask(cmd);

@@ -33,7 +33,7 @@ namespace NCatboostOptions {
         ECtrType type;
         GetNext<ECtrType>(ctrStringDescription, ':', type);
 
-        yset<TString> seenParams;
+        TSet<TString> seenParams;
         TMaybe<TCtrParam> param;
         GetNext<TCtrParam>(ctrStringDescription, ':', param);
         NJson::TJsonValue ctrJson;
@@ -63,6 +63,9 @@ namespace NCatboostOptions {
                     jsonPrior.AppendValue(entry);
                 }
                 priors.push_back(jsonPrior);
+            } else if (name == "priorestimation") {
+                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+                ctrJson["prior_estimation"] = param->Value;
             } else {
                 ythrow TCatboostException() << "Unknown ctr param name: " << param->Name;
             }

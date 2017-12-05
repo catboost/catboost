@@ -4,7 +4,7 @@
 
 #include <util/generic/bitmap.h>
 
-template <class TSet>
+template <class TSetType>
 class TStrSpnImpl {
 public:
     inline TStrSpnImpl(const char* b, const char* e) {
@@ -59,7 +59,7 @@ private:
     }
 
 private:
-    TSet S_;
+    TSetType S_;
 };
 
 using TCompactStrSpn = TStrSpnImpl<TBitMap<256>>;

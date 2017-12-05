@@ -61,7 +61,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
 
     SIMPLE_UNIT_TEST(TestOccupancy) {
         TPortManager pm;
-        yset<ui16> ports;
+        TSet<ui16> ports;
         for (int i = 0; i < 1000; i++) {
             ui16 port = pm.GetPort();
             UNIT_ASSERT_VALUES_EQUAL(ports.has(port), false);

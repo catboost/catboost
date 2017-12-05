@@ -1,4 +1,5 @@
-DLL(catboostmodel 1 0 EXPORTS calcer.exports)
+DLL(catboostmodel 1 0 )
+EXPORTS_SCRIPT(calcer.exports)
 
 
 

@@ -35,7 +35,16 @@ namespace {
 
         bool FindExact(const TStringBuf& key, TString* out) const override {
             if (TDescriptor* const* res = FindPtr(key)) {
-                *out = Decompress((*res)->second);
+                // temporary
+                // https://st.yandex-team.ru/DEVTOOLS-3985
+                try {
+                    *out = Decompress((*res)->second);
+                } catch (const yexception& e) {
+                    if (getenv("RESOURCE_DECOMPRESS_DIAG")) {
+                        Cerr << "Can't decompress resource " << key << Endl << e.what() << Endl;
+                    }
+                    throw e;
+                }
 
                 return true;
             }
@@ -46,10 +55,18 @@ namespace {
         void FindMatch(const TStringBuf& subkey, IMatch& cb) const override {
             for (const auto& it : *this) {
                 if (it.first.StartsWith(subkey)) {
-                    const TResource res = {
-                        it.first, Decompress(it.second->second)};
-
-                    cb.OnMatch(res);
+                    // temporary
+                    // https://st.yandex-team.ru/DEVTOOLS-3985
+                    try {
+                        const TResource res = {
+                            it.first, Decompress(it.second->second)};
+                        cb.OnMatch(res);
+                    } catch (const yexception& e) {
+                        if (getenv("RESOURCE_DECOMPRESS_DIAG")) {
+                            Cerr << "Can't decompress resource " << it.first << Endl << e.what() << Endl;
+                        }
+                        throw e;
+                    }
                 }
             }
         }

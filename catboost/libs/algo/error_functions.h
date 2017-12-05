@@ -595,7 +595,7 @@ public:
     double Alpha;
     SAVELOAD(Alpha);
 
-    TUserDefinedPerObjectError(const ymap<TString, TString>& params, bool storeExpApprox)
+    TUserDefinedPerObjectError(const TMap<TString, TString>& params, bool storeExpApprox)
         : Alpha(0.0)
     {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
@@ -621,7 +621,7 @@ public:
     double Alpha;
     SAVELOAD(Alpha);
 
-    TUserDefinedQuerywiseError(const ymap<TString, TString>& params, bool storeExpApprox)
+    TUserDefinedQuerywiseError(const TMap<TString, TString>& params, bool storeExpApprox)
         : Alpha(0.0)
     {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");

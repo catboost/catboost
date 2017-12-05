@@ -65,7 +65,7 @@ namespace NCatboostCuda
             FeatureValues.clear();
             FeatureValues.resize(metaInfo.FactorCount);
 
-            CatFeatureIds = yset<int>(metaInfo.CatFeatureIds.begin(), metaInfo.CatFeatureIds.end());
+            CatFeatureIds = TSet<int>(metaInfo.CatFeatureIds.begin(), metaInfo.CatFeatureIds.end());
         }
 
         TDataProviderBuilder& SetShuffleFlag(bool shuffle, ui64 seed = 0)
@@ -148,13 +148,11 @@ namespace NCatboostCuda
             FeatureNames = featureIds;
         }
 
-        void SetPairs(const TVector<TPair>& /*pairs*/) override
-        {
+        void SetPairs(const TVector<TPair>& /*pairs*/) override {
             CB_ENSURE(false, "This function is not implemented in cuda");
         }
 
-        int GetDocCount() const override
-        {
+        int GetDocCount() const override {
             CB_ENSURE(false, "This function is not implemented in cuda");
         }
 
@@ -206,9 +204,9 @@ namespace NCatboostCuda
         ui32 Cursor = 0;
         bool IsDone = false;
         TVector<TVector<float>> FeatureValues;
-        yset<ui32> IgnoreFeatures;
+        TSet<ui32> IgnoreFeatures;
         TVector<TString> FeatureNames;
-        yset<int> CatFeatureIds;
+        TSet<int> CatFeatureIds;
 
         TVector<float> ClassesWeights;
     };

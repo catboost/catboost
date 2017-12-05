@@ -6,9 +6,25 @@
 #include <util/system/types.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
+#include <util/generic/ymath.h>
 
 namespace NCatboostCuda
 {
+    inline TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode) {
+        TVector<float> copy;
+        copy.reserve(values.size());
+        for (ui32 i = 0; i < values.size(); ++i) {
+            const float val = values[i];
+            if (IsNan(val)) {
+                CB_ENSURE(nanMode != ENanMode::Forbidden, "Error: NaN in features, but NaNs are forbidden");
+                continue;
+            } else {
+                copy.push_back(val);
+            }
+        }
+        return copy;
+    }
+
     class IGridBuilder
     {
     public:
@@ -16,12 +32,13 @@ namespace NCatboostCuda
         {
         }
 
-        virtual IGridBuilder& AddFeature(const TVector<float>& feature, ui32 borderCount) = 0;
+        virtual IGridBuilder& AddFeature(const TVector<float>& feature, ui32 borderCount, ENanMode nanMode) = 0;
 
         virtual const TVector<TVector<float>>& Borders() = 0;
 
         virtual TVector<float> BuildBorders(const TVector<float>& sortedFeature,
                                             ui32 borderCount) const = 0;
+
     };
 
     template<class T>
@@ -44,7 +61,7 @@ namespace NCatboostCuda
     public:
         TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override
         {
-            TVector<float> copy(sortedFeature.begin(), sortedFeature.end());
+            TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
             auto bordersSet = Binarizer.BestSplit(copy, borderCount, true);
             TVector<float> borders(bordersSet.begin(), bordersSet.end());
             Sort(borders.begin(), borders.end());
@@ -60,9 +77,10 @@ namespace NCatboostCuda
     {
     public:
         IGridBuilder& AddFeature(const TVector<float>& feature,
-                                 ui32 borderCount) override
+                                 ui32 borderCount,
+                                 ENanMode nanMode) override
         {
-            TVector<float> sortedFeature(feature.begin(), feature.end());
+            TVector<float> sortedFeature = CheckedCopyWithoutNans(feature, nanMode);
             Sort(sortedFeature.begin(), sortedFeature.end());
             auto borders = TGridBuilderBase<TBinarizer>::BuildBorders(sortedFeature, borderCount);
             Result.push_back(std::move(borders));
@@ -139,7 +157,9 @@ namespace NCatboostCuda
         TVector<float> operator()(const NCatboostOptions::TBinarizationOptions& description)
         {
             auto builder = BuilderFactory.Create(description.BorderSelectionType);
-            builder->AddFeature(Values, description.BorderCount);
+            const ui32 borderCount = description.NanMode == ENanMode::Forbidden ? description.BorderCount : description.BorderCount - 1;
+            CB_ENSURE(borderCount > 0, "Error: border count should be greater than 0. If you have nan-features, border count should be > 1. Got " << description.BorderCount);
+            builder->AddFeature(Values, description.BorderCount, description.NanMode);
             return builder->Borders()[0];
         }
 

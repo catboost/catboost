@@ -1,7 +1,9 @@
 #pragma once
 
-#include <catboost/cuda/cuda_util/compression_helpers.h>
 #include <cmath>
+#include <catboost/cuda/cuda_util/compression_helpers.h>
+#include <catboost/libs/options/enums.h>
+
 #include <util/system/types.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -122,6 +124,7 @@ namespace NCatboostCuda
     public:
         TBinarizedFloatValuesHolder(ui32 featureId,
                                     ui64 size,
+                                    ENanMode nanMode,
                                     const TVector<float>& borders,
                                     TVector<ui64>&& data,
                                     TString featureName)
@@ -132,12 +135,13 @@ namespace NCatboostCuda
                                               std::move(data),
                                               std::move(featureName))
                   , Borders(borders)
+                  , NanMode(nanMode)
         {
         }
 
-        ui32 Discretization() const
+        ui32 BinCount() const
         {
-            return (ui32) Borders.size();
+            return (ui32) Borders.size() + 1 + (NanMode != ENanMode::Forbidden);
         }
 
         const TVector<float>& GetBorders() const
@@ -147,6 +151,7 @@ namespace NCatboostCuda
 
     private:
         TVector<float> Borders;
+        ENanMode NanMode;
     };
 
 
@@ -265,10 +270,13 @@ namespace NCatboostCuda
         {
             const ui32 bitsPerKey = IntLog2(borders.size() + 1);
             const auto& floatValues = floatValuesHolder.GetValues();
-            auto binarizedFeature = BinarizeLine(floatValues.data(), floatValues.size(), borders);
+            //TODO(noxoomo): supprot nanMode here
+            ENanMode nanMode = ENanMode::Forbidden;
+            auto binarizedFeature = BinarizeLine(floatValues.data(), floatValues.size(), nanMode, borders);
             auto compressed = CompressVector<ui64>(binarizedFeature, bitsPerKey);
             return MakeHolder<TBinarizedFloatValuesHolder>(floatValuesHolder.GetId(),
                                                            floatValues.size(),
+                                                           nanMode,
                                                            borders,
                                                            std::move(compressed),
                                                            floatValuesHolder.GetName());

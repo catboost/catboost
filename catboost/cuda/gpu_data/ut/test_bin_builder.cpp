@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(), featuresManager.GetTargetBorders());
+            BinarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
@@ -134,7 +134,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                 TVector<ui32> featureBins;
                 if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
                     auto freqCtr = calcer.ComputeFreqCtr();
-                    featureBins = BinarizeLine<ui32>(~freqCtr, +freqCtr, borders);
+                    featureBins = BinarizeLine<ui32>(~freqCtr, +freqCtr, ENanMode::Forbidden, borders);
                 } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                     auto floatCtr = calcer.Calc(Indices, BinarizedTarget, NumClasses);
                     TVector<float> values;
@@ -143,6 +143,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                     }
                     featureBins = BinarizeLine<ui32>(~values,
                                                      values.size(),
+                                                     ENanMode::Forbidden,
                                                      borders);
                 } else {
                     ythrow yexception() << "Test for ctr type " << ctr.Configuration.Type
@@ -191,8 +192,8 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         catFeatureParams.OneHotMaxSize = 6;
         {
             TVector<TVector<float>> prior = {{0.5, 1.0}};
-            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior);
-            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior);
+            NCatboostOptions::TCtrDescription bucketsCtr(ECtrType::Buckets, prior);
+            NCatboostOptions::TCtrDescription freqCtr(ECtrType::FeatureFreq, prior);
             catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
             catFeatureParams.AddSimpleCtrDescription(freqCtr);
 

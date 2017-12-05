@@ -13,6 +13,33 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     return result;
 }
 
+
+inline static ui64 ParseMemorySizeDescription(const TString& memSizeDescription) {
+    TString sizeLine = memSizeDescription;
+    ui64 sizeMultiplier = 1;
+    if (sizeLine.back() == 'b' || sizeLine.back() == 'B') {
+        sizeLine.pop_back();
+        switch (sizeLine.back()) {
+            case 'k':
+            case 'K':
+                sizeMultiplier = 1024;
+                break;
+            case 'm':
+            case 'M':
+                sizeMultiplier = 1024 * 1024;
+                break;
+            case 'g':
+            case 'G':
+                sizeMultiplier = 1024 * 1024 * 1024;
+                break;
+            default:
+                CB_ENSURE(false, "unknown size suffix: " << memSizeDescription);
+        }
+        sizeLine.pop_back();
+    }
+    return sizeMultiplier * FromString<ui64>(sizeLine);
+}
+
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
     parser->AddLongOption('f', "learn-set", "learn set path")
         .RequiredArgument("PATH")
@@ -277,6 +304,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["l2_leaf_reg"] = reg;
         });
 
+    parser.AddLongOption("model-size-reg", "Model size regularization coefficient. Should be >= 0")
+         .RequiredArgument("float")
+         .Handler1T<float>([plainJsonPtr](float reg) {
+             (*plainJsonPtr)["model_size_reg"] = reg;
+         });
+
     parser.AddLongOption("random-strength")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float randomStrength) {
@@ -367,7 +400,7 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["observations_to_bootstrap"] = type;
         });
 
-    parser.AddLongOption("max-ctr-complexity", "max count of cat features for tree ctr")
+    parser.AddLongOption("max-ctr-complexity", "max count of cat features for combinations ctr")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](int count) {
             (*plainJsonPtr).InsertValue("max_ctr_complexity", count);
@@ -378,7 +411,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
             for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
-                (*plainJsonPtr)["simple_ctrs"].AppendValue(oneCtrConfig.Token());
+                (*plainJsonPtr)["simple_ctr"].AppendValue(oneCtrConfig.Token());
             }
         });
 
@@ -387,7 +420,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
             for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
-                (*plainJsonPtr)["combinations_ctrs"].AppendValue(oneCtrConfig.Token());
+                (*plainJsonPtr)["combinations_ctr"].AppendValue(oneCtrConfig.Token());
             }
         });
 
@@ -397,7 +430,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
             for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';')) {
-                (*plainJsonPtr)["per_feature_ctrs"].AppendValue(oneCtrConfig.Token());
+                (*plainJsonPtr)["per_feature_ctr"].AppendValue(oneCtrConfig.Token());
             }
         });
 
@@ -508,6 +541,28 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr).InsertValue("thread_count", count);
         });
 
+    parser.AddLongOption("used-ram-limit", "Try to limit used memory. CPU only. WARNING: This option affects CTR memory usage only.\nAllowed suffixes: GB, MB, KB in different cases")
+            .RequiredArgument("TARGET_RSS")
+            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["used_ram_limit"] = ParseMemorySizeDescription(param);
+            });
+
+    parser
+            .AddLongOption("gpu-ram-part")
+            .RequiredArgument("double")
+            .Help("Part of gpu ram to use")
+            .Handler1T<double>([&plainJsonPtr](const double part) {
+                (*plainJsonPtr)["gpu_ram_part"] = part;
+            });
+
+    parser
+            .AddLongOption("pinned-memory-size")
+            .RequiredArgument("int")
+            .Help("GPU only. Minimum CPU pinned memory to use")
+            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["pinned_memory_size"] = ParseMemorySizeDescription(param);
+            });
+
     parser
         .AddLongOption("gpu-cat-features-storage")
         .RequiredArgument("String")
@@ -557,6 +612,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("PATH")
         .StoreResult(paramsPath)
         .Help("If param is given in json file and in command line then one from command line will be used.");
+
 
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};

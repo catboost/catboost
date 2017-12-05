@@ -494,8 +494,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
 
             TVector<TVector<float>> prior = {{0.5, 1.0}};
-            NCatboostOptions::TCtrDescription bucketsCtr(ETaskType::GPU, ECtrType::Buckets, prior, bucketsBinarization);
-            NCatboostOptions::TCtrDescription freqCtr(ETaskType::GPU, ECtrType::FeatureFreq, prior, freqBinarization);
+            NCatboostOptions::TCtrDescription bucketsCtr(ECtrType::Buckets, prior, bucketsBinarization);
+            NCatboostOptions::TCtrDescription freqCtr(ECtrType::FeatureFreq, prior, freqBinarization);
             catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
             catFeatureParams.AddSimpleCtrDescription(freqCtr);
 

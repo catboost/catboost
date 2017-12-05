@@ -1,10 +1,11 @@
 #include "bind_options.h"
+#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
-#include <library/malloc/api/malloc.h>
 
 
 int mode_fit(const int argc, const char* argv[]) {
+    ConfigureMalloc();
 
     NCatboostOptions::TPoolLoadParams poolLoadOptions;
     TString paramsFile;
@@ -26,12 +27,6 @@ int mode_fit(const int argc, const char* argv[]) {
     THolder<IModelTrainer> modelTrainerHolder;
     NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
     outputOptions.Load(outputOptionsJson);
-
-    #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
-    if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        MATRIXNET_WARNING_LOG << "link me with lfalloc please" << Endl;
-    }
-    #endif
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {

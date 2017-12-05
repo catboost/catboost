@@ -17,7 +17,7 @@ def _try_to_kill(process):
 
 def touch(path):
     if not os.path.exists(path):
-        with open(path, 'w') as _:
+        with open(path, 'w'):
             pass
 
 

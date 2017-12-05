@@ -29,5 +29,7 @@ DEPENDS(
     catboost/tools/model_comparator
 )
 
+ALLOCATOR(LF)
+
 END()
 

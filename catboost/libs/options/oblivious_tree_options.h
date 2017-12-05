@@ -18,6 +18,7 @@ namespace NCatboostOptions {
             , LeavesEstimationIterations("leaf_estimation_iterations", 1)
             , LeavesEstimationMethod("leaf_estimation_method", ELeavesEstimation::Gradient)
             , L2Reg("l2_leaf_reg", 3.0)
+            , ModelSizeReg("model_size_reg", 0.5)
             , RandomStrength("random_strength", 1.0)
             , BootstrapConfig("bootstrap", TBootstrapConfig())
             , Rsm("rsm", 1.0, taskType)
@@ -40,7 +41,7 @@ namespace NCatboostOptions {
 
         void Load(const NJson::TJsonValue& options) {
             CheckedLoad(options,
-                        &MaxDepth, &LeavesEstimationIterations, &LeavesEstimationMethod, &L2Reg,
+                        &MaxDepth, &LeavesEstimationIterations, &LeavesEstimationMethod, &L2Reg, &ModelSizeReg,
                         &RandomStrength,
                         &BootstrapConfig, &FoldSizeLossNormalization, &AddRidgeToTargetFunctionFlag,
                         &ScoreFunction,
@@ -53,7 +54,7 @@ namespace NCatboostOptions {
         }
 
         void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg,
+            SaveFields(options, MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg,
                        RandomStrength,
                        BootstrapConfig, FoldSizeLossNormalization, AddRidgeToTargetFunctionFlag,
                        ScoreFunction,
@@ -61,10 +62,10 @@ namespace NCatboostOptions {
         }
 
         bool operator==(const TObliviousTreeLearnerOptions& rhs) const {
-            return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, RandomStrength,
+            return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
                             BootstrapConfig, Rsm, WeightSamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
                             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching) ==
-                   std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg,
+                   std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                             rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.WeightSamplingFrequency,
                             rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                             rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching);
@@ -88,6 +89,7 @@ namespace NCatboostOptions {
         TOption<ui32> LeavesEstimationIterations;
         TOption<ELeavesEstimation> LeavesEstimationMethod;
         TOption<float> L2Reg;
+        TOption<float> ModelSizeReg;
         TOption<float> RandomStrength;
         TOption<TBootstrapConfig> BootstrapConfig;
 

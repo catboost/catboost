@@ -59,7 +59,7 @@ namespace NCatboostCuda
         TVector<IListener*> LearnListeners;
         TVector<IListener*> TestListeners;
         IOverfittingDetector* Detector = nullptr;
-        THolder<TSnapshotMeta> SnapstotMeta;
+        THolder<TSnapshotMeta> SnapshotMeta;
 
 
 
@@ -69,8 +69,7 @@ namespace NCatboostCuda
         }
 
     private:
-        struct TFold
-        {
+        struct TFold {
             TSlice EstimateSamples;
             TSlice QualityEvaluateSamples;
         };
@@ -183,9 +182,8 @@ namespace NCatboostCuda
 
         inline ui32 MinEstimationSize(ui32 docCount) const
         {
-            if (docCount < Config.MinFoldSize)
-            {
-                return NHelpers::CeilDivide(docCount, 50);
+            if (docCount < 500) {
+                return 1;
             }
             const ui32 maxFolds = 18;
             const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.MinFoldSize));
@@ -193,8 +191,7 @@ namespace NCatboostCuda
             {
                 return NHelpers::CeilDivide(docCount, 1 << maxFolds);
             }
-
-            return Config.MinFoldSize;
+            return Min<ui32>(Config.MinFoldSize, docCount / 50);
         }
 
         TVector<TFold> CreateFolds(ui32 sampleCount,
@@ -504,10 +501,10 @@ namespace NCatboostCuda
                     }
 
                     iteration++;
-                    if (SnapstotMeta && ((Now() - lastSnapshotTime).SecondsFloat() > SnapstotMeta->SaveIntervalSeconds)) {
+                    if (SnapshotMeta && ((Now() - lastSnapshotTime).SecondsFloat() > SnapshotMeta->SaveIntervalSeconds)) {
                         auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
-                        TProgressHelper(GpuProgressLabel()).Write(SnapstotMeta->Path, [&](IOutputStream* out) {
-                            ::Save(out, SnapstotMeta->TaskOptions);
+                        TProgressHelper(GpuProgressLabel()).Write(SnapshotMeta->Path, [&](IOutputStream* out) {
+                            ::Save(out, SnapshotMeta->TaskOptions);
                             ::Save(out, progress);
                         });
                         lastSnapshotTime = Now();
@@ -562,7 +559,7 @@ namespace NCatboostCuda
 
         TDynamicBoosting& SaveSnapshot(const TString& snapshotPath, const TString& taskOptions, ui64 snapshotInterval)
         {
-            SnapstotMeta = MakeHolder<TSnapshotMeta>(snapshotPath, taskOptions, snapshotInterval);
+            SnapshotMeta = MakeHolder<TSnapshotMeta>(snapshotPath, taskOptions, snapshotInterval);
             return *this;
         }
 
@@ -641,13 +638,11 @@ namespace NCatboostCuda
                 if (DataProvider->HasBaseline())
                 {
                     baseline = permutation.Gather(DataProvider->GetBaseline());
-                } else
-                {
+                } else {
                     baseline.resize(DataProvider->GetSampleCount(), 0.0f);
                 }
 
-                state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(
-                        state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget());
+                state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget());
                 state->Cursor.Estimation.Write(baseline);
             }
             return state;
@@ -658,18 +653,23 @@ namespace NCatboostCuda
             auto state = CreateState();
             THolder<TResultModel> resultModel = MakeHolder<TResultModel>();
 
-            if (SnapstotMeta && NFs::Exists(SnapstotMeta->Path)) {
-                TDynamicBoostingProgress<TResultModel> progress;
-                TProgressHelper(GpuProgressLabel()).CheckedLoad(SnapstotMeta->Path, [&](TIFStream* in) {
-                    TString optionsStr;
-                    ::Load(in, optionsStr);
-                    ::Load(in, progress);
-                });
-                WriteProgressToGpu(progress,
-                                   FeaturesManager,
-                                   *resultModel,
-                                   state->Cursor,
-                                   TestDataProvider ? &state->TestCursor : nullptr);
+            if (SnapshotMeta && NFs::Exists(SnapshotMeta->Path)) {
+                if (GetFileLength(SnapshotMeta->Path) == 0) {
+                    MATRIXNET_WARNING_LOG << "Empty snapshot file. Something possible wrong" << Endl;
+                } else {
+                    TDynamicBoostingProgress<TResultModel> progress;
+                    TProgressHelper(GpuProgressLabel()).CheckedLoad(SnapshotMeta->Path, [&](TIFStream* in)
+                    {
+                        TString optionsStr;
+                        ::Load(in, optionsStr);
+                        ::Load(in, progress);
+                    });
+                    WriteProgressToGpu(progress,
+                                       FeaturesManager,
+                                       *resultModel,
+                                       state->Cursor,
+                                       TestDataProvider ? &state->TestCursor : nullptr);
+                }
             }
 
             Fit(state->DataSets,

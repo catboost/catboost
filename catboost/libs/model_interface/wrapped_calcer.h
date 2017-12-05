@@ -2,6 +2,7 @@
 
 #include "model_calcer_wrapper.h"
 
+#include <string>
 #include <array>
 #include <vector>
 #include <functional>
@@ -75,7 +76,13 @@ public:
             hashPtrsVector.push_back(hashVec.data());
         }
 
-        if (!CalcModelPrediction(CalcerHolder.get(), result.size(), floatPtrsVector.data(), floatFeatureCount, hashPtrsVector.data(), catFeatureCount, result.data(), result.size())) {
+        if (!CalcModelPredictionWithHashedCatFeatures(
+            CalcerHolder.get(),
+            result.size(),
+            floatPtrsVector.data(), floatFeatureCount,
+            hashPtrsVector.data(), catFeatureCount,
+            result.data(), result.size())
+            ) {
             throw std::runtime_error(GetErrorString());
         }
         return result;

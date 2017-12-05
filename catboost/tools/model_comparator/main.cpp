@@ -34,10 +34,16 @@ int main(int argc, char** argv) {
     }
     if (model1.ModelInfo != model2.ModelInfo) {
         Clog << "ModelInfo differ" << Endl;
+        model1.ModelInfo = THashMap<TString, TString>();
+        model2.ModelInfo = THashMap<TString, TString>();
+        if (model1 == model2) {
+            return 0;
+        }
     }
-//    if (model1.CtrCalcerData != model2.CtrCalcerData) {
-//        Clog << "CtrCalcerData differ" << Endl;
-//    }
+
+//   if (model1.CtrCalcerData != model2.CtrCalcerData) {
+//       Clog << "CtrCalcerData differ" << Endl;
+//   }
     return 1;
 }
 

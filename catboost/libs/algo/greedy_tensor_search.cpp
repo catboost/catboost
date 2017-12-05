@@ -78,6 +78,7 @@ struct TCandidatesInfoList {
     // TODO(annaveronika): put projection out, because currently it's not clear.
     TVector<TCandidateInfo> Candidates;
     bool ShouldDropCtrAfterCalc = false;
+    size_t ResultingCtrTableSize = 0;
 };
 
 using TCandidateList = TVector<TCandidatesInfoList>;
@@ -350,6 +351,7 @@ void GreedyTensorSearch(const TTrainData& data,
         profile.AddOperation(TStringBuilder() << "AssignRandomWeights, depth " << curDepth);
         double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
 
+        double maxLeafCount = 1;
         const ui64 randSeed = ctx->Rand.GenRand();
         ctx->LocalExecutor.ExecRange([&](int id) {
             auto& candidate = candList[id];
@@ -360,7 +362,9 @@ void GreedyTensorSearch(const TTrainData& data,
                                       *fold,
                                       proj,
                                       ctx,
-                                      &fold->GetCtrRef(proj));
+                                      &fold->GetCtrRef(proj),
+                                      &candidate.ResultingCtrTableSize);
+                    maxLeafCount = Max<double>(maxLeafCount, candidate.ResultingCtrTableSize);
                 }
             }
             TVector<TVector<double>> allScores(candidate.Candidates.size());
@@ -408,7 +412,13 @@ void GreedyTensorSearch(const TTrainData& data,
         double bestScore = MINIMAL_SCORE;
         for (const auto& subList : candList) {
             for (const auto& candidate : subList.Candidates) {
-                const double score = candidate.BestScore.GetInstance(ctx->Rand);
+                double score = candidate.BestScore.GetInstance(ctx->Rand);
+                TProjection projection = candidate.SplitCandidate.Ctr.Projection;
+                ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
+
+                if (!ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) && score != MINIMAL_SCORE) {
+                    score *= pow(1 / (1 + subList.ResultingCtrTableSize / maxLeafCount), ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                }
                 if (score > bestScore) {
                     bestScore = score;
                     bestSplitCandidate = &candidate;
@@ -418,15 +428,23 @@ void GreedyTensorSearch(const TTrainData& data,
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
+        if (bestSplitCandidate->SplitCandidate.Type == ESplitType::OnlineCtr) {
+            TProjection projection = bestSplitCandidate->SplitCandidate.Ctr.Projection;
+            ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[bestSplitCandidate->SplitCandidate.Ctr.CtrIdx].Type;
+
+            ctx->LearnProgress.UsedCtrSplits.insert(std::make_pair(ctrType, projection));
+        }
         auto bestSplit = TSplit(bestSplitCandidate->SplitCandidate, bestSplitCandidate->BestBinBorderId);
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             const auto& proj = bestSplit.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
+                size_t totalLeafCount;
                 ComputeOnlineCTRs(data,
                                   *fold,
                                   proj,
                                   ctx,
-                                  &fold->GetCtrRef(proj));
+                                  &fold->GetCtrRef(proj),
+                                  &totalLeafCount);
                 DropStatsForProjection(*fold, *ctx, proj, &ctx->StatsFromPrevTree);
             }
         } else if (bestSplit.Type == ESplitType::OneHotFeature) {

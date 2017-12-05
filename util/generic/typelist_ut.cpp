@@ -16,29 +16,29 @@ class TTypeListTest: public TTestBase {
 
 public:
     void TestGet() {
-        using TList = TTypeList<int, char, float>;
+        using TListType = TTypeList<int, char, float>;
 
-        UNIT_ASSERT_TYPES_EQUAL(TList::TGet<0>, int);
-        UNIT_ASSERT_TYPES_EQUAL(TList::TGet<1>, char);
-        UNIT_ASSERT_TYPES_EQUAL(TList::TGet<2>, float);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TGet<0>, int);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TGet<1>, char);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TGet<2>, float);
     }
 
     void TestSimple() {
-        using TList = TTypeList<int, char, float>;
-        UNIT_ASSERT_EQUAL(TList::Length, 3);
-        UNIT_ASSERT_TYPES_EQUAL(TList::THead, int);
+        using TListType = TTypeList<int, char, float>;
+        UNIT_ASSERT_EQUAL(TListType::Length, 3);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::THead, int);
     }
 
     struct TA {};
     struct TB {};
     struct TC {};
     void TestHave() {
-        using TList = TTypeList<TA, TB*, const TC&>;
-        UNIT_ASSERT(TList::THave<TA>::Result);
-        UNIT_ASSERT(TList::THave<TB*>::Result);
-        UNIT_ASSERT(!TList::THave<TB>::Result);
-        UNIT_ASSERT(TList::THave<const TC&>::Result);
-        UNIT_ASSERT(!TList::THave<TC&>::Result);
+        using TListType = TTypeList<TA, TB*, const TC&>;
+        UNIT_ASSERT(TListType::THave<TA>::Result);
+        UNIT_ASSERT(TListType::THave<TB*>::Result);
+        UNIT_ASSERT(!TListType::THave<TB>::Result);
+        UNIT_ASSERT(TListType::THave<const TC&>::Result);
+        UNIT_ASSERT(!TListType::THave<TC&>::Result);
     }
 
     template <class T>
@@ -85,12 +85,12 @@ public:
     struct TMyMap {};
 
     void TestSelectBy() {
-        using TList = TTypeList<TA, TB, TMyMap<TA*, TB>, TMyVector<TA>, TC>;
+        using TListType = TTypeList<TA, TB, TMyMap<TA*, TB>, TMyVector<TA>, TC>;
 
-        UNIT_ASSERT_TYPES_EQUAL(TList::TSelectBy<TAnyType>::TResult, TA);
-        UNIT_ASSERT_TYPES_EQUAL(TList::TSelectBy<TIs1ArgTemplate>::TResult, TMyVector<TA>);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TSelectBy<TAnyType>::TResult, TA);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TSelectBy<TIs1ArgTemplate>::TResult, TMyVector<TA>);
         using TMyMapPTATB = TMyMap<TA*, TB>;
-        UNIT_ASSERT_TYPES_EQUAL(TList::TSelectBy<TIsNArgTemplate>::TResult, TMyMapPTATB);
+        UNIT_ASSERT_TYPES_EQUAL(TListType::TSelectBy<TIsNArgTemplate>::TResult, TMyMapPTATB);
     }
 };
 

@@ -8,10 +8,10 @@
 
 namespace NCudaLib {
 
-    inline yset<ui32> GetEnabledDevices(const TString& deviceConfig)
+    inline TSet<ui32> GetEnabledDevices(const TString& deviceConfig)
     {
         const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-        yset<ui32> enabledDevices;
+        TSet<ui32> enabledDevices;
         if (deviceConfig == "-1") {
             for (ui32 i = 0; i < devCount; ++i) {
                 enabledDevices.insert(i);
@@ -64,7 +64,7 @@ namespace NCudaLib {
         TSpinLock Lock;
 
         friend void SetApplicationConfig(const TCudaApplicationConfig& config);
-        TVector<yset<ui32>> PeerDevices;
+        TVector<TSet<ui32>> PeerDevices;
 
     private:
         void EnablePeerAccess() {
@@ -106,7 +106,7 @@ namespace NCudaLib {
         void Initilize() {
             CB_ENSURE(!IsInitialized, "Error: Initialization could be done only once");
             const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-            yset<ui32> enabledDevices = GetEnabledDevices(Config.DeviceConfig);
+            TSet<ui32> enabledDevices = GetEnabledDevices(Config.DeviceConfig);
             const ui32 workersPerDevice = Config.WorkersPerDevice;
             const ui32 freeCount = enabledDevices.size() * workersPerDevice;
 

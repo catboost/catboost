@@ -596,7 +596,7 @@ namespace NCatboostCuda
             SortDataSetsByCompressedIndexLevelAndSize();
         }
 
-        const yset<ui32>& GetUsedPermutations() const
+        const TSet<ui32>& GetUsedPermutations() const
         {
             return UsedPermutations;
         }
@@ -854,7 +854,7 @@ namespace NCatboostCuda
             }
         }
 
-        void UpdateForPack(const TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, yset<ui32>& usedPermutations)
+        void UpdateForPack(const TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, TSet<ui32>& usedPermutations)
         {
             for (auto& devDataSets : dataSets)
             {
@@ -867,7 +867,7 @@ namespace NCatboostCuda
 
         void UpdateUsedPermutations()
         {
-            yset<ui32> usedPermutations;
+            TSet<ui32> usedPermutations;
             UpdateForPack(DataSets, usedPermutations);
             UpdateForPack(PureTreeCtrDataSets, usedPermutations);
             UsedPermutations = usedPermutations;
@@ -1026,7 +1026,7 @@ namespace NCatboostCuda
         TVector<TVector<TTreeCtrDataSetPtr>> PureTreeCtrDataSets;
 
         TVector<TCudaBuffer<const ui32, NCudaLib::TMirrorMapping>> DepthPermutations;
-        yset<ui32> UsedPermutations;
+        TSet<ui32> UsedPermutations;
 
         TFeatureTensorTracker<CatFeaturesStoragePtrType> EmptyTracker;
         TMap<TFeatureTensor, TFeatureTensorTracker<CatFeaturesStoragePtrType>> TensorTrackers;

@@ -23,15 +23,17 @@ except ImportError:
         pass
 
 try:
-    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
 except ImportError:
     try:
-        from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+        from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
     except ImportError:
-        from ._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger
+        from ._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
 
 from contextlib import contextmanager
 
+
+_configure_malloc()
 
 INTEGER_TYPES = (integer_types, np.integer)
 FLOAT_TYPES = (float, np.floating)
@@ -978,6 +980,9 @@ class CatBoostClassifier(CatBoost):
     l2_leaf_reg : int, [default=3]
         L2 regularization term on weights.
         range: [0,+inf]
+    model_size_reg : int, [default=None]
+        Model size regularization coefficient.
+        range: [0,+inf]
     rsm : float, [default=None]
         Subsample ratio of columns when constructing each tree.
         range: (0,1]
@@ -987,9 +992,6 @@ class CatBoostClassifier(CatBoost):
             - 'CrossEntropy'
             - 'MultiClass'
             - 'MultiClassOneVsAll'
-    border : float, [default=None]
-        Threshold of positive class.
-        range: (0,1)
     border_count : int, [default=32]
         The number of partitions for Num features. Used in the preliminary calculation.
         range: (0,+inf]
@@ -1059,33 +1061,23 @@ class CatBoostClassifier(CatBoost):
             - 'Verbose'
             - 'Info'
             - 'Debug'
-    ctr_description : list of strings, [default=None]
+    simple_ctr: list of strings, [default=None]
         Binarization settings for categorical features.
-        Format :   ['<CTR_type_1>:[<number_of_borders_1>]:[<Binarization_type_1>]',
-                    '<CTR_type_2>:[<number_of_borders_2>]:[<Binarization_type_2>]',
-                    ... ]
-        Example: ['Borders:5:Median', 'BinarizedTargetMeanValue:10:MinEntropy', ...]
-        CTR types:
-            - 'Borders'
-            - 'Buckets'
-            - 'BinarizedTargetMeanValue'
-            - 'Counter'
-        Number_of_borders and Binarization_type are optional parametrs
-        that only used for regression.
-            you can fit ctr_description like ['<CTR_type_1>', '<CTR_type_2>', ... ]
-            in this case Number_of_borders and Binarization_type are still default.
-        The number of borders for target binarization [default=1]:
-            - integer values in scope [1, 255].
-        The binarization type for the target [default='MinEntropy']:
-            - 'Median'
-            - 'Uniform'
-            - 'UniformAndQuantiles'
-            - 'MaxLogSum'
-            - 'MinEntropy'
-            - 'GreedyLogSum'
-    ctr_border_count : int, [default=50]
-        The number of partitions for Categ features.
-        range: [1,255]
+            Format : see documentation
+            Example: ['Borders:CtrBorderCount=5:Prior=0:Prior=0.5', 'BinarizedTargetMeanValue:TargetBorderCount=10:TargetBorderType=MinEntropy', ...]
+            CTR types:
+                CPU and GPU
+                - 'Borders'
+                - 'Buckets'
+                CPU only
+                - 'BinarizedTargetMeanValue'
+                - 'Counter'
+                GPU only
+                - 'FloatTargetMeanValue'
+                - 'FeatureFreq'
+            Number_of_borders, binarization type, target borders and binarizations, priors are optional parametrs
+    combinations_ctr: list of strings, [default=None]
+    per_feature_ctr: list of strings, [default=None]
     ctr_leaf_count_limit : int, [default=None]
         The maximum number of leafs with categorical features.
         If the quantity exceeds the specified value a part of leafs is discarded.
@@ -1104,8 +1096,6 @@ class CatBoostClassifier(CatBoost):
     max_ctr_complexity : int, [default=4]
         The maximum number of Categ features that can be combined.
         range: [0,+inf]
-    priors : list, [default=None]
-        Use priors when training.
     has_time : bool, [default=False]
         To use the order in which objects are represented in the input data
         (do not perform a random permutation on the stages of converting
@@ -1152,9 +1142,6 @@ class CatBoostClassifier(CatBoost):
     used_ram_limit : int, [default=None]
         Try to limit used memory (limit value in bytes).
         WARNING: Currently this option affects CTR memory usage only.
-    feature_priors : list of strings, [default=None]
-        You might provide custom per feature priors. They will be used instead of default ones.
-        Format is: ['f1Idx:prior1:prior2:prior3', 'f2Idx:prior1']
     allow_writing_files : bool, [default=True]
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not
@@ -1177,9 +1164,9 @@ class CatBoostClassifier(CatBoost):
         learning_rate=None,
         depth=None,
         l2_leaf_reg=None,
+        model_size_reg=None,
         rsm=None,
         loss_function='Logloss',
-        border=None,
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -1195,12 +1182,9 @@ class CatBoostClassifier(CatBoost):
         use_best_model=None,
         verbose=None,
         logging_level=None,
-        ctr_description=None,
-        ctr_border_count=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
-        priors=None,
         has_time=None,
         classes_count=None,
         class_weights=None,
@@ -1217,9 +1201,12 @@ class CatBoostClassifier(CatBoost):
         snapshot_file=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
-        feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        simple_ctr=None,
+        combinations_ctr=None,
+        per_feature_ctr=None,
+        ctr_description=None,
         task_type=None,
         device_config=None,
         **kwargs
@@ -1474,9 +1461,9 @@ class CatBoostRegressor(CatBoost):
         learning_rate=None,
         depth=None,
         l2_leaf_reg=None,
+        model_size_reg=None,
         rsm=None,
         loss_function='RMSE',
-        border=None,
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -1492,12 +1479,9 @@ class CatBoostRegressor(CatBoost):
         use_best_model=None,
         verbose=None,
         logging_level=None,
-        ctr_description=None,
-        ctr_border_count=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
-        priors=None,
         has_time=None,
         one_hot_max_size=None,
         random_strength=None,
@@ -1511,9 +1495,12 @@ class CatBoostRegressor(CatBoost):
         snapshot_file=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
-        feature_priors=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        simple_ctr=None,
+        combinations_ctr=None,
+        per_feature_ctr=None,
+        ctr_description=None,
         task_type=None,
         device_config=None,
         **kwargs

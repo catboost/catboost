@@ -26,7 +26,6 @@ PEERDIR(
     library/getopt/small
     library/grid_creator
     library/json
-    library/malloc/api
     library/svnversion
     library/threading/local_executor
 )

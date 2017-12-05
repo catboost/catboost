@@ -78,7 +78,7 @@ namespace NCatboostStandalone {
         BinaryFeatureCount = 0;
         FloatFeatureCount = 0;
         for (const auto& ff : *ObliviousTrees->FloatFeatures()) {
-            FloatFeatureCount = std::max<int>(FloatFeatureCount, ff->FlatIndex());
+            FloatFeatureCount = std::max<int>(FloatFeatureCount, ff->FlatIndex() + 1);
             BinaryFeatureCount += ff->Borders()->size();
         }
     }

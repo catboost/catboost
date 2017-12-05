@@ -263,7 +263,7 @@ public:
      * @param options execution options
      * @todo store entire options structure
      */
-    TShellCommand(const TStringBuf cmd, const ylist<TString>& args, const TShellCommandOptions& options = TShellCommandOptions(),
+    TShellCommand(const TStringBuf cmd, const TList<TString>& args, const TShellCommandOptions& options = TShellCommandOptions(),
                   const TString& workdir = TString());
     TShellCommand(const TStringBuf cmd, const TShellCommandOptions& options = TShellCommandOptions(), const TString& workdir = TString());
     ~TShellCommand();

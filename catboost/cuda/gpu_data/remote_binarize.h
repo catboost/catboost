@@ -42,7 +42,7 @@ namespace NKernelHost {
                                                Dst.Get(), BorderCount,
                                                stream.GetStream());
             } else {
-                ythrow TCatboostException() << "Error: unsupported binarization for tree ctrs "
+                ythrow TCatboostException() << "Error: unsupported binarization for combinations ctrs "
                                             << BorderType;
             }
         }

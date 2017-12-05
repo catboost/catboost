@@ -13,8 +13,8 @@ PEERDIR(
 )
 
 ADDINCL(
-    ${PYTHON_SRC_DIR}
-    ${PYTHON_SRC_DIR}/Include
+    GLOBAL ${PYTHON_SRC_DIR}
+    GLOBAL ${PYTHON_SRC_DIR}/Include
 )
 
 SRCDIR(

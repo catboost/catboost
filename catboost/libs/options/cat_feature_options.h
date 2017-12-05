@@ -55,16 +55,15 @@ namespace NCatboostOptions {
     }
 
     struct TCtrDescription {
-        explicit TCtrDescription(ETaskType taskType = ETaskType::CPU,
-                                 ECtrType type = ECtrType::Borders,
+        explicit TCtrDescription(ECtrType type = ECtrType::Borders,
                                  TVector<TPrior> priors = TVector<TPrior>(),
                                  TBinarizationOptions ctrBinarization = TBinarizationOptions(EBorderSelectionType::Uniform, 15),
                                  TBinarizationOptions targetBinarization = TBinarizationOptions(EBorderSelectionType::MinEntropy, 1))
             : Type("ctr_type", type)
             , Priors("priors", priors)
             , CtrBinarization("ctr_borders", ctrBinarization)
-            , TargetBinarization("target_borders", targetBinarization, taskType)
-        {
+            , TargetBinarization("target_borders", targetBinarization)
+            , PriorEstimation("prior_estimation", EPriorEstimation::No) {
             DisableRedundantFields();
         }
 
@@ -78,17 +77,17 @@ namespace NCatboostOptions {
 
         void Load(const NJson::TJsonValue& options) {
             CheckedLoad(options,
-                        &Type, &Priors, &CtrBinarization, &TargetBinarization);
+                        &Type, &Priors, &CtrBinarization, &TargetBinarization, &PriorEstimation);
             DisableRedundantFields();
         }
 
         void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, Type, Priors, CtrBinarization, TargetBinarization);
+            SaveFields(options, Type, Priors, CtrBinarization, TargetBinarization, PriorEstimation);
         }
 
         bool operator==(const TCtrDescription& rhs) const {
-            return std::tie(Type, Priors, CtrBinarization, TargetBinarization) ==
-                   std::tie(rhs.Type, rhs.Priors, rhs.CtrBinarization, rhs.TargetBinarization);
+            return std::tie(Type, Priors, CtrBinarization, TargetBinarization, PriorEstimation) ==
+                   std::tie(rhs.Type, rhs.Priors, rhs.CtrBinarization, rhs.TargetBinarization, rhs.PriorEstimation);
         }
 
         bool operator!=(const TCtrDescription& rhs) const {
@@ -106,7 +105,8 @@ namespace NCatboostOptions {
         TOption<ECtrType> Type;
         TOption<TVector<TPrior>> Priors;
         TOption<TBinarizationOptions> CtrBinarization;
-        TCpuOnlyOption<TBinarizationOptions> TargetBinarization;
+        TOption<TBinarizationOptions> TargetBinarization;
+        TOption<EPriorEstimation> PriorEstimation;
 
     private:
         void DisableRedundantFields() {
@@ -114,7 +114,7 @@ namespace NCatboostOptions {
             if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
                 TargetBinarization.SetDisabledFlag(true);
             } else {
-                TargetBinarization.GetUnchecked().DisableNanModeOption();
+                TargetBinarization->DisableNanModeOption();
             }
             CtrBinarization->DisableNanModeOption();
         }
@@ -131,8 +131,7 @@ namespace NCatboostOptions {
             , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
             , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
             , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
-            , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType)
-        {
+            , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType) {
             TargetBorders.GetUnchecked().DisableNanModeOption();
         }
 

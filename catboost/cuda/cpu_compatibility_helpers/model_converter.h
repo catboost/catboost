@@ -10,6 +10,7 @@
 #include <catboost/libs/algo/projection.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/model_build_helper.h>
+#include <limits>
 
 namespace NCatboostCuda
 {
@@ -64,11 +65,14 @@ namespace NCatboostCuda
                     {
                         if (dataProvider.HasFeatureId(featureId))
                         {
-                            TVector<float> borders = manager.GetBorders(manager.GetFeatureManagerIdForFloatFeature(featureId));
+                            const auto featureIdInFeaturesManager = manager.GetFeatureManagerIdForFloatFeature(featureId);
+                            TVector<float> borders = manager.GetBorders(featureIdInFeaturesManager);
                             Borders.push_back(std::move(borders));
+                            FloatFeaturesNanMode.push_back(manager.GetNanMode(featureIdInFeaturesManager));
                         } else
                         {
                             Borders.push_back(TVector<float>());
+                            FloatFeaturesNanMode.push_back(ENanMode::Forbidden);
                         }
                         FloatFeaturesRemap[featureId] = static_cast<ui32>(FloatFeaturesRemap.size());
                     }
@@ -85,7 +89,7 @@ namespace NCatboostCuda
             const auto& featureNames = DataProvider.GetFeatureNames();
             const auto& catFeatureIds = DataProvider.GetCatFeatureIds();
             TFullModel coreModel;
-            coreModel.ModelInfo["params"] = "{}"; //TODO(noxoomo): something meaningful here
+            coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
             auto featureCount = featureNames.ysize();
             TVector<TFloatFeature> floatFeatures;
             TVector<TCatFeature> catFeatures;
@@ -100,10 +104,12 @@ namespace NCatboostCuda
                 } else {
                     auto floatFeatureIdx = floatFeatures.size();
                     auto& floatFeature = floatFeatures.emplace_back();
+                    const bool hasNans =  FloatFeaturesNanMode.at(floatFeatureIdx) != ENanMode::Forbidden;
                     floatFeature.FeatureIndex = floatFeatureIdx;
                     floatFeature.FlatFeatureIndex = i;
                     floatFeature.Borders = Borders[floatFeatureIdx];
                     floatFeature.FeatureId = featureNames[i];
+                    floatFeature.HasNans = hasNans;
                 }
             }
 
@@ -131,6 +137,7 @@ namespace NCatboostCuda
         }
 
     private:
+
         inline TModelSplit CreateFloatSplit(const TBinarySplit& split) const
         {
             CB_ENSURE(FeaturesManager.IsFloat(split.FeatureId));
@@ -140,7 +147,28 @@ namespace NCatboostCuda
             auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
             CB_ENSURE(FloatFeaturesRemap.has(dataProviderId));
             auto remapId = FloatFeaturesRemap.at(dataProviderId);
-            modelSplit.FloatFeature = TFloatSplit{(int)remapId, Borders.at(remapId).at(split.BinIdx)};
+
+            //TODO(kirillovs): fix NaNs in model
+            float border;
+            const auto nanMode = FloatFeaturesNanMode.at(remapId);
+            switch (nanMode) {
+                case ENanMode::Forbidden : {
+                    border = Borders.at(remapId).at(split.BinIdx);
+                    break;
+                }
+                case ENanMode::Min : {
+                    border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : -std::numeric_limits<float>::infinity();
+                    break;
+                }
+                case ENanMode::Max : {
+                    border = split.BinIdx != Borders.at(remapId).size() ? Borders.at(remapId).at(split.BinIdx) : std::numeric_limits<float>::infinity();
+                    break;
+                }
+                default: {
+                    ythrow TCatboostException() << "Unknown NaN mode " << nanMode;
+                };
+            }
+            modelSplit.FloatFeature = TFloatSplit{(int)remapId, border};
             return modelSplit;
         }
 
@@ -242,6 +270,7 @@ namespace NCatboostCuda
         TVector<TVector<int>> CatFeatureBinToHashIndex;
         TMap<ui32, ui32> CatFeaturesRemap;
         TMap<ui32, ui32> FloatFeaturesRemap;
+        TVector<ENanMode> FloatFeaturesNanMode;
         TVector<TVector<float>> Borders;
     };
 

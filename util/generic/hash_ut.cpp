@@ -711,7 +711,7 @@ struct TAllocatorCounters {
 
     size_t Allocations;
     size_t Deallocations;
-    yset<std::pair<void*, size_t>> Chunks;
+    TSet<std::pair<void*, size_t>> Chunks;
 };
 
 template <class T>

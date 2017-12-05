@@ -4,8 +4,8 @@
 
 SIMPLE_UNIT_TEST_SUITE(TYListSuite) {
     SIMPLE_UNIT_TEST(TestInitializerList) {
-        ylist<int> l = {3, 42, 6};
-        ylist<int> expected;
+        TList<int> l = {3, 42, 6};
+        TList<int> expected;
         expected.push_back(3);
         expected.push_back(42);
         expected.push_back(6);

@@ -204,6 +204,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
                LeafValues,
                LearnErrorsHistory,
                TestErrorsHistory,
+               UsedCtrSplits,
                PoolCheckSum);
 }
 
@@ -224,5 +225,6 @@ void TLearnProgress::Load(IInputStream* s) {
                LeafValues,
                LearnErrorsHistory,
                TestErrorsHistory,
+               UsedCtrSplits,
                PoolCheckSum);
 }

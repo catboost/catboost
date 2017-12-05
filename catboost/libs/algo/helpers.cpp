@@ -6,6 +6,8 @@
 #include <util/generic/algorithm.h>
 #include <util/system/mem_info.h>
 
+#include <library/malloc/api/malloc.h>
+
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
     auto& docStorage = pool.Docs;
     const THashSet<int>& categFeatures = ctx->CatFeatures;
@@ -128,4 +130,12 @@ int GetClassesCount(const TVector<float>& target, int classesCount) {
         CB_ENSURE(maxClass < classesCount, "if classes-count is specified then each target label should be in range 0,..,classes_count-1");
         return classesCount;
     }
+}
+
+void ConfigureMalloc() {
+#if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
+    if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
+        MATRIXNET_WARNING_LOG << "link me with lfalloc please" << Endl;
+    }
+#endif
 }

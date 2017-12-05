@@ -1,26 +1,18 @@
-76.09321254	c8
-3.688912439	c4
-3.017660637	{c9, f5 border=209753, f14 border=2189.5, c8 val = -2019910086, c16 val = 1510821218} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-2.991214899	f13
-2.679426156	{c6, f14 border=2396, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-2.619140752	c10
-2.232855654	f5
-2.143315618	{c9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.9983860046	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.714741623	f7
-0.5540530696	f3
-0.4444116642	{c6, c9, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.3604406292	{c6, c8 val = -2019910086} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.3321817693	c11
-0.2628811409	{c9, f3 border=58.5, c8 val = -2019910086, c11 val = -86031875, c8 val = -651660490} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.1978090955	{c6, f13 border=11356, c10 val = 60472414} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.181671976	f14
-0.162434725	f15
-0.09181396257	c12
-0.07462723936	{c6, c9, c8 val = 1959200218, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.05562502511	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.0470213224	{c6, c8 val = 1959200218, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.04680475095	{c9, c10 val = 60472414} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.00935730775	c16
-0	{c9, c8 val = 1959200218, c8 val = -2019910086} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0	{c9, c8 val = 1959200218} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+52.09775789	c8
+16.69917101	c10
+11.18793127	f13
+3.775525738	f15
+3.256002248	f7
+3.082790327	c4
+2.87142394	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+1.7575993	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+1.753060463	c12
+1.270357619	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+1.166292697	f14
+0.5607785768	c11
+0.3903039886	{c6, c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.0671995165	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.05537791204	f3
+0.00842750539	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0	{c6, f7 border=13.5, f7 border=10.5, c10 val = 60472414} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0	{c9} prior_num=1 prior_denom=1 targetborder=0 type=Borders

@@ -52,7 +52,7 @@ public:
     {
     }
 
-    template <class TT, typename = std::enable_if_t<std::is_same<typename std::remove_const<T>::type, typename std::remove_const<TT>::type>::value>>
+    template <class TT, typename = std::enable_if_t<std::is_same<std::remove_const_t<T>, std::remove_const_t<TT>>::value>>
     bool operator==(const TArrayRef<TT>& other) const noexcept {
         return Size() == other.Size() && std::equal(this->Begin(), this->End(), other.Begin());
     }

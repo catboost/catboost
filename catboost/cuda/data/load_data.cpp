@@ -127,10 +127,17 @@ namespace NCatboostCuda {
 
                 TVector<float>& borders = grid[featureId];
 
+                ENanMode nanMode = ENanMode::Forbidden;
+                {
+                    TGuard<TAdaptiveLock> guard(lock);
+                    nanMode = FeaturesManager.GetOrCreateNanMode(*floatFeature);
+                }
+
                 if (FeaturesManager.HasFloatFeatureBorders(*floatFeature))
                 {
                     borders = FeaturesManager.GetFloatFeatureBorders(*floatFeature);
                 }
+
 
                 if (borders.empty() && !IsTest)
                 {
@@ -144,12 +151,16 @@ namespace NCatboostCuda {
                     return;
                 }
 
+
                 auto binarizedData = BinarizeLine(floatFeature->GetValues().data(),
-                                                  floatFeature->GetValues().size(), borders);
+                                                  floatFeature->GetValues().size(),
+                                                  nanMode,
+                                                  borders);
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(borders.size() + 1));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
                                                                                     floatFeature->GetValues().size(),
+                                                                                    nanMode,
                                                                                     borders,
                                                                                     std::move(compressedLine),
                                                                                     featureName);

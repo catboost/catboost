@@ -696,6 +696,17 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       3
 #'
+#'     \item model_size_reg
+#'
+#'       Model size regularization coefficient. The influence coefficient of the model size for choosing tree structure.
+#'       To get a smaller model size - increase this coefficient.
+#'
+#'       Any positive values are allowed.
+#'
+#'       Default value:
+#'
+#'       0.5
+#'
 #'     \item has_time
 #'
 #'       Use the order of objects in the input data (do not perform random permutations during the

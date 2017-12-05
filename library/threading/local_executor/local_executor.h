@@ -163,6 +163,9 @@ namespace NPar {
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
         template <typename TBody>
         inline void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
+            if (params.LastId == params.FirstId) {
+                return;
+            }
             if (params.BlockEqualToThreads) {
                 params.SetBlockCount(ThreadCount + ((flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
             }

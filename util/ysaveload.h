@@ -269,6 +269,7 @@ static inline size_t LoadSize(IInputStream* rh) {
     if (oldVerSize != 0xffffffff) {
         return oldVerSize;
     } else {
+        ythrow yexception() << "It's not allowed to load size which is more than or equal to max value of ui32";
         ::Load(rh, newVerSize);
         return newVerSize;
     }
@@ -339,7 +340,7 @@ class TSerializer<std::vector<T, A>>: public TVectorSerializer<std::vector<T, A>
 };
 
 template <class T, class A>
-class TSerializer<ylist<T, A>>: public TVectorSerializer<ylist<T, A>> {
+class TSerializer<TList<T, A>>: public TVectorSerializer<TList<T, A>> {
 };
 
 template <class T, class A>
@@ -471,12 +472,12 @@ public:
     }
 };
 
-template <class TSet, class TValue>
-class TSetSerializerInserter<TSet, TValue, true>: public TSetSerializerInserterBase<TSet, TValue> {
-    using TBase = TSetSerializerInserterBase<TSet, TValue>;
+template <class TSetType, class TValue>
+class TSetSerializerInserter<TSetType, TValue, true>: public TSetSerializerInserterBase<TSetType, TValue> {
+    using TBase = TSetSerializerInserterBase<TSetType, TValue>;
 
 public:
-    inline TSetSerializerInserter(TSet& s, size_t cnt)
+    inline TSetSerializerInserter(TSetType& s, size_t cnt)
         : TBase(s)
     {
         Y_UNUSED(cnt);
@@ -488,7 +489,7 @@ public:
     }
 
 private:
-    typename TSet::iterator P_;
+    typename TSetType::iterator P_;
 };
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
@@ -519,28 +520,28 @@ public:
 
 template <class T1, class T2, class T3, class T4, class TValue>
 class TSetSerializerInserter<THashSet<T1, T2, T3, T4>, TValue, false>: public TSetSerializerInserterBase<THashSet<T1, T2, T3, T4>, TValue> {
-    using TSet = THashSet<T1, T2, T3, T4>;
-    using TBase = TSetSerializerInserterBase<TSet, TValue>;
+    using TSetType = THashSet<T1, T2, T3, T4>;
+    using TBase = TSetSerializerInserterBase<TSetType, TValue>;
 
 public:
-    inline TSetSerializerInserter(TSet& s, size_t cnt)
+    inline TSetSerializerInserter(TSetType& s, size_t cnt)
         : TBase(s)
     {
         s.reserve(cnt);
     }
 };
 
-template <class TSet, class TValue, bool sorted>
+template <class TSetType, class TValue, bool sorted>
 class TSetSerializerBase {
 public:
-    static inline void Save(IOutputStream* rh, const TSet& s) {
+    static inline void Save(IOutputStream* rh, const TSetType& s) {
         ::SaveSize(rh, s.size());
         ::SaveRange(rh, s.begin(), s.end());
     }
 
-    static inline void Load(IInputStream* rh, TSet& s) {
+    static inline void Load(IInputStream* rh, TSetType& s) {
         const size_t cnt = ::LoadSize(rh);
-        TSetSerializerInserter<TSet, TValue, sorted> ins(s, cnt);
+        TSetSerializerInserter<TSetType, TValue, sorted> ins(s, cnt);
 
         TValue v;
         for (size_t i = 0; i != cnt; ++i) {
@@ -550,9 +551,9 @@ public:
     }
 
     template <class TStorage>
-    static inline void Load(IInputStream* rh, TSet& s, TStorage& pool) {
+    static inline void Load(IInputStream* rh, TSetType& s, TStorage& pool) {
         const size_t cnt = ::LoadSize(rh);
-        TSetSerializerInserter<TSet, TValue, sorted> ins(s, cnt);
+        TSetSerializerInserter<TSetType, TValue, sorted> ins(s, cnt);
 
         TValue v;
         for (size_t i = 0; i != cnt; ++i) {
@@ -566,8 +567,8 @@ template <class TMapType, bool sorted = false>
 struct TMapSerializer: public TSetSerializerBase<TMapType, std::pair<typename TMapType::key_type, typename TMapType::mapped_type>, sorted> {
 };
 
-template <class TSet, bool sorted = false>
-struct TSetSerializer: public TSetSerializerBase<TSet, typename TSet::value_type, sorted> {
+template <class TSetType, bool sorted = false>
+struct TSetSerializer: public TSetSerializerBase<TSetType, typename TSetType::value_type, sorted> {
 };
 
 template <class T1, class T2, class T3, class T4>
@@ -579,7 +580,7 @@ class TSerializer<std::map<K, T, C, A>>: public TMapSerializer<std::map<K, T, C,
 };
 
 template <class T1, class T2, class T3, class T4>
-class TSerializer<ymultimap<T1, T2, T3, T4>>: public TMapSerializer<ymultimap<T1, T2, T3, T4>, true> {
+class TSerializer<TMultiMap<T1, T2, T3, T4>>: public TMapSerializer<TMultiMap<T1, T2, T3, T4>, true> {
 };
 
 template <class K, class T, class C, class A>
@@ -595,7 +596,7 @@ class TSerializer<THashMultiMap<T1, T2, T3, T4, T5>>: public TMapSerializer<THas
 };
 
 template <class K, class C, class A>
-class TSerializer<yset<K, C, A>>: public TSetSerializer<yset<K, C, A>, true> {
+class TSerializer<TSet<K, C, A>>: public TSetSerializer<TSet<K, C, A>, true> {
 };
 
 template <class K, class C, class A>

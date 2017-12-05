@@ -1,102 +1,102 @@
 {
     "test.test_class_weights": {
-        "checksum": "ac2e948c926b49d4d34d577da9586580",
+        "checksum": "01d053581ae89c3731e8d9b2d9a30c9d",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
-        "checksum": "34505db66cdcc32e55d113f0c7163614",
+        "checksum": "e47b194b16144a39e9560022f53492e8",
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
-        "checksum": "8e59993070f6ca2a02fa441db2fd8e0f",
+        "checksum": "470dec61b7cc7435cedf63d2237edb7a",
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_doc_feature_importance": {
-        "checksum": "78c7d44cbb48cd9c6a99ff05ff79eb97",
+        "checksum": "90670716082661a4217a9e73e0468ec8",
         "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
     },
     "test.test_feature_importance": {
-        "checksum": "0d1cf8dc908c2c4cb7befb900f6ce5ac",
+        "checksum": "0eabf84171b4c213f475f7de9ffa96ea",
         "uri": "file://test.test_feature_importance/feature_importance.npy"
     },
     "test.test_fit_data": {
-        "checksum": "707cfbdc1c29dab409e28d83b1335de2",
+        "checksum": "7242cf25f3823daf284df2404a568aed",
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "a7e5d64067933f505a8ccce50c9cc992",
+        "checksum": "31df40001d9c62ff80dab4e9216e867a",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "ecc2f50053cb0b93491fd50c3d933168",
+        "checksum": "783341a6913b63cb7152d36e27d43ed1",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
-        "checksum": "cec98459815ecb9c5e8b62de67e010f3",
+        "checksum": "1c25f29014764765e19b6b3429f4f0ac",
         "uri": "file://test.test_interaction_feature_importance/feature_importance.npy"
     },
     "test.test_multiclass": {
-        "checksum": "3d74ead27866b34eca6bb21662a9bad0",
+        "checksum": "8e1fd341bb19c88b4554512624e9bf05",
         "uri": "file://test.test_multiclass/predictions.npy"
     },
     "test.test_non_ones_weight": {
-        "checksum": "8b4a82da1e728f7ab06be92245b01258",
+        "checksum": "cd7268bd5183a069e53415b5d81ad1c0",
         "uri": "file://test.test_non_ones_weight/model.bin"
     },
     "test.test_ntree_limit": {
-        "checksum": "3bea330926314b7f7ab7d576c5c996e6",
+        "checksum": "6ef5da85edd929f38142403e91cf902a",
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "f85d1ebdcdda6aafc48636c64325adc5",
+        "checksum": "6ba596946c9ab182bc49a9b968e938af",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
-        "checksum": "c98ec5613000f6bd0a4ff17502f9d783",
+        "checksum": "b96f50d250ca23a01b10ee26fc0b144d",
         "uri": "file://test.test_one_doc_feature_importance/feature_importance.npy"
     },
     "test.test_ones_weight": {
-        "checksum": "441c8b56f79f6b477346040a95a8b7e3",
+        "checksum": "bbeb052e257cc1d74d9e29abff4fd266",
         "uri": "file://test.test_ones_weight/model.bin"
     },
     "test.test_predict_class": {
-        "checksum": "84be1e1b3e4efc574ef221d9d9b7f5dc",
+        "checksum": "ab07dca84aa99741193fe2ea6ad1a1da",
         "uri": "file://test.test_predict_class/predictions.npy"
     },
     "test.test_predict_class_proba": {
-        "checksum": "7c7c37c22e939513b2260e486aa987ff",
+        "checksum": "b49cebe88def3b66b612054ed911bea9",
         "uri": "file://test.test_predict_class_proba/predictions.npy"
     },
     "test.test_predict_class_raw": {
-        "checksum": "84be1e1b3e4efc574ef221d9d9b7f5dc",
+        "checksum": "ab07dca84aa99741193fe2ea6ad1a1da",
         "uri": "file://test.test_predict_class_raw/predictions.npy"
     },
     "test.test_predict_regress": {
-        "checksum": "106d26db5c5e70717061913044d99507",
+        "checksum": "146cc908fcb88fdd6cfcd8c3bd6a65e1",
         "uri": "file://test.test_predict_regress/model.bin"
     },
     "test.test_predict_sklearn_class": {
-        "checksum": "638232878a90bc739b44faccd5ae87fe",
+        "checksum": "edaa7168932e6a9668ff798b249f77c3",
         "uri": "file://test.test_predict_sklearn_class/model.bin"
     },
     "test.test_predict_sklearn_regress": {
-        "checksum": "106d26db5c5e70717061913044d99507",
+        "checksum": "146cc908fcb88fdd6cfcd8c3bd6a65e1",
         "uri": "file://test.test_predict_sklearn_regress/model.bin"
     },
     "test.test_priors": {
-        "checksum": "a850a15fe447d8e07f50a4824ee2b820",
+        "checksum": "c941a071caa18ea856e62a91e62121a0",
         "uri": "file://test.test_priors/model.bin"
     },
     "test.test_regression_ctr": {
-        "checksum": "d435e27439e4cb0dfba7966231154419",
+        "checksum": "0ef2ce2d31d6efbab058b6607cd077eb",
         "uri": "file://test.test_regression_ctr/model.bin"
     },
     "test.test_staged_predict": {
-        "checksum": "2de9db5394c93e1a6904ad58c7f6b847",
+        "checksum": "718cf59d5f8ce7e4b7cf7fadb501032c",
         "uri": "file://test.test_staged_predict/predictions.npy"
     },
     "test.test_zero_baseline": {
-        "checksum": "f516c794642a216ee0822f4afb388ca6",
+        "checksum": "21a22e4c6981c161c67876fbbd86bfe4",
         "uri": "file://test.test_zero_baseline/model.bin"
     }
 }

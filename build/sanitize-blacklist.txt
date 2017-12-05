@@ -1,1 +1,3 @@
 src:*contrib/tools/python/src*
+src:*contrib/libs/node_0_8_28*
+src:*yt/19_2*

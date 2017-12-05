@@ -10,12 +10,13 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/catboost_options.h>
 
 #include <library/json/json_reader.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/noncopyable.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <util/generic/hash_set.h>
 
 
 
@@ -32,7 +33,10 @@ struct TLearnProgress {
     TVector<TSplitTree> TreeStruct;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
 
-    TVector<TVector<double>> LearnErrorsHistory, TestErrorsHistory;
+    TVector<TVector<double>> LearnErrorsHistory;
+    TVector<TVector<double>> TestErrorsHistory;
+
+    THashSet<std::pair<ECtrType, TProjection>> UsedCtrSplits;
 
     ui32 PoolCheckSum = 0;
 

@@ -10,6 +10,7 @@ RECURSE(
     flatbuffers
     flatbuffers/samples
     fmath
+    gamma_function_apache_math_port
     jemalloc
     libbz2
     libunwind_master

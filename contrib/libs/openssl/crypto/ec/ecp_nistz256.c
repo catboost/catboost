@@ -35,6 +35,19 @@
 
 #include "ec_lcl.h"
 
+// A function level attribute to disable checking for use of uninitialized
+// memory when built with MemorySanitizer.
+#if defined(__clang__)
+# if __has_feature(memory_sanitizer)
+#  define _ATTRIBUTE_NO_SANITIZE_MEMORY_ \
+       __attribute__((no_sanitize_memory))
+# else
+#  define _ATTRIBUTE_NO_SANITIZE_MEMORY_
+# endif  // __has_feature(memory_sanitizer)
+#else
+# define _ATTRIBUTE_NO_SANITIZE_MEMORY_
+#endif  // __clang__
+
 #if BN_BITS2 != 64
 # define TOBN(hi,lo)    lo,hi
 #else
@@ -1140,6 +1153,7 @@ static int ecp_nistz256_set_from_affine(EC_POINT *out, const EC_GROUP *group,
 }
 
 /* r = scalar*G + sum(scalars[i]*points[i]) */
+_ATTRIBUTE_NO_SANITIZE_MEMORY_
 static int ecp_nistz256_points_mul(const EC_GROUP *group,
                                    EC_POINT *r,
                                    const BIGNUM *scalar,
@@ -1393,6 +1407,7 @@ err:
     return ret;
 }
 
+_ATTRIBUTE_NO_SANITIZE_MEMORY_
 static int ecp_nistz256_get_affine(const EC_GROUP *group,
                                    const EC_POINT *point,
                                    BIGNUM *x, BIGNUM *y, BN_CTX *ctx)

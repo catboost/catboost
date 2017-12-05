@@ -9,7 +9,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m);
 
     template <typename TAlloc>
-    void DoTestMMap1(ymultimap<char, int, TLess<char>, TAlloc> & mm);
+    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc> & mm);
 
     SIMPLE_UNIT_TEST(TestMap1) {
         {
@@ -25,12 +25,12 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
 
     SIMPLE_UNIT_TEST(TestMMap1) {
         {
-            ymultimap<char, int, TLess<char>> mm;
+            TMultiMap<char, int, TLess<char>> mm;
             DoTestMMap1(mm);
         }
         {
             TMemoryPool p(100);
-            ymultimap<char, int, TLess<char>, TPoolAllocator> mm(&p);
+            TMultiMap<char, int, TLess<char>, TPoolAllocator> mm(&p);
             DoTestMMap1(mm);
         }
     }
@@ -67,8 +67,8 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     template <typename TAlloc>
-    void DoTestMMap1(ymultimap<char, int, TLess<char>, TAlloc> & m) {
-        using mmap = ymultimap<char, int, TLess<char>, TAlloc>;
+    void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc> & m) {
+        using mmap = TMultiMap<char, int, TLess<char>, TAlloc>;
 
         UNIT_ASSERT(m.count('X') == 0);
 
@@ -104,7 +104,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         pair_type p5(3, 'x');
         pair_type p6(6, 'f');
 
-        using mmap = ymultimap<int, char, TLess<int>>;
+        using mmap = TMultiMap<int, char, TLess<int>>;
 
         pair_type array[] = {
             p1,
@@ -139,7 +139,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
             UNIT_ASSERT(!(cite != ite));
         }
 
-        using mmap = ymultimap<int, char, TLess<int>>;
+        using mmap = TMultiMap<int, char, TLess<int>>;
         using pair_type = mmap::value_type;
 
         pair_type p1(3, 'c');
@@ -334,7 +334,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
 
         {
-            using Container = ymultimap<TKey, int, TKeyCmp>;
+            using Container = TMultiMap<TKey, int, TKeyCmp>;
             using value = Container::value_type;
 
             Container cont;
@@ -362,7 +362,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
 
         {
-            using Container = ymultimap<TKey const volatile*, int, TKeyCmpPtr>;
+            using Container = TMultiMap<TKey const volatile*, int, TKeyCmpPtr>;
             using value = Container::value_type;
 
             Container cont;
@@ -401,7 +401,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
 
     SIMPLE_UNIT_TEST(TestEmpty) {
         EmptyAndInsertTest<TMap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
-        EmptyAndInsertTest<ymultimap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
+        EmptyAndInsertTest<TMultiMap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
     }
 
     struct TParametrizedKeyCmp {
@@ -422,7 +422,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     };
 
     SIMPLE_UNIT_TEST(TestMoveComparator) {
-        using Container = ymultimap<TKey, int, TParametrizedKeyCmp>;
+        using Container = TMultiMap<TKey, int, TParametrizedKeyCmp>;
 
         TParametrizedKeyCmp direct(false);
         TParametrizedKeyCmp inverse(true);
@@ -463,14 +463,14 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
     }
 
     SIMPLE_UNIT_TEST(TestMMapInitializerList) {
-        ymultimap<TString, int> mm = {
+        TMultiMap<TString, int> mm = {
             {"one", 1},
             {"two", 2},
             {"two", -2},
             {"three", 3},
         };
         UNIT_ASSERT(mm.has("two"));
-        ymultimap<TString, int> expected;
+        TMultiMap<TString, int> expected;
         expected.emplace("one", 1);
         expected.emplace("two", 2);
         expected.emplace("two", -2);

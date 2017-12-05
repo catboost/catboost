@@ -37,4 +37,6 @@ BUILDWITH_CYTHON_CPP(
     --module-name _catboost
 )
 
+ALLOCATOR(LF)
+
 END()

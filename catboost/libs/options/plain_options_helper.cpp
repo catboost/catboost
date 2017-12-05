@@ -6,7 +6,7 @@
 
 namespace NCatboostOptions {
     inline void CopyCtrDescription(const NJson::TJsonValue& options, const TString& srcKey,
-                                   const TString& dstKey, NJson::TJsonValue* dst, yset<TString>* seenKeys) {
+                                   const TString& dstKey, NJson::TJsonValue* dst, TSet<TString>* seenKeys) {
         if (options.Has(srcKey)) {
             (*dst)[dstKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
 
@@ -24,7 +24,7 @@ namespace NCatboostOptions {
     }
 
     inline void CopyPerFeatureCtrDescription(const NJson::TJsonValue& options, const TString& srcKey,
-                                             const TString& dstKey, NJson::TJsonValue* dst, yset<TString>* seenKeys) {
+                                             const TString& dstKey, NJson::TJsonValue* dst, TSet<TString>* seenKeys) {
         if (options.Has(srcKey)) {
             NJson::TJsonValue& perFeatureCtrsMap = (*dst)[dstKey];
             perFeatureCtrsMap.SetType(NJson::JSON_MAP);
@@ -39,7 +39,7 @@ namespace NCatboostOptions {
         }
     }
 
-    inline void CopyOption(const NJson::TJsonValue& options, const TString& key, NJson::TJsonValue* dst, yset<TString>* seenKeys) {
+    inline void CopyOption(const NJson::TJsonValue& options, const TString& key, NJson::TJsonValue* dst, TSet<TString>* seenKeys) {
         if (options.Has(key)) {
             (*dst)[key] = options[key];
             seenKeys->insert(key);
@@ -47,7 +47,7 @@ namespace NCatboostOptions {
     }
 
     inline void CopyOptionWithNewKey(const NJson::TJsonValue& options, const TString& srcKey,
-                                     const TString& dstKey, NJson::TJsonValue* dst, yset<TString>* seenKeys) {
+                                     const TString& dstKey, NJson::TJsonValue* dst, TSet<TString>* seenKeys) {
         if (options.Has(srcKey)) {
             (*dst)[dstKey] = options[srcKey];
             seenKeys->insert(srcKey);
@@ -55,7 +55,7 @@ namespace NCatboostOptions {
     }
 
     void PlainJsonToOptions(const NJson::TJsonValue& plainOptions, NJson::TJsonValue* options, NJson::TJsonValue* outputOptions) {
-        yset<TString> seenKeys;
+        TSet<TString> seenKeys;
         auto& trainOptions = *options;
 
         auto& lossFunctionRef = trainOptions["loss_function"];
@@ -89,18 +89,24 @@ namespace NCatboostOptions {
         NJson::TJsonValue& outputFilesJson = *outputOptions;
         outputFilesJson.SetType(NJson::JSON_MAP);
 
+        CopyOption(plainOptions, "train_dir", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "name", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "meta", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "learn_error_log", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "test_error_log", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "time_left_log", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "result_model_file", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "snapshot_file", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "save_snapshot", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "snapshot_save_interval_secs", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "metric_period", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "prediction_type", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "allow_writing_files", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "use_best_model", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_regular_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_internal_file", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "learn_error_log", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "test_error_log", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "name", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "train_dir", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "snapshot_file", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "save_snapshot", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "prediction_type", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "use_best_model", &outputFilesJson, &seenKeys);
+
 
         //boosting options
         const char* const boostingOptionsKey = "boosting_options";
@@ -129,6 +135,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "leaf_estimation_iterations", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "depth", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "l2_leaf_reg", &treeOptions, &seenKeys);
+        CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "score_function", &treeOptions, &seenKeys);
@@ -154,9 +161,9 @@ namespace NCatboostOptions {
             CopyCtrDescription(plainOptions, "ctr_description", "simple_ctrs", &ctrOptions, &seenKeys);
             CopyCtrDescription(plainOptions, "ctr_description", "combinations_ctrs", &ctrOptions, &seenKeys);
         }
-        CopyCtrDescription(plainOptions, "simple_ctrs", "simple_ctrs", &ctrOptions, &seenKeys);
-        CopyCtrDescription(plainOptions, "combinations_ctrs", "combinations_ctrs", &ctrOptions, &seenKeys);
-        CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctrs", "per_feature_ctrs", &ctrOptions, &seenKeys);
+        CopyCtrDescription(plainOptions, "simple_ctr", "simple_ctrs", &ctrOptions, &seenKeys);
+        CopyCtrDescription(plainOptions, "combinations_ctr", "combinations_ctrs", &ctrOptions, &seenKeys);
+        CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctr", "per_feature_ctrs", &ctrOptions, &seenKeys);
 
         CopyOption(plainOptions, "max_ctr_complexity", &ctrOptions, &seenKeys);
         CopyOption(plainOptions, "simple_ctr_description", &ctrOptions, &seenKeys);
@@ -191,6 +198,10 @@ namespace NCatboostOptions {
 
         CopyOption(plainOptions, "thread_count", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "devices", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "used_ram_limit", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "gpu_ram_part", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "pinned_memory_size", &systemOptions, &seenKeys);
+
 
         //rest
         CopyOption(plainOptions, "random_seed", &trainOptions, &seenKeys);

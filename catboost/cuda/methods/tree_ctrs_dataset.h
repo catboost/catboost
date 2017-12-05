@@ -121,7 +121,7 @@ namespace NCatboostCuda
             return CatFeatures.has(featureId);
         }
 
-        const yset<ui32>& GetCatFeatures() const
+        const TSet<ui32>& GetCatFeatures() const
         {
             return CatFeatures;
         }
@@ -255,7 +255,7 @@ namespace NCatboostCuda
 
         TFeatureTensor BaseFeatureTensor;
         TCudaBuffer<const ui32, TSampleMapping> BaseTensorIndices;
-        yset<ui32> CatFeatures;
+        TSet<ui32> CatFeatures;
 
         THashMap<TCtr, ui32> InverseCtrIndex;
         TVector<TCtr> Ctrs;

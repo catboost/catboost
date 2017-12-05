@@ -153,7 +153,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
     }
 
     SIMPLE_UNIT_TEST(queue1) {
-        TQueue<int, ylist<int>> q;
+        TQueue<int, TList<int>> q;
 
         q.push(42);
         q.push(101);

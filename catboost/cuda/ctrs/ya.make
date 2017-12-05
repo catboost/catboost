@@ -16,6 +16,7 @@ PEERDIR(
     catboost/cuda/cuda_lib
     catboost/libs/ctr_description
     catboost/cuda/cuda_util
+    contrib/libs/gamma_function_apache_math_port
 )
 
 CUDA_NVCC_FLAGS(

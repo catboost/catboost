@@ -37,7 +37,7 @@ public:
     }
 
     TObliviousTrees Build() {
-        yset<TModelSplit> ModelSplitSet;
+        TSet<TModelSplit> ModelSplitSet;
         for (const auto& tree : Trees) {
             for (const auto& split : tree) {
                 ModelSplitSet.insert(split);

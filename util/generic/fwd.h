@@ -78,16 +78,16 @@ template <class Value, class HashFcn = THash<Value>, class EqualKey = TEqualTo<V
 class THashMultiSet;
 
 template <class T, class A = std::allocator<T>>
-class ylist;
+class TList;
 
 template <class K, class V, class Less = TLess<K>, class A = std::allocator<K>>
 class TMap;
 
 template <class K, class V, class Less = TLess<K>, class A = std::allocator<K>>
-class ymultimap;
+class TMultiMap;
 
 template <class K, class L = TLess<K>, class A = std::allocator<K>>
-class yset;
+class TSet;
 
 template <class K, class L = TLess<K>, class A = std::allocator<K>>
 class TMultiSet;
