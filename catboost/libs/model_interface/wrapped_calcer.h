@@ -20,7 +20,7 @@ public:
         }
     }
 
-    double CalcFlat(const std::vector<float>& features) {
+    double CalcFlat(const std::vector<float>& features) const {
         double result;
         const float* ptr = features.data();
         if (!CalcModelPredictionFlat(CalcerHolder.get(), 1, &ptr, features.size(), &result, 1)) {
@@ -44,7 +44,7 @@ public:
         return result;
     }
 
-    std::vector<double> CalcFlat(const std::vector<std::vector<float>>& features) {
+    std::vector<double> CalcFlat(const std::vector<std::vector<float>>& features) const {
         std::vector<double> result(features.size());
         std::vector<const float*> ptrsVector;
         size_t flatVecSize = 0;
