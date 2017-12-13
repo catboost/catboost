@@ -10,7 +10,9 @@
 
 class ModelCalcerWrapper {
 public:
-    ModelCalcerWrapper() = default;
+    ModelCalcerWrapper()
+        : CalcerHolder(CalcerHolderType(ModelCalcerCreate(), ModelCalcerDelete))
+    {}
 
     explicit ModelCalcerWrapper(const std::string& filename) {
         CalcerHolder = CalcerHolderType(ModelCalcerCreate(), ModelCalcerDelete);
@@ -29,7 +31,7 @@ public:
         return result;
     }
 
-    double Calc(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) {
+    double Calc(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) const {
         double result;
         const float* floatPtr = floatFeatures.data();
         std::vector<const char*> catFeaturesPtrs;
@@ -60,7 +62,7 @@ public:
     }
 
     std::vector<double> CalcHashed(const std::vector<std::vector<float>>& floatFeatures,
-                                   const std::vector<std::vector<int>>& catFeatureHashes) {
+                                   const std::vector<std::vector<int>>& catFeatureHashes) const {
         std::vector<double> result(floatFeatures.size());
         std::vector<const float*> floatPtrsVector;
         std::vector<const int*> hashPtrsVector;
@@ -91,7 +93,6 @@ public:
     bool init_from_file(const std::string& filename) {
         return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
     }
-
 private:
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;
     CalcerHolderType CalcerHolder;

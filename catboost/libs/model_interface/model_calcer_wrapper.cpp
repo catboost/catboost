@@ -6,7 +6,8 @@
 #include <util/stream/file.h>
 #include <util/string/builder.h>
 
-#define CALCER(x) ((TFullModel*)(x))
+#define FULL_MODEL_PTR(x) ((TFullModel*)(x))
+
 
 struct TErrorMessageHolder {
     TString Message;
@@ -27,15 +28,15 @@ EXPORT const char* GetErrorString() {
     return Singleton<TErrorMessageHolder>()->Message.data();
 }
 
-EXPORT void ModelCalcerDelete(ModelCalcerHandle* calcer) {
-    if (calcer != nullptr) {
-        delete CALCER(calcer);
+EXPORT void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
+    if (modelHandle != nullptr) {
+        delete FULL_MODEL_PTR(modelHandle);
     }
 }
 
-EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* calcer, const char* filename) {
+EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* filename) {
     try {
-        *CALCER(calcer) = ReadModel(filename);
+        *FULL_MODEL_PTR(modelHandle) = ReadModel(filename);
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -44,13 +45,13 @@ EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* calcer, const char* filenam
     return true;
 }
 
-EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* calcer, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
+EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
         TVector<TConstArrayRef<float>> featuresVec(docCount);
         for (size_t i = 0; i < docCount; ++i) {
             featuresVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
         }
-        CALCER(calcer)->CalcFlat(featuresVec, TArrayRef<double>(result, resultSize));
+        FULL_MODEL_PTR(modelHandle)->CalcFlat(featuresVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -58,7 +59,7 @@ EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* calcer, size_t docCount, 
     return true;
 }
 
-EXPORT bool CalcModelPrediction(ModelCalcerHandle* calcer, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, const char*** catFeatures, size_t catFeaturesSize, double* result, size_t resultSize) {
+EXPORT bool CalcModelPrediction(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, const char*** catFeatures, size_t catFeaturesSize, double* result, size_t resultSize) {
     try {
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
         TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
@@ -68,7 +69,7 @@ EXPORT bool CalcModelPrediction(ModelCalcerHandle* calcer, size_t docCount, cons
                 catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
             }
         }
-        CALCER(calcer)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
+        FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -76,7 +77,7 @@ EXPORT bool CalcModelPrediction(ModelCalcerHandle* calcer, size_t docCount, cons
     return true;
 }
 
-EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* calcer, size_t docCount,
+EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
                                                      const float** floatFeatures, size_t floatFeaturesSize,
                                                      const int** catFeatures, size_t catFeaturesSize,
                                                      double* result, size_t resultSize) {
@@ -87,7 +88,7 @@ EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* calcer, 
             floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
             catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
         }
-        CALCER(calcer)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
+        FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -105,12 +106,12 @@ EXPORT int GetIntegerCatFeatureHash(long long val) {
     return CalcCatFeatureHash(valStr);
 }
 
-EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* calcer) {
-    return CALCER(calcer)->GetNumFloatFeatures();
+EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetNumFloatFeatures();
 }
 
-EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* calcer) {
-    return CALCER(calcer)->GetNumCatFeatures();
+EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetNumCatFeatures();
 }
 
 }
