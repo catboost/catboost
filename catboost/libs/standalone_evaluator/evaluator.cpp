@@ -62,6 +62,8 @@ namespace NCatboostStandalone {
             return Sigmoid(result);
         case EPredictionType::Class:
             return result > 0;
+        default:
+            throw std::runtime_error("unsupported predictionType");
         }
     }
 
