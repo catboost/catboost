@@ -298,7 +298,7 @@ namespace NKernel {
         ui32 val3 = val2 + sdata[threadIdx.x * 4 + 3];
         __syncthreads();
         sdata[threadIdx.x] = val3;
-        InplaceInclusiveScan<uint, BLOCK_SIZE>(sdata, threadIdx.x);
+        InplaceInclusiveScan<ui32, BLOCK_SIZE>(sdata, threadIdx.x);
         ui32 tmp = (threadIdx.x ? sdata[threadIdx.x - 1] : 0);
         __syncthreads();
         sdata[threadIdx.x * 4] = val0 + tmp;
@@ -343,7 +343,7 @@ namespace NKernel {
             ui32 val3 = val2 + data[tid * 4 + 3];
             __syncthreads();
             data[tid] = val3;
-            InplaceInclusiveScan<uint, BLOCK_SIZE>(data, tid);
+            InplaceInclusiveScan<ui32, BLOCK_SIZE>(data, tid);
             ui32 tmp = (tid ? data[tid - 1] : 0);
             __syncthreads();
             data[tid * 4] = val0 + tmp;
@@ -413,7 +413,7 @@ namespace NKernel {
             ui32 val3 = val2 + data[tid * 4 + 3];
             __syncthreads();
             data[tid] = val3;
-            InplaceInclusiveScan<uint, BLOCK_SIZE>(data, tid);
+            InplaceInclusiveScan<ui32, BLOCK_SIZE>(data, tid);
             ui32 tmp = (tid ? data[tid - 1] : 0);
             __syncthreads();
             data[tid * 4] = val0 + tmp;
