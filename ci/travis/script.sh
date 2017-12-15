@@ -22,12 +22,16 @@ if [ "${CB_BUILD_AGENT}" == 'python2-linux-x86_64-release' ]; then
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'python35-linux-x86_64-release' ]; then
+     ls -ls /home/travis/virtualenv/python3.5.4/bin/;
+     ln -s /home/travis/virtualenv/python3.5.4/bin/python-config /home/travis/virtualenv/python3.5.4/bin/python3-config;
      install_cuda_linux;
      cd catboost/python-package;
      python3 ./mk_wheel.py -T -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0 -DPYTHON_CONFIG=/home/travis/virtualenv/python3.5.4/bin/python3-config;
 fi
 
 if [ "${CB_BUILD_AGENT}" == 'python36-linux-x86_64-release' ]; then
+     ls -ls /home/travis/virtualenv/python3.6.3/bin/;
+     ln -s /home/travis/virtualenv/python3.6.3/bin/python-config /home/travis/virtualenv/python3.6.3/bin/python3-config;
      install_cuda_linux;
      cd catboost/python-package;
      python3 ./mk_wheel.py -T -j 1 -DCUDA_ROOT=/usr/local/cuda-8.0 -DPYTHON_CONFIG=/home/travis/virtualenv/python3.6.3/bin/python3-config;
