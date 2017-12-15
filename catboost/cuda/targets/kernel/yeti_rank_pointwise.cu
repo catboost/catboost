@@ -30,7 +30,7 @@ namespace NKernel
     }
 
 
-    template <uint BLOCK_SIZE>
+    template <ui32 BLOCK_SIZE>
     __device__  void YetiRankGradientSingleGroup(ui32 seed,
                                                  ui32 bootstrapIter,
                                                  const float* __restrict__ approx, const float* __restrict__ relev,
@@ -166,7 +166,7 @@ namespace NKernel
     __global__ void YetiRankGradientImpl(int seed,
                                          ui32 bootstrapIter,
                                          const ui32* queryOffsets,
-                                         __volatile int* qidCursor,
+                                         volatile int* qidCursor,
                                          ui32 qOffsetsBias, ui32 qCount,
                                          const int* qids,
                                          const float* approx,
