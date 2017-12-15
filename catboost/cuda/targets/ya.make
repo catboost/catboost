@@ -6,10 +6,14 @@ NO_WERROR()
 
 SRCS(
     kernel/pointwise_targets.cu
+    kernel/query_rmse.cu
+    kernel/pair_logit.cu
+    kernel/yeti_rank_pointwise.cu
     mse.cpp
+    qrmse.cpp
     cross_entropy.cpp
     target_base.cpp
-    quality_metric_helpers.cpp
+    yeti_rank.cpp
 )
 
 
@@ -17,12 +21,14 @@ PEERDIR(
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
     catboost/cuda/gpu_data
+    catboost/libs/options
+    catboost/libs/metrics
 )
 
 CUDA_NVCC_FLAGS(
     --expt-relaxed-constexpr
     -std=c++11
-    -gencode arch=compute_35,code=sm_35
+    -gencode arch=compute_30,code=compute_30  -gencode arch=compute_35,code=sm_35  -gencode arch=compute_50,code=compute_50
     -gencode arch=compute_52,code=sm_52
     -gencode arch=compute_60,code=sm_60
     -gencode arch=compute_61,code=sm_61

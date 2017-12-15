@@ -3,14 +3,12 @@
 #include <util/system/types.h>
 //struct to make bin-feature from ui32 feature
 // (compressedIndex[Offset] & Mask  should be true
-struct TCBinFeature
-{
+struct TCBinFeature {
     ui32 FeatureId;
     ui32 BinId;
 };
 
-struct TCFeature
-{
+struct TCFeature {
     //ui32 line
     ui32 Offset;
     //offset and mask in ui32
@@ -27,15 +25,13 @@ struct TCFeature
     bool OneHotFeature;
 };
 
-struct TBestSplitProperties
-{
+struct TBestSplitProperties {
     ui32 FeatureId;
     ui32 BinId;
     float Score;
 };
 
-struct TPartitionStatistics
-{
+struct TPartitionStatistics {
     double Weight;
     double Sum;
     double Count;
@@ -43,25 +39,22 @@ struct TPartitionStatistics
     TPartitionStatistics(double weight = 0,
                          double sum = 0,
                          double count = 0)
-            : Weight(weight)
-              , Sum(sum)
-              , Count(count)
+        : Weight(weight)
+        , Sum(sum)
+        , Count(count)
     {
     }
 
-    TPartitionStatistics& operator+=(const TPartitionStatistics& other)
-    {
+    TPartitionStatistics& operator+=(const TPartitionStatistics& other) {
         Weight += other.Weight;
         Sum += other.Sum;
         Count += other.Count;
         return *this;
     }
 
-    bool operator==(const TPartitionStatistics& other)
-    {
+    bool operator==(const TPartitionStatistics& other) {
         return Weight == other.Weight &&
                Sum == other.Sum &&
                Count == other.Count;
     }
 };
-

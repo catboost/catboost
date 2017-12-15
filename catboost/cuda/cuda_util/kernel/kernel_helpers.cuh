@@ -2,6 +2,7 @@
 #include <contrib/libs/cub/cub/thread/thread_load.cuh>
 #include <contrib/libs/cub/cub/thread/thread_store.cuh>
 
+
 namespace NKernel {
 
     template <class T>
@@ -127,8 +128,6 @@ namespace NKernel {
                 , Second(second) {
 
         }
-
-
     };
 
 }

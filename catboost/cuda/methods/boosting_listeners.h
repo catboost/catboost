@@ -9,22 +9,18 @@
 #include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
 #include <util/stream/format.h>
 
-namespace NCatboostCuda
-{
-    template<class TTarget,
-            class TWeakModel>
-    class IBoostingListener
-    {
+namespace NCatboostCuda {
+    template <class TTarget,
+              class TWeakModel>
+    class IBoostingListener {
     public:
         using TConstVec = typename TTarget::TConstVec;
 
-        virtual ~IBoostingListener()
-        = default;
+        virtual ~IBoostingListener() = default;
 
         virtual void Init(const TAdditiveModel<TWeakModel>& newEnsemble,
                           const TTarget& target,
-                          const TConstVec& point)
-        {
+                          const TConstVec& point) {
             Y_UNUSED(newEnsemble);
             Y_UNUSED(target);
             Y_UNUSED(point);
@@ -33,12 +29,10 @@ namespace NCatboostCuda
         virtual void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
                                     const TTarget& target,
                                     const TConstVec& point) = 0;
-
     };
 
-    template<class TTarget, class TWeakModel>
-    class TMetricLogger: public IBoostingListener<TTarget, TWeakModel>
-    {
+    template <class TTarget, class TWeakModel>
+    class TMetricLogger: public IBoostingListener<TTarget, TWeakModel> {
     public:
         using TConstVec = typename TTarget::TConstVec;
         using TTargetStat = typename TMetricHelper<TTarget>::TTargetStat;
@@ -47,31 +41,20 @@ namespace NCatboostCuda
                                TString outputPath = "",
                                TString noticeLogSuffix = "\t",
                                TString bestPrefix = "",
-                               ui64 printPeriod = 1
-        )
-                : MessagePrefix(messagePrefix)
-                  , OutputPath(outputPath)
-                  , BestPrefix(bestPrefix)
-                  , NoticeLogSuffix(std::move(noticeLogSuffix))
-                  , PrintPeriod(printPeriod)
+                               ui64 printPeriod = 1)
+            : MessagePrefix(messagePrefix)
+            , OutputPath(outputPath)
+            , BestPrefix(bestPrefix)
+            , NoticeLogSuffix(std::move(noticeLogSuffix))
+            , PrintPeriod(printPeriod)
         {
-            if (OutputPath) {
-                Out.Reset(new TOFStream(outputPath));
-                (*Out) << "iter\t" << TTarget::TargetName() << Endl;
-            }
         }
 
-        static TStringBuf GetMetricName() {
-            return TTarget::TargetName();
-        }
-
-        static bool IsMinOptimal()
-        {
+        static bool IsMinOptimal() {
             return TTarget::IsMinOptimal();
         }
 
-        ui32 GetBestIteration() const
-        {
+        ui32 GetBestIteration() const {
             return BestEnsembleSize;
         }
 
@@ -79,43 +62,43 @@ namespace NCatboostCuda
             return TTarget::Score(BestStat);
         }
 
-        void RegisterOdDetector(IOverfittingDetector* odDetector)
-        {
+        void RegisterOdDetector(IOverfittingDetector* odDetector) {
             OdDetector = odDetector;
         }
 
         void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
-                            const TConstVec& point) override
-        {
+                            const TConstVec& point) override {
+            if (OutputPath && Out == nullptr) {
+                Out.Reset(new TOFStream(OutputPath));
+                (*Out) << "iter\t" << target.TargetName() << Endl;
+            }
+
             Y_UNUSED(newEnsemble);
             TMetricHelper<TTarget> metricHelper(target);
             metricHelper.SetPoint(point);
-            if (BestEnsembleSize == 0 || metricHelper.IsBetter(BestStat))
-            {
+            if (BestEnsembleSize == 0 || metricHelper.IsBetter(BestStat)) {
                 BestStat = metricHelper.GetStat();
                 BestEnsembleSize = static_cast<ui32>(newEnsemble.Size());
             }
 
             if (newEnsemble.Size() % PrintPeriod == 0) {
                 MATRIXNET_NOTICE_LOG << MessagePrefix << metricHelper.Score();
-                if (BestPrefix.Size())
-                {
+                if (BestPrefix.Size()) {
                     MATRIXNET_NOTICE_LOG
-                    << BestPrefix << metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")";
+                        << BestPrefix << metricHelper.Score(BestStat) << " (" << BestEnsembleSize << ")";
                 }
                 MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
             }
 
-            if (Out)
-            {
+            if (Out) {
                 (*Out) << newEnsemble.Size() << "\t" << metricHelper.Score() << Endl;
             }
-            if (OdDetector)
-            {
+            if (OdDetector) {
                 OdDetector->AddError(metricHelper.Score());
             }
         }
+
     private:
         ui32 BestEnsembleSize = 0;
         TTargetStat BestStat;
@@ -128,52 +111,49 @@ namespace NCatboostCuda
         IOverfittingDetector* OdDetector = nullptr;
     };
 
-    template<class TTarget,
-            class TWeakModel>
-    class TIterationLogger: public IBoostingListener<TTarget, TWeakModel>
-    {
+    template <class TTarget,
+              class TWeakModel>
+    class TIterationLogger: public IBoostingListener<TTarget, TWeakModel> {
     public:
-       using TConstVec = typename TTarget::TConstVec;
+        using TConstVec = typename TTarget::TConstVec;
 
         explicit TIterationLogger(TString suffix = ":\t")
-                : Suffix(std::move(suffix)) {
-
+            : Suffix(std::move(suffix))
+        {
         }
 
         void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
-                            const TConstVec& point) override
-        {
+                            const TConstVec& point) override {
             Y_UNUSED(newEnsemble);
             Y_UNUSED(target);
             Y_UNUSED(point);
             MATRIXNET_NOTICE_LOG << newEnsemble.Size() - 1 << Suffix;
         }
+
     private:
         TString Suffix;
     };
 
-    template<class TTarget,
-            class TWeakModel>
-    class TTimeWriter: public IBoostingListener<TTarget, TWeakModel>
-    {
+    template <class TTarget,
+              class TWeakModel>
+    class TTimeWriter: public IBoostingListener<TTarget, TWeakModel> {
     public:
         using TConstVec = typename TTarget::TConstVec;
 
         TTimeWriter(const ui32 totalIterations,
                     const TString& outputFile,
                     TString noticeLogSuffix)
-                : TotalIterations(totalIterations)
-                  , Output(outputFile)
-                  , StartTime(Now())
-                  , NoticeLogSuffix(std::move(noticeLogSuffix))
+            : TotalIterations(totalIterations)
+            , Output(outputFile)
+            , StartTime(Now())
+            , NoticeLogSuffix(std::move(noticeLogSuffix))
         {
         }
 
         void Init(const TAdditiveModel<TWeakModel>& model,
                   const TTarget& target,
-                  const TConstVec& point) override
-        {
+                  const TConstVec& point) override {
             Y_UNUSED(target);
             Y_UNUSED(point);
             StartTime = Now();
@@ -182,8 +162,7 @@ namespace NCatboostCuda
 
         void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
-                            const TConstVec& point) override
-        {
+                            const TConstVec& point) override {
             Y_UNUSED(target);
             Y_UNUSED(point);
             const ui32 passedIterations = newEnsemble.Size();

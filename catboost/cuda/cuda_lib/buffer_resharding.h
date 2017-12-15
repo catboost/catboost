@@ -6,7 +6,6 @@
 #include <cmath>
 
 namespace NCudaLib {
-
     template <class TFromBuffer, class TToBuffer>
     class TCudaBufferResharding {
     private:

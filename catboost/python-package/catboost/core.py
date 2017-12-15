@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import ctypes
 import platform
+import tempfile
 
 if platform.system() == 'Linux':
     try:
@@ -766,7 +767,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir):
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
@@ -779,10 +780,12 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid metrics type={}: must be list().".format(type(metrics)))
         if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
             raise CatboostError("Invalid metric type: must be string().")
-        metrics_score = self._base_eval_metrics(data, ','.join(metrics), ntree_start, ntree_end, eval_period, thread_count)
+        if tmp_dir is None:
+            tmp_dir = tempfile.mkdtemp()
+        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
         return dict(zip(metrics, metrics_score))
 
-    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1):
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, tmp_dir=None):
         """
         Calculate metrics.
 
@@ -808,11 +811,15 @@ class CatBoost(_CatBoostBase):
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
+        tmp_dir : string (default=None)
+            The name of the temporary directory for intermediate results.
+            If None, then the name will be generated.
+
         Returns
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
     @property
     def feature_importances_(self):

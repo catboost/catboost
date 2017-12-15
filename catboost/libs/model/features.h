@@ -56,6 +56,14 @@ struct TFloatFeature {
     Y_SAVELOAD_DEFINE(HasNans, FeatureIndex, FlatFeatureIndex, Borders, FeatureId);
 };
 
+inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
+    TVector<int> result;
+    for (int i = 0; i < floatFeatures.ysize(); ++i) {
+        result.push_back(floatFeatures[i].Borders.ysize());
+    }
+    return result;
+}
+
 struct TCatFeature {
     int FeatureIndex = -1;
     int FlatFeatureIndex = -1;

@@ -23,44 +23,38 @@
 #include <util/system/mktemp.h>
 #include <catboost/libs/options/binarization_options.h>
 
-namespace NCatboostCuda
-{
-    template<class T, template<class U> class TField>
-    inline void VectorToProto(const TVector<T>& src, TField<T>* dst)
-    {
+namespace NCatboostCuda {
+    template <class T, template <class U> class TField>
+    inline void VectorToProto(const TVector<T>& src, TField<T>* dst) {
         *dst = TField<T>(src.begin(), src.end());
     }
 
     inline void
-    SetBinarizedData(NCompressedPool::TFeatureColumn& column, const TVector<ui64>& data, ui32 bitsPerKey, ui32 len)
-    {
+    SetBinarizedData(NCompressedPool::TFeatureColumn& column, const TVector<ui64>& data, ui32 bitsPerKey, ui32 len) {
         VectorToProto(data, column.MutableBinarizedColumn()->MutableData());
         column.MutableBinarizedColumn()->SetBitsPerKey(bitsPerKey);
         column.MutableBinarizedColumn()->SetLength(len);
     }
 
-    template<class TColumn>
-    inline void SetBorders(TColumn& column, const TVector<float>& borders)
-    {
+    template <class TColumn>
+    inline void SetBorders(TColumn& column, const TVector<float>& borders) {
         VectorToProto(borders, column.MutableBinarization()->MutableBorders());
     }
 
-    class TSplittedByColumnsTempPool
-    {
+    class TSplittedByColumnsTempPool {
     public:
         TSplittedByColumnsTempPool(const TString& tempDir,
                                    const TString& pool,
                                    const TVector<TColumn>& columnDescription)
-                : TempDir(tempDir)
-                  , ColumnsDescription(columnDescription)
+            : TempDir(tempDir)
+            , ColumnsDescription(columnDescription)
         {
             NFs::MakeDirectory(tempDir);
             Split(pool);
         }
 
         void ReadColumn(ui32 column,
-                        TVector<TString>& dst)
-        {
+                        TVector<TString>& dst) {
             CB_ENSURE(SplitDone);
             CB_ENSURE(column < Columns.size());
             CB_ENSURE(Columns[column]);
@@ -68,30 +62,25 @@ namespace NCatboostCuda
 
             TIFStream input(Columns[column]->Name());
 
-            for (ui32 line = 0; line < LineCount; ++line)
-            {
+            for (ui32 line = 0; line < LineCount; ++line) {
                 ::Load(&input, dst[line]);
             }
         }
 
-        ui32 GetLineCount() const
-        {
+        ui32 GetLineCount() const {
             return LineCount;
         }
 
     private:
-        void Split(const TString& pool)
-        {
+        void Split(const TString& pool) {
             ui32 columnCount = ColumnsDescription.size();
-            Y_ENSURE(columnCount >= (ui32) ReadColumnsCount(pool), "Error: found too many columns in cd-file");
+            Y_ENSURE(columnCount >= (ui32)ReadColumnsCount(pool), "Error: found too many columns in cd-file");
             MakeTempFiles(columnCount);
 
             TVector<THolder<TOFStream>> outputs;
 
-            for (ui32 i = 0; i < Columns.size(); ++i)
-            {
-                if (ColumnsDescription[i].Type == EColumn::Auxiliary)
-                {
+            for (ui32 i = 0; i < Columns.size(); ++i) {
+                if (ColumnsDescription[i].Type == EColumn::Auxiliary) {
                     continue;
                 }
                 outputs.push_back(MakeHolder<TOFStream>(Columns[i]->Name()));
@@ -101,23 +90,18 @@ namespace NCatboostCuda
             TVector<TStringBuf> words;
             TString line;
 
-            while (input.ReadLine(line))
-            {
+            while (input.ReadLine(line)) {
                 words.clear();
                 SplitRangeTo<const char, TVector<TStringBuf>>(~line, ~line + line.size(), '\t', &words);
                 CB_ENSURE(words.ysize() == ColumnsDescription.ysize(),
                           TStringBuilder() << "Wrong columns number in pool line: Found " << words.size()
                                            << "; Expected " << ColumnsDescription.size());
-                for (int i = 0; i < words.ysize(); ++i)
-                {
-                    switch (ColumnsDescription[i].Type)
-                    {
-                        case EColumn::Auxiliary:
-                        {
+                for (int i = 0; i < words.ysize(); ++i) {
+                    switch (ColumnsDescription[i].Type) {
+                        case EColumn::Auxiliary: {
                             break;
                         }
-                        default:
-                        {
+                        default: {
                             ::Save(outputs[i].Get(), words[i].ToString());
                             break;
                         }
@@ -130,12 +114,10 @@ namespace NCatboostCuda
 
         TVector<THolder<TTempFile>> Columns;
 
-        void MakeTempFiles(ui32 count)
-        {
+        void MakeTempFiles(ui32 count) {
             Columns.resize(0);
             Columns.resize(count);
-            for (ui32 i = 0; i < count; ++i)
-            {
+            for (ui32 i = 0; i < count; ++i) {
                 Columns[i] = MakeHolder<TTempFile>(MakeTempName(TempDir.data()));
             }
         }
@@ -147,18 +129,16 @@ namespace NCatboostCuda
         ui32 LineCount = 0;
     };
 
-    class TColumnConverter
-    {
+    class TColumnConverter {
     public:
         TColumnConverter(ui32 factorId, ui32 columnId, TString factorName)
-                : FactorId(factorId)
-                  , ColumnId(columnId)
-                  , FactorName(factorName)
+            : FactorId(factorId)
+            , ColumnId(columnId)
+            , FactorName(factorName)
         {
         }
 
-        virtual ~TColumnConverter()
-        {
+        virtual ~TColumnConverter() {
         }
 
     protected:
@@ -166,30 +146,25 @@ namespace NCatboostCuda
         ui32 ColumnId = 0;
         TString FactorName = "";
 
-        void WriteCommonDescription(::NCompressedPool::TFeatureDescription& description)
-        {
+        void WriteCommonDescription(::NCompressedPool::TFeatureDescription& description) {
             description.SetFeatureId(FactorId);
             description.SetColumnId(ColumnId);
             description.SetFeatureName(FactorName);
         }
     };
 
-    class TFloatColumnConverter: public TColumnConverter
-    {
+    class TFloatColumnConverter: public TColumnConverter {
     public:
         TFloatColumnConverter(ui32 factorId, ui32 columnId, const TString& factorName)
-                : TColumnConverter(factorId,
-                                   columnId,
-                                   factorName)
-        {
+            : TColumnConverter(factorId,
+                               columnId,
+                               factorName) {
         }
 
-        TFloatColumnConverter& SetColumn(const TVector<TString>& column)
-        {
+        TFloatColumnConverter& SetColumn(const TVector<TString>& column) {
             FloatColumn.resize(column.size());
 
-            NPar::ParallelFor(0, (ui32) column.size(), [&](int i)
-            {
+            NPar::ParallelFor(0, (ui32)column.size(), [&](int i) {
                 float val = 0;
                 CB_ENSURE(column[i] != "nan", "nan values not supported");
                 CB_ENSURE(column[i] != "", "empty values not supported");
@@ -203,20 +178,17 @@ namespace NCatboostCuda
         }
 
         TFloatColumnConverter& BuildBinarized(IFactory<IGridBuilder>& gridBuilderFactory,
-                                              const NCatboostOptions::TBinarizationOptions& config)
-        {
+                                              const NCatboostOptions::TBinarizationOptions& config) {
             CB_ENSURE(FloatColumn.size(), "Set float column first");
             auto borders = TBordersBuilder(gridBuilderFactory, FloatColumn)(config);
             return BuildBinarized(std::move(borders));
         }
 
-        void Write(NCompressedPool::TFeatureColumn& column)
-        {
+        void Write(NCompressedPool::TFeatureColumn& column) {
             column.Clear();
             auto* description = column.MutableFeatureDescription();
             WriteCommonDescription(*description);
-            if (BinarizeIt)
-            {
+            if (BinarizeIt) {
                 auto binarizedFeature = BinarizeLine(~FloatColumn, FloatColumn.size(), ENanMode::Forbidden, Borders);
                 const auto bitsPerKey = IntLog2(Borders.size() + 1);
                 auto compressedLine = CompressVector<ui64>(binarizedFeature, bitsPerKey);
@@ -227,24 +199,21 @@ namespace NCatboostCuda
                 SetBinarizedData(column, compressedLine, bitsPerKey, FloatColumn.size());
                 SetBorders(column, Borders);
                 description->SetFeatureType(::NCompressedPool::TFeatureType::Binarized);
-            } else
-            {
+            } else {
                 *column.MutableFloatColumn()->MutableValues() = ::google::protobuf::RepeatedField<float>(
-                        FloatColumn.begin(), FloatColumn.end());
+                    FloatColumn.begin(), FloatColumn.end());
                 description->SetFeatureType(::NCompressedPool::TFeatureType::Float);
             }
         }
 
-        TFloatColumnConverter& Clear()
-        {
+        TFloatColumnConverter& Clear() {
             FloatColumn.clear();
             Borders.clear();
             BinarizeIt = false;
             return *this;
         }
 
-        void WriteBinarization(NCompressedPool::TFloatFeatureBinarization& binarization)
-        {
+        void WriteBinarization(NCompressedPool::TFloatFeatureBinarization& binarization) {
             Y_ENSURE(BinarizeIt);
             const auto description = binarization.MutableFeatureDescription();
             WriteCommonDescription(*description);
@@ -252,8 +221,7 @@ namespace NCatboostCuda
             description->SetFeatureType(::NCompressedPool::TFeatureType::Binarized);
         }
 
-        TFloatColumnConverter& BuildBinarized(TVector<float>&& borders)
-        {
+        TFloatColumnConverter& BuildBinarized(TVector<float>&& borders) {
             Borders = std::move(borders);
             BinarizeIt = true;
             return *this;
@@ -265,39 +233,31 @@ namespace NCatboostCuda
         bool BinarizeIt = false;
     };
 
-    class TCatFeatureColumnConverter: public TColumnConverter
-    {
+    class TCatFeatureColumnConverter: public TColumnConverter {
     public:
         TCatFeatureColumnConverter(ui32 factorId, ui32 columnId, const TString& factorName)
-                : TColumnConverter(factorId,
-                                   columnId,
-                                   factorName)
-        {
+            : TColumnConverter(factorId,
+                               columnId,
+                               factorName) {
         }
 
-        TCatFeatureColumnConverter& AddExistingBinarization(TMap<TString, ui32>&& binarization)
-        {
+        TCatFeatureColumnConverter& AddExistingBinarization(TMap<TString, ui32>&& binarization) {
             Binarization = std::move(binarization);
             return *this;
         }
 
-        TCatFeatureColumnConverter& AddKeys(const TVector<TString>& column)
-        {
-            for (const auto& entry : column)
-            {
-                if (!Binarization.has(entry))
-                {
+        TCatFeatureColumnConverter& AddKeys(const TVector<TString>& column) {
+            for (const auto& entry : column) {
+                if (!Binarization.has(entry)) {
                     Binarization[entry] = Binarization.size();
                 }
             }
             return *this;
         }
 
-        TCatFeatureColumnConverter& SetColumn(const TVector<TString>& column)
-        {
+        TCatFeatureColumnConverter& SetColumn(const TVector<TString>& column) {
             BinarizedData.resize_uninitialized(column.size());
-            NPar::ParallelFor(0, (ui32) column.size(), [&](int i)
-            {
+            NPar::ParallelFor(0, (ui32)column.size(), [&](int i) {
                 const auto& key = column[i];
                 BinarizedData[i] = Binarization.at(key);
             });
@@ -305,12 +265,11 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TCatFeatureColumnConverter Write(NCompressedPool::TFeatureColumn& column)
-        {
+        TCatFeatureColumnConverter Write(NCompressedPool::TFeatureColumn& column) {
             column.Clear();
             WriteColumnDescription(column);
 
-            const ui32 uniqueValues = (const ui32) Binarization.size();
+            const ui32 uniqueValues = (const ui32)Binarization.size();
             const auto bitsPerKey = IntLog2(uniqueValues);
             auto compressedVector = CompressVector<ui64>(BinarizedData, bitsPerKey);
             MATRIXNET_INFO_LOG << "Compressed cat feature " << column.GetFeatureDescription().GetFeatureId() << " from "
@@ -323,25 +282,22 @@ namespace NCatboostCuda
             return *this;
         }
 
-        template<class TColumn>
-        void WriteColumnDescription(TColumn& column)
-        {
+        template <class TColumn>
+        void WriteColumnDescription(TColumn& column) {
             auto* description = column.MutableFeatureDescription();
             //maybe refactor it, cat feature type should be set
             WriteCommonDescription(*description);
             description->SetFeatureType(NCompressedPool::Categorical);
         }
 
-        TCatFeatureColumnConverter& WriteBinarization(NCompressedPool::TCatFeatureBinarization& binarization)
-        {
+        TCatFeatureColumnConverter& WriteBinarization(NCompressedPool::TCatFeatureBinarization& binarization) {
             binarization.Clear();
             WriteColumnDescription(binarization);
 
             TVector<TString> keys;
             TVector<ui32> bins;
 
-            for (auto& entry : Binarization)
-            {
+            for (auto& entry : Binarization) {
                 keys.push_back(entry.first);
                 bins.push_back(entry.second);
             }
@@ -357,51 +313,44 @@ namespace NCatboostCuda
         TVector<ui32> BinarizedData;
     };
 
-    class TCatBoostProtoPoolConverter
-    {
+    class TCatBoostProtoPoolConverter {
     public:
         TCatBoostProtoPoolConverter(const TString& pool,
                                     const TString& poolCd,
                                     TString tempDir = "tmp")
-                : ColumnsDescription(ReadCD(poolCd, TCdParserDefaults(EColumn::Num, ReadColumnsCount(pool))))
-                , SplittedPool(tempDir, pool, ColumnsDescription)
+            : ColumnsDescription(ReadCD(poolCd, TCdParserDefaults(EColumn::Num, ReadColumnsCount(pool))))
+            , SplittedPool(tempDir, pool, ColumnsDescription)
         {
         }
 
-        TCatBoostProtoPoolConverter& SetGridBuilderFactory(IFactory<IGridBuilder>& builderFactory)
-        {
+        TCatBoostProtoPoolConverter& SetGridBuilderFactory(IFactory<IGridBuilder>& builderFactory) {
             GridBuilderFactory = &builderFactory;
             return *this;
         }
 
-        TCatBoostProtoPoolConverter& SetBinarization(const NCatboostOptions::TBinarizationOptions& binarizationConfig)
-        {
+        TCatBoostProtoPoolConverter& SetBinarization(const NCatboostOptions::TBinarizationOptions& binarizationConfig) {
             BinarizationConfiguration = &binarizationConfig;
             return *this;
         }
 
-        TCatBoostProtoPoolConverter& SetOutputFile(const TString& file)
-        {
+        TCatBoostProtoPoolConverter& SetOutputFile(const TString& file) {
             Output.Reset(new TOFStream(file));
             return *this;
         }
 
-        TCatBoostProtoPoolConverter& SetOutputBinarizationFile(const TString& file)
-        {
+        TCatBoostProtoPoolConverter& SetOutputBinarizationFile(const TString& file) {
             OutputBinarization.Reset(new TOFStream(file));
             return *this;
         }
 
-        TCatBoostProtoPoolConverter& SetInputBinarizationFile(const TString& file)
-        {
+        TCatBoostProtoPoolConverter& SetInputBinarizationFile(const TString& file) {
             Y_ENSURE(BinarizationConfiguration == nullptr,
                      "Error: can't use binarization configuration and existing proto-binarization at the same time");
             InputBinarization.Reset(new TIFStream(file));
             return *this;
         }
 
-        void Convert()
-        {
+        void Convert() {
             CB_ENSURE(Output, "Please provide output file");
 
             int targetColumn = -1;
@@ -412,52 +361,42 @@ namespace NCatboostCuda
 
             TVector<ui32> featureColumns;
 
-            for (ui32 col = 0; col < ColumnsDescription.size(); ++col)
-            {
+            for (ui32 col = 0; col < ColumnsDescription.size(); ++col) {
                 const auto type = ColumnsDescription[col].Type;
-                switch (type)
-                {
+                switch (type) {
                     case EColumn::Categ:
-                    case EColumn::Num:
-                    {
+                    case EColumn::Num: {
                         featureColumns.push_back(col);
                         break;
                     }
-                    case EColumn::Target:
-                    {
+                    case EColumn::Target: {
                         CB_ENSURE(targetColumn == -1, "Error: more than one target column");
                         targetColumn = col;
                         break;
                     }
-                    case EColumn::Weight:
-                    {
+                    case EColumn::Weight: {
                         CB_ENSURE(weightColumn == -1, "Error: more than one weight column");
                         weightColumn = col;
                         break;
                     }
-                    case EColumn::DocId:
-                    {
+                    case EColumn::DocId: {
                         CB_ENSURE(docIdColumn == -1, "Error: more than one docId column");
                         docIdColumn = col;
                         break;
                     }
-                    case EColumn::QueryId:
-                    {
+                    case EColumn::QueryId: {
                         CB_ENSURE(queryIdColumn == -1, "Error: more than one qid column");
                         queryIdColumn = col;
                         break;
                     }
-                    case EColumn::Baseline:
-                    {
+                    case EColumn::Baseline: {
                         baselineColumns.push_back(col);
                         break;
                     }
-                    case EColumn::Auxiliary:
-                    {
+                    case EColumn::Auxiliary: {
                         break;
                     }
-                    default:
-                    {
+                    default: {
                         ythrow TCatboostException() << "Error: unknown column type " << type;
                     }
                 }
@@ -469,7 +408,7 @@ namespace NCatboostCuda
             {
                 NCompressedPool::TPoolStructure poolStructure;
                 poolStructure.SetDocCount(SplittedPool.GetLineCount());
-                poolStructure.SetFeatureCount((google::protobuf::uint32) featureColumns.size());
+                poolStructure.SetFeatureCount((google::protobuf::uint32)featureColumns.size());
                 poolStructure.SetBaselineColumn(baselineColumns.size());
                 poolStructure.SetDocIdColumn(docIdColumn != -1);
                 poolStructure.SetQueryIdColumn(queryIdColumn != -1);
@@ -487,36 +426,30 @@ namespace NCatboostCuda
             //docId, queryId
             {
                 NCompressedPool::TUnsignedIntegerColumn uintColumn;
-                if (docIdColumn != -1)
-                {
+                if (docIdColumn != -1) {
                     ConvertColumn<ui32, NCompressedPool::TUnsignedIntegerColumn>(docIdColumn, uintColumn);
                 }
-                if (queryIdColumn != -1)
-                {
+                if (queryIdColumn != -1) {
                     NCompressedPool::TIntegerColumn intColumn;
                     ConvertColumnAndWrite<ui32, NCompressedPool::TIntegerColumn>(queryIdColumn, intColumn,
                                                                                  [](const TString& str,
-                                                                                    ui32& val) -> bool
-                                                                                 {
+                                                                                    ui32& val) -> bool {
                                                                                      val = StringToIntHash(str);
                                                                                      return true;
                                                                                  });
                 }
             }
-            if (weightColumn != -1)
-            {
+            if (weightColumn != -1) {
                 ConvertColumn<float, NCompressedPool::TFloatColumn>(weightColumn, floatColumn);
                 WriteMessage(floatColumn, Output.Get());
             }
 
-            for (ui32 baselineColumn : baselineColumns)
-            {
+            for (ui32 baselineColumn : baselineColumns) {
                 ConvertColumn<float, NCompressedPool::TFloatColumn>(baselineColumn, floatColumn);
                 WriteMessage(floatColumn, Output.Get());
             }
 
-            if (!BinarizationConfiguration)
-            {
+            if (!BinarizationConfiguration) {
                 MATRIXNET_WARNING_LOG << "Converting pool without float features binarizatin" << Endl;
             }
 
@@ -527,30 +460,24 @@ namespace NCatboostCuda
                 NCompressedPool::TCatFeatureBinarization binarization;
                 NCompressedPool::TFloatFeatureBinarization floatFeatureBinarization;
 
-                for (ui32 i = 0; i < featureColumns.size(); ++i)
-                {
+                for (ui32 i = 0; i < featureColumns.size(); ++i) {
                     protoFeatureColumn.Clear();
                     const ui32 columnId = featureColumns[i];
                     const auto description = ColumnsDescription[featureColumns[i]];
                     SplittedPool.ReadColumn(columnId, factorColumn);
 
-                    switch (description.Type)
-                    {
+                    switch (description.Type) {
                         //for float features we first convert, than build grid
-                        case EColumn::Num:
-                        {
+                        case EColumn::Num: {
                             TFloatColumnConverter converter(i, columnId, description.Id);
                             converter.SetColumn(factorColumn);
 
-                            if (BinarizationConfiguration)
-                            {
-                                if (!InputBinarization)
-                                {
+                            if (BinarizationConfiguration) {
+                                if (!InputBinarization) {
                                     Y_ENSURE(GridBuilderFactory);
                                     converter.BuildBinarized(*GridBuilderFactory,
                                                              *BinarizationConfiguration);
-                                } else
-                                {
+                                } else {
                                     ReadMessage(*InputBinarization, floatFeatureBinarization);
                                     Y_ENSURE(floatFeatureBinarization.GetFeatureDescription().GetFeatureId() == i,
                                              "Error: featureId in index should be equal to featureId in converted pool");
@@ -558,8 +485,7 @@ namespace NCatboostCuda
                                                            floatFeatureBinarization.GetBinarization().borders().end());
                                     converter.BuildBinarized(std::move(borders));
                                 }
-                                if (OutputBinarization)
-                                {
+                                if (OutputBinarization) {
                                     converter.WriteBinarization(floatFeatureBinarization);
                                     WriteMessage(floatFeatureBinarization, OutputBinarization.Get());
                                 }
@@ -569,15 +495,12 @@ namespace NCatboostCuda
                             break;
                         }
                             //warning: for cat features we first build binarization, and only than convert
-                        case EColumn::Categ:
-                        {
+                        case EColumn::Categ: {
                             TCatFeatureColumnConverter converter(i, columnId, description.Id);
-                            if (InputBinarization)
-                            {
+                            if (InputBinarization) {
                                 ReadMessage(*InputBinarization, binarization);
                                 TMap<TString, ui32> bins;
-                                for (int i = 0; i < binarization.GetBins().size(); ++i)
-                                {
+                                for (int i = 0; i < binarization.GetBins().size(); ++i) {
                                     bins[binarization.GetKeys(i)] = binarization.GetBins().Get(i);
                                 }
 
@@ -587,8 +510,7 @@ namespace NCatboostCuda
                             }
                             //build index
                             converter.AddKeys(factorColumn);
-                            if (OutputBinarization)
-                            {
+                            if (OutputBinarization) {
                                 converter.WriteBinarization(binarization);
                                 WriteMessage(binarization, OutputBinarization.Get());
                             }
@@ -597,8 +519,7 @@ namespace NCatboostCuda
                             converter.Write(protoFeatureColumn);
                             break;
                         }
-                        default:
-                        {
+                        default: {
                             ythrow TCatboostException() << "Unsuppored feature type";
                         }
                     }
@@ -608,38 +529,33 @@ namespace NCatboostCuda
         }
 
     private:
-        template<class T, class TColumn, class TFunction>
+        template <class T, class TColumn, class TFunction>
         inline void ConvertColumnAndWrite(ui32 columnId,
                                           TColumn& column,
-                                          TFunction&& cast)
-        {
+                                          TFunction&& cast) {
             TVector<TString> strColumn;
             SplittedPool.ReadColumn(columnId, strColumn);
             column.MutableValues()->Resize(strColumn.size(), 0);
-            NPar::ParallelFor(0, strColumn.size(), [&](int i) -> void
-            {
+            NPar::ParallelFor(0, strColumn.size(), [&](int i) -> void {
                 T val;
                 CB_ENSURE(cast(strColumn[i], val), "Column #" + ToString(columnId) +
-                                                   " cannot be parsed. Try correcting column description file. Failed on line " +
-                                                   ToString(i));
+                                                       " cannot be parsed. Try correcting column description file. Failed on line " +
+                                                       ToString(i));
                 column.MutableValues()->Set(i, val);
             });
             WriteMessage(column, Output.Get());
         }
 
-        template<class T, class TColumn>
+        template <class T, class TColumn>
         inline void ConvertColumn(ui32 columnId,
-                                  TColumn& column)
-        {
-            ConvertColumnAndWrite<T, TColumn>(columnId, column, [](const TString& str, T& val) -> bool
-            {
+                                  TColumn& column) {
+            ConvertColumnAndWrite<T, TColumn>(columnId, column, [](const TString& str, T& val) -> bool {
                 return TryFromString<T>(str, val);
             });
         };
 
-        template<class TProtoMessage>
-        inline void WriteMessage(TProtoMessage& message, TOFStream* output)
-        {
+        template <class TProtoMessage>
+        inline void WriteMessage(TProtoMessage& message, TOFStream* output) {
             NFastTier::TBinaryProtoWriter<TProtoMessage> messageWriter;
             messageWriter.Open(output);
             messageWriter.Write(message);

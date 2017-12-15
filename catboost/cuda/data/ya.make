@@ -21,6 +21,7 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/options
     catboost/cuda/data/pool_proto
+    catboost/cuda/utils
 )
 
 GENERATE_ENUM_SERIALIZATION(columns.h)

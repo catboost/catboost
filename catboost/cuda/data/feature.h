@@ -13,16 +13,13 @@
 #include <util/ysaveload.h>
 #include <util/generic/algorithm.h>
 
-namespace NCatboostCuda
-{
-    enum class EBinSplitType
-    {
+namespace NCatboostCuda {
+    enum class EBinSplitType {
         TakeBin,
         TakeGreater
     };
 
-    struct TBinarySplit
-    {
+    struct TBinarySplit {
         ui32 FeatureId = 0; //from feature manager
         ui32 BinIdx = 0;
         EBinSplitType SplitType;
@@ -30,107 +27,88 @@ namespace NCatboostCuda
         TBinarySplit(const ui32 featureId,
                      const ui32 binIdx,
                      EBinSplitType splitType)
-                : FeatureId(featureId)
-                , BinIdx(binIdx)
-                , SplitType(splitType)
+            : FeatureId(featureId)
+            , BinIdx(binIdx)
+            , SplitType(splitType)
         {
         }
 
         TBinarySplit() = default;
 
-        bool operator<(const TBinarySplit& other) const
-        {
+        bool operator<(const TBinarySplit& other) const {
             return std::tie(FeatureId, BinIdx, SplitType) < std::tie(other.FeatureId, other.BinIdx, other.SplitType);
         }
 
-        bool operator==(const TBinarySplit& other) const
-        {
+        bool operator==(const TBinarySplit& other) const {
             return std::tie(FeatureId, BinIdx, SplitType) == std::tie(other.FeatureId, other.BinIdx, other.SplitType);
         }
 
-        bool operator!=(const TBinarySplit& other) const
-        {
+        bool operator!=(const TBinarySplit& other) const {
             return !(*this == other);
         }
 
-        ui64 GetHash() const
-        {
+        ui64 GetHash() const {
             return MultiHash(FeatureId, BinIdx, SplitType);
         }
 
         Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
 
-
-    template<class TVectorType>
-    inline void Unique(TVectorType& vector)
-    {
+    template <class TVectorType>
+    inline void Unique(TVectorType& vector) {
         ui64 size = std::unique(vector.begin(), vector.end()) - vector.begin();
         vector.resize(size);
     }
 
-    struct TFeatureTensor
-    {
+    struct TFeatureTensor {
     public:
-        bool IsSimple() const
-        {
+        bool IsSimple() const {
             return (Splits.size() + CatFeatures.size()) == 1;
         }
 
-        TFeatureTensor& AddBinarySplit(const TBinarySplit& bin)
-        {
+        TFeatureTensor& AddBinarySplit(const TBinarySplit& bin) {
             Splits.push_back(bin);
             SortUniqueSplits();
             return *this;
         }
 
-        TFeatureTensor& AddBinarySplit(const TVector<TBinarySplit>& splits)
-        {
-            for (auto& bin : splits)
-            {
+        TFeatureTensor& AddBinarySplit(const TVector<TBinarySplit>& splits) {
+            for (auto& bin : splits) {
                 Splits.push_back(bin);
             }
             SortUniqueSplits();
             return *this;
         }
 
-        void SortUniqueSplits()
-        {
+        void SortUniqueSplits() {
             Sort(Splits.begin(), Splits.end());
             Unique(Splits);
         }
 
-        TFeatureTensor& AddCatFeature(const TVector<ui32>& featureIds)
-        {
-            for (auto feature : featureIds)
-            {
+        TFeatureTensor& AddCatFeature(const TVector<ui32>& featureIds) {
+            for (auto feature : featureIds) {
                 CatFeatures.push_back(feature);
             }
             SortUniqueCatFeatures();
             return *this;
         }
 
-        TFeatureTensor& AddCatFeature(ui32 featureId)
-        {
+        TFeatureTensor& AddCatFeature(ui32 featureId) {
             CatFeatures.push_back(featureId);
             SortUniqueCatFeatures();
             return *this;
         }
 
-        void SortUniqueCatFeatures()
-        {
+        void SortUniqueCatFeatures() {
             Sort(CatFeatures.begin(), CatFeatures.end());
             Unique(CatFeatures);
         }
 
-        TFeatureTensor& AddTensor(const TFeatureTensor& tensor)
-        {
-            for (auto& split : tensor.Splits)
-            {
+        TFeatureTensor& AddTensor(const TFeatureTensor& tensor) {
+            for (auto& split : tensor.Splits) {
                 Splits.push_back(split);
             }
-            for (auto& catFeature : tensor.CatFeatures)
-            {
+            for (auto& catFeature : tensor.CatFeatures) {
                 CatFeatures.push_back(catFeature);
             }
             SortUniqueSplits();
@@ -138,48 +116,39 @@ namespace NCatboostCuda
             return *this;
         }
 
-        bool operator==(const TFeatureTensor& other) const
-        {
+        bool operator==(const TFeatureTensor& other) const {
             return (Splits == other.GetSplits()) && (CatFeatures == other.GetCatFeatures());
         }
 
-        bool operator!=(const TFeatureTensor& other) const
-        {
+        bool operator!=(const TFeatureTensor& other) const {
             return !(*this == other);
         }
 
-        bool IsEmpty() const
-        {
+        bool IsEmpty() const {
             return CatFeatures.size() == 0 && Splits.size() == 0;
         }
 
-        ui64 Size() const
-        {
+        ui64 Size() const {
             return CatFeatures.size() + Splits.size();
         }
 
-        ui64 GetHash() const
-        {
+        ui64 GetHash() const {
             return MultiHash(TVecHash<TBinarySplit>()(Splits), VecCityHash(CatFeatures));
         }
 
-        bool operator<(const TFeatureTensor& other) const
-        {
+        bool operator<(const TFeatureTensor& other) const {
             return std::tie(Splits, CatFeatures) < std::tie(other.Splits, other.CatFeatures);
         }
 
-        bool IsSubset(const TFeatureTensor other) const
-        {
+        bool IsSubset(const TFeatureTensor other) const {
             return NCatboostCuda::IsSubset(Splits, other.Splits) && NCatboostCuda::IsSubset(CatFeatures, other.CatFeatures);
         }
 
-        const TVector<TBinarySplit>& GetSplits() const
-        {
+        const TVector<TBinarySplit>& GetSplits() const {
             return Splits;
         }
 
-        const TVector<ui32>& GetCatFeatures() const
-        {
+        const TVector<ui32>& GetCatFeatures() const {
             return CatFeatures;
         }
 
@@ -195,8 +164,7 @@ namespace NCatboostCuda
         TVector<ui32> CatFeatures;
     };
 
-    struct TCtr
-    {
+    struct TCtr {
         TFeatureTensor FeatureTensor;
         TCtrConfig Configuration;
 
@@ -206,33 +174,28 @@ namespace NCatboostCuda
 
         TCtr(const TFeatureTensor& tensor,
              const TCtrConfig& config)
-                : FeatureTensor(tensor)
-                  , Configuration(config)
+            : FeatureTensor(tensor)
+            , Configuration(config)
         {
         }
 
-        bool operator==(const TCtr& other) const
-        {
+        bool operator==(const TCtr& other) const {
             return std::tie(FeatureTensor, Configuration) == std::tie(other.FeatureTensor, other.Configuration);
         }
 
-        bool operator!=(const TCtr& other) const
-        {
+        bool operator!=(const TCtr& other) const {
             return !(*this == other);
         }
 
-        ui64 GetHash() const
-        {
+        ui64 GetHash() const {
             return MultiHash(FeatureTensor, Configuration);
         }
 
-        bool IsSimple() const
-        {
+        bool IsSimple() const {
             return FeatureTensor.IsSimple();
         }
 
-        bool operator<(const TCtr& other) const
-        {
+        bool operator<(const TCtr& other) const {
             return std::tie(FeatureTensor, Configuration) < std::tie(other.FeatureTensor, other.Configuration);
         }
 
@@ -242,38 +205,30 @@ namespace NCatboostCuda
 
 }
 
-template<>
-struct THash<NCatboostCuda::TBinarySplit>
-{
-    inline size_t operator()(const NCatboostCuda::TBinarySplit& value) const
-    {
+template <>
+struct THash<NCatboostCuda::TBinarySplit> {
+    inline size_t operator()(const NCatboostCuda::TBinarySplit& value) const {
         return value.GetHash();
     }
 };
 
-template<>
-struct THash<NCatboostCuda::TFeatureTensor>
-{
-    inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const
-    {
+template <>
+struct THash<NCatboostCuda::TFeatureTensor> {
+    inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const {
         return tensor.GetHash();
     }
 };
 
-template<>
-struct THash<NCatboostCuda::TCtrConfig>
-{
-    inline size_t operator()(const NCatboostCuda::TCtrConfig& config) const
-    {
+template <>
+struct THash<NCatboostCuda::TCtrConfig> {
+    inline size_t operator()(const NCatboostCuda::TCtrConfig& config) const {
         return config.GetHash();
     }
 };
 
-template<>
-struct THash<NCatboostCuda::TCtr>
-{
-    inline size_t operator()(const NCatboostCuda::TCtr& value) const
-    {
+template <>
+struct THash<NCatboostCuda::TCtr> {
+    inline size_t operator()(const NCatboostCuda::TCtr& value) const {
         return value.GetHash();
     }
 };

@@ -7,6 +7,7 @@
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_util/kernel/cub_storage_context.cuh>
 #include <catboost/cuda/cuda_util/kernel/reduce.cuh>
+#include <type_traits>
 
 namespace NKernelHost {
     template <typename T>
@@ -168,9 +169,10 @@ inline void ReduceByKeyVector(const TCudaBuffer<T, TMapping>& input,
 template <typename T, class TMapping, NCudaLib::EPtrType OutputPtrType = NCudaLib::CudaDevice>
 inline void SegmentedReduceVector(const TCudaBuffer<T, TMapping>& input,
                                   const TCudaBuffer<ui32, TMapping>& offsets,
-                                  TCudaBuffer<T, TMapping, OutputPtrType >& output,
+                                  TCudaBuffer<typename std::remove_const<T>::type, TMapping, OutputPtrType>& output,
                                   EOperatorType type = EOperatorType::Sum,
                                   ui32 streamId = 0) {
-    using TKernel = NKernelHost::TSegmentedReduceKernel<T, OutputPtrType>;
+    using TNonConstT = typename std::remove_const<T>::type;
+    using TKernel = NKernelHost::TSegmentedReduceKernel<TNonConstT, OutputPtrType>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
 }

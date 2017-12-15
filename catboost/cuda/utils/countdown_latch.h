@@ -6,7 +6,7 @@
 
 class TCountDownLatch {
 public:
-    TCountDownLatch(ui32 init)
+    explicit TCountDownLatch(ui32 init)
         : Counter(init)
     {
     }

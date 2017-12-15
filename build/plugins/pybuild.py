@@ -178,6 +178,10 @@ def onpy_srcs(unit, *args):
 
 
 def ontest_srcs(unit, *args):
+    used = set(args) & {"NAMESPACE", "TOP_LEVEL", "__main__.py"}
+    if used:
+        param = list(used)[0]
+        ymake.report_configure_error('in TEST_SRCS: you cannot use {} here - it would broke testing machinery'.format(param))
     if unit.get('PYTEST_BIN') != 'no':
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
 

@@ -86,6 +86,9 @@ enum class ELossFunction {
 
     PairLogit,
 
+    /* ranking errors */
+    YetiRank,
+
     /* regression metrics */
 
     R2,

@@ -7,6 +7,125 @@
 
 namespace NKernel {
 
+
+    struct TQuantileTarget  {
+        float Alpha;
+
+        __host__ __device__ __forceinline__ TQuantileTarget(float alpha = 0.5)
+                : Alpha(alpha) {
+        }
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            const float val = target - prediction;
+            const float multiplier = (val > 0) ? Alpha : -(1 - Alpha);
+            return multiplier * val;
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float val = target - prediction;
+            return (val > 0) ? Alpha : -(1.0f - Alpha);
+        }
+
+         __device__ __forceinline__ float Der2(float, float) const {
+            return 0;
+        }
+    };
+
+    struct TLogLinQuantileTarget {
+        float Alpha;
+
+        __host__ __device__ __forceinline__ TLogLinQuantileTarget(float alpha = 0.5)
+                : Alpha(alpha) {
+        }
+
+         __device__ __forceinline__ float Score(float target, float prediction) const {
+            const float val = target - __expf(prediction);
+            const float multiplier = (val > 0) ? Alpha : -(1 - Alpha);
+            return val * multiplier;
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float expPred = __expf(prediction);
+            return (target - expPred > 0) ? Alpha * expPred : -(1 - Alpha) * expPred;
+        }
+
+        __device__ __forceinline__ float Der2(float, float) const {
+            return 0;
+        }
+    };
+
+    struct TMAPETarget  {
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            return abs(1.0f - prediction / target);
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            return (target - prediction > 0) ? 1.0f / target : -1.0f / target;
+        }
+
+        __device__ __forceinline__  float Der2(float, float) const {
+            return 0;
+        }
+    };
+
+    struct TPoissonTarget  {
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            return (__expf(prediction) - target * prediction);
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float expPred = __expf(prediction);
+            return target - expPred;
+        }
+
+       __device__ __forceinline__ float Der2(float, float prediction) const {
+            return -__expf(prediction);
+        }
+    };
+
+
+    template <class TTarget, int BLOCK_SIZE>
+    __global__ void PointwiseTargetImpl(const float* relevs, const float* weights, ui32 size,
+                                        const float* predictions,
+                                        TTarget target,
+                                        float* functionValue,
+                                        float* der,
+                                        float* der2) {
+
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        __shared__ float tmpScores[BLOCK_SIZE];
+
+        const float val = i < size ? predictions[i] : 0;
+        const float relev = i < size ? relevs[i] : 0;
+        const float weight =  (weights && (i < size)) ? weights[i] : 1.0f;
+
+        if (i < size) {
+            if (der) {
+                der[i] = weight * target.Der(relev, val);
+            }
+            if (der2) {
+                der2[i] = weight * target.Der2(relev, val);
+            }
+        }
+
+        if (functionValue) {
+            tmpScores[threadIdx.x] = (i < size) ? -weight * target.Score(relev, val)  : 0;
+            __syncthreads();
+        }
+
+        if (functionValue) {
+            float val = FastInBlockReduce<float>(threadIdx.x, tmpScores, BLOCK_SIZE);
+            if (threadIdx.x == 0) {
+                atomicAdd(functionValue, val);
+            }
+        }
+    }
+
+
+
     template <int BLOCK_SIZE>
     __global__ void MseImpl(const float* relevs, const float* weights, ui32 size,
                             const float* predictions,
@@ -44,6 +163,7 @@ namespace NKernel {
             }
         }
     }
+
 
 
     template <int BLOCK_SIZE, int ELEMENTS_PER_THREAD, bool HAS_BORDER>
@@ -152,4 +272,67 @@ namespace NKernel {
     }
 
 
+
+
+    template <int BLOCK_SIZE, class TTarget>
+    void RunPointwiseTargetKernel(const float* relevs, const float* weights, ui32 size,
+                                  TTarget target,
+                                  const float* predictions,
+                                  float* functionValue, float* der, float* der2,
+                                  TCudaStream stream) {
+        const ui32 numBlocks = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+        PointwiseTargetImpl<TTarget, BLOCK_SIZE><<<numBlocks, BLOCK_SIZE, 0, stream>>>(relevs, weights, size, predictions, target, functionValue, der, der2);
+
+    }
+
+
+#define POINTWISE_TARGET() \
+    RunPointwiseTargetKernel<blockSize>(relevs, weights, size, target, predictions, functionValue, der, der2, stream);
+
+
+    void PointwiseTargetKernel(const float* relevs, const float* weights, ui32 size,
+                               ELossFunction loss, float alpha,
+                               const float* predictions,
+                               float* functionValue, float* der, float* der2,
+                               TCudaStream stream)
+    {
+        const ui32 blockSize = 1024;
+        //TODO: get rid of this
+        if (functionValue)
+        {
+            FillBuffer(functionValue, 0.0f, 1, stream);
+        }
+        switch (loss)
+        {
+            case ELossFunction::Quantile:
+            case ELossFunction::MAE:
+            {
+                TQuantileTarget target(alpha);
+                POINTWISE_TARGET()
+                break;
+            }
+            case ELossFunction::LogLinQuantile:
+            {
+                TLogLinQuantileTarget target(alpha);
+                POINTWISE_TARGET()
+                break;
+            }
+            case ELossFunction::MAPE:
+            {
+                TMAPETarget target;
+                POINTWISE_TARGET()
+                break;
+            }
+            case ELossFunction::Poisson:
+            {
+                TPoissonTarget target;
+                POINTWISE_TARGET()
+                break;
+            }
+            default: {
+                exit(0);
+            }
+        }
+    }
 }

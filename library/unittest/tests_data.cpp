@@ -75,7 +75,7 @@ public:
         TSocketType* sock = new TSocketType();
         Sockets.push_back(sock);
 
-        SetSockOpt(*sock, SOL_SOCKET, SO_REUSEADDR, 1);
+        SetReuseAddressAndPort(*sock);
 
         TSockAddrInet6 addr("::", 0);
         const int ret = sock->Bind(&addr);
@@ -106,7 +106,7 @@ public:
                 Sockets.pop_back();
                 continue;
             }
-            SetSockOpt(*sock, SOL_SOCKET, SO_REUSEADDR, 1);
+            SetReuseAddressAndPort(*sock);
             Sockets.push_back(std::move(sock));
             return resultPort;
         }
@@ -155,7 +155,7 @@ TPortsRangeManager::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
         Socket.Reset(new TInet6StreamSocket());
 
         TSockAddrInet6 addr("::", port);
-        SetSockOpt(*Socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        SetReuseAddressAndPort(*Socket);
 
         if (Socket->Bind(&addr) == 0) {
             Locked = true;

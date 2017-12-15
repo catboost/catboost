@@ -470,11 +470,9 @@ TMetricHolder TQueryRMSEMetric::EvalQuerywise(const TVector<TVector<double>>& ap
     while (begin + offset < end) {
         ui32 querySize = queriesSize.find(queriesId[begin + offset])->second;
         double queryAvrg = CalcQueryAvrg(begin + offset, querySize, approx[0], target, weight);
-        double queryAvrgSqr = Sqr(queryAvrg);
-
         for (ui32 docId = begin + offset; docId < begin + offset + querySize; ++docId) {
             float w = weight.empty() ? 1 : weight[docId];
-            error.Error += (Sqr(target[docId] - approx[0][docId]) - queryAvrgSqr) * w;
+            error.Error += (Sqr(target[docId] - approx[0][docId] - queryAvrg)) * w;
             error.Weight += w;
         }
         offset += querySize;
@@ -504,6 +502,11 @@ double TQueryRMSEMetric::CalcQueryAvrg(int start, int count,
 
 TString TQueryRMSEMetric::GetDescription() const {
     return ToString(ELossFunction::QueryRMSE);
+}
+
+
+double TQueryRMSEMetric::GetFinalError(const TMetricHolder& error) const {
+    return sqrt(error.Error / (error.Weight + 1e-38));
 }
 
 bool TQueryRMSEMetric::IsMaxOptimal() const {

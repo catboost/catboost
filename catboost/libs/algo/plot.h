@@ -198,7 +198,7 @@ private:
 
 TMetricsPlotCalcer CreateMetricCalcer(
     const TFullModel& model,
-    const TString& metricDescription,
+    const TVector<TString>& metriscDescription,
     int begin,
     int end,
     int evalPeriod,

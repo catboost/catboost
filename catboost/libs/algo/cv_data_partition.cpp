@@ -1,27 +1,32 @@
 #include "cv_data_partition.h"
-#include "helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 void BuildCvPools(
     int foldIdx,
     int foldCount,
     bool reverseCv,
     int seed,
+    int threadCount,
     TPool* learnPool,
     TPool* testPool)
 {
     CB_ENSURE(foldIdx >= 0 && foldIdx < foldCount);
     TFastRng64 rand(seed);
-    TVector<size_t> permutation;
+    TVector<ui64> permutation;
     permutation.yresize(learnPool->Docs.GetDocCount());
     std::iota(permutation.begin(), permutation.end(), /*starting value*/ 0);
     Shuffle(permutation.begin(), permutation.end(), rand);
-    ApplyPermutation(InvertPermutation(permutation), learnPool);
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+    ApplyPermutation(InvertPermutation(permutation), learnPool, &localExecutor);
     testPool->CatFeatures = learnPool->CatFeatures;
 
     foldIdx = foldIdx % foldCount;

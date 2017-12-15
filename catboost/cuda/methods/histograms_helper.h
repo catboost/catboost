@@ -9,10 +9,8 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
-namespace NCatboostCuda
-{
-    struct TL2Target
-    {
+namespace NCatboostCuda {
+    struct TL2Target {
         TMirrorBuffer<float> WeightedTarget;
         TMirrorBuffer<float> Weights;
     };
@@ -31,26 +29,22 @@ namespace NCatboostCuda
         Gather(to.Weights, from.Weights, indices);
     }
 
-    template<class TMapping>
-    inline TBestSplitProperties BestSplit(const TCudaBuffer<TBestSplitProperties, TMapping>& optimalSplits)
-    {
+    template <class TMapping>
+    inline TBestSplitProperties BestSplit(const TCudaBuffer<TBestSplitProperties, TMapping>& optimalSplits) {
         TVector<TBestSplitProperties> best;
         optimalSplits.Read(best);
         TBestSplitProperties minScr = best[0];
 
-        for (auto scr : best)
-        {
-            if (scr.Score < minScr.Score)
-            {
+        for (auto scr : best) {
+            if (scr.Score < minScr.Score) {
                 minScr = scr;
             }
         }
         return minScr;
     }
 
-//TODO(noxoomo): class with private fields…
-    struct TOptimizationSubsets
-    {
+    //TODO(noxoomo): class with private fields…
+    struct TOptimizationSubsets {
         TL2Target* Src;
 
         TMirrorBuffer<ui32> Bins;
@@ -63,8 +57,7 @@ namespace NCatboostCuda
         ui32 FoldBits = 0;
 
         void Split(const TMirrorBuffer<ui32>& nextLevelDocBins,
-                   const TMirrorBuffer<ui32>& docMap)
-        {
+                   const TMirrorBuffer<ui32>& docMap) {
             auto& profiler = NCudaLib::GetProfiler();
             {
                 auto guard = profiler.Profile(TStringBuilder() << "Update bins");
@@ -78,15 +71,13 @@ namespace NCatboostCuda
             Update();
         }
 
-        void Update()
-        {
+        void Update() {
             auto currentParts = CurrentPartsView();
             UpdatePartitionDimensions(Bins, currentParts);
             GatherTarget(GatheredTarget, *Src, Indices);
         }
 
-        TMirrorBuffer<const TPartitionStatistics> ComputePartitionStats()
-        {
+        TMirrorBuffer<const TPartitionStatistics> ComputePartitionStats() {
             auto currentParts = CurrentPartsView();
             auto partStats = TMirrorBuffer<TPartitionStatistics>::CopyMapping(currentParts);
             UpdatePartitionStats(partStats, currentParts,
@@ -94,23 +85,20 @@ namespace NCatboostCuda
             return partStats.ConstCopyView();
         }
 
-        TMirrorBuffer<TDataPartition> CurrentPartsView()
-        {
+        TMirrorBuffer<TDataPartition> CurrentPartsView() {
             auto currentSlice = TSlice(0, static_cast<ui64>(1 << (CurrentDepth + FoldBits)));
             return Partitions.SliceView(currentSlice);
         }
 
-        TMirrorBuffer<const TDataPartition> CurrentPartsView() const
-        {
+        TMirrorBuffer<const TDataPartition> CurrentPartsView() const {
             auto currentSlice = TSlice(0, static_cast<ui64>(1 << (CurrentDepth + FoldBits)));
             return Partitions.SliceView(currentSlice);
         }
     };
 
-    template<class TGridPolicy,
-            class TLayoutPolicy = TCatBoostPoolLayout>
-    class TScoreHelper: public TMoveOnly
-    {
+    template <class TGridPolicy,
+              class TLayoutPolicy = TCatBoostPoolLayout>
+    class TScoreHelper: public TMoveOnly {
     public:
         using TGpuDataSet = TGpuBinarizedDataSet<TGridPolicy, TLayoutPolicy>;
         using TFeaturesMapping = typename TGpuDataSet::TFeaturesMapping;
@@ -123,55 +111,49 @@ namespace NCatboostCuda
                      double l2 = 1.0,
                      bool normalize = false,
                      bool requestStream = true)
-                : DataSet(&dataSet)
-                  , Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream()
-                                         : NCudaLib::GetCudaManager().DefaultStream())
-                  , FoldCount(foldCount)
-                  , MaxDepth(maxDepth)
-                  , ScoreFunction(score)
-                  , L2(l2)
-                  , Normalize(normalize)
+            : DataSet(&dataSet)
+            , Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream()
+                                   : NCudaLib::GetCudaManager().DefaultStream())
+            , FoldCount(foldCount)
+            , MaxDepth(maxDepth)
+            , ScoreFunction(score)
+            , L2(l2)
+            , Normalize(normalize)
         {
-            auto histMapping = dataSet.GetBinaryFeatures().GetMapping().Transform([&](const TSlice& features) -> ui64
-                                                                                  {
-                                                                                      return (1 << maxDepth) *
-                                                                                             foldCount *
-                                                                                             features.Size() * 2;
-                                                                                  });
+            auto histMapping = dataSet.GetBinaryFeatures().GetMapping().Transform([&](const TSlice& features) -> ui64 {
+                return (1 << maxDepth) *
+                       foldCount *
+                       features.Size() * 2;
+            });
 
             Histograms.Reset(histMapping);
 
             const ui64 blockCount = 32;
             auto bestSplitMapping = dataSet.GetBinaryFeatures().GetMapping().Transform(
-                    [&](const TSlice& features) -> ui64
-                    {
-                        return std::min(NHelpers::CeilDivide(features.Size(), 128), blockCount);
-                    });
+                [&](const TSlice& features) -> ui64 {
+                    return std::min(NHelpers::CeilDivide(features.Size(), 128), blockCount);
+                });
 
             BestScores.Reset(bestSplitMapping);
         }
 
         TScoreHelper& SubmitCompute(const TOptimizationSubsets& newSubsets,
-                                    const TMirrorBuffer<ui32>& docs)
-        {
+                                    const TMirrorBuffer<ui32>& docs) {
             Y_ASSERT(DataSet);
             ++CurrentBit;
-            if (static_cast<ui32>(CurrentBit) != newSubsets.CurrentDepth || CurrentBit == 0)
-            {
+            if (static_cast<ui32>(CurrentBit) != newSubsets.CurrentDepth || CurrentBit == 0) {
                 BuildFromScratch = true;
                 CurrentBit = newSubsets.CurrentDepth;
             }
-            if (BuildFromScratch)
-            {
+            if (BuildFromScratch) {
                 FillBuffer(Histograms, 0.0f, Stream);
             }
 
-            if (DataSet->GetFeatureCount())
-            {
+            if (DataSet->GetFeatureCount()) {
                 auto& profiler = NCudaLib::GetProfiler();
                 auto guard = profiler.Profile(
-                        TStringBuilder() << "Compute histograms for features #" << DataSet->GetHostFeatures().size()
-                                         << " depth " << CurrentBit);
+                    TStringBuilder() << "Compute histograms for features #" << DataSet->GetHostFeatures().size()
+                                     << " depth " << CurrentBit);
                 ComputeHistogram2<TGpuDataSet>(*DataSet,
                                                newSubsets.GatheredTarget.WeightedTarget,
                                                newSubsets.GatheredTarget.Weights,
@@ -189,21 +171,18 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TVector<float> ReadHistograms() const
-        {
+        TVector<float> ReadHistograms() const {
             TVector<float> dst;
             TCudaBuffer<float, TFeaturesMapping> gatheredHistogramsByLeaves;
 
-            auto currentStripe = DataSet->GetBinaryFeatures().GetMapping().Transform([&](const TSlice& features) -> ui64
-                                                                                     {
-                                                                                         return (1 << CurrentBit) *
-                                                                                                FoldCount *
-                                                                                                features.Size() * 2;
-                                                                                     });
+            auto currentStripe = DataSet->GetBinaryFeatures().GetMapping().Transform([&](const TSlice& features) -> ui64 {
+                return (1 << CurrentBit) *
+                       FoldCount *
+                       features.Size() * 2;
+            });
             gatheredHistogramsByLeaves.Reset(currentStripe);
 
-            if (DataSet->GetFeatureCount())
-            {
+            if (DataSet->GetFeatureCount()) {
                 GatherHistogramByLeaves(Histograms,
                                         DataSet->GetBinFeatureCount(),
                                         2,
@@ -218,11 +197,9 @@ namespace NCatboostCuda
 
         TScoreHelper& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& partStats,
                                           double scoreStdDev = 0,
-                                          ui64 seed = 0)
-        {
+                                          ui64 seed = 0) {
             auto& profiler = NCudaLib::GetProfiler();
-            if (DataSet->GetFeatureCount())
-            {
+            if (DataSet->GetFeatureCount()) {
                 {
                     auto guard = profiler.Profile(TStringBuilder() << "Find optimal split #"
                                                                    << DataSet->GetBinaryFeatures().GetObjectsSlice().Size());
@@ -243,30 +220,24 @@ namespace NCatboostCuda
             return *this;
         }
 
-        TBestSplitProperties ReadAndRemapOptimalSplit()
-        {
-            if (DataSet->GetFeatureCount())
-            {
+        TBestSplitProperties ReadAndRemapOptimalSplit() {
+            if (DataSet->GetFeatureCount()) {
                 auto split = BestSplit(BestScores);
                 auto feature = DataSet->GetFeatureByLocalId(split.FeatureId);
                 return {DataSet->GetFeatureId(feature.Index), split.BinId, split.Score};
-            } else
-            {
+            } else {
                 return {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity()};
             }
         }
 
-        TCudaBuffer<float, TFeaturesMapping>& GetHistograms()
-        {
+        TCudaBuffer<float, TFeaturesMapping>& GetHistograms() {
             EnsureHistCompute();
             return Histograms;
         }
 
     private:
-        void EnsureHistCompute()
-        {
-            if (Computing)
-            {
+        void EnsureHistCompute() {
+            if (Computing) {
                 Stream.Synchronize();
                 Computing = false;
             }

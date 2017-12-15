@@ -11,6 +11,10 @@ PY_SRCS(
     pickleshare.py
 )
 
+PEERDIR(
+    contrib/python/path.py
+)
+
 NO_LINT()
 
 END()

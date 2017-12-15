@@ -75,31 +75,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.yasm">
-      <ObjectFileName>$(IntDir)2ibixrosgzoowakbfpksdbht4q_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.yasm"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.yasm">
-      <ObjectFileName>$(IntDir)b63m5bhri2fxbkjw6ribo4mgni_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.yasm">
-      <ObjectFileName>$(IntDir)emd3yoiirtsosqeezjafdyavpa_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.yasm">
-      <ObjectFileName>$(IntDir)gsrnb3qhv2cwsyhpcxddepxgwe_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.yasm">
-      <ObjectFileName>$(IntDir)mmgy5ukfyuc4szabyaq2c4ygpm_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.yasm">
-      <ObjectFileName>$(IntDir)urzaofl4g6hglfyuybn6nz7ife_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_4iik7ydbhieveasfjecuejk3su.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -396,6 +379,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\unicode_utils.py.yapyc;$(SolutionDir)..\contrib\python\setuptools\setuptools\version.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\version.py.yapyc;$(SolutionDir)..\contrib\python\setuptools\setuptools\windows_support.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\windows_support.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmi46xrthelci5wjafdbq64mfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_vpif25uyjeovcp2n75wq7orlme.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_y3enakq555b2xe6kjvb63evw2i.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_llg5qxke6aznpqexojucddrvvq.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_wecyyv46nowqduir6zpyugohu4.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_4iik7ydbhieveasfjecuejk3su.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -981,6 +991,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

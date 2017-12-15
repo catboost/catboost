@@ -7,11 +7,9 @@
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/libs/options/loss_description.h>
 
-namespace NCatboostCuda
-{
-    template<class TDocLayout, class TDataSet>
-    class TCrossEntropy: public TPointwiseTarget<TDocLayout, TDataSet>
-    {
+namespace NCatboostCuda {
+    template <class TDocLayout, class TDataSet>
+    class TCrossEntropy: public TPointwiseTarget<TDocLayout, TDataSet> {
     public:
         using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
         using TStat = TAdditiveStatistic;
@@ -19,24 +17,22 @@ namespace NCatboostCuda
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         virtual ~TCrossEntropy() {
-
         }
 
         TCrossEntropy(const TDataSet& dataSet,
                       TRandom& random,
                       TSlice slice,
                       const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random,
-                          slice) {
+            : TParent(dataSet,
+                      random,
+                      slice) {
             Y_UNUSED(targetOptions);
         }
 
         TCrossEntropy(const TCrossEntropy& target,
                       const TSlice& slice)
-                : TParent(target,
-                          slice)
-        {
+            : TParent(target,
+                      slice) {
         }
 
         template <class TLayout>
@@ -44,25 +40,23 @@ namespace NCatboostCuda
                       TCudaBuffer<const float, TMapping>&& target,
                       TCudaBuffer<const float, TMapping>&& weights,
                       TCudaBuffer<const ui32, TMapping>&& indices)
-                : TParent(basedOn.GetDataSet(),
-                          basedOn.GetRandom(),
-                          std::move(target),
-                          std::move(weights),
-                          std::move(indices))
-        {
+            : TParent(basedOn.GetDataSet(),
+                      basedOn.GetRandom(),
+                      std::move(target),
+                      std::move(weights),
+                      std::move(indices)) {
         }
 
         TCrossEntropy(TCrossEntropy&& other)
-                : TParent(std::move(other))
+            : TParent(std::move(other))
         {
         }
 
-        using TParent::GetWeights;
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
+        using TParent::GetWeights;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const
-        {
+        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
@@ -74,29 +68,27 @@ namespace NCatboostCuda
                         nullptr);
 
             NCudaLib::TCudaBufferReader<TVec>(tmp)
-                    .SetFactorSlice(TSlice(0, 1))
-                    .SetReadSlice(TSlice(0, 1))
-                    .ReadReduce(result);
+                .SetFactorSlice(TSlice(0, 1))
+                .SetReadSlice(TSlice(0, 1))
+                .ReadReduce(result);
 
             const double weight = GetTotalWeight();
 
             return TAdditiveStatistic(result[0], weight);
         }
 
-        static double Score(const TAdditiveStatistic& score)
-        {
+        static double Score(const TAdditiveStatistic& score) {
             return -score.Sum / score.Weight;
         }
 
-        double Score(const TConstVec& point)
-        {
+        double Score(const TConstVec& point) {
             return Score(ComputeStats(point));
         }
 
         void GradientAt(const TConstVec& point,
                         TVec& dst,
-                        ui32 stream = 0) const
-        {
+                        TVec& weights,
+                        ui32 stream = 0) const {
             Approximate(GetTarget(),
                         GetWeights(),
                         point,
@@ -104,6 +96,7 @@ namespace NCatboostCuda
                         &dst,
                         nullptr,
                         stream);
+            weights.Copy(GetWeights(), stream);
         }
 
         void Approximate(const TConstVec& target,
@@ -112,8 +105,7 @@ namespace NCatboostCuda
                          TVec* value,
                          TVec* der,
                          TVec* der2,
-                         ui32 stream = 0) const
-        {
+                         ui32 stream = 0) const {
             ApproximateCrossEntropy(target,
                                     weights,
                                     point,
@@ -125,13 +117,11 @@ namespace NCatboostCuda
                                     stream);
         }
 
-        static constexpr TStringBuf TargetName()
-        {
+        static constexpr TStringBuf TargetName() {
             return "CrossEntropy";
         }
 
-        static constexpr bool IsMinOptimal()
-        {
+        static constexpr bool IsMinOptimal() {
             return true;
         }
 
@@ -144,9 +134,8 @@ namespace NCatboostCuda
         }
     };
 
-    template<class TDocLayout, class TDataSet>
-    class TLogloss: public TCrossEntropy<TDocLayout, TDataSet>
-    {
+    template <class TDocLayout, class TDataSet>
+    class TLogloss: public TCrossEntropy<TDocLayout, TDataSet> {
     public:
         using TParent = TCrossEntropy<TDocLayout, TDataSet>;
         using TStat = TAdditiveStatistic;
@@ -154,22 +143,23 @@ namespace NCatboostCuda
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TLogloss(const TDataSet& dataSet,
-                  TRandom& random,
-                  TSlice slice,
-                  const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random,
-                          slice,
-                          targetOptions)
-                , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
+                 TRandom& random,
+                 TSlice slice,
+                 const NCatboostOptions::TLossDescription& targetOptions)
+            : TParent(dataSet,
+                      random,
+                      slice,
+                      targetOptions)
+            , Border(NCatboostOptions::GetLogLossBorder(targetOptions))
+        {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
         }
 
         TLogloss(const TLogloss& target,
                  const TSlice& slice)
-                : TParent(target,
-                          slice)
-                , Border(target.GetBorder())
+            : TParent(target,
+                      slice)
+            , Border(target.GetBorder())
         {
         }
 
@@ -178,37 +168,39 @@ namespace NCatboostCuda
                  TCudaBuffer<const float, TMapping>&& target,
                  TCudaBuffer<const float, TMapping>&& weights,
                  TCudaBuffer<const ui32, TMapping>&& indices)
-                : TParent(basedOn,
-                          std::move(target),
-                          std::move(weights),
-                          std::move(indices))
-                , Border(basedOn.GetBorder()) {
+            : TParent(basedOn,
+                      std::move(target),
+                      std::move(weights),
+                      std::move(indices))
+            , Border(basedOn.GetBorder())
+        {
         }
 
         TLogloss(TLogloss&& other)
-                : TParent(std::move(other))
-                , Border(other.GetBorder()) {
+            : TParent(std::move(other))
+            , Border(other.GetBorder())
+        {
         }
 
-
-
-        static constexpr TStringBuf TargetName()
-        {
+        TStringBuf TargetName() const {
+            if (Border != 0.5) {
+                return TStringBuilder() << "Logloss:Border=" << Border;
+            }
             return "Logloss";
         }
 
-        static constexpr bool IsMinOptimal()
-        {
+        static constexpr bool IsMinOptimal() {
             return true;
         }
 
         bool UseBorder() const override {
-            return  true;
+            return true;
         }
 
         double GetBorder() const override {
             return Border;
         }
+
     private:
         double Border = 0.5;
     };

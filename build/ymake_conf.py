@@ -577,7 +577,7 @@ class Build(object):
 
         if host.is_linux or host.is_freebsd or host.is_macos or host.is_cygwin:
             if is_negative('USE_ARCADIA_PYTHON'):
-                python = Python()
+                python = Python(self.tc)
                 python.configure_posix()
                 python.print_variables()
 
@@ -932,6 +932,24 @@ class GnuToolchainOptions(ToolchainOptions):
 
         self.compiler_platform_projects = self.target.find_in_dict(self.params.get('platform'), [])
 
+        self.os_sdk = preset('OS_SDK') or self._default_os_sdk()
+        self.os_sdk_local = self.os_sdk == 'local'
+
+    def _default_os_sdk(self):
+        if self.target.is_linux:
+            if self.target.is_x86_64:
+                if self.host.is_linux and not self.version_at_least(4, 0):
+                    # Clang 3.9 works with local OS SDK by default.
+                    # Next versions of Clang will use fixed OS SDK already.
+                    return 'local'
+
+            elif self.target.is_aarch64:
+                # Earliest Ubuntu SDK available for AArch64
+                return 'ubuntu-16'
+
+            # Default OS SDK for Linux builds
+            return 'ubuntu-12'
+
 
 class MSVCToolchainOptions(ToolchainOptions):
     def __init__(self, build, detector):
@@ -1024,6 +1042,13 @@ class GnuToolchain(Toolchain):
     def print_toolchain(self):
         emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
+
+        if preset('OS_SDK') is None:
+            emit('OS_SDK', self.tc.os_sdk)
+            emit('PERL_OS_SDK', 'ubuntu-12')
+        else:
+            emit('PERL_OS_SDK', '$(OS_SDK)')
+        emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else '$(OS_SDK_ROOT)')
 
 
 class GnuCompiler(Compiler):
@@ -1872,12 +1897,13 @@ class Ragel(object):
 
 
 class Python(object):
-    def __init__(self):
+    def __init__(self, tc):
         self.python = None
         self.flags = None
         self.ldflags = None
         self.libraries = None
         self.includes = None
+        self.tc = tc
 
     def configure_posix(self, python=None, python_config=None):
         python = python or preset('PYTHON_BIN') or which('python')
@@ -1900,7 +1926,7 @@ class Python(object):
         # They are not used separately and get overriden together, so it is safe.
         # TODO(somov): Удалить эту переменную и PYTHON_LIBRARIES из makelist-ов.
         self.libraries = ''
-        if preset('USE_ARCADIA_PYTHON') == 'no' and not preset('USE_SYSTEM_PYTHON') and preset('OS_SDK') != 'local':
+        if preset('USE_ARCADIA_PYTHON') == 'no' and not preset('USE_SYSTEM_PYTHON') and not self.tc.os_sdk_local:
             raise Exception('System non fixed python can be used only with OS_SDK=local')
 
     def print_variables(self):

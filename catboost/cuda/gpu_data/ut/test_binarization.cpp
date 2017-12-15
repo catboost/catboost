@@ -10,7 +10,6 @@ using namespace std;
 using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
-
     template <class TGridPolicy>
     void CheckDataSet(const TGpuBinarizedDataSet<TGridPolicy>& dataSet,
                       const TBinarizedFeaturesManager& featuresManager,
@@ -18,7 +17,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataProvider& dataProvider) {
         const auto& featuresMapping = dataSet.GetGrid().GetMapping();
 
-        auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(),  ENanMode::Forbidden, featuresManager.GetTargetBorders());
+        auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
         {
             std::array<bool, 255> seen;
@@ -42,7 +41,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
             TVector<ui32> compressedIndex;
             dataSet.GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
-
 
             for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
                 const ui32 featureId = dataSet.GetFeatureId(f);
@@ -103,7 +101,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     UNIT_ASSERT_VALUES_EQUAL(bins[i], (compressedIndex[feature.Offset * bins.size() + i] >> feature.Shift) & feature.Mask);
                 }
-
             }
         }
     }
@@ -112,7 +109,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                        const TBinarizedFeaturesManager& featuresManager,
                        const TDataPermutation& permutation,
                        const TDataProvider& dataProvider) {
-
         CheckDataSet(gpuFeatures.GetFeatures(),
                      featuresManager,
                      permutation,
@@ -155,7 +151,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.Queries.size(), dataProvider.GetQueries().size());
 
         auto docsMapping = NCudaLib::TMirrorMapping(pool.NumSamples);
         auto featuresMapping = NCudaLib::TStripeMapping::SplitBetweenDevices(pool.NumFeatures);
@@ -260,8 +255,8 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
     void TestDatasetHolderBuilder(ui32 binarization,
                                   ui32 permutationCount,
-                                  ui32 bucketsCtrBinarization=32,
-                                  ui32 freqCtrBinarization=15) {
+                                  ui32 bucketsCtrBinarization = 32,
+                                  ui32 freqCtrBinarization = 15) {
         TBinarizedPool pool;
 
         GenerateTestPool(pool, binarization);
@@ -288,7 +283,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         }
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-
         TDataProvider dataProvider;
         TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager, dataProvider);
@@ -308,10 +302,8 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
         }
 
-
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.Queries.size(), dataProvider.GetQueries().size());
 
         TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
                                                        dataProvider);
@@ -331,16 +323,14 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             auto& gpuFeatures = dataSet.GetPermutationIndependentFeatures();
             CheckDataSets(gpuFeatures, featuresManager, dataSet.GetPermutation(0), dataProvider);
-
         }
-
 
         for (ui32 permutation = 0; permutation < dataSet.PermutationsCount(); ++permutation) {
             //
             CheckDataSets(dataSet.GetDataSetForPermutation(permutation).GetPermutationFeatures(),
-                         featuresManager,
-                         dataSet.GetPermutation(permutation),
-                         dataProvider);
+                          featuresManager,
+                          dataSet.GetPermutation(permutation),
+                          dataProvider);
         }
     }
 
@@ -383,7 +373,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         }
         StopCudaManager();
     }
-
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
         StartCudaManager();

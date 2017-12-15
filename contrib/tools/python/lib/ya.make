@@ -10,11 +10,7 @@ INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 
 PEERDIR(
     contrib/tools/python/base
-)
-
-ADDINCL(
-    GLOBAL ${PYTHON_SRC_DIR}
-    GLOBAL ${PYTHON_SRC_DIR}/Include
+    contrib/tools/python/include
 )
 
 SRCDIR(

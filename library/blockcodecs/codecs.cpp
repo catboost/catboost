@@ -433,10 +433,14 @@ namespace {
             Registry["lz4"] = Registry["lz4-fast-safe"];
             Registry["lz4fast"] = Registry["lz4-fast-fast"];
             Registry["lz4hc"] = Registry["lz4-hc-safe"];
+
+            for (int i = 1; i <= ZSTD_maxCLevel(); ++i) {
+                Alias("zstd_" + ToString(i), "zstd08_" + ToString(i));
+            }
         }
 
         inline const ICodec* Find(const TStringBuf& name) const {
-            TRegistry::const_iterator it = Registry.find(name);
+            auto it = Registry.find(name);
 
             if (it == Registry.end()) {
                 ythrow TNotFound() << "can not found " << name << " codec";
@@ -457,6 +461,12 @@ namespace {
             Registry[codec->Name()] = codec;
         }
 
+        inline void Alias(TStringBuf from, TStringBuf to) {
+            Tmp.emplace_back(from);
+            Registry[Tmp.back()] = Registry[to];
+        }
+
+        TVector<TString> Tmp;
         TNullCodec Null;
         TSnappyCodec Snappy;
         TVector<TCodecPtr> Codecs;

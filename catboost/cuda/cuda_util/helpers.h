@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/cuda_util/hash_helpers.h>
+#include <catboost/cuda/utils/hash_helpers.h>
 #include <util/stream/file.h>
 
 namespace NKernelHost {

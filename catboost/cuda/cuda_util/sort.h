@@ -116,6 +116,9 @@ namespace NKernelHost {
 
             const ui32 size = Keys.Size();
             const ui32 valueSize = Values.Size() ? sizeof(V) : 0;
+            if (valueSize) {
+                CB_ENSURE(Values.Size() == Keys.Size());
+            }
             auto context = MakeHolder<TKernelContext>(FirstBit, LastBit, valueSize, CompareGreater);
             context->UseExternalBufferForTempKeysAndValues = TmpKeys.Size() > 0;
 
@@ -146,7 +149,7 @@ namespace NKernelHost {
 
         SAVELOAD(Keys, Values, CompareGreater, FirstBit, LastBit, TmpKeys, TmpValues);
     };
-};
+}
 
 template <typename K, class TMapping>
 inline void RadixSort(TCudaBuffer<K, TMapping>& keys, bool compareGreater = false, ui64 stream = 0) {

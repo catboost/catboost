@@ -91,6 +91,14 @@ public:
         Pool->Docs.Id[Cursor + localIdx] = value;
     }
 
+    void AddGroupId(ui32 localIdx, ui32 value) override {
+        Pool->Docs.GroupId[Cursor + localIdx] = value;
+    }
+
+    void AddTimestamp(ui32 localIdx, ui64 value) override {
+        Pool->Docs.Timestamp[Cursor + localIdx] = value;
+    }
+
     void SetFeatureIds(const TVector<TString>& featureIds) override {
         Y_ENSURE(featureIds.size() == FactorCount, "Error: feature ids size should be equal to factor count");
         Pool->FeatureId = featureIds;
@@ -179,6 +187,8 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
             case EColumn::Weight:
             case EColumn::DocId:
             case EColumn::QueryId:
+            case EColumn::GroupId:
+            case EColumn::Timestamp:
                 break;
             default:
                 CB_ENSURE(false, "this column type is not supported");
@@ -187,8 +197,14 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
     return categFeatures;
 }
 
-void StartBuilder(const TVector<TString>& featureIds, const TPoolColumnsMetaInfo& poolMetaInfo, int docCount,
-                bool hasHeader, int offset, IPoolBuilder* poolBuilder) {
+void StartBuilder(
+    const TVector<TString>& featureIds,
+    const TPoolColumnsMetaInfo& poolMetaInfo,
+    int docCount,
+    bool hasHeader,
+    int offset,
+    IPoolBuilder* poolBuilder
+) {
     if (hasHeader) {
         --docCount;
     }
@@ -214,25 +230,34 @@ void FinalizeBuilder(const TVector<TColumn>& columnsDescription, const TString& 
         }
         poolBuilder->SetFeatureIds(featureIds);
     }
-    poolBuilder->Finish();
     if (!pairsFile.empty()) {
-         TVector<TPair> pairs = ReadPairs(pairsFile, poolBuilder->GetDocCount());
-         poolBuilder->SetPairs(pairs);
-     }
-}
-
-static void CheckTargetCount(const TVector<TColumn>& columns) {
-    int targetCount = 0;
-    for (const auto& column : columns) {
-        if (column.Type == EColumn::Target) {
-            targetCount++;
-        }
+        TVector<TPair> pairs = ReadPairs(pairsFile, poolBuilder->GetDocCount());
+        poolBuilder->SetPairs(pairs);
     }
-    CB_ENSURE(targetCount <= 1, "Target count > 1 not supported");
+    poolBuilder->Finish();
+
 }
 
-TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, char fieldDelimiter,
-                         bool hasHeader, const TVector<TString>& classNames, int blockSize, IPoolBuilder* poolBuilder, NPar::TLocalExecutor* localExecutor)
+static ui32 CountColumns(const TVector<TColumn>& columnsDescription, const EColumn columnType) {
+    return CountIf(
+        columnsDescription.begin(),
+        columnsDescription.end(),
+        [&columnType](const auto x) -> bool {
+            return x.Type == columnType;
+        }
+    );
+}
+
+TPoolReader::TPoolReader(
+    const TString& cdFile,
+    const TString& poolFile,
+    const TString& pairsFile,
+    char fieldDelimiter,
+    bool hasHeader,
+    const TVector<TString>& classNames,
+    int blockSize, IPoolBuilder* poolBuilder,
+    NPar::TLocalExecutor* localExecutor
+)
     : PairsFile(pairsFile)
     , LinesRead(0)
     , FieldDelimiter(fieldDelimiter)
@@ -242,7 +267,7 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
     , Reader(poolFile.c_str())
     , PoolBuilder(*poolBuilder)
     , LocalExecutor(localExecutor)
-    {
+{
     CB_ENSURE(NFs::Exists(TString(poolFile)), "pool file is not found " + TString(poolFile));
     const int columnsCount = ReadColumnsCount(poolFile, FieldDelimiter);
 
@@ -252,53 +277,32 @@ TPoolReader::TPoolReader(const TString& cdFile, const TString& poolFile, const T
         ColumnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
         ColumnsDescription[0].Type = EColumn::Target;
     }
-    CheckTargetCount(ColumnsDescription);
-    const int weightColumns = (const int)CountIf(ColumnsDescription.begin(),
-                                                 ColumnsDescription.end(),
-                                                 [](const auto x) -> bool {
-                                                     return x.Type == EColumn::Weight;
-                                                 });
 
-    CB_ENSURE(weightColumns <= 1, "Too many weight columns");
+    const ui32 weightColumns = CountColumns(ColumnsDescription, EColumn::Weight);
+    CB_ENSURE(weightColumns <= 1, "Too many Weight columns");
     PoolMetaInfo.HasWeights = (bool)weightColumns;
 
-    PoolMetaInfo.BaselineCount = (ui32)CountIf(ColumnsDescription.begin(),
-                                               ColumnsDescription.end(),
-                                               [](const auto x) -> bool {
-                                                   return x.Type == EColumn::Baseline;
-                                               });
+    PoolMetaInfo.BaselineCount = CountColumns(ColumnsDescription, EColumn::Baseline);
 
-    const int targetColumns = (const int)CountIf(ColumnsDescription.begin(),
-                                                 ColumnsDescription.end(),
-                                                 [](const auto x) -> bool {
-                                                     return x.Type == EColumn::Target;
-                                                 });
+    CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Target) <= 1, "Too many Target columns");
 
-    CB_ENSURE(targetColumns <= 1, "Too many target columns");
-
-    const int docIdColumns = (const int)CountIf(ColumnsDescription.begin(),
-                                                ColumnsDescription.end(),
-                                                [](const auto x) -> bool {
-                                                    return x.Type == EColumn::DocId;
-                                                });
-
+    const ui32 docIdColumns = CountColumns(ColumnsDescription, EColumn::DocId);
     CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
     PoolMetaInfo.HasDocIds = (bool)docIdColumns;
 
-    const int queryIdColumns = (const int)CountIf(ColumnsDescription.begin(),
-                                                  ColumnsDescription.end(),
-                                                  [](const auto x) -> bool {
-                                                      return x.Type == EColumn::QueryId;
-                                                  });
-
-    CB_ENSURE(queryIdColumns <= 1, "Too many queryId columns");
+    const ui32 queryIdColumns = CountColumns(ColumnsDescription, EColumn::QueryId);
+    CB_ENSURE(queryIdColumns <= 1, "Too many QueryId columns");
     PoolMetaInfo.HasQueryIds = (bool)queryIdColumns;
 
-    PoolMetaInfo.FactorCount = (const ui32)CountIf(ColumnsDescription.begin(),
-                                                   ColumnsDescription.end(),
-                                                   [](const auto x) -> bool {
-                                                       return IsFactorColumn(x.Type);
-                                                   });
+    CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Timestamp) <= 1, "Too many Timestamp columns");
+
+    PoolMetaInfo.FactorCount = (const ui32)CountIf(
+        ColumnsDescription.begin(),
+        ColumnsDescription.end(),
+        [](const auto x) -> bool {
+            return IsFactorColumn(x.Type);
+        }
+    );
 
     CB_ENSURE(PoolMetaInfo.FactorCount > 0, "Pool should have at least one factor");
     PoolMetaInfo.CatFeatureIds = GetCategFeatures(ColumnsDescription);
@@ -333,8 +337,9 @@ void TPoolReader::ReadBlockAsync() {
                 break;
             }
         }
-        BlockReadCompletedEvent.Signal();
+        ReadBufferLock.Release();
     };
+    ReadBufferLock.Acquire(); // ensure we hold the lock while the task is being launched
     if (LocalExecutor->GetThreadCount() > 0) {
         LocalExecutor->Exec(readLineBufferLambda, 0, NPar::TLocalExecutor::HIGH_PRIORITY);
     } else {
@@ -343,12 +348,14 @@ void TPoolReader::ReadBlockAsync() {
 }
 
 bool TPoolReader::ReadBlock() {
-    BlockReadCompletedEvent.Wait();
-    ReadBuffer.swap(ParseBuffer);
-    if (!!ParseBuffer) {
+    with_lock(ReadBufferLock) {
+        ReadBuffer.swap(ParseBuffer);
+    }
+    const bool isBlockNonEmpty = !!ParseBuffer;
+    if (isBlockNonEmpty) {
         ReadBlockAsync();
     }
-    return !!ParseBuffer;
+    return isBlockNonEmpty;
 }
 
 void TPoolReader::ProcessBlock() {
@@ -405,6 +412,11 @@ void TPoolReader::ProcessBlock() {
                     PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;
                 }
+                case EColumn::GroupId: {
+                    CB_ENSURE(token.length() != 0, "empty values not supported for group id");
+                    PoolBuilder.AddGroupId(lineIdx, FromString<ui32>(token));
+                    break;
+                }
                 case EColumn::Baseline: {
                     CB_ENSURE(token.length() != 0, "empty values not supported for baseline");
                     PoolBuilder.AddBaseline(lineIdx, baselineIdx, FromString<double>(token));
@@ -414,6 +426,11 @@ void TPoolReader::ProcessBlock() {
                 case EColumn::DocId: {
                     CB_ENSURE(token.length() != 0, "empty values not supported for doc id");
                     PoolBuilder.AddDocId(lineIdx, token);
+                    break;
+                }
+                case EColumn::Timestamp: {
+                    CB_ENSURE(token.length() != 0, "empty values not supported for timestamp");
+                    PoolBuilder.AddTimestamp(lineIdx, FromString<ui64>(token));
                     break;
                 }
                 default: {
@@ -435,30 +452,34 @@ THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecut
     return new TPoolBuilder(pool, localExecutor);
 }
 
-void ReadPool(const TString& cdFile,
-              const TString& poolFile,
-              const TString& pairsFile,
-              int threadCount,
-              bool verbose,
-              char fieldDelimiter,
-              bool hasHeader,
-              const TVector<TString>& classNames,
-              TPool* pool) {
+void ReadPool(
+    const TString& cdFile,
+    const TString& poolFile,
+    const TString& pairsFile,
+    int threadCount,
+    bool verbose,
+    char fieldDelimiter,
+    bool hasHeader,
+    const TVector<TString>& classNames,
+    TPool* pool
+) {
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     TPoolBuilder builder(pool, &localExecutor);
     ReadPool(cdFile, poolFile, pairsFile, verbose, fieldDelimiter, hasHeader, classNames, &localExecutor, &builder);
 }
 
-void ReadPool(const TString& cdFile,
-              const TString& poolFile,
-              const TString& pairsFile,
-              bool verbose,
-              char fieldDelimiter,
-              bool hasHeader,
-              const TVector<TString>& classNames,
-              NPar::TLocalExecutor* localExecutor,
-              IPoolBuilder* poolBuilder) {
+void ReadPool(
+    const TString& cdFile,
+    const TString& poolFile,
+    const TString& pairsFile,
+    bool verbose,
+    char fieldDelimiter,
+    bool hasHeader,
+    const TVector<TString>& classNames,
+    NPar::TLocalExecutor* localExecutor,
+    IPoolBuilder* poolBuilder
+) {
     if (verbose) {
         SetVerboseLogingMode();
     } else {
@@ -467,18 +488,20 @@ void ReadPool(const TString& cdFile,
     TPoolReader poolReader(cdFile, poolFile, pairsFile, fieldDelimiter, hasHeader, classNames, 10000, poolBuilder, localExecutor);
     StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, CountLines(poolFile), hasHeader, 0, poolBuilder);
     while (poolReader.ReadBlock()) {
-         poolReader.ProcessBlock();
+        poolReader.ProcessBlock();
     }
     FinalizeBuilder(poolReader.ColumnsDescription, poolReader.PairsFile, poolBuilder);
     SetVerboseLogingMode();
 }
 
-void ReadPool(const TString& cdFile,
-              const TString& poolFile,
-              const TString& pairsFile,
-              int threadCount,
-              bool verbose,
-              IPoolBuilder& poolBuilder) {
+void ReadPool(
+    const TString& cdFile,
+    const TString& poolFile,
+    const TString& pairsFile,
+    int threadCount,
+    bool verbose,
+    IPoolBuilder& poolBuilder
+) {
     TVector<TString> noNames;
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);

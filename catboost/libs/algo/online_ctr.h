@@ -1,13 +1,9 @@
 #pragma once
 
-#include "index_hash_calcer.h"
 #include "full_features.h"
 #include "projection.h"
 #include "target_classifier.h"
 #include "train_data.h"
-
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/online_ctr.h>
 
 
 struct TFold;
@@ -51,6 +47,8 @@ struct TCalcOnlineCTRsBatchTask {
 };
 
 void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
+
+class TCtrValueTable;
 
 void CalcFinalCtrs(
     const ECtrType ctrType,

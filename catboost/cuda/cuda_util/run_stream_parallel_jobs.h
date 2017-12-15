@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 
 template <class TFunc>

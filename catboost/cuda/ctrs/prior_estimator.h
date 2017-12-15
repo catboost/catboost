@@ -7,15 +7,43 @@
 class TBetaPriorEstimator {
 public:
     struct TBetaPrior {
+        TBetaPrior() {
+        }
+
+        TBetaPrior(double alpha, double beta)
+            : Alpha(alpha)
+            , Beta(beta)
+        {
+        }
         double Alpha = 0;
         double Beta = 0;
+
+        inline double LogLikelihood(double clazz) const {
+            return LogLikelihood(static_cast<ui32>(clazz), 1);
+        }
+
+        inline double LogLikelihood(ui32 k, ui32 n) const {
+            double ll = LogGamma(n + 1) - LogGamma(k + 1) - LogGamma(n - k + 1);
+            ll += LogGamma(Alpha) + LogGamma(Beta) + LogGamma(Beta + n - k) + LogGamma(Alpha + k);
+            ll -= LogGamma(Alpha + Beta + n) + LogGamma(Alpha + Beta);
+            return ll;
+        }
+
+        TBetaPrior Update(double clazz) const {
+            return TBetaPrior(Alpha + clazz, Beta + 1.0 - clazz);
+        }
+
+        TBetaPrior Update(ui32 k, ui32 n) const {
+            return TBetaPrior(Alpha + k, Beta + n - k);
+        }
     };
 
     template <class TClassesType>
     static TBetaPrior EstimateBetaPrior(const TClassesType* classes,
                                         const ui32* bins, ui32 length,
                                         size_t uniqueValues,
-                                        ui32 iterations = 50) {
+                                        ui32 iterations = 50,
+                                        double* resultLikelihood = nullptr) {
         TBetaPrior cursor = {0.5, 0.5};
         TVector<double> positiveCounts(uniqueValues);
         TVector<double> totalCounts(uniqueValues);
@@ -34,12 +62,15 @@ public:
         }
 
         for (ui32 i = 0; i < iterations; ++i) {
-            //            MATRIXNET_DEBUG_LOG << "Point (" << cursor.Alpha << ", " << cursor.Beta << "), LogLikelihood " << Likelihood(positiveCounts, totalCounts, cursor) << Endl;
+            //MATRIXNET_DEBUG_LOG << "Point (" << cursor.Alpha << ", " << cursor.Beta << "), LogLikelihood " << Likelihood(positiveCounts, totalCounts, cursor) << Endl;
             const auto ders = DerAndDer2(positiveCounts, totalCounts, cursor);
             cursor = OptimizationStep(cursor, ders);
             if (sqrt(Sqr(ders.DerAlpha) + Sqr(ders.DerBeta)) < 1e-9) {
                 break;
             }
+        }
+        if (resultLikelihood) {
+            (*resultLikelihood) = Likelihood(positiveCounts, totalCounts, cursor);
         }
         return cursor;
     }

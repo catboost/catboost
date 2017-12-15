@@ -1,10 +1,9 @@
 #include "pinned_memory_estimation.h"
 
-
 ui32 NCatboostCuda::EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider& dataProvider,
-                                              const TDataProvider* testProvider,
-                                              const TBinarizedFeaturesManager& featuresManager,
-                                              ui32 deviceCount) {
+                                                             const TDataProvider* testProvider,
+                                                             const TBinarizedFeaturesManager& featuresManager,
+                                                             ui32 deviceCount) {
     CB_ENSURE(deviceCount, "Need at least one device for pinned memory size estimation");
     const ui64 sampleCount = dataProvider.GetSampleCount() + (testProvider ? testProvider->GetSampleCount() : 0);
     ui32 maxBitsPerFeature = 0;

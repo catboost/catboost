@@ -3,16 +3,15 @@
 #include "binarized_dataset.h"
 #include "cat_features_dataset.h"
 #include "ctr_helper.h"
+#include "samples_grouping.h"
 
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_lib/cache.h>
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/permutation.h>
-namespace NCatboostCuda
-{
-    inline TCtrTargets<NCudaLib::TSingleMapping>
-    DeviceView(const TCtrTargets<NCudaLib::TMirrorMapping>& mirrorTargets, ui32 devId)
-    {
+
+namespace NCatboostCuda {
+    inline TCtrTargets<NCudaLib::TSingleMapping> DeviceView(const TCtrTargets<NCudaLib::TMirrorMapping>& mirrorTargets, ui32 devId) {
         TCtrTargets<NCudaLib::TSingleMapping> view;
         view.WeightedTarget = mirrorTargets.WeightedTarget.DeviceView(devId);
         view.BinarizedTarget = mirrorTargets.BinarizedTarget.DeviceView(devId);
@@ -24,49 +23,39 @@ namespace NCatboostCuda
         return view;
     }
 
-    template<class TLayoutPolicy = TCatBoostPoolLayout>
-    class TGpuFeatures
-    {
+    template <class TLayoutPolicy = TCatBoostPoolLayout>
+    class TGpuFeatures {
     public:
-        const TGpuBinarizedDataSet<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatures() const
-        {
+        const TGpuBinarizedDataSet<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatures() const {
             return BinaryFeatures;
         }
 
-        const TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatures() const
-        {
+        const TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatures() const {
             return HalfByteFeatures;
         }
 
-        const TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy>& GetFeatures() const
-        {
+        const TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy>& GetFeatures() const {
             return Features;
         }
 
-        bool HasFeature(ui32 featureId) const
-        {
-            if (GetBinaryFeatures().HasFeature(featureId))
-            {
+        bool HasFeature(ui32 featureId) const {
+            if (GetBinaryFeatures().HasFeature(featureId)) {
                 return true;
             }
-            if (GetHalfByteFeatures().HasFeature(featureId))
-            {
+            if (GetHalfByteFeatures().HasFeature(featureId)) {
                 return true;
             }
-            if (GetFeatures().HasFeature(featureId))
-            {
+            if (GetFeatures().HasFeature(featureId)) {
                 return true;
             }
             return false;
         }
 
-        bool NotEmpty() const
-        {
+        bool NotEmpty() const {
             return GetBinaryFeatures().NotEmpty() || GetHalfByteFeatures().NotEmpty() || GetFeatures().NotEmpty();
         }
 
-        TVector<ui32> ComputeAllFeatureIds() const
-        {
+        TVector<ui32> ComputeAllFeatureIds() const {
             TVector<ui32> result;
             const TVector<ui32>& binaryFeatureIds = GetBinaryFeatures().GetFeatureIds();
             result.insert(result.end(), binaryFeatureIds.begin(), binaryFeatureIds.end());
@@ -77,9 +66,8 @@ namespace NCatboostCuda
             return result;
         }
 
-        template<NCudaLib::EPtrType CatFeatureStoragePtrType>
-        friend
-        class TDataSetHoldersBuilder;
+        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
+        friend class TDataSetHoldersBuilder;
 
     private:
         TGpuBinarizedDataSet<TBinaryFeatureGridPolicy, TLayoutPolicy> BinaryFeatures;
@@ -87,106 +75,104 @@ namespace NCatboostCuda
         TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy> Features;
     };
 
-    template<NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
-    class TDataSet: public TGuidHolder
-    {
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    class TDataSet: public TGuidHolder {
     public:
         using TDocsMapping = NCudaLib::TMirrorMapping;
 
-        static constexpr NCudaLib::EPtrType GetCatFeaturesStoragePtrType()
-        {
+        static constexpr NCudaLib::EPtrType GetCatFeaturesStoragePtrType() {
             return CatFeaturesStoragePtrType;
         };
 
         TDataSet(const TDataProvider& dataProvider,
                  ui32 permutationId,
                  ui32 blockSize)
-                : DataProvider(&dataProvider)
-                  , Permutation(NCatboostCuda::GetPermutation(dataProvider, permutationId, blockSize))
+            : DataProvider(&dataProvider)
+            , Permutation(NCatboostCuda::GetPermutation(dataProvider, permutationId, blockSize))
         {
+            if (dataProvider.HasQueries()) {
+                auto permutedQids = Permutation.Gather(DataProvider->GetQueryIds());
+                auto samplesGrouping = MakeHolder<TQueriesGrouping>(std::move(permutedQids), DataProvider->GetPairs());
+                if (DataProvider->HasGroupIds()) {
+                    auto permutedGids = Permutation.Gather(DataProvider->GetGroupIds());
+                    samplesGrouping->SetGroupIds(std::move(permutedGids));
+                }
+                SamplesGrouping = std::move(samplesGrouping);
+            } else {
+                SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetSampleCount()));
+            }
         }
 
-        const TGpuFeatures<>& GetFeatures() const
-        {
+        const TGpuFeatures<>& GetFeatures() const {
             CB_ENSURE(PermutationIndependentFeatures);
             return *PermutationIndependentFeatures;
         }
 
-        const TGpuFeatures<>& GetPermutationFeatures() const
-        {
+        const TGpuFeatures<>& GetPermutationFeatures() const {
             return PermutationDependentFeatures;
         }
 
         //target-ctr_type
-        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const
-        {
+        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const {
             CB_ENSURE(CatFeatures);
             return *CatFeatures;
         }
 
-        bool HasFeature(ui32 featureId) const
-        {
-            if (PermutationIndependentFeatures->HasFeature(featureId))
-            {
+        bool HasFeature(ui32 featureId) const {
+            if (PermutationIndependentFeatures->HasFeature(featureId)) {
                 return true;
             }
             return GetPermutationFeatures().HasFeature(featureId);
         }
 
-        const TDataProvider& GetDataProvider() const
-        {
+        const TDataProvider& GetDataProvider() const {
             CB_ENSURE(DataProvider);
             return *DataProvider;
         }
 
-        const TDataPermutation& GetPermutation() const
-        {
+        const IQueriesGrouping& GetSamplesGrouping() const {
+            return *SamplesGrouping;
+        }
+
+        const TDataPermutation& GetPermutation() const {
             return Permutation;
         };
 
-        const TCtrTargets<NCudaLib::TMirrorMapping>& GetCtrTargets() const
-        {
+        const TCtrTargets<NCudaLib::TMirrorMapping>& GetCtrTargets() const {
             return *CtrTargets;
         }
 
-        bool HasCtrHistoryDataSet() const
-        {
+        bool HasCtrHistoryDataSet() const {
             return LinkedHistoryForCtrs != nullptr;
         }
 
-        const TDataSet& LinkedHistoryForCtr() const
-        {
+        const TDataSet& LinkedHistoryForCtr() const {
             CB_ENSURE(HasCtrHistoryDataSet(), "No history dataset found");
             return *LinkedHistoryForCtrs;
         }
 
         //current permutation order
-        const TMirrorBuffer<float>& GetTarget() const
-        {
+        const TMirrorBuffer<float>& GetTarget() const {
             return Targets;
         }
 
         //current permutation order
-        const TMirrorBuffer<float>& GetWeights() const
-        {
+        const TMirrorBuffer<float>& GetWeights() const {
             return Weights;
         }
 
         //doc-indexing
-        const TMirrorBuffer<ui32>& GetIndices() const
-        {
+        const TMirrorBuffer<ui32>& GetIndices() const {
             return Indices;
         }
 
         //doc-indexing
-        const NCudaLib::TMirrorMapping& GetDocumentsMapping() const
-        {
+        const NCudaLib::TMirrorMapping& GetDocumentsMapping() const {
             return Targets.GetMapping();
         }
 
         //doc-indexing
-        const TMirrorBuffer<ui32>& GetInverseIndices() const
-        {
+        const TMirrorBuffer<ui32>& GetInverseIndices() const {
             return InverseIndices;
         }
 
@@ -209,63 +195,54 @@ namespace NCatboostCuda
         TSimpleSharedPtr<TCtrTargets<NCudaLib::TMirrorMapping>> CtrTargets;
         TSimpleSharedPtr<TDataSet> LinkedHistoryForCtrs;
 
-        template<NCudaLib::EPtrType CatFeatureStoragePtrType>
-        friend
-        class TDataSetHoldersBuilder;
+        THolder<IQueriesGrouping> SamplesGrouping;
+
+        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
+        friend class TDataSetHoldersBuilder;
     };
 
-    template<NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
-    class TDataSetsHolder: public TGuidHolder
-    {
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    class TDataSetsHolder: public TGuidHolder {
     public:
-        bool HasFeature(ui32 featureId) const
-        {
+        bool HasFeature(ui32 featureId) const {
             return PermutationDataSets.at(0)->HasFeature(featureId);
         }
 
-        const TDataSet<CatFeaturesStoragePtrType>& GetDataSetForPermutation(ui32 permutationId) const
-        {
+        const TDataSet<CatFeaturesStoragePtrType>& GetDataSetForPermutation(ui32 permutationId) const {
             const auto* dataSetPtr = PermutationDataSets.at(permutationId).Get();
             CB_ENSURE(dataSetPtr);
             return *dataSetPtr;
         }
 
-        const TDataProvider& GetDataProvider() const
-        {
+        const TDataProvider& GetDataProvider() const {
             CB_ENSURE(DataProvider);
             return *DataProvider;
         }
 
-        const TBinarizedFeaturesManager& GetFeaturesManger() const
-        {
+        const TBinarizedFeaturesManager& GetFeaturesManger() const {
             CB_ENSURE(FeaturesManager);
             return *FeaturesManager;
         }
 
-        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const
-        {
+        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const {
             return PermutationDataSets[0]->GetCatFeatures();
         }
 
-        const TGpuFeatures<>& GetPermutationIndependentFeatures() const
-        {
+        const TGpuFeatures<>& GetPermutationIndependentFeatures() const {
             CB_ENSURE(PermutationDataSets[0]);
             return PermutationDataSets[0]->GetFeatures();
         }
 
-        const TGpuFeatures<>& GetPermutationDependentFeatures(ui32 permutationId) const
-        {
+        const TGpuFeatures<>& GetPermutationDependentFeatures(ui32 permutationId) const {
             CB_ENSURE(PermutationDataSets[permutationId]);
             return PermutationDataSets[permutationId]->GetPermutationFeatures();
         }
 
-        ui32 PermutationsCount() const
-        {
-            return (const ui32) PermutationDataSets.size();
+        ui32 PermutationsCount() const {
+            return (const ui32)PermutationDataSets.size();
         }
 
-        const TDataPermutation& GetPermutation(ui32 permutationId) const
-        {
+        const TDataPermutation& GetPermutation(ui32 permutationId) const {
             return PermutationDataSets[permutationId]->GetPermutation();
         }
 
@@ -273,29 +250,25 @@ namespace NCatboostCuda
 
         TDataSetsHolder(const TDataProvider& dataProvider,
                         const TBinarizedFeaturesManager& featuresManager)
-                : DataProvider(&dataProvider)
-                  , FeaturesManager(&featuresManager)
+            : DataProvider(&dataProvider)
+            , FeaturesManager(&featuresManager)
         {
         }
 
-        bool HasTestDataSet() const
-        {
+        bool HasTestDataSet() const {
             return TestDataSet != nullptr;
         }
 
-        const TDataSet<CatFeaturesStoragePtrType>& GetTestDataSet() const
-        {
+        const TDataSet<CatFeaturesStoragePtrType>& GetTestDataSet() const {
             CB_ENSURE(HasTestDataSet());
             return *TestDataSet;
         }
 
-        const TCtrTargets<NCudaLib::TMirrorMapping>& GetCtrTargets() const
-        {
+        const TCtrTargets<NCudaLib::TMirrorMapping>& GetCtrTargets() const {
             return *CtrTargets;
         }
 
-        bool IsEmpty() const
-        {
+        bool IsEmpty() const {
             return FeaturesManager == nullptr;
         }
 
@@ -312,8 +285,7 @@ namespace NCatboostCuda
         TVector<TSimpleSharedPtr<TDataSet<CatFeaturesStoragePtrType>>> PermutationDataSets;
         THolder<TDataSet<CatFeaturesStoragePtrType>> TestDataSet;
 
-        template<NCudaLib::EPtrType CatFeatureStoragePtrType>
-        friend
-        class TDataSetHoldersBuilder;
+        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
+        friend class TDataSetHoldersBuilder;
     };
 }

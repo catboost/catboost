@@ -2,7 +2,7 @@
 
 #include "histograms_helper.h"
 #include "tree_ctrs_dataset.h"
-#include <catboost/cuda/cuda_util/countdown_latch.h>
+#include <catboost/cuda/utils/countdown_latch.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/gpu_data/fold_based_dataset.h>
@@ -15,10 +15,8 @@
 #include <catboost/cuda/gpu_data/remote_binarize.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
-namespace NCatboostCuda
-{
-    class TTreeCtrDataSetMemoryUsageEstimator
-    {
+namespace NCatboostCuda {
+    class TTreeCtrDataSetMemoryUsageEstimator {
     public:
         TTreeCtrDataSetMemoryUsageEstimator(const TBinarizedFeaturesManager& featuresManager,
                                             const double freeMemory,
@@ -27,48 +25,40 @@ namespace NCatboostCuda
                                             const ui32 maxDepth,
                                             const ui32 docCount,
                                             const NCudaLib::EPtrType ptrType)
-                : FreeMemory(freeMemory)
-                  , MaxDepth(maxDepth)
-                  , FoldCount(foldCount)
-                  , DocCount(docCount)
-                  , CatFeaturesCount(catFeaturesCount)
-                  , BinFeatureCountPerCatFeature(featuresManager.MaxTreeCtrBinFeaturesCount())
-                  , CatFeaturesStoragePtrType(ptrType)
-                  , CtrPerCatFeature(featuresManager.CtrsPerTreeCtrFeatureTensor())
+            : FreeMemory(freeMemory)
+            , MaxDepth(maxDepth)
+            , FoldCount(foldCount)
+            , DocCount(docCount)
+            , CatFeaturesCount(catFeaturesCount)
+            , BinFeatureCountPerCatFeature(featuresManager.MaxTreeCtrBinFeaturesCount())
+            , CatFeaturesStoragePtrType(ptrType)
+            , CtrPerCatFeature(featuresManager.CtrsPerTreeCtrFeatureTensor())
         {
             MaxPackSize = EstimateMaxPackSize();
         }
 
-        ui32 GetStreamCountForCtrCalculation() const
-        {
-            if (DocCount > 1e6 && CatFeaturesStoragePtrType == NCudaLib::CudaDevice)
-            {
+        ui32 GetStreamCountForCtrCalculation() const {
+            if (DocCount > 1e6 && CatFeaturesStoragePtrType == NCudaLib::CudaDevice) {
                 return 1;
             }
-            if (CatFeaturesStoragePtrType == NCudaLib::CudaHost)
-            {
+            if (CatFeaturesStoragePtrType == NCudaLib::CudaHost) {
                 return (DocCount > 15e6 ? 1 : 2);
             }
-            if (FreeMemory < 512)
-            {
+            if (FreeMemory < 512) {
                 return 1;
             }
-            if (DocCount > 250000)
-            {
+            if (DocCount > 250000) {
                 return 4;
             }
             return 8;
         }
 
-        ui32 GetMaxPackSize() const
-        {
+        ui32 GetMaxPackSize() const {
             return MaxPackSize;
         }
 
-        bool NotEnoughMemoryForDataSet(const TTreeCtrDataSet& dataSet, ui32 depth)
-        {
-            if (dataSet.HasCompressedIndex())
-            {
+        bool NotEnoughMemoryForDataSet(const TTreeCtrDataSet& dataSet, ui32 depth) {
+            if (dataSet.HasCompressedIndex()) {
                 return false;
             }
             const ui32 deviceId = dataSet.GetDeviceId();
@@ -76,82 +66,70 @@ namespace NCatboostCuda
             return MemoryForDataSet(dataSet) > freeMemory;
         }
 
-        double MemoryForDataSet(const TTreeCtrDataSet& dataSet)
-        {
+        double MemoryForDataSet(const TTreeCtrDataSet& dataSet) {
             ui32 binFeatureCount = 0;
             const int featuresPerInt = 8;
             double cindexSize = NHelpers::CeilDivide(dataSet.GetCtrs().size(), featuresPerInt) * 4.0 * DocCount / MB;
             double memoryForCtrsCalc = 0;
-            if (dataSet.HasDataSet())
-            {
+            if (dataSet.HasDataSet()) {
                 binFeatureCount = static_cast<ui32>(dataSet.GetDataSet().GetHostBinaryFeatures().size());
-            } else
-            {
+            } else {
                 binFeatureCount = static_cast<ui32>(BinFeatureCountPerCatFeature * dataSet.GetCatFeatures().size());
                 memoryForCtrsCalc += MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation();
             }
             return (cindexSize + MemoryForHistogramsMb(binFeatureCount) + memoryForCtrsCalc +
-                    MemoryForGridForOneFeatureMb() * dataSet.GetCatFeatures().size()) * ReservationFactor;
+                    MemoryForGridForOneFeatureMb() * dataSet.GetCatFeatures().size()) *
+                   ReservationFactor;
         }
 
-        double GetReserveMemory(ui32 currentDepth) const
-        {
+        double GetReserveMemory(ui32 currentDepth) const {
             return ReserveMemory + MemoryForTensorMirrorCatFeaturesCache(currentDepth) + MemoryForRestBuffers() +
                    MaxDepth * MemoryForGridForOneFeatureMb() * CatFeaturesCount +
                    MemoryForCtrInOneStreamCalculation() * GetStreamCountForCtrCalculation();
         }
 
     private:
-        double MemoryForCtrInOneStreamCalculation() const
-        {
+        double MemoryForCtrInOneStreamCalculation() const {
             return 44 * DocCount * 1.0 / MB;
         }
 
-        double MemoryForTensorMirrorCatFeaturesCache(ui32 currentDepth) const
-        {
+        double MemoryForTensorMirrorCatFeaturesCache(ui32 currentDepth) const {
             return 8 * (MaxDepth - 1 - currentDepth) * DocCount / MB;
         }
 
-        double MemoryForRestBuffers() const
-        {
+        double MemoryForRestBuffers() const {
             return 8 * DocCount / MB;
         }
 
-        double MemoryForGridForOneFeatureMb() const
-        {
+        double MemoryForGridForOneFeatureMb() const {
             return (CtrPerCatFeature * (sizeof(TCFeature) + sizeof(float)) +
-                    (sizeof(TCBinFeature) + sizeof(float)) * BinFeatureCountPerCatFeature) * 1.0 / MB;
+                    (sizeof(TCBinFeature) + sizeof(float)) * BinFeatureCountPerCatFeature) *
+                   1.0 / MB;
         }
 
-        double MemoryForHistogramsMb(ui32 binFeatureCount) const
-        {
+        double MemoryForHistogramsMb(ui32 binFeatureCount) const {
             return (1 << MaxDepth) * FoldCount * binFeatureCount * 2.0 * 4.0 / MB;
         }
 
-        double MemoryForHistogramsMb() const
-        {
+        double MemoryForHistogramsMb() const {
             return MemoryForHistogramsMb(BinFeatureCountPerCatFeature);
         }
 
-        double MemoryForCompressedIndexMb()
-        {
+        double MemoryForCompressedIndexMb() {
             return NHelpers::CeilDivide<ui32>(CtrPerCatFeature, 4) * sizeof(ui32) * DocCount / MB;
         }
 
-        double EstimateMaxPackSize()
-        {
+        double EstimateMaxPackSize() {
             const double freeMemoryForDataSet = FreeMemory - GetReserveMemory(0);
 
             const double memoryForFeature =
-                    (MemoryForHistogramsMb() + MemoryForCompressedIndexMb()) * ReservationFactor;
+                (MemoryForHistogramsMb() + MemoryForCompressedIndexMb()) * ReservationFactor;
             const double maxFeatures = freeMemoryForDataSet > 0 ? freeMemoryForDataSet / memoryForFeature : 0;
 
-            if (maxFeatures >= CatFeaturesCount)
-            {
+            if (maxFeatures >= CatFeaturesCount) {
                 return CatFeaturesCount;
             }
-            if (maxFeatures == 0)
-            {
+            if (maxFeatures == 0) {
                 ythrow TCatboostException() << "Error: not enough memory for tree-ctrs: " << FreeMemory
                                             << " available, need at least "
                                             << (FreeMemory - freeMemoryForDataSet) + memoryForFeature;
@@ -176,28 +154,26 @@ namespace NCatboostCuda
         const double ReservationFactor = 1.15;
     };
 
-    template<NCudaLib::EPtrType CatFeaturesStoragePtrType>
-    class TBatchFeatureTensorBuilder
-    {
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType>
+    class TBatchFeatureTensorBuilder {
     public:
         using TBinBuilder = TCtrBinBuilder<NCudaLib::TSingleMapping>;
 
         TBatchFeatureTensorBuilder(const TBinarizedFeaturesManager& featuresManager,
                                    const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& catFeatures,
                                    ui32 tensorBuilderStreams)
-                : FeaturesManager(featuresManager)
-                  , CatFeatures(catFeatures)
-                  , TensorBuilderStreams(tensorBuilderStreams)
+            : FeaturesManager(featuresManager)
+            , CatFeatures(catFeatures)
+            , TensorBuilderStreams(tensorBuilderStreams)
         {
         }
 
-        template<class TUi32,
-                class TFeatureTensorVisitor>
+        template <class TUi32,
+                  class TFeatureTensorVisitor>
         void VisitCtrBinBuilders(const TSingleBuffer<TUi32>& baseTensorIndices,
                                  const TFeatureTensor& baseTensor,
                                  const TVector<ui32>& catFeatureIds,
-                                 TFeatureTensorVisitor& featureTensorVisitor)
-        {
+                                 TFeatureTensorVisitor& featureTensorVisitor) {
             TSingleBuffer<ui32> currentBins;
             {
                 TSingleBuffer<ui32> tmp;
@@ -207,34 +183,29 @@ namespace NCatboostCuda
             const ui32 buildStreams = RequestStream(static_cast<ui32>(catFeatureIds.size()));
             NCudaLib::GetCudaManager().WaitComplete(); //ensure all prev command results will be visibile
 
-            for (ui32 i = 0; i < catFeatureIds.size(); i += buildStreams)
-            {
+            for (ui32 i = 0; i < catFeatureIds.size(); i += buildStreams) {
                 //submit build tensors
                 //do not merge with second part. ctrBinBuilder should be async wrt host
                 {
                     auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("ctrBinsBuilder");
-                    for (ui32 j = 0; j < buildStreams; ++j)
-                    {
+                    for (ui32 j = 0; j < buildStreams; ++j) {
                         const ui32 featureIndex = i + j;
-                        if (featureIndex < catFeatureIds.size())
-                        {
+                        if (featureIndex < catFeatureIds.size()) {
                             const ui32 catFeatureId = catFeatureIds[featureIndex];
 
                             CtrBinBuilders[j]
-                                    .SetIndices(baseTensorIndices)
-                                    .AddCompressedBinsWithCurrentBinsCache(currentBins,
-                                                                           CatFeatures.GetFeature(catFeatureId),
-                                                                           FeaturesManager.GetBinCount(catFeatureId));
+                                .SetIndices(baseTensorIndices)
+                                .AddCompressedBinsWithCurrentBinsCache(currentBins,
+                                                                       CatFeatures.GetFeature(catFeatureId),
+                                                                       FeaturesManager.GetBinCount(catFeatureId));
                         }
                     }
                 }
 
                 //visit tensors
-                for (ui32 j = 0; j < buildStreams; ++j)
-                {
+                for (ui32 j = 0; j < buildStreams; ++j) {
                     const ui32 featureIndex = i + j;
-                    if (featureIndex < catFeatureIds.size())
-                    {
+                    if (featureIndex < catFeatureIds.size()) {
                         const ui32 catFeatureId = catFeatureIds[featureIndex];
                         auto featureTensor = baseTensor;
                         featureTensor.AddCatFeature(catFeatureId);
@@ -247,12 +218,10 @@ namespace NCatboostCuda
         }
 
     private:
-        ui32 RequestStream(ui32 featuresToBuild)
-        {
+        ui32 RequestStream(ui32 featuresToBuild) {
             const ui32 buildStreams = std::min<ui32>(TensorBuilderStreams, featuresToBuild);
             {
-                for (ui32 i = static_cast<ui32>(BuilderStreams.size()); i < buildStreams; ++i)
-                {
+                for (ui32 i = static_cast<ui32>(BuilderStreams.size()); i < buildStreams; ++i) {
                     BuilderStreams.push_back(buildStreams > 1 ? NCudaLib::GetCudaManager().RequestStream()
                                                               : NCudaLib::GetCudaManager().DefaultStream());
                     CtrBinBuilders.push_back(TBinBuilder(BuilderStreams.back().GetId()));
@@ -270,24 +239,22 @@ namespace NCatboostCuda
         TVector<TBinBuilder> CtrBinBuilders;
     };
 
-    template<class TCtrVisitor>
-    class TCtrFromTensorCalcer
-    {
+    template <class TCtrVisitor>
+    class TCtrFromTensorCalcer {
     public:
         using TMapping = NCudaLib::TSingleMapping;
 
         TCtrFromTensorCalcer(TCtrVisitor& ctrVisitor,
                              const THashMap<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
                              const TCtrTargets<TMapping>& ctrTargets)
-                : Target(ctrTargets)
-                  , CtrConfigs(ctrConfigs)
-                  , CtrVisitor(ctrVisitor)
+            : Target(ctrTargets)
+            , CtrConfigs(ctrConfigs)
+            , CtrVisitor(ctrVisitor)
         {
         }
 
         void operator()(const TFeatureTensor& tensor,
-                        TCtrBinBuilder<NCudaLib::TSingleMapping>& binBuilder)
-        {
+                        TCtrBinBuilder<NCudaLib::TSingleMapping>& binBuilder) {
             auto profileGuard = NCudaLib::GetCudaManager().GetProfiler().Profile("calcCtrsFromTensor");
             const TCudaBuffer<ui32, TMapping>& indices = binBuilder.GetIndices();
             auto& helper = GetCalcCtrHelper(indices, binBuilder.GetStream());
@@ -304,59 +271,47 @@ namespace NCatboostCuda
             //so visit them first, then all other
             auto ctrVisitor = [&](const TCtrConfig& ctrConfig,
                                   const TCudaBuffer<float, TMapping>& ctrValues,
-                                  ui32 stream)
-            {
+                                  ui32 stream) {
                 TCtr ctr(tensor, ctrConfig);
                 CtrVisitor(ctr, ctrValues, stream);
             };
 
             auto visitOrder = GetVisitOrder(grouppedConfigs);
 
-            for (const auto& configWithoutPrior : visitOrder)
-            {
-                if (configWithoutPrior.Type == ECtrType::FeatureFreq)
-                { //faster impl for special weights type (all 1.0). TODO(noxoomo): check correctness
+            for (const auto& configWithoutPrior : visitOrder) {
+                if (configWithoutPrior.Type == ECtrType::FeatureFreq) { //faster impl for special weights type (all 1.0). TODO(noxoomo): check correctness
                     binBuilder.VisitEqualUpToPriorFreqCtrs(grouppedConfigs[configWithoutPrior], ctrVisitor);
-                } else
-                {
+                } else {
                     helper.VisitEqualUpToPriorCtrs(grouppedConfigs[configWithoutPrior], ctrVisitor);
                 }
             }
         }
 
     private:
-        TVector<TCtrConfig> GetVisitOrder(const TMap<TCtrConfig, TVector<TCtrConfig>>& ctrs)
-        {
+        TVector<TCtrConfig> GetVisitOrder(const TMap<TCtrConfig, TVector<TCtrConfig>>& ctrs) {
             TVector<TCtrConfig> freqCtrs;
             TVector<TCtrConfig> restCtrs;
 
-            for (auto& entry : ctrs)
-            {
-                if (entry.first.Type == ECtrType::FeatureFreq)
-                {
+            for (auto& entry : ctrs) {
+                if (entry.first.Type == ECtrType::FeatureFreq) {
                     freqCtrs.push_back(entry.first);
-                } else
-                {
+                } else {
                     restCtrs.push_back(entry.first);
                 }
             }
 
-            for (auto rest : restCtrs)
-            {
+            for (auto rest : restCtrs) {
                 freqCtrs.push_back(rest);
             }
             return freqCtrs;
         }
 
         TCalcCtrHelper<TMapping>& GetCalcCtrHelper(const TCudaBuffer<ui32, TMapping>& indices,
-                                                   ui32 computationStream)
-        {
-            if (CtrHelpers.count(computationStream) == 0)
-            {
+                                                   ui32 computationStream) {
+            if (CtrHelpers.count(computationStream) == 0) {
                 CtrHelpers[computationStream] = MakeHolder<TCalcCtrHelper<TMapping>>(Target, indices,
                                                                                      computationStream);
-            } else
-            {
+            } else {
                 CtrHelpers[computationStream]->Reset(indices);
             }
             return *CtrHelpers[computationStream];
@@ -370,31 +325,28 @@ namespace NCatboostCuda
         TCtrVisitor& CtrVisitor;
     };
 
-    class TTreeCtrDataSetBuilder
-    {
+    class TTreeCtrDataSetBuilder {
     public:
         using TVec = TCudaBuffer<float, NCudaLib::TSingleMapping>;
         using TConstVec = TCudaBuffer<const float, NCudaLib::TSingleMapping>;
         using TBinarizedDataSet = TTreeCtrDataSet::TGpuDataSet;
 
-        template<class TUi32>
+        template <class TUi32>
         TTreeCtrDataSetBuilder(const TCudaBuffer<TUi32, NCudaLib::TSingleMapping>& indices,
                                TTreeCtrDataSet& ctrDataSet,
                                bool streamParallelCtrVisits,
                                bool isIdentityPermutation = false)
 
-                : TreeCtrDataSet(ctrDataSet)
-                  , GatherIndices(indices.ConstCopyView())
-                  , StreamParallelCtrVisits(streamParallelCtrVisits)
-                  , IsIdentityPermutation(isIdentityPermutation)
+            : TreeCtrDataSet(ctrDataSet)
+            , GatherIndices(indices.ConstCopyView())
+            , StreamParallelCtrVisits(streamParallelCtrVisits)
+            , IsIdentityPermutation(isIdentityPermutation)
         {
             CB_ENSURE(!TreeCtrDataSet.HasCompressedIndex(), "Error: Compressed dataset index already exists");
-            if (TreeCtrDataSet.BinarizedDataSet == nullptr)
-            {
+            if (TreeCtrDataSet.BinarizedDataSet == nullptr) {
                 TreeCtrDataSet.BinarizedDataSet = CreateBinarizedDataSet();
                 TreeCtrDataSet.CompresssedIndexMapping = TreeCtrDataSet.BinarizedDataSet->GetCompressedIndex().GetMapping();
-            } else
-            {
+            } else {
                 TreeCtrDataSet.BinarizedDataSet->CompressedIndex.Reset(TreeCtrDataSet.CompresssedIndexMapping);
             }
             FillBuffer(TreeCtrDataSet.BinarizedDataSet->CompressedIndex, 0u);
@@ -402,8 +354,7 @@ namespace NCatboostCuda
 
         void operator()(const TCtr& ctr,
                         const TVec& floatCtr,
-                        ui32 stream)
-        {
+                        ui32 stream) {
             const ui32 featureId = TreeCtrDataSet.InverseCtrIndex[ctr];
             const auto borders = GetBorders(ctr, floatCtr, stream);
             auto profileGuard = NCudaLib::GetCudaManager().GetProfiler().Profile("binarizeOnDevice");
@@ -415,18 +366,15 @@ namespace NCatboostCuda
                              stream);
         }
 
-        static void DropCache(TTreeCtrDataSet& dataSet)
-        {
+        static void DropCache(TTreeCtrDataSet& dataSet) {
             dataSet.CacheHolder.Reset(new TScopedCacheHolder);
-            if (dataSet.BinarizedDataSet)
-            {
+            if (dataSet.BinarizedDataSet) {
                 dataSet.BinarizedDataSet->CompressedIndex.Clear();
             }
         }
 
     private:
-        THolder<TBinarizedDataSet> CreateBinarizedDataSet()
-        {
+        THolder<TBinarizedDataSet> CreateBinarizedDataSet() {
             THolder<TBinarizedDataSet> dataSet = MakeHolder<TBinarizedDataSet>();
             const TVector<TCtr>& ctrs = TreeCtrDataSet.GetCtrs();
             const ui32 featureCount = static_cast<ui32>(ctrs.size());
@@ -436,8 +384,7 @@ namespace NCatboostCuda
             TGpuBinarizedDataSetBuilderHelper<TBinarizedDataSet>::Reset(*dataSet,
                                                                         TreeCtrDataSet.CreateFeaturesMapping(),
                                                                         GatherIndices.GetMapping());
-            for (ui32 i = 0; i < ctrs.size(); ++i)
-            {
+            for (ui32 i = 0; i < ctrs.size(); ++i) {
                 dataSet->HostFeatures[i].Folds = TreeCtrDataSet.FeaturesManager.GetCtrBinarization(ctrs[i]).BorderCount;
             }
 
@@ -455,17 +402,15 @@ namespace NCatboostCuda
 
         TConstVec GetBorders(const TCtr& ctr,
                              const TVec& floatCtr,
-                             ui32 stream)
-        {
+                             ui32 stream) {
             CB_ENSURE(TreeCtrDataSet.InverseCtrIndex.has(ctr));
             const ui32 featureId = TreeCtrDataSet.InverseCtrIndex[ctr];
             const auto& bordersSlice = TreeCtrDataSet.CtrBorderSlices[featureId];
 
-            if (TreeCtrDataSet.AreCtrBordersComputed[featureId] == false)
-            {
+            if (TreeCtrDataSet.AreCtrBordersComputed[featureId] == false) {
                 const auto& binarizationDescription = TreeCtrDataSet.FeaturesManager.GetCtrBinarization(ctr);
                 TCudaBuffer<float, NCudaLib::TSingleMapping> bordersVecSlice = TreeCtrDataSet.CtrBorders.SliceView(
-                        bordersSlice);
+                    bordersSlice);
                 ComputeCtrBorders(floatCtr,
                                   binarizationDescription,
                                   stream,
@@ -478,8 +423,7 @@ namespace NCatboostCuda
         void ComputeCtrBorders(const TVec& ctr,
                                const NCatboostOptions::TBinarizationOptions& binarizationDescription,
                                ui32 stream,
-                               TVec& dst)
-        {
+                               TVec& dst) {
             auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Build ctr borders");
             CB_ENSURE(dst.GetMapping().GetObjectsSlice().Size() == binarizationDescription.BorderCount + 1);
             ComputeBordersOnDevice(ctr,
@@ -495,9 +439,8 @@ namespace NCatboostCuda
         bool IsIdentityPermutation;
     };
 
-    template<NCudaLib::EPtrType CatFeaturesStoragePtrType>
-    class TTreeCtrDataSetsHelper
-    {
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType>
+    class TTreeCtrDataSetsHelper {
     public:
         using TTreeCtrDataSetPtr = THolder<TTreeCtrDataSet>;
 
@@ -506,19 +449,17 @@ namespace NCatboostCuda
                                const TBinarizedFeaturesManager& featuresManager,
                                ui32 maxDepth, ui32 foldCount,
                                TFeatureTensorTracker<CatFeaturesStoragePtrType>& emptyTracker)
-                : DataSet(dataSet)
-                  , FeaturesManager(featuresManager)
-                  , EmptyTracker(emptyTracker.Copy())
-                  , PureTreeCtrTensorTracker(emptyTracker.Copy())
-                  , MaxDepth(maxDepth)
-                  , FoldCount(foldCount)
+            : DataSet(dataSet)
+            , FeaturesManager(featuresManager)
+            , EmptyTracker(emptyTracker.Copy())
+            , PureTreeCtrTensorTracker(emptyTracker.Copy())
+            , MaxDepth(maxDepth)
+            , FoldCount(foldCount)
         {
             DepthPermutations.resize(1);
-            if (LevelBasedCompressedIndex)
-            {
+            if (LevelBasedCompressedIndex) {
                 DepthPermutations[0] = dataSet.GetIndices().ConstCopyView();
-            } else
-            {
+            } else {
                 auto tmp = TMirrorBuffer<ui32>::CopyMapping(dataSet.GetIndices());
                 MakeSequence(tmp, 0u);
                 DepthPermutations[0] = tmp.ConstCopyView();
@@ -529,13 +470,12 @@ namespace NCatboostCuda
             PureTreeCtrDataSets.resize(devCount);
             PackSizeEstimators.resize(devCount);
             NCudaLib::GetCudaManager().WaitComplete();
-            for (ui32 dev = 0; dev < devCount; ++dev)
-            {
+            for (ui32 dev = 0; dev < devCount; ++dev) {
                 auto freeMemory = manager.FreeMemoryMb(dev, false);
                 PackSizeEstimators[dev] = (new TTreeCtrDataSetMemoryUsageEstimator(featuresManager,
                                                                                    freeMemory,
                                                                                    dataSet.GetCatFeatures().GetFeatureCount(
-                                                                                           dev),
+                                                                                       dev),
                                                                                    FoldCount,
                                                                                    MaxDepth,
                                                                                    static_cast<const ui32>(dataSet.GetDataProvider().GetSampleCount()),
@@ -543,34 +483,28 @@ namespace NCatboostCuda
             }
         }
 
-        const TCudaBuffer<const ui32, NCudaLib::TMirrorMapping>& GetPermutationIndices(ui32 depth)
-        {
+        const TCudaBuffer<const ui32, NCudaLib::TMirrorMapping>& GetPermutationIndices(ui32 depth) {
             CB_ENSURE(DepthPermutations[depth].GetObjectsSlice().Size());
             return DepthPermutations[depth];
         };
 
         void AddSplit(const TBinarySplit& split,
-                      const TMirrorBuffer<ui32>& docBins)
-        {
-            if (DataSet.GetCatFeatures().GetFeatureCount() == 0)
-            {
+                      const TMirrorBuffer<ui32>& docBins) {
+            if (DataSet.GetCatFeatures().GetFeatureCount() == 0) {
                 return;
             }
             auto profileGuard = NCudaLib::GetCudaManager().GetProfiler().Profile("addSplitToTreeCtrsHelper");
             ++CurrentDepth;
 
-            if (FeaturesManager.IsCtr(split.FeatureId))
-            {
+            if (FeaturesManager.IsCtr(split.FeatureId)) {
                 TFeatureTensor newTensor = CurrentTensor;
                 newTensor.AddTensor(FeaturesManager.GetCtr(split.FeatureId).FeatureTensor);
-                if (newTensor == CurrentTensor || (!FeaturesManager.UseAsBaseTensorForTreeCtr(newTensor)))
-                {
+                if (newTensor == CurrentTensor || (!FeaturesManager.UseAsBaseTensorForTreeCtr(newTensor))) {
                     return;
                 }
                 CurrentTensor = newTensor;
                 AddNewDataSets(newTensor);
-            } else
-            {
+            } else {
                 UpdatePureTreeCtrTensor(split);
             }
 
@@ -578,80 +512,68 @@ namespace NCatboostCuda
             // slower cindex building,
             // need to gather docIndices,
             // much faster histograms calc
-            if (LevelBasedCompressedIndex)
-            {
+            if (LevelBasedCompressedIndex) {
                 AssignDepthForDataSetsWithoutCompressedIndex(CurrentDepth);
                 UpdateUsedPermutations();
                 ClearUnusedPermutations();
-                if (UsedPermutations.has(CurrentDepth))
-                {
+                if (UsedPermutations.has(CurrentDepth)) {
                     CachePermutation(docBins, CurrentDepth);
                 }
                 //if we don't have enough memory, we don't need to cache first-level permutations
-            } else
-            {
+            } else {
                 AssignDepthForDataSetsWithoutCompressedIndex(0);
                 UsedPermutations = {0};
             }
             SortDataSetsByCompressedIndexLevelAndSize();
         }
 
-        const TSet<ui32>& GetUsedPermutations() const
-        {
+        const TSet<ui32>& GetUsedPermutations() const {
             return UsedPermutations;
         }
 
-        template<class TCtrDataSetVisitor>
+        template <class TCtrDataSetVisitor>
         void VisitPermutationDataSets(ui32 permutationId,
-                                      TCtrDataSetVisitor&& visitor)
-        {
-            NCudaLib::RunPerDeviceSubtasks([&](ui32 device)
-                                           {
-                                               {
-                                                   //this visit order should be best for cache hit
-                                                   TVector<TTreeCtrDataSet*> cachedDataSets;
-                                                   TVector<TTreeCtrDataSet*> withoutCachedIndexDataSets;
+                                      TCtrDataSetVisitor&& visitor) {
+            NCudaLib::RunPerDeviceSubtasks([&](ui32 device) {
+                {
+                    //this visit order should be best for cache hit
+                    TVector<TTreeCtrDataSet*> cachedDataSets;
+                    TVector<TTreeCtrDataSet*> withoutCachedIndexDataSets;
 
-                                                   //cached dataSets doesn't need recalc.
-                                                   AddDataSets(DataSets[device], permutationId, true, cachedDataSets);
-                                                   AddDataSets(PureTreeCtrDataSets[device], permutationId, true,
-                                                               cachedDataSets);
-                                                   //this dataSets need to be rebuild. dataSets withouth cindex should have permutationId >= permutationId of any dataSet with cindex for max performance
-                                                   AddDataSets(PureTreeCtrDataSets[device], permutationId, false,
-                                                               withoutCachedIndexDataSets);
-                                                   AddDataSets(DataSets[device], permutationId, false,
-                                                               withoutCachedIndexDataSets);
+                    //cached dataSets doesn't need recalc.
+                    AddDataSets(DataSets[device], permutationId, true, cachedDataSets);
+                    AddDataSets(PureTreeCtrDataSets[device], permutationId, true,
+                                cachedDataSets);
+                    //this dataSets need to be rebuild. dataSets withouth cindex should have permutationId >= permutationId of any dataSet with cindex for max performance
+                    AddDataSets(PureTreeCtrDataSets[device], permutationId, false,
+                                withoutCachedIndexDataSets);
+                    AddDataSets(DataSets[device], permutationId, false,
+                                withoutCachedIndexDataSets);
 
-                                                   ProceedDataSets(permutationId, cachedDataSets, visitor);
-                                                   ProceedDataSets(permutationId, withoutCachedIndexDataSets, visitor);
-                                               }
-                                           });
+                    ProceedDataSets(permutationId, cachedDataSets, visitor);
+                    ProceedDataSets(permutationId, withoutCachedIndexDataSets, visitor);
+                }
+            });
         }
 
     private:
         void AddDataSets(const TVector<TTreeCtrDataSetPtr>& dataSets, ui32 permutationId, bool withCompressedIndexFlag,
-                         TVector<TTreeCtrDataSet*>& dst)
-        {
-            for (ui32 i = 0; i < dataSets.size(); ++i)
-            {
-                if (dataSets[i]->GetCompressedIndexPermutationKey() == permutationId)
-                {
-                    if (dataSets[i]->HasCompressedIndex() == withCompressedIndexFlag)
-                    {
+                         TVector<TTreeCtrDataSet*>& dst) {
+            for (ui32 i = 0; i < dataSets.size(); ++i) {
+                if (dataSets[i]->GetCompressedIndexPermutationKey() == permutationId) {
+                    if (dataSets[i]->HasCompressedIndex() == withCompressedIndexFlag) {
                         dst.push_back(dataSets[i].Get());
                     }
                 }
             }
         }
 
-        void AddNewDataSets(const TFeatureTensor& tensor)
-        {
+        void AddNewDataSets(const TFeatureTensor& tensor) {
             auto& manager = NCudaLib::GetCudaManager();
             const ui32 devCount = manager.GetDeviceCount();
             TensorTrackers[tensor] = CreateTensorTracker(tensor);
 
-            for (ui32 dev = 0; dev < devCount; ++dev)
-            {
+            for (ui32 dev = 0; dev < devCount; ++dev) {
                 AddDataSetPacks(tensor,
                                 TensorTrackers[tensor].GetIndices().DeviceView(dev),
                                 dev,
@@ -659,8 +581,7 @@ namespace NCatboostCuda
             }
         }
 
-        void UpdatePureTreeCtrTensor(const TBinarySplit& split)
-        {
+        void UpdatePureTreeCtrTensor(const TBinarySplit& split) {
             PureTreeCtrTensorTracker.AddBinarySplit(split);
             PureTreeCtrDataSets.clear();
 
@@ -668,8 +589,7 @@ namespace NCatboostCuda
             const ui32 devCount = manager.GetDeviceCount();
             PureTreeCtrDataSets.resize(devCount);
 
-            for (ui32 dev = 0; dev < devCount; ++dev)
-            {
+            for (ui32 dev = 0; dev < devCount; ++dev) {
                 AddDataSetPacks(PureTreeCtrTensorTracker.GetCurrentTensor(),
                                 PureTreeCtrTensorTracker.GetIndices().DeviceView(dev),
                                 dev,
@@ -677,52 +597,41 @@ namespace NCatboostCuda
             }
         }
 
-        template<class TVisitor>
+        template <class TVisitor>
         void ProceedDataSets(const ui32 dataSetPermutationId,
                              const TVector<TTreeCtrDataSet*>& dataSets,
-                             TVisitor& visitor)
-        {
-            for (auto dataSetPtr : dataSets)
-            {
+                             TVisitor& visitor) {
+            for (auto dataSetPtr : dataSets) {
                 auto& dataSet = *dataSetPtr;
-                if (dataSetPtr->GetCompressedIndexPermutationKey() != dataSetPermutationId)
-                {
+                if (dataSetPtr->GetCompressedIndexPermutationKey() != dataSetPermutationId) {
                     continue;
                 }
-                if (PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth))
-                {
+                if (PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth)) {
                     FreeMemoryForDataSet(dataSet);
                 }
                 ProceedDataSet(dataSetPermutationId, dataSet, visitor);
             }
         }
 
-        template<class TVisitor>
+        template <class TVisitor>
         TVector<TTreeCtrDataSet*> ProceedDataSets(ui32 dataSetPermutationId,
                                                   const TVector<TTreeCtrDataSet*>& dataSets,
                                                   bool withCompressedIndex,
-                                                  TVisitor& visitor)
-        {
+                                                  TVisitor& visitor) {
             TVector<ui32> dataSetIds;
             TVector<TTreeCtrDataSet*> rest;
 
-            for (ui32 dataSetId = 0; dataSetId < dataSets.size(); ++dataSetId)
-            {
-                if (dataSets[dataSetId]->GetCompressedIndexPermutationKey() == dataSetPermutationId)
-                {
-                    if (dataSets[dataSetId]->HasCompressedIndex() == withCompressedIndex)
-                    {
+            for (ui32 dataSetId = 0; dataSetId < dataSets.size(); ++dataSetId) {
+                if (dataSets[dataSetId]->GetCompressedIndexPermutationKey() == dataSetPermutationId) {
+                    if (dataSets[dataSetId]->HasCompressedIndex() == withCompressedIndex) {
                         dataSetIds.push_back(dataSetId);
                     }
                 }
             }
 
-            for (auto idx : dataSetIds)
-            {
+            for (auto idx : dataSetIds) {
                 const auto& dataSet = *dataSets[idx];
-                if (!withCompressedIndex &&
-                    PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth))
-                {
+                if (!withCompressedIndex && PackSizeEstimators[dataSet.GetDeviceId()]->NotEnoughMemoryForDataSet(dataSet, CurrentDepth)) {
                     FreeMemoryForDataSet(dataSet);
                 }
                 ProceedDataSet(dataSetPermutationId, *dataSets[idx], visitor);
@@ -730,62 +639,51 @@ namespace NCatboostCuda
         }
 
         bool FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet,
-                                  TVector<TTreeCtrDataSetPtr>& dataSets)
-        {
+                                  TVector<TTreeCtrDataSetPtr>& dataSets) {
             const ui32 deviceId = dataSet.GetDeviceId();
             double freeMemory = GetFreeMemory(deviceId);
             double memoryForDataSet = PackSizeEstimators[deviceId]->MemoryForDataSet(dataSet);
 
             //drop should be in reverse order, so we not trigger defragmentation
-            for (i32 dataSetId = (dataSets.size() - 1); dataSetId >= 0; --dataSetId)
-            {
-                if (freeMemory >= memoryForDataSet)
-                {
+            for (i32 dataSetId = (dataSets.size() - 1); dataSetId >= 0; --dataSetId) {
+                if (freeMemory >= memoryForDataSet) {
                     freeMemory = GetFreeMemory(deviceId);
                 }
-                if (freeMemory < memoryForDataSet)
-                {
-                    if (dataSets[dataSetId].Get() != &dataSet && dataSets[dataSetId]->HasCompressedIndex())
-                    {
+                if (freeMemory < memoryForDataSet) {
+                    if (dataSets[dataSetId].Get() != &dataSet && dataSets[dataSetId]->HasCompressedIndex()) {
                         freeMemory += PackSizeEstimators[deviceId]->MemoryForDataSet(*dataSets[dataSetId]);
                         TTreeCtrDataSetBuilder::DropCache(*dataSets[dataSetId]);
                     }
-                } else
-                {
+                } else {
                     return true;
                 }
             }
             return false;
         }
 
-        double GetFreeMemory(ui32 deviceId) const
-        {
+        double GetFreeMemory(ui32 deviceId) const {
             auto& manager = NCudaLib::GetCudaManager();
             return manager.FreeMemoryMb(deviceId) - PackSizeEstimators[deviceId]->GetReserveMemory(CurrentDepth);
         }
 
-        void FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet)
-        {
+        void FreeMemoryForDataSet(const TTreeCtrDataSet& dataSet) {
             bool isDone = FreeMemoryForDataSet(dataSet, PureTreeCtrDataSets[dataSet.GetDeviceId()]);
-            if (!isDone)
-            {
+            if (!isDone) {
                 FreeMemoryForDataSet(dataSet, DataSets[dataSet.GetDeviceId()]);
             }
         }
 
-        template<class TVisitor>
+        template <class TVisitor>
         void ProceedDataSet(ui32 dataSetPermutationKey,
                             TTreeCtrDataSet& dataSet,
-                            TVisitor& visitor)
-        {
+                            TVisitor& visitor) {
             const ui32 deviceId = dataSet.GetDeviceId();
             auto ctrTargets = DeviceView(DataSet.GetCtrTargets(), deviceId);
 
-            if (!dataSet.HasCompressedIndex())
-            {
+            if (!dataSet.HasCompressedIndex()) {
                 NCudaLib::GetCudaManager().WaitComplete();
                 auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile(
-                        TStringBuilder() << "Build  #" << dataSet.GetCtrs().size() << " ctrs dataset");
+                    TStringBuilder() << "Build  #" << dataSet.GetCtrs().size() << " ctrs dataset");
 
                 using TTensorBuilder = TBatchFeatureTensorBuilder<CatFeaturesStoragePtrType>;
                 const ui32 tensorBuilderStreams = PackSizeEstimators[deviceId]->GetStreamCountForCtrCalculation();
@@ -812,17 +710,14 @@ namespace NCatboostCuda
 
             visitor(dataSet);
 
-            if (NeedToDropDataSetAfterVisit(deviceId))
-            {
+            if (NeedToDropDataSetAfterVisit(deviceId)) {
                 TTreeCtrDataSetBuilder::DropCache(dataSet);
             }
         }
 
         void CachePermutation(const TMirrorBuffer<ui32>& currentBins,
-                              ui32 depth)
-        {
-            if (DepthPermutations.size() <= depth)
-            {
+                              ui32 depth) {
+            if (DepthPermutations.size() <= depth) {
                 DepthPermutations.resize(depth + 1);
             }
             TCudaBuffer<ui32, NCudaLib::TMirrorMapping> permutation;
@@ -835,64 +730,49 @@ namespace NCatboostCuda
             UsedPermutations.insert(depth);
         }
 
-        void SortDataSetsByCompressedIndexLevelAndSize()
-        {
-            auto comparator = [&](const TTreeCtrDataSetPtr& left, const TTreeCtrDataSetPtr& right) -> bool
-            {
+        void SortDataSetsByCompressedIndexLevelAndSize() {
+            auto comparator = [&](const TTreeCtrDataSetPtr& left, const TTreeCtrDataSetPtr& right) -> bool {
                 return (left->GetCompressedIndexPermutationKey() < right->GetCompressedIndexPermutationKey()) ||
                        (left->GetCompressedIndexPermutationKey() == right->GetCompressedIndexPermutationKey() &&
                         left->Ctrs.size() > right->Ctrs.size());
             };
 
-            for (auto& devDataSets : DataSets)
-            {
+            for (auto& devDataSets : DataSets) {
                 Sort(devDataSets.begin(), devDataSets.end(), comparator);
             }
-            for (auto& devDataSets : PureTreeCtrDataSets)
-            {
+            for (auto& devDataSets : PureTreeCtrDataSets) {
                 Sort(devDataSets.begin(), devDataSets.end(), comparator);
             }
         }
 
-        void UpdateForPack(const TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, TSet<ui32>& usedPermutations)
-        {
-            for (auto& devDataSets : dataSets)
-            {
-                for (auto& ds : devDataSets)
-                {
+        void UpdateForPack(const TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, TSet<ui32>& usedPermutations) {
+            for (auto& devDataSets : dataSets) {
+                for (auto& ds : devDataSets) {
                     usedPermutations.insert(ds->GetCompressedIndexPermutationKey());
                 }
             }
         }
 
-        void UpdateUsedPermutations()
-        {
+        void UpdateUsedPermutations() {
             TSet<ui32> usedPermutations;
             UpdateForPack(DataSets, usedPermutations);
             UpdateForPack(PureTreeCtrDataSets, usedPermutations);
             UsedPermutations = usedPermutations;
         }
 
-        void ClearUnusedPermutations()
-        {
-            for (ui32 i = 0; i < DepthPermutations.size(); ++i)
-            {
-                if (UsedPermutations.count(i) == 0)
-                {
+        void ClearUnusedPermutations() {
+            for (ui32 i = 0; i < DepthPermutations.size(); ++i) {
+                if (UsedPermutations.count(i) == 0) {
                     DepthPermutations[i].Clear();
                 }
             }
         }
 
-        bool AssignForPack(TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, ui32 depth)
-        {
+        bool AssignForPack(TVector<TVector<TTreeCtrDataSetPtr>>& dataSets, ui32 depth) {
             bool assigned = false;
-            for (auto& devDataSets : dataSets)
-            {
-                for (auto& dataSet : devDataSets)
-                {
-                    if (dataSet->HasCompressedIndex())
-                    {
+            for (auto& devDataSets : dataSets) {
+                for (auto& dataSet : devDataSets) {
+                    if (dataSet->HasCompressedIndex()) {
                         continue;
                     }
                     dataSet->SetPermutationKey(depth);
@@ -902,8 +782,7 @@ namespace NCatboostCuda
             return assigned;
         }
 
-        bool AssignDepthForDataSetsWithoutCompressedIndex(ui32 depth)
-        {
+        bool AssignDepthForDataSetsWithoutCompressedIndex(ui32 depth) {
             bool assignedDataSets = AssignForPack(DataSets, depth);
             bool assignedPureTreeCtrDataSets = AssignForPack(PureTreeCtrDataSets, depth);
             return assignedDataSets | assignedPureTreeCtrDataSets;
@@ -912,8 +791,7 @@ namespace NCatboostCuda
         void AddDataSetPacks(const TFeatureTensor& baseTensor,
                              const TSingleBuffer<const ui32>& baseTensorIndices,
                              ui32 deviceId,
-                             TVector<TTreeCtrDataSetPtr>& dst)
-        {
+                             TVector<TTreeCtrDataSetPtr>& dst) {
             const auto& catFeatures = DataSet.GetCatFeatures();
             auto& devFeatures = catFeatures.GetDeviceFeatures(deviceId);
             const ui32 maxPackSize = PackSizeEstimators[deviceId]->GetMaxPackSize();
@@ -925,20 +803,17 @@ namespace NCatboostCuda
                                                       baseTensorIndices));
 
             ui32 packSize = 0;
-            for (auto feature : devFeatures)
-            {
+            for (auto feature : devFeatures) {
                 auto& nextDataSet = dst.back();
                 auto tensor = baseTensor;
                 tensor.AddCatFeature(feature);
-                if (tensor == baseTensor || !FeaturesManager.UseForTreeCtr(tensor))
-                {
+                if (tensor == baseTensor || !FeaturesManager.UseForTreeCtr(tensor)) {
                     continue;
                 }
                 nextDataSet->AddCatFeature(feature);
                 ++packSize;
 
-                if (packSize >= maxPackSize)
-                {
+                if (packSize >= maxPackSize) {
                     dst.push_back(MakeHolder<TTreeCtrDataSet>(FeaturesManager,
                                                               baseTensor,
                                                               baseTensorIndices));
@@ -946,74 +821,61 @@ namespace NCatboostCuda
                 }
             }
 
-            if (dst.back()->CatFeatures.size() == 0)
-            {
+            if (dst.back()->CatFeatures.size() == 0) {
                 dst.pop_back();
             }
-            for (ui32 i = currentDstSize; i < dst.size(); ++i)
-            {
+            for (ui32 i = currentDstSize; i < dst.size(); ++i) {
                 dst[i]->BuildFeatureIndex();
             }
         }
 
-        bool NeedToDropDataSetAfterVisit(ui32 deviceId) const
-        {
-            if (IsLastLevel())
-            {
+        bool NeedToDropDataSetAfterVisit(ui32 deviceId) const {
+            if (IsLastLevel()) {
                 return true;
             }
             auto freeMemory = GetFreeMemory(deviceId);
 
-            if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 12.0 / 1024 / 1024))
-            {
+            if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 12.0 / 1024 / 1024)) {
                 return true;
             }
             return false;
         }
 
-        TFeatureTensorTracker<CatFeaturesStoragePtrType> CreateEmptyTrackerForTensor(const TFeatureTensor& tensor)
-        {
+        TFeatureTensorTracker<CatFeaturesStoragePtrType> CreateEmptyTrackerForTensor(const TFeatureTensor& tensor) {
             ui64 maxSize = 0;
             TFeatureTensor bestTensor;
-            if (PureTreeCtrTensorTracker.GetCurrentTensor().IsSubset(tensor))
-            {
+            if (PureTreeCtrTensorTracker.GetCurrentTensor().IsSubset(tensor)) {
                 maxSize = PureTreeCtrTensorTracker.GetCurrentTensor().Size();
                 bestTensor = PureTreeCtrTensorTracker.GetCurrentTensor();
             }
 
-            for (auto& entry : TensorTrackers)
-            {
+            for (auto& entry : TensorTrackers) {
                 auto& tracker = entry.second;
-                if (tracker.GetCurrentTensor().IsSubset(tensor) && tracker.GetCurrentTensor().Size() > maxSize)
-                {
+                if (tracker.GetCurrentTensor().IsSubset(tensor) && tracker.GetCurrentTensor().Size() > maxSize) {
                     bestTensor = tracker.GetCurrentTensor();
                     maxSize = tracker.GetCurrentTensor().Size();
                 }
             }
 
-            if (maxSize == 0)
-            {
+            if (maxSize == 0) {
                 return EmptyTracker.Copy();
             }
 
-            if (bestTensor == PureTreeCtrTensorTracker.GetCurrentTensor())
-            {
+            if (bestTensor == PureTreeCtrTensorTracker.GetCurrentTensor()) {
                 return PureTreeCtrTensorTracker.Copy();
             }
 
             return TensorTrackers[bestTensor]
-                    .Copy();
+                .Copy();
         }
 
-        TFeatureTensorTracker<CatFeaturesStoragePtrType> CreateTensorTracker(const TFeatureTensor& tensor)
-        {
+        TFeatureTensorTracker<CatFeaturesStoragePtrType> CreateTensorTracker(const TFeatureTensor& tensor) {
             auto tracker = CreateEmptyTrackerForTensor(tensor);
             tracker.AddFeatureTensor(tensor);
             return tracker;
         }
 
-        bool IsLastLevel() const
-        {
+        bool IsLastLevel() const {
             return ((CurrentDepth + 1) == MaxDepth);
         }
 

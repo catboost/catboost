@@ -7,6 +7,7 @@
 
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
+#include <util/folder/tempdir.h>
 
 struct TModePlotParams {
     ui32 Step = 0;
@@ -33,9 +34,9 @@ struct TModePlotParams {
                 .RequiredArgument("INT")
                 .DefaultValue("32768")
                 .StoreResult(&ReadBlockSize);
-        parser.AddLongOption("tmp-dir", "Dir to store approx for non-additive metrics")
-                .RequiredArgument("INT")
-                .DefaultValue("tmp")
+        parser.AddLongOption("tmp-dir", "Dir to store approx for non-additive metrics. Use \"-\" to generate directory.")
+                .RequiredArgument("String")
+                .DefaultValue("-")
                 .StoreResult(&TmpDir);
     }
 };
@@ -49,7 +50,7 @@ int mode_plot(int argc, const char* argv[]) {
     parser.AddHelpOption();
     params.BindParserOpts(parser);
     plotParams.BindParserOpts(parser);
-    parser.AddLongOption("verbose", "Dir to store approx for non-additive metrics")
+    parser.AddLongOption("verbose")
         .SetFlag(&verbose)
         .NoArgument();
     parser.SetFreeArgsNum(0);
@@ -72,6 +73,14 @@ int mode_plot(int argc, const char* argv[]) {
     if (plotParams.Step == 0) {
         plotParams.Step = (plotParams.LastIteration - plotParams.FirstIteration) > 100 ? 10 : 1;
     }
+    if (plotParams.TmpDir == "-") {
+        plotParams.TmpDir = TTempDir().Name();
+    }
+
+    TVector<TString> metricsDescription;
+    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
+        metricsDescription.emplace_back(metricDescription.Token());
+    }
 
     TVector<THolder<IMetric>> metrics;
     NPar::TLocalExecutor executor;
@@ -79,7 +88,7 @@ int mode_plot(int argc, const char* argv[]) {
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
-        plotParams.MetricsDescription,
+        metricsDescription,
         plotParams.FirstIteration,
         plotParams.LastIteration,
         plotParams.Step,

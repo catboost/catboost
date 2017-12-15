@@ -7,53 +7,54 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/cat_feature_perfect_hash_helper.h>
 #include <catboost/cuda/data/grid_creator.h>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 
-namespace NCatboostCuda
-{
-    class TCpuPoolBasedDataProviderBuilder
-    {
+namespace NCatboostCuda {
+    class TCpuPoolBasedDataProviderBuilder {
     public:
-
         TCpuPoolBasedDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
+                                         bool hasQueries,
                                          const TPool& pool,
                                          bool isTest,
                                          TDataProvider& dst)
-                : FeaturesManager(featureManager)
-                  , DataProvider(dst)
-                  , Pool(pool)
-                  , IsTest(isTest)
-                  , CatFeaturesPerfectHashHelper(FeaturesManager)
+            : FeaturesManager(featureManager)
+            , DataProvider(dst)
+            , Pool(pool)
+            , IsTest(isTest)
+            , CatFeaturesPerfectHashHelper(FeaturesManager)
         {
             DataProvider.Targets = pool.Docs.Target;
-            DataProvider.Weights = pool.Docs.Weight;
+            if (pool.Docs.Weight.size()) {
+                DataProvider.Weights = pool.Docs.Weight;
+            } else {
+                DataProvider.Weights.resize(pool.Docs.Target.size(), 1.0f);
+            }
 
             const ui32 numSamples = pool.Docs.GetDocCount();
 
-            DataProvider.QueryIds.resize(numSamples);
-            for (ui32 i = 0; i < DataProvider.QueryIds.size(); ++i)
-            {
-                DataProvider.QueryIds[i] = i;
+            if (hasQueries) {
+                DataProvider.QueryIds.resize(numSamples);
+                for (ui32 i = 0; i < DataProvider.QueryIds.size(); ++i) {
+                    DataProvider.QueryIds[i] = pool.Docs.QueryId[i];
+                }
             }
 
             DataProvider.Baseline.resize(pool.Docs.Baseline.size());
-            for (ui32 i = 0; i < pool.Docs.Baseline.size(); ++i)
-            {
+            for (ui32 i = 0; i < pool.Docs.Baseline.size(); ++i) {
                 auto& baseline = DataProvider.Baseline[i];
                 auto& baselineSrc = pool.Docs.Baseline[i];
                 baseline.resize(baselineSrc.size());
-                for (ui32 j = 0; j < baselineSrc.size(); ++j)
-                {
+                for (ui32 j = 0; j < baselineSrc.size(); ++j) {
                     baseline[j] = baselineSrc[j];
                 }
             }
+
+            DataProvider.GroupIds = Pool.Docs.GroupId;
         }
 
-        template<class TContainer>
-        TCpuPoolBasedDataProviderBuilder& AddIgnoredFeatures(const TContainer& container)
-        {
-            for (const auto& f : container)
-            {
+        template <class TContainer>
+        TCpuPoolBasedDataProviderBuilder& AddIgnoredFeatures(const TContainer& container) {
+            for (const auto& f : container) {
                 IgnoreFeatures.insert(f);
             }
             return *this;
@@ -67,19 +68,13 @@ namespace NCatboostCuda
         void Finish(ui32 binarizationThreads);
 
     private:
-
-        void RegisterFeaturesInFeatureManager(const TSet<int>& catFeatureIds) const
-        {
+        void RegisterFeaturesInFeatureManager(const TSet<int>& catFeatureIds) const {
             const ui32 factorsCount = Pool.Docs.GetFactorsCount();
-            for (ui32 featureId = 0; featureId < factorsCount; ++featureId)
-            {
-                if (!FeaturesManager.IsKnown(featureId))
-                {
-                    if (catFeatureIds.has(featureId))
-                    {
+            for (ui32 featureId = 0; featureId < factorsCount; ++featureId) {
+                if (!FeaturesManager.IsKnown(featureId)) {
+                    if (catFeatureIds.has(featureId)) {
                         FeaturesManager.RegisterDataProviderCatFeature(featureId);
-                    } else
-                    {
+                    } else {
                         FeaturesManager.RegisterDataProviderFloatFeature(featureId);
                     }
                 }
@@ -90,7 +85,7 @@ namespace NCatboostCuda
         TBinarizedFeaturesManager& FeaturesManager;
         TDataProvider& DataProvider;
         const TPool& Pool;
-        bool IsTest ;
+        bool IsTest;
         TCatFeaturesPerfectHashHelper CatFeaturesPerfectHashHelper;
         TSet<ui32> IgnoreFeatures;
         TVector<float> ClassesWeights;

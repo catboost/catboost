@@ -2,10 +2,11 @@
 
 PYTEST()
 
-SIZE(FAT)
+SIZE(LARGE)
 
 TAG(
     sb:intel_e5_2660v1
+    ya:fat
 )
 
 TEST_SRCS(

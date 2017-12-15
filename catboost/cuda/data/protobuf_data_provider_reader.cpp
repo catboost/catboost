@@ -2,7 +2,6 @@
 
 using namespace NCatboostCuda;
 
-
 void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
                                                 TVector<TFeatureColumnPtr>& features,
                                                 ui32 docCount) {
@@ -28,8 +27,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
             CB_ENSURE(borders.size(), "Error: binarization should be positive");
             auto feature = MakeHolder<TBinarizedFloatValuesHolder>(featureId, docCount, ENanMode::Forbidden, borders, std::move(values), featureName);
             FeaturesManager.RegisterDataProviderFloatFeature(feature->GetId());
-            if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(feature->GetId()))
-            {
+            if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(feature->GetId())) {
                 FeaturesManager.SetFloatFeatureBordersForDataProviderId(feature->GetId(), std::move(borders));
             }
             features.push_back(feature.Release());

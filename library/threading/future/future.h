@@ -82,6 +82,7 @@ public:
     bool HasValue() const;
     const T& GetValue(TDuration timeout = TDuration::Zero()) const;
     const T& GetValueSync() const;
+    T ExtractValue(TDuration timeout = TDuration::Zero());
 
     bool HasException() const;
 
@@ -164,6 +165,7 @@ public:
 
     bool HasValue() const;
     const T& GetValue() const;
+    T ExtractValue();
 
     void SetValue(const T& value);
     void SetValue(T&& value);

@@ -36,7 +36,7 @@ void ResetPythonInterruptHandler() {
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
     const TPool& pool,
-    const TString& metricDescription,
+    const TVector<TString>& metricsDescription,
     int begin,
     int end,
     int evalPeriod,
@@ -49,7 +49,7 @@ TVector<TVector<double>> EvalMetrics(
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
-        metricDescription,
+        metricsDescription,
         begin,
         end,
         evalPeriod,

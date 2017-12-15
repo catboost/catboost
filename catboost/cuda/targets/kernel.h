@@ -4,9 +4,12 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/targets/kernel/pointwise_targets.cuh>
+#include <catboost/cuda/targets/kernel/query_rmse.cuh>
+#include <catboost/cuda/targets/kernel/pair_logit.cuh>
+#include <catboost/cuda/targets/kernel/yeti_rank_pointwise.cuh>
 
 namespace NKernelHost {
-    class TCrossEntropyTargetKernelKernel: public TStatelessKernel {
+    class TCrossEntropyTargetKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> TargetClasses;
         TCudaBufferPtr<const float> TargetWeights;
@@ -18,9 +21,9 @@ namespace NKernelHost {
         bool UseBorder;
 
     public:
-        TCrossEntropyTargetKernelKernel() = default;
+        TCrossEntropyTargetKernel() = default;
 
-        TCrossEntropyTargetKernelKernel(TCudaBufferPtr<const float> targetClasses, TCudaBufferPtr<const float> targetWeights, TCudaBufferPtr<const float> predictions, TCudaBufferPtr<float> functionValue, TCudaBufferPtr<float> der, TCudaBufferPtr<float> der2, float border, bool useBorder)
+        TCrossEntropyTargetKernel(TCudaBufferPtr<const float> targetClasses, TCudaBufferPtr<const float> targetWeights, TCudaBufferPtr<const float> predictions, TCudaBufferPtr<float> functionValue, TCudaBufferPtr<float> der, TCudaBufferPtr<float> der2, float border, bool useBorder)
             : TargetClasses(targetClasses)
             , TargetWeights(targetWeights)
             , Predictions(predictions)
@@ -39,7 +42,7 @@ namespace NKernelHost {
         }
     };
 
-    class TMseTargetKernelKernel: public TStatelessKernel {
+    class TMseTargetKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Relevs;
         TCudaBufferPtr<const float> Weights;
@@ -49,9 +52,9 @@ namespace NKernelHost {
         TCudaBufferPtr<float> Der2;
 
     public:
-        TMseTargetKernelKernel() = default;
+        TMseTargetKernel() = default;
 
-        TMseTargetKernelKernel(TCudaBufferPtr<const float> relevs, TCudaBufferPtr<const float> weights, TCudaBufferPtr<const float> predictions, TCudaBufferPtr<float> functionValue, TCudaBufferPtr<float> der, TCudaBufferPtr<float> der2)
+        TMseTargetKernel(TCudaBufferPtr<const float> relevs, TCudaBufferPtr<const float> weights, TCudaBufferPtr<const float> predictions, TCudaBufferPtr<float> functionValue, TCudaBufferPtr<float> der, TCudaBufferPtr<float> der2)
             : Relevs(relevs)
             , Weights(weights)
             , Predictions(predictions)
@@ -70,6 +73,347 @@ namespace NKernelHost {
                                      stream.GetStream());
         }
     };
+
+    class TPointwiseTargetImplKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+        float Alpha;
+        ELossFunction LossFunction;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        TPointwiseTargetImplKernel() = default;
+
+        TPointwiseTargetImplKernel(TCudaBufferPtr<const float> relevs,
+                                   TCudaBufferPtr<const float> weights,
+                                   TCudaBufferPtr<const float> predictions,
+                                   float alpha,
+                                   ELossFunction lossFunction,
+                                   TCudaBufferPtr<float> functionValue,
+                                   TCudaBufferPtr<float> der,
+                                   TCudaBufferPtr<float> der2)
+            : Relevs(relevs)
+            , Weights(weights)
+            , Predictions(predictions)
+            , Alpha(alpha)
+            , LossFunction(lossFunction)
+            , FunctionValue(functionValue)
+            , Der(der)
+            , Der2(der2)
+        {
+        }
+
+        SAVELOAD(Relevs, Weights, Predictions, FunctionValue, Der, Der2, Alpha, LossFunction);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::PointwiseTargetKernel(Relevs.Get(), Weights.Get(), static_cast<ui32>(Relevs.Size()),
+                                           LossFunction, Alpha,
+                                           Predictions.Get(),
+                                           FunctionValue.Get(), Der.Get(), Der2.Get(),
+                                           stream.GetStream());
+        }
+    };
+
+    class TQueryRmseKernel: public TKernelBase<NKernel::TQueryRmseContext, false> {
+    private:
+        TCudaBufferPtr<const ui32> QuerySizes;
+        TCudaBufferPtr<const ui32> QueryOffsets;
+        ui32 QueryOffsetsBias;
+
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        using TKernelContext = NKernel::TQueryRmseContext;
+        SAVELOAD(Relevs, Weights, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2);
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
+            context->MseDer = memoryManager.Allocate<float>(Relevs.Size());
+            return context;
+        }
+
+        TQueryRmseKernel() = default;
+
+        TQueryRmseKernel(TCudaBufferPtr<const ui32> querySizes,
+                         TCudaBufferPtr<const ui32> queryOffsets,
+                         ui32 queryOffsetsBias,
+                         TCudaBufferPtr<const float> relevs,
+                         TCudaBufferPtr<const float> weights,
+                         TCudaBufferPtr<const float> predictions,
+                         TCudaBufferPtr<const ui32> indices,
+                         TCudaBufferPtr<float> functionValue,
+                         TCudaBufferPtr<float> der,
+                         TCudaBufferPtr<float> der2)
+            : QuerySizes(querySizes)
+            , QueryOffsets(queryOffsets)
+            , QueryOffsetsBias(queryOffsetsBias)
+            , Relevs(relevs)
+            , Weights(weights)
+            , Predictions(predictions)
+            , Indices(indices)
+            , FunctionValue(functionValue)
+            , Der(der)
+            , Der2(der2)
+        {
+        }
+
+        void Run(const TCudaStream& stream, TKernelContext& context) {
+            if (Der.Size()) {
+                CB_ENSURE(Der.Size() == Predictions.Size());
+            }
+            CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
+            if (Indices.Size()) {
+                CB_ENSURE(Indices.Size() == Predictions.Size());
+                NKernel::Gather(context.MseDer, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+            } else {
+                CopyMemoryAsync(Predictions.Get(), context.MseDer, Predictions.Size(), stream);
+            }
+
+            NKernel::MultiplyVector(context.MseDer, -1.0f, Predictions.Size(), stream.GetStream());
+            NKernel::AddVector(context.MseDer, Relevs.Get(), Relevs.Size(), stream.GetStream());
+            NKernel::ComputeGroupMeans(context.MseDer, Weights.Get(), QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
+            NKernel::ApproximateQueryRmse(context.MseDer,
+                                          Weights.Get(),
+                                          context.Qids,
+                                          static_cast<ui32>(Predictions.Size()),
+                                          context.QueryMeans,
+                                          Indices.Get(),
+                                          FunctionValue.Get(),
+                                          Der.Get(),
+                                          Der2.Get(),
+                                          stream.GetStream());
+        }
+    };
+
+    class TYetiRankKernel: public TKernelBase<NKernel::TYetiRankContext, false> {
+    private:
+        TCudaBufferPtr<const ui32> QuerySizes;
+        TCudaBufferPtr<const ui32> QueryOffsets;
+        ui32 QueryOffsetsBias;
+
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> Predictions;
+
+        ui64 Seed;
+        ui32 PermutationCount;
+
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        using TKernelContext = NKernel::TYetiRankContext;
+        SAVELOAD(Relevs, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2, Seed, PermutationCount);
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
+            context->LastProceededQid = memoryManager.Allocate<ui32>(1);
+            context->Approxes = memoryManager.Allocate<float>(Relevs.Size());
+
+            if (Indices.Size()) {
+                context->TempDers = memoryManager.Allocate<float>(Relevs.Size());
+                context->TempWeights = memoryManager.Allocate<float>(Relevs.Size());
+            }
+            context->LastProceededQid = memoryManager.Allocate<ui32>(1);
+            return context;
+        }
+
+        TYetiRankKernel() = default;
+
+        TYetiRankKernel(TCudaBufferPtr<const ui32> querySizes,
+                        TCudaBufferPtr<const ui32> queryOffsets,
+                        ui32 queryOffsetsBias,
+                        TCudaBufferPtr<const float> relevs,
+                        TCudaBufferPtr<const float> predictions,
+                        ui64 seed, ui32 permutationCount,
+                        TCudaBufferPtr<const ui32> indices,
+                        TCudaBufferPtr<float> functionValue,
+                        TCudaBufferPtr<float> der,
+                        TCudaBufferPtr<float> der2)
+            : QuerySizes(querySizes)
+            , QueryOffsets(queryOffsets)
+            , QueryOffsetsBias(queryOffsetsBias)
+            , Relevs(relevs)
+            , Predictions(predictions)
+            , Seed(seed)
+            , PermutationCount(permutationCount)
+            , Indices(indices)
+            , FunctionValue(functionValue)
+            , Der(der)
+            , Der2(der2)
+        {
+        }
+
+        void Run(const TCudaStream& stream, TKernelContext& context) {
+            CB_ENSURE(Der.Size() == Predictions.Size());
+            CB_ENSURE(Der2.Size() == Predictions.Size());
+
+            float* derDst;
+            float* weightsDst;
+
+            CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
+            if (Indices.Size()) {
+                CB_ENSURE(Indices.Size() == Predictions.Size());
+                NKernel::Gather(context.Approxes, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                derDst = context.TempDers;
+                weightsDst = context.TempWeights;
+            } else {
+                CopyMemoryAsync(Predictions.Get(), context.Approxes, Predictions.Size(), stream);
+                derDst = Der.Get();
+                weightsDst = Der2.Get();
+            }
+
+            //we adjust target by group means to avoid exponents with of relatively big numbers
+            NKernel::ComputeGroupMeans(context.Approxes, nullptr, QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
+            NKernel::RemoveQueryMeans((int*)(context.Qids), QuerySizes.Size(), context.QueryMeans, context.Approxes, stream.GetStream());
+
+            if (FunctionValue.Size()) {
+                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
+            }
+
+            NKernel::YetiRankGradient(Seed, PermutationCount,
+                                      QueryOffsets.Get(),
+                                      (int*)context.LastProceededQid,
+                                      QueryOffsetsBias,
+                                      QueryOffsets.Size(),
+                                      (int*)context.Qids,
+                                      context.Approxes,
+                                      Relevs.Get(),
+                                      Predictions.Size(),
+                                      derDst,
+                                      weightsDst,
+                                      stream.GetStream());
+
+            if (Indices.Size()) {
+                NKernel::Scatter(Der.Get(), context.TempDers, Indices.Get(), Der.Size(), stream.GetStream());
+                NKernel::Scatter(Der2.Get(), context.TempWeights, Indices.Get(), Der.Size(), stream.GetStream());
+            }
+        }
+    };
+
+    class TPairLogitKernel: public TKernelBase<NKernel::TPairLogitContext, false> {
+    private:
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<const float> PairWeights;
+        ui32 QueryOffsetsBias;
+
+        TCudaBufferPtr<const float> Predictions;
+
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        using TKernelContext = NKernel::TPairLogitContext;
+        SAVELOAD(Pairs, PairWeights, Predictions, Indices, FunctionValue, Der, Der2);
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            if (Indices.Get()) {
+                context->GatheredPoint = memoryManager.Allocate<float>(Indices.Size());
+            }
+            return context;
+        }
+
+        TPairLogitKernel() = default;
+
+        TPairLogitKernel(TCudaBufferPtr<const uint2> pairs,
+                         TCudaBufferPtr<const float> pairWeights,
+                         ui32 queryOffsetsBias,
+                         TCudaBufferPtr<const float> predictions,
+                         TCudaBufferPtr<const ui32> indices,
+                         TCudaBufferPtr<float> functionValue,
+                         TCudaBufferPtr<float> der,
+                         TCudaBufferPtr<float> der2)
+            : Pairs(pairs)
+            , PairWeights(pairWeights)
+            , QueryOffsetsBias(queryOffsetsBias)
+            , Predictions(predictions)
+            , Indices(indices)
+            , FunctionValue(functionValue)
+            , Der(der)
+            , Der2(der2)
+        {
+        }
+
+        void Run(const TCudaStream& stream, TKernelContext& context) {
+            const float* point = nullptr;
+            if (Indices.Get()) {
+                CB_ENSURE(Indices.Size() == Predictions.Size());
+                NKernel::Gather(context.GatheredPoint, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                point = context.GatheredPoint;
+            } else {
+                point = Predictions.Get();
+            }
+
+            const ui32 docCount = Predictions.Size();
+            if (Der.Get()) {
+                CB_ENSURE(Der.Size() == Predictions.Size());
+            }
+            if (Der2.Get()) {
+                CB_ENSURE(Der2.Size() == Predictions.Size());
+            }
+
+            NKernel::PairLogitPointwiseTarget(point,
+                                              Pairs.Get(),
+                                              PairWeights.Get(),
+                                              Indices.Get(),
+                                              Pairs.Size(), QueryOffsetsBias,
+                                              FunctionValue.Get(),
+                                              Der.Get(),
+                                              Der2.Get(),
+                                              docCount,
+                                              stream.GetStream());
+        }
+    };
+
+    class TMakePairWeightsKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<const float> PairWeights;
+        TCudaBufferPtr<float> Weights;
+
+    public:
+        SAVELOAD(Pairs, PairWeights, Weights);
+
+        TMakePairWeightsKernel() = default;
+
+        TMakePairWeightsKernel(TCudaBufferPtr<const uint2> pairs,
+                               TCudaBufferPtr<const float> pairWeights,
+                               TCudaBufferPtr<float> weights)
+            : Pairs(pairs)
+            , PairWeights(pairWeights)
+            , Weights(weights)
+        {
+        }
+
+        void Run(const TCudaStream& stream) {
+            NKernel::MakePairWeights(Pairs.Get(),
+                                     PairWeights.Get(),
+                                     PairWeights.Size(),
+                                     Weights.Get(),
+                                     stream.GetStream());
+        }
+    };
 }
 
 template <class TMapping>
@@ -80,8 +424,21 @@ inline void ApproximateMse(const TCudaBuffer<const float, TMapping>& target,
                            TCudaBuffer<float, TMapping>* weightedDer,
                            TCudaBuffer<float, TMapping>* weightedDer2,
                            ui32 stream = 0) {
-    using TKernel = NKernelHost::TMseTargetKernelKernel;
+    using TKernel = NKernelHost::TMseTargetKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, score, weightedDer, weightedDer2);
+}
+
+template <class TMapping>
+inline void ApproximatePointwise(const TCudaBuffer<const float, TMapping>& target,
+                                 const TCudaBuffer<const float, TMapping>& weights,
+                                 const TCudaBuffer<const float, TMapping>& point,
+                                 ELossFunction lossFunction, float alpha,
+                                 TCudaBuffer<float, TMapping>* score,
+                                 TCudaBuffer<float, TMapping>* weightedDer,
+                                 TCudaBuffer<float, TMapping>* weightedDer2,
+                                 ui32 stream = 0) {
+    using TKernel = NKernelHost::TPointwiseTargetImplKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, alpha, lossFunction, score, weightedDer, weightedDer2);
 }
 
 template <class TMapping>
@@ -94,6 +451,77 @@ inline void ApproximateCrossEntropy(const TCudaBuffer<const float, TMapping>& ta
                                     bool useBorder,
                                     float border,
                                     ui32 stream = 0) {
-    using TKernel = NKernelHost::TCrossEntropyTargetKernelKernel;
+    using TKernel = NKernelHost::TCrossEntropyTargetKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, score, weightedDer, weightedDer2, border, useBorder);
+}
+
+template <class TMapping>
+inline void ApproximateQueryRmse(const TCudaBuffer<const ui32, TMapping>& querySizes,
+                                 const TCudaBuffer<const ui32, TMapping>& queryOffsets,
+                                 NCudaLib::TDistributedObject<ui32> offsetsBias,
+                                 const TCudaBuffer<const float, TMapping>& target,
+                                 const TCudaBuffer<const float, TMapping>& weights,
+                                 const TCudaBuffer<const float, TMapping>& point,
+                                 const TCudaBuffer<ui32, TMapping>* indices,
+                                 TCudaBuffer<float, TMapping>* score,
+                                 TCudaBuffer<float, TMapping>* weightedDer,
+                                 TCudaBuffer<float, TMapping>* weightedDer2,
+                                 ui32 stream = 0) {
+    using TKernel = NKernelHost::TQueryRmseKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
+                           querySizes, queryOffsets, offsetsBias,
+                           target, weights, point,
+                           indices,
+                           score, weightedDer, weightedDer2);
+}
+
+template <class TMapping>
+inline void ApproximatePairLogit(const TCudaBuffer<const uint2, TMapping>& pairs,
+                                 const TCudaBuffer<const float, TMapping>& pairWeigts,
+                                 NCudaLib::TDistributedObject<ui32> offsetsBias,
+                                 const TCudaBuffer<const float, TMapping>& point,
+                                 const TCudaBuffer<ui32, TMapping>* indices,
+                                 TCudaBuffer<float, TMapping>* score,
+                                 TCudaBuffer<float, TMapping>* weightedDer,
+                                 TCudaBuffer<float, TMapping>* weightedDer2,
+                                 ui32 stream = 0) {
+    using TKernel = NKernelHost::TPairLogitKernel;
+    LaunchKernels<TKernel>(pairs.NonEmptyDevices(), stream,
+                           pairs, pairWeigts, offsetsBias,
+                           point,
+                           indices,
+                           score, weightedDer, weightedDer2);
+}
+
+template <class TMapping>
+inline void MakePairWeights(const TCudaBuffer<const uint2, TMapping>& pairs,
+                            const TCudaBuffer<const float, TMapping>& pairWeights,
+                            TCudaBuffer<float, TMapping>& weights,
+                            ui32 stream = 0) {
+    using TKernel = NKernelHost::TMakePairWeightsKernel;
+    LaunchKernels<TKernel>(pairs.NonEmptyDevices(), stream,
+                           pairs, pairWeights, weights);
+}
+
+template <class TMapping>
+inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
+                                const TCudaBuffer<const ui32, TMapping>& querySizes,
+                                const TCudaBuffer<const ui32, TMapping>& queryOffsets,
+                                NCudaLib::TDistributedObject<ui32> offsetsBias,
+                                const TCudaBuffer<const float, TMapping>& target,
+                                const TCudaBuffer<const float, TMapping>& point,
+                                const TCudaBuffer<ui32, TMapping>* indices,
+                                TCudaBuffer<float, TMapping>* score,
+                                TCudaBuffer<float, TMapping>* weightedDer,
+                                TCudaBuffer<float, TMapping>* weightedDer2,
+                                ui32 stream = 0) {
+    using TKernel = NKernelHost::TYetiRankKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
+                           querySizes, queryOffsets, offsetsBias,
+                           target, point,
+                           seed, permutationCount,
+                           indices,
+                           score,
+                           weightedDer,
+                           weightedDer2);
 }

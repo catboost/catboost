@@ -5,8 +5,8 @@
 #include "features_layout.h"
 #include "fold.h"
 #include "ctr_helper.h"
+#include "restorable_rng.h"
 
-#include <catboost/libs/model/model.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -17,7 +17,6 @@
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
-
 
 
 struct TLearnProgress {

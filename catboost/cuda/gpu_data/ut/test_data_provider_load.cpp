@@ -33,7 +33,6 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.Queries.size(), dataProvider.GetQueries().size());
         {
             auto binarizer = gridBuilderFactory.Create(floatBinarization.BorderSelectionType);
 
@@ -65,13 +64,6 @@ SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
         for (size_t i = 0; i < pool.Qids.size(); ++i) {
             auto qid = dataProvider.GetQueryIds()[i];
             UNIT_ASSERT_VALUES_EQUAL(pool.Qids[i], qid);
-        }
-
-        for (size_t i = 0; i < pool.Queries.size(); ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(pool.Queries[i].size(), dataProvider.GetQueries()[i].size());
-            for (size_t j = 0; j < pool.Queries[i].size(); ++j) {
-                UNIT_ASSERT_VALUES_EQUAL(pool.Queries[i][j], dataProvider.GetQueries()[i][j]);
-            }
         }
 
         {

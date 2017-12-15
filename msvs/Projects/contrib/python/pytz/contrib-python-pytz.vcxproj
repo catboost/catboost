@@ -75,91 +75,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2iu4j3wj7srwm76awqf6qsq6ja.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2iu4j3wj7srwm76awqf6qsq6ja.yasm">
-      <ObjectFileName>$(IntDir)2iu4j3wj7srwm76awqf6qsq6ja_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2lv5rwdqklm7ti2fnaqqakq7na.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2lv5rwdqklm7ti2fnaqqakq7na.yasm">
-      <ObjectFileName>$(IntDir)2lv5rwdqklm7ti2fnaqqakq7na_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\3yt4nrofrasgpyhckyrwbewclu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\3yt4nrofrasgpyhckyrwbewclu.yasm">
-      <ObjectFileName>$(IntDir)3yt4nrofrasgpyhckyrwbewclu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5ewq5ejtohbshqf3lwh22dledq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5ewq5ejtohbshqf3lwh22dledq.yasm">
-      <ObjectFileName>$(IntDir)5ewq5ejtohbshqf3lwh22dledq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5fch3lhwnkurrxaoemlno25kyq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5fch3lhwnkurrxaoemlno25kyq.yasm">
-      <ObjectFileName>$(IntDir)5fch3lhwnkurrxaoemlno25kyq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\65xkjbyalpg3ozclrd3axhrpgu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\65xkjbyalpg3ozclrd3axhrpgu.yasm">
-      <ObjectFileName>$(IntDir)65xkjbyalpg3ozclrd3axhrpgu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\6faooorj2pgcu4wjbuwujse37a.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\6faooorj2pgcu4wjbuwujse37a.yasm">
-      <ObjectFileName>$(IntDir)6faooorj2pgcu4wjbuwujse37a_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\7omoyhhquvo74mm34got3uinoi.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\7omoyhhquvo74mm34got3uinoi.yasm">
-      <ObjectFileName>$(IntDir)7omoyhhquvo74mm34got3uinoi_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2iu4j3wj7srwm76awqf6qsq6ja.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\2lv5rwdqklm7ti2fnaqqakq7na.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\3yt4nrofrasgpyhckyrwbewclu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5ewq5ejtohbshqf3lwh22dledq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\5fch3lhwnkurrxaoemlno25kyq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\65xkjbyalpg3ozclrd3axhrpgu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\6faooorj2pgcu4wjbuwujse37a.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\7omoyhhquvo74mm34got3uinoi.yasm"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\duqrwvioeiscx3v7ussdazyb34.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\duqrwvioeiscx3v7ussdazyb34.yasm">
-      <ObjectFileName>$(IntDir)duqrwvioeiscx3v7ussdazyb34_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\efacnoyq53aoks2bgum2rsygnm.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\efacnoyq53aoks2bgum2rsygnm.yasm">
-      <ObjectFileName>$(IntDir)efacnoyq53aoks2bgum2rsygnm_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\gcki7jksmdgtvjhcqyjiw5uqdi.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\gcki7jksmdgtvjhcqyjiw5uqdi.yasm">
-      <ObjectFileName>$(IntDir)gcki7jksmdgtvjhcqyjiw5uqdi_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\jowt2keoxefnfxhf53kgepcu2m.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\jowt2keoxefnfxhf53kgepcu2m.yasm">
-      <ObjectFileName>$(IntDir)jowt2keoxefnfxhf53kgepcu2m_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\k4k6eol52n2pb6dspjkgyxtm5m.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\k4k6eol52n2pb6dspjkgyxtm5m.yasm">
-      <ObjectFileName>$(IntDir)k4k6eol52n2pb6dspjkgyxtm5m_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\kd4vh5if5ubrqzki64odzrvzkm.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\kd4vh5if5ubrqzki64odzrvzkm.yasm">
-      <ObjectFileName>$(IntDir)kd4vh5if5ubrqzki64odzrvzkm_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\l3krf5uzzqww7trizajyqmr7bu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\l3krf5uzzqww7trizajyqmr7bu.yasm">
-      <ObjectFileName>$(IntDir)l3krf5uzzqww7trizajyqmr7bu_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\duqrwvioeiscx3v7ussdazyb34.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\efacnoyq53aoks2bgum2rsygnm.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\gcki7jksmdgtvjhcqyjiw5uqdi.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\join_g7mh5kw23x6yjl4cv6gy2qsape.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\jowt2keoxefnfxhf53kgepcu2m.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\k4k6eol52n2pb6dspjkgyxtm5m.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\kd4vh5if5ubrqzki64odzrvzkm.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\l3krf5uzzqww7trizajyqmr7bu.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\nbgy47znhgre4h4xzom6s67xsa.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\nbgy47znhgre4h4xzom6s67xsa.yasm">
       <ObjectFileName>$(IntDir)nbgy47znhgre4h4xzom6s67xsa_extra1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\o33aioeyr6j4amsei6oduz2i4e.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\o33aioeyr6j4amsei6oduz2i4e.yasm">
-      <ObjectFileName>$(IntDir)o33aioeyr6j4amsei6oduz2i4e_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\odyxo7zecsby32vvh5n7bvmrdu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\odyxo7zecsby32vvh5n7bvmrdu.yasm">
-      <ObjectFileName>$(IntDir)odyxo7zecsby32vvh5n7bvmrdu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\pdhxdgrjq76xl7dt6jhoone2aq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\pdhxdgrjq76xl7dt6jhoone2aq.yasm">
-      <ObjectFileName>$(IntDir)pdhxdgrjq76xl7dt6jhoone2aq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\qb7os77g5fbazaigwqougg2lrm.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\qb7os77g5fbazaigwqougg2lrm.yasm">
-      <ObjectFileName>$(IntDir)qb7os77g5fbazaigwqougg2lrm_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\vfkpcelra7gxnmpjxsc4wdz3km.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\vfkpcelra7gxnmpjxsc4wdz3km.yasm">
-      <ObjectFileName>$(IntDir)vfkpcelra7gxnmpjxsc4wdz3km_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\o33aioeyr6j4amsei6oduz2i4e.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\odyxo7zecsby32vvh5n7bvmrdu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\pdhxdgrjq76xl7dt6jhoone2aq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\qb7os77g5fbazaigwqougg2lrm.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\vfkpcelra7gxnmpjxsc4wdz3km.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_2iu4j3wj7srwm76awqf6qsq6ja.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -726,6 +667,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pytz/vfkpcelra7gxnmpjxsc4wdz3km.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_vfkpcelra7gxnmpjxsc4wdz3km.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\vfkpcelra7gxnmpjxsc4wdz3km.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_g7mh5kw23x6yjl4cv6gy2qsape.cpp" "contrib/python/pytz/vfkpcelra7gxnmpjxsc4wdz3km.cpp" "contrib/python/pytz/k4k6eol52n2pb6dspjkgyxtm5m.cpp" "contrib/python/pytz/7omoyhhquvo74mm34got3uinoi.cpp" "contrib/python/pytz/6faooorj2pgcu4wjbuwujse37a.cpp" "contrib/python/pytz/3yt4nrofrasgpyhckyrwbewclu.cpp" "contrib/python/pytz/kd4vh5if5ubrqzki64odzrvzkm.cpp" "contrib/python/pytz/5fch3lhwnkurrxaoemlno25kyq.cpp" "contrib/python/pytz/efacnoyq53aoks2bgum2rsygnm.cpp" "contrib/python/pytz/odyxo7zecsby32vvh5n7bvmrdu.cpp" "contrib/python/pytz/gcki7jksmdgtvjhcqyjiw5uqdi.cpp" "contrib/python/pytz/duqrwvioeiscx3v7ussdazyb34.cpp" "contrib/python/pytz/2iu4j3wj7srwm76awqf6qsq6ja.cpp" "contrib/python/pytz/2lv5rwdqklm7ti2fnaqqakq7na.cpp" "contrib/python/pytz/65xkjbyalpg3ozclrd3axhrpgu.cpp" "contrib/python/pytz/l3krf5uzzqww7trizajyqmr7bu.cpp" "contrib/python/pytz/o33aioeyr6j4amsei6oduz2i4e.cpp" "contrib/python/pytz/qb7os77g5fbazaigwqougg2lrm.cpp" "contrib/python/pytz/jowt2keoxefnfxhf53kgepcu2m.cpp" "contrib/python/pytz/pdhxdgrjq76xl7dt6jhoone2aq.cpp" "contrib/python/pytz/5ewq5ejtohbshqf3lwh22dledq.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_g7mh5kw23x6yjl4cv6gy2qsape.cpp" "contrib/python/pytz/vfkpcelra7gxnmpjxsc4wdz3km.cpp" "contrib/python/pytz/k4k6eol52n2pb6dspjkgyxtm5m.cpp" "contrib/python/pytz/7omoyhhquvo74mm34got3uinoi.cpp" "contrib/python/pytz/6faooorj2pgcu4wjbuwujse37a.cpp" "contrib/python/pytz/3yt4nrofrasgpyhckyrwbewclu.cpp" "contrib/python/pytz/kd4vh5if5ubrqzki64odzrvzkm.cpp" "contrib/python/pytz/5fch3lhwnkurrxaoemlno25kyq.cpp" "contrib/python/pytz/efacnoyq53aoks2bgum2rsygnm.cpp" "contrib/python/pytz/odyxo7zecsby32vvh5n7bvmrdu.cpp" "contrib/python/pytz/gcki7jksmdgtvjhcqyjiw5uqdi.cpp" "contrib/python/pytz/duqrwvioeiscx3v7ussdazyb34.cpp" "contrib/python/pytz/2iu4j3wj7srwm76awqf6qsq6ja.cpp" "contrib/python/pytz/2lv5rwdqklm7ti2fnaqqakq7na.cpp" "contrib/python/pytz/65xkjbyalpg3ozclrd3axhrpgu.cpp" "contrib/python/pytz/l3krf5uzzqww7trizajyqmr7bu.cpp" "contrib/python/pytz/o33aioeyr6j4amsei6oduz2i4e.cpp" "contrib/python/pytz/qb7os77g5fbazaigwqougg2lrm.cpp" "contrib/python/pytz/jowt2keoxefnfxhf53kgepcu2m.cpp" "contrib/python/pytz/pdhxdgrjq76xl7dt6jhoone2aq.cpp" "contrib/python/pytz/5ewq5ejtohbshqf3lwh22dledq.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytz/join_g7mh5kw23x6yjl4cv6gy2qsape.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\pytz\vfkpcelra7gxnmpjxsc4wdz3km.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\k4k6eol52n2pb6dspjkgyxtm5m.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\7omoyhhquvo74mm34got3uinoi.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\6faooorj2pgcu4wjbuwujse37a.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\3yt4nrofrasgpyhckyrwbewclu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\kd4vh5if5ubrqzki64odzrvzkm.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\5fch3lhwnkurrxaoemlno25kyq.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\efacnoyq53aoks2bgum2rsygnm.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\odyxo7zecsby32vvh5n7bvmrdu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\gcki7jksmdgtvjhcqyjiw5uqdi.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\duqrwvioeiscx3v7ussdazyb34.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\2iu4j3wj7srwm76awqf6qsq6ja.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\2lv5rwdqklm7ti2fnaqqakq7na.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\65xkjbyalpg3ozclrd3axhrpgu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\l3krf5uzzqww7trizajyqmr7bu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\o33aioeyr6j4amsei6oduz2i4e.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\qb7os77g5fbazaigwqougg2lrm.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\jowt2keoxefnfxhf53kgepcu2m.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\pdhxdgrjq76xl7dt6jhoone2aq.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytz\5ewq5ejtohbshqf3lwh22dledq.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\join_g7mh5kw23x6yjl4cv6gy2qsape.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -1599,6 +1567,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

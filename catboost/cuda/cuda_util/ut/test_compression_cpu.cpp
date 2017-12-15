@@ -1,8 +1,8 @@
 #include <library/unittest/registar.h>
 #include <iostream>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <library/threading/local_executor/local_executor.h>
-#include <catboost/cuda/cuda_util/compression_helpers.h>
+#include <catboost/cuda/utils/compression_helpers.h>
 
 using namespace std;
 

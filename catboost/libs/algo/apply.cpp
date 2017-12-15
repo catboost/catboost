@@ -1,10 +1,8 @@
 #include "apply.h"
-#include "greedy_tensor_search.h"
 #include "target_classifier.h"
 #include "full_features.h"
 #include "learn_context.h"
 
-#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/eval_helpers.h>
 
 TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,

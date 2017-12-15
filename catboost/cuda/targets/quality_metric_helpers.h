@@ -4,87 +4,73 @@
 #include <util/generic/string.h>
 #include <util/generic/ptr.h>
 
-namespace NCatboostCuda
-{
-    class IAdditiveStatistic
-    {
+namespace NCatboostCuda {
+    class IAdditiveStatistic {
     public:
-        virtual ~IAdditiveStatistic()
-        {
+        virtual ~IAdditiveStatistic() {
         }
     };
 
-    struct TAdditiveStatistic: public IAdditiveStatistic
-    {
+    struct TAdditiveStatistic: public IAdditiveStatistic {
         double Sum;
         double Weight;
 
         TAdditiveStatistic(double sum = 0.0,
                            double weight = 0.0)
-                : Sum(sum)
-                  , Weight(weight)
+            : Sum(sum)
+            , Weight(weight)
         {
         }
 
-        TAdditiveStatistic& operator+=(const TAdditiveStatistic& other)
-        {
+        TAdditiveStatistic& operator+=(const TAdditiveStatistic& other) {
             Sum += other.Sum;
             Weight += other.Weight;
             return *this;
         }
     };
 
-    template<class TTarget>
-    class TMetricHelper
-    {
+    template <class TTarget>
+    class TMetricHelper {
     public:
         using TVec = typename TTarget::TVec;
         using TConstVec = typename TTarget::TConstVec;
         using TTargetStat = typename TTarget::TStat;
 
         explicit TMetricHelper(const TTarget& owner)
-                : Owner(owner)
+            : Owner(owner)
         {
         }
 
-        TMetricHelper& SetPoint(const TConstVec& point)
-        {
+        TMetricHelper& SetPoint(const TConstVec& point) {
             CurrentStats = Owner.ComputeStats(point);
             return *this;
         }
 
-        TString MetricName() const
-        {
-            return TString(TTarget::TargetName());
+        TString MetricName() const {
+            return TString(Owner.TargetName());
         }
 
-        TString ToTsv() const
-        {
+        TString ToTsv() const {
             return TStringBuilder() << MetricName() << "\t" << TTarget::Score(CurrentStats);
         }
 
-        double Score() const
-        {
+        double Score() const {
             return TTarget::Score(CurrentStats);
         }
 
-        double Score(const TTargetStat& stat) const
-        {
+        double Score(const TTargetStat& stat) const {
             return TTarget::Score(stat);
         }
 
-        TString TsvHeader() const
-        {
+        TString TsvHeader() const {
             return TStringBuilder() << MetricName() << "\tScore";
         }
 
-        const TTargetStat& GetStat() const
-        {
+        const TTargetStat& GetStat() const {
             return CurrentStats;
         }
 
-        bool IsBetter(const TTargetStat& other)
-        {
+        bool IsBetter(const TTargetStat& other) {
             return (TTarget::Score(CurrentStats) < TTarget::Score(other)) == TTarget::IsMinOptimal();
         }
 

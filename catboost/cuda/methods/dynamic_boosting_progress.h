@@ -6,8 +6,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/cuda/cuda_lib/read_and_write_helpers.h>
 
-namespace NCatboostCuda
-{
+namespace NCatboostCuda {
     template <class TModel>
     struct TDynamicBoostingProgress {
         TVector<TVector<TVector<float>>> PermutationCursor;
@@ -36,7 +35,6 @@ namespace NCatboostCuda
         }
         TModelFeaturesBuilder<TModel>::Write(featuresManager, currentModel, progress.ModelFeaturesMap);
         return progress;
-
     };
 
     template <class TModel,

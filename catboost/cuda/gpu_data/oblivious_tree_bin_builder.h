@@ -14,19 +14,16 @@
 #include <catboost/cuda/gpu_data/cat_features_dataset.h>
 #include <catboost/cuda/data/helpers.h>
 
-namespace NCatboostCuda
-{
-    class IBinarySplitProvider
-    {
+namespace NCatboostCuda {
+    class IBinarySplitProvider {
     public:
         virtual ~IBinarySplitProvider() = default;
 
         virtual const TMirrorBuffer<ui64>& GetCompressedBits(const TBinarySplit& split) const = 0;
     };
 
-    template<NCudaLib::EPtrType CatFeaturesStoragePtrType>
-    class TFeatureTensorTracker: public TMoveOnly
-    {
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType>
+    class TFeatureTensorTracker: public TMoveOnly {
     public:
         TFeatureTensorTracker() = default;
 
@@ -37,34 +34,30 @@ namespace NCatboostCuda
                               const TDataSet<CatFeaturesStoragePtrType>* testSet = nullptr,
                               const IBinarySplitProvider* testBinarySplitProvider = nullptr,
                               ui32 stream = 0)
-                : CacheHolder(&cacheHolder)
-                  , FeaturesManager(&featuresManager)
-                  , LearnDataSet(&learnSet)
-                  , LearnBinarySplitsProvider(&binarySplitProvider)
-                  , LinkedTest(testSet)
-                  , TestBinarySplitsProvider(testBinarySplitProvider)
-                  , Stream(stream)
+            : CacheHolder(&cacheHolder)
+            , FeaturesManager(&featuresManager)
+            , LearnDataSet(&learnSet)
+            , LearnBinarySplitsProvider(&binarySplitProvider)
+            , LinkedTest(testSet)
+            , TestBinarySplitsProvider(testBinarySplitProvider)
+            , Stream(stream)
         {
         }
 
-        bool AddFeatureTensor(const TFeatureTensor& featureTensor)
-        {
+        bool AddFeatureTensor(const TFeatureTensor& featureTensor) {
             const TFeatureTensor prevTensor = CurrentTensor;
             CurrentTensor.AddTensor(featureTensor);
-            if (prevTensor == CurrentTensor)
-            {
+            if (prevTensor == CurrentTensor) {
                 return false;
             }
 
             TCtrBinBuilder<NCudaLib::TMirrorMapping> binBuilder(Stream);
 
-            if (LearnSlice.Size() == 0)
-            {
+            if (LearnSlice.Size() == 0) {
                 binBuilder.SetIndices(LearnDataSet->GetIndices(),
                                       LinkedTest ? &(LinkedTest->GetIndices()) : nullptr);
                 LearnSlice = binBuilder.GetLearnSlice();
-            } else
-            {
+            } else {
                 binBuilder.SetIndices(std::move(Indices),
                                       LearnSlice); //some ping-pong with buffer
             }
@@ -75,42 +68,36 @@ namespace NCatboostCuda
             TMirrorCatFeatureProvider<CatFeaturesStoragePtrType> broadcastedCatFeatures(LearnDataSet->GetCatFeatures(),
                                                                                         *CacheHolder);
 
-            for (ui32 catFeature : catFeatures)
-            {
+            for (ui32 catFeature : catFeatures) {
                 const auto& compressedFeatures = broadcastedCatFeatures.BroadcastFeature(catFeature, Stream)
-                        .GetInStream(Stream);
+                                                     .GetInStream(Stream);
 
-                if (LinkedTest)
-                {
+                if (LinkedTest) {
                     TMirrorCatFeatureProvider<CatFeaturesStoragePtrType> broadcastedTestCatFeatures(
-                            LinkedTest->GetCatFeatures(),
-                            *CacheHolder);
+                        LinkedTest->GetCatFeatures(),
+                        *CacheHolder);
                     const auto& compressedTest = broadcastedTestCatFeatures.BroadcastFeature(catFeature, Stream)
-                            .GetInStream(Stream);
+                                                     .GetInStream(Stream);
                     binBuilder.AddCompressedBins(compressedFeatures,
                                                  compressedTest,
                                                  FeaturesManager->GetBinCount(catFeature));
-                } else
-                {
+                } else {
                     binBuilder.AddCompressedBins(compressedFeatures,
                                                  FeaturesManager->GetBinCount(catFeature));
                 }
             }
 
             //TODO(noxoomo): builder should merge several task in one
-            for (const auto& binarySplit : binarySplits)
-            {
+            for (const auto& binarySplit : binarySplits) {
                 const auto& learnBits = LearnBinarySplitsProvider->GetCompressedBits(binarySplit);
 
-                if (LinkedTest)
-                {
+                if (LinkedTest) {
                     const auto& testBits = TestBinarySplitsProvider->GetCompressedBits(binarySplit);
 
                     binBuilder.AddCompressedBins(learnBits,
                                                  testBits,
                                                  2);
-                } else
-                {
+                } else {
                     binBuilder.AddCompressedBins(learnBits,
                                                  2);
                 }
@@ -121,32 +108,27 @@ namespace NCatboostCuda
             return true;
         }
 
-        bool AddBinarySplit(const TBinarySplit& split)
-        {
+        bool AddBinarySplit(const TBinarySplit& split) {
             TFeatureTensor tensor;
             tensor.AddBinarySplit(split);
             return AddFeatureTensor(tensor);
         }
 
-        bool AddCatFeature(const ui32 catFeature)
-        {
+        bool AddCatFeature(const ui32 catFeature) {
             TFeatureTensor tensor;
             tensor.AddCatFeature(catFeature);
             return AddFeatureTensor(tensor);
         }
 
-        const TFeatureTensor& GetCurrentTensor() const
-        {
+        const TFeatureTensor& GetCurrentTensor() const {
             return CurrentTensor;
         }
 
-        const TMirrorBuffer<ui32>& GetIndices() const
-        {
+        const TMirrorBuffer<ui32>& GetIndices() const {
             return Indices;
         }
 
-        TFeatureTensorTracker Copy()
-        {
+        TFeatureTensorTracker Copy() {
             TFeatureTensorTracker other(*CacheHolder, *FeaturesManager,
                                         *LearnDataSet, *LearnBinarySplitsProvider,
                                         LinkedTest, TestBinarySplitsProvider,
@@ -175,76 +157,64 @@ namespace NCatboostCuda
         ui32 Stream = 0;
     };
 
-    template<class TDataSet,
-            class TCtrSplitBuilder>
-    class TSplitHelper: public IBinarySplitProvider
-    {
+    template <class TDataSet,
+              class TCtrSplitBuilder>
+    class TSplitHelper: public IBinarySplitProvider {
     public:
         TSplitHelper(TScopedCacheHolder& scopedCache,
                      TCtrSplitBuilder& builder,
                      const TBinarizedFeaturesManager& featuresManager,
                      const TDataSet& dataSet)
-                : ScopedCache(scopedCache)
-                  , CtrSplitBuilder(builder)
-                  , FeaturesManager(featuresManager)
-                  , DataSet(dataSet)
+            : ScopedCache(scopedCache)
+            , CtrSplitBuilder(builder)
+            , FeaturesManager(featuresManager)
+            , DataSet(dataSet)
         {
         }
 
-        const TMirrorBuffer<ui64>& GetCompressedBits(const TBinarySplit& split) const override
-        {
+        const TMirrorBuffer<ui64>& GetCompressedBits(const TBinarySplit& split) const override {
             const ui32 featureId = split.FeatureId;
-            if (DataSet.GetFeatures().HasFeature(featureId))
-            {
+            if (DataSet.GetFeatures().HasFeature(featureId)) {
                 return GetCompressedBitsFromGpuFeatures(DataSet.GetFeatures(), split, nullptr);
-            } else if (DataSet.GetPermutationFeatures().HasFeature(featureId))
-            {
+            } else if (DataSet.GetPermutationFeatures().HasFeature(featureId)) {
                 return GetCompressedBitsFromGpuFeatures(DataSet.GetPermutationFeatures(), split,
                                                         &DataSet.GetInverseIndices());
-            } else if (FeaturesManager.IsTreeCtr(split.FeatureId))
-            {
+            } else if (FeaturesManager.IsTreeCtr(split.FeatureId)) {
                 return CtrSplitBuilder.ComputeAndCacheCtrSplit(DataSet, split);
-            } else
-            {
+            } else {
                 ythrow TCatboostException() << "Error: unknown feature";
             }
         }
 
         void Split(const TBinarySplit& split,
                    TMirrorBuffer<ui32>& bins,
-                   ui32 depth)
-        {
+                   ui32 depth) {
             const auto& compressedBits = GetCompressedBits(split);
             UpdateBinFromCompressedBits(compressedBits, bins, depth);
         }
 
-        template<class TUi64>
+        template <class TUi64>
         void SplitByExternalComputedFeature(const TBinarySplit& split,
                                             const TSingleBuffer<TUi64>& compressedBits,
                                             TMirrorBuffer<ui32>& dst,
-                                            ui32 depth)
-        {
+                                            ui32 depth) {
             CB_ENSURE(FeaturesManager.IsTreeCtr(split.FeatureId), "Feature id should be combinations ctr");
 
             const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
 
             const ui32 docCount = DataSet.GetDocumentsMapping().GetObjectsSlice().Size();
             const ui32 compressedSize = CompressedSize<ui64>(docCount, 2);
-            auto broadcastFunction = [&]() -> TMirrorBuffer<ui64>
-            {
+            auto broadcastFunction = [&]() -> TMirrorBuffer<ui64> {
                 TMirrorBuffer<ui64> broadcastedBits = TMirrorBuffer<ui64>::Create(
-                        NCudaLib::TMirrorMapping(compressedSize));
+                    NCudaLib::TMirrorMapping(compressedSize));
                 Reshard(compressedBits, broadcastedBits);
                 return broadcastedBits;
             };
 
-            const auto& mirrorCompressedBits = [&]() -> const TMirrorBuffer<ui64>&
-            {
-                if (FeaturesManager.IsPermutationDependent(ctr))
-                {
+            const auto& mirrorCompressedBits = [&]() -> const TMirrorBuffer<ui64>& {
+                if (FeaturesManager.IsPermutationDependent(ctr)) {
                     return ScopedCache.Cache(DataSet.GetPermutationFeatures().GetFeatures(), split, broadcastFunction);
-                } else
-                {
+                } else {
                     return ScopedCache.Cache(DataSet.GetFeatures().GetFeatures(), split, broadcastFunction);
                 }
             }();
@@ -253,45 +223,35 @@ namespace NCatboostCuda
         }
 
     private:
-
         const TMirrorBuffer<ui64>& GetCompressedBitsFromGpuFeatures(const TGpuFeatures<>& features,
                                                                     const TBinarySplit& split,
-                                                                    const TMirrorBuffer<ui32>* readIndices) const
-        {
+                                                                    const TMirrorBuffer<ui32>* readIndices) const {
             const ui32 featureId = split.FeatureId;
 
-            if (features.GetBinaryFeatures().HasFeature(featureId))
-            {
+            if (features.GetBinaryFeatures().HasFeature(featureId)) {
                 const auto& ds = features.GetBinaryFeatures();
-                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64>
-                {
+                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
                     return BuildMirrorSplitForDataSet(ds, split, readIndices);
                 });
-            } else if (features.GetFeatures().HasFeature(featureId))
-            {
+            } else if (features.GetFeatures().HasFeature(featureId)) {
                 const auto& ds = features.GetFeatures();
-                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64>
-                {
+                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
                     return BuildMirrorSplitForDataSet(ds, split, readIndices);
                 });
-            } else if (features.GetHalfByteFeatures().HasFeature(featureId))
-            {
+            } else if (features.GetHalfByteFeatures().HasFeature(featureId)) {
                 const auto& ds = features.GetHalfByteFeatures();
-                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64>
-                {
+                return ScopedCache.Cache(ds, split, [&]() -> TMirrorBuffer<ui64> {
                     return BuildMirrorSplitForDataSet(ds, split, readIndices);
                 });
-            } else
-            {
+            } else {
                 CB_ENSURE(false, "Error: can't get compressed bits");
             }
         }
 
-        template<class TBinarizedDataSet>
+        template <class TBinarizedDataSet>
         TMirrorBuffer<ui64> BuildMirrorSplitForDataSet(const TBinarizedDataSet& ds,
                                                        const TBinarySplit& split,
-                                                       const TMirrorBuffer<ui32>* readIndices = nullptr) const
-        {
+                                                       const TMirrorBuffer<ui32>* readIndices = nullptr) const {
             TCFeature feature = ds.GetFeatureByGlobalId(split.FeatureId);
             NCudaLib::TStripeMapping featuresMapping = ds.GetGrid().GetMapping();
 
@@ -302,15 +262,12 @@ namespace NCatboostCuda
             TMirrorBuffer<ui64> broadcastedBits = TMirrorBuffer<ui64>::Create(NCudaLib::TMirrorMapping(compressedSize));
 
             const ui32 devCount = GetDeviceCount();
-            for (ui32 dev = 0; dev < devCount; ++dev)
-            {
-                if (featuresMapping.DeviceSlice(dev).Contains(localIdx))
-                {
+            for (ui32 dev = 0; dev < devCount; ++dev) {
+                if (featuresMapping.DeviceSlice(dev).Contains(localIdx)) {
                     TSingleBuffer<ui64> compressedBits = TSingleBuffer<ui64>::Create(
-                            NCudaLib::TSingleMapping(dev, compressedSize));
+                        NCudaLib::TSingleMapping(dev, compressedSize));
                     TSingleBuffer<const ui32> indices;
-                    if (readIndices)
-                    {
+                    if (readIndices) {
                         indices = readIndices->DeviceView(dev);
                     }
                     CreateCompressedSplit(ds, feature, split.BinIdx, compressedBits, readIndices ? &indices : nullptr);
@@ -328,9 +285,8 @@ namespace NCatboostCuda
         const TDataSet& DataSet;
     };
 
-    template<class TDataSet>
-    class TTreeUpdater: public TNonCopyable
-    {
+    template <class TDataSet>
+    class TTreeUpdater: public TNonCopyable {
     public:
         static constexpr NCudaLib::EPtrType CatFeatureStoragePtrType = TDataSet::GetCatFeaturesStoragePtrType();
         using TTensorTracker = TFeatureTensorTracker<CatFeatureStoragePtrType>;
@@ -342,17 +298,16 @@ namespace NCatboostCuda
                      TMirrorBuffer<ui32>& learnBins,
                      const TDataSet* testSet = nullptr,
                      TMirrorBuffer<ui32>* testBins = nullptr)
-                : FeaturesManager(featuresManager)
-                  , CacheHolder(cacheHolder)
-                  , CtrTargets(ctrTargets)
-                  , LearnDataSet(learnSet)
-                  , LinkedTest(testSet)
-                  , SplitHelper(CacheHolder, *this, featuresManager, LearnDataSet)
-                  , LearnBins(learnBins)
-                  , TestBins(testBins)
+            : FeaturesManager(featuresManager)
+            , CacheHolder(cacheHolder)
+            , CtrTargets(ctrTargets)
+            , LearnDataSet(learnSet)
+            , LinkedTest(testSet)
+            , SplitHelper(CacheHolder, *this, featuresManager, LearnDataSet)
+            , LearnBins(learnBins)
+            , TestBins(testBins)
         {
-            if (LinkedTest)
-            {
+            if (LinkedTest) {
                 TestSplitHelper.Reset(new TSplitHelper<TDataSet, TTreeUpdater>(CacheHolder,
                                                                                *this,
                                                                                FeaturesManager,
@@ -361,68 +316,58 @@ namespace NCatboostCuda
 
             FillBuffer(LearnBins, 0u);
 
-            if (LinkedTest)
-            {
+            if (LinkedTest) {
                 FillBuffer(*TestBins, 0u);
             }
         }
 
-        ~TTreeUpdater()
-        {
+        ~TTreeUpdater() {
         }
 
-        TTreeUpdater& AddSplit(const TBinarySplit& split)
-        {
+        TTreeUpdater& AddSplit(const TBinarySplit& split) {
             //TODO(noxoomo): current caching logic is too complicated. It should be easier
-            SplitHelper.Split(split, LearnBins, (ui32) BinarySplits.size());
+            SplitHelper.Split(split, LearnBins, (ui32)BinarySplits.size());
 
-            if (LinkedTest)
-            {
-                TestSplitHelper->Split(split, *TestBins, (ui32) BinarySplits.size());
+            if (LinkedTest) {
+                TestSplitHelper->Split(split, *TestBins, (ui32)BinarySplits.size());
             }
 
             BinarySplits.push_back(split);
             return *this;
         }
 
-        template<class TUi64>
+        template <class TUi64>
         TTreeUpdater& AddSplit(const TBinarySplit& split,
-                               const TSingleBuffer<TUi64>& compressedBins)
-        {
+                               const TSingleBuffer<TUi64>& compressedBins) {
             CB_ENSURE(LinkedTest == nullptr, "Error: need test bins to add externally-computed split");
 
             SplitHelper.SplitByExternalComputedFeature(split,
                                                        compressedBins,
                                                        LearnBins,
-                                                       (ui32) BinarySplits.size());
+                                                       (ui32)BinarySplits.size());
 
-            if (LinkedTest)
-            {
-                TestSplitHelper->Split(split, *TestBins, (ui32) BinarySplits.size());
+            if (LinkedTest) {
+                TestSplitHelper->Split(split, *TestBins, (ui32)BinarySplits.size());
             }
 
             BinarySplits.push_back(split);
             return *this;
         }
 
-        TObliviousTreeStructure GetCurrentStructure() const
-        {
+        TObliviousTreeStructure GetCurrentStructure() const {
             return {BinarySplits};
         }
 
-        template<class TBuilder>
+        template <class TBuilder>
         const TMirrorBuffer<ui64>& CacheTreeCtrSplit(const TDataSet& ds,
                                                      const TBinarySplit& split,
-                                                     TBuilder&& builder)
-        {
+                                                     TBuilder&& builder) {
             auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
 
-            if (FeaturesManager.IsPermutationDependent(ctr))
-            {
+            if (FeaturesManager.IsPermutationDependent(ctr)) {
                 return CacheHolder.Cache(ds.GetPermutationFeatures().GetFeatures(), split,
                                          std::forward<TBuilder>(builder));
-            } else
-            {
+            } else {
                 return CacheHolder.Cache(ds.GetFeatures().GetFeatures(), split, std::forward<TBuilder>(builder));
             }
         }
@@ -430,16 +375,14 @@ namespace NCatboostCuda
         //assumes that all features are already cached, so it's faster to compute in mirror-mode, instead of single-dev + broadcast
         //not-optimal for last ctr split if we have only one permutaiton, otherwise it should be fastest way
         const TMirrorBuffer<ui64>& ComputeAndCacheCtrSplit(const TDataSet& dataSet,
-                                                           const TBinarySplit& split)
-        {
+                                                           const TBinarySplit& split) {
             CB_ENSURE(&dataSet == &LearnDataSet || (&dataSet == LinkedTest));
             using TCtrHelper = TCalcCtrHelper<NCudaLib::TMirrorMapping>;
             CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId), "Error: split should be ctr");
             const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
 
             bool floatCtrBuilderWasCalledFlag = false;
-            auto floatCtrBuilder = [&]() -> TMirrorBuffer<float>
-            {
+            auto floatCtrBuilder = [&]() -> TMirrorBuffer<float> {
                 if (!CanContinueTensorTracker(ctr.FeatureTensor)) {
                     TensorTracker = CreateEmptyTensorTracker();
                 }
@@ -455,18 +398,14 @@ namespace NCatboostCuda
             TMirrorBuffer<float> floatCtr;
             auto& borders = FeaturesManager.GetBorders(split.FeatureId);
 
-            auto buildLearnBitsFunction = [&]() -> TMirrorBuffer<ui64>
-            {
-                if (!floatCtrBuilderWasCalledFlag)
-                {
+            auto buildLearnBitsFunction = [&]() -> TMirrorBuffer<ui64> {
+                if (!floatCtrBuilderWasCalledFlag) {
                     floatCtr = floatCtrBuilder();
                 }
                 return CreateSplit(floatCtr, borders[split.BinIdx], CtrTargets.LearnSlice);
             };
-            auto buildTestBitsFunction = [&]() -> TMirrorBuffer<ui64>
-            {
-                if (!floatCtrBuilderWasCalledFlag)
-                {
+            auto buildTestBitsFunction = [&]() -> TMirrorBuffer<ui64> {
+                if (!floatCtrBuilderWasCalledFlag) {
                     floatCtr = floatCtrBuilder();
                 }
                 return CreateSplit(floatCtr, borders[split.BinIdx], CtrTargets.TestSlice);
@@ -477,8 +416,7 @@ namespace NCatboostCuda
                                                                                              buildTestBitsFunction)
                                                                         : nullptr;
 
-            if (&dataSet == LinkedTest)
-            {
+            if (&dataSet == LinkedTest) {
                 CB_ENSURE(compressedSplitTest);
                 return *compressedSplitTest;
             }
@@ -487,26 +425,23 @@ namespace NCatboostCuda
 
         TMirrorBuffer<ui64> CreateSplit(const TMirrorBuffer<float>& ctr,
                                         const float border,
-                                        TSlice slice)
-        {
+                                        TSlice slice) {
             auto compressedSplit = TMirrorBuffer<ui64>::Create(
-                    NCudaLib::TMirrorMapping(CompressedSize<ui64>(static_cast<ui32>(slice.Size()), 2)));
+                NCudaLib::TMirrorMapping(CompressedSize<ui64>(static_cast<ui32>(slice.Size()), 2)));
             CreateCompressedSplitFloat(ctr.SliceView(slice),
                                        border,
                                        compressedSplit);
             return compressedSplit;
         }
 
-        THolder<TTensorTracker> CreateEmptyTensorTracker()
-        {
+        THolder<TTensorTracker> CreateEmptyTensorTracker() {
             return MakeHolder<TTensorTracker>(CacheHolder, FeaturesManager,
                                               LearnDataSet, SplitHelper,
                                               LinkedTest, TestSplitHelper.Get());
         }
 
     private:
-        bool CanContinueTensorTracker(const TFeatureTensor& newTensor) const
-        {
+        bool CanContinueTensorTracker(const TFeatureTensor& newTensor) const {
             return TensorTracker && TensorTracker->GetCurrentTensor().IsSubset(newTensor);
         }
 

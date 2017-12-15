@@ -1,7 +1,7 @@
 #include "calc_ctr_cpu.h"
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/ctrs/ctr_calcers.h>
 #include <library/unittest/registar.h>

@@ -8,6 +8,7 @@
 #include <util/generic/string.h>
 
 #include "defaults.h"
+#include "progname.h"
 
 bool SetHighestThreadPriority();
 
@@ -21,7 +22,8 @@ public:
         void* Data;
         size_t StackSize;
         void* StackPointer;
-        TString Name;
+        // See comments for `CurrentThreadSetName`
+        TString Name = GetProgramName();
 
         inline TParams()
             : Proc(nullptr)
@@ -80,8 +82,17 @@ public:
 
     static TId ImpossibleThreadId() noexcept;
     static TId CurrentThreadId() noexcept;
-    /// content of `name` parameter is copied
+
+    // NOTE: Content of `name` will be copied.
+    //
+    // NOTE: On Linux thread name is limited to 15 symbols which is probably the smallest one among
+    // all platforms. If you'll provide name longer than 15 symbols it will be cut. So if you expect
+    // `CurrentThreadGetName` to return the same name as `name` make sure it's not longer than 15
+    // symbols.
     static void CurrentThreadSetName(const char* name);
+
+    // NOTE: May return empty string for platforms different from Darwin or Linux.
+    static TString CurrentThreadGetName();
 
 private:
     class TImpl;

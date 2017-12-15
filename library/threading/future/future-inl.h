@@ -21,12 +21,14 @@ template <typename T>
 class TFutureState: public TAtomicRefCount<TFutureState<T>> {
     enum {
         NotReady,
-        ValueSet,
         ExceptionSet,
+        ValueMoved, // keep the ordering of this and following values
+        ValueSet,
+        ValueRead,
     };
 
 private:
-    TAtomic State;
+    mutable TAtomic State;
     TAdaptiveLock StateLock;
 
     TCallbackList<T> Callbacks;
@@ -39,36 +41,7 @@ private:
         T Value;
     };
 
-public:
-    TFutureState()
-        : State(NotReady)
-        , NullValue(0)
-    {}
-
-    template <typename TT>
-    TFutureState(TT&& value)
-        : State(ValueSet)
-        , Value(std::forward<TT>(value))
-    {}
-
-    ~TFutureState()
-    {
-        if (State == ValueSet) {
-            Value.~T();
-        }
-    }
-
-    bool HasValue() const
-    {
-        return AtomicGet(State) == ValueSet;
-    }
-
-    bool HasException() const
-    {
-        return AtomicGet(State) == ExceptionSet;
-    }
-
-    const T& GetValue(TDuration timeout = TDuration::Zero()) const
+    void AccessValue(TDuration timeout, int acquireState) const
     {
         int state = AtomicGet(State);
         if (Y_UNLIKELY(state == NotReady)) {
@@ -88,8 +61,60 @@ public:
             std::rethrow_exception(Exception);
         }
 
-        Y_ASSERT(state == ValueSet);
+        switch (AtomicGetAndCas(&State, acquireState, ValueSet)) {
+        case ValueSet:
+            break;
+        case ValueRead:
+            if (acquireState != ValueRead) {
+                ythrow TFutureException() << "value being read";
+            }
+            break;
+        case ValueMoved:
+            ythrow TFutureException() << "value was moved";
+        default:
+            Y_ASSERT(state == ValueSet);
+        }
+    }
+
+public:
+    TFutureState()
+        : State(NotReady)
+        , NullValue(0)
+    {}
+
+    template <typename TT>
+    TFutureState(TT&& value)
+        : State(ValueSet)
+        , Value(std::forward<TT>(value))
+    {}
+
+    ~TFutureState()
+    {
+        if (State >= ValueMoved) { // ValueMoved, ValueSet, ValueRead
+            Value.~T();
+        }
+    }
+
+    bool HasValue() const
+    {
+        return AtomicGet(State) >= ValueMoved; // ValueMoved, ValueSet, ValueRead
+    }
+
+    bool HasException() const
+    {
+        return AtomicGet(State) == ExceptionSet;
+    }
+
+    const T& GetValue(TDuration timeout = TDuration::Zero()) const
+    {
+        AccessValue(timeout, ValueRead);
         return Value;
+    }
+
+    T ExtractValue(TDuration timeout = TDuration::Zero())
+    {
+        AccessValue(timeout, ValueMoved);
+        return std::move(Value);
     }
 
     template <typename TT>
@@ -518,6 +543,13 @@ inline const T& TFuture<T>::GetValue(TDuration timeout) const
 }
 
 template <typename T>
+inline T TFuture<T>::ExtractValue(TDuration timeout)
+{
+    EnsureInitialized();
+    return State->ExtractValue(timeout);
+}
+
+template <typename T>
 inline const T& TFuture<T>::GetValueSync() const {
     return GetValue(TDuration::Max());;
 }
@@ -743,6 +775,13 @@ inline const T& TPromise<T>::GetValue() const
 {
     EnsureInitialized();
     return State->GetValue();
+}
+
+template <typename T>
+inline T TPromise<T>::ExtractValue()
+{
+    EnsureInitialized();
+    return State->ExtractValue();
 }
 
 template <typename T>

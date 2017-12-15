@@ -1,7 +1,7 @@
 #include <library/unittest/registar.h>
 #include <iostream>
 #include <thread>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>

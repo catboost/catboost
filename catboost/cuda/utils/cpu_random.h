@@ -9,7 +9,8 @@ struct TRandom {
 
     explicit TRandom(ui64 seed = 0)
         : Rng(seed)
-        , Seed(seed) {
+        , Seed(seed)
+    {
     }
 
     ptrdiff_t operator()(ptrdiff_t i) {
@@ -95,5 +96,4 @@ struct TRandom {
         }
         return seed;
     }
-
 };

@@ -9,15 +9,11 @@
 #include <utility>
 #include <catboost/libs/logging/logging.h>
 
-namespace NCatboostCuda
-{
-
+namespace NCatboostCuda {
     template <class TModel>
     class TFeatureIdsRemaper;
 
-
     struct TModelFeaturesMap {
-
         struct TCtrFeature {
             TCtr Ctr;
             TVector<float> Borders;
@@ -26,8 +22,9 @@ namespace NCatboostCuda
 
             TCtrFeature(const TCtr& ctr,
                         TVector<float> borders)
-                    : Ctr(ctr)
-                    , Borders(std::move(borders)) {
+                : Ctr(ctr)
+                , Borders(std::move(borders))
+            {
             }
 
             Y_SAVELOAD_DEFINE(Ctr, Borders);
@@ -41,12 +38,12 @@ namespace NCatboostCuda
 
             TFloatFeature(const ui32& dataProviderId,
                           TVector<float> borders)
-                    : DataProviderId(dataProviderId)
-                    , Borders(std::move(borders)) {
+                : DataProviderId(dataProviderId)
+                , Borders(std::move(borders))
+            {
             }
 
             Y_SAVELOAD_DEFINE(DataProviderId, Borders);
-
         };
 
         TMap<ui32, TCtrFeature> Ctrs;
@@ -56,7 +53,6 @@ namespace NCatboostCuda
         Y_SAVELOAD_DEFINE(Ctrs, FloatFeatures, CatFeaturesMap);
     };
 
-
     TCtr MigrateCtr(TBinarizedFeaturesManager& featuresManager,
                     const TModelFeaturesMap& map,
                     const TCtr& oldCtr);
@@ -65,16 +61,12 @@ namespace NCatboostCuda
                          const TModelFeaturesMap& map,
                          const ui32 featureId);
 
-
-
-    template<>
+    template <>
     class TFeatureIdsRemaper<TObliviousTreeModel> {
-
     public:
-     static TObliviousTreeModel Remap(TBinarizedFeaturesManager& featuresManager,
-                                      const TModelFeaturesMap& map,
-                                      const TObliviousTreeModel& src) {
-
+        static TObliviousTreeModel Remap(TBinarizedFeaturesManager& featuresManager,
+                                         const TModelFeaturesMap& map,
+                                         const TObliviousTreeModel& src) {
             TObliviousTreeStructure structure = src.GetStructure();
             for (ui32 i = 0; i < structure.Splits.size(); ++i) {
                 structure.Splits[i].FeatureId = UpdateFeatureId(featuresManager, map, structure.Splits[i].FeatureId);
@@ -83,16 +75,16 @@ namespace NCatboostCuda
         }
     };
 
-
     template <class TModel>
     class TModelFeaturesBuilder;
 
     class TModelFeaturesMapUpdater {
     public:
         TModelFeaturesMapUpdater(const TBinarizedFeaturesManager& featuresManager,
-                                  TModelFeaturesMap& featuresMap)
-                : FeaturesManager(featuresManager)
-                , FeaturesMap(featuresMap) {
+                                 TModelFeaturesMap& featuresMap)
+            : FeaturesManager(featuresManager)
+            , FeaturesMap(featuresMap)
+        {
         }
 
         void AddFeature(ui32 featureId) {
@@ -107,7 +99,6 @@ namespace NCatboostCuda
         }
 
     private:
-
         void AddFloatFeature(ui32 featureId) {
             Y_ASSERT(FeaturesManager.IsFloat(featureId));
             if (FeaturesMap.FloatFeatures.has(featureId)) {
@@ -142,7 +133,6 @@ namespace NCatboostCuda
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         TModelFeaturesMap& FeaturesMap;
-
     };
 
     template <>
@@ -158,7 +148,7 @@ namespace NCatboostCuda
     };
 
     template <class TModel>
-    class TModelFeaturesBuilder<TAdditiveModel<TModel> > {
+    class TModelFeaturesBuilder<TAdditiveModel<TModel>> {
     public:
         static void Write(const TBinarizedFeaturesManager& manager,
                           const TAdditiveModel<TModel>& model,
@@ -169,18 +159,17 @@ namespace NCatboostCuda
         }
     };
 
-
     template <class TModel>
-    class TFeatureIdsRemaper<TAdditiveModel<TModel> > {
+    class TFeatureIdsRemaper<TAdditiveModel<TModel>> {
     public:
         static TAdditiveModel<TModel> Remap(TBinarizedFeaturesManager& featuresManager,
                                             const TModelFeaturesMap& map,
                                             const TAdditiveModel<TModel>& src) {
             TAdditiveModel<TModel> result;
-            for (ui32 i  = 0; i < src.WeakModels.size(); ++i) {
+            for (ui32 i = 0; i < src.WeakModels.size(); ++i) {
                 result.WeakModels.push_back(TFeatureIdsRemaper<TModel>::Remap(featuresManager,
-                                                                               map,
-                                                                               src.WeakModels[i]));
+                                                                              map,
+                                                                              src.WeakModels[i]));
             }
             return result;
         }

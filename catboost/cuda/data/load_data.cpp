@@ -1,34 +1,41 @@
 #include "load_data.h"
 
-namespace NCatboostCuda {
+#include <catboost/libs/helpers/permutation.h>
 
-    void TDataProviderBuilder::StartNextBlock(ui32 blockSize)
-    {
+namespace NCatboostCuda {
+    void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
         Cursor = DataProvider.Targets.size();
         const auto newDataSize = Cursor + blockSize;
 
         DataProvider.Targets.resize(newDataSize);
         DataProvider.Weights.resize(newDataSize, 1.0);
         DataProvider.QueryIds.resize(newDataSize);
+        DataProvider.GroupIds.resize(newDataSize);
+        DataProvider.Timestamp.resize(newDataSize);
 
-        for (ui32 i = Cursor; i < DataProvider.QueryIds.size(); ++i)
-        {
+        for (ui32 i = Cursor; i < DataProvider.QueryIds.size(); ++i) {
             DataProvider.QueryIds[i] = i;
         }
 
-        for (auto& baseline : DataProvider.Baseline)
-        {
+        for (auto& baseline : DataProvider.Baseline) {
             baseline.resize(newDataSize);
         }
-        for (ui32 factor = 0; factor < FeatureValues.size(); ++factor)
-        {
-            if (IgnoreFeatures.count(factor) == 0)
-            {
+        for (ui32 factor = 0; factor < FeatureValues.size(); ++factor) {
+            if (IgnoreFeatures.count(factor) == 0) {
                 FeatureValues[factor].resize(newDataSize);
             }
         }
 
         DataProvider.DocIds.resize(newDataSize);
+    }
+
+    inline bool HasQueryIds(const TVector<ui32>& qids) {
+        for (ui32 i = 0; i < qids.size(); ++i) {
+            if (qids[i] != i) {
+                return true;
+            }
+        }
+        return false;
     }
 
     void TDataProviderBuilder::Finish() {
@@ -39,30 +46,43 @@ namespace NCatboostCuda {
         std::iota(DataProvider.Order.begin(),
                   DataProvider.Order.end(), 0);
 
-        if (ShuffleFlag)
-        {
-            TRandom random(Seed);
-            if (DataProvider.QueryIds.empty())
-            {
-                MATRIXNET_INFO_LOG << "Warning: dataSet shuffle with query ids is not implemented yet";
-            } else
-            {
-                Shuffle(DataProvider.Order.begin(),
-                        DataProvider.Order.end(),
-                        random);
+        if (!DataProvider.Timestamp.empty()) {
+            ShuffleFlag = false;
+            DataProvider.Order = CreateOrderByKey(DataProvider.Timestamp);
+        }
 
-                DataProvider.SetShuffleSeed(Seed);
+        bool hasQueryIds = HasQueryIds(DataProvider.QueryIds);
+        if (!hasQueryIds) {
+            DataProvider.QueryIds.resize(0);
+        }
+
+        if (Pairs.size()) {
+            //they are local, so we don't need shuffle
+            CB_ENSURE(hasQueryIds, "Error: for GPU pairwise learning you should provide query id column. Query ids will be used to split data between devices and for dynamic boosting learning scheme.");
+            DataProvider.FillQueryPairs(Pairs);
+        }
+
+        if (ShuffleFlag) {
+            if (hasQueryIds) {
+                QueryConsistentShuffle(Seed, 1, DataProvider.QueryIds, &DataProvider.Order);
+            } else {
+                Shuffle(Seed, 1, DataProvider.Targets.size(), &DataProvider.Order);
             }
+            DataProvider.SetShuffleSeed(Seed);
 
+        }
+
+        if (ShuffleFlag || !DataProvider.Timestamp.empty()) {
             ApplyPermutation(DataProvider.Order, DataProvider.Weights);
-            for (auto& baseline : DataProvider.Baseline)
-            {
+            for (auto& baseline : DataProvider.Baseline) {
                 ApplyPermutation(DataProvider.Order, baseline);
             }
             ApplyPermutation(DataProvider.Order, DataProvider.Targets);
             ApplyPermutation(DataProvider.Order, DataProvider.QueryIds);
+            ApplyPermutation(DataProvider.Order, DataProvider.GroupIds);
             ApplyPermutation(DataProvider.Order, DataProvider.DocIds);
         }
+
         TVector<TString> featureNames;
         featureNames.resize(FeatureValues.size());
 
@@ -73,44 +93,37 @@ namespace NCatboostCuda {
 
         TVector<TFeatureColumnPtr> featureColumns(FeatureValues.size());
 
-        if (!IsTest)
-        {
+        if (!IsTest) {
             RegisterFeaturesInFeatureManager(featureColumns);
         }
 
         TVector<TVector<float>> grid;
         grid.resize(FeatureValues.size());
 
-        NPar::ParallelFor(executor, 0, FeatureValues.size(), [&](ui32 featureId)
-        {
+        NPar::ParallelFor(executor, 0, FeatureValues.size(), [&](ui32 featureId) {
             auto featureName = GetFeatureName(featureId);
             featureNames[featureId] = featureName;
 
-            if (FeatureValues[featureId].size() == 0)
-            {
+            if (FeatureValues[featureId].size() == 0) {
                 return;
             }
 
             TVector<float> line(DataProvider.Order.size());
-            for (ui32 i = 0; i < DataProvider.Order.size(); ++i)
-            {
+            for (ui32 i = 0; i < DataProvider.Order.size(); ++i) {
                 line[i] = FeatureValues[featureId][DataProvider.Order[i]];
             }
 
-            if (CatFeatureIds.has(featureId))
-            {
+            if (CatFeatureIds.has(featureId)) {
                 static_assert(sizeof(float) == sizeof(ui32), "Error: float size should be equal to ui32 size");
                 const bool shouldSkip = IsTest && (CatFeaturesPerfectHashHelper.GetUniqueValues(featureId) == 0);
-                if (!shouldSkip)
-                {
+                if (!shouldSkip) {
                     auto data = CatFeaturesPerfectHashHelper.UpdatePerfectHashAndBinarize(featureId,
                                                                                           ~line,
                                                                                           line.size());
 
                     const ui32 uniqueValues = CatFeaturesPerfectHashHelper.GetUniqueValues(featureId);
 
-                    if (uniqueValues > 1)
-                    {
+                    if (uniqueValues > 1) {
                         auto compressedData = CompressVector<ui64>(~data, line.size(), IntLog2(uniqueValues));
                         featureColumns[featureId] = MakeHolder<TCatFeatureValuesHolder>(featureId,
                                                                                         line.size(),
@@ -119,8 +132,7 @@ namespace NCatboostCuda {
                                                                                         featureName);
                     }
                 }
-            } else
-            {
+            } else {
                 auto floatFeature = MakeHolder<TFloatValuesHolder>(featureId,
                                                                    std::move(line),
                                                                    featureName);
@@ -133,24 +145,20 @@ namespace NCatboostCuda {
                     nanMode = FeaturesManager.GetOrCreateNanMode(*floatFeature);
                 }
 
-                if (FeaturesManager.HasFloatFeatureBorders(*floatFeature))
-                {
+                if (FeaturesManager.HasFloatFeatureBorders(*floatFeature)) {
                     borders = FeaturesManager.GetFloatFeatureBorders(*floatFeature);
                 }
 
-
-                if (borders.empty() && !IsTest)
-                {
+                if (borders.empty() && !IsTest) {
                     const auto& floatValues = floatFeature->GetValues();
-                    const auto& config = FeaturesManager.GetFloatFeatureBinarization();
+                    NCatboostOptions::TBinarizationOptions config = FeaturesManager.GetFloatFeatureBinarization();
+                    config.NanMode = nanMode;
                     borders = BuildBorders(floatValues, floatFeature->GetId(), config);
                 }
-                if (borders.ysize() == 0)
-                {
+                if (borders.ysize() == 0) {
                     MATRIXNET_INFO_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                     return;
                 }
-
 
                 auto binarizedData = BinarizeLine(floatFeature->GetValues().data(),
                                                   floatFeature->GetValues().size(),
@@ -173,34 +181,24 @@ namespace NCatboostCuda {
             }
         });
 
-        for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId)
-        {
-            if (CatFeatureIds.has(featureId))
-            {
-                if (featureColumns[featureId] == nullptr && (!IsTest))
-                {
+        for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId) {
+            if (CatFeatureIds.has(featureId)) {
+                if (featureColumns[featureId] == nullptr && (!IsTest)) {
                     MATRIXNET_INFO_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                 }
-            } else
-            {
-                if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId))
-                {
+            } else {
+                if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId)) {
                     FeaturesManager.SetFloatFeatureBordersForDataProviderId(featureId, std::move(grid[featureId]));
                 }
             }
-            if (featureColumns[featureId] != nullptr)
-            {
+            if (featureColumns[featureId] != nullptr) {
                 DataProvider.Features.push_back(std::move(featureColumns[featureId]));
             }
         }
 
-        GroupQueries(DataProvider.QueryIds,
-                     &DataProvider.Queries);
-
         DataProvider.BuildIndicesRemap();
 
-        if (!IsTest)
-        {
+        if (!IsTest) {
             TOnCpuGridBuilderFactory gridBuilderFactory;
             FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
                                                              DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));

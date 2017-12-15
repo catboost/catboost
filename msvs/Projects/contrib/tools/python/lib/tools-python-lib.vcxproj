@@ -60,7 +60,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;$(SolutionDir)../contrib/tools/python/src/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -83,7 +83,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVRskUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmNxB1UjJFMvY29udHJpYi90b29scy9weXRob24vc3JjL0luY2x1ZGVxCFUmJFMvY29udHJpYi9saWJzL2N4eHN1cHAvbGliY3h4L2luY2x1ZGVxCVUfJFMvY29udHJpYi9saWJzL29wZW5zc2wvaW5jbHVkZXEKVTckUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvTW9kdWxlcy9fY3R5cGVzL2xpYmZmaV9tc3ZjcQtVGyRTL2NvbnRyaWIvdG9vbHMvcHl0aG9uL3NyY3EMVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXENZVUFX3R5cGVxDlUGeDg2XzY0cQ9VBF9mbXRxEFUFd2luNjRxEVUJX3BsYXRmb3JtcRJdcRNVBVdJTjMycRRhVQdfcHJlZml4cRVVAHEWVQxfcHJlX2luY2x1ZGVxF11xGFUGX2ZsYWdzcRldcRpVBV9wYXRocRtVOCRCL2NvbnRyaWIvdG9vbHMvcHl0aG9uL2xpYi9weXRob25fZnJvemVuX21vZHVsZXMucm9kYXRhcRx1hXEdYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
+"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEHVR8kUy9jb250cmliL2xpYnMvb3BlbnNzbC9pbmNsdWRlcQhVNyRTL2NvbnRyaWIvdG9vbHMvcHl0aG9uL3NyYy9Nb2R1bGVzL19jdHlwZXMvbGliZmZpX21zdmNxCVUjJFMvY29udHJpYi90b29scy9weXRob24vc3JjL0luY2x1ZGVxCmVVBV90eXBlcQtVBng4Nl82NHEMVQRfZm10cQ1VBXdpbjY0cQ5VCV9wbGF0Zm9ybXEPXXEQVQVXSU4zMnERYVUHX3ByZWZpeHESVQBxE1UMX3ByZV9pbmNsdWRlcRRdcRVVBl9mbGFnc3EWXXEXVQVfcGF0aHEYVTgkQi9jb250cmliL3Rvb2xzL3B5dGhvbi9saWIvcHl0aG9uX2Zyb3plbl9tb2R1bGVzLnJvZGF0YXEZdYVxGmIu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVRskUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmNxB1UjJFMvY29udHJpYi90b29scy9weXRob24vc3JjL0luY2x1ZGVxCFUmJFMvY29udHJpYi9saWJzL2N4eHN1cHAvbGliY3h4L2luY2x1ZGVxCVUfJFMvY29udHJpYi9saWJzL29wZW5zc2wvaW5jbHVkZXEKVTckUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvTW9kdWxlcy9fY3R5cGVzL2xpYmZmaV9tc3ZjcQtVGyRTL2NvbnRyaWIvdG9vbHMvcHl0aG9uL3NyY3EMVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXENZVUFX3R5cGVxDlUGeDg2XzY0cQ9VBF9mbXRxEFUFd2luNjRxEVUJX3BsYXRmb3JtcRJdcRNVBVdJTjMycRRhVQdfcHJlZml4cRVVAHEWVQxfcHJlX2luY2x1ZGVxF11xGFUGX2ZsYWdzcRldcRpVBV9wYXRocRtVOCRCL2NvbnRyaWIvdG9vbHMvcHl0aG9uL2xpYi9weXRob25fZnJvemVuX21vZHVsZXMucm9kYXRhcRx1hXEdYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
+"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEHVR8kUy9jb250cmliL2xpYnMvb3BlbnNzbC9pbmNsdWRlcQhVNyRTL2NvbnRyaWIvdG9vbHMvcHl0aG9uL3NyYy9Nb2R1bGVzL19jdHlwZXMvbGliZmZpX21zdmNxCVUjJFMvY29udHJpYi90b29scy9weXRob24vc3JjL0luY2x1ZGVxCmVVBV90eXBlcQtVBng4Nl82NHEMVQRfZm10cQ1VBXdpbjY0cQ5VCV9wbGF0Zm9ybXEPXXEQVQVXSU4zMnERYVUHX3ByZWZpeHESVQBxE1UMX3ByZV9pbmNsdWRlcRRdcRVVBl9mbGFnc3EWXXEXVQVfcGF0aHEYVTgkQi9jb250cmliL3Rvb2xzL3B5dGhvbi9saWIvcHl0aG9uX2Zyb3plbl9tb2R1bGVzLnJvZGF0YXEZdYVxGmIu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -165,6 +165,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
       <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>

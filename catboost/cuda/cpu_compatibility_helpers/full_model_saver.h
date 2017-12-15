@@ -5,10 +5,8 @@
 #include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/algo/index_hash_calcer.h>
 
-namespace NCatboostCuda
-{
+namespace NCatboostCuda {
     class TCoreModelToFullModelConverter {
-
     public:
         TCoreModelToFullModelConverter(TFullModel&& model,
                                        const TPool& cpuPool,
@@ -31,13 +29,11 @@ namespace NCatboostCuda
             return *this;
         }
 
-
         void SaveToFile(const TString& output) {
             ModelBase.CtrProvider = new TStaticCtrOnFlightSerializationProvider(
                 ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
                 GetCtrTableGenerator(),
-                LocalExecutor
-            );
+                LocalExecutor);
             {
                 TOFStream fileOutput(output);
                 ModelBase.Save(&fileOutput);
@@ -61,14 +57,15 @@ namespace NCatboostCuda
             LocalExecutor.ExecRange([&](int i) {
                 auto& ctr = usedCtrBases[i];
                 auto table = ctrTableGenerator(ctr);
-                with_lock(lock) {
+                with_lock (lock) {
                     dst->CtrProvider->AddCtrCalcerData(std::move(table));
                 }
-            }, 0, usedCtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            },
+                                    0, usedCtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
             dst->UpdateDynamicData();
         }
-    private:
 
+    private:
         inline void CreateTargetClasses(const TVector<float>& targets,
                                         const TVector<TTargetClassifier>& targetClassifiers,
                                         TVector<TVector<int>>& learnTargetClasses,
@@ -109,8 +106,7 @@ namespace NCatboostCuda
                                 learnTargetClasses,
                                 targetClassesCount);
 
-            return [this, sampleCount, learnTargetClasses, targets, targetClassesCount]
-                (const TModelCtrBase& ctr) -> TCtrValueTable {
+            return [this, sampleCount, learnTargetClasses, targets, targetClassesCount](const TModelCtrBase& ctr) -> TCtrValueTable {
                 TCtrValueTable resTable;
                 CalcFinalCtrs(
                     ctr.CtrType,

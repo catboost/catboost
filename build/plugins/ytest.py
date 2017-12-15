@@ -68,6 +68,7 @@ def validate_test(kw):
 
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
     tags = get_list("TAG")
+    is_fat = 'ya:fat' in tags
     requirements = {}
     valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb'}
     for req in get_list("REQUIREMENTS"):
@@ -77,11 +78,11 @@ def validate_test(kw):
                 errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(valid_requirements))))
                 continue
             elif req_name in ('disk_usage', 'ram_disk'):
-                if not mr.resolve_size_metric(req_value.lower()):
+                if not mr.resolve_value(req_value.lower()):
                     errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
                     continue
             # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
-            elif size == consts.TestSize.Fat and req_name in ('ram', 'cpu'):
+            elif is_fat and req_name in ('ram', 'cpu'):
                 if req_name == 'cpu':
                     if req_value.strip() == 'all':
                         pass
@@ -89,7 +90,7 @@ def validate_test(kw):
                         errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
                         continue
                 elif req_name == 'ram':
-                    if not mr.resolve_size_metric(req_value.lower()):
+                    if not mr.resolve_value(req_value.lower()):
                         errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
                         continue
             elif req_name == 'ram':
@@ -110,7 +111,7 @@ def validate_test(kw):
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
 
     if size not in size_timeout:
-        errors.append("Unknown test size: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(size, ", ".join(size_timeout.keys())))
+        errors.append("Unknown test size: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(size.upper(), ", ".join([sz.upper() for sz in size_timeout.keys()])))
         has_fatal_error = True
     else:
         try:
@@ -125,28 +126,34 @@ def validate_test(kw):
                         break
 
                 if suggested_size:
-                    suggested_size = ", suggested size: [[imp]]{}[[rst]]".format(suggested_size)
+                    suggested_size = ", suggested size: [[imp]]{}[[rst]]".format(suggested_size.upper())
                 else:
                     suggested_size = ""
-                errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]]{}".format(size, size_timeout[size], suggested_size))
+                errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]]{}".format(size.upper(), size_timeout[size], suggested_size))
                 has_fatal_error = True
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
             has_fatal_error = True
 
-        is_fat = size == consts.TestSize.Fat or 'ya:fat' in tags
         for req in ["container", "disk"]:
             if req in requirements and not is_fat:
                 errors.append("Only [[imp]]FAT[[rst]] tests can have [[imp]]{}[[rst]] requirement".format(req))
+                has_fatal_error = True
 
         if 'ya:privileged' in tags and 'container' not in requirements:
             errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
+            has_fatal_error = True
 
         if 'ya:privileged' in tags and not is_fat:
             errors.append("Only fat tests can have 'ya:privileged' tag")
+            has_fatal_error = True
 
         if in_autocheck and size == consts.TestSize.Large and not is_fat:
             errors.append("LARGE test must have ya:fat tag")
+            has_fatal_error = True
+
+        if is_fat and size != consts.TestSize.Large:
+            errors.append("Only LARGE test may have ya:fat tag")
             has_fatal_error = True
 
         requiremtens_list = []
@@ -250,6 +257,22 @@ def get_unit_list_variable(unit, name):
     return []
 
 
+def implies(a, b):
+    return bool((not a) or b)
+
+
+def match_coverage_extractor_requirements(unit):
+    # we shouldn't add test if
+    return all([
+        # tests are not requested
+        unit.get("TESTS_REQUESTED"),
+        # build doesn't imply clang coverage, which supports segment extraction from the binaries
+        unit.get("CLANG_COVERAGE"),
+        # contrib wasn't requested
+        implies(strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE")),
+    ])
+
+
 def onadd_ytest(unit, *args):
     keywords = {"DEPENDS": -1, "DATA": -1, "TIMEOUT": 1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
@@ -257,11 +280,10 @@ def onadd_ytest(unit, *args):
 
     if flat_args[1] == "fuzz.test":
         unit.ondata("arcadia/fuzzing/{}/corpus.json".format(strip_roots(unit.path())))
-    elif flat_args[1] == "coverage.extractor" and (not unit.get("TESTS_REQUESTED") or not unit.get("CLANG_COVERAGE")):
+    elif flat_args[1] == "coverage.extractor" and not match_coverage_extractor_requirements(unit):
         # XXX
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
-        # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry
-        # We shouldn't add test if tests are not requested or build doesn't imply clang coverage
+        # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry and check requirements later
         return
 
     fork_mode = []
@@ -536,10 +558,12 @@ def onjava_test(unit, *args):
 
     test_cwd = unit.get('TEST_CWD_VALUE') or ''  # TODO: validate test_cwd value
 
+    script_rel_path = 'testng.test' if unit.get('MODULE_TYPE') == 'TESTNG' else 'junit.test'
+
     test_record = {
         'SOURCE-FOLDER-PATH': path,
         'TEST-NAME': '-'.join([os.path.basename(os.path.dirname(path)), os.path.basename(path)]),
-        'SCRIPT-REL-PATH': 'junit.test',
+        'SCRIPT-REL-PATH': script_rel_path,
         'TEST-TIMEOUT': unit.get('TEST_TIMEOUT') or '',
         'TESTED-PROJECT-NAME': path,
         'TEST-DATA': serialize_list(test_data),

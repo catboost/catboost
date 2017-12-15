@@ -107,6 +107,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
+      <Project>E73DCA9C-B071-4A48-F573-C852583220CE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
     </ProjectReference>

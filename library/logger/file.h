@@ -16,5 +16,5 @@ public:
 
 private:
     class TImpl;
-    THolder<TImpl> Impl_;
+    TAtomicSharedPtr<TImpl> Impl_;
 };

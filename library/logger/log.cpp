@@ -197,7 +197,10 @@ void TLog::AddLogVAList(const char* format, va_list lst) {
 }
 
 void TLog::ReopenLog() {
-    Impl_->ReopenLog();
+    TSimpleIntrusivePtr<TImpl> copy = Impl_;
+    if (copy) {
+        copy->ReopenLog();
+    }
 }
 
 void TLog::CloseLog() {

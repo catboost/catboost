@@ -1,4 +1,5 @@
 #include "sort.cuh"
+#include "fill.cuh"
 #include <contrib/libs/cub/cub/device/device_radix_sort.cuh>
 #include <cassert>
 
@@ -9,12 +10,11 @@ namespace NKernel {
         cub::DoubleBuffer<K> doubleBufferKeys(keys, context.GetTempKeys<K>());
         cudaError_t error;
 
+        FillBuffer<char>(context.TempStorage, 0, context.TempStorageSize, stream);
         if (context.ValueSize) {
             cub::DoubleBuffer<V> doubleBufferValues(values, context.GetTempValues<V>());
 
             if (context.Descending) {
-
-
                 cub::DoubleBuffer<K> inputValues;
                 error = cub::DeviceRadixSort::SortPairsDescending(context.TempStorage, context.TempStorageSize,
                                                                   doubleBufferKeys,

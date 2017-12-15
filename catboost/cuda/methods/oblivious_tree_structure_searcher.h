@@ -16,16 +16,14 @@
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
 
-namespace NCatboostCuda
-{
-    template<class TGridPolicy,
-            class TLayoutPolicy>
+namespace NCatboostCuda {
+    template <class TGridPolicy,
+              class TLayoutPolicy>
     inline THolder<TScoreHelper<TGridPolicy, TLayoutPolicy>>
     CreateScoreHelper(const TGpuBinarizedDataSet<TGridPolicy, TLayoutPolicy>& dataSet,
                       ui32 foldCount,
                       const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                      bool requestStream = false)
-    {
+                      bool requestStream = false) {
         using TFeatureScoresHelper = TScoreHelper<TGridPolicy, TLayoutPolicy>;
         return MakeHolder<TFeatureScoresHelper>(dataSet,
                                                 foldCount,
@@ -36,118 +34,93 @@ namespace NCatboostCuda
                                                 requestStream);
     };
 
-
-    template<class TLayoutPolicy = TCatBoostPoolLayout>
-    class TGpuFeaturesScoreCalcer
-    {
+    template <class TLayoutPolicy = TCatBoostPoolLayout>
+    class TGpuFeaturesScoreCalcer {
     public:
         TGpuFeaturesScoreCalcer(const TGpuFeatures<>& features,
                                 const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                 ui32 foldCount,
                                 bool requestStream)
-                : Features(features)
-                  , TreeConfig(treeConfig)
-                  , FoldCount(foldCount)
+            : Features(features)
+            , TreeConfig(treeConfig)
+            , FoldCount(foldCount)
         {
-            if (Features.GetBinaryFeatures().NotEmpty())
-            {
+            if (Features.GetBinaryFeatures().NotEmpty()) {
                 BinaryFeatureHelper = CreateScoreHelper(Features.GetBinaryFeatures(), foldCount, TreeConfig,
                                                         requestStream);
             }
-            if (Features.GetHalfByteFeatures().NotEmpty())
-            {
+            if (Features.GetHalfByteFeatures().NotEmpty()) {
                 HalfByteFeatureHelper = CreateScoreHelper(Features.GetHalfByteFeatures(), foldCount, TreeConfig,
                                                           requestStream);
             }
-            if (Features.GetFeatures().NotEmpty())
-            {
+            if (Features.GetFeatures().NotEmpty()) {
                 ByteFeatureHelper = CreateScoreHelper(Features.GetFeatures(), foldCount, TreeConfig, requestStream);
             }
         }
 
-        bool HasByteFeatureHelper() const
-        {
+        bool HasByteFeatureHelper() const {
             return ByteFeatureHelper != nullptr;
         }
 
-        bool HasBinaryFeatureHelper() const
-        {
+        bool HasBinaryFeatureHelper() const {
             return BinaryFeatureHelper != nullptr;
         }
 
-        bool HasHalfByteFeatureHelper() const
-        {
+        bool HasHalfByteFeatureHelper() const {
             return HalfByteFeatureHelper != nullptr;
         }
 
-
-        const TScoreHelper<TByteFeatureGridPolicy, TLayoutPolicy>& GetByteFeatureHelper() const
-        {
+        const TScoreHelper<TByteFeatureGridPolicy, TLayoutPolicy>& GetByteFeatureHelper() const {
             return *ByteFeatureHelper;
         }
 
-        const TScoreHelper<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatureHelper() const
-        {
+        const TScoreHelper<TBinaryFeatureGridPolicy, TLayoutPolicy>& GetBinaryFeatureHelper() const {
             return *BinaryFeatureHelper;
         }
 
-        const TScoreHelper<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatureHelper() const
-        {
+        const TScoreHelper<THalfByteFeatureGridPolicy, TLayoutPolicy>& GetHalfByteFeatureHelper() const {
             return *HalfByteFeatureHelper;
         }
 
         TGpuFeaturesScoreCalcer& SubmitCompute(const TOptimizationSubsets& newSubsets,
-                                               const TMirrorBuffer<ui32>& docs)
-        {
-            if (BinaryFeatureHelper)
-            {
+                                               const TMirrorBuffer<ui32>& docs) {
+            if (BinaryFeatureHelper) {
                 BinaryFeatureHelper->SubmitCompute(newSubsets, docs);
             }
-            if (HalfByteFeatureHelper)
-            {
+            if (HalfByteFeatureHelper) {
                 HalfByteFeatureHelper->SubmitCompute(newSubsets, docs);
             }
-            if (ByteFeatureHelper)
-            {
+            if (ByteFeatureHelper) {
                 ByteFeatureHelper->SubmitCompute(newSubsets, docs);
             }
             return *this;
-
         }
 
         TGpuFeaturesScoreCalcer& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& partStats,
                                                      double scoreStdDev = 0,
-                                                     ui64 seed = 0)
-        {
+                                                     ui64 seed = 0) {
             TRandom rand(seed);
-            if (BinaryFeatureHelper)
-            {
+            if (BinaryFeatureHelper) {
                 BinaryFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
-            if (HalfByteFeatureHelper)
-            {
+            if (HalfByteFeatureHelper) {
                 HalfByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
-            if (ByteFeatureHelper)
-            {
+            if (ByteFeatureHelper) {
                 ByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             return *this;
         }
 
-        TBestSplitProperties ReadAndRemapOptimalSplit()
-        {
+        TBestSplitProperties ReadAndRemapOptimalSplit() {
             TBestSplitProperties best = {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity()};
-            if (BinaryFeatureHelper)
-            {
+            if (BinaryFeatureHelper) {
                 best = TakeBest(BinaryFeatureHelper->ReadAndRemapOptimalSplit(), best);
             }
-            if (HalfByteFeatureHelper)
-            {
+            if (HalfByteFeatureHelper) {
                 best = TakeBest(HalfByteFeatureHelper->ReadAndRemapOptimalSplit(), best);
             }
-            if (ByteFeatureHelper)
-            {
+            if (ByteFeatureHelper) {
                 best = TakeBest(ByteFeatureHelper->ReadAndRemapOptimalSplit(), best);
             }
             return best;
@@ -158,14 +131,12 @@ namespace NCatboostCuda
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         ui32 FoldCount;
 
-
         THolder<TScoreHelper<TBinaryFeatureGridPolicy, TLayoutPolicy>> BinaryFeatureHelper;
         THolder<TScoreHelper<THalfByteFeatureGridPolicy, TLayoutPolicy>> HalfByteFeatureHelper;
         THolder<TScoreHelper<TByteFeatureGridPolicy, TLayoutPolicy>> ByteFeatureHelper;
     };
 
-    class TTreeCtrDataSetVisitor
-    {
+    class TTreeCtrDataSetVisitor {
     public:
         using TFeatureScoresHelper = TScoreHelper<THalfByteFeatureGridPolicy, TSingleDevPoolLayout>;
 
@@ -173,57 +144,50 @@ namespace NCatboostCuda
                                const ui32 foldCount,
                                const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                const TOptimizationSubsets& subsets)
-                : FeaturesManager(featuresManager)
-                  , FoldCount(foldCount)
-                  , TreeConfig(treeConfig)
-                  , Subsets(subsets)
-                  , BestScore(std::numeric_limits<double>::infinity())
-                  , BestBin(-1)
-                  , BestDevice(-1)
-                  , BestBorders(NCudaLib::GetCudaManager().GetDeviceCount())
-                  , BestSplits(NCudaLib::GetCudaManager().GetDeviceCount())
-                  , Seeds(NCudaLib::GetCudaManager().GetDeviceCount(), 0)
+            : FeaturesManager(featuresManager)
+            , FoldCount(foldCount)
+            , TreeConfig(treeConfig)
+            , Subsets(subsets)
+            , BestScore(std::numeric_limits<double>::infinity())
+            , BestBin(-1)
+            , BestDevice(-1)
+            , BestBorders(NCudaLib::GetCudaManager().GetDeviceCount())
+            , BestSplits(NCudaLib::GetCudaManager().GetDeviceCount())
+            , Seeds(NCudaLib::GetCudaManager().GetDeviceCount(), 0)
         {
         }
 
-        TTreeCtrDataSetVisitor& SetBestScore(double score)
-        {
+        TTreeCtrDataSetVisitor& SetBestScore(double score) {
             BestScore = score;
             return *this;
         }
 
         TTreeCtrDataSetVisitor& SetScoreStdDevAndSeed(double scoreStdDev,
-                                                      ui64 seed)
-        {
+                                                      ui64 seed) {
             ScoreStdDev = scoreStdDev;
             TRandom random(seed);
-            for (ui32 i = 0; i < Seeds.size(); ++i)
-            {
+            for (ui32 i = 0; i < Seeds.size(); ++i) {
                 Seeds[i] = random.NextUniformL();
             }
             return *this;
         }
 
-        bool HasSplit()
-        {
+        bool HasSplit() {
             return BestDevice >= 0;
         }
 
         void Accept(const TTreeCtrDataSet& ctrDataSet,
                     const TMirrorBuffer<const TPartitionStatistics>& partStats,
                     const TMirrorBuffer<ui32>& ctrDataSetInverseIndices,
-                    const TMirrorBuffer<ui32>& subsetDocs)
-        {
+                    const TMirrorBuffer<ui32>& subsetDocs) {
             {
                 auto cacheIds = GetCtrsBordersToCacheIds(ctrDataSet.GetCtrs());
-                if (cacheIds.size())
-                {
+                if (cacheIds.size()) {
                     CacheCtrBorders(ctrDataSet.ReadBorders(cacheIds));
                 }
             }
 
-            auto& scoreHelper = *ctrDataSet.GetCacheHolder().Cache(ctrDataSet, 0, [&]() -> THolder<TFeatureScoresHelper>
-            {
+            auto& scoreHelper = *ctrDataSet.GetCacheHolder().Cache(ctrDataSet, 0, [&]() -> THolder<TFeatureScoresHelper> {
                 return CreateScoreHelper(ctrDataSet.GetDataSet(), FoldCount, TreeConfig);
             });
             const ui64 taskSeed = Seeds[ctrDataSet.GetDeviceId()] + ctrDataSet.GetBaseTensor().GetHash();
@@ -239,12 +203,10 @@ namespace NCatboostCuda
                             scoreHelper.ReadAndRemapOptimalSplit());
         }
 
-        TBestSplitProperties CreateBestSplitProperties()
-        {
+        TBestSplitProperties CreateBestSplitProperties() {
             EnsureHasBestProps();
 
-            if (!FeaturesManager.IsKnown(BestCtr))
-            {
+            if (!FeaturesManager.IsKnown(BestCtr)) {
                 TVector<float> borders(BestBorders[BestDevice].begin(), BestBorders[BestDevice].end());
                 FeaturesManager.AddCtr(BestCtr, std::move(borders));
             }
@@ -257,72 +219,60 @@ namespace NCatboostCuda
             return splitProperties;
         }
 
-        TSingleBuffer<const ui64> GetBestSplitBits() const
-        {
+        TSingleBuffer<const ui64> GetBestSplitBits() const {
             EnsureHasBestProps();
             return BestSplits[BestDevice].ConstCopyView();
         }
 
     private:
-        void EnsureHasBestProps() const
-        {
+        void EnsureHasBestProps() const {
             CB_ENSURE(BestDevice >= 0, "Error: no good split in visitor found");
             CB_ENSURE(BestBin <= 255);
         }
 
-        void CacheCtrBorders(const TMap<TCtr, TVector<float>>& bordersMap)
-        {
-            for (auto& entry : bordersMap)
-            {
-                if (!FeaturesManager.IsKnown(entry.first))
-                {
+        void CacheCtrBorders(const TMap<TCtr, TVector<float>>& bordersMap) {
+            for (auto& entry : bordersMap) {
+                if (!FeaturesManager.IsKnown(entry.first)) {
                     TVector<float> borders(entry.second.begin(), entry.second.end());
                     {
                         TGuard<TAdaptiveLock> guard(Lock);
                         Y_ASSERT(
-                                !FeaturesManager.IsKnown(entry.first)); //we can't add one ctr from 2 different threads.
+                            !FeaturesManager.IsKnown(entry.first)); //we can't add one ctr from 2 different threads.
                         FeaturesManager.AddCtr(entry.first, std::move(borders));
                     }
                 }
             }
         }
 
-        TVector<ui32> GetCtrsBordersToCacheIds(const TVector<TCtr>& ctrs)
-        {
+        TVector<ui32> GetCtrsBordersToCacheIds(const TVector<TCtr>& ctrs) {
             TVector<ui32> result;
-            for (ui32 i = 0; i < ctrs.size(); ++i)
-            {
+            for (ui32 i = 0; i < ctrs.size(); ++i) {
                 const auto& ctr = ctrs.at(i);
-                if (IsNeedToCacheBorders(ctr))
-                {
+                if (IsNeedToCacheBorders(ctr)) {
                     result.push_back(i);
                 }
             }
             return result;
         }
 
-        bool IsNeedToCacheBorders(const TCtr& ctr)
-        {
+        bool IsNeedToCacheBorders(const TCtr& ctr) {
             return ctr.FeatureTensor.GetSplits().size() == 0 &&
                    ctr.FeatureTensor.GetCatFeatures().size() < TreeConfig.MaxCtrComplexityForBordersCaching;
         }
 
         void UpdateBestSplit(const TTreeCtrDataSet& dataSet,
                              const TMirrorBuffer<ui32>& inverseIndices,
-                             const TBestSplitProperties& bestSplitProperties)
-        {
+                             const TBestSplitProperties& bestSplitProperties) {
             const ui32 dev = dataSet.GetDataSet().GetCompressedIndex().GetMapping().GetDeviceId();
 
             { //we don't need complex logic here. this should be pretty fast
                 TGuard<TAdaptiveLock> guard(Lock);
-                if (bestSplitProperties.Score < BestScore)
-                {
+                if (bestSplitProperties.Score < BestScore) {
                     BestScore = bestSplitProperties.Score;
                     BestBin = bestSplitProperties.BinId;
                     BestDevice = dev;
                     BestCtr = dataSet.GetCtrs()[bestSplitProperties.FeatureId];
-                } else
-                {
+                } else {
                     return;
                 }
             }
@@ -333,8 +283,8 @@ namespace NCatboostCuda
 
                 const auto& ctr = dataSet.GetCtrs()[featureId];
                 const ui32 compressedSize = CompressedSize<ui64>(
-                        static_cast<ui32>(inverseIndices.GetObjectsSlice().Size()),
-                        2);
+                    static_cast<ui32>(inverseIndices.GetObjectsSlice().Size()),
+                    2);
                 BestSplits[dev].Reset(NCudaLib::TSingleMapping(dev, compressedSize));
                 const auto devInverseIndices = inverseIndices.ConstDeviceView(dev);
                 auto& binarizedDataSet = dataSet.GetDataSet();
@@ -345,8 +295,7 @@ namespace NCatboostCuda
                                       BestSplits[dev],
                                       &devInverseIndices);
 
-                if (!FeaturesManager.IsKnown(ctr))
-                {
+                if (!FeaturesManager.IsKnown(ctr)) {
                     BestBorders[dev] = dataSet.ReadBorders(featureId);
                     CB_ENSURE(binId < BestBorders[dev].size(),
                               TStringBuilder() << BestBorders[dev].size() << " " << featureId << " " << binId);
@@ -373,10 +322,9 @@ namespace NCatboostCuda
         TVector<ui64> Seeds;
     };
 
-    template<class TTarget,
-            class TDataSet>
-    class TObliviousTreeStructureSearcher
-    {
+    template <class TTarget,
+              class TDataSet>
+    class TObliviousTreeStructureSearcher {
     public:
         using TVec = typename TTarget::TVec;
 
@@ -385,40 +333,36 @@ namespace NCatboostCuda
                                         const TDataSet& dataSet,
                                         TBootstrap<NCudaLib::TMirrorMapping>& bootstrap,
                                         const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions)
-                : ScopedCache(cache)
-                  , FeaturesManager(featuresManager)
-                  , DataSet(dataSet)
-                  , CtrTargets(dataSet.GetCtrTargets())
-                  , Bootstrap(bootstrap)
-                  , TreeConfig(learnerOptions)
+            : ScopedCache(cache)
+            , FeaturesManager(featuresManager)
+            , DataSet(dataSet)
+            , CtrTargets(dataSet.GetCtrTargets())
+            , Bootstrap(bootstrap)
+            , TreeConfig(learnerOptions)
         {
         }
 
         TObliviousTreeStructureSearcher& AddTask(TTarget&& learnTarget,
-                                                 TTarget&& testTarget)
-        {
+                                                 TTarget&& testTarget) {
             CB_ENSURE(SingleTaskTarget == nullptr, "We can't mix learn/test splits and full estimation");
             FoldBasedTasks.push_back(std::move(TOptimizationTask(std::move(learnTarget),
                                                                  std::move(testTarget))));
             return *this;
         }
 
-        TObliviousTreeStructureSearcher& SetTarget(TTarget&& target)
-        {
+        TObliviousTreeStructureSearcher& SetTarget(TTarget&& target) {
             CB_ENSURE(SingleTaskTarget == nullptr, "Target already was set");
             CB_ENSURE(FoldBasedTasks.size() == 0, "Can't mix foldBased and singleTask targets");
             SingleTaskTarget.Reset(new TTarget(std::move(target)));
             return *this;
         }
 
-        TObliviousTreeStructureSearcher& SetRandomStrength(double strength)
-        {
+        TObliviousTreeStructureSearcher& SetRandomStrength(double strength) {
             RandomStrengthMultipiler = strength;
             return *this;
         }
 
-        TObliviousTreeStructure Fit()
-        {
+        TObliviousTreeStructure Fit() {
             CB_ENSURE(FoldBasedTasks.size() || SingleTaskTarget);
 
             TMirrorBuffer<ui32> docBins = TMirrorBuffer<ui32>::CopyMapping(DataSet.GetIndices());
@@ -430,13 +374,28 @@ namespace NCatboostCuda
                                                docBins);
 
             TL2Target target = BuildTreeSearchTarget();
+            //TODO: two bootstrap type: docs and gathered target
+            {
+                auto slices = MakeTaskSlices();
+                auto weights = Bootstrap.BootstrapedWeights(target.Weights.GetMapping());
+                //TODO(noxoomo): remove tiny overhead from bootstrap learn also
+                if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly) {
+                    //make learn weights equal to 1
+                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2) {
+                        const auto& learnSlice = slices[j];
+                        auto learnWeights = weights.SliceView(learnSlice);
+                        FillBuffer(learnWeights, 1.0f);
+                    }
+                }
+                MultiplyVector(target.Weights, weights);
+                MultiplyVector(target.WeightedTarget, weights);
+            }
 
             TOptimizationSubsets subsets = CreateSubsets(TreeConfig.MaxDepth, target);
 
             auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
             TMirrorBuffer<ui32> directObservationIndices;
-            if (DataSet.GetPermutationFeatures().NotEmpty())
-            {
+            if (DataSet.GetPermutationFeatures().NotEmpty()) {
                 directObservationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
             }
             const ui32 foldCount = subsets.FoldCount;
@@ -446,14 +405,12 @@ namespace NCatboostCuda
             TGpuFeaturesScoreCalcer<> simpleCtrScoreCalcer(DataSet.GetPermutationFeatures(), TreeConfig, foldCount,
                                                            true);
 
-
             TObliviousTreeStructure result;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
             THolder<TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>> ctrDataSetsHelperPtr;
 
-            for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth)
-            {
+            for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
                 //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
                 //best score stage
                 auto partitionsStats = subsets.ComputePartitionStats();
@@ -464,8 +421,7 @@ namespace NCatboostCuda
                     MakeDocIndices(docIndices);
                     Gather(observationIndices, docIndices, subsets.Indices);
                 }
-                if (DataSet.GetPermutationFeatures().NotEmpty())
-                {
+                if (DataSet.GetPermutationFeatures().NotEmpty()) {
                     auto guard = profiler.Profile("Make and gather direct observation indices");
 
                     TMirrorBuffer<ui32> directDocIndices;
@@ -499,10 +455,8 @@ namespace NCatboostCuda
                 TSingleBuffer<const ui64> treeCtrSplitBits;
                 bool isTreeCtrSplit = false;
 
-                if (FeaturesManager.IsTreeCtrsEnabled())
-                {
-                    if (ctrDataSetsHelperPtr == nullptr)
-                    {
+                if (FeaturesManager.IsTreeCtrsEnabled()) {
+                    if (ctrDataSetsHelperPtr == nullptr) {
                         using TCtrHelperType = TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>;
                         ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
                                                                           FeaturesManager,
@@ -513,19 +467,17 @@ namespace NCatboostCuda
 
                     auto& ctrDataSetsHelper = *ctrDataSetsHelperPtr;
 
-                    if (ctrDataSetsHelper.GetUsedPermutations().size())
-                    {
+                    if (ctrDataSetsHelper.GetUsedPermutations().size()) {
                         TTreeCtrDataSetVisitor ctrDataSetVisitor(FeaturesManager,
                                                                  foldCount,
                                                                  TreeConfig,
                                                                  subsets);
 
                         ctrDataSetVisitor.SetBestScore(bestSplitProp.Score)
-                                .SetScoreStdDevAndSeed(ScoreStdDev, GetRandom().NextUniformL());
+                            .SetScoreStdDevAndSeed(ScoreStdDev, GetRandom().NextUniformL());
                         TMirrorBuffer<ui32> inverseIndices;
 
-                        for (auto permutation : ctrDataSetsHelper.GetUsedPermutations())
-                        {
+                        for (auto permutation : ctrDataSetsHelper.GetUsedPermutations()) {
                             const auto& indices = ctrDataSetsHelper.GetPermutationIndices(permutation);
                             inverseIndices.Reset(indices.GetMapping());
                             //observations indices with store index of document inf ctrDataSet
@@ -538,8 +490,7 @@ namespace NCatboostCuda
                                 Gather(directObservationIndices, tmp, subsets.Indices);
                             }
 
-                            auto treeCtrDataSetScoreCalcer = [&](const TTreeCtrDataSet& ctrDataSet)
-                            {
+                            auto treeCtrDataSetScoreCalcer = [&](const TTreeCtrDataSet& ctrDataSet) {
                                 ctrDataSetVisitor.Accept(ctrDataSet,
                                                          partitionsStats,
                                                          inverseIndices,
@@ -550,8 +501,7 @@ namespace NCatboostCuda
                                                                        treeCtrDataSetScoreCalcer);
                         }
 
-                        if (ctrDataSetVisitor.HasSplit())
-                        {
+                        if (ctrDataSetVisitor.HasSplit()) {
                             bestSplitProp = ctrDataSetVisitor.CreateBestSplitProperties();
                             treeCtrSplitBits = ctrDataSetVisitor.GetBestSplitBits();
                             isTreeCtrSplit = true;
@@ -568,55 +518,46 @@ namespace NCatboostCuda
 
                 TString splitTypeMessage;
 
-                if (FeaturesManager.IsCat(bestSplit.FeatureId))
-                {
+                if (FeaturesManager.IsCat(bestSplit.FeatureId)) {
                     bestSplit.SplitType = EBinSplitType::TakeBin;
                     splitTypeMessage = "TakeBin";
-                } else
-                {
+                } else {
                     bestSplit.SplitType = EBinSplitType::TakeGreater;
-                    splitTypeMessage = TStringBuilder() << ">" << FeaturesManager.GetBorders(
-                            bestSplit.FeatureId)[bestSplit.BinIdx];
+                    splitTypeMessage = TStringBuilder() << ">" << FeaturesManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
                 }
 
                 MATRIXNET_INFO_LOG
-                << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
-                << splitTypeMessage << ")"
-                << " with score " << bestSplitProp.Score;
-                if (FeaturesManager.IsCtr(bestSplit.FeatureId))
-                {
+                    << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
+                    << splitTypeMessage << ")"
+                    << " with score " << bestSplitProp.Score;
+                if (FeaturesManager.IsCtr(bestSplit.FeatureId)) {
                     MATRIXNET_INFO_LOG
-                    << " tensor : " << FeaturesManager.GetCtr(bestSplit.FeatureId).FeatureTensor << "  (ctr type "
-                    << FeaturesManager.GetCtr(bestSplit.FeatureId).Configuration.Type << ")";
+                        << " tensor : " << FeaturesManager.GetCtr(bestSplit.FeatureId).FeatureTensor << "  (ctr type "
+                        << FeaturesManager.GetCtr(bestSplit.FeatureId).Configuration.Type << ")";
                 }
                 MATRIXNET_INFO_LOG << Endl;
 
-                if (result.HasSplit(bestSplit))
-                {
+                if (result.HasSplit(bestSplit)) {
                     break;
                 }
 
                 {
                     auto guard = profiler.Profile(TStringBuilder() << "Compute new bins");
-                    if (isTreeCtrSplit)
-                    {
+                    if (isTreeCtrSplit) {
                         CB_ENSURE(treeCtrSplitBits.GetObjectsSlice().Size());
                         treeUpdater.AddSplit(bestSplit, treeCtrSplitBits);
-                    } else
-                    {
+                    } else {
                         treeUpdater.AddSplit(bestSplit);
                     }
                 }
 
-                if ((depth + 1) != TreeConfig.MaxDepth)
-                {
+                if ((depth + 1) != TreeConfig.MaxDepth) {
                     {
                         auto guard = profiler.Profile(TStringBuilder() << "Update subsets");
                         subsets.Split(docBins,
                                       observationIndices);
                     }
-                    if (ctrDataSetsHelperPtr)
-                    {
+                    if (ctrDataSetsHelperPtr) {
                         ctrDataSetsHelperPtr->AddSplit(bestSplit,
                                                        docBins);
                     }
@@ -633,26 +574,23 @@ namespace NCatboostCuda
         }
 
     private:
-        struct TOptimizationTask: public TMoveOnly
-        {
+        struct TOptimizationTask: public TMoveOnly {
             TTarget LearnTarget;
             TTarget TestTarget;
 
             TOptimizationTask(TTarget&& learn,
                               TTarget&& test)
-                    : LearnTarget(std::move(learn))
-                      , TestTarget(std::move(test))
+                : LearnTarget(std::move(learn))
+                , TestTarget(std::move(test))
             {
             }
         };
 
         TOptimizationSubsets CreateSubsets(ui32 maxDepth,
-                                           TL2Target& src)
-        {
+                                           TL2Target& src) {
             TOptimizationSubsets subsets;
             auto initParts =
-                    SingleTaskTarget == nullptr ? WriteFoldBasedInitialBins(subsets.Bins) : WriteSingleTaskInitialBins(
-                            subsets.Bins);
+                SingleTaskTarget == nullptr ? WriteFoldBasedInitialBins(subsets.Bins) : WriteSingleTaskInitialBins(subsets.Bins);
             subsets.Indices = TMirrorBuffer<ui32>::CopyMapping(subsets.Bins);
 
             subsets.CurrentDepth = 0;
@@ -668,12 +606,10 @@ namespace NCatboostCuda
 
         //with first zero bit is estimation part, with first 1 bit is evaluation part
         //we store task in first bits of bin
-        TVector<TSlice> MakeTaskSlices()
-        {
+        TVector<TSlice> MakeTaskSlices() {
             TVector<TSlice> slices;
             ui32 cursor = 0;
-            for (auto& task : FoldBasedTasks)
-            {
+            for (auto& task : FoldBasedTasks) {
                 auto learnSlice = task.LearnTarget.GetIndices().GetObjectsSlice();
                 slices.push_back(TSlice(cursor, cursor + learnSlice.Size()));
                 cursor += learnSlice.Size();
@@ -685,16 +621,12 @@ namespace NCatboostCuda
             return slices;
         }
 
-        ui64 GetTotalIndicesSize() const
-        {
-            if (SingleTaskTarget != nullptr)
-            {
+        ui64 GetTotalIndicesSize() const {
+            if (SingleTaskTarget != nullptr) {
                 return SingleTaskTarget->GetIndices().GetObjectsSlice().Size();
-            } else
-            {
+            } else {
                 ui32 cursor = 0;
-                for (auto& task : FoldBasedTasks)
-                {
+                for (auto& task : FoldBasedTasks) {
                     auto learnSlice = task.LearnTarget.GetIndices().GetObjectsSlice();
                     cursor += learnSlice.Size();
                     auto testSlice = task.TestTarget.GetIndices().GetObjectsSlice();
@@ -704,12 +636,10 @@ namespace NCatboostCuda
             }
         }
 
-        template<class TFunc>
-        inline void ForeachOptimizationPartTask(TFunc&& func)
-        {
+        template <class TFunc>
+        inline void ForeachOptimizationPartTask(TFunc&& func) {
             ui32 cursor = 0;
-            RunInStreams(FoldBasedTasks.size(), Min<ui32>(FoldBasedTasks.size(), 8), [&](ui32 taskId, ui32 streamId)
-            {
+            RunInStreams(FoldBasedTasks.size(), Min<ui32>(FoldBasedTasks.size(), 8), [&](ui32 taskId, ui32 streamId) {
                 auto& task = FoldBasedTasks[taskId];
                 auto learnSlice = TSlice(cursor, cursor + task.LearnTarget.GetIndices().GetObjectsSlice().Size());
                 cursor = learnSlice.Right;
@@ -719,8 +649,7 @@ namespace NCatboostCuda
             });
         }
 
-        TVector<TDataPartition> WriteFoldBasedInitialBins(TMirrorBuffer<ui32>& bins)
-        {
+        TVector<TDataPartition> WriteFoldBasedInitialBins(TMirrorBuffer<ui32>& bins) {
             bins.Reset(NCudaLib::TMirrorMapping(GetTotalIndicesSize()));
 
             TVector<TDataPartition> parts;
@@ -730,27 +659,24 @@ namespace NCatboostCuda
             ForeachOptimizationPartTask([&](const TSlice& learnSlice,
                                             const TSlice& testSlice,
                                             const TOptimizationTask& task,
-                                            ui32 streamId
-            )
-                                        {
-                                            Y_UNUSED(task);
-                                            auto learnBins = bins.SliceView(learnSlice);
-                                            auto testBins = bins.SliceView(testSlice);
+                                            ui32 streamId) {
+                Y_UNUSED(task);
+                auto learnBins = bins.SliceView(learnSlice);
+                auto testBins = bins.SliceView(testSlice);
 
-                                            FillBuffer(learnBins, currentBin, streamId);
-                                            FillBuffer(testBins, currentBin + 1, streamId);
+                FillBuffer(learnBins, currentBin, streamId);
+                FillBuffer(testBins, currentBin + 1, streamId);
 
-                                            parts.push_back({cursor, (ui32) learnBins.GetObjectsSlice().Size()});
-                                            cursor += learnBins.GetObjectsSlice().Size();
-                                            parts.push_back({cursor, (ui32) testBins.GetObjectsSlice().Size()});
-                                            cursor += testBins.GetObjectsSlice().Size();
-                                            currentBin += 2;
-                                        });
+                parts.push_back({cursor, (ui32)learnBins.GetObjectsSlice().Size()});
+                cursor += learnBins.GetObjectsSlice().Size();
+                parts.push_back({cursor, (ui32)testBins.GetObjectsSlice().Size()});
+                cursor += testBins.GetObjectsSlice().Size();
+                currentBin += 2;
+            });
             return parts;
         }
 
-        TVector<TDataPartition> WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins)
-        {
+        TVector<TDataPartition> WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins) {
             CB_ENSURE(SingleTaskTarget);
             bins.Reset(NCudaLib::TMirrorMapping(SingleTaskTarget->GetIndices().GetMapping()));
             TDataPartition part;
@@ -762,8 +688,7 @@ namespace NCatboostCuda
         }
 
         void MakeDocIndicesForSingleTask(TMirrorBuffer<ui32>& indices,
-                                         ui32 stream = 0)
-        {
+                                         ui32 stream = 0) {
             CB_ENSURE(SingleTaskTarget != nullptr);
             const auto& targetIndices = SingleTaskTarget->GetIndices();
             indices.Reset(NCudaLib::TMirrorMapping(targetIndices.GetMapping()));
@@ -771,43 +696,36 @@ namespace NCatboostCuda
         }
 
         //if features should be accessed by order[i]
-        void MakeDocIndices(TMirrorBuffer<ui32>& indices)
-        {
-            if (SingleTaskTarget != nullptr)
-            {
+        void MakeDocIndices(TMirrorBuffer<ui32>& indices) {
+            if (SingleTaskTarget != nullptr) {
                 MakeDocIndicesForSingleTask(indices);
-            } else
-            {
+            } else {
                 indices.Reset(NCudaLib::TMirrorMapping(GetTotalIndicesSize()));
 
                 ForeachOptimizationPartTask([&](const TSlice& learnSlice,
                                                 const TSlice& testSlice,
                                                 const TOptimizationTask& task,
-                                                ui32 stream
-                )
-                                            {
-                                                indices
-                                                        .SliceView(learnSlice)
-                                                        .Copy(task.LearnTarget.GetIndices(),
-                                                              stream);
+                                                ui32 stream) {
+                    indices
+                        .SliceView(learnSlice)
+                        .Copy(task.LearnTarget.GetIndices(),
+                              stream);
 
-                                                indices
-                                                        .SliceView(testSlice)
-                                                        .Copy(task.TestTarget.GetIndices(),
-                                                              stream);
-                                            });
+                    indices
+                        .SliceView(testSlice)
+                        .Copy(task.TestTarget.GetIndices(),
+                              stream);
+                });
             }
         }
 
         //if features should be accessed by i
-        void MakeDirectDocIndicesIndices(TMirrorBuffer<ui32>& indices)
-        {
+        void MakeDirectDocIndicesIndices(TMirrorBuffer<ui32>& indices) {
             MakeIndicesFromInversePermutation(DataSet.GetInverseIndices(), indices);
         }
 
         void MakeIndicesFromInversePermutationSingleTask(const TMirrorBuffer<ui32>& inversePermutation,
-                                                         TMirrorBuffer<ui32>& indices)
-        {
+                                                         TMirrorBuffer<ui32>& indices) {
             CB_ENSURE(SingleTaskTarget != nullptr);
             const auto& targetIndices = SingleTaskTarget->GetIndices();
             indices.Reset(NCudaLib::TMirrorMapping(targetIndices.GetMapping()));
@@ -817,47 +735,40 @@ namespace NCatboostCuda
         }
 
         void MakeIndicesFromInversePermutation(const TMirrorBuffer<ui32>& inversePermutation,
-                                               TMirrorBuffer<ui32>& indices)
-        {
-            if (SingleTaskTarget != nullptr)
-            {
+                                               TMirrorBuffer<ui32>& indices) {
+            if (SingleTaskTarget != nullptr) {
                 MakeIndicesFromInversePermutationSingleTask(inversePermutation, indices);
-            } else
-            {
+            } else {
                 indices.Reset(NCudaLib::TMirrorMapping(GetTotalIndicesSize()));
 
                 ForeachOptimizationPartTask([&](const TSlice& learnSlice,
                                                 const TSlice& testSlice,
                                                 const TOptimizationTask& task,
-                                                ui32 stream
-                )
-                                            {
-                                                auto learnIndices = indices.SliceView(learnSlice);
-                                                auto testIndices = indices.SliceView(testSlice);
+                                                ui32 stream) {
+                    auto learnIndices = indices.SliceView(learnSlice);
+                    auto testIndices = indices.SliceView(testSlice);
 
-                                                Gather(learnIndices,
-                                                       inversePermutation,
-                                                       task.LearnTarget.GetIndices(),
-                                                       stream);
+                    Gather(learnIndices,
+                           inversePermutation,
+                           task.LearnTarget.GetIndices(),
+                           stream);
 
-                                                Gather(testIndices,
-                                                       inversePermutation,
-                                                       task.TestTarget.GetIndices(),
-                                                       stream);
-                                            });
+                    Gather(testIndices,
+                           inversePermutation,
+                           task.TestTarget.GetIndices(),
+                           stream);
+                });
             }
         }
 
-        TL2Target BuildTreeSearchTarget()
-        {
+        TL2Target BuildTreeSearchTarget() {
             auto& profiler = NCudaLib::GetProfiler();
             auto guard = profiler.Profile("Build tree search target (gradient)");
             TL2Target target;
             auto slices = MakeTaskSlices();
             //TODO: (noxoomo) check and enable device-side sync
             //        NCudaLib::GetCudaManager().DefaultStream().Synchronize();
-            if (FoldBasedTasks.size())
-            {
+            if (FoldBasedTasks.size()) {
                 CB_ENSURE(SingleTaskTarget == nullptr);
                 NCudaLib::GetCudaManager().WaitComplete();
 
@@ -866,16 +777,14 @@ namespace NCatboostCuda
 
                 TVector<TComputationStream> streams;
                 const ui32 streamCount = Min<ui32>(FoldBasedTasks.size(), 8);
-                for (ui32 i = 0; i < streamCount; ++i)
-                {
+                for (ui32 i = 0; i < streamCount; ++i) {
                     streams.push_back(NCudaLib::GetCudaManager().RequestStream());
                 }
 
                 target.WeightedTarget.Reset(NCudaLib::TMirrorMapping(slices.back().Right));
                 target.Weights.Reset(NCudaLib::TMirrorMapping(slices.back().Right));
 
-                for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2)
-                {
+                for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2) {
                     auto& task = FoldBasedTasks[i];
                     const auto& learnSlice = slices[j];
                     const auto& testSlice = slices[j + 1];
@@ -886,64 +795,43 @@ namespace NCatboostCuda
                     auto learnWeights = target.Weights.SliceView(learnSlice);
                     auto testWeights = target.Weights.SliceView(testSlice);
 
-                    task.LearnTarget.GradientAtZero(learnTarget, streams[(2 * i) % streamCount].GetId());
-                    task.TestTarget.GradientAtZero(testTarget, streams[(2 * i + 1) % streamCount].GetId());
-
-                    learnWeights.Copy(task.LearnTarget.GetWeights(), streams[(2 * i) % streamCount].GetId());
-                    testWeights.Copy(task.TestTarget.GetWeights(), streams[(2 * i + 1) % streamCount].GetId());
+                    task.LearnTarget.GradientAtZero(learnTarget, learnWeights, streams[(2 * i) % streamCount].GetId());
+                    task.TestTarget.GradientAtZero(testTarget, testWeights, streams[(2 * i + 1) % streamCount].GetId());
                 }
 
-                if (RandomStrengthMultipiler)
-                {
-                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2)
-                    {
+                if (RandomStrengthMultipiler) {
+                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2) {
                         const auto& testSlice = slices[j + 1];
                         auto testTarget = target.WeightedTarget.SliceView(testSlice);
-                        sum2 += DotProduct(testTarget, testTarget, (decltype(&testTarget)) nullptr,
-                                           streams[(2 * i + 1) % streamCount].GetId());
+                        auto testWeights = target.Weights.SliceView(testSlice);
+                        auto streamId = streams[(2 * i + 1) % streamCount].GetId();
+                        DivideVector(testTarget, testWeights, streamId);
+                        sum2 += DotProduct(testTarget, testTarget, &testWeights, streamId);
+                        MultiplyVector(testTarget, testWeights, streamId);
+
                         count += testSlice.Size();
                     }
                     ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100)) * TreeConfig.RandomStrength;
                 }
                 NCudaLib::GetCudaManager().WaitComplete();
-            } else
-            {
+            } else {
                 CB_ENSURE(SingleTaskTarget != nullptr);
                 target.WeightedTarget.Reset(SingleTaskTarget->GetTarget().GetMapping());
                 target.Weights.Reset(SingleTaskTarget->GetTarget().GetMapping());
-                SingleTaskTarget->GradientAtZero(target.WeightedTarget);
-                target.Weights.Copy(SingleTaskTarget->GetWeights());
-                if (RandomStrengthMultipiler)
-                {
+                SingleTaskTarget->GradientAtZero(target.WeightedTarget, target.Weights);
+                if (RandomStrengthMultipiler) {
+                    DivideVector(target.WeightedTarget, target.Weights);
                     const double sum2 = DotProduct(target.WeightedTarget, target.WeightedTarget,
-                                                   (decltype(&target.WeightedTarget)) nullptr);
+                                                   &target.Weights);
                     const double count = target.WeightedTarget.GetObjectsSlice().Size();
+                    MultiplyVector(target.WeightedTarget, target.Weights);
                     ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100));
                 }
             }
-
-            //TODO: two bootstrap type: docs and gathered target
-            {
-                auto weights = Bootstrap.BootstrapedWeights(target.Weights.GetMapping());
-                //TODO(noxoomo): remove tiny overhead from bootstrap learn also
-                if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly)
-                {
-                    //make learn weights equal to 1
-                    for (ui32 i = 0, j = 0; i < FoldBasedTasks.size(); ++i, j += 2) {
-                        const auto& learnSlice = slices[j];
-                        auto learnWeights = weights.SliceView(learnSlice);
-                        FillBuffer(learnWeights, 1.0f);
-                    }
-                }
-                MultiplyVector(target.Weights, weights);
-                MultiplyVector(target.WeightedTarget, weights);
-            }
-
             return target;
         }
 
-        TRandom& GetRandom()
-        {
+        TRandom& GetRandom() {
             return SingleTaskTarget == nullptr ? FoldBasedTasks[0].LearnTarget.GetRandom()
                                                : SingleTaskTarget->GetRandom();
         }
@@ -965,4 +853,3 @@ namespace NCatboostCuda
         THolder<TTarget> SingleTaskTarget;
     };
 }
-

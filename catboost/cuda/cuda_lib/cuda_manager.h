@@ -39,6 +39,10 @@ namespace NCudaLib {
     class TDistributedObject {
     public:
         TDistributedObject(TDistributedObject&& other) = default;
+        TDistributedObject(const TDistributedObject& other) = default;
+
+        TDistributedObject& operator=(TDistributedObject&& other) = default;
+        TDistributedObject& operator=(const TDistributedObject& other) = default;
 
         T At(ui64 devId) const {
             return Data[devId];

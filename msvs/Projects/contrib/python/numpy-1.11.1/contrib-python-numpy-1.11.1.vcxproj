@@ -75,42 +75,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\3txq6c536cv6arjzy7hovbllcy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\3txq6c536cv6arjzy7hovbllcy.yasm">
-      <ObjectFileName>$(IntDir)3txq6c536cv6arjzy7hovbllcy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\5afwhhsban6rp7n6k2cxd526dq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\5afwhhsban6rp7n6k2cxd526dq.yasm">
-      <ObjectFileName>$(IntDir)5afwhhsban6rp7n6k2cxd526dq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\6hg7nryarkq5kkq5uq4gi5fege.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\6hg7nryarkq5kkq5uq4gi5fege.yasm">
-      <ObjectFileName>$(IntDir)6hg7nryarkq5kkq5uq4gi5fege_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\767xlo65v5s2rhozt2jxakzn2y.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\767xlo65v5s2rhozt2jxakzn2y.yasm">
-      <ObjectFileName>$(IntDir)767xlo65v5s2rhozt2jxakzn2y_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\egds4upf4pfsqhbggvlmsvx6nu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\egds4upf4pfsqhbggvlmsvx6nu.yasm">
-      <ObjectFileName>$(IntDir)egds4upf4pfsqhbggvlmsvx6nu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\g67bzdt6ezz37jkexmvzz5lg3i.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\g67bzdt6ezz37jkexmvzz5lg3i.yasm">
-      <ObjectFileName>$(IntDir)g67bzdt6ezz37jkexmvzz5lg3i_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\hxvtmsa2kombwvl643pczzdkru.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\hxvtmsa2kombwvl643pczzdkru.yasm">
-      <ObjectFileName>$(IntDir)hxvtmsa2kombwvl643pczzdkru_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lr5rwkbvxsbq7ump4we64ge5nq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lr5rwkbvxsbq7ump4we64ge5nq.yasm">
-      <ObjectFileName>$(IntDir)lr5rwkbvxsbq7ump4we64ge5nq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lwgtlv3wvufzgts4pvsc5tlpmy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lwgtlv3wvufzgts4pvsc5tlpmy.yasm">
-      <ObjectFileName>$(IntDir)lwgtlv3wvufzgts4pvsc5tlpmy_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\3txq6c536cv6arjzy7hovbllcy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\5afwhhsban6rp7n6k2cxd526dq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\6hg7nryarkq5kkq5uq4gi5fege.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\767xlo65v5s2rhozt2jxakzn2y.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\egds4upf4pfsqhbggvlmsvx6nu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\g67bzdt6ezz37jkexmvzz5lg3i.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\hxvtmsa2kombwvl643pczzdkru.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\join_enlbyrl2v5efbbuiehntfvvhn4.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lr5rwkbvxsbq7ump4we64ge5nq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lwgtlv3wvufzgts4pvsc5tlpmy.yasm"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\core\src\dummymodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -144,34 +118,13 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\core\src\private\mem_overlap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\ql4zt6paw7jsfarf3aqsvyzgra.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\ql4zt6paw7jsfarf3aqsvyzgra.yasm">
-      <ObjectFileName>$(IntDir)ql4zt6paw7jsfarf3aqsvyzgra_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\rp65iqctnf7ncfxcru7duzvrui.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\rp65iqctnf7ncfxcru7duzvrui.yasm">
-      <ObjectFileName>$(IntDir)rp65iqctnf7ncfxcru7duzvrui_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\s6tv4pzuognnzcgjc4jporpaxe.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\s6tv4pzuognnzcgjc4jporpaxe.yasm">
-      <ObjectFileName>$(IntDir)s6tv4pzuognnzcgjc4jporpaxe_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\sap7hj6eecvghfmucvn4q56y3u.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\sap7hj6eecvghfmucvn4q56y3u.yasm">
-      <ObjectFileName>$(IntDir)sap7hj6eecvghfmucvn4q56y3u_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tooecrx7x6jztrjv5lzzy5up4i.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tooecrx7x6jztrjv5lzzy5up4i.yasm">
-      <ObjectFileName>$(IntDir)tooecrx7x6jztrjv5lzzy5up4i_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tx2oso2rbl7e3at6ytz26dy35y.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tx2oso2rbl7e3at6ytz26dy35y.yasm">
-      <ObjectFileName>$(IntDir)tx2oso2rbl7e3at6ytz26dy35y_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\w4gifwub3bxi4hyigb4t3xb42e.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\w4gifwub3bxi4hyigb4t3xb42e.yasm">
-      <ObjectFileName>$(IntDir)w4gifwub3bxi4hyigb4t3xb42e_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\ql4zt6paw7jsfarf3aqsvyzgra.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\rp65iqctnf7ncfxcru7duzvrui.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\s6tv4pzuognnzcgjc4jporpaxe.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\sap7hj6eecvghfmucvn4q56y3u.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tooecrx7x6jztrjv5lzzy5up4i.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tx2oso2rbl7e3at6ytz26dy35y.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\w4gifwub3bxi4hyigb4t3xb42e.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_3txq6c536cv6arjzy7hovbllcy.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1
@@ -873,6 +826,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/numpy-1.11.1/_tx2oso2rbl7e3at6ytz26dy35y.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\testing\decorators.py.yapyc;$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\testing\noseclasses.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\testing\noseclasses.py.yapyc;$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\testing\nosetester.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\testing\nosetester.py.yapyc;$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\testing\print_coercion_tables.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\testing\print_coercion_tables.py.yapyc;$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\testing\utils.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\testing\utils.py.yapyc;$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\version.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\version.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_tx2oso2rbl7e3at6ytz26dy35y.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_kleouvsanimatsg24kf2g62wdq.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_gtp5g5btdpl2c6ca5sxey3snta.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_6tmb2gpc2ucm65kkqhq5bta25i.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_ysrg7no54gfa4ulmwf7sb45e2y.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_hobhcp5mghgiqccp76n6t4caaq.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_6cykwb2m4sgit76iwanwocvyga.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_zj4tn7alz6ig3oak77s7qscsjy.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_k3376mdfoncljlbhpp2wenyike.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_b6b2iepbwj7fnlwipiiotfwc6a.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_fvch2i5jkwcf2twaznsvhy7rfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\_vthbrexs2y7hqzpov7ftkszype.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/join_enlbyrl2v5efbbuiehntfvvhn4.cpp" "contrib/python/numpy-1.11.1/ql4zt6paw7jsfarf3aqsvyzgra.cpp" "contrib/python/numpy-1.11.1/sap7hj6eecvghfmucvn4q56y3u.cpp" "contrib/python/numpy-1.11.1/lr5rwkbvxsbq7ump4we64ge5nq.cpp" "contrib/python/numpy-1.11.1/6hg7nryarkq5kkq5uq4gi5fege.cpp" "contrib/python/numpy-1.11.1/lwgtlv3wvufzgts4pvsc5tlpmy.cpp" "contrib/python/numpy-1.11.1/g67bzdt6ezz37jkexmvzz5lg3i.cpp" "contrib/python/numpy-1.11.1/5afwhhsban6rp7n6k2cxd526dq.cpp" "contrib/python/numpy-1.11.1/hxvtmsa2kombwvl643pczzdkru.cpp" "contrib/python/numpy-1.11.1/s6tv4pzuognnzcgjc4jporpaxe.cpp" "contrib/python/numpy-1.11.1/w4gifwub3bxi4hyigb4t3xb42e.cpp" "contrib/python/numpy-1.11.1/tooecrx7x6jztrjv5lzzy5up4i.cpp" "contrib/python/numpy-1.11.1/3txq6c536cv6arjzy7hovbllcy.cpp" "contrib/python/numpy-1.11.1/egds4upf4pfsqhbggvlmsvx6nu.cpp" "contrib/python/numpy-1.11.1/767xlo65v5s2rhozt2jxakzn2y.cpp" "contrib/python/numpy-1.11.1/rp65iqctnf7ncfxcru7duzvrui.cpp" "contrib/python/numpy-1.11.1/tx2oso2rbl7e3at6ytz26dy35y.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/join_enlbyrl2v5efbbuiehntfvvhn4.cpp" "contrib/python/numpy-1.11.1/ql4zt6paw7jsfarf3aqsvyzgra.cpp" "contrib/python/numpy-1.11.1/sap7hj6eecvghfmucvn4q56y3u.cpp" "contrib/python/numpy-1.11.1/lr5rwkbvxsbq7ump4we64ge5nq.cpp" "contrib/python/numpy-1.11.1/6hg7nryarkq5kkq5uq4gi5fege.cpp" "contrib/python/numpy-1.11.1/lwgtlv3wvufzgts4pvsc5tlpmy.cpp" "contrib/python/numpy-1.11.1/g67bzdt6ezz37jkexmvzz5lg3i.cpp" "contrib/python/numpy-1.11.1/5afwhhsban6rp7n6k2cxd526dq.cpp" "contrib/python/numpy-1.11.1/hxvtmsa2kombwvl643pczzdkru.cpp" "contrib/python/numpy-1.11.1/s6tv4pzuognnzcgjc4jporpaxe.cpp" "contrib/python/numpy-1.11.1/w4gifwub3bxi4hyigb4t3xb42e.cpp" "contrib/python/numpy-1.11.1/tooecrx7x6jztrjv5lzzy5up4i.cpp" "contrib/python/numpy-1.11.1/3txq6c536cv6arjzy7hovbllcy.cpp" "contrib/python/numpy-1.11.1/egds4upf4pfsqhbggvlmsvx6nu.cpp" "contrib/python/numpy-1.11.1/767xlo65v5s2rhozt2jxakzn2y.cpp" "contrib/python/numpy-1.11.1/rp65iqctnf7ncfxcru7duzvrui.cpp" "contrib/python/numpy-1.11.1/tx2oso2rbl7e3at6ytz26dy35y.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy-1.11.1/join_enlbyrl2v5efbbuiehntfvvhn4.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\ql4zt6paw7jsfarf3aqsvyzgra.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\sap7hj6eecvghfmucvn4q56y3u.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lr5rwkbvxsbq7ump4we64ge5nq.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\6hg7nryarkq5kkq5uq4gi5fege.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\lwgtlv3wvufzgts4pvsc5tlpmy.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\g67bzdt6ezz37jkexmvzz5lg3i.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\5afwhhsban6rp7n6k2cxd526dq.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\hxvtmsa2kombwvl643pczzdkru.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\s6tv4pzuognnzcgjc4jporpaxe.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\w4gifwub3bxi4hyigb4t3xb42e.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tooecrx7x6jztrjv5lzzy5up4i.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\3txq6c536cv6arjzy7hovbllcy.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\egds4upf4pfsqhbggvlmsvx6nu.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\767xlo65v5s2rhozt2jxakzn2y.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\rp65iqctnf7ncfxcru7duzvrui.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\tx2oso2rbl7e3at6ytz26dy35y.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\join_enlbyrl2v5efbbuiehntfvvhn4.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -2507,6 +2487,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

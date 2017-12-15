@@ -34,6 +34,8 @@ struct TDocumentStorage {
     TVector<float> Weight; // [docIdx]
     TVector<TString> Id; // [docIdx]
     TVector<ui32> QueryId; // [docIdx]
+    TVector<ui32> GroupId; // [docIdx]
+    TVector<ui64> Timestamp; // [docIdx]
 
     inline int GetBaselineDimension() const {
         return Baseline.ysize();
@@ -54,6 +56,8 @@ struct TDocumentStorage {
         Weight.swap(other.Weight);
         Id.swap(other.Id);
         QueryId.swap(other.QueryId);
+        GroupId.swap(other.GroupId);
+        Timestamp.swap(other.Timestamp);
     }
 
     inline void SwapDoc(size_t doc1Idx, size_t doc2Idx) {
@@ -67,6 +71,8 @@ struct TDocumentStorage {
         DoSwap(Weight[doc1Idx], Weight[doc2Idx]);
         DoSwap(Id[doc1Idx], Id[doc2Idx]);
         DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
+        DoSwap(GroupId[doc1Idx], GroupId[doc2Idx]);
+        DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
     }
 
     inline void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) {
@@ -82,6 +88,8 @@ struct TDocumentStorage {
         Weight[destinationIdx] = sourceDocs.Weight[sourceIdx];
         Id[destinationIdx] = sourceDocs.Id[sourceIdx];
         QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
+        GroupId[destinationIdx] = sourceDocs.GroupId[sourceIdx];
+        Timestamp[destinationIdx] = sourceDocs.Timestamp[sourceIdx];
     }
 
     inline void Resize(int docCount, int featureCount, int approxDim) {
@@ -100,6 +108,8 @@ struct TDocumentStorage {
             Id[ind] = ToString(ind);
         }
         QueryId.resize(docCount);
+        GroupId.resize(docCount);
+        Timestamp.resize(docCount);
     }
 
     inline void Clear() {
@@ -119,6 +129,11 @@ struct TDocumentStorage {
         Id.shrink_to_fit();
         QueryId.clear();
         QueryId.shrink_to_fit();
+
+        GroupId.clear();
+        GroupId.shrink_to_fit();
+        Timestamp.clear();
+        Timestamp.shrink_to_fit();
     }
 
     inline void Append(const TDocumentStorage& documents) {
@@ -138,6 +153,8 @@ struct TDocumentStorage {
         Weight.insert(Weight.end(), documents.Weight.begin(), documents.Weight.end());
         Id.insert(Id.end(), documents.Id.begin(), documents.Id.end());
         QueryId.insert(QueryId.end(), documents.QueryId.begin(), documents.QueryId.end());
+        GroupId.insert(GroupId.end(), documents.GroupId.begin(), documents.GroupId.end());
+        Timestamp.insert(Timestamp.end(), documents.Timestamp.begin(), documents.Timestamp.end());
     }
 };
 

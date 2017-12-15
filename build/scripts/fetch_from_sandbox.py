@@ -86,6 +86,10 @@ class OutputIsDirectoryError(Exception):
     pass
 
 
+class OutputNotExistError(Exception):
+    pass
+
+
 def download_by_skynet(resource_info, file_name):
     def _sky_path():
         return "/usr/local/bin/sky"
@@ -276,7 +280,9 @@ def fetch_via_script(script, resource_id):
 def ensure_outputs_not_directories(outputs, directory):
     for output in outputs:
         full_path = os.path.join(directory, output)
-        if not os.path.isfile(os.path.join(full_path)):
+        if not os.path.exists(full_path):
+            raise OutputNotExistError('Output does not exist: %s' % full_path)
+        if not os.path.isfile(full_path):
             raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % full_path)
 
 

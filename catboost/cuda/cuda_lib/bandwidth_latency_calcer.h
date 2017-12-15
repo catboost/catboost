@@ -55,7 +55,6 @@ namespace NCudaLib {
         }
 
         void BuildBandwidthTable() {
-
             auto& manager = GetCudaManager();
             auto deviceCount = manager.GetDeviceCount();
 

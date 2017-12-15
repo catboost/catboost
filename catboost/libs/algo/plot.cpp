@@ -170,7 +170,7 @@ TVector<TVector<double>> TMetricsPlotCalcer::LoadApprox(ui32 plotLineIndex) {
 
 TMetricsPlotCalcer CreateMetricCalcer(
     const TFullModel& model,
-    const TString& metricDescription,
+    const TVector<TString>& metricsDescription,
     int begin,
     int end,
     int evalPeriod,
@@ -184,14 +184,12 @@ TMetricsPlotCalcer CreateMetricCalcer(
         end = Min<int>(end, model.GetTreeCount());
     }
 
-    for (const auto& metricDescription : StringSplitter(metricDescription).Split(',')) {
-        TString metricStr = TString(metricDescription.Token());
-        auto metricsBatch = CreateMetricFromDescription(metricStr, model.ObliviousTrees.ApproxDimension);
+    for (const auto& metricDescription : metricsDescription) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, model.ObliviousTrees.ApproxDimension);
         for (ui32 i = 0; i < metricsBatch.size(); ++i) {
             metrics->push_back(std::move(metricsBatch[i]));
         }
     }
-
 
     TMetricsPlotCalcer plotCalcer(model, executor, tmpDir);
     plotCalcer

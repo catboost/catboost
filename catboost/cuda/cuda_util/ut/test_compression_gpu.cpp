@@ -3,10 +3,10 @@
 #include <iostream>
 #include <thread>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/fill.h>
-#include <catboost/cuda/cuda_util/compression_helpers.h>
+#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/helpers.h>

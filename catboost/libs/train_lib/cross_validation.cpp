@@ -1,6 +1,7 @@
 #include "cross_validation.h"
 #include "train_model.h"
 #include <catboost/libs/algo/train.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/algo/helpers.h>
 
 #include <catboost/libs/overfitting_detector/error_tracker.h>
@@ -164,14 +165,14 @@ void CrossValidate(
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    TVector<size_t> indices(pool.Docs.GetDocCount(), 0);
+    TVector<ui64> indices(pool.Docs.GetDocCount(), 0);
     std::iota(indices.begin(), indices.end(), 0);
     if (cvParams.Shuffle) {
         Shuffle(indices.begin(), indices.end(), rand);
     }
 
-    ApplyPermutation(InvertPermutation(indices), &pool);
-    auto permutationGuard = Finally([&] { ApplyPermutation(indices, &pool); });
+    ApplyPermutation(InvertPermutation(indices), &pool, &ctx->LocalExecutor);
+    auto permutationGuard = Finally([&] { ApplyPermutation(indices, &pool, &ctx->LocalExecutor); });
     TVector<TFloatFeature> floatFeatures;
     GenerateBorders(pool, ctx.Get(), &floatFeatures);
 

@@ -36,9 +36,9 @@ namespace NCudaLib {
                 TKernelTask(THolder<IGpuKernelTask>&& task,
                             THolder<NKernel::IKernelContext>&& kernelContext,
                             TCudaStream* stream)
-                        : Task(std::move(task))
-                        , KernelContext(std::move(kernelContext))
-                        , Stream(stream)
+                    : Task(std::move(task))
+                    , KernelContext(std::move(kernelContext))
+                    , Stream(stream)
                 {
                 }
 
@@ -206,7 +206,6 @@ namespace NCudaLib {
         std::future<void> Stop;
 
         TManualEvent JobsEvent;
-        TAdaptiveLock Lock;
 
         void WaitAllTaskToSubmit() {
             while (CheckRunningTasks()) {
@@ -466,12 +465,10 @@ namespace NCudaLib {
         }
 
         ui64 GetGpuRamSize() const {
-            TGuard<TAdaptiveLock> guard(Lock);
             return DeviceMemoryProvider ? DeviceMemoryProvider->GpuRamSize() : 0;
         }
 
         ui64 GetFreeMemory() const {
-            TGuard<TAdaptiveLock> guard(Lock);
             return DeviceMemoryProvider ? DeviceMemoryProvider->GetFreeMemorySize() : 0;
         }
 

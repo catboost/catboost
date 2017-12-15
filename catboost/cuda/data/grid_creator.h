@@ -8,8 +8,7 @@
 #include <util/generic/set.h>
 #include <util/generic/ymath.h>
 
-namespace NCatboostCuda
-{
+namespace NCatboostCuda {
     inline TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode) {
         TVector<float> copy;
         copy.reserve(values.size());
@@ -25,11 +24,9 @@ namespace NCatboostCuda
         return copy;
     }
 
-    class IGridBuilder
-    {
+    class IGridBuilder {
     public:
-        virtual ~IGridBuilder()
-        {
+        virtual ~IGridBuilder() {
         }
 
         virtual IGridBuilder& AddFeature(const TVector<float>& feature, ui32 borderCount, ENanMode nanMode) = 0;
@@ -38,29 +35,24 @@ namespace NCatboostCuda
 
         virtual TVector<float> BuildBorders(const TVector<float>& sortedFeature,
                                             ui32 borderCount) const = 0;
-
     };
 
-    template<class T>
+    template <class T>
     class IFactory;
 
-    template<>
-    class IFactory<IGridBuilder>
-    {
+    template <>
+    class IFactory<IGridBuilder> {
     public:
-        virtual ~IFactory()
-        {
+        virtual ~IFactory() {
         }
 
         virtual THolder<IGridBuilder> Create(EBorderSelectionType type) = 0;
     };
 
-    template<class TBinarizer>
-    class TGridBuilderBase: public IGridBuilder
-    {
+    template <class TBinarizer>
+    class TGridBuilderBase: public IGridBuilder {
     public:
-        TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override
-        {
+        TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override {
             TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
             auto bordersSet = Binarizer.BestSplit(copy, borderCount, true);
             TVector<float> borders(bordersSet.begin(), bordersSet.end());
@@ -72,14 +64,12 @@ namespace NCatboostCuda
         TBinarizer Binarizer;
     };
 
-    template<class TBinarizer>
-    class TCpuGridBuilder: public TGridBuilderBase<TBinarizer>
-    {
+    template <class TBinarizer>
+    class TCpuGridBuilder: public TGridBuilderBase<TBinarizer> {
     public:
         IGridBuilder& AddFeature(const TVector<float>& feature,
                                  ui32 borderCount,
-                                 ENanMode nanMode) override
-        {
+                                 ENanMode nanMode) override {
             TVector<float> sortedFeature = CheckedCopyWithoutNans(feature, nanMode);
             Sort(sortedFeature.begin(), sortedFeature.end());
             auto borders = TGridBuilderBase<TBinarizer>::BuildBorders(sortedFeature, borderCount);
@@ -87,8 +77,7 @@ namespace NCatboostCuda
             return *this;
         }
 
-        const TVector<TVector<float>>& Borders() override
-        {
+        const TVector<TVector<float>>& Borders() override {
             return Result;
         }
 
@@ -96,47 +85,37 @@ namespace NCatboostCuda
         TVector<TVector<float>> Result;
     };
 
-    template<template<class T> class TGridBuilder>
-    class TGridBuilderFactory: public IFactory<IGridBuilder>
-    {
+    template <template <class T> class TGridBuilder>
+    class TGridBuilderFactory: public IFactory<IGridBuilder> {
     public:
-        THolder<IGridBuilder> Create(EBorderSelectionType type) override
-        {
+        THolder<IGridBuilder> Create(EBorderSelectionType type) override {
             THolder<IGridBuilder> builder;
-            switch (type)
-            {
-                case EBorderSelectionType::UniformAndQuantiles:
-                {
+            switch (type) {
+                case EBorderSelectionType::UniformAndQuantiles: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TMedianPlusUniformBinarizer>());
                     break;
                 }
-                case EBorderSelectionType::GreedyLogSum:
-                {
+                case EBorderSelectionType::GreedyLogSum: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TMedianInBinBinarizer>());
                     break;
                 }
-                case EBorderSelectionType::MinEntropy:
-                {
+                case EBorderSelectionType::MinEntropy: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TMinEntropyBinarizer>());
                     break;
                 }
-                case EBorderSelectionType::MaxLogSum:
-                {
+                case EBorderSelectionType::MaxLogSum: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TMaxSumLogBinarizer>());
                     break;
                 }
-                case EBorderSelectionType::Median:
-                {
+                case EBorderSelectionType::Median: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TMedianBinarizer>());
                     break;
                 }
-                case EBorderSelectionType::Uniform:
-                {
+                case EBorderSelectionType::Uniform: {
                     builder.Reset(new TGridBuilder<NSplitSelection::TUniformBinarizer>());
                     break;
                 }
-                default:
-                {
+                default: {
                     ythrow yexception() << "Invalid grid builder type!";
                 }
             }
@@ -144,18 +123,16 @@ namespace NCatboostCuda
         }
     };
 
-    class TBordersBuilder
-    {
+    class TBordersBuilder {
     public:
         TBordersBuilder(IFactory<IGridBuilder>& builderFactory,
                         const TVector<float>& values)
-                : BuilderFactory(builderFactory)
-                  , Values(values)
+            : BuilderFactory(builderFactory)
+            , Values(values)
         {
         }
 
-        TVector<float> operator()(const NCatboostOptions::TBinarizationOptions& description)
-        {
+        TVector<float> operator()(const NCatboostOptions::TBinarizationOptions& description) {
             auto builder = BuilderFactory.Create(description.BorderSelectionType);
             const ui32 borderCount = description.NanMode == ENanMode::Forbidden ? description.BorderCount : description.BorderCount - 1;
             CB_ENSURE(borderCount > 0, "Error: border count should be greater than 0. If you have nan-features, border count should be > 1. Got " << description.BorderCount);
@@ -170,4 +147,3 @@ namespace NCatboostCuda
 
     using TOnCpuGridBuilderFactory = TGridBuilderFactory<TCpuGridBuilder>;
 }
-

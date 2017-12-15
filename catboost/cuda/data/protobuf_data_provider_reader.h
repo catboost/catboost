@@ -13,76 +13,64 @@
 #include <util/generic/vector.h>
 #include <util/generic/map.h>
 
-namespace NCatboostCuda
-{
-    class TCatBoostProtoPoolReader
-    {
+namespace NCatboostCuda {
+    class TCatBoostProtoPoolReader {
     public:
-        TDataProvider Read(TIFStream& input)
-        {
+        TDataProvider Read(TIFStream& input) {
             TDataProvider dataProvider;
             NCompressedPool::TPoolStructure poolStructure;
             ReadMessage(input, poolStructure);
 
             ReadFloatColumn(input, dataProvider.Targets);
 
-            if (poolStructure.GetDocIdColumn())
-            {
+            if (poolStructure.GetDocIdColumn()) {
                 ReadUnsignedIntColumn(input, dataProvider.DocIds);
             }
 
-            if (poolStructure.GetQueryIdColumn())
-            {
+            if (poolStructure.GetQueryIdColumn()) {
                 ReadUnsignedIntColumn(input, dataProvider.QueryIds);
-                GroupQueries(dataProvider.QueryIds, &dataProvider.Queries);
             }
 
-            if (poolStructure.GetWeightColumn())
-            {
+            if (poolStructure.GetWeightColumn()) {
                 ReadFloatColumn(input, dataProvider.Weights);
-            } else
-            {
+            } else {
                 dataProvider.Weights.resize(dataProvider.Targets.size());
                 std::fill(dataProvider.Weights.begin(), dataProvider.Weights.begin(), 1.0f);
             }
 
             dataProvider.Baseline.resize(poolStructure.GetBaselineColumn());
-            for (ui32 i = 0; i < poolStructure.GetBaselineColumn(); ++i)
-            {
+            for (ui32 i = 0; i < poolStructure.GetBaselineColumn(); ++i) {
                 ReadFloatColumn(input, dataProvider.Baseline[i]);
             }
 
-            for (ui32 feature = 0; feature < poolStructure.GetFeatureCount(); ++feature)
-            {
+            for (ui32 feature = 0; feature < poolStructure.GetFeatureCount(); ++feature) {
                 AddFeatureColumn(input, dataProvider.Features, poolStructure.GetDocCount());
             }
 
             dataProvider.BuildIndicesRemap();
-            if (FeaturesManager.GetTargetBorders().size() == 0)
-            {
+            if (FeaturesManager.GetTargetBorders().size() == 0) {
                 FeaturesManager.SetTargetBorders(TBordersBuilder(*GridBuilderFactory,
                                                                  dataProvider.GetTargets())(
-                        FeaturesManager.GetTargetBinarizationDescription()));
+                    FeaturesManager.GetTargetBinarizationDescription()));
             }
 
             return dataProvider;
         }
 
-        inline TDataProvider Read(const TString& filename)
-        {
+        inline TDataProvider Read(const TString& filename) {
             TIFStream input(filename);
             return Read(input);
         }
 
-        TCatBoostProtoPoolReader& SetBinarizer(THolder<IFactory < IGridBuilder>>
+        TCatBoostProtoPoolReader& SetBinarizer(THolder<IFactory<IGridBuilder>>
 
-        && gridBuilderFactory) {
+                                                   && gridBuilderFactory) {
             GridBuilderFactory = std::move(gridBuilderFactory);
             return *this;
         }
 
         explicit TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager)
-                : FeaturesManager(featuresManager)
+            : FeaturesManager(featuresManager)
         {
         }
 
@@ -91,13 +79,12 @@ namespace NCatboostCuda
 
         void AddFeatureColumn(TIFStream& input, TVector<TFeatureColumnPtr>& features, ui32 docCount);
 
-        template<class T>
-        static inline TVector<T> FromProtoToVector(const ::google::protobuf::RepeatedField<T>& data)
-        {
+        template <class T>
+        static inline TVector<T> FromProtoToVector(const ::google::protobuf::RepeatedField<T>& data) {
             return TVector<T>(data.begin(), data.end());
         }
 
-        THolder<IFactory < IGridBuilder>> GridBuilderFactory;
+        THolder<IFactory<IGridBuilder>> GridBuilderFactory;
         NCompressedPool::TFeatureColumn FeatureColumn;
     };
 

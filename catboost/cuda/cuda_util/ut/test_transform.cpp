@@ -1,5 +1,5 @@
 #include <catboost/cuda/cuda_util/transform.h>
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <library/unittest/registar.h>
 #include <iostream>
 #include <catboost/cuda/cuda_util/dot_product.h>

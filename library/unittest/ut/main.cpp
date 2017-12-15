@@ -44,7 +44,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         ui16 port = pm.GetPort();
         TInetStreamSocket sock;
         TSockAddrInet addr((TIpHost)INADDR_ANY, port);
-        SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+        SetReuseAddressAndPort(sock);
         int ret = sock.Bind(&addr);
         UNIT_ASSERT_EQUAL(ret, 0);
     }
@@ -54,7 +54,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         ui16 port = pm.GetPort();
         TInet6StreamSocket sock;
         TSockAddrInet6 addr("::", port);
-        SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+        SetReuseAddressAndPort(sock);
         int ret = sock.Bind(&addr);
         UNIT_ASSERT_EQUAL(ret, 0);
     }
@@ -87,7 +87,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     int CheckPort(ui16 port) {
         TInetStreamSocket sock;
         TSockAddrInet addr((TIpHost)INADDR_ANY, port);
-        SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+        SetReuseAddressAndPort(sock);
         return sock.Bind(&addr);
     }
 

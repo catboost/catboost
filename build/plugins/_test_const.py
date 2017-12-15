@@ -65,27 +65,33 @@ class TestRequirements(Enum):
 
 class TestRequirementsConstants(Enum):
     AllCpu = 'all'
+    AllCpuValue = 56
     MinCpu = 1
     MinRam = 1
+
+    @classmethod
+    def is_all_cpu(cls, value):
+        return value == cls.AllCpu
+
+    @classmethod
+    def get_cpu_value(cls, value):
+        return cls.AllCpuValue if cls.is_all_cpu(value) else value
 
 
 class TestSize(Enum):
     Small = 'small'
     Medium = 'medium'
-    Fat = 'fat'
     Large = 'large'
 
     DefaultTimeouts = {
         Small: 60,
         Medium: 600,
-        Fat: 3600,
         Large: 3600,
     }
 
     DefaultPriorities = {
         Small: -1,
         Medium: -2,
-        Fat: -3,
         Large: -3,
     }
 
@@ -99,11 +105,6 @@ class TestSize(Enum):
             TestRequirements.Cpu: 2,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 4,
-        },
-        Fat: {
-            TestRequirements.Cpu: 2,
-            TestRequirements.Ram: 48,
-            # TestRequirements.Ram: 8,
         },
         Large: {
             TestRequirements.Cpu: 2,
@@ -123,11 +124,6 @@ class TestSize(Enum):
             # TestRequirements.Cpu: 8,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 16,
-        },
-        Fat: {
-            TestRequirements.Cpu: TestRequirementsConstants.AllCpu,
-            TestRequirements.Ram: 48,
-            # TestRequirements.Ram: 32,
         },
         Large: {
             TestRequirements.Cpu: TestRequirementsConstants.AllCpu,

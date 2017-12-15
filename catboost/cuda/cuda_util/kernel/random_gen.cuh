@@ -39,18 +39,25 @@ namespace NKernel {
         return ((v << 16) + u) * 2.328306435996595e-10f;
     }
 
-    __forceinline__ __device__
+    __forceinline__ __device__ ui32 AdvanceSeed32(ui32* seed) {
+        (*seed) = 1664525 * (*seed) + 1013904223;
+        return *seed;
+    }
 
-    float NextNormal(ui64* seed) {
+    __forceinline__ __device__ float NextUniformFloat32(ui32* seed) {
+        ui32 v =  AdvanceSeed32(seed);
+        ui32 u =  AdvanceSeed32(seed);
+        return ((v << 16) + u) * 2.328306435996595e-10f;
+    }
+
+    __forceinline__ __device__ float NextNormal(ui64* seed) {
         float a = NextUniform(seed);
         float b = NextUniform(seed);
         return sqrtf(-2.0f * logf(a)) * cosf(2.0f * CUDART_PI_F * b);
     }
 
 
-    __forceinline__ __device__
-
-    float NextPoisson(ui64* seed, float alpha) {
+    __forceinline__ __device__ float NextPoisson(ui64* seed, float alpha) {
         if (alpha > 20) {
             float a = sqrtf(alpha) * NextNormal(seed) + alpha;
             while (a < 0) {

@@ -26,6 +26,7 @@ SRCS(
     tree_print.cpp
     helpers.cpp
     cv_data_partition.cpp
+    calc_score_cache.cpp
 )
 
 PEERDIR(

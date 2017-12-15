@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\apply.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
@@ -133,7 +134,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_pairwise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>

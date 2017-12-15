@@ -8,8 +8,8 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 
 namespace NCatboostCuda {
-
-    template <class TDocLayout, class TDataSet>
+    template <class TDocLayout,
+              class TDataSet>
     class TL2: public TPointwiseTarget<TDocLayout, TDataSet> {
     public:
         using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
@@ -20,8 +20,7 @@ namespace NCatboostCuda {
         TL2(const TDataSet& dataSet,
             TRandom& random,
             TSlice slice,
-            const NCatboostOptions::TLossDescription& targetOptions
-        )
+            const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random,
                       slice) {
@@ -51,9 +50,9 @@ namespace NCatboostCuda {
         {
         }
 
-        using TParent::GetWeights;
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
+        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVec tmp = TVec::CopyMapping(point);
@@ -76,6 +75,7 @@ namespace NCatboostCuda {
 
         void GradientAt(const TConstVec& point,
                         TVec& dst,
+                        TVec& weights,
                         ui32 stream = 0) const {
             Approximate(GetTarget(),
                         GetWeights(),
@@ -84,6 +84,7 @@ namespace NCatboostCuda {
                         &dst,
                         nullptr,
                         stream);
+            weights.Copy(GetWeights(), stream);
         }
 
         void Approximate(const TConstVec& target,
@@ -105,4 +106,3 @@ namespace NCatboostCuda {
         }
     };
 }
-

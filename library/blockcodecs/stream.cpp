@@ -11,6 +11,8 @@
 using namespace NBlockCodecs;
 
 namespace {
+    static constexpr size_t MAX_BUF_LEN = 128 * 1024 * 1024;
+
     typedef ui16 TCodecID;
     typedef ui64 TBlockLen;
 
@@ -66,6 +68,9 @@ TCodedOutput::TCodedOutput(IOutputStream* out, const ICodec* c, size_t bufLen)
     , D_(bufLen)
     , S_(out)
 {
+    if (bufLen > MAX_BUF_LEN) {
+        ythrow yexception() << STRINGBUF("too big buffer size: ") << bufLen;
+    }
 }
 
 TCodedOutput::~TCodedOutput() {
@@ -177,11 +182,22 @@ size_t TDecodedInput::DoUnboundedNext(const void** ptr) {
         return 0;
     }
 
+    if (Y_UNLIKELY(blockLen > 1024 * 1024 * 1024)) {
+        ythrow yexception() << "block size exceeds 1 GiB";
+    }
+
     TBuffer block;
     block.Resize(blockLen);
 
     S_->LoadOrFail(block.Data(), blockLen);
-    CodecByID(codecId)->Decode(block, D_);
+
+    auto codec = CodecByID(codecId);
+
+    if (codec->DecompressedLength(block) > MAX_BUF_LEN) {
+        ythrow yexception() << "broken stream";
+    }
+
+    codec->Decode(block, D_);
 
     *ptr = D_.Data();
     return D_.Size();

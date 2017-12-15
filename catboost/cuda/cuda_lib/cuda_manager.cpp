@@ -62,7 +62,6 @@ double TCudaManager::FreeMemoryMb(ui32 deviceId,
     }
     auto devPtr = GetState().Devices[deviceId];
     return devPtr->GetFreeMemorySize() * 1.0 / 1024 / 1024;
-    ;
 }
 
 void TCudaManager::StopChild() {

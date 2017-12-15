@@ -7,5 +7,6 @@ void BuildCvPools(
     int foldCount,
     bool reverseCv,
     int seed,
+    int threadCount,
     TPool* learnPool,
     TPool* testPool);

@@ -52,5 +52,8 @@ void TFileLogBackend::WriteData(const TLogRecord& rec) {
 }
 
 void TFileLogBackend::ReopenLog() {
-    Impl_->ReopenLog();
+    TAtomicSharedPtr<TImpl> copy = Impl_;
+    if (copy) {
+        copy->ReopenLog();
+    }
 }

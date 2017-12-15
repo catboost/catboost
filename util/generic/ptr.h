@@ -1094,7 +1094,7 @@ private:
     TPtr T_;
 };
 
-// saves .Get() on argement passing. Intended usage: Func(TPtrArg<X> p); ... TIntrusivePtr<X> p2;  Func(p2);
+// saves .Get() on argument passing. Intended usage: Func(TPtrArg<X> p); ... TIntrusivePtr<X> p2;  Func(p2);
 template <class T>
 class TPtrArg {
     T* Ptr;

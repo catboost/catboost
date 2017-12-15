@@ -7,9 +7,7 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-
-    inline TSet<ui32> GetEnabledDevices(const TString& deviceConfig)
-    {
+    inline TSet<ui32> GetEnabledDevices(const TString& deviceConfig) {
         const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
         TSet<ui32> enabledDevices;
         if (deviceConfig == "-1") {
@@ -53,7 +51,6 @@ namespace NCudaLib {
         }
     };
 
-
     class TSingleHostDevicesProvider {
     private:
         TVector<THolder<TGpuOneDeviceWorker>> Workers;
@@ -95,7 +92,7 @@ namespace NCudaLib {
             NCudaLib::SetDevice(dev);
             CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
             if (free * 1.0 / props.GetDeviceMemory() < 0.75) {
-                MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: "<< free * 1.0 / 1024 / 1024 << Endl;
+                MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
             }
             ui64 gpuMemoryToUse = Config.GetGpuMemoryToUse(free);
 

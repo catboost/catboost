@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cuda_manager.h"
-#include <catboost/cuda/cuda_util/countdown_latch.h>
+#include <catboost/cuda/utils/countdown_latch.h>
 #include <library/threading/local_executor/local_executor.h>
 
 namespace NCudaLib {

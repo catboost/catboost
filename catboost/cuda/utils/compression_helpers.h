@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include <catboost/cuda/cuda_lib/helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/options/enums.h>
@@ -17,6 +16,11 @@
 
 inline ui32 IntLog2(ui32 values) {
     return (ui32)ceil(log2(values));
+}
+
+template <class T, class U>
+inline T CeilDivide(T x, U y) {
+    return (x + y - 1) / y;
 }
 
 template <class TStorageType>
@@ -50,7 +54,7 @@ public:
     }
 
     inline ui32 CompressedSize(ui32 size) const {
-        return (NHelpers::CeilDivide(size, EntriesPerType));
+        return (CeilDivide(size, EntriesPerType));
     }
 
     inline ui32 Extract(const TVector<ui64>& compressedData, ui32 index) const {
@@ -93,7 +97,8 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
             CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key" << data[i]);
             dst[offset] |= static_cast<ui64>(data[i]) << shift;
         })(blockIdx);
-    }, 0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    },
+                                    0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     return dst;
 }
@@ -134,37 +139,6 @@ inline TBinType Binarize(const TVector<float>& borders,
         ythrow yexception() << "Error: can't binarize to binType for border count " << borders.size();
     }
     return index;
-}
-
-//this routine assumes NanMode = Min/Max means we have nans in float-values
-template <class TBinType = ui32>
-inline TVector<TBinType> BinarizeLine(const float* values,
-                                      const ui64 valuesCount,
-                                      const ENanMode nanMode,
-                                      const TVector<float>& borders) {
-    TVector<TBinType> result(valuesCount);
-
-    NPar::TLocalExecutor::TExecRangeParams params(0, (int)valuesCount);
-    params.SetBlockSize(16384);
-
-    NPar::LocalExecutor().ExecRange([&](int blockIdx) {
-        NPar::LocalExecutor().BlockedLoopBody(params, [&](int i) {
-            float value = values[i];
-            if (IsNan(value)) {
-                CB_ENSURE(nanMode != ENanMode::Forbidden, "Error, NaNs for current feature are forbidden. (All NaNs are forbidden or test has NaNs and learn not)");
-                result[i] = nanMode == ENanMode::Min ? 0 : borders.size();
-            } else {
-                ui32 bin =  Binarize<TBinType>(borders, values[i]);
-                if (nanMode == ENanMode::Min) {
-                    result[i] = bin + 1;
-                } else {
-                    result[i] = bin;
-                }
-            }
-        })(blockIdx);
-    }, 0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-
-    return result;
 }
 
 inline int StringToIntHash(const TStringBuf& buf) {

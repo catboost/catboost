@@ -4,14 +4,15 @@ import _test_const as consts
 def check_cpu(suite_cpu_requirements, test_size):
     min_cpu_requirements = consts.TestRequirementsConstants.MinCpu
     max_cpu_requirements = consts.TestSize.get_max_requirements(test_size).get(consts.TestRequirements.Cpu)
-    if isinstance(suite_cpu_requirements, str) and suite_cpu_requirements == consts.TestRequirementsConstants.AllCpu:
-        if max_cpu_requirements != consts.TestRequirementsConstants.AllCpu:
+    if isinstance(suite_cpu_requirements, str) and consts.TestRequirementsConstants.is_all_cpu(suite_cpu_requirements):
+        if not consts.TestRequirementsConstants.is_all_cpu(max_cpu_requirements):
             return ["Wrong 'cpu' requirements: {}, should be in [{}..{}] for {}-size tests".format(suite_cpu_requirements, min_cpu_requirements, max_cpu_requirements, test_size)]
         return []
 
     if not isinstance(suite_cpu_requirements, int):
         return ["Wrong 'cpu' requirements: {}, should be integer".format(suite_cpu_requirements)]
-    if suite_cpu_requirements < min_cpu_requirements or suite_cpu_requirements > max_cpu_requirements:
+
+    if suite_cpu_requirements < min_cpu_requirements or suite_cpu_requirements > consts.TestRequirementsConstants.get_cpu_value(max_cpu_requirements):
         return ["Wrong 'cpu' requirement: {}, should be in [{}..{}] for {}-size tests".format(suite_cpu_requirements, min_cpu_requirements, max_cpu_requirements, test_size)]
 
     return []

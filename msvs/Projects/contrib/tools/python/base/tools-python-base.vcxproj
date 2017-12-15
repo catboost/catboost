@@ -641,7 +641,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+"python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -652,7 +652,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+"python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -661,10 +661,10 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/tools/python/base/pyconfig.config.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\check_config_h.py;$(SolutionDir)..\contrib\tools\python\src\pyconfig.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\check_config_h.py;$(SolutionDir)..\contrib\tools\python\src\Include\pyconfig.h;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\base\pyconfig.config.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python\src\pyconfig.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python\src\Include\pyconfig.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

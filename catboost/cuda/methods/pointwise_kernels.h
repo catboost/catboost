@@ -8,7 +8,7 @@
 #include <catboost/cuda/methods/kernel/pointwise_hist2.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
 #include <catboost/libs/options/enums.h>
-#include <catboost/cuda/cuda_util/compression_helpers.h>
+#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/gpu_data/binarized_dataset.h>
 
 namespace NKernelHost {
@@ -151,18 +151,18 @@ namespace NKernelHost {
                            TCudaBufferPtr<const float> target, TCudaBufferPtr<const float> weight, TCudaBufferPtr<const ui32> indices,
                            TCudaBufferPtr<const TDataPartition> partition, ui32 partCount, ui32 foldCount,
                            TCudaBufferPtr<float> binSums, const ui32 binFeatureCount, bool fullPass)
-                : NbFeatures(nbFeatures)
-                  , Cindex(cindex)
-                  , DsSize(dsSize)
-                  , Target(target)
-                  , Weight(weight)
-                  , Indices(indices)
-                  , Partition(partition)
-                  , PartCount(partCount)
-                  , FoldCount(foldCount)
-                  , BinSums(binSums)
-                  , BinFeatureCount(binFeatureCount)
-                  , FullPass(fullPass)
+            : NbFeatures(nbFeatures)
+            , Cindex(cindex)
+            , DsSize(dsSize)
+            , Target(target)
+            , Weight(weight)
+            , Indices(indices)
+            , Partition(partition)
+            , PartCount(partCount)
+            , FoldCount(foldCount)
+            , BinSums(binSums)
+            , BinFeatureCount(binFeatureCount)
+            , FullPass(fullPass)
         {
         }
 
@@ -170,12 +170,12 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2HalfByte(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
-                                           Cindex.Get(), DsSize,
-                                           Target.Get(), Weight.Get(), Indices.Get(), Partition.Get(),
-                                           PartCount, FoldCount,
-                                           BinSums.Get(), BinFeatureCount,
-                                           FullPass,
-                                           stream.GetStream());
+                                          Cindex.Get(), DsSize,
+                                          Target.Get(), Weight.Get(), Indices.Get(), Partition.Get(),
+                                          PartCount, FoldCount,
+                                          BinSums.Get(), BinFeatureCount,
+                                          FullPass,
+                                          stream.GetStream());
         }
     };
 

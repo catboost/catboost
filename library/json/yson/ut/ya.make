@@ -14,7 +14,9 @@ PEERDIR(
     library/unittest
 )
 
-SIZE(FAT)
+SIZE(LARGE)
+
+TAG(ya:fat)
 
 TIMEOUT(600)
 

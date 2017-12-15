@@ -149,6 +149,9 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "watchdog.*",
         "werkzeug.*",
         "ws4py.*",
+
+        'wtforms.ext.django.*',
+
         "services.lfm.*",
 
         "sqlalchemy.testing",

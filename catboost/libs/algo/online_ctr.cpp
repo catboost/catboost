@@ -1,11 +1,13 @@
 #include "online_ctr.h"
-#include "bin_tracker.h"
+#include "index_hash_calcer.h"
 #include "fold.h"
 #include "learn_context.h"
 #include "score_calcer.h"
 
+#include <catboost/libs/model/model.h>
 #include <util/generic/utility.h>
 #include <util/thread/singleton.h>
+
 
 struct TCtrCalcer {
     template <typename T>
@@ -412,8 +414,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
 }
 
 void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx) {
-    size_t totalLeafCount;
     auto calcer = [&](int i) {
+        size_t totalLeafCount;
         ComputeOnlineCTRs(data,
                           *tasks[i].Fold,
                           tasks[i].Projection,

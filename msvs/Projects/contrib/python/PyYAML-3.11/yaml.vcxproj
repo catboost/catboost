@@ -75,15 +75,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\74tg7nq5rsxx5qqwqatc545tke.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\74tg7nq5rsxx5qqwqatc545tke.yasm">
-      <ObjectFileName>$(IntDir)74tg7nq5rsxx5qqwqatc545tke_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\74tg7nq5rsxx5qqwqatc545tke.yasm"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\kiy2pzeaor4jvbsw5fk375k3wu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\kiy2pzeaor4jvbsw5fk375k3wu.yasm">
-      <ObjectFileName>$(IntDir)kiy2pzeaor4jvbsw5fk375k3wu_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\join_rbd3sewzftosaskhj3zrygldu4.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\kiy2pzeaor4jvbsw5fk375k3wu.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_74tg7nq5rsxx5qqwqatc545tke.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
@@ -164,6 +159,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/PyYAML-3.11/_74tg7nq5rsxx5qqwqatc545tke.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\parser.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\reader.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\reader.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\representer.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\representer.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\resolver.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\resolver.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\scanner.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\scanner.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\serializer.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\serializer.py.yapyc;$(SolutionDir)..\contrib\python\PyYAML-3.11\lib\yaml\tokens.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\yaml\tokens.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_74tg7nq5rsxx5qqwqatc545tke.yasm;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_y3daz6wvlb4wynfkslkqhyxv44.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_ozijkbgece46tr7w6ezhssvxku.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_nkk3ro5ik63j2zug4ajljxbqdy.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_gr766uieqwls3skovymqgppeka.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_zecz6guoplr54clolqat7wfdii.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_fh2szycaqfknyf5usagfmveapi.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_jtib4ghlaxebetbxki3hosbj6a.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_pw5olu2xf4l3tehtqzvkr2fem4.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_gsu6apthk5ovriorclhpkcgqm4.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_nzay6iwavwojgfzetagnrogeo4.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_wyxbpex264edd4hcfejifxihmy.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_3xsg2do5t3r5kpejtgr46vozze.rodata;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\_oa6isuyzfmnlgkibasq4wned2u.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\kiy2pzeaor4jvbsw5fk375k3wu.cpp;$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\74tg7nq5rsxx5qqwqatc545tke.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11\join_rbd3sewzftosaskhj3zrygldu4.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -433,6 +455,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

@@ -5,11 +5,11 @@
 #include <util/system/tempfile.h>
 
 namespace NCatboostCuda {
-
     class TCatFeaturesPerfectHash {
     public:
         explicit TCatFeaturesPerfectHash(const TString& storageFile)
-            : StorageTempFile(storageFile) {
+            : StorageTempFile(storageFile)
+        {
             HasHashInRam = true;
         }
 
@@ -34,7 +34,7 @@ namespace NCatboostCuda {
                 const ui32 uniqueValues = CatFeatureUniqueValues.at(featureId);
                 return uniqueValues > 1 ? uniqueValues : 0;
             } else {
-               ythrow TCatboostException() << "Error: unknown feature with id " << featureId;
+                ythrow TCatboostException() << "Error: unknown feature with id " << featureId;
             }
         }
 
@@ -52,7 +52,6 @@ namespace NCatboostCuda {
         SAVELOAD(CatFeatureUniqueValues, FeaturesPerfectHash, HasHashInRam);
 
     private:
-
         void Save() const {
             TOFStream out(StorageTempFile.Name());
             ::Save(&out, FeaturesPerfectHash);
@@ -66,8 +65,10 @@ namespace NCatboostCuda {
                 HasHashInRam = true;
             }
         }
+
     private:
         friend class TCatFeaturesPerfectHashHelper;
+
     private:
         TTempFile StorageTempFile;
         TMap<ui32, ui32> CatFeatureUniqueValues;
@@ -75,4 +76,3 @@ namespace NCatboostCuda {
         mutable bool HasHashInRam = true;
     };
 }
-

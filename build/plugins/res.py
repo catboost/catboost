@@ -53,6 +53,8 @@ def gen_ro_flags(unit):
 def onresource(unit, *args):
     unit.onpeerdir(['library/resource'])
 
+    outs = []
+
     for part_args in split(args, 8000):
         srcs_gen = []
         raw_gen = []
@@ -76,6 +78,7 @@ def onresource(unit, *args):
                 compressed_input.append(p)
                 compressed_output.append(output)
             srcs_gen.append('{}={}'.format(lid, n))
+
         if compressed:
             lid = listid(part_args)
             fake_yasm = '_' + lid + '.yasm'
@@ -93,10 +96,12 @@ def onresource(unit, *args):
             else:
                 fake_out = fake_yasm
             unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + fake_out)])
+
         if srcs_gen:
             output = listid(part_args) + '.cpp'
             unit.onrun_program(['tools/rorescompiler', output] + srcs_gen + ['OUT_NOAUTO', output])
-            unit.onsrcs(['GLOBAL', output])
+            outs.append(output)
+
         if raw_gen:
             output = listid(part_args) + '_raw.cpp'
             if raw_inputs:
@@ -104,6 +109,11 @@ def onresource(unit, *args):
             unit.onrun_program(['tools/rescompiler', output] + raw_gen + raw_inputs + ['OUT_NOAUTO', output])
             unit.onsrcs(['GLOBAL', output])
 
+    if outs:
+        if len(outs) > 1:
+            unit.onjoin_srcs_global(['join_' + listid(outs) + '.cpp'] + outs)
+        else:
+            unit.onsrcs(['GLOBAL'] + outs)
 
 def onfrom_sandbox(unit, *args):
     unit.onsetup_from_sandbox(list(args))

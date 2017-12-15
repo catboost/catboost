@@ -49,6 +49,52 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         return nullptr;
     }
 
+    void* ThreadProc3(void*) {
+        const auto name = TThread::CurrentThreadGetName();
+        Y_FAKE_READ(name);
+        return nullptr;
+    }
+
+    void* ThreadProc4(void*) {
+        const TString setName = "ThreadName";
+        TThread::CurrentThreadSetName(~setName);
+
+        const auto getName = TThread::CurrentThreadGetName();
+#if defined(_darwin_) || defined(_linux_)
+        UNIT_ASSERT_VALUES_EQUAL(setName, getName);
+#endif
+        return nullptr;
+    }
+
+    void* ThreadProcChild(void*) {
+        const auto name = TThread::CurrentThreadGetName();
+        const auto defaultName = GetProgramName();
+
+        (void)name;
+        (void)defaultName;
+
+#if defined(_darwin_) || defined(_linux_)
+        UNIT_ASSERT_VALUES_EQUAL(name, defaultName);
+#endif
+        return nullptr;
+    }
+
+    void* ThreadProcParent(void*) {
+        const TString setName = "Parent";
+        TThread::CurrentThreadSetName(~setName);
+
+        TThread thread(&ThreadProcChild, nullptr);
+
+        thread.Start();
+        thread.Join();
+
+        const auto getName = TThread::CurrentThreadGetName();
+#if defined(_darwin_) || defined(_linux_)
+        UNIT_ASSERT_VALUES_EQUAL(setName, getName);
+#endif
+        return nullptr;
+    }
+
     SIMPLE_UNIT_TEST(TestSetThreadName) {
         TThread thread(&ThreadProc, nullptr);
         // just check it doesn't crash
@@ -59,6 +105,24 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
     SIMPLE_UNIT_TEST(TestSetThreadName2) {
         TThread thread(TThread::TParams(&ThreadProc, nullptr, 0).SetName("XXX"));
 
+        thread.Start();
+        thread.Join();
+    }
+
+    SIMPLE_UNIT_TEST(TestGetThreadName) {
+        TThread thread(&ThreadProc3, nullptr);
+        thread.Start();
+        thread.Join();
+    }
+
+    SIMPLE_UNIT_TEST(TestSetGetThreadName) {
+        TThread thread(&ThreadProc4, nullptr);
+        thread.Start();
+        thread.Join();
+    }
+
+    SIMPLE_UNIT_TEST(TestSetGetThreadNameInChildThread) {
+        TThread thread(&ThreadProcParent, nullptr);
         thread.Start();
         thread.Join();
     }

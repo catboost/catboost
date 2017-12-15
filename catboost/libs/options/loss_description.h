@@ -5,6 +5,7 @@
 #include "json_helper.h"
 #include <util/string/vector.h>
 #include <util/string/iterator.h>
+#include <util/string/builder.h>
 
 namespace NCatboostOptions {
     class TLossDescription {
@@ -50,6 +51,14 @@ namespace NCatboostOptions {
         auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("border")) {
             return FromString<double>(lossParams.at("border"));
+        }
+        return 0.5;
+    }
+
+    inline double GetAlpha(const TLossDescription& lossFunctionConfig) {
+        auto& lossParams = lossFunctionConfig.GetLossParams();
+        if (lossParams.has("alpha")) {
+            return FromString<double>(lossParams.at("alpha"));
         }
         return 0.5;
     }

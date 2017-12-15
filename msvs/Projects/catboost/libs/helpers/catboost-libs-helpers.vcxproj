@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\permutation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h">
@@ -117,6 +118,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\permutation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.h"/>
   </ItemGroup>

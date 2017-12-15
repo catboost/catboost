@@ -10,6 +10,7 @@ SRCS(
     matrix.cpp
     interrupt.cpp
     eval_helpers.cpp
+    permutation.cpp
 )
 
 PEERDIR(

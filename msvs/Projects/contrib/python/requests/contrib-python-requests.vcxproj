@@ -76,50 +76,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\apewhlz5g5xufhuyftcs65ejgy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\apewhlz5g5xufhuyftcs65ejgy.yasm">
-      <ObjectFileName>$(IntDir)apewhlz5g5xufhuyftcs65ejgy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\ckoio3w22bbx2sdyz2goj2yujy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\ckoio3w22bbx2sdyz2goj2yujy.yasm">
-      <ObjectFileName>$(IntDir)ckoio3w22bbx2sdyz2goj2yujy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\fll2vywcuznipfynelpaxzw5dm.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\fll2vywcuznipfynelpaxzw5dm.yasm">
-      <ObjectFileName>$(IntDir)fll2vywcuznipfynelpaxzw5dm_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\lozmg7yszksmfev37h2qr5rjsq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\lozmg7yszksmfev37h2qr5rjsq.yasm">
-      <ObjectFileName>$(IntDir)lozmg7yszksmfev37h2qr5rjsq_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\apewhlz5g5xufhuyftcs65ejgy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\ckoio3w22bbx2sdyz2goj2yujy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\fll2vywcuznipfynelpaxzw5dm.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_65ofr72q6ydc6a5ol5wyynwi7i.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\lozmg7yszksmfev37h2qr5rjsq.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\medwgjywwxq5w244oodkyhgrty.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\medwgjywwxq5w244oodkyhgrty.yasm">
       <ObjectFileName>$(IntDir)medwgjywwxq5w244oodkyhgrty_extra1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\nildj4bvl2dob5fnbgorpy3bra.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\nildj4bvl2dob5fnbgorpy3bra.yasm">
-      <ObjectFileName>$(IntDir)nildj4bvl2dob5fnbgorpy3bra_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\plq53q2f7c4l34wk3bnbv7m7ia.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\plq53q2f7c4l34wk3bnbv7m7ia.yasm">
-      <ObjectFileName>$(IntDir)plq53q2f7c4l34wk3bnbv7m7ia_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\nildj4bvl2dob5fnbgorpy3bra.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\plq53q2f7c4l34wk3bnbv7m7ia.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\pqbtfbrkcljhngl7ez7finefba.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\pqbtfbrkcljhngl7ez7finefba.yasm">
       <ObjectFileName>$(IntDir)pqbtfbrkcljhngl7ez7finefba_extra1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\sq4fq2fk5dzq3tol7w5isidfym.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\sq4fq2fk5dzq3tol7w5isidfym.yasm">
-      <ObjectFileName>$(IntDir)sq4fq2fk5dzq3tol7w5isidfym_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\srfvtk6bhpvtqhzcbc4mz37fp4.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\srfvtk6bhpvtqhzcbc4mz37fp4.yasm">
-      <ObjectFileName>$(IntDir)srfvtk6bhpvtqhzcbc4mz37fp4_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\xtnr775nif5fdo4ce745vc7gu4.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\xtnr775nif5fdo4ce745vc7gu4.yasm">
-      <ObjectFileName>$(IntDir)xtnr775nif5fdo4ce745vc7gu4_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\sq4fq2fk5dzq3tol7w5isidfym.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\srfvtk6bhpvtqhzcbc4mz37fp4.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\xtnr775nif5fdo4ce745vc7gu4.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -470,6 +444,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\request.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\fields.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\fields.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\filepost.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\filepost.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connectionpool.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connectionpool.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\response.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\response.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\six.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\six.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_wlz6w5pqzm4q662yqhjowhyg2i.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_tisrl5hpqlajnvx7ie57ityv4a.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_kq6cgrjzfzxh2xlyx3iuzy4yle.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_4spmkde6tfdxk5tkxnxajwgs5q.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_k24nuuquivf3kf4mwb4oqgbs5u.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_km2itl35a3f32rxgc6gehpnzay.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_o2jonfqr2owa5vgf3wexs6q36m.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_b5k6vmhct577qvrusaro3fpgim.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_4hu7wfxxvotfpu2xer6zhbhj7u.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_w6ckxjzuchr3af2xx72x2qyud4.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_jfmixzrnqsp7p4meqrov4sqkge.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_n7opmfjiozh5ae5ljbjcwppw5q.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_j6mvus47b7lxsq5k7nspj3lada.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_bitopowyshyijdqf5kaqojfbse.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_mrpvam5suuo2i4up624nuovleu.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_wzfjgwbri5qwgjrd44laxodzvm.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_decbuhgyzk2a7bwarhccmfoika.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_5ccguqyjl36kwvwyspo7ahk6ni.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_65ofr72q6ydc6a5ol5wyynwi7i.cpp" "contrib/python/requests/plq53q2f7c4l34wk3bnbv7m7ia.cpp" "contrib/python/requests/srfvtk6bhpvtqhzcbc4mz37fp4.cpp" "contrib/python/requests/sq4fq2fk5dzq3tol7w5isidfym.cpp" "contrib/python/requests/xtnr775nif5fdo4ce745vc7gu4.cpp" "contrib/python/requests/lozmg7yszksmfev37h2qr5rjsq.cpp" "contrib/python/requests/apewhlz5g5xufhuyftcs65ejgy.cpp" "contrib/python/requests/nildj4bvl2dob5fnbgorpy3bra.cpp" "contrib/python/requests/ckoio3w22bbx2sdyz2goj2yujy.cpp" "contrib/python/requests/fll2vywcuznipfynelpaxzw5dm.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_65ofr72q6ydc6a5ol5wyynwi7i.cpp" "contrib/python/requests/plq53q2f7c4l34wk3bnbv7m7ia.cpp" "contrib/python/requests/srfvtk6bhpvtqhzcbc4mz37fp4.cpp" "contrib/python/requests/sq4fq2fk5dzq3tol7w5isidfym.cpp" "contrib/python/requests/xtnr775nif5fdo4ce745vc7gu4.cpp" "contrib/python/requests/lozmg7yszksmfev37h2qr5rjsq.cpp" "contrib/python/requests/apewhlz5g5xufhuyftcs65ejgy.cpp" "contrib/python/requests/nildj4bvl2dob5fnbgorpy3bra.cpp" "contrib/python/requests/ckoio3w22bbx2sdyz2goj2yujy.cpp" "contrib/python/requests/fll2vywcuznipfynelpaxzw5dm.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/join_65ofr72q6ydc6a5ol5wyynwi7i.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\requests\plq53q2f7c4l34wk3bnbv7m7ia.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\srfvtk6bhpvtqhzcbc4mz37fp4.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\sq4fq2fk5dzq3tol7w5isidfym.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\xtnr775nif5fdo4ce745vc7gu4.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\lozmg7yszksmfev37h2qr5rjsq.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\apewhlz5g5xufhuyftcs65ejgy.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\nildj4bvl2dob5fnbgorpy3bra.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\ckoio3w22bbx2sdyz2goj2yujy.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\fll2vywcuznipfynelpaxzw5dm.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\join_65ofr72q6ydc6a5ol5wyynwi7i.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -1523,6 +1524,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

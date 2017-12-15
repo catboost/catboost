@@ -76,14 +76,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\i75limocfn543f2tgnsm65wb4y.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\i75limocfn543f2tgnsm65wb4y.yasm">
-      <ObjectFileName>$(IntDir)i75limocfn543f2tgnsm65wb4y_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\icjtulchzmz4iy2vrmippolfuu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\icjtulchzmz4iy2vrmippolfuu.yasm">
-      <ObjectFileName>$(IntDir)icjtulchzmz4iy2vrmippolfuu_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\i75limocfn543f2tgnsm65wb4y.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\icjtulchzmz4iy2vrmippolfuu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_isiabzpuiorki5mfr6kf2jpg3m.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
@@ -164,6 +159,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\process.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\runtime.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\runtime.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\runtime_java.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\runtime_java.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\tags.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\tags.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\__init__.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\__init__.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_2vtu3il3efhte6muihkzkwjzhi.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_dq53ifixxt4ul64jslsav2bqqa.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_hwdlqk36m6vzcmoadrv32onpum.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_vaodmm2bzpdofxjvi5lwjvxulu.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_tv4yhbz746flvrwdd4x6vlpuvm.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_ok3fvb6bxns7baju5efn467dfy.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_h2qx25mjvvwsunf4rqj2krduja.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_ctdjrzdn4aazozilp4lnlocki4.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_ki4qpmhappwkrbd6mjs564qgp4.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\icjtulchzmz4iy2vrmippolfuu.cpp;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\i75limocfn543f2tgnsm65wb4y.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_isiabzpuiorki5mfr6kf2jpg3m.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -409,6 +431,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

@@ -12,65 +12,52 @@
 #include <catboost/libs/algo/model_build_helper.h>
 #include <limits>
 
-namespace NCatboostCuda
-{
-//store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
+namespace NCatboostCuda {
+    //store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
     inline TVector<TVector<int>>
     MakeInverseCatFeatureIndexForDataProviderIds(const TBinarizedFeaturesManager& featuresManager,
                                                  const TVector<ui32>& catFeaturesDataProviderIds,
-                                                 bool clearFeatureManagerRamCache = true)
-    {
+                                                 bool clearFeatureManagerRamCache = true) {
         TVector<TVector<int>> result(catFeaturesDataProviderIds.size());
-        for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i)
-        {
-
+        for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i) {
             const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForCatFeature(
-                    catFeaturesDataProviderIds[i]);
+                catFeaturesDataProviderIds[i]);
             const auto& perfectHash = featuresManager.GetCategoricalFeaturesPerfectHash(featureManagerId);
 
-            if (!perfectHash.empty())
-            {
+            if (!perfectHash.empty()) {
                 result[i].resize(perfectHash.size());
-                for (const auto& entry : perfectHash)
-                {
+                for (const auto& entry : perfectHash) {
                     result[i][entry.second] = entry.first;
                 }
             }
         }
-        if (clearFeatureManagerRamCache)
-        {
+        if (clearFeatureManagerRamCache) {
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
         }
         return result;
     }
 
-    class TModelConverter
-    {
+    class TModelConverter {
     public:
         TModelConverter(const TBinarizedFeaturesManager& manager,
                         const TDataProvider& dataProvider)
-                : FeaturesManager(manager)
-                , DataProvider(dataProvider)
+            : FeaturesManager(manager)
+            , DataProvider(dataProvider)
         {
             auto& allFeatures = dataProvider.GetFeatureNames();
             auto& catFeatureIds = dataProvider.GetCatFeatureIds();
 
             {
-                for (ui32 featureId = 0; featureId < allFeatures.size(); ++featureId)
-                {
-                    if (catFeatureIds.has(featureId))
-                    {
+                for (ui32 featureId = 0; featureId < allFeatures.size(); ++featureId) {
+                    if (catFeatureIds.has(featureId)) {
                         CatFeaturesRemap[featureId] = static_cast<ui32>(CatFeaturesRemap.size());
-                    } else
-                    {
-                        if (dataProvider.HasFeatureId(featureId))
-                        {
+                    } else {
+                        if (dataProvider.HasFeatureId(featureId)) {
                             const auto featureIdInFeaturesManager = manager.GetFeatureManagerIdForFloatFeature(featureId);
                             TVector<float> borders = manager.GetBorders(featureIdInFeaturesManager);
                             Borders.push_back(std::move(borders));
                             FloatFeaturesNanMode.push_back(manager.GetNanMode(featureIdInFeaturesManager));
-                        } else
-                        {
+                        } else {
                             Borders.push_back(TVector<float>());
                             FloatFeaturesNanMode.push_back(ENanMode::Forbidden);
                         }
@@ -84,8 +71,7 @@ namespace NCatboostCuda
             }
         }
 
-        TFullModel Convert(const TAdditiveModel<TObliviousTreeModel>& src) const
-        {
+        TFullModel Convert(const TAdditiveModel<TObliviousTreeModel>& src) const {
             const auto& featureNames = DataProvider.GetFeatureNames();
             const auto& catFeatureIds = DataProvider.GetCatFeatureIds();
             TFullModel coreModel;
@@ -104,7 +90,7 @@ namespace NCatboostCuda
                 } else {
                     auto floatFeatureIdx = floatFeatures.size();
                     auto& floatFeature = floatFeatures.emplace_back();
-                    const bool hasNans =  FloatFeaturesNanMode.at(floatFeatureIdx) != ENanMode::Forbidden;
+                    const bool hasNans = FloatFeaturesNanMode.at(floatFeatureIdx) != ENanMode::Forbidden;
                     floatFeature.FeatureIndex = floatFeatureIdx;
                     floatFeature.FlatFeatureIndex = i;
                     floatFeature.Borders = Borders[floatFeatureIdx];
@@ -115,16 +101,13 @@ namespace NCatboostCuda
 
             TObliviousTreeBuilder obliviousTreeBuilder(floatFeatures, catFeatures);
 
-
-            for (ui32 i = 0; i < src.Size(); ++i)
-            {
+            for (ui32 i = 0; i < src.Size(); ++i) {
                 TVector<TVector<double>> leafValues(1);
                 const TObliviousTreeModel& model = src.GetWeakModel(i);
 
                 auto& values = model.GetValues();
                 leafValues[0].resize(values.size());
-                for (ui32 leaf = 0; leaf < values.size(); ++leaf)
-                {
+                for (ui32 leaf = 0; leaf < values.size(); ++leaf) {
                     leafValues[0][leaf] = values[leaf];
                 }
 
@@ -137,9 +120,7 @@ namespace NCatboostCuda
         }
 
     private:
-
-        inline TModelSplit CreateFloatSplit(const TBinarySplit& split) const
-        {
+        inline TModelSplit CreateFloatSplit(const TBinarySplit& split) const {
             CB_ENSURE(FeaturesManager.IsFloat(split.FeatureId));
 
             TModelSplit modelSplit;
@@ -152,15 +133,15 @@ namespace NCatboostCuda
             float border;
             const auto nanMode = FloatFeaturesNanMode.at(remapId);
             switch (nanMode) {
-                case ENanMode::Forbidden : {
+                case ENanMode::Forbidden: {
                     border = Borders.at(remapId).at(split.BinIdx);
                     break;
                 }
-                case ENanMode::Min : {
+                case ENanMode::Min: {
                     border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : -std::numeric_limits<float>::infinity();
                     break;
                 }
-                case ENanMode::Max : {
+                case ENanMode::Max: {
                     border = split.BinIdx != Borders.at(remapId).size() ? Borders.at(remapId).at(split.BinIdx) : std::numeric_limits<float>::infinity();
                     break;
                 }
@@ -172,8 +153,7 @@ namespace NCatboostCuda
             return modelSplit;
         }
 
-        inline TModelSplit CreateOneHotSplit(const TBinarySplit& split) const
-        {
+        inline TModelSplit CreateOneHotSplit(const TBinarySplit& split) const {
             CB_ENSURE(FeaturesManager.IsCat(split.FeatureId));
 
             TModelSplit modelSplit;
@@ -187,25 +167,21 @@ namespace NCatboostCuda
                       TStringBuilder() << "Error: no gasg fir feature " << split.FeatureId << " " << split.BinIdx);
             const int hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
             modelSplit.OneHotFeature = TOneHotSplit(remapId,
-                                                      hash);
+                                                    hash);
             return modelSplit;
         }
 
-        inline ui32 GetRemappedIndex(ui32 featureId) const
-        {
+        inline ui32 GetRemappedIndex(ui32 featureId) const {
             CB_ENSURE(FeaturesManager.IsCat(featureId) || FeaturesManager.IsFloat(featureId));
             ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
-            if (FeaturesManager.IsFloat(featureId))
-            {
+            if (FeaturesManager.IsFloat(featureId)) {
                 return FloatFeaturesRemap.at(dataProviderId);
-            } else
-            {
+            } else {
                 return CatFeaturesRemap.at(dataProviderId);
             }
         }
 
-        TFeatureCombination ExtractProjection(const TCtr& ctr) const
-        {
+        TFeatureCombination ExtractProjection(const TCtr& ctr) const {
             TFeatureCombination projection;
             for (auto split : ctr.FeatureTensor.GetSplits()) {
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
@@ -223,8 +199,7 @@ namespace NCatboostCuda
             return projection;
         }
 
-        inline TModelSplit CreateCtrSplit(const TBinarySplit& split) const
-        {
+        inline TModelSplit CreateCtrSplit(const TBinarySplit& split) const {
             TModelSplit modelSplit;
             CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
             const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
@@ -247,11 +222,9 @@ namespace NCatboostCuda
             return modelSplit;
         }
 
-        inline TVector<TModelSplit> ConvertStructure(const TObliviousTreeStructure& structure) const
-        {
+        inline TVector<TModelSplit> ConvertStructure(const TObliviousTreeStructure& structure) const {
             TVector<TModelSplit> structure3;
-            for (auto split : structure.Splits)
-            {
+            for (auto split : structure.Splits) {
                 TModelSplit modelSplit;
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
                     modelSplit = CreateFloatSplit(split);
@@ -264,6 +237,7 @@ namespace NCatboostCuda
             }
             return structure3;
         }
+
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
@@ -283,8 +257,7 @@ namespace NCatboostCuda
 
     inline TFullModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
                                          const TDataProvider& dataProvider,
-                                         const TAdditiveModel<TObliviousTreeModel>& treeModel)
-    {
+                                         const TAdditiveModel<TObliviousTreeModel>& treeModel) {
         TModelConverter converter(manager, dataProvider);
         return converter.Convert(treeModel);
     }

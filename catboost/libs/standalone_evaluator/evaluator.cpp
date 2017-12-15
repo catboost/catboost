@@ -46,7 +46,7 @@ namespace NCatboostStandalone {
         const auto treeCount =  ObliviousTrees->TreeSizes()->size();
         auto leafValuesPtr = ObliviousTrees->LeafValues()->data();
         for (size_t treeId = 0; treeId < treeCount; ++treeId) {
-            const auto treeSize = ObliviousTrees->TreeSizes()->Get(treeId);
+            const size_t treeSize = ObliviousTrees->TreeSizes()->Get(treeId);
             size_t index{};
             for (size_t depth = 0; depth < treeSize; ++depth) {
                 index |= (binaryFeatures[treeSplitsPtr[depth]] << depth);

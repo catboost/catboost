@@ -1,6 +1,8 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
+#include <catboost/libs/options/enums.h>
+
 
 namespace NKernel {
 
@@ -15,4 +17,10 @@ namespace NKernel {
                          const float* predictions,
                          float* functionValue, float* der, float* der2,
                          TCudaStream stream);
+
+    void PointwiseTargetKernel(const float* relevs, const float* weights, ui32 size,
+                               ELossFunction loss, float alpha,
+                               const float* predictions,
+                               float* functionValue, float* der, float* der2,
+                               TCudaStream stream);
 }

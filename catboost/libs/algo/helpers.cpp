@@ -4,6 +4,7 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
 #include <util/system/mem_info.h>
 
 #include <library/malloc/api/malloc.h>
@@ -36,18 +37,33 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
             ++floatFeatureId;
         }
     }
+    size_t samplesToBuildBorders = docStorage.GetDocCount();
+    bool isSubsampled = false;
+    const constexpr size_t SlowSubsampleSize = 200 * 1000;
+    // Use random 200K documents to build borders for slow MinEntropy and MaxLogSum
+    // Create random shuffle if HasTimeFlag
+    if (EqualToOneOf(borderType, EBorderSelectionType::MinEntropy, EBorderSelectionType::MaxLogSum) && samplesToBuildBorders > SlowSubsampleSize) {
+        samplesToBuildBorders = SlowSubsampleSize;
+        isSubsampled = true;
+    }
+    TVector<size_t> randomShuffle;
+    const bool isShuffleNeeded = isSubsampled && ctx->Params.DataProcessingOptions->HasTimeFlag;
+    if (isShuffleNeeded) {
+        randomShuffle.yresize(docStorage.GetDocCount());
+        std::iota(randomShuffle.begin(), randomShuffle.end(), 0);
+        Shuffle(randomShuffle.begin(), randomShuffle.end(), ctx->Rand);
+    }
     // Estimate how many threads can generate borders
     const size_t bytes1M = 1024 * 1024, bytesThreadStack = 2 * bytes1M;
     const size_t bytesUsed = NMemInfo::GetMemInfo().RSS;
-    const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, docStorage.GetDocCount(), borderType);
-    const size_t bytesGenerateBorders = sizeof(float) * docStorage.GetDocCount();
+    const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, samplesToBuildBorders, borderType);
+    const size_t bytesGenerateBorders = sizeof(float) * samplesToBuildBorders;
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
     const auto usedRamLimit = ctx->Params.SystemOptions->CpuUsedRamLimit;
     const size_t threadCount = Min(reasonCount, (usedRamLimit - bytesUsed) / bytesRequiredPerThread);
     if (!(usedRamLimit >= bytesUsed && threadCount > 0)) {
         MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
     }
-
     TAtomic taskFailedBecauseOfNans = 0;
     THashSet<int> ignoredFeatureIndexes(ctx->Params.DataProcessingOptions->IgnoredFeatures->begin(), ctx->Params.DataProcessingOptions->IgnoredFeatures->end());
     auto calcOneFeatureBorder = [&](int idx) {
@@ -58,13 +74,14 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         }
 
         TVector<float> vals;
+        vals.reserve(samplesToBuildBorders);
 
-        floatFeature.HasNans = false;
-        for (size_t i = 0; i < docStorage.GetDocCount(); ++i) {
-            if (!IsNan(docStorage.Factors[floatFeatureIdx][i])) {
-                vals.push_back(docStorage.Factors[floatFeatureIdx][i]);
-            } else {
-                floatFeature.HasNans = true;
+        floatFeature.HasNans = AnyOf(docStorage.Factors[floatFeatureIdx], IsNan);
+        for (size_t i = 0; i < samplesToBuildBorders; ++i) {
+            const size_t randomDocIdx = isShuffleNeeded ? randomShuffle[i] : i;
+            const float factor = docStorage.Factors[floatFeatureIdx][randomDocIdx];
+            if (!IsNan(factor)) {
+                vals.push_back(factor);
             }
         }
         Sort(vals.begin(), vals.end());
@@ -94,32 +111,6 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     }
 
     MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
-}
-
-void ApplyPermutation(const TVector<size_t>& permutation, TPool* pool) {
-    Y_VERIFY(pool->Docs.GetDocCount() == 0 || permutation.size() == pool->Docs.GetDocCount());
-
-    TVector<size_t> toIndices(permutation);
-    for (size_t i = 0; i < pool->Docs.GetDocCount(); ++i) {
-        while (toIndices[i] != i) {
-            auto destinationIndex = toIndices[i];
-            pool->Docs.SwapDoc(i, destinationIndex);
-            DoSwap(toIndices[i], toIndices[destinationIndex]);
-        }
-    }
-
-    for (auto& pair : pool->Pairs) {
-        pair.WinnerId = permutation[pair.WinnerId];
-        pair.LoserId = permutation[pair.LoserId];
-    }
-}
-
-TVector<size_t> InvertPermutation(const TVector<size_t>& permutation) {
-    TVector<size_t> result(permutation.size());
-    for (size_t i = 0; i < permutation.size(); ++i) {
-        result[permutation[i]] = i;
-    }
-    return result;
 }
 
 int GetClassesCount(const TVector<float>& target, int classesCount) {

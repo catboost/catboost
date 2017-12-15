@@ -370,6 +370,36 @@ void TThread::CurrentThreadSetName(const char* name) {
 #endif // OS
 }
 
+TString TThread::CurrentThreadGetName() {
+#if defined(_freebsd_)
+// FreeBSD doesn't seem to have an API to get thread name.
+#elif defined(_linux_)
+    // > The buffer should allow space for up to 16 bytes; the returned string  will be
+    // > null-terminated.
+    // via `man prctl`
+    char name[16];
+    memset(name, 0, sizeof(name));
+    Y_VERIFY(prctl(PR_GET_NAME, name, 0, 0, 0) == 0, "pctl failed: %s", strerror(errno));
+    return name;
+#elif defined(_darwin_)
+    // available on Mac OS 10.6+
+    const auto thread = pthread_self();
+    char name[256];
+    memset(name, 0, sizeof(name));
+    Y_VERIFY(pthread_getname_np(thread, name, sizeof(name)) == 0, "pthread_getname_np failed: %s", strerror(errno));
+    return name;
+#elif defined(_MSC_VER)
+// Apparently there is no way to get thread name for Windows in general case.
+//
+// Though there is an API for Windows 10:
+// https://msdn.microsoft.com/en-us/library/windows/desktop/mt774972(v=vs.85).aspx
+#else
+// no idea
+#endif // OS
+
+    return {};
+}
+
 TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     : StackBegin(nullptr)
     , StackLength(0)

@@ -61,19 +61,20 @@ namespace NKernelHost {
     };
 
     template <NCudaLib::EPtrType PtrType>
-    class TComputeSegmentSizesKernel : public TStatelessKernel {
+    class TComputeSegmentSizesKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> Offsets;
         using TDstPtr = TDeviceBuffer<float, TFixedSizesObjectsMeta, PtrType>;
         TDstPtr Dst;
 
     public:
-        TComputeSegmentSizesKernel () = default;
+        TComputeSegmentSizesKernel() = default;
 
-        TComputeSegmentSizesKernel (TCudaBufferPtr<const ui32> offsets,
-                                    TDstPtr dst)
-                : Offsets(offsets)
-                  , Dst(dst) {
+        TComputeSegmentSizesKernel(TCudaBufferPtr<const ui32> offsets,
+                                   TDstPtr dst)
+            : Offsets(offsets)
+            , Dst(dst)
+        {
         }
 
         SAVELOAD(Offsets, Dst);
@@ -102,11 +103,10 @@ inline void UpdatePartitionOffsets(const TCudaBuffer<ui32, TMapping>& sortedBins
     LaunchKernels<TKernel>(sortedBins.NonEmptyDevices(), stream, sortedBins, offsets);
 }
 
-
-template <class TMapping, class TUi32, NCudaLib::EPtrType  DstPtr>
+template <class TMapping, class TUi32, NCudaLib::EPtrType DstPtr>
 inline void ComputeSegmentSizes(const TCudaBuffer<TUi32, TMapping>& offsets,
-                                   TCudaBuffer<float, TMapping, DstPtr>& dst,
-                                   ui32 stream = 0) {
+                                TCudaBuffer<float, TMapping, DstPtr>& dst,
+                                ui32 stream = 0) {
     using TKernel = NKernelHost::TComputeSegmentSizesKernel<DstPtr>;
     LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, offsets, dst);
 }

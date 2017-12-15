@@ -8,7 +8,6 @@
 #include <future>
 
 namespace NKernelHost {
-
     class TWaitStreamSubmitSingleHostKernel: public TKernelBase<void, true> {
     private:
         NThreading::TPromise<ui64> Promise;

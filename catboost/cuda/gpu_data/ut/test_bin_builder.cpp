@@ -215,7 +215,6 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
                  dataProviderBuilder.SetShuffleFlag(false));
 
         {
-
         }
 
         TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,

@@ -93,7 +93,7 @@ namespace NKernelHost {
 
         SAVELOAD(Keys, Values, TmpKeys, TmpValues, Offsets, PartCount, CompareGreater, FirstBit, LastBit);
     };
-};
+}
 
 template <typename K, typename V, class TMapping>
 inline void SegmentedRadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,

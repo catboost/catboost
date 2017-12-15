@@ -58,6 +58,12 @@ namespace NCatboostOptions {
                 defaultEstimationMethod = ELeavesEstimation::Newton;
                 break;
             }
+            case ELossFunction::YetiRank: {
+                defaultEstimationMethod = ELeavesEstimation::Newton;
+                defaultGradientIterations = 1;
+                defaultNewtonIterations = 1;
+                break;
+            }
             case ELossFunction::UserPerObjErr:
             case ELossFunction::UserQuerywiseErr:
             case ELossFunction::Custom: {
@@ -235,7 +241,7 @@ namespace NCatboostOptions {
         ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
         {
             const ui32 classesCount = DataProcessingOptions->ClassesCount;
-            if (classesCount != 0) {
+            if (classesCount != 0 ) {
                 CB_ENSURE(IsMultiClassError(lossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
                 CB_ENSURE(classesCount > 1, "classes-count should be at least 2");
             }
@@ -261,10 +267,14 @@ namespace NCatboostOptions {
                       "gradient_iterations should equals 1 for this mode");
         }
 
-        CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
-                  "This leaf estimation method is not supported for querywise error");
-        CB_ENSURE(!(IsPairwiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
-                  "This leaf estimation method is not supported for pairwise error");
+        if (GetTaskType() == ETaskType::CPU) {
+            CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
+                      "This leaf estimation method is not supported for querywise error for CPU learning");
+
+            CB_ENSURE(!(IsPairwiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
+                      "This leaf estimation method is not supported for pairwise error");
+        }
+
 
         ValidateCtrs(CatFeatureParams->SimpleCtrs, lossFunction, false);
         for (const auto& perFeatureCtr : CatFeatureParams->PerFeatureCtrs.Get()) {

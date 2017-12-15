@@ -82,20 +82,20 @@ namespace NKernelHost {
 }
 
 template <class TMapping>
-inline void PoissonRand(TCudaBuffer<ui64,  TMapping>& seeds, const TCudaBuffer<float, TMapping>& alphas,
+inline void PoissonRand(TCudaBuffer<ui64, TMapping>& seeds, const TCudaBuffer<float, TMapping>& alphas,
                         TCudaBuffer<int, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TPoissonKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, alphas, result);
 }
 
 template <class TMapping>
-inline void GaussianRand(TCudaBuffer<ui64,  TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
+inline void GaussianRand(TCudaBuffer<ui64, TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TGaussianRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }
 
 template <class TMapping>
-inline void UniformRand(TCudaBuffer<ui64,  TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
+inline void UniformRand(TCudaBuffer<ui64, TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TUniformRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }

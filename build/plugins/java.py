@@ -105,7 +105,7 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST') and not unit.path().startswith('$S/contrib/java'):
+    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG') and not unit.path().startswith('$S/contrib/java'):
         if (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower() == 'yes':
             unit.onjava_test_deps()
         if unit.get('LINT_LEVEL_VALUE') != "none":

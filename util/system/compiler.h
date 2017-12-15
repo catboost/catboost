@@ -535,9 +535,14 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #include <xray/xray_interface.h>
 #define Y_XRAY_ALWAYS_INSTRUMENT [[clang::xray_always_instrument]]
 #define Y_XRAY_NEVER_INSTRUMENT [[clang::xray_never_instrument]]
-#define Y_XRAY_CUSTOM_EVENT(__string, __length) do { __xray_customevent(__string, __length); } while (0)
+#define Y_XRAY_CUSTOM_EVENT(__string, __length) \
+    do {                                        \
+        __xray_customevent(__string, __length); \
+    } while (0)
 #else
 #define Y_XRAY_ALWAYS_INSTRUMENT
 #define Y_XRAY_NEVER_INSTRUMENT
-#define Y_XRAY_CUSTOM_EVENT(__string, __length) do {} while (0)
+#define Y_XRAY_CUSTOM_EVENT(__string, __length) \
+    do {                                        \
+    } while (0)
 #endif

@@ -25,7 +25,7 @@ namespace {
     struct TZStd06Codec: public TAddLengthCodec<TZStd06Codec> {
         inline TZStd06Codec(unsigned level)
             : Level(level)
-            , MyName(STRINGBUF("zstd_") + ToString(Level))
+            , MyName(STRINGBUF("zstd06_") + ToString(Level))
         {
         }
 

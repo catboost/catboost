@@ -6,6 +6,7 @@ SRCS(
     sample.cpp
     auc.cpp
     metric.cpp
+    pfound.cpp
 )
 
 PEERDIR(

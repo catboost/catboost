@@ -40,8 +40,8 @@ struct IMetric {
                               NPar::TLocalExecutor& executor) const = 0;
 
     virtual TMetricHolder EvalPairwise(const TVector<TVector<double>>& approx,
-                                      const TVector<TPair>& pairs,
-                                      int begin, int end) const = 0;
+                                       const TVector<TPair>& pairs,
+                                       int begin, int end) const = 0;
 
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
@@ -239,6 +239,7 @@ struct TQueryRMSEMetric : public TQuerywiseAdditiveMetric {
                                        const TVector<ui32>& queriesId,
                                        const THashMap<ui32, ui32>& queriesSize,
                                        int begin, int end) const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
 private:

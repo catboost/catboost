@@ -1,137 +1,104 @@
 #pragma once
 
-#include <catboost/cuda/cuda_util/cpu_random.h>
+#include "data_provider.h"
+#include "data_utils.h"
 #include <util/system/types.h>
 #include <util/generic/vector.h>
-#include <catboost/cuda/cuda_lib/slice.h>
-#include <numeric>
 #include <util/random/shuffle.h>
-#include "data_provider.h"
+#include <numeric>
 
-namespace NCatboostCuda
-{
-    class TDataPermutation
-    {
+namespace NCatboostCuda {
+    class TDataPermutation {
     private:
+        const TDataProvider* DataProvider;
         ui32 Index;
-        ui32 Size;
         ui32 BlockSize;
 
     protected:
-        TDataPermutation(ui32 index,
-                         ui32 poolSize,
+        TDataPermutation(const TDataProvider& dataProvider,
+                         ui32 index,
                          ui32 blockSize)
-                : Index(index)
-                  , Size(poolSize)
-                  , BlockSize(blockSize)
+            : DataProvider(&dataProvider)
+            , Index(index)
+            , BlockSize(blockSize)
         {
         }
 
         friend TDataPermutation GetPermutation(const TDataProvider& dataProvider, ui32 permutationId, ui32 blockSize);
 
     public:
-        void FillOrder(TVector<ui32>& order) const
-        {
-            order.resize(Size);
-            std::iota(order.begin(), order.end(), 0);
-
-            if (Index != IdentityPermutationId())
-            {
-                TRandom rng(1664525 * GetPermutationId() + 1013904223 + BlockSize);
-                rng.Advance(10);
-                if (BlockSize == 1)
-                {
-                    Shuffle(order.begin(), order.begin() + Size, rng);
-                } else
-                {
-                    const auto blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), BlockSize));
-                    TVector<ui32> blocks(blocksCount);
-                    std::iota(blocks.begin(), blocks.end(), 0);
-                    Shuffle(blocks.begin(), blocks.end(), rng);
-
-                    ui32 cursor = 0;
-                    for (ui32 i = 0; i < blocksCount; ++i)
-                    {
-                        const ui32 blockStart = blocks[i] * BlockSize;
-                        const ui32 blockEnd = Min<ui32>(blockStart + BlockSize, order.size());
-                        for (ui32 j = blockStart; j < blockEnd; ++j)
-                        {
-                            order[cursor++] = j;
-                        }
-                    }
+        void FillOrder(TVector<ui32>& order) const {
+            if (Index != IdentityPermutationId()) {
+                const auto seed = 1664525 * GetPermutationId() + 1013904223 + BlockSize;
+                if (DataProvider->HasQueries()) {
+                    QueryConsistentShuffle(seed, BlockSize, DataProvider->GetQueryIds(), &order);
+                } else {
+                    Shuffle(seed, BlockSize, DataProvider->GetSampleCount(), &order);
                 }
+            } else {
+                order.resize(DataProvider->GetSampleCount());
+                std::iota(order.begin(), order.end(), 0);
             }
         }
 
-        template<class T>
-        TVector<T> Gather(const TVector<T>& src) const
-        {
+        template <class T>
+        TVector<T> Gather(const TVector<T>& src) const {
             TVector<T> result;
             result.resize(src.size());
 
             TVector<ui32> order;
             FillOrder(order);
-            for (ui32 i = 0; i < order.size(); ++i)
-            {
+            for (ui32 i = 0; i < order.size(); ++i) {
                 result[i] = src[order[i]];
             }
             return result;
         }
 
-        void FillInversePermutation(TVector<ui32>& permutation) const
-        {
+        void FillInversePermutation(TVector<ui32>& permutation) const {
             TVector<ui32> order;
             FillOrder(order);
             permutation.resize(order.size());
-            for (ui32 i = 0; i < order.size(); ++i)
-            {
+            for (ui32 i = 0; i < order.size(); ++i) {
                 permutation[order[i]] = i;
             }
         }
 
-        template<class TBuffer>
-        void WriteOrder(TBuffer& dst) const
-        {
+        template <class TBuffer>
+        void WriteOrder(TBuffer& dst) const {
             TVector<ui32> order;
             FillOrder(order);
             dst.Write(order);
         }
 
-        template<class TBuffer>
-        void WriteInversePermutation(TBuffer& dst) const
-        {
+        template <class TBuffer>
+        void WriteInversePermutation(TBuffer& dst) const {
             TVector<ui32> order;
             FillInversePermutation(order);
             dst.Write(order);
         }
 
-        bool IsIdentity()
-        {
+        bool IsIdentity() {
             return Index == IdentityPermutationId();
         }
 
-        static constexpr ui32 IdentityPermutationId()
-        {
+        static constexpr ui32 IdentityPermutationId() {
             return 0;
         }
 
-        ui32 GetPermutationId() const
-        {
+        ui32 GetPermutationId() const {
             return Index;
         }
 
-        TSlice ObservationsSlice() const
-        {
-            return TSlice(0, Size);
+        ui64 GetDocCount() const {
+            return DataProvider->GetSampleCount();
         }
     };
 
     inline TDataPermutation GetPermutation(const TDataProvider& dataProvider,
                                            ui32 permutationId,
-                                           ui32 blockSize = 1)
-    {
-        return TDataPermutation(permutationId,
-                                dataProvider.GetSampleCount(),
+                                           ui32 blockSize = 1) {
+        return TDataPermutation(dataProvider,
+                                permutationId,
                                 blockSize);
     }
 }

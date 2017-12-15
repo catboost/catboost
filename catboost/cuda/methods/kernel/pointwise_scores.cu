@@ -297,7 +297,7 @@ namespace NKernel {
             }
 
             float score = 0;
-            float denumSqr = 0;
+            float denumSqr = 1e-20f;
             const float* current = binSums + 2 * (i + tid);
 
             for (int leaf = 0; leaf < pCount; leaf++) {
@@ -360,6 +360,7 @@ namespace NKernel {
         __shared__ int indices[BLOCK_SIZE];
         indices[tid] = bestIndex;
         __syncthreads();
+
         for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
             if (tid < s) {
                 if (scores[tid] > scores[tid + s] ||

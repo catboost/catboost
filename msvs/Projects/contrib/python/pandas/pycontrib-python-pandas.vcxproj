@@ -75,42 +75,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.yasm">
-      <ObjectFileName>$(IntDir)2b477y2gufrchv4cgmcgxvfzey_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.yasm">
-      <ObjectFileName>$(IntDir)4t6btxmeej6e6hfatgbdxijm54_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.yasm">
-      <ObjectFileName>$(IntDir)cf6jf5p5mveuzjycnfilnposty_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.yasm">
-      <ObjectFileName>$(IntDir)dt7k7ldhzkbuy25htu66psdj24_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.yasm">
-      <ObjectFileName>$(IntDir)dxk5v4jmlev5mlvxfdguzktphy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.yasm">
-      <ObjectFileName>$(IntDir)frn6prut4srzj7rflp76e5tiuy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.yasm">
-      <ObjectFileName>$(IntDir)jyskvmusg2va4mlci3xwzog3aq_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.yasm">
-      <ObjectFileName>$(IntDir)mbwtfihb2zivhwgaozf5rafncy_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.yasm">
-      <ObjectFileName>$(IntDir)mwocjiaehnuwvesjl6os65gvpy_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_rpbujce2v2l37gigzow7vu5n4u.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._join.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._period.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._sparse.reg.cpp"/>
@@ -198,30 +172,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\pandas\pandas\util\move.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.yasm">
-      <ObjectFileName>$(IntDir)pi7pjvjqtkajkkbwntlabvlceu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.yasm">
-      <ObjectFileName>$(IntDir)rcpfzqdgjmi2nzbacyn3or6oxu_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.yasm">
-      <ObjectFileName>$(IntDir)rgp65xvmv2q6nykwyxqmbzvizi_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.yasm">
-      <ObjectFileName>$(IntDir)wgyyrcizto6iy2ci3lqylilhxi_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.yasm">
-      <ObjectFileName>$(IntDir)x7b3vtx6bhy6mez3k42a6mfx3y_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.yasm">
-      <ObjectFileName>$(IntDir)yagbig47fw7i2thcoaaaitgjsq_extra1.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.yasm"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -896,6 +852,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\tseries\util.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\api.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\api.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\cast.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\cast.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\common.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\common.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\concat.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\concat.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\dtypes.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\dtypes.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\generic.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\generic.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\inference.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\inference.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\missing.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\missing.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\util\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\util\__init__.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_j67iqjjh3iu3vzy5rwptjjn6z4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ja2hlgi6sv4vkfo5kgfeiyncr4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_6qzazx7heosuwuy77tmjx52wki.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_f7dgdmghw6zp36nf56c5nxmtty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ikdwjz7dhy2vwzfmjpiomwztie.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_e7v5qsds6ys2ybe7h37j2x3kgy.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_vdtumx7ovcoswwsb7s5anc4jxa.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_niibyefe6axhrmfxrv6sb5sm34.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ery6vblajslnyk2uiqg3nvyid4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_fvpyjwfa4izqxst636kxpqshku.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_uubmyl73wlcrwye33bbokgnpty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_6vdjtkah5ig54iqhwjfeddof6y.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_psgu7f3bkfqfl34uym7scecei4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_e5yayggmlex43eplx7sxxzmmty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_iweej35p623lgxbfwx4ikxu6fi.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_53tyzqjouffddod5pwhequ7epm.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_j3a2kwpcko5lwmzcjqab7jenkq.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_v434ypdtsqhwhk7tin7uidmmn4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_wqypb43nqo4fky7fxypw5vqf3e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ooc5tpbld7bjlctpybs3awbdjm.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_dfk62awgbzhwe6lbrfedtebkle.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_rpbujce2v2l37gigzow7vu5n4u.cpp" "contrib/python/pandas/rgp65xvmv2q6nykwyxqmbzvizi.cpp" "contrib/python/pandas/jyskvmusg2va4mlci3xwzog3aq.cpp" "contrib/python/pandas/yagbig47fw7i2thcoaaaitgjsq.cpp" "contrib/python/pandas/4t6btxmeej6e6hfatgbdxijm54.cpp" "contrib/python/pandas/frn6prut4srzj7rflp76e5tiuy.cpp" "contrib/python/pandas/wgyyrcizto6iy2ci3lqylilhxi.cpp" "contrib/python/pandas/mbwtfihb2zivhwgaozf5rafncy.cpp" "contrib/python/pandas/pi7pjvjqtkajkkbwntlabvlceu.cpp" "contrib/python/pandas/mwocjiaehnuwvesjl6os65gvpy.cpp" "contrib/python/pandas/rcpfzqdgjmi2nzbacyn3or6oxu.cpp" "contrib/python/pandas/x7b3vtx6bhy6mez3k42a6mfx3y.cpp" "contrib/python/pandas/cf6jf5p5mveuzjycnfilnposty.cpp" "contrib/python/pandas/dt7k7ldhzkbuy25htu66psdj24.cpp" "contrib/python/pandas/dxk5v4jmlev5mlvxfdguzktphy.cpp" "contrib/python/pandas/2b477y2gufrchv4cgmcgxvfzey.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_rpbujce2v2l37gigzow7vu5n4u.cpp" "contrib/python/pandas/rgp65xvmv2q6nykwyxqmbzvizi.cpp" "contrib/python/pandas/jyskvmusg2va4mlci3xwzog3aq.cpp" "contrib/python/pandas/yagbig47fw7i2thcoaaaitgjsq.cpp" "contrib/python/pandas/4t6btxmeej6e6hfatgbdxijm54.cpp" "contrib/python/pandas/frn6prut4srzj7rflp76e5tiuy.cpp" "contrib/python/pandas/wgyyrcizto6iy2ci3lqylilhxi.cpp" "contrib/python/pandas/mbwtfihb2zivhwgaozf5rafncy.cpp" "contrib/python/pandas/pi7pjvjqtkajkkbwntlabvlceu.cpp" "contrib/python/pandas/mwocjiaehnuwvesjl6os65gvpy.cpp" "contrib/python/pandas/rcpfzqdgjmi2nzbacyn3or6oxu.cpp" "contrib/python/pandas/x7b3vtx6bhy6mez3k42a6mfx3y.cpp" "contrib/python/pandas/cf6jf5p5mveuzjycnfilnposty.cpp" "contrib/python/pandas/dt7k7ldhzkbuy25htu66psdj24.cpp" "contrib/python/pandas/dxk5v4jmlev5mlvxfdguzktphy.cpp" "contrib/python/pandas/2b477y2gufrchv4cgmcgxvfzey.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pandas/join_rpbujce2v2l37gigzow7vu5n4u.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.cpp;$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\join_rpbujce2v2l37gigzow7vu5n4u.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -2800,6 +2783,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
       <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>

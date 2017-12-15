@@ -1,22 +1,36 @@
 #include "train.h"
+#include "model_helpers.h"
+
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
+#include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/models/oblivious_model.h>
 
-class TGPUModelTrainer: public IModelTrainer
-{
+#include <catboost/cuda/data/load_data.h>
+#include <catboost/cuda/data/cat_feature_perfect_hash.h>
+#include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
+#include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>
+#include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
+#include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
+#include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+
+class TGPUModelTrainer: public IModelTrainer {
 public:
     void TrainModel(
-            const NJson::TJsonValue& params,
-            const NCatboostOptions::TOutputFilesOptions& outputOptions,
-            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-            TPool& learnPool,
-            bool allowClearPool,
-            const TPool& testPool,
-            TFullModel* model,
-            TEvalResult* evalResult) const override
-    {
+        const NJson::TJsonValue& params,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        TPool& learnPool,
+        bool allowClearPool,
+        const TPool& testPool,
+        TFullModel* model,
+        TEvalResult* evalResult) const override {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         Y_UNUSED(allowClearPool);
@@ -31,13 +45,50 @@ public:
     }
 };
 
-TTrainerFactory::TRegistrator <TGPUModelTrainer> GPURegistrator(ETaskType::GPU);
+TTrainerFactory::TRegistrator<TGPUModelTrainer> GPURegistrator(ETaskType::GPU);
 
-namespace NCatboostCuda
-{
+namespace NCatboostCuda {
+    inline void UpdatePinnedMemorySizeOption(const TDataProvider& learn,
+                                             const TDataProvider* test,
+                                             const TBinarizedFeaturesManager& featuresManager,
+                                             NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+        const bool storeCatFeaturesInPinnedMemory = catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
+        if (storeCatFeaturesInPinnedMemory) {
+            ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices).size();
+            ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test, featuresManager, devCount);
+            ui64 currentSize = catBoostOptions.SystemOptions->PinnedMemorySize;
+            if (currentSize < cpuFeaturesSize) {
+                catBoostOptions.SystemOptions->PinnedMemorySize = cpuFeaturesSize;
+            }
+        }
+    }
 
-    inline void CreateAndSetCudaConfig(const NCatboostOptions::TCatBoostOptions& options)
-    {
+    inline bool HasCtrs(const TBinarizedFeaturesManager& featuresManager) {
+        for (auto catFeature : featuresManager.GetCatFeatureIds()) {
+            if (featuresManager.UseForCtr(catFeature) || featuresManager.UseForTreeCtr(catFeature)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    inline void UpdateGpuSpecificDefaults(NCatboostOptions::TCatBoostOptions& options,
+                                          TBinarizedFeaturesManager& featuresManager) {
+        //don't make several permutations in matrixnet-like mode if we don't have ctrs
+        if (!HasCtrs(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
+            if (options.BoostingOptions->PermutationCount > 1) {
+                MATRIXNET_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
+            }
+            options.BoostingOptions->PermutationCount = 1;
+        }
+
+        NCatboostOptions::TOption<ui32>& blockSizeOption = options.BoostingOptions->PermutationBlockSize;
+        if (!blockSizeOption.IsSet() || blockSizeOption == 0u) {
+            blockSizeOption.Set(64);
+        }
+    }
+
+    inline void CreateAndSetCudaConfig(const NCatboostOptions::TCatBoostOptions& options) {
         NCudaLib::TCudaApplicationConfig config;
         const auto& systemOptions = options.SystemOptions.Get();
         config.DeviceConfig = systemOptions.Devices;
@@ -47,19 +98,16 @@ namespace NCatboostCuda
     }
 
     inline void CheckForSnapshotAndReloadOptions(const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                 NCatboostOptions::TCatBoostOptions* options)
-    {
+                                                 NCatboostOptions::TCatBoostOptions* options) {
         auto snapshotFullPath = outputOptions.CreateSnapshotFullPath();
         if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFullPath)) {
             if (GetFileLength(snapshotFullPath) == 0) {
                 MATRIXNET_WARNING_LOG << "Empty snapshot file. Something is wrong" << Endl;
             } else {
                 TString jsonOptions;
-                TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(
-                        snapshotFullPath, [&](TIFStream* in)
-                        {
-                            ::Load(in, jsonOptions);
-                        });
+                TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(snapshotFullPath, [&](TIFStream* in) {
+                    ::Load(in, jsonOptions);
+                });
                 options->Load(jsonOptions);
             }
         }
@@ -77,17 +125,14 @@ namespace NCatboostCuda
     static inline void EstimatePriors(const TDataProvider& dataProvider,
                                       TBinarizedFeaturesManager& featureManager,
                                       NCatboostOptions::TCatFeatureParams& options) {
-
         CB_ENSURE(&(featureManager.GetCatFeatureOptions()) == &options, "Error: for consistent catFeature options should be equal to one in feature manager");
 
         bool needSimpleCtrsPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
-
         const auto& borders = featureManager.GetTargetBorders();
         if (borders.size() > 1) {
             return;
         }
         auto binarizedTarget = BinarizeLine<ui8>(dataProvider.GetTargets().data(), dataProvider.GetTargets().size(), ENanMode::Forbidden, borders);
-
 
         TVector<int> catFeatureIds(dataProvider.GetCatFeatureIds().begin(), dataProvider.GetCatFeatureIds().end());
         TAdaptiveLock lock;
@@ -98,11 +143,11 @@ namespace NCatboostCuda
             if (!dataProvider.HasFeatureId(catFeature)) {
                 return;
             }
-            const TCatFeatureValuesHolder& catFeatureValues = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(catFeature));
+            const ICatFeatureValuesHolder& catFeatureValues = dynamic_cast<const ICatFeatureValuesHolder&>(dataProvider.GetFeatureById(catFeature));
 
             bool hasPerFeatureCtr = false;
 
-            with_lock(lock) {
+            with_lock (lock) {
                 if (needSimpleCtrsPriorEstimation && !options.PerFeatureCtrs->has(catFeature)) {
                     options.PerFeatureCtrs.Get()[catFeature] = options.SimpleCtrs;
                 }
@@ -111,7 +156,7 @@ namespace NCatboostCuda
 
             if (hasPerFeatureCtr) {
                 TVector<NCatboostOptions::TCtrDescription> currentFeatureDescription;
-                with_lock(lock) {
+                with_lock (lock) {
                     currentFeatureDescription = options.PerFeatureCtrs->at(catFeature);
                 }
                 if (!NeedPriorEstimation(currentFeatureDescription)) {
@@ -137,20 +182,16 @@ namespace NCatboostCuda
         });
     }
 
-
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                      const TDataProvider& dataProvider,
                                      const TDataProvider* testProvider,
-                                     TBinarizedFeaturesManager& featuresManager)
-    {
+                                     TBinarizedFeaturesManager& featuresManager) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
-        if (trainCatBoostOptions.IsProfile)
-        {
+        if (trainCatBoostOptions.IsProfile) {
             profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
-        } else
-        {
+        } else {
             profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::NoProfile);
         }
         TRandom random(trainCatBoostOptions.RandomSeed);
@@ -159,44 +200,12 @@ namespace NCatboostCuda
         const bool storeCatFeaturesInPinnedMemory = trainCatBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
 
         const auto lossFunction = trainCatBoostOptions.LossFunctionDescription->GetLossFunction();
-        switch (lossFunction)
-        {
-            case ELossFunction::RMSE:
-            {
-                model = Train<TL2>(featuresManager,
-                                   trainCatBoostOptions,
-                                   outputOptions,
-                                   dataProvider,
-                                   testProvider,
-                                   random,
-                                   storeCatFeaturesInPinnedMemory);
-                break;
-            }
-            case ELossFunction::CrossEntropy:
-            {
-                model = Train<TCrossEntropy>(featuresManager,
-                                             trainCatBoostOptions,
-                                             outputOptions,
-                                             dataProvider,
-                                             testProvider,
-                                             random,
-                                             storeCatFeaturesInPinnedMemory);
-                break;
-            }
-            case  ELossFunction::Logloss:
-            {
-                model = Train<TLogloss>(featuresManager,
-                                        trainCatBoostOptions,
-                                        outputOptions,
-                                        dataProvider,
-                                        testProvider,
-                                        random,
-                                        storeCatFeaturesInPinnedMemory);
-                break;
-            }
-            default: {
-                ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
-            }
+
+        if (TGpuTrainerFactory::Has(lossFunction)) {
+            THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(lossFunction);
+            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random, storeCatFeaturesInPinnedMemory);
+        } else {
+            ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }
 
         TFullModel result = ConvertToCoreModel(featuresManager,
@@ -210,49 +219,41 @@ namespace NCatboostCuda
         return result;
     }
 
-
-
     TFullModel TrainModel(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
-                          TBinarizedFeaturesManager& featuresManager)
-    {
+                          TBinarizedFeaturesManager& featuresManager) {
         std::promise<TFullModel> resultPromise;
         std::future<TFullModel> resultFuture = resultPromise.get_future();
-        std::thread thread([&]()
-                           {
-                               SetLogingLevel(trainCatBoostOptions.LoggingLevel);
-                               CreateAndSetCudaConfig(trainCatBoostOptions);
+        std::thread thread([&]() {
+            SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+            CreateAndSetCudaConfig(trainCatBoostOptions);
 
-                               StartCudaManager(trainCatBoostOptions.LoggingLevel);
-                               try
-                               {
-                                   if (NCudaLib::GetCudaManager().GetDeviceCount() > 1)
-                                   {
-                                       NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaHost>();
-                                       NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaDevice>();
-                                       NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaHost, NCudaLib::CudaDevice>();
-                                   }
-                                   resultPromise.set_value(TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager));
-                               } catch (...) {
-                                   resultPromise.set_exception(std::current_exception());
-                               }
-                               StopCudaManager();
-                           });
+            StartCudaManager(trainCatBoostOptions.LoggingLevel);
+            try {
+                if (NCudaLib::GetCudaManager().GetDeviceCount() > 1) {
+                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaHost>();
+                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaDevice>();
+                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaHost, NCudaLib::CudaDevice>();
+                }
+                resultPromise.set_value(TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager));
+            } catch (...) {
+                resultPromise.set_exception(std::current_exception());
+            }
+            StopCudaManager();
+        });
         thread.join();
         resultFuture.wait();
 
         return resultFuture.get();
     }
 
-
     void TrainModel(const NJson::TJsonValue& params,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     TPool& learnPool,
                     const TPool& testPool,
-                    TFullModel* model)
-    {
+                    TFullModel* model) {
         TString outputModelPath = outputOptions.CreateResultModelFullPath();
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         catBoostOptions.Load(params);
@@ -264,39 +265,59 @@ namespace NCatboostCuda
             testData = MakeHolder<TDataProvider>();
         }
 
-        TVector<size_t> indices(learnPool.Docs.GetDocCount());
+        TVector<ui64> indices(learnPool.Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
+
+        ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
+        ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
+        if (minTimestamp != maxTimestamp) {
+            indices = CreateOrderByKey(learnPool.Docs.Timestamp);
+            catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
+        }
+
+        bool hasQueries = false;
+        for (ui32 i = 0; i < learnPool.Docs.QueryId.size(); ++i) {
+            if (learnPool.Docs.QueryId[i] != learnPool.Docs.QueryId[0]) {
+                hasQueries = true;
+                break;
+            }
+        }
+
         if (!catBoostOptions.DataProcessingOptions->HasTimeFlag) {
             const ui64 shuffleSeed = catBoostOptions.RandomSeed;
-            TRandom random(shuffleSeed);
-            Shuffle(indices.begin(), indices.end(), random);
-            dataProvider.SetShuffleSeed(shuffleSeed);
+            if (hasQueries) {
+                QueryConsistentShuffle(shuffleSeed, 1u, learnPool.Docs.QueryId, &indices);
+            } else {
+                Shuffle(shuffleSeed, 1u, indices.size(), &indices);
+            }
         } else {
             dataProvider.SetHasTimeFlag(true);
         }
-        ::ApplyPermutation(InvertPermutation(indices), &learnPool);
-        auto permutationGuard = Finally([&] { ::ApplyPermutation(indices, &learnPool); });
-
-        auto ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
         const auto& systemOptions = catBoostOptions.SystemOptions.Get();
         const auto numThreads = systemOptions.NumThreads;
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(numThreads - 1);
+        ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
+        auto permutationGuard = Finally([&] { ::ApplyPermutation(indices, &learnPool, &localExecutor); });
+
+        auto ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
 
         TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                   catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
 
         {
             CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, learnPool, false, dataProvider);
+            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, learnPool, false, dataProvider);
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
-                    .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
-                    .Finish(numThreads);
+                .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
+                .Finish(numThreads);
         }
 
         if (testData != nullptr) {
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, testPool, true, *testData);
+            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, testPool, true, *testData);
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
-                    .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
-                    .Finish(numThreads);
+                .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
+                .Finish(numThreads);
         }
 
         UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
@@ -312,8 +333,7 @@ namespace NCatboostCuda
                           targetClassifiers,
                           numThreads,
                           outputModelPath);
-        } else
-        {
+        } else {
             MakeFullModel(std::move(coreModel),
                           learnPool,
                           targetClassifiers,
@@ -321,7 +341,6 @@ namespace NCatboostCuda
                           model);
         }
     }
-
 
     void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -352,7 +371,7 @@ namespace NCatboostCuda
 
                 const auto& ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
                 dataProviderBuilder
-                        .AddIgnoredFeatures(ignoredFeatures.Get());
+                    .AddIgnoredFeatures(ignoredFeatures.Get());
 
                 if (!catBoostOptions.DataProcessingOptions->HasTimeFlag) {
                     dataProviderBuilder.SetShuffleFlag(true, catBoostOptions.RandomSeed);
@@ -360,13 +379,12 @@ namespace NCatboostCuda
                     dataProvider.SetHasTimeFlag(true);
                 }
                 dataProviderBuilder
-                        .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
+                    .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(numThreads - 1);
 
                 {
-
                     ReadPool(poolLoadOptions.CdFile,
                              poolLoadOptions.LearnFile,
                              poolLoadOptions.PairsFile,
@@ -386,9 +404,9 @@ namespace NCatboostCuda
                                                      true,
                                                      numThreads);
                     testBuilder
-                            .AddIgnoredFeatures(ignoredFeatures.Get())
-                            .SetShuffleFlag(false)
-                            .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
+                        .AddIgnoredFeatures(ignoredFeatures.Get())
+                        .SetShuffleFlag(false)
+                        .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
                     ReadPool(poolLoadOptions.CdFile,
                              poolLoadOptions.TestFile,
@@ -407,7 +425,6 @@ namespace NCatboostCuda
             UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
             EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
 
-
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);
                 TOFStream modelOutput(coreModelPath);
@@ -423,7 +440,5 @@ namespace NCatboostCuda
                       numThreads,
                       resultModelPath);
     }
-
-
 
 }

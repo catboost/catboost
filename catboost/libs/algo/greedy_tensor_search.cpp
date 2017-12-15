@@ -1,6 +1,10 @@
 #include "greedy_tensor_search.h"
 #include "index_calcer.h"
+#include "score_calcer.h"
 #include "tree_print.h"
+
+
+#include <catboost/libs/logging/profile_info.h>
 
 #include <catboost/libs/helpers/interrupt.h>
 
@@ -351,7 +355,7 @@ void GreedyTensorSearch(const TTrainData& data,
         profile.AddOperation(TStringBuilder() << "AssignRandomWeights, depth " << curDepth);
         double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
 
-        double maxLeafCount = 1;
+        TVector<size_t> candLeafCount(candList.ysize(), 1);
         const ui64 randSeed = ctx->Rand.GenRand();
         ctx->LocalExecutor.ExecRange([&](int id) {
             auto& candidate = candList[id];
@@ -364,7 +368,7 @@ void GreedyTensorSearch(const TTrainData& data,
                                       ctx,
                                       &fold->GetCtrRef(proj),
                                       &candidate.ResultingCtrTableSize);
-                    maxLeafCount = Max<double>(maxLeafCount, candidate.ResultingCtrTableSize);
+                    candLeafCount[id] = candidate.ResultingCtrTableSize;
                 }
             }
             TVector<TVector<double>> allScores(candidate.Candidates.size());
@@ -404,6 +408,10 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
             }
         }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        size_t maxLeafCount = 1;
+        for (size_t leafCount : candLeafCount) {
+            maxLeafCount = Max(maxLeafCount, leafCount);
+        }
         fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Calc scores " << curDepth);
@@ -417,7 +425,7 @@ void GreedyTensorSearch(const TTrainData& data,
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
                 if (!ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) && score != MINIMAL_SCORE) {
-                    score *= pow(1 / (1 + subList.ResultingCtrTableSize / maxLeafCount), ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                    score *= pow(1 / (1 + subList.ResultingCtrTableSize / static_cast<double>(maxLeafCount)), ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
                 }
                 if (score > bestScore) {
                     bestScore = score;

@@ -5,8 +5,6 @@
 #include "approx_calcer_pairwise.h"
 #include "approx_calcer_querywise.h"
 #include "fold.h"
-#include "bin_tracker.h"
-#include "index_hash_calcer.h"
 #include "score_calcer.h"
 #include "index_calcer.h"
 #include "learn_context.h"

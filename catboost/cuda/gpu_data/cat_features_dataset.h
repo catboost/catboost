@@ -6,62 +6,51 @@
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/cuda_lib/buffer_resharding.h>
 #include <util/generic/noncopyable.h>
-namespace NCatboostCuda
-{
+namespace NCatboostCuda {
     inline ui64 EstimatePerDeviceMemoryUsageForCatFeaturesDataSet(const TDataProvider& dataProvider,
-                                                                  const TBinarizedFeaturesManager& featuresManager)
-    {
+                                                                  const TBinarizedFeaturesManager& featuresManager) {
         ui32 maxUniqueValue = 0;
-        for (auto feature : featuresManager.GetCatFeatureIds())
-        {
+        for (auto feature : featuresManager.GetCatFeatureIds()) {
             maxUniqueValue = std::max<ui32>(maxUniqueValue, featuresManager.GetBinCount(feature));
         }
         return static_cast<ui64>(
-                CompressedSize<ui64>(static_cast<ui32>(dataProvider.GetSampleCount()), maxUniqueValue) * 1.0 *
-                featuresManager.GetCatFeatureIds().size() / NCudaLib::GetCudaManager().GetDeviceCount());
+            CompressedSize<ui64>(static_cast<ui32>(dataProvider.GetSampleCount()), maxUniqueValue) * 1.0 *
+            featuresManager.GetCatFeatureIds().size() / NCudaLib::GetCudaManager().GetDeviceCount());
     }
 
-    template<NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
     class TCompressedCatFeatureDataSet: public TMoveOnly,
-                                        public TGuidHolder
-    {
+                                         public TGuidHolder {
     public:
         using TCompressedCatFeatureVec = NCudaLib::TCudaBuffer<ui64, NCudaLib::TSingleMapping, StorageType>;
 
-        ui64 GetDocCount() const
-        {
+        ui64 GetDocCount() const {
             return DataProvider->GetTargets().size();
         }
 
-        ui32 GetFeatureCount() const
-        {
-            return (ui32) CompressedCatIndex.size();
+        ui32 GetFeatureCount() const {
+            return (ui32)CompressedCatIndex.size();
         }
 
-        ui32 GetFeatureCount(ui32 devId) const
-        {
+        ui32 GetFeatureCount(ui32 devId) const {
             return static_cast<ui32>(DeviceFeatures[devId].size());
         }
 
-        const TVector<ui32>& GetDeviceFeatures(ui32 devId) const
-        {
+        const TVector<ui32>& GetDeviceFeatures(ui32 devId) const {
             return DeviceFeatures[devId];
         }
 
-        ui32 UniqueValues(ui32 featureId) const
-        {
+        ui32 UniqueValues(ui32 featureId) const {
             return Features.at(featureId).UniqueValues;
         }
 
-        const TCompressedCatFeatureVec& GetFeature(ui32 featureId) const
-        {
+        const TCompressedCatFeatureVec& GetFeature(ui32 featureId) const {
             const ui32 localId = Features.at(featureId).LocalIndex;
             return CompressedCatIndex.at(localId);
         }
 
     private:
-        struct TCatFeature
-        {
+        struct TCatFeature {
             ui32 LocalIndex;
             ui32 UniqueValues;
         };
@@ -72,41 +61,38 @@ namespace NCatboostCuda
         TMap<ui32, TCatFeature> Features;
         const TDataProvider* DataProvider = nullptr;
 
-        template<NCudaLib::EPtrType Type>
-        friend
-        class TCompressedCatFeatureDataSetBuilder;
+        template <NCudaLib::EPtrType Type>
+        friend class TCompressedCatFeatureDataSetBuilder;
     };
 
-    template<NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
-    class TCompressedCatFeatureDataSetBuilder
-    {
+    template <NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
+    class TCompressedCatFeatureDataSetBuilder {
     public:
         TCompressedCatFeatureDataSetBuilder(const TDataProvider& dataProvider,
                                             TBinarizedFeaturesManager& featuresManager,
                                             TCompressedCatFeatureDataSet<StorageType>& dataSet)
-                : DevCount(GetDeviceCount())
-                  , DataSet(dataSet)
-                  , DataProvider(dataProvider)
-                  , FeaturesManager(featuresManager)
+            : DevCount(GetDeviceCount())
+            , DataSet(dataSet)
+            , DataProvider(dataProvider)
+            , FeaturesManager(featuresManager)
         {
             MemoryUsage.resize(DevCount, 0);
             DataSet.DataProvider = &DataProvider;
             DataSet.DeviceFeatures.resize(DevCount);
         }
 
-        TCompressedCatFeatureDataSetBuilder& Add(ui32 featureId)
-        {
+        TCompressedCatFeatureDataSetBuilder& Add(ui32 featureId) {
             const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
             const auto& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(DataProvider.GetFeatureById(
-                    dataProviderId));
+                dataProviderId));
             const ui64 docCount = catFeature.GetSize();
 
             auto uncompressedCatFeature = catFeature.ExtractValues();
             TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-                    NCudaLib::TSingleMapping(DeviceId, uncompressedCatFeature.size()));
+                NCudaLib::TSingleMapping(DeviceId, uncompressedCatFeature.size()));
             tmp.Write(uncompressedCatFeature);
             const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
-            const auto compressedSize = CompressedSize<ui64>((ui32) docCount, uniqueValues);
+            const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);
             auto compressedMapping = NCudaLib::TSingleMapping(DeviceId, compressedSize);
 
             auto& catIndex = DataSet.CompressedCatIndex;
@@ -120,19 +106,17 @@ namespace NCatboostCuda
             return *this;
         }
 
-        void Finish()
-        {
+        void Finish() {
             CB_ENSURE(!BuildDone, "Error: build could be done only once");
             MATRIXNET_INFO_LOG << "Build catFeatures compressed dataset "
                                << "for "
                                << DataSet.GetFeatureCount() << " features and " << DataSet.GetDocCount() << " documents"
                                << Endl;
 
-            for (ui32 dev = 0; dev < DevCount; ++dev)
-            {
+            for (ui32 dev = 0; dev < DevCount; ++dev) {
                 MATRIXNET_INFO_LOG
-                << "Memory usage at #" << dev << ": " << sizeof(ui64) * MemoryUsage[dev] * 1.0 / 1024 / 1024 << "MB"
-                << Endl;
+                    << "Memory usage at #" << dev << ": " << sizeof(ui64) * MemoryUsage[dev] * 1.0 / 1024 / 1024 << "MB"
+                    << Endl;
             }
             BuildDone = true;
         }
@@ -148,25 +132,21 @@ namespace NCatboostCuda
         const TBinarizedFeaturesManager& FeaturesManager;
     };
 
-    template<class TValue>
-    class TLazyStreamValue: public TMoveOnly
-    {
+    template <class TValue>
+    class TLazyStreamValue: public TMoveOnly {
     public:
         explicit TLazyStreamValue(TValue&& value,
                                   ui32 stream = 0)
-                : Stream(stream)
-                  , Value(std::move(value))
+            : Stream(stream)
+            , Value(std::move(value))
         {
         }
 
-        TLazyStreamValue()
-        {
+        TLazyStreamValue() {
         }
 
-        const TValue& Get() const
-        {
-            if (!IsSynced)
-            {
+        const TValue& Get() const {
+            if (!IsSynced) {
                 auto& manager = NCudaLib::GetCudaManager();
                 manager.WaitComplete();
                 IsSynced = true;
@@ -174,13 +154,10 @@ namespace NCatboostCuda
             return Value;
         }
 
-        const TValue& GetInStream(ui32 stream) const
-        {
-            if (Stream == stream)
-            {
+        const TValue& GetInStream(ui32 stream) const {
+            if (Stream == stream) {
                 return Value;
-            } else
-            {
+            } else {
                 return Get();
             }
         }
@@ -191,24 +168,21 @@ namespace NCatboostCuda
         TValue Value;
     };
 
-    template<NCudaLib::EPtrType CatFeatureStorageType = NCudaLib::CudaDevice>
-    class TMirrorCatFeatureProvider: public TNonCopyable
-    {
+    template <NCudaLib::EPtrType CatFeatureStorageType = NCudaLib::CudaDevice>
+    class TMirrorCatFeatureProvider: public TNonCopyable {
     public:
         TMirrorCatFeatureProvider(const TCompressedCatFeatureDataSet<CatFeatureStorageType>& dataSet,
                                   TScopedCacheHolder& cache)
-                : Src(dataSet)
-                  , ScopedCache(cache)
+            : Src(dataSet)
+            , ScopedCache(cache)
         {
         }
 
         const TLazyStreamValue<TMirrorBuffer<ui64>>& BroadcastFeature(ui32 featureId,
-                                                                      ui32 builderStream = 0)
-        {
-            return ScopedCache.Cache(Src, featureId, [&]() -> TLazyStreamValue<TMirrorBuffer<ui64>>
-            {
+                                                                      ui32 builderStream = 0) {
+            return ScopedCache.Cache(Src, featureId, [&]() -> TLazyStreamValue<TMirrorBuffer<ui64>> {
                 auto& src = Src.GetFeature(featureId);
-                auto mapping = NCudaLib::TMirrorMapping(CompressedSize<ui64>((ui32) Src.GetDocCount(),
+                auto mapping = NCudaLib::TMirrorMapping(CompressedSize<ui64>((ui32)Src.GetDocCount(),
                                                                              Src.UniqueValues(featureId)));
                 TMirrorBuffer<ui64> dst = TMirrorBuffer<ui64>::Create(mapping);
                 NCudaLib::Reshard(src, dst, builderStream);
@@ -218,8 +192,7 @@ namespace NCatboostCuda
         }
 
         const TMirrorBuffer<ui64>& GetFeature(ui32 featureId,
-                                              ui32 builderStream = 0)
-        {
+                                              ui32 builderStream = 0) {
             return BroadcastFeature(featureId, builderStream).Get();
         }
 
@@ -228,4 +201,3 @@ namespace NCatboostCuda
         TScopedCacheHolder& ScopedCache;
     };
 }
-

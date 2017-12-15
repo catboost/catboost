@@ -15,40 +15,37 @@
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_base.h>
 
-namespace NCatboostCuda
-{
-    class TObliviousTree
-    {
+namespace NCatboostCuda {
+    class TObliviousTree {
     public:
         using TResultModel = TObliviousTreeModel;
         using TWeakModelStructure = TObliviousTreeStructure;
 
         TObliviousTree(TBinarizedFeaturesManager& featuresManager,
                        const NCatboostOptions::TObliviousTreeLearnerOptions& config,
-                       ui64 randomSeed = 0)
-                : FeaturesManager(featuresManager)
-                  , TreeConfig(config)
-                , RandomSeed(randomSeed)
+                       ui64 randomSeed = 0,
+                       bool makeZeroAverage = false)
+            : FeaturesManager(featuresManager)
+            , TreeConfig(config)
+            , RandomSeed(randomSeed)
+            , MakeZeroAverage(makeZeroAverage)
         {
         }
 
-        template<class TDataSet>
+        template <class TDataSet>
         TObliviousTree& CacheStructure(TScopedCacheHolder& cacheHolder,
                                        const TObliviousTreeStructure& model,
-                                       const TDataSet& dataSet)
-        {
+                                       const TDataSet& dataSet) {
             const auto& bins = GetBinsForModel(cacheHolder, FeaturesManager, dataSet, model);
             Y_UNUSED(bins);
             return *this;
         }
 
-        template<class TTarget,
-                class TDataSet>
+        template <class TTarget,
+                  class TDataSet>
         TObliviousTreeStructureSearcher<TTarget, TDataSet> CreateStructureSearcher(TScopedCacheHolder& cache,
-                                                                                   const TDataSet& dataSet)
-        {
-            if (Bootstrap == nullptr)
-            {
+                                                                                   const TDataSet& dataSet) {
+            if (Bootstrap == nullptr) {
                 const NCatboostOptions::TBootstrapConfig& bootstrapConfig = TreeConfig.BootstrapConfig;
                 Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(dataSet.GetTarget().GetMapping(),
                                                                              bootstrapConfig,
@@ -63,10 +60,9 @@ namespace NCatboostCuda
                                                                       TreeConfig);
         }
 
-        template<template<class TMapping, class> class TTarget, class TDataSet>
+        template <template <class TMapping, class> class TTarget, class TDataSet>
         TObliviousTreeLeavesEstimator<TTarget, TDataSet> CreateEstimator(const TObliviousTreeStructure& structure,
-                                                                         TScopedCacheHolder& cache)
-        {
+                                                                         TScopedCacheHolder& cache) {
             return TObliviousTreeLeavesEstimator<TTarget, TDataSet>(structure,
                                                                     FeaturesManager,
                                                                     cache,
@@ -74,13 +70,13 @@ namespace NCatboostCuda
                                                                     TreeConfig.L2Reg,
                                                                     TreeConfig.LeavesEstimationIterations,
                                                                     TreeConfig.FoldSizeLossNormalization,
-                                                                    TreeConfig.AddRidgeToTargetFunctionFlag);
+                                                                    TreeConfig.AddRidgeToTargetFunctionFlag,
+                                                                    MakeZeroAverage);
         }
 
-        template<class TDataSet>
+        template <class TDataSet>
         TAddModelValue<TObliviousTreeModel, TDataSet> CreateAddModelValue(const TObliviousTreeStructure& structure,
-                                                                          TScopedCacheHolder& cache)
-        {
+                                                                          TScopedCacheHolder& cache) {
             return TAddModelValue<TObliviousTreeModel, TDataSet>(cache,
                                                                  FeaturesManager,
                                                                  structure);
@@ -91,6 +87,6 @@ namespace NCatboostCuda
         TBinarizedFeaturesManager& FeaturesManager;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         ui64 RandomSeed;
+        bool MakeZeroAverage = false;
     };
 }
-
