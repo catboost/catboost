@@ -16,7 +16,7 @@
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
-ui32 GetModelFileDescriptor() {
+ui32 GetModelFormatDescriptor() {
     return *reinterpret_cast<const ui32*>(MODEL_FILE_DESCRIPTOR_CHARS);
 }
 
@@ -172,6 +172,22 @@ void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,
     );
 }
 
+void TFullModel::CalcFlatSingle(const TConstArrayRef<float>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
+    CalcGeneric(
+        *this,
+        [&](const TFloatFeature& floatFeature, size_t ) {
+            return features[floatFeature.FlatFeatureIndex];
+        },
+        [&](size_t catFeatureIdx, size_t ) {
+            return ConvertFloatCatFeatureToIntHash(features[ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex]);
+        },
+        1,
+        treeStart,
+        treeEnd,
+        results
+    );
+}
+
 void TFullModel::CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transposedFeatures,
                                            size_t treeStart,
                                            size_t treeEnd,
@@ -310,7 +326,7 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervalsFlat(
 void TFullModel::Save(IOutputStream* s) const {
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
-    ::Save(s, GetModelFileDescriptor());
+    ::Save(s, GetModelFormatDescriptor());
     TModelPartsCachingSerializer serializer;
     auto obliviousTreesOffset = ObliviousTrees.FBSerialize(serializer);
     std::vector<flatbuffers::Offset<TKeyValue>> infoMap;
@@ -350,7 +366,7 @@ void TFullModel::Load(IInputStream* s) {
     using namespace NCatBoostFbs;
     ui32 fileDescriptor;
     ::Load(s, fileDescriptor);
-    CB_ENSURE(fileDescriptor == GetModelFileDescriptor(), "Incorrect model file descriptor");
+    CB_ENSURE(fileDescriptor == GetModelFormatDescriptor(), "Incorrect model file descriptor");
     auto coreSize = ::LoadSize(s);
     TArrayHolder<ui8> arrayHolder = new ui8[coreSize];
     s->LoadOrFail(arrayHolder.Get(), coreSize);

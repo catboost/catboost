@@ -30,8 +30,8 @@ struct TSelect1st {
 
 struct TIdentity {
     template <class T>
-    inline const T& operator()(const T& x) const noexcept {
-        return x;
+    constexpr decltype(auto) operator()(T&& x) const noexcept {
+        return std::forward<T>(x);
     }
 };
 

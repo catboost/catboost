@@ -41,8 +41,10 @@ void NPrivate::LockRecursive(TAtomic& lock) noexcept {
     Y_VERIFY(AtomicGet(lock) != id, "recursive singleton initialization");
 
     if (!MyAtomicTryLock(lock, id)) {
+        TSpinWait sw;
+
         do {
-            SpinLockPause();
+            sw.Sleep();
         } while (!MyAtomicTryAndTryLock(lock, id));
     }
 }

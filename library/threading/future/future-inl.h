@@ -555,6 +555,12 @@ inline const T& TFuture<T>::GetValueSync() const {
 }
 
 template <typename T>
+inline T TFuture<T>::ExtractValueSync()
+{
+    return ExtractValue(TDuration::Max());
+}
+
+template <typename T>
 inline bool TFuture<T>::HasException() const
 {
     return State && State->HasException();

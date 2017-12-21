@@ -17,7 +17,7 @@ namespace NKernel {
         Filter filter;
         if (i < size) {
             result[i] = filter(weights[i]);
-            (weights[i] != 0 ? 0 : 1);
+            weights[i] != 0 ? 0 : 1;
         }
     }
 

@@ -7,6 +7,10 @@
 #include <util/generic/yexception.h>
 #include <util/thread/singleton.h>
 #include <catboost/libs/helpers/exception.h>
+#include <util/ysaveload.h>
+
+static_assert(std::is_pod<cudaDeviceProp>::value, "cudaDeviceProp is not pod type");
+Y_DECLARE_PODTYPE(cudaDeviceProp);
 
 #define CUDA_SAFE_CALL(statement)                                                                            \
     {                                                                                                        \
@@ -180,8 +184,22 @@ namespace NCudaLib {
         CUDA_SAFE_CALL(cudaSetDevice(devId));
     }
 
+    inline int GetDevice() {
+        int devId;
+        CUDA_SAFE_CALL(cudaGetDevice(&devId));
+        return devId;
+    }
+
     inline void CheckLastError() {
         CUDA_SAFE_CALL(cudaGetLastError());
+    }
+
+    template <class T>
+    inline int GetDeviceForPointer(const T* ptr) {
+        cudaPointerAttributes result;
+        CUDA_SAFE_CALL(cudaPointerGetAttributes(&result, (const void*)ptr));
+        CB_ENSURE(result.memoryType == cudaMemoryTypeDevice, "Error: this pointer is not GPU pointer");
+        return result.device;
     }
 
     namespace NCudaHelpers {
@@ -198,6 +216,8 @@ namespace NCudaLib {
 
     public:
         TCudaDeviceProperties(const TCudaDeviceProperties& other) = default;
+
+        TCudaDeviceProperties() = default;
 
         explicit TCudaDeviceProperties(cudaDeviceProp props)
             : Props(props)
@@ -219,6 +239,8 @@ namespace NCudaLib {
         ui64 GetMinor() const {
             return Props.minor;
         }
+
+        Y_SAVELOAD_DEFINE(Props);
     };
 
     namespace NCudaHelpers {

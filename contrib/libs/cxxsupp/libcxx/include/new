@@ -95,7 +95,15 @@ void  operator delete[](void* ptr, void*) noexcept;
 #endif
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(_LIBCPP_NO_VCRUNTIME)
-#include <support/win32/new_win32.h>
+#include <vcruntime_new.h>
+
+// Not in inline namespace to get implementation from ucrt.
+namespace std
+{
+typedef void (*new_handler)();
+_LIBCPP_FUNC_VIS new_handler set_new_handler(new_handler) _NOEXCEPT;
+_LIBCPP_FUNC_VIS new_handler get_new_handler() _NOEXCEPT;
+}
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)

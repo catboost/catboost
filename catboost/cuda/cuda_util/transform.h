@@ -80,7 +80,7 @@ namespace NKernelHost {
             }
         }
 
-        SAVELOAD(X, Y, ConstY, OperationType);
+        Y_SAVELOAD_DEFINE(X, Y, ConstY, OperationType);
     };
 
     template <typename T>
@@ -107,7 +107,7 @@ namespace NKernelHost {
             }
         }
 
-        SAVELOAD(X, Type);
+        Y_SAVELOAD_DEFINE(X, Type);
     };
 
     template <typename T, typename Index = int>
@@ -135,7 +135,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Source, Dest, Map, Type, Mask);
+        Y_SAVELOAD_DEFINE(Source, Dest, Map, Type, Mask);
 
         void Run(const TCudaStream& stream) const {
             Index allMask = static_cast<Index>(-1ULL);
@@ -175,7 +175,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Data);
+        Y_SAVELOAD_DEFINE(Data);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Data.Size() == Data.ObjectCount());

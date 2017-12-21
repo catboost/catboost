@@ -8,6 +8,9 @@ char& FF2() noexcept;
 
 namespace {
     struct X {
+        inline X() {
+        }
+
         char Buf[100];
     };
 

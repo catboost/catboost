@@ -457,6 +457,8 @@ bool TPairLogitMetric::IsMaxOptimal() const {
 
 /* QueryRMSE */
 
+// TODO(nikitxskv): queriesSize will result in a lot of cache misses. We loop
+// through queries sequentially, so why use hash map?
 TMetricHolder TQueryRMSEMetric::EvalQuerywise(const TVector<TVector<double>>& approx,
                                          const TVector<float>& target,
                                          const TVector<float>& weight,
@@ -982,6 +984,7 @@ TMetricHolder TCustomMetric::EvalQuerywise(const TVector<TVector<double>>& /*app
                                           const TVector<ui32>& /*queriesId*/,
                                           const THashMap<ui32, ui32>& /*queriesSize*/,
                                           int /*begin*/, int /*end*/) const {
+    // TODO(annaveronika): change exception.
     CB_ENSURE(false, "This eval is only for QueryRMSE");
 }
 
@@ -1058,10 +1061,70 @@ bool TUserDefinedQuerywiseMetric::IsMaxOptimal() const {
     return false;
 }
 
+
+/* QueryAverage */
+
+TMetricHolder TQueryAverage::EvalQuerywise(const TVector<TVector<double>>& approx,
+                                         const TVector<float>& target,
+                                         const TVector<float>& weight,
+                                         const TVector<ui32>& queriesId,
+                                         const THashMap<ui32, ui32>& queriesSize,
+                                         int begin, int end) const {
+    CB_ENSURE(approx.size() == 1, "Metric QueryAverage supports only single-dimensional data");
+    Y_UNUSED(weight);
+
+    int offset = 0;
+    TMetricHolder error;
+
+    TVector<std::pair<double, int>> approxWithDoc;
+    while (begin + offset < end) {
+        // TODO(nikitxskv): remove map.
+        ui32 querySize = queriesSize.find(queriesId[begin + offset])->second;
+        auto startIdx = begin + offset;
+        auto endIdx = startIdx + querySize;
+
+        double targetSum = 0;
+        if ((int)querySize <= TopSize) {
+            for (ui32 docId = startIdx; docId < endIdx; ++docId) {
+                targetSum += target[docId];
+            }
+            error.Error += targetSum / querySize;
+        } else {
+            approxWithDoc.yresize(querySize);
+            for (ui32 i = 0; i < querySize; ++i) {
+                int docId = startIdx + i;
+                approxWithDoc[i].first = approx[0][docId];
+                approxWithDoc[i].second = docId;;
+            }
+            std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize,
+                             approxWithDoc.end(), std::greater<>());
+            for (int i = 0; i < TopSize; ++i) {
+                targetSum += target[approxWithDoc[i].second];
+            }
+            error.Error += targetSum / TopSize;
+        }
+
+        error.Weight += 1;
+        offset += querySize;
+    }
+
+    return error;
+}
+
+TString TQueryAverage::GetDescription() const {
+    auto metricName = ToString(ELossFunction::QueryAverage);
+    return Sprintf("%s:top=%d", metricName.c_str(), TopSize);
+}
+
+bool TQueryAverage::IsMaxOptimal() const {
+    return true;
+}
+
 /* Create */
 
 inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashMap<TString, float>& params, int approxDimension) {
-    if (metric != ELossFunction::Quantile && metric != ELossFunction::LogLinQuantile && metric != ELossFunction::Logloss) {
+    TSet<ELossFunction> metricsWithParams = {ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::Logloss, ELossFunction::QueryAverage};
+    if (!metricsWithParams.has(metric)) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
     }
     TVector<THolder<IMetric>> result;
@@ -1099,6 +1162,13 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const THashM
             } else {
                 result.emplace_back(new TLogLinQuantileMetric());
             }
+            return result;
+        }
+
+        case ELossFunction::QueryAverage: {
+            auto it = params.find("top");
+            CB_ENSURE(it != params.end(), "QueryAverage metric should have top parameter");
+            result.emplace_back(new TQueryAverage(it->second));
             return result;
         }
 

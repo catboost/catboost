@@ -101,7 +101,7 @@ class Pool(_PoolBase):
 
         column_description : string, optional (default=None)
             ColumnsDescription parameter.
-            There are only three columns description types: Target, Categ, Num.
+            There are several columns description types: Target, Categ, Num, Auxiliary, DocId, Weight, Baseline, QueryId, Timestamp.
             All columns are Num as default, it's not necessary to specify
             this type of columns. Default Target column index is 0 (zero).
             If None, Target column is 0 (zero) as default, all data columns are Num as default.

@@ -21,12 +21,12 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames);
+            CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
             CB_ENSURE(FloatFeaturesBinarization->BorderCount <= GetMaxBinCount(), "Error: catboost doesn't support binarization with >= 256 levels");
         }
 
         void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, IgnoredFeatures, HasTimeFlag, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames);
+            SaveFields(options, IgnoredFeatures, HasTimeFlag, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage);
         }
 
         bool operator==(const TDataProcessingOptions& rhs) const {

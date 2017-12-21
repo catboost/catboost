@@ -156,8 +156,12 @@ TVector<TVector<double>>& TEvalResult::GetApproxesRef() {
     return Approxes;
 }
 
-void TEvalResult::DropRawValues() {
+void TEvalResult::ClearRawValues() {
     RawValues.clear();
+}
+
+void TEvalResult::ClearApproxes() {
+    Approxes.clear();
 }
 
 void TEvalResult::PostProcess(NPar::TLocalExecutor* executor, TMaybe<std::pair<int, int>> evalBorders) {

@@ -1,8 +1,7 @@
 R_MODULE(
     catboostr
-    EXPORTS
-    catboostr.exports
 )
+EXPORTS_SCRIPT(catboostr.exports)
 
 
 

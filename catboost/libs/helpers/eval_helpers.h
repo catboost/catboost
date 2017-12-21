@@ -27,7 +27,8 @@ public:
     void SetPredictionTypes(const TVector<EPredictionType>& predictionTypes_);
     TVector<TVector<double>>& GetRawValuesRef();
     TVector<TVector<double>>& GetApproxesRef();
-    void DropRawValues();
+    void ClearRawValues();
+    void ClearApproxes();
 
     void PostProcess(NPar::TLocalExecutor* executor, TMaybe<std::pair<int, int>> evalBorders=TMaybe<std::pair<int, int>>());
     void PostProcess(int threadCount);

@@ -17,6 +17,8 @@ int mode_fstr(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParserOpts(parser);
+    parser.FindLongOption("output-path")
+        ->DefaultValue("feature_strength.tsv");
     parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, Doc")
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([&params](const TString& fstrType) {

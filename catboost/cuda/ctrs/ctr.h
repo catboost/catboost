@@ -10,7 +10,8 @@
 #include <util/digest/city.h>
 #include <util/generic/set.h>
 #include <util/generic/map.h>
-#include <library/binsaver/bin_saver.h>
+#include <util/ysaveload.h>
+
 namespace NCatboostCuda {
     inline bool IsBinarizedTargetCtr(ECtrType type) {
         return type == ECtrType::Buckets || type == ECtrType::Borders;
@@ -105,7 +106,6 @@ namespace NCatboostCuda {
             return !(*this == other);
         }
 
-        SAVELOAD(Type, Prior, ParamId, CtrBinarizationConfigId);
         Y_SAVELOAD_DEFINE(Type, Prior, ParamId, CtrBinarizationConfigId);
     };
 

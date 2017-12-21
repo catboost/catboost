@@ -1047,7 +1047,8 @@ class GnuToolchain(Toolchain):
             emit('OS_SDK', self.tc.os_sdk)
             emit('PERL_OS_SDK', 'ubuntu-12')
         else:
-            emit('PERL_OS_SDK', '$(OS_SDK)')
+            # temporary https://st.yandex-team.ru/DEVTOOLS-4027
+            emit('PERL_OS_SDK', self.tc.os_sdk)
         emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else '$(OS_SDK_ROOT)')
 
 
@@ -1795,8 +1796,6 @@ class MSVCLinker(MSVC, Linker):
             'advapi32.lib',
             'crypt32.lib',
         ]
-        link_flags_debug.append('libcpmtd.lib')
-        link_flags_release.append('libcpmt.lib')
 
         emit('LINK_LIB_CMD', linker_lib)
         emit('LINK_EXE_CMD', linker)
@@ -2008,18 +2007,17 @@ class Cuda(object):
 
         if use_arcadia_cuda:
             emit('CUDA_ROOT', '$(CUDA)')
+
+            cuda_compiler = self.get_cuda_compiler()
+            if cuda_compiler is not None:
+                nvcc_flags.append('--compiler-bindir={}'.format(cuda_compiler))
+
             target = self.build.target
             if target.is_linux:
                 if target.is_x86_64:
-                    nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/g++-4.9')
                     if self.build.tc.is_clang:
                         os_sdk_root = '{OS_SDK_ROOT}' if self.build.tc.version_at_least(4, 0) else ''
                         nvcc_flags.append('-I${}/usr/include/x86_64-linux-gnu'.format(os_sdk_root))
-                elif target.is_aarch64:
-                    nvcc_flags.append('--compiler-bindir=$(CUDA)/compiler/gcc/bin/aarch64-linux-g++')
-            if target.is_macos:
-                if target.is_x86_64:
-                    nvcc_flags.append('--compiler-bindir=$(CUDA_XCODE)/usr/bin')
 
         emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
@@ -2029,6 +2027,25 @@ class Cuda(object):
 
         nvcc_flags.append('$CUDA_NVCC_FLAGS')
         emit('NVCC_FLAGS', nvcc_flags)
+
+    def get_cuda_compiler(self):
+        target = self.build.target
+
+        user_compiler = preset('CUDA_COMPILER')
+        if user_compiler is not None:
+            return user_compiler
+
+        if target.is_linux:
+            if target.is_x86_64:
+                return '$(CUDA)/compiler/gcc/bin/g++-4.9'
+            elif target.is_aarch64:
+                return '$(CUDA)/compiler/gcc/bin/aarch64-linux-g++'
+
+        elif target.is_macos:
+            if target.is_x86_64:
+                return '$(CUDA_XCODE)/usr/bin'
+
+        return None
 
     def _have_cuda(self):
         if preset('CUDA_ROOT') is not None:

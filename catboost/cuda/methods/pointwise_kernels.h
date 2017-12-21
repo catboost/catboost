@@ -62,7 +62,7 @@ namespace NKernelHost {
             CB_ENSURE(binFeatureCount == bFeatures.Size(), TStringBuilder() << binFeatureCount << " ≠ " << bFeatures.Size());
         }
 
-        SAVELOAD(BFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartsCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(BFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartsCount, FoldCount, BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2Binary(BFeatures.Get(), static_cast<int>(BFeatures.Size()),
@@ -113,7 +113,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2NonBinary(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
@@ -166,7 +166,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2HalfByte(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
@@ -201,7 +201,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(DstBins, Bins, DocIndices, LoadBit, FoldBits);
+        Y_SAVELOAD_DEFINE(DstBins, Bins, DocIndices, LoadBit, FoldBits);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(DstBins.Size() == DocIndices.Size());
@@ -230,7 +230,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Target, Weights, Parts, PartStats);
+        Y_SAVELOAD_DEFINE(Target, Weights, Parts, PartStats);
 
         void Run(const TCudaStream& stream) const {
             NKernel::UpdatePartitionProps(Target.Get(), Weights.Get(), nullptr, Parts.Get(),
@@ -261,7 +261,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Histogram, BinFeatureCount, HistCount, LeafCount, FoldCount, Result);
+        Y_SAVELOAD_DEFINE(Histogram, BinFeatureCount, HistCount, LeafCount, FoldCount, Result);
 
         void Run(const TCudaStream& stream) const {
             NKernel::GatherHistogramByLeaves(Histogram.Get(), BinFeatureCount, HistCount,
@@ -308,7 +308,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(BinaryFeatures, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed);
+        Y_SAVELOAD_DEFINE(BinaryFeatures, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed);
 
         void Run(const TCudaStream& stream) const {
             const ui32 foldBits = IntLog2(FoldCount);

@@ -310,6 +310,7 @@ JOIN_SRCS(
     system/sanitizers.cpp
     system/sem.cpp
     system/shmat.cpp
+    system/spin_wait.cpp
     system/spinlock.cpp
     system/sysstat.cpp
     system/sys_alloc.cpp

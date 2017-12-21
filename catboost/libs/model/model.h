@@ -258,6 +258,10 @@ struct TFullModel {
 
     void CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
     void CalcFlat(const TVector<TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatSingle(const TConstArrayRef<float>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatSingle(const TConstArrayRef<float>& features, TArrayRef<double> results) const {
+        CalcFlatSingle(features, 0, ObliviousTrees.TreeSizes.size(), results);
+    }
     void CalcFlat(const TVector<TConstArrayRef<float>>& features, TArrayRef<double> results) const {
         CalcFlat(features, 0, ObliviousTrees.TreeSizes.size(), results);
     }

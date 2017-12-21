@@ -429,14 +429,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\dot_product\library-dot_product.vcxproj">
       <Project>C9E27228-EB15-9076-28B8-5DEE405DB9A4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\avx2\library-fast_exp-avx2.vcxproj">
-      <Project>DE9D74FA-8938-DB39-ED15-DCE195510E79</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>E0EC7772-5C0F-6407-290B-3900C3FF324B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\sse2\library-fast_exp-sse2.vcxproj">
-      <Project>005F449B-17BD-B0FE-A78D-F57DAC88A959</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
       <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>

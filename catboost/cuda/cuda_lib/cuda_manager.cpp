@@ -1,6 +1,7 @@
 #include "cuda_manager.h"
 #include "cuda_profiler.h"
-#include "single_host_memory_copy_tasks.h"
+#include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
+
 using namespace NCudaLib;
 
 void TCudaManager::CreateProfiler() {
@@ -12,11 +13,13 @@ TCudaManager::~TCudaManager() {
 }
 
 void TCudaManager::ResetProfiler(bool printInfo) {
-    if (printInfo) {
-        Profiler->PrintInfo();
+    if (Profiler) {
+        if (printInfo) {
+            Profiler->PrintInfo();
+        }
+        delete Profiler;
+        Profiler = nullptr;
     }
-    delete Profiler;
-    Profiler = nullptr;
 }
 
 void TCudaManager::SyncStream(ui32 stream) {

@@ -49,7 +49,7 @@ namespace NCatboostCuda {
             HasHashInRam = false;
         }
 
-        SAVELOAD(CatFeatureUniqueValues, FeaturesPerfectHash, HasHashInRam);
+        Y_SAVELOAD_DEFINE(CatFeatureUniqueValues, FeaturesPerfectHash, HasHashInRam);
 
     private:
         void Save() const {

@@ -1,6 +1,9 @@
 #include <util/generic/singleton.h>
 
 struct X {
+    inline X() {
+    }
+
     char Buf[100];
 };
 

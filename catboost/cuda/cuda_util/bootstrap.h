@@ -30,7 +30,7 @@ namespace NKernelHost {
             NKernel::PoissonBootstrap(Lambda, Seeds.Get(), Seeds.Size(), Weights.Get(), Weights.Size(), stream.GetStream());
         }
 
-        SAVELOAD(Lambda, Seeds, Weights);
+        Y_SAVELOAD_DEFINE(Lambda, Seeds, Weights);
     };
 
     class TUniformBootstrapKernel: public TStatelessKernel {
@@ -53,7 +53,7 @@ namespace NKernelHost {
             Y_ASSERT(sampleRate <= 1.0f);
         }
 
-        SAVELOAD(SampleRate, Seeds, Weights);
+        Y_SAVELOAD_DEFINE(SampleRate, Seeds, Weights);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Seeds.Size() % 256 == 0);
@@ -79,7 +79,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Seeds, Weights, Temperature);
+        Y_SAVELOAD_DEFINE(Seeds, Weights, Temperature);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Seeds.Size() % 256 == 0);

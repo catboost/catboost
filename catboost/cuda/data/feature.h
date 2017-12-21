@@ -156,7 +156,6 @@ namespace NCatboostCuda {
             return CatFeatures.size() + std::min<ui64>(Splits.size(), 1);
         }
 
-        SAVELOAD(Splits, CatFeatures);
         Y_SAVELOAD_DEFINE(Splits, CatFeatures);
 
     private:
@@ -199,7 +198,6 @@ namespace NCatboostCuda {
             return std::tie(FeatureTensor, Configuration) < std::tie(other.FeatureTensor, other.Configuration);
         }
 
-        SAVELOAD(FeatureTensor, Configuration);
         Y_SAVELOAD_DEFINE(FeatureTensor, Configuration);
     };
 

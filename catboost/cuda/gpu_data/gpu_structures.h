@@ -1,6 +1,10 @@
 #pragma once
 
 #include <util/system/types.h>
+
+#ifndef __NVCC__
+#include <util/ysaveload.h>
+#endif
 //struct to make bin-feature from ui32 feature
 // (compressedIndex[Offset] & Mask  should be true
 struct TCBinFeature {
@@ -58,3 +62,7 @@ struct TPartitionStatistics {
                Count == other.Count;
     }
 };
+
+#ifndef __NVCC__
+    Y_DECLARE_PODTYPE(TCFeature);
+#endif

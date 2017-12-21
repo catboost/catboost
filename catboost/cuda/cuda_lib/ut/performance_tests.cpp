@@ -5,7 +5,7 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>
-#include <catboost/cuda/cuda_lib/buffer_resharding.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 
 using namespace NCudaLib;
 

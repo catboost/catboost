@@ -36,7 +36,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(BinValues, Bins, ReadIndices, WriteIndices, Cursor);
+        Y_SAVELOAD_DEFINE(BinValues, Bins, ReadIndices, WriteIndices, Cursor);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));

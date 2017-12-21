@@ -6,10 +6,10 @@
 #include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/fill.h>
-#include <library/threading/local_executor/local_executor.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/utils/countdown_latch.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
+#include <library/threading/local_executor/local_executor.h>
 
 using namespace NCudaLib;
 

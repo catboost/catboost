@@ -91,7 +91,7 @@ namespace NCudaLib {
         };
 
         TAtomicSharedPtr<TCudaManagerState> State;
-        TCudaProfiler* Profiler = nullptr;
+        TCudaProfiler* Profiler = nullptr; //TODO(kirillovs): replace with holder or another smart pointer
         TCudaProfiler* ParentProfiler = nullptr;
 
         bool IsChildManager = false;
@@ -164,10 +164,6 @@ namespace NCudaLib {
 
     public:
         ~TCudaManager();
-
-        bool HasPeerAccess(ui64 from, ui64 to) const {
-            return GetState().Devices[from]->HasPeerAccess(GetState().Devices[to]);
-        }
 
         template <class TKernel>
         inline void LaunchKernel(TKernel&& kernel,

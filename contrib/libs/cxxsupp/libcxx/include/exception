@@ -83,7 +83,7 @@ template <class E> void rethrow_if_nested(const E& e);
 #include <type_traits>
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(_LIBCPP_NO_VCRUNTIME)
-#include <support/win32/exception_win32.h>
+#include <vcruntime_exception.h>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -134,8 +134,6 @@ class _LIBCPP_TYPE_VIS exception_ptr;
 _LIBCPP_FUNC_VIS exception_ptr current_exception() _NOEXCEPT;
 _LIBCPP_NORETURN _LIBCPP_FUNC_VIS void rethrow_exception(exception_ptr);
 
-#ifndef _LIBCPP_ABI_MICROSOFT
-
 class _LIBCPP_TYPE_VIS exception_ptr
 {
     void* __ptr_;
@@ -158,9 +156,18 @@ public:
     bool operator!=(const exception_ptr& __x, const exception_ptr& __y) _NOEXCEPT
         {return !(__x == __y);}
 
+    friend _LIBCPP_FUNC_VIS void swap(exception_ptr& __x, exception_ptr& __y) _NOEXCEPT
+    {
+        void* __tmp = __x.__ptr_;
+        __x.__ptr_ = __y.__ptr_;
+        __y.__ptr_ = __tmp;
+    }
+
     friend _LIBCPP_FUNC_VIS exception_ptr current_exception() _NOEXCEPT;
     friend _LIBCPP_FUNC_VIS void rethrow_exception(exception_ptr);
 };
+
+#ifndef _LIBCPP_ABI_MICROSOFT
 
 template<class _Ep>
 exception_ptr
@@ -183,39 +190,7 @@ make_exception_ptr(_Ep __e) _NOEXCEPT
 
 #else // _LIBCPP_ABI_MICROSOFT
 
-class _LIBCPP_TYPE_VIS exception_ptr
-{
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-private-field"
-#endif
-    void* __ptr1_;
-    void* __ptr2_;
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-public:
-    exception_ptr() _NOEXCEPT;
-    exception_ptr(nullptr_t) _NOEXCEPT;
-    exception_ptr(const exception_ptr& __other) _NOEXCEPT;
-    exception_ptr& operator=(const exception_ptr& __other) _NOEXCEPT;
-    exception_ptr& operator=(nullptr_t) _NOEXCEPT;
-    ~exception_ptr() _NOEXCEPT;
-    _LIBCPP_EXPLICIT operator bool() const _NOEXCEPT;
-};
-
-_LIBCPP_FUNC_VIS
-bool operator==(const exception_ptr& __x, const exception_ptr& __y) _NOEXCEPT;
-
-inline _LIBCPP_INLINE_VISIBILITY
-bool operator!=(const exception_ptr& __x, const exception_ptr& __y) _NOEXCEPT
-    {return !(__x == __y);}
-
-_LIBCPP_FUNC_VIS void swap(exception_ptr&, exception_ptr&) _NOEXCEPT;
-
 _LIBCPP_FUNC_VIS exception_ptr __copy_exception_ptr(void *__exception, const void* __ptr);
-_LIBCPP_FUNC_VIS exception_ptr current_exception() _NOEXCEPT;
-_LIBCPP_NORETURN _LIBCPP_FUNC_VIS void rethrow_exception(exception_ptr p);
 
 // This is a built-in template function which automagically extracts the required
 // information.
@@ -229,6 +204,7 @@ make_exception_ptr(_Ep __e) _NOEXCEPT
 }
 
 #endif // _LIBCPP_ABI_MICROSOFT
+
 // nested_exception
 
 class _LIBCPP_EXCEPTION_ABI nested_exception

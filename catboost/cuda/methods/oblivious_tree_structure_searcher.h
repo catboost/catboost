@@ -589,8 +589,7 @@ namespace NCatboostCuda {
         TOptimizationSubsets CreateSubsets(ui32 maxDepth,
                                            TL2Target& src) {
             TOptimizationSubsets subsets;
-            auto initParts =
-                SingleTaskTarget == nullptr ? WriteFoldBasedInitialBins(subsets.Bins) : WriteSingleTaskInitialBins(subsets.Bins);
+            auto initParts = SingleTaskTarget == nullptr ? WriteFoldBasedInitialBins(subsets.Bins) : WriteSingleTaskInitialBins(subsets.Bins);
             subsets.Indices = TMirrorBuffer<ui32>::CopyMapping(subsets.Bins);
 
             subsets.CurrentDepth = 0;
@@ -825,7 +824,7 @@ namespace NCatboostCuda {
                                                    &target.Weights);
                     const double count = target.WeightedTarget.GetObjectsSlice().Size();
                     MultiplyVector(target.WeightedTarget, target.Weights);
-                    ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100));
+                    ScoreStdDev = RandomStrengthMultipiler * sqrt(sum2 / (count + 1e-100)) * TreeConfig.RandomStrength;
                 }
             }
             return target;

@@ -5,7 +5,6 @@
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/binsaver/bin_saver.h>
 #include <util/generic/guid.h>
 
 namespace NCatboostCuda {

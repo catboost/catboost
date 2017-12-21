@@ -429,6 +429,27 @@ private:
 };
 
 
+class TQueryAverage : public TQuerywiseAdditiveMetric {
+public:
+    explicit TQueryAverage(int topSize) : TopSize(topSize) {
+        CB_ENSURE(topSize > 0, "top size for QueryAverage should be greater than 0");
+        CB_ENSURE(topSize == (int)topSize, "top size for QueryAverage should be an integer value");
+    }
+
+    virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
+                                       const TVector<float>& target,
+                                       const TVector<float>& weight,
+                                       const TVector<ui32>& queriesId,
+                                       const THashMap<ui32, ui32>& queriesSize,
+                                       int begin, int end) const override;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+
+private:
+    int TopSize;
+};
+
+
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetrics(const NCatboostOptions::TLossDescription& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,

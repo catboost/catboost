@@ -33,7 +33,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Input, Flags, Output, FlagMask, Inclusive);
+        Y_SAVELOAD_DEFINE(Input, Flags, Output, FlagMask, Inclusive);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             CB_ENSURE(Input.Size() == Flags.Size(), TStringBuilder() << "Input size #" << Input.Size() << " ≠ flags size #" << Flags.Size());

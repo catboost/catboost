@@ -14,16 +14,16 @@ void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     parser.AddLongOption('m', "model-path", "path to model")
         .StoreResult(&ModelFileName)
         .DefaultValue("model.bin");
-    parser.AddLongOption("input-path", "input path, use \"-\" to read from stdin")
+    parser.AddLongOption("input-path", "input path")
         .StoreResult(&InputPath)
-        .DefaultValue("-");
+        .DefaultValue("input.tsv");
     parser.AddLongOption("column-description", "path to columns descriptions")
         .AddLongName("cd")
         .StoreResult(&CdFile)
         .DefaultValue("");
-    parser.AddLongOption('o', "output-path", "output result path, use \"-\" to output to stdout")
+    parser.AddLongOption('o', "output-path", "output result path")
         .StoreResult(&OutputPath)
-        .DefaultValue("-");
+        .DefaultValue("output.tsv");
     parser.AddLongOption('T', "thread-count")
         .StoreResult(&ThreadCount)
         .DefaultValue("1");

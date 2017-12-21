@@ -87,15 +87,7 @@ def onresource(unit, *args):
                 cmd += ['IN'] + compressed_input
             cmd += ['OUT_NOAUTO', fake_yasm] + compressed_output
             unit.onrun_program(cmd)
-            if compressed_output:
-                fake_out = lid + '.yasm'
-                cmd = ['build/scripts/fs_tools.py', 'link_or_copy', fake_yasm, fake_out] + ['IN', fake_yasm]
-                cmd += ['OUTPUT_INCLUDES'] + compressed_output
-                cmd += ['OUT_NOAUTO', fake_out]
-                unit.onbuiltin_python(cmd)
-            else:
-                fake_out = fake_yasm
-            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + fake_out)])
+            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + fake_yasm)])
 
         if srcs_gen:
             output = listid(part_args) + '.cpp'

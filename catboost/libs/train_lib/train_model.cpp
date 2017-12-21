@@ -30,6 +30,7 @@ static void PrepareTargetBinary(float border, TVector<float>* target) {
     }
 }
 
+// TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
 static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
     THashSet<ui32> queryGroupIds;
     ui32 lastId = queryIds.empty() ? 0 : queryIds[0];
@@ -44,7 +45,6 @@ static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
     }
     return true;
 }
-
 
 static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     ui32 checkSum = 0;
@@ -132,7 +132,6 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         metricOptions.CustomMetrics,
         approxDimension);
 
-    // TODO(asaitgalin): Should we have multiple error trackers?
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
@@ -312,6 +311,7 @@ class TCPUModelTrainer : public IModelTrainer {
         if (!(ctx.Params.DataProcessingOptions->HasTimeFlag || IsQuerywiseError(lossFunction))) {
             Shuffle(indices.begin(), indices.end(), ctx.Rand);
         }
+        // TODO(annaveronika): shuffle in querywise modes.
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
 
@@ -364,12 +364,26 @@ class TCPUModelTrainer : public IModelTrainer {
             trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
         }
 
-        if (IsQuerywiseError(lossFunction)) {
+
+        const auto& metricOptions = ctx.Params.MetricOptions.Get();
+        // TODO(nikitxskv): Add objective to CreateMetrics
+        TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
+            ctx.EvalMetricDescriptor,
+            metricOptions.CustomMetrics, 1);
+        bool hasQuerywiseMetric = false;
+        for (const auto& metric : metrics) {
+            if (metric.Get()->GetErrorType() == EErrorType::QuerywiseError) {
+                hasQuerywiseMetric = true;
+            }
+        }
+        if (hasQuerywiseMetric) {
             bool isDataCorrect = IsCorrectQueryIdsFormat(trainData.QueryId);
             if (testPool.Docs.GetDocCount() != 0) {
                 isDataCorrect &= learnPool.Docs.QueryId.back() != testPool.Docs.QueryId.front();
             }
-            CB_ENSURE(isDataCorrect , "Train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
+            CB_ENSURE(isDataCorrect, "Train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
+            //TODO(annaveronika): Allow no grouping by query id. Warning
+            //when same query id in train+test - no error.
             trainData.QuerySize = CalcQueriesSize(trainData.QueryId);
         }
 

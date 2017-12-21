@@ -5,6 +5,8 @@
 #include "gpu_single_worker.h"
 #include "cuda_events_provider.h"
 #include "kernel.h"
+#include <catboost/cuda/cuda_lib/tasks_impl/host_tasks.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 #include <future>
 
 namespace NKernelHost {
@@ -48,8 +50,9 @@ namespace NCudaLib {
         template <EPtrType PtrType>
         using TPtr = typename TMemoryProviderImplTrait<PtrType>::TRawFreeMemory;
 
-        static const ui64 OBJECT_HANDLE_REQUEST_SIZE = 1024;
-        TGpuOneDeviceWorker& Worker;
+        const ui32 OBJECT_HANDLE_REQUEST_SIZE = 1024;
+        TSingleHostTaskQueue& TaskQueue;
+        bool IsStoppedFlag = false;
 
         TCudaDeviceProperties DeviceProperties;
         TVector<ui64> FreeHandles;
@@ -58,10 +61,18 @@ namespace NCudaLib {
         template <class T>
         friend class THandleBasedObject;
 
-        ui64 GetFreeHandle() {
+    private:
+        void RequestHandlesImpl() {
             if (FreeHandles.size() == 0) {
-                FreeHandles = Worker.RequestHandles(OBJECT_HANDLE_REQUEST_SIZE);
+                auto requestHandlesCmd = MakeHolder<TRequestHandles>(OBJECT_HANDLE_REQUEST_SIZE);
+                auto resultFuture = requestHandlesCmd->GetResult();
+                TaskQueue.AddTask(std::move(requestHandlesCmd));
+                FreeHandles = resultFuture.Get();
             }
+        }
+
+        ui64 GetFreeHandle() {
+            RequestHandlesImpl();
             Y_ASSERT(FreeHandles.size());
             auto handle = FreeHandles.back();
             FreeHandles.pop_back();
@@ -69,7 +80,6 @@ namespace NCudaLib {
         }
 
         friend class TSingleHostDevicesProvider;
-        TSet<TCudaSingleDevice*> PeerDevices;
 
     public:
         template <class T>
@@ -185,23 +195,30 @@ namespace NCudaLib {
         };
 
         void AddTask(THolder<IGpuCommand>&& cmd) {
-            Worker.AddTask(std::move(cmd));
+            TaskQueue.AddTask(std::move(cmd));
         }
 
     public:
-        TCudaSingleDevice(TGpuOneDeviceWorker& worker)
-            : Worker(worker)
-            , DeviceProperties(Worker.GetDeviceProperties())
+        TCudaSingleDevice(TSingleHostTaskQueue& taskQueue,
+                          const TCudaDeviceProperties& deviceProps)
+            : TaskQueue(taskQueue)
+            , DeviceProperties(deviceProps)
         {
-            FreeHandles = Worker.RequestHandles(OBJECT_HANDLE_REQUEST_SIZE);
-            Worker.RegisterErrorCallback(new TTerminateOnErrorCallback);
+            RequestHandlesImpl();
         }
 
-        ~TCudaSingleDevice() {
+        bool IsStopped() const {
+            return IsStoppedFlag;
+        }
+
+        void Stop() {
+            CB_ENSURE(!IsStoppedFlag, "Can't stop more than once");
             for (ui32 stream : UserFreeStreams) {
-                Worker.FreeStream(stream);
+                AddTask(THolder<IGpuCommand>(new TFreeStreamCommand(stream)));
             }
             WaitComplete().Wait();
+            AddTask(MakeHolder<TStopCommand>());
+            IsStoppedFlag = true;
         }
 
         template <class T, EPtrType Type>
@@ -215,7 +232,7 @@ namespace NCudaLib {
         THolder<THandleBasedObject<T>> CreateRemoteObject(Args&&... args) {
             auto handle = GetFreeHandle();
             THolder<IGpuCommand> cmd = TCreateObjectCommandTrait<T>::Create(handle, std::forward<Args>(args)...);
-            Worker.AddTask(std::move(cmd));
+            TaskQueue.AddTask(std::move(cmd));
             return MakeHolder<THandleBasedObject<T>>(this, handle);
         }
 
@@ -224,17 +241,13 @@ namespace NCudaLib {
                           ui32 stream) const {
             using TKernelTask = TGpuKernelTask<TKernel>;
             auto task = MakeHolder<TKernelTask>(std::move(kernel), stream);
-            Worker.AddTask(std::move(task));
+            TaskQueue.AddTask(std::move(task));
         }
 
         template <class T>
         void ResetPointer(THandleBasedPointer<T> ptr) {
             using TTask = TResetRemotePointerCommand<T>;
-            Worker.AddTask(MakeHolder<TTask>(ptr));
-        }
-
-        bool HasPeerAccess(TCudaSingleDevice* to) const {
-            return (bool)PeerDevices.count(to);
+            TaskQueue.AddTask(MakeHolder<TTask>(ptr));
         }
 
         template <class TFunc>
@@ -242,7 +255,7 @@ namespace NCudaLib {
             using TTask = THostTask<TFunc>;
             auto task = MakeHolder<TTask>(std::forward<TFunc>(func));
             auto futureResult = task->GetResult();
-            Worker.AddTask(std::move(task));
+            TaskQueue.AddTask(std::move(task));
             return futureResult;
         }
 
@@ -258,7 +271,7 @@ namespace NCudaLib {
         void StreamSynchronize(ui32 streamHandle) {
             LaunchKernel(TSyncStreamKernel(), streamHandle);
             //ensure all jobs to stream we submitted to GPU (so streamSync was executed and blocked until all stream jobs are done)
-            Worker.AddTask(MakeHolder<TWaitSubmitCommand>());
+            TaskQueue.AddTask(MakeHolder<TWaitSubmitCommand>());
         }
 
         TDeviceFuture<ui64> WaitComplete() {
@@ -280,21 +293,28 @@ namespace NCudaLib {
             return DeviceProperties;
         }
 
-        ui32 CudaDeviceId() const {
-            return Worker.GetDeviceId();
+        TMemoryState GetMemoryState() {
+            auto task = MakeHolder<TMemoryStateTask>();
+            auto result = task->GetResult();
+            TaskQueue.AddTask(std::move(task));
+            return result.Get();
         }
 
         ui64 GetGpuRamSize() {
-            return Worker.GetGpuRamSize();
+            return GetMemoryState().RequestedGpuRam;
         }
 
         ui64 GetFreeMemorySize() {
-            return Worker.GetFreeMemory();
+            return GetMemoryState().FreeGpuRam;
         }
 
         ui64 RequestStream() {
             if (UserFreeStreams.size() == 0) {
-                UserFreeStreams.push_back(Worker.RequestStream());
+                auto cmd = new TRequestStreamCommand();
+                auto resultFuture = cmd->GetStreamId();
+                AddTask(THolder<IGpuCommand>(cmd));
+                resultFuture.wait();
+                UserFreeStreams.push_back(resultFuture.get());
             }
             ui64 id = UserFreeStreams.back();
             UserFreeStreams.pop_back();

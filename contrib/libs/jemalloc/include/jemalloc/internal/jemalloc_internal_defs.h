@@ -2,7 +2,7 @@
 
 #include <util/system/platform.h>
 
-#if defined(_linux_)
+#if defined(_linux_) || defined(__CYGWIN__)
 #   include "jemalloc_internal_defs-linux.h"
 #elif defined(_freebsd_)
 #   include "jemalloc_internal_defs-freebsd.h"

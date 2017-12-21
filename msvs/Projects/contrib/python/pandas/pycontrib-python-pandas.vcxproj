@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3260559 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D__LITTLE_ENDIAN__=1 -Dinit_move=init6pandas4util5_move -Dadd_minutes_to_datetimestruct=pandas_add_minutes_to_datetimestruct -Dadd_seconds_to_datetimestruct=pandas_add_seconds_to_datetimestruct -Dcan_cast_datetime64_units=pandas_can_cast_datetime64_units -Dcan_cast_timedelta64_units=pandas_can_cast_timedelta64_units -Dconvert_datetime_to_datetimestruct=pandas_convert_datetime_to_datetimestruct -Dconvert_datetimestruct_to_datetime=pandas_convert_datetimestruct_to_datetime -Dconvert_pydatetime_to_datetimestruct=pandas_convert_pydatetime_to_datetimestruct -Dget_datetimestruct_days=pandas_get_datetimestruct_days -Dis_leapyear=pandas_is_leapyear -Dnpy_casting_to_string=pandas_npy_casting_to_string -Dget_datetime_iso_8601_strlen=pandas_get_datetime_iso_8601_strlen -Dmake_iso_8601_datetime=pandas_make_iso_8601_datetime -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3260559 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D__LITTLE_ENDIAN__=1 -Dinit_move=init6pandas4util5_move -Dadd_minutes_to_datetimestruct=pandas_add_minutes_to_datetimestruct -Dadd_seconds_to_datetimestruct=pandas_add_seconds_to_datetimestruct -Dcan_cast_datetime64_units=pandas_can_cast_datetime64_units -Dcan_cast_timedelta64_units=pandas_can_cast_timedelta64_units -Dconvert_datetime_to_datetimestruct=pandas_convert_datetime_to_datetimestruct -Dconvert_datetimestruct_to_datetime=pandas_convert_datetimestruct_to_datetime -Dconvert_pydatetime_to_datetimestruct=pandas_convert_pydatetime_to_datetimestruct -Dget_datetimestruct_days=pandas_get_datetimestruct_days -Dis_leapyear=pandas_is_leapyear -Dnpy_casting_to_string=pandas_npy_casting_to_string -Dget_datetime_iso_8601_strlen=pandas_get_datetime_iso_8601_strlen -Dmake_iso_8601_datetime=pandas_make_iso_8601_datetime -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime -DY_STD_NAMESPACE=ystd -DNStl=Y_STD_NAMESPACE -Dstd=Y_STD_NAMESPACE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3302205 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D__LITTLE_ENDIAN__=1 -Dinit_move=init6pandas4util5_move -Dadd_minutes_to_datetimestruct=pandas_add_minutes_to_datetimestruct -Dadd_seconds_to_datetimestruct=pandas_add_seconds_to_datetimestruct -Dcan_cast_datetime64_units=pandas_can_cast_datetime64_units -Dcan_cast_timedelta64_units=pandas_can_cast_timedelta64_units -Dconvert_datetime_to_datetimestruct=pandas_convert_datetime_to_datetimestruct -Dconvert_datetimestruct_to_datetime=pandas_convert_datetimestruct_to_datetime -Dconvert_pydatetime_to_datetimestruct=pandas_convert_pydatetime_to_datetimestruct -Dget_datetimestruct_days=pandas_get_datetimestruct_days -Dis_leapyear=pandas_is_leapyear -Dnpy_casting_to_string=pandas_npy_casting_to_string -Dget_datetime_iso_8601_strlen=pandas_get_datetime_iso_8601_strlen -Dmake_iso_8601_datetime=pandas_make_iso_8601_datetime -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3302205 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D__LITTLE_ENDIAN__=1 -Dinit_move=init6pandas4util5_move -Dadd_minutes_to_datetimestruct=pandas_add_minutes_to_datetimestruct -Dadd_seconds_to_datetimestruct=pandas_add_seconds_to_datetimestruct -Dcan_cast_datetime64_units=pandas_can_cast_datetime64_units -Dcan_cast_timedelta64_units=pandas_can_cast_timedelta64_units -Dconvert_datetime_to_datetimestruct=pandas_convert_datetime_to_datetimestruct -Dconvert_datetimestruct_to_datetime=pandas_convert_datetimestruct_to_datetime -Dconvert_pydatetime_to_datetimestruct=pandas_convert_pydatetime_to_datetimestruct -Dget_datetimestruct_days=pandas_get_datetimestruct_days -Dis_leapyear=pandas_is_leapyear -Dnpy_casting_to_string=pandas_npy_casting_to_string -Dget_datetime_iso_8601_strlen=pandas_get_datetime_iso_8601_strlen -Dmake_iso_8601_datetime=pandas_make_iso_8601_datetime -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -64,8 +64,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL libcpmtd.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL libcpmt.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -75,16 +75,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_rpbujce2v2l37gigzow7vu5n4u.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.yasm"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._join.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._period.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._sparse.reg.cpp"/>
@@ -172,417 +178,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\pandas\pandas\util\move.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.yasm"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/2b477y2gufrchv4cgmcgxvfzey.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/2b477y2gufrchv4cgmcgxvfzey.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/2b477y2gufrchv4cgmcgxvfzey.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\2b477y2gufrchv4cgmcgxvfzey.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/4t6btxmeej6e6hfatgbdxijm54.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/4t6btxmeej6e6hfatgbdxijm54.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/4t6btxmeej6e6hfatgbdxijm54.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\4t6btxmeej6e6hfatgbdxijm54.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/cf6jf5p5mveuzjycnfilnposty.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/cf6jf5p5mveuzjycnfilnposty.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/cf6jf5p5mveuzjycnfilnposty.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\cf6jf5p5mveuzjycnfilnposty.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/dt7k7ldhzkbuy25htu66psdj24.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/dt7k7ldhzkbuy25htu66psdj24.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/dt7k7ldhzkbuy25htu66psdj24.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\dt7k7ldhzkbuy25htu66psdj24.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/dxk5v4jmlev5mlvxfdguzktphy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/dxk5v4jmlev5mlvxfdguzktphy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/dxk5v4jmlev5mlvxfdguzktphy.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\dxk5v4jmlev5mlvxfdguzktphy.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/frn6prut4srzj7rflp76e5tiuy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/frn6prut4srzj7rflp76e5tiuy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/frn6prut4srzj7rflp76e5tiuy.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\frn6prut4srzj7rflp76e5tiuy.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/jyskvmusg2va4mlci3xwzog3aq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/jyskvmusg2va4mlci3xwzog3aq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/jyskvmusg2va4mlci3xwzog3aq.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\jyskvmusg2va4mlci3xwzog3aq.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/mbwtfihb2zivhwgaozf5rafncy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/mbwtfihb2zivhwgaozf5rafncy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/mbwtfihb2zivhwgaozf5rafncy.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\mbwtfihb2zivhwgaozf5rafncy.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/mwocjiaehnuwvesjl6os65gvpy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/mwocjiaehnuwvesjl6os65gvpy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/mwocjiaehnuwvesjl6os65gvpy.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\mwocjiaehnuwvesjl6os65gvpy.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pi7pjvjqtkajkkbwntlabvlceu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pi7pjvjqtkajkkbwntlabvlceu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/pi7pjvjqtkajkkbwntlabvlceu.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\pi7pjvjqtkajkkbwntlabvlceu.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/rcpfzqdgjmi2nzbacyn3or6oxu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/rcpfzqdgjmi2nzbacyn3or6oxu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/rcpfzqdgjmi2nzbacyn3or6oxu.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\rcpfzqdgjmi2nzbacyn3or6oxu.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/rgp65xvmv2q6nykwyxqmbzvizi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/rgp65xvmv2q6nykwyxqmbzvizi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/rgp65xvmv2q6nykwyxqmbzvizi.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\rgp65xvmv2q6nykwyxqmbzvizi.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/wgyyrcizto6iy2ci3lqylilhxi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/wgyyrcizto6iy2ci3lqylilhxi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/wgyyrcizto6iy2ci3lqylilhxi.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\wgyyrcizto6iy2ci3lqylilhxi.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/x7b3vtx6bhy6mez3k42a6mfx3y.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/x7b3vtx6bhy6mez3k42a6mfx3y.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/x7b3vtx6bhy6mez3k42a6mfx3y.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\x7b3vtx6bhy6mez3k42a6mfx3y.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/yagbig47fw7i2thcoaaaitgjsq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "link_or_copy" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/yagbig47fw7i2thcoaaaitgjsq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/yagbig47fw7i2thcoaaaitgjsq.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm;$(SolutionDir)..\build\scripts\fs_tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\yagbig47fw7i2thcoaaaitgjsq.yasm;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\compat\openpyxl_compat.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas

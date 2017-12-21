@@ -3,6 +3,7 @@
 #include "cuda_base.h"
 #include "single_device.h"
 #include "helpers.h"
+#include "peer_devices.h"
 #include <thread>
 #include <util/generic/vector.h>
 
@@ -53,6 +54,7 @@ namespace NCudaLib {
 
     class TSingleHostDevicesProvider {
     private:
+        TVector<THolder<TSingleHostTaskQueue>> TaskQueue;
         TVector<THolder<TGpuOneDeviceWorker>> Workers;
         TVector<ui32> Devices;
         TVector<THolder<TCudaSingleDevice>> SingleDevices;
@@ -61,31 +63,15 @@ namespace NCudaLib {
         TSpinLock Lock;
 
         friend void SetApplicationConfig(const TCudaApplicationConfig& config);
-        TVector<TSet<ui32>> PeerDevices;
 
     private:
         void EnablePeerAccess() {
             if (Config.UsageType == TCudaApplicationConfig::EDevicesUsageType::All) {
-                ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-                PeerDevices.resize(devCount);
-                for (ui32 i = 0; i < devCount; ++i) {
-                    for (ui32 j = i + 1; j < devCount; ++j) {
-                        int can = 0;
-                        SetDevice(i);
-                        cudaDeviceCanAccessPeer(&can, i, j);
-                        if (can) {
-                            cudaDeviceEnablePeerAccess(j, 0);
-                            SetDevice(j);
-                            cudaDeviceEnablePeerAccess(i, 0);
-                            PeerDevices[i].insert(j);
-                            PeerDevices[j].insert(i);
-                        }
-                    }
-                }
+                GetPeerDevicesHelper().EnablePeerAccess();
             }
         }
 
-        THolder<TGpuOneDeviceWorker> CreateWorker(int dev) {
+        THolder<TGpuOneDeviceWorker> CreateWorker(TSingleHostTaskQueue& taskQueue, int dev) {
             auto props = NCudaHelpers::GetDeviceProps(dev);
             ui64 free = 0;
             ui64 total = 0;
@@ -97,7 +83,7 @@ namespace NCudaLib {
             ui64 gpuMemoryToUse = Config.GetGpuMemoryToUse(free);
 
             ui64 pinnedMemoryToUse = Config.GetPinnedMemoryToUse(props.GetDeviceMemory());
-            return MakeHolder<TGpuOneDeviceWorker>(dev, gpuMemoryToUse, pinnedMemoryToUse);
+            return MakeHolder<TGpuOneDeviceWorker>(taskQueue, dev, gpuMemoryToUse, pinnedMemoryToUse);
         }
 
         void Initilize() {
@@ -108,6 +94,7 @@ namespace NCudaLib {
             const ui32 freeCount = enabledDevices.size() * workersPerDevice;
 
             Workers.resize(enabledDevices.size() * workersPerDevice);
+            TaskQueue.resize(enabledDevices.size() * workersPerDevice);
             SingleDevices.resize(enabledDevices.size() * workersPerDevice);
             Devices.resize(freeCount);
 
@@ -135,9 +122,27 @@ namespace NCudaLib {
             IsInitialized = true;
         }
 
+        void StopAndClearDevice(ui32 dev) {
+            if (SingleDevices[dev]) {
+                SingleDevices[dev]->Stop();
+                CB_ENSURE(Workers[dev], "Error: worker is already deleted");
+                Workers[dev]->Join();
+                Workers[dev].Reset(nullptr);
+                TaskQueue[dev].Reset(nullptr);
+                CB_ENSURE(SingleDevices[dev]->IsStopped());
+                SingleDevices[dev].Reset(nullptr);
+            } else {
+                CB_ENSURE(Workers[dev] == nullptr);
+                CB_ENSURE(TaskQueue[dev] == nullptr);
+            }
+        }
+
         void ResetDevice(ui32 dev) {
-            Workers[dev] = CreateWorker(Devices[dev]);
-            SingleDevices[dev].Reset(new TCudaSingleDevice(*Workers[dev]));
+            StopAndClearDevice(dev);
+            TaskQueue[dev] = MakeHolder<TSingleHostTaskQueue>();
+            Workers[dev] = CreateWorker(*TaskQueue[dev], Devices[dev]);
+            Workers[dev]->RegisterErrorCallback(new TTerminateOnErrorCallback);
+            SingleDevices[dev].Reset(new TCudaSingleDevice(*TaskQueue[dev], NCudaHelpers::GetDeviceProps(Devices[dev])));
         }
 
     public:
@@ -146,8 +151,7 @@ namespace NCudaLib {
 
             for (ui64 i = 0; i < Workers.size(); ++i) {
                 if (SingleDevices[i] == device) {
-                    SingleDevices[i].Reset(nullptr);
-                    Workers[i].Reset(nullptr);
+                    StopAndClearDevice(i);
                     break;
                 }
                 CB_ENSURE(i != (Workers.size() - 1), "Error: unknown worker");
@@ -182,20 +186,6 @@ namespace NCudaLib {
                     break;
                 }
             }
-            for (ui32 i = 0; i < devices.size(); ++i) {
-                devices[i]->PeerDevices.clear();
-
-                for (ui32 j = 0; j < devices.size(); ++j) {
-                    if (i == j) {
-                        continue;
-                    }
-                    const ui32 leftDev = devices[i]->CudaDeviceId();
-                    const ui32 rightDev = devices[i]->CudaDeviceId();
-                    if (PeerDevices[leftDev].count(rightDev)) {
-                        devices[i]->PeerDevices.insert(devices[j]);
-                    }
-                }
-            }
             return devices;
         }
 
@@ -204,7 +194,6 @@ namespace NCudaLib {
             Workers.clear();
             SingleDevices.clear();
             Devices.clear();
-            PeerDevices.clear();
         }
 
         ui64 TotalWorkerCount() {

@@ -28,7 +28,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Src, Dst, BitsPerKey);
+        Y_SAVELOAD_DEFINE(Src, Dst, BitsPerKey);
 
         void Run(const TCudaStream& stream) const {
             NKernel::Decompress(Src.Get(), Dst.Get(), Dst.Size(), BitsPerKey, stream.GetStream());
@@ -55,7 +55,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Src, Dst, BitsPerKey);
+        Y_SAVELOAD_DEFINE(Src, Dst, BitsPerKey);
 
         void Run(const TCudaStream& stream) const {
             NKernel::Compress(Src.Get(), Dst.Get(), Src.Size(), BitsPerKey, stream.GetStream());
@@ -88,7 +88,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Src, Map, Dst, Mask, BitsPerKey);
+        Y_SAVELOAD_DEFINE(Src, Map, Dst, Mask, BitsPerKey);
 
         void Run(const TCudaStream& stream) const {
             NKernel::GatherFromCompressed(Src.Get(), Map.Get(), Mask, Dst.Get(), Map.Size(), BitsPerKey, stream.GetStream());

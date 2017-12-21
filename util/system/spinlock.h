@@ -1,6 +1,7 @@
 #pragma once
 
 #include "atomic.h"
+#include "spin_wait.h"
 
 class TSpinLockBase {
 protected:
@@ -54,10 +55,12 @@ public:
 };
 
 static inline void AcquireAdaptiveLock(TAtomic* l) {
-    extern void AcquireAdaptiveLockSlow(TAtomic * l);
-
     if (!AtomicTryLock(l)) {
-        AcquireAdaptiveLockSlow(l);
+        TSpinWait sw;
+
+        while (!AtomicTryAndTryLock(l)) {
+            sw.Sleep();
+        }
     }
 }
 

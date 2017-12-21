@@ -147,7 +147,7 @@ namespace NKernelHost {
             CUDA_SAFE_CALL(NKernel::RadixSort(Keys.Get(), context.ValueSize ? (TValueStorage*)(Values.Get()) : (TValueStorage*)nullptr, size, context, stream.GetStream()));
         }
 
-        SAVELOAD(Keys, Values, CompareGreater, FirstBit, LastBit, TmpKeys, TmpValues);
+        Y_SAVELOAD_DEFINE(Keys, Values, CompareGreater, FirstBit, LastBit, TmpKeys, TmpValues);
     };
 }
 

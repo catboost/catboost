@@ -6,8 +6,8 @@
 #include <util/generic/ptr.h>
 #include <util/generic/yexception.h>
 #include <util/thread/singleton.h>
-#include <library/binsaver/bin_saver.h>
 #include <util/system/spinlock.h>
+#include <util/ysaveload.h>
 #include <array>
 
 namespace NCudaLib {
@@ -126,7 +126,7 @@ namespace NCudaLib {
             return THandleBasedPointer<T>(0);
         }
 
-        SAVELOAD(Handle);
+        Y_SAVELOAD_DEFINE(Handle);
     };
 
     //pointers for memory
@@ -169,6 +169,6 @@ namespace NCudaLib {
             return reinterpret_cast<T*>(ptr) + Offset;
         }
 
-        SAVELOAD(Handle, Offset);
+        Y_SAVELOAD_DEFINE(Handle, Offset);
     };
 }

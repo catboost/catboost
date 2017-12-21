@@ -2,6 +2,7 @@
 #include <catboost/cuda/targets/cross_entropy.h>
 
 namespace NCatboostCuda {
+
     using TLoglossTrainer = TGpuTrainer<TLogloss>;
     TGpuTrainerFactory::TRegistrator<TLoglossTrainer> LogLossRegistrator(ELossFunction::Logloss);
 

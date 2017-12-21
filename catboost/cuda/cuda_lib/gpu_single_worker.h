@@ -6,7 +6,10 @@
 #include "task.h"
 #include "helpers.h"
 
-#include <library/threading/chunk_queue/queue.h>
+#include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/kernel_task.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/request_stream_tasks.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_state.h>
 #include <util/ysafeptr.h>
 #include <util/generic/map.h>
 #include <util/generic/queue.h>
@@ -175,14 +178,13 @@ namespace NCudaLib {
     private:
         //kernel tasks are requests from master
         using TGpuTaskPtr = THolder<IGpuCommand>;
-        using TTaskQueue = typename NThreading::TOneOneQueue<TGpuTaskPtr>;
+        using TTaskQueue = TSingleHostTaskQueue;
         using TComputationStreamPtr = THolder<TComputationStream>;
 
+        TTaskQueue& InputTaskQueue;
         int LocalDeviceId;
         TCudaDeviceProperties DeviceProperties;
         TTempMemoryManager TempMemoryManager;
-
-        TTaskQueue InputTaskQueue;
 
         //objects will be deleted lazily.
         TVector<THolder<IFreeMemoryTask>> ObjectsToFree;
@@ -193,8 +195,10 @@ namespace NCudaLib {
 
         using THostMemoryProvider = TMemoryProviderImplTrait<CudaHost>::TMemoryProvider;
         using THostMemoryProviderPtr = THolder<THostMemoryProvider>;
+
         using TDeviceMemoryProvider = TMemoryProviderImplTrait<CudaDevice>::TMemoryProvider;
         using TDeviceMemoryProviderPtr = THolder<TDeviceMemoryProvider>;
+
         THostMemoryProviderPtr HostMemoryProvider;
         TDeviceMemoryProviderPtr DeviceMemoryProvider;
 
@@ -202,10 +206,21 @@ namespace NCudaLib {
         TAdaptiveLock CallbackLock;
 
         std::unique_ptr<std::thread> WorkingThread;
-        std::promise<void> StopPromise;
-        std::future<void> Stop;
+        bool Stopped = true;
 
-        TManualEvent JobsEvent;
+    private:
+        TMemoryState GetMemoryState() {
+            CB_ENSURE(!Stopped);
+            CB_ENSURE(HostMemoryProvider);
+            CB_ENSURE(DeviceMemoryProvider);
+            TMemoryState result;
+            result.RequestedPinnedRam = HostMemoryProvider->GetRequestedRamSize();
+            result.FreePinnedRam = HostMemoryProvider->GetFreeMemorySize();
+
+            result.RequestedGpuRam = DeviceMemoryProvider->GetRequestedRamSize();
+            result.FreeGpuRam = DeviceMemoryProvider->GetFreeMemorySize();
+            return result;
+        }
 
         void WaitAllTaskToSubmit() {
             while (CheckRunningTasks()) {
@@ -268,8 +283,10 @@ namespace NCudaLib {
                 case Host: {
                     return false;
                 }
+                default: {
+                    CB_ENSURE(false);
+                }
             }
-            CB_ENSURE(false);
         }
 
         void AllocateMemory(const IAllocateMemoryTask& mallocTask) {
@@ -318,97 +335,17 @@ namespace NCudaLib {
             return id;
         }
 
-        void RunIteration() {
-            try {
-                const bool hasRunning = CheckRunningTasks();
-                const bool isEmpty = InputTaskQueue.IsEmpty();
-                if (!hasRunning && isEmpty) {
-                    JobsEvent.Reset();
-
-                    const ui32 waitIters = 100000;
-                    for (ui32 iter = 0; iter < waitIters; ++iter) {
-                        SchedYield();
-                        if (!InputTaskQueue.IsEmpty()) {
-                            break;
-                        }
-                    }
-                    if (InputTaskQueue.IsEmpty()) {
-                        JobsEvent.WaitD(TInstant::Seconds(1));
-                    }
-                } else if (!isEmpty) {
-                    THolder<IGpuCommand> task;
-                    bool done = InputTaskQueue.Dequeue(task);
-                    CB_ENSURE(done, "Error: dequeue failed");
-
-                    switch (task->GetCommandType()) {
-                        //could be run async
-                        case EGpuHostCommandType::StreamKernel: {
-                            IGpuKernelTask* kernelTask = dynamic_cast<IGpuKernelTask*>(task.Get());
-                            const ui32 streamId = kernelTask->GetStreamId();
-                            if (streamId == 0) {
-                                WaitAllTaskToSubmit();
-                                SyncActiveStreams(true);
-                            }
-                            auto& stream = *Streams[streamId];
-                            auto data = kernelTask->PrepareExec(TempMemoryManager);
-                            task.Release();
-                            stream.AddTask(THolder<IGpuKernelTask>(kernelTask), std::move(data));
-                            break;
-                        }
-                        //synchronized on memory defragmentation
-                        case EGpuHostCommandType::MemoryAllocation: {
-                            IAllocateMemoryTask* memoryTask = dynamic_cast<IAllocateMemoryTask*>(task.Get());
-                            AllocateMemory(*memoryTask);
-                            break;
-                        }
-                        case EGpuHostCommandType::WaitSubmit: {
-                            WaitAllTaskToSubmit();
-                            break;
-                        }
-                        //synchronized always
-                        case EGpuHostCommandType::HostTask: {
-                            WaitSubmitAndSync();
-                            DeleteObjects();
-                            auto taskPtr = dynamic_cast<IHostTask*>(task.Get());
-                            taskPtr->Exec();
-                            break;
-                        }
-                        case EGpuHostCommandType::MemoryDealocation: {
-                            WaitSubmitAndSync();
-                            IFreeMemoryTask* freeMemoryTask = dynamic_cast<IFreeMemoryTask*>(task.Get());
-                            task.Release();
-                            ObjectsToFree.push_back(THolder<IFreeMemoryTask>(freeMemoryTask));
-                            DeleteObjects();
-                            break;
-                        }
-                        case EGpuHostCommandType::RequestStream: {
-                            const ui32 streamId = RequestStreamImpl();
-                            dynamic_cast<TRequestStreamCommand*>(task.Get())->SetStreamId(streamId);
-                            break;
-                        }
-                        case EGpuHostCommandType::FreeStream: {
-                            FreeStreams.push_back(dynamic_cast<TFreeStreamCommand*>(task.Get())->GetStream());
-                            break;
-                        }
-                        default: {
-                            ythrow yexception() << "Unknown command type";
-                        }
-                    }
-                }
-                CheckLastError();
-            } catch (...) {
-                RunErrorCallbacks(CurrentExceptionMessage());
-            }
-        }
+        bool RunIteration();
 
     public:
-        TGpuOneDeviceWorker(int gpuDevId,
+        TGpuOneDeviceWorker(TTaskQueue& taskQueue,
+                            int gpuDevId,
                             ui64 gpuMemoryLimit,
                             ui64 pinnedMemoryLimit)
-            : LocalDeviceId(gpuDevId)
+            : InputTaskQueue(taskQueue)
+            , LocalDeviceId(gpuDevId)
             , DeviceProperties(NCudaHelpers::GetDeviceProps(gpuDevId))
             , TempMemoryManager(this)
-            , Stop(StopPromise.get_future())
         {
             WorkingThread.reset(new std::thread([=]() -> void {
                 this->Run(gpuMemoryLimit, pinnedMemoryLimit);
@@ -416,69 +353,20 @@ namespace NCudaLib {
         }
 
         ~TGpuOneDeviceWorker() throw (yexception) {
-            StopPromise.set_value();
-            WorkingThread->join();
-            CB_ENSURE(InputTaskQueue.IsEmpty());
+            CB_ENSURE(Stopped);
         }
 
-        void Run(ui64 gpuMemoryLimit, ui64 pinnedMemoryLimit) {
-            SetDevice(LocalDeviceId);
-            DeviceMemoryProvider = MakeHolder<TDeviceMemoryProvider>(gpuMemoryLimit);
-            HostMemoryProvider = MakeHolder<THostMemoryProvider>(pinnedMemoryLimit);
-            CreateNewComputationStream();
-            SetDefaultStream(Streams[0]->GetStream());
-
-            ui64 Iteration = 0;
-            while (true) {
-                ++Iteration;
-                RunIteration();
-                if (::NHelpers::IsFutureReady(Stop)) {
-                    break;
-                }
-            }
-        }
-
-        void FreeStream(ui32 stream) {
-            SyncStream(stream);
-            AddTask(THolder<IGpuCommand>(new TFreeStreamCommand(stream)));
-        }
-
-        ui64 RequestStream() {
-            auto cmd = new TRequestStreamCommand();
-            auto result = cmd->GetStreamId();
-            AddTask(THolder<IGpuCommand>(cmd));
-            result.wait();
-            return result.get();
-        }
+        void Run(ui64 gpuMemoryLimit, ui64 pinnedMemoryLimit);
 
         void RegisterErrorCallback(TExceptionCallbackPtr callback) {
             TGuard<TAdaptiveLock> guard(CallbackLock);
             ErrorCallbacks.push_back(callback);
         }
 
-        TVector<ui64> RequestHandles(ui64 count) {
-            return GetHandleStorage().GetHandle(count);
-        }
-
-        int GetDeviceId() const {
-            return LocalDeviceId;
-        }
-
-        ui64 GetGpuRamSize() const {
-            return DeviceMemoryProvider ? DeviceMemoryProvider->GpuRamSize() : 0;
-        }
-
-        ui64 GetFreeMemory() const {
-            return DeviceMemoryProvider ? DeviceMemoryProvider->GetFreeMemorySize() : 0;
-        }
-
-        TCudaDeviceProperties GetDeviceProperties() const {
-            return DeviceProperties;
-        }
-
-        void AddTask(THolder<IGpuCommand>&& task) {
-            InputTaskQueue.Enqueue(std::move(task));
-            JobsEvent.Signal();
+        void Join() {
+            if (WorkingThread) {
+                WorkingThread->join();
+            }
         }
     };
 }

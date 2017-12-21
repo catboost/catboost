@@ -1,11 +1,11 @@
 #pragma once
 
 #include "cuda_base.h"
-#include "gpu_memory_pool.h"
 #include "slice.h"
 #include "memory_provider_trait.h"
 #include "remote_objects.h"
 #include "kernel.h"
+#include <util/ysaveload.h>
 
 namespace NKernelHost {
     class TFixedSizesObjectsMeta {
@@ -46,7 +46,7 @@ namespace NKernelHost {
             return SliceSize(TSlice(0, ObjectCount));
         }
 
-        SAVELOAD(ObjectCount, SingleObjectSize);
+        Y_SAVELOAD_DEFINE(ObjectCount, SingleObjectSize);
     };
 
     template <typename T,
@@ -152,7 +152,7 @@ namespace NKernelHost {
             return TDeviceBuffer();
         }
 
-        SAVELOAD(Data, Meta, ColumnCount);
+        Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount);
     };
 
     template <class T, class TObjectsMeta = TFixedSizesObjectsMeta>

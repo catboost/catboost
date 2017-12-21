@@ -285,7 +285,8 @@ cdef extern from "catboost/libs/helpers/eval_helpers.h":
     cdef cppclass TEvalResult:
         TVector[TVector[double]] GetApproxesRef() except * with gil
         void PostProcess(int threadCount) except * with gil
-        void DropRawValues() except * with gil
+        void ClearRawValues() except * with gil
+        void ClearApproxes() except * with gil
 
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
@@ -790,6 +791,7 @@ cdef class _CatBoost:
         with nogil:
             SetPythonInterruptHandler()
             try:
+                dereference(self.__test_eval).ClearApproxes()
                 TrainModel(
                     prep_params.tree,
                     prep_params.customObjectiveDescriptor,
@@ -802,8 +804,7 @@ cdef class _CatBoost:
                     self.__test_eval
                 )
                 dereference(self.__test_eval).PostProcess(thread_count)
-                dereference(self.__test_eval).DropRawValues()
-                dereference(self.__test_eval).GetApproxesRef()
+                dereference(self.__test_eval).ClearRawValues()
             finally:
                 ResetPythonInterruptHandler()
 
@@ -944,7 +945,7 @@ class _CatBoostBase(object):
 
     def __getstate__(self):
         params = self._get_init_params()
-        test_evals = self.get_test_eval()
+        test_evals = self._object._get_test_eval()
         if test_evals:
             if test_evals[0]:
                 params['_test_eval'] = test_evals
@@ -1001,7 +1002,13 @@ class _CatBoostBase(object):
         self._object._set_test_eval(test_eval)
 
     def get_test_eval(self):
-        return self._object._get_test_eval()
+        test_eval = self._object._get_test_eval()
+        if len(test_eval) == 0 :
+            if getattr(self, '_is_fitted', False):
+                raise CatboostError('You should train the model with the test set.')
+            else:
+                raise CatboostError('You should train the model first.')
+        return test_eval
 
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()

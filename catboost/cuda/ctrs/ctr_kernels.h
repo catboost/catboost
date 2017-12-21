@@ -27,7 +27,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Bins, PrevBins, Indices);
+        Y_SAVELOAD_DEFINE(Bins, PrevBins, Indices);
 
         void Run(const TCudaStream& stream) const {
             NKernel::UpdateBordersMask(Bins.Get(), PrevBins.Get(), Indices.Get(),
@@ -53,7 +53,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Bins, CurrentBins, Shift);
+        Y_SAVELOAD_DEFINE(Bins, CurrentBins, Shift);
 
         void Run(const TCudaStream& stream) const {
             NKernel::MergeBinsKernel(Bins.Get(), CurrentBins.Get(), Shift, Bins.Size(), stream.GetStream());
@@ -77,7 +77,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Indices, Dst, StartSegment);
+        Y_SAVELOAD_DEFINE(Indices, Dst, StartSegment);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ExtractBorderMasks(Indices.Get(), Dst.Get(), Dst.Size(), StartSegment, stream.GetStream());
@@ -107,7 +107,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Sample, SampleWeights, Sums, BinIndex, Borders);
+        Y_SAVELOAD_DEFINE(Sample, SampleWeights, Sums, BinIndex, Borders);
 
         void Run(const TCudaStream& stream) const {
             NKernel::FillBinarizedTargetsStats(Sample.Get(), SampleWeights.Get(), (ui32)SampleWeights.Size(),
@@ -136,7 +136,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Sums, Weights, SumPrior, WeightPrior);
+        Y_SAVELOAD_DEFINE(Sums, Weights, SumPrior, WeightPrior);
 
         void Run(const TCudaStream& stream) const {
             NKernel::MakeMeans(Sums.Get(), Weights.Get(), (ui32)Sums.Size(), SumPrior, WeightPrior, stream.GetStream());
@@ -187,7 +187,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Sums, Weights, SumPrior, WeightPrior, Map, Mask, Dst);
+        Y_SAVELOAD_DEFINE(Sums, Weights, SumPrior, WeightPrior, Map, Mask, Dst);
 
         void Run(const TCudaStream& stream) const {
             NKernel::MakeMeansAndScatter(Sums.Get(), Weights.Get(), (ui32)Sums.Size(), SumPrior, WeightPrior,
@@ -240,7 +240,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Indices, Bins, BinSums, TotalWeight, Prior, PriorObservations, Dst);
+        Y_SAVELOAD_DEFINE(Indices, Bins, BinSums, TotalWeight, Prior, PriorObservations, Dst);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeWeightedBinFreqCtr(Indices.Get(), Bins.Get(), BinSums.Get(),
@@ -276,7 +276,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Indices, Bins, BinOffsets, Prior, PriorObservations, Dst);
+        Y_SAVELOAD_DEFINE(Indices, Bins, BinOffsets, Prior, PriorObservations, Dst);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeNonWeightedBinFreqCtr(Indices.Get(), Bins.Get(), BinOffsets.Get(),
@@ -307,7 +307,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Indices, FirstZeroIndex, Dst, WriteSegmentStartFloatMask);
+        Y_SAVELOAD_DEFINE(Indices, FirstZeroIndex, Dst, WriteSegmentStartFloatMask);
 
         void Run(const TCudaStream& stream) const {
             NKernel::GatherTrivialWeights(Indices.Get(), Indices.Size(), FirstZeroIndex, WriteSegmentStartFloatMask, Dst.Get(), stream.GetStream());
@@ -329,7 +329,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Indices, Dst);
+        Y_SAVELOAD_DEFINE(Indices, Dst);
 
         void Run(const TCudaStream& stream) const {
             NKernel::WriteMask(Indices.Get(), Indices.Size(), Dst.Get(), stream.GetStream());

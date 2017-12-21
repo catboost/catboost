@@ -15,7 +15,7 @@ namespace NKernelHost {
         TCudaHostBufferPtr<T> Result;
 
     public:
-        SAVELOAD(X, Y, Weights, Result);
+        Y_SAVELOAD_DEFINE(X, Y, Weights, Result);
         using TKernelContext = NKernel::TDotProductContext<T>;
 
         TDotProductKernel(TCudaBufferPtr<const T> x,

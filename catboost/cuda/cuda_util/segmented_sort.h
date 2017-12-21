@@ -91,7 +91,7 @@ namespace NKernelHost {
                                                        context, stream.GetStream()));
         }
 
-        SAVELOAD(Keys, Values, TmpKeys, TmpValues, Offsets, PartCount, CompareGreater, FirstBit, LastBit);
+        Y_SAVELOAD_DEFINE(Keys, Values, TmpKeys, TmpValues, Offsets, PartCount, CompareGreater, FirstBit, LastBit);
     };
 }
 

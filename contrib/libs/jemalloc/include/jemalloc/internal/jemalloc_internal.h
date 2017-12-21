@@ -19,7 +19,9 @@
 #else
 #  include <sys/param.h>
 #  include <sys/mman.h>
+#if !defined(__CYGWIN__)
 #  include <sys/syscall.h>
+#endif
 #  if !defined(SYS_write) && defined(__NR_write)
 #    define SYS_write __NR_write
 #  endif

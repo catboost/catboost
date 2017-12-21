@@ -40,7 +40,7 @@ namespace NKernelHost {
             return context;
         }
 
-        SAVELOAD(Input, Output, Type);
+        Y_SAVELOAD_DEFINE(Input, Output, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             CUDA_SAFE_CALL(NKernel::Reduce(Input.Get(), Output.Get(), Input.Size(), Type, context, stream.GetStream()));
@@ -89,7 +89,7 @@ namespace NKernelHost {
             return context;
         }
 
-        SAVELOAD(Input, Keys, Output, OutputKeys, Sizes, Type);
+        Y_SAVELOAD_DEFINE(Input, Keys, Output, OutputKeys, Sizes, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             CUDA_SAFE_CALL(NKernel::ReduceByKey(Input.Get(), Keys.Get(), Input.Size(),
@@ -135,7 +135,7 @@ namespace NKernelHost {
             return context;
         }
 
-        SAVELOAD(Input, Offsets, Output, Type);
+        Y_SAVELOAD_DEFINE(Input, Offsets, Output, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             Y_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());

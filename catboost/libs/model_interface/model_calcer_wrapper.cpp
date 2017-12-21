@@ -47,11 +47,15 @@ EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* fi
 
 EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
-        TVector<TConstArrayRef<float>> featuresVec(docCount);
-        for (size_t i = 0; i < docCount; ++i) {
-            featuresVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+        if (docCount == 1) {
+            FULL_MODEL_PTR(modelHandle)->CalcFlatSingle(TConstArrayRef<float>(*floatFeatures, floatFeaturesSize), TArrayRef<double>(result, resultSize));
+        } else {
+            TVector<TConstArrayRef<float>> featuresVec(docCount);
+            for (size_t i = 0; i < docCount; ++i) {
+                featuresVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            }
+            FULL_MODEL_PTR(modelHandle)->CalcFlat(featuresVec, TArrayRef<double>(result, resultSize));
         }
-        FULL_MODEL_PTR(modelHandle)->CalcFlat(featuresVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;

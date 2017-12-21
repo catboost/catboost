@@ -202,18 +202,36 @@ class _LIBCPP_EXCEPTION_ABI bad_cast
     : public exception
 {
 public:
+#ifdef _LIBCPP_ABI_MICROSOFT
+    bad_cast() _NOEXCEPT {}
+    virtual ~bad_cast() _NOEXCEPT {}
+    virtual const char* what() const _NOEXCEPT
+    {
+      return "std::bad_cast";
+    }
+#else
     bad_cast() _NOEXCEPT;
     virtual ~bad_cast() _NOEXCEPT;
     virtual const char* what() const _NOEXCEPT;
+#endif
 };
 
 class _LIBCPP_EXCEPTION_ABI bad_typeid
     : public exception
 {
 public:
+#ifdef _LIBCPP_ABI_MICROSOFT
+    bad_typeid() _NOEXCEPT {}
+    virtual ~bad_typeid() _NOEXCEPT {}
+    virtual const char* what() const _NOEXCEPT
+    {
+      return "std::bad_typeid";
+    }
+#else
     bad_typeid() _NOEXCEPT;
     virtual ~bad_typeid() _NOEXCEPT;
     virtual const char* what() const _NOEXCEPT;
+#endif    
 };
 
 }  // std

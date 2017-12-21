@@ -29,7 +29,7 @@ namespace NKernelHost {
             NKernel::PoissonRand(Seeds.Get(), Result.Size(), Alphas.Get(), Result.Get(), stream.GetStream());
         }
 
-        SAVELOAD(Seeds, Alphas, Result)
+        Y_SAVELOAD_DEFINE(Seeds, Alphas, Result)
     };
 
     class TGaussianRandKernel {
@@ -47,7 +47,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Seeds, Result);
+        Y_SAVELOAD_DEFINE(Seeds, Result);
 
         void Run(const TCudaStream& stream) const {
             Y_ASSERT(Result.Size() < (static_cast<ui64>(1) << 32));
@@ -71,7 +71,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Seeds, Result);
+        Y_SAVELOAD_DEFINE(Seeds, Result);
 
         void Run(const TCudaStream& stream) const {
             Y_ASSERT(Result.Size() < (static_cast<ui64>(1) << 32));

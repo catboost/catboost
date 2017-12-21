@@ -547,6 +547,12 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["used_ram_limit"] = ParseMemorySizeDescription(param);
             });
 
+    parser.AddLongOption("allow-writing-files", "Allow writing files on disc. Possible values: true, false")
+            .RequiredArgument("bool")
+            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["allow_writing_files"] = FromString<bool>(param);
+            });
+
     parser
             .AddLongOption("gpu-ram-part")
             .RequiredArgument("double")

@@ -33,7 +33,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Feature, BinIdx, CompressedIndex, DataSetSize, Indices, CompressedBits);
+        Y_SAVELOAD_DEFINE(Feature, BinIdx, CompressedIndex, DataSetSize, Indices, CompressedBits);
 
         void Run(const TCudaStream& stream) const {
             NKernel::WriteCompressedSplit(Feature, BinIdx,
@@ -63,7 +63,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Values, Border, Indices, CompressedBits);
+        Y_SAVELOAD_DEFINE(Values, Border, Indices, CompressedBits);
 
         void Run(const TCudaStream& stream) const {
             NKernel::WriteCompressedSplitFloat(Values.Get(), Border, Indices.Get(), static_cast<int>(Values.Size()),
@@ -87,7 +87,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(CompressedBits, Depth, Bins);
+        Y_SAVELOAD_DEFINE(CompressedBits, Depth, Bins);
 
         void Run(const TCudaStream& stream) const {
             NKernel::UpdateBins(CompressedBits.Get(), Depth, Bins.Get(), static_cast<int>(Bins.Size()), stream.GetStream());

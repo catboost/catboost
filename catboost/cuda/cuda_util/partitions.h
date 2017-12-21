@@ -23,7 +23,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Parts, SortedBins);
+        Y_SAVELOAD_DEFINE(Parts, SortedBins);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Parts.Size() < (1ULL << 32));
@@ -49,7 +49,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Offsets, SortedBins);
+        Y_SAVELOAD_DEFINE(Offsets, SortedBins);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Offsets.Size() < (1ULL << 32));
@@ -77,7 +77,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Offsets, Dst);
+        Y_SAVELOAD_DEFINE(Offsets, Dst);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Offsets.Size() < (1ULL << 32));

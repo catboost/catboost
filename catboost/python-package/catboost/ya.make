@@ -1,7 +1,8 @@
+PYMODULE(_catboost PREFIX "")
 IF (PYTHON_CONFIG MATCHES "python3")
-    PYMODULE(_catboost EXPORTS catboost3.exports PREFIX "")
+    EXPORTS_SCRIPT(catboost3.exports)
 ELSE()
-    PYMODULE(_catboost EXPORTS catboost.exports PREFIX "")
+    EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
 USE_LINKER_GOLD()

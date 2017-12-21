@@ -66,8 +66,8 @@ struct TSmallestSplitSideFold {
         TVector<TVector<double>> Derivatives;
         TVector<TVector<double>> WeightedDer;
 
-        alignas(64) TAtomic BodyFinish = 0;
-        alignas(64) TAtomic TailFinish = 0;
+        TAtomic BodyFinish = 0;
+        TAtomic TailFinish = 0;
     };
 
     struct TVectorSlicing {

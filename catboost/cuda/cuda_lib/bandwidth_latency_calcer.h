@@ -1,16 +1,17 @@
 #pragma once
 
-#include "single_host_memory_copy_tasks.h"
 #include "cuda_buffer.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
+#include <library/containers/2d_array/2d_array.h>
 
 namespace NCudaLib {
     template <EPtrType From = EPtrType::CudaDevice,
               EPtrType To = EPtrType::CudaDevice>
     class TLatencyAndBandwidthStats {
     private:
-        static constexpr ui64 BandwithIterations = 5;
+        static constexpr ui64 BandwidthIterations = 5;
         static constexpr ui64 LatencyIterations = 200;
         static constexpr ui64 DataSize = 16 * 1024 * 1024;
 
@@ -64,7 +65,7 @@ namespace NCudaLib {
             auto from = TCudaBuffer<char, TMirrorMapping, From>::Create(TMirrorMapping(DataSize));
             auto to = TCudaBuffer<char, TMirrorMapping, To>::Create(TMirrorMapping(DataSize));
 
-            for (ui32 iter = 0; iter < BandwithIterations; ++iter) {
+            for (ui32 iter = 0; iter < BandwidthIterations; ++iter) {
                 for (ui32 dev = 0; dev < deviceCount; ++dev) {
                     for (ui32 secondDev = 0; secondDev <= dev; ++secondDev) {
                         manager.WaitComplete();
@@ -83,9 +84,9 @@ namespace NCudaLib {
 
             for (ui32 dev = 0; dev < deviceCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev <= dev; ++secondDev) {
-                    BandwidthTable[dev][secondDev] /= 1000;               //microseconds
-                    BandwidthTable[dev][secondDev] /= BandwithIterations; //mean
-                    BandwidthTable[dev][secondDev] /= DataSize;           //for one byte
+                    BandwidthTable[dev][secondDev] /= 1000;                //microseconds
+                    BandwidthTable[dev][secondDev] /= BandwidthIterations; //mean
+                    BandwidthTable[dev][secondDev] /= DataSize;            //for one byte
                     BandwidthTable[secondDev][dev] = BandwidthTable[dev][secondDev];
                 }
             }

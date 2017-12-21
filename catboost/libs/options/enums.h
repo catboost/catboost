@@ -75,7 +75,6 @@ enum class ELossFunction {
     LogLinQuantile,
     MAPE,
     Poisson,
-    QueryRMSE,
 
     /* multiclassification errors */
 
@@ -88,6 +87,8 @@ enum class ELossFunction {
 
     /* ranking errors */
     YetiRank,
+    QueryRMSE,
+    QueryAverage,
 
     /* regression metrics */
 

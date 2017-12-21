@@ -35,7 +35,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(TargetClasses, TargetWeights, Predictions, FunctionValue, Der, Der2, Border, UseBorder);
+        Y_SAVELOAD_DEFINE(TargetClasses, TargetWeights, Predictions, FunctionValue, Der, Der2, Border, UseBorder);
 
         void Run(const TCudaStream& stream) const {
             NKernel::CrossEntropyTargetKernel(TargetClasses.Get(), TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), FunctionValue.Get(), Der.Get(), Der2.Get(), Border, UseBorder, stream.GetStream());
@@ -64,7 +64,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Relevs, Weights, Predictions, FunctionValue, Der, Der2);
+        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions, FunctionValue, Der, Der2);
 
         void Run(const TCudaStream& stream) const {
             NKernel::MseTargetKernel(Relevs.Get(), Weights.Get(), static_cast<ui32>(Relevs.Size()),
@@ -107,7 +107,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Relevs, Weights, Predictions, FunctionValue, Der, Der2, Alpha, LossFunction);
+        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions, FunctionValue, Der, Der2, Alpha, LossFunction);
 
         void Run(const TCudaStream& stream) const {
             NKernel::PointwiseTargetKernel(Relevs.Get(), Weights.Get(), static_cast<ui32>(Relevs.Size()),
@@ -135,7 +135,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TQueryRmseContext;
-        SAVELOAD(Relevs, Weights, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2);
+        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
@@ -218,7 +218,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TYetiRankContext;
-        SAVELOAD(Relevs, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2, Seed, PermutationCount);
+        Y_SAVELOAD_DEFINE(Relevs, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2, Seed, PermutationCount);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
@@ -324,7 +324,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TPairLogitContext;
-        SAVELOAD(Pairs, PairWeights, Predictions, Indices, FunctionValue, Der, Der2);
+        Y_SAVELOAD_DEFINE(Pairs, PairWeights, Predictions, Indices, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
@@ -393,7 +393,7 @@ namespace NKernelHost {
         TCudaBufferPtr<float> Weights;
 
     public:
-        SAVELOAD(Pairs, PairWeights, Weights);
+        Y_SAVELOAD_DEFINE(Pairs, PairWeights, Weights);
 
         TMakePairWeightsKernel() = default;
 

@@ -17,7 +17,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TScanKernelContext<T>;
-        SAVELOAD(Input, Output, Inclusive, IsNonNegativeSegmentedScan);
+        Y_SAVELOAD_DEFINE(Input, Output, Inclusive, IsNonNegativeSegmentedScan);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
@@ -65,7 +65,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TScanKernelContext<T>;
-        SAVELOAD(Input, Indices, Output, Inclusive);
+        Y_SAVELOAD_DEFINE(Input, Indices, Output, Inclusive);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();

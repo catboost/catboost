@@ -48,6 +48,7 @@ namespace NCatboostOptions {
                 }
                 case EBootstrapType::No: {
                     SaveFields(options, BootstrapType);
+                    break;
                 }
                 default: {
                     SaveFields(options, TakenFraction, BootstrapType);

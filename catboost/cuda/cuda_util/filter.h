@@ -21,7 +21,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Weights, Result);
+        Y_SAVELOAD_DEFINE(Weights, Result);
 
         void Run(const TCudaStream& stream) const {
             NKernel::Filter(Weights.Get(), (const ui32)Weights.Size(), Result.Get(), stream.GetStream());

@@ -7,6 +7,7 @@
 #include <catboost/cuda/data/grid_creator.h>
 #include <catboost/libs/options/binarization_options.h>
 
+
 namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {
     private:
@@ -29,7 +30,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Feature, Dst, BorderCount, BorderType);
+        Y_SAVELOAD_DEFINE(Feature, Dst, BorderCount, BorderType);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Dst.Size() > BorderCount);
@@ -47,6 +48,7 @@ namespace NKernelHost {
             }
         }
     };
+
 
     class TBinarizeFloatFeatureKernel: public TStatelessKernel {
     private:
@@ -70,7 +72,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Values, Borders, Feature, Dst, GatherIndex, AtomicUpdate);
+        Y_SAVELOAD_DEFINE(Values, Borders, Feature, Dst, GatherIndex, AtomicUpdate);
 
         void Run(const TCudaStream& stream) const {
             NKernel::BinarizeFloatFeature(Values.Get(), static_cast<ui32>(Values.Size()),

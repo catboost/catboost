@@ -99,6 +99,12 @@
             "uri": "file://test.test_all_targets_RMSE_/predict_test.eval"
         }
     ],
+    "test.test_allow_writing_files_and_used_ram_limit": [
+        {
+            "checksum": "a3ed0dbd1029b2f3e487b1df8f0f6c46",
+            "uri": "file://test.test_allow_writing_files_and_used_ram_limit/test.eval"
+        }
+    ],
     "test.test_apply_missing_vals": {
         "checksum": "7825d3c5f243a3d9d826a3fb8e98422e",
         "uri": "file://test.test_apply_missing_vals/test.eval"
@@ -489,32 +495,6 @@
             "uri": "file://test.test_overfit_detector_iter/test.eval"
         }
     ],
-    "test.test_pairlogit": [
-        {
-            "checksum": "d90d01595f6689f1a5fdb183b4ff37fc",
-            "uri": "file://test.test_pairlogit/learn_error.tsv"
-        },
-        {
-            "checksum": "47e148ef8cd5f15961efe337ba4fcc15",
-            "uri": "file://test.test_pairlogit/test_error.tsv"
-        },
-        {
-            "checksum": "080ae7d6c051cc3a1bf69cd0a4652970",
-            "uri": "file://test.test_pairlogit/test.eval"
-        }
-    ],
-    "test.test_pairlogit_approx_on_full_history": [
-        {
-            "checksum": "06638326332bb447660a9babb8cfd006",
-            "uri": "file://test.test_pairlogit_approx_on_full_history/test.eval"
-        }
-    ],
-    "test.test_pairlogit_no_target": [
-        {
-            "checksum": "7d3acb31d582cf9fa8d809b8fc613634",
-            "uri": "file://test.test_pairlogit_no_target/test.eval"
-        }
-    ],
     "test.test_params_from_file": [
         {
             "checksum": "b6ff313dbcebbc0ca6b33eeb88c06cb9",
@@ -611,15 +591,25 @@
             "uri": "file://test.test_quantile_targets_Quantile_/test.eval"
         }
     ],
+    "test.test_queryaverage": [
+        {
+            "checksum": "93fb8f4fc79e858a29f72dc92022fd25",
+            "uri": "file://test.test_queryaverage/learn_error.tsv"
+        },
+        {
+            "checksum": "fd78edb1da9019e728fb0f798d2c9178",
+            "uri": "file://test.test_queryaverage/test_error.tsv"
+        }
+    ],
     "test.test_queryrmse": [
         {
-            "checksum": "ab68b2429202609be748518a72211f3c",
+            "checksum": "bb141beac4e4532850276d9c0b242208",
             "uri": "file://test.test_queryrmse/test.eval"
         }
     ],
     "test.test_queryrmse_approx_on_full_history": [
         {
-            "checksum": "606f9bfd60b398a8da83d60417b3ad6f",
+            "checksum": "4f8e62dc32a2fe62a65e380d4bfb53ea",
             "uri": "file://test.test_queryrmse_approx_on_full_history/test.eval"
         }
     ],

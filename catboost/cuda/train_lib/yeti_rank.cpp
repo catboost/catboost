@@ -4,5 +4,4 @@
 namespace NCatboostCuda {
     using TYetiRankTrainer = TGpuTrainer<TYetiRank>;
     TGpuTrainerFactory::TRegistrator<TYetiRankTrainer> YetiRankRegistrator(ELossFunction::YetiRank);
-
 }

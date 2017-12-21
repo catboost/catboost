@@ -1,4 +1,4 @@
-#include <catboost/cuda/cuda_lib/gpu_memory_pool.h>
+#include <catboost/cuda/cuda_lib/memory_pool/stack_like_memory_pool.h>
 #include <library/unittest/registar.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>

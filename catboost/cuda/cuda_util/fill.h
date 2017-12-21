@@ -22,7 +22,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Buffer, Value);
+        Y_SAVELOAD_DEFINE(Buffer, Value);
 
         void Run(const TCudaStream& stream) const {
             NKernel::FillBuffer(Buffer.Get(), Value, Buffer.Size(), stream.GetStream());
@@ -42,7 +42,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Buffer);
+        Y_SAVELOAD_DEFINE(Buffer);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Buffer.ObjectCount() == Buffer.Size(), "MakeSequence expects single-object buffer " << Buffer.ObjectCount() << " " << Buffer.Size() << " " << Buffer.GetColumnCount() << " " << Buffer.ColumnSize());
@@ -66,7 +66,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Order, InverseOrder);
+        Y_SAVELOAD_DEFINE(Order, InverseOrder);
 
         void Run(const TCudaStream& stream) const {
             NKernel::InversePermutation(Order.Get(), InverseOrder.Get(), Order.Size(), stream.GetStream());

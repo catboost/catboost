@@ -30,6 +30,28 @@ def test_queryrmse():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_queryaverage():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '-t', data_file('querywise_pool', 'test3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '--custom-metric', 'QueryAverage:top=2',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
 def test_queryrmse_approx_on_full_history():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -40,92 +62,6 @@ def test_queryrmse_approx_on_full_history():
         '-f', data_file('querywise_pool', 'train_full3'),
         '-t', data_file('querywise_pool', 'test3'),
         '--column-description', data_file('querywise_pool', 'train_full3.cd'),
-        '--approx-on-full-history',
-        '-i', '20',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(output_eval_path)]
-
-
-def test_pairlogit():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    test_error_path = yatest.common.test_output_path('test_error.tsv')
-    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
-
-    def run_catboost(eval_path, learn_pairs):
-        cmd = [
-            CATBOOST_PATH,
-            'fit',
-            '--loss-function', 'PairLogit',
-            '--eval-metric', 'PairAccuracy',
-            '-f', data_file('zen', 'learn_small.tsv'),
-            '-t', data_file('zen', 'test_small.tsv'),
-            '--column-description', data_file('zen', 'zen.cd'),
-            '--learn-pairs', data_file('zen', learn_pairs),
-            '--test-pairs', data_file('zen', 'test_pairs.tsv'),
-            '--ctr', 'Borders,Counter',
-            '-i', '20',
-            '-T', '4',
-            '-r', '0',
-            '-m', output_model_path,
-            '--eval-file', eval_path,
-            '--learn-err-log', learn_error_path,
-            '--test-err-log', test_error_path
-        ]
-        yatest.common.execute(cmd)
-
-    run_catboost(output_eval_path, 'learn_pairs.tsv')
-    output_weighted_eval_path = yatest.common.test_output_path('test_weighted.eval')
-    run_catboost(output_weighted_eval_path, 'learn_weighted_pairs.tsv')
-
-    assert filecmp.cmp(output_eval_path, output_weighted_eval_path)
-
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(output_eval_path)]
-
-
-def test_pairlogit_no_target():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--loss-function', 'PairLogit',
-        '-f', data_file('zen', 'learn_small.tsv'),
-        '-t', data_file('zen', 'test_small.tsv'),
-        '--column-description', data_file('zen', 'zen_target_aux.cd'),
-        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
-        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
-        '-i', '20',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(output_eval_path)]
-
-
-def test_pairlogit_approx_on_full_history():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--loss-function', 'PairLogit',
-        '-f', data_file('zen', 'learn_small.tsv'),
-        '-t', data_file('zen', 'test_small.tsv'),
-        '--column-description', data_file('zen', 'zen.cd'),
-        '--learn-pairs', data_file('zen', 'learn_pairs.tsv'),
-        '--test-pairs', data_file('zen', 'test_pairs.tsv'),
         '--approx-on-full-history',
         '-i', '20',
         '-T', '4',
@@ -1033,8 +969,6 @@ def test_custom_overfitting_detector_metric():
 
 
 def test_custom_loss_for_classification():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
 
@@ -1048,8 +982,6 @@ def test_custom_loss_for_classification():
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
         '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -1649,3 +1581,27 @@ def test_weight_sampling_per_tree():
     )
     yatest.common.execute(cmd)
     return local_canonical_file(output_eval_path)
+
+
+def test_allow_writing_files_and_used_ram_limit():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--allow-writing-files', 'false',
+        '--used-ram-limit', '1024',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '100',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

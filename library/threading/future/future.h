@@ -83,6 +83,7 @@ public:
     const T& GetValue(TDuration timeout = TDuration::Zero()) const;
     const T& GetValueSync() const;
     T ExtractValue(TDuration timeout = TDuration::Zero());
+    T ExtractValueSync();
 
     bool HasException() const;
 

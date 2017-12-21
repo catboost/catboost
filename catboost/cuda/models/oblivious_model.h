@@ -37,7 +37,6 @@ namespace NCatboostCuda {
             return !(*this == other);
         }
 
-        SAVELOAD(Splits);
         Y_SAVELOAD_DEFINE(Splits);
     };
 
@@ -79,7 +78,6 @@ namespace NCatboostCuda {
             return LeafValues;
         }
 
-        SAVELOAD(ModelStructure, LeafValues);
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues);
 
     private:

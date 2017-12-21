@@ -21,7 +21,7 @@ namespace NKernelHost {
         {
         }
 
-        SAVELOAD(Buffer, Message);
+        Y_SAVELOAD_DEFINE(Buffer, Message);
 
         void Run(const TCudaStream& stream) const {
             Y_UNUSED(stream);

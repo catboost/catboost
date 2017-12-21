@@ -227,11 +227,11 @@ namespace NCatboostCuda {
         std::promise<TFullModel> resultPromise;
         std::future<TFullModel> resultFuture = resultPromise.get_future();
         std::thread thread([&]() {
-            SetLogingLevel(trainCatBoostOptions.LoggingLevel);
-            CreateAndSetCudaConfig(trainCatBoostOptions);
-
-            StartCudaManager(trainCatBoostOptions.LoggingLevel);
             try {
+                SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+                CreateAndSetCudaConfig(trainCatBoostOptions);
+
+                StartCudaManager(trainCatBoostOptions.LoggingLevel);
                 if (NCudaLib::GetCudaManager().GetDeviceCount() > 1) {
                     NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaHost>();
                     NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaDevice>();
