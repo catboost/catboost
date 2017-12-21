@@ -12,7 +12,10 @@ static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
 namespace {
     unsigned int GetModelFormatDescriptor() {
-        return *reinterpret_cast<const unsigned int*>(MODEL_FILE_DESCRIPTOR_CHARS);
+        static_assert(sizeof(unsigned int) == 4, "");
+        unsigned int result;
+        memcpy(&result, MODEL_FILE_DESCRIPTOR_CHARS, sizeof(unsigned int));
+        return result;
     }
 
     template <typename T>
