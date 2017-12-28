@@ -283,20 +283,30 @@ private:
     TLogger& Logger;
 };
 
-TLogger CreateLogger(
+void WriteHistory(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
     const TVector<TVector<double>>& timeHistory,
-    const TString learnErrorLogFile,
-    const TString testErrorLogFile,
-    const TString timeLogFile,
-    const TString trainDir,
-    const bool allowWriteFiles,
+    TLogger* logger
+);
+
+void AddFileLoggers(
+    const TString& learnErrorLogFile,
+    const TString& testErrorLogFile,
+    const TString& timeLogFile,
+    const TString& trainDir,
+    const bool hasTrain,
+    const bool hasTest,
+    TLogger* logger
+);
+
+void AddConsoleLogger(
     const bool detailedProfile,
     const bool hasTrain,
     const bool hasTest,
-    int metricPeriod
+    int metricPeriod,
+    TLogger* logger
 );
 
 void Log(

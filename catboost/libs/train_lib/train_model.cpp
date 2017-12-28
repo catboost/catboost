@@ -164,20 +164,33 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         }
     }
 
-    TLogger logger = CreateLogger(
+    TLogger logger;
+    if (ctx->OutputOptions.AllowWriteFiles()) {
+        AddFileLoggers(
+            ctx->Files.LearnErrorLogFile,
+            ctx->Files.TestErrorLogFile,
+            ctx->Files.TimeLeftLogFile,
+            ctx->OutputOptions.GetTrainDir(),
+            true,
+            hasTest,
+            &logger
+        );
+    }
+
+    WriteHistory(
         GetMetricsDescription(metrics),
         ctx->LearnProgress.LearnErrorsHistory,
         ctx->LearnProgress.TestErrorsHistory,
         ctx->LearnProgress.TimeHistory,
-        ctx->Files.LearnErrorLogFile,
-        ctx->Files.TestErrorLogFile,
-        ctx->Files.TimeLeftLogFile,
-        ctx->OutputOptions.GetTrainDir(),
-        ctx->OutputOptions.AllowWriteFiles(),
+        &logger
+    );
+
+    AddConsoleLogger(
         ctx->Params.IsProfile,
         true,
         hasTest,
-        ctx->OutputOptions.GetMetricPeriod()
+        ctx->OutputOptions.GetMetricPeriod(),
+        &logger
     );
 
     TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
