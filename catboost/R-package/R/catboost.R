@@ -717,33 +717,6 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       FALSE (not used; generate random permutations)
 #'
-#'     \item priors
-#'
-#'       Use the specified priors during training.
-#'
-#'       Format:
-#'
-#'       c(<prior 1>,<prior 2>,...,<prior N>)
-#'
-#'       Default value:
-#'
-#'       c(0,0.5,1)
-#'
-#'     \item feature_priors
-#'
-#'       Specify individual priors for categorical features (used at the Transforming categorical
-#'
-#'       Given in the form of a comma-separated list of prior descriptions for each specified feature.
-#'       The description for each feature contains a colon-separated feature index and prior values.
-#'
-#'       Format:
-#'
-#'       \code{с('<ID of feature 1>:<prior 1.1>:<prior 1.2>:...:<prior 1.N1>',...,'<ID of feature M>:<prior M.1>:<prior M.2>:...:<prior M.NM>')}
-#'
-#'       Default value:
-#'
-#'       Each feature uses the default priors
-#'
 #'     \item name
 #'
 #'       The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/visualization-docpage/#visualization}).
