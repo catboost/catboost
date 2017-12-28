@@ -5,7 +5,6 @@
 *.rej
 *.so
 *.swp
-*_pb2.py
 .bzr
 .gdb_history
 .hg
