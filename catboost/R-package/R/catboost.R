@@ -1321,7 +1321,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
 #' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing)..
 #' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing)..
 #'
-#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
+#' Default value: 0
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-shrink-docpage/}
 catboost.shrink <- function(model, ntree_end, ntree_start = 0) {

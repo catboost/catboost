@@ -11,7 +11,7 @@ catboost.shrink(model, ntree_end, ntree_start = 0)
 
 \item{ntree_start}{Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing)..
 
-Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)}
+Default value: 0}
 }
 \description{
 Shrink the model
