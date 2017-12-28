@@ -16,6 +16,22 @@
 
 class TModelPartsCachingSerializer;
 
+/*!
+    \brief Oblivious tree model structure
+
+    This structure contains the data about tree conditions and leaf values.
+    We use oblivious trees - symmetric trees that has the same binary condition on each level.
+    So each leaf index is determined by binary vector with length equal to evaluated tree depth.
+
+    That allows us to evaluate model predictions very fast (even without planned SIMD optimizations) compared to asymmetric trees.
+
+    Our oblivious tree model can contain float, one-hot and CTR binary conditions:
+    - Float condition - float feature value is greater than float border
+    - One-hot condition - hashed cat feature value is equal to some value
+    - CTR condition - calculated ctr is greater than float border
+    You can read about CTR calculation in ctr_provider.h
+*/
+
 struct TObliviousTrees {
     struct TMetaData { //contains data calculated in runtime on model load/update
         TVector<TModelCtr> UsedModelCtrs;
