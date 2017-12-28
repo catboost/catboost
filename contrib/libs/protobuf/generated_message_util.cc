@@ -32,6 +32,8 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include "stubs/common.h"
+
 #include "generated_message_util.h"
 
 #include <limits>

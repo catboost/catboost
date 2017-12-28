@@ -325,7 +325,7 @@ bool Struct::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // map<string, .google.protobuf.Value> fields = 1;
+      // std::map<string, .google.protobuf.Value> fields = 1;
       case 1: {
         if (tag == 10) {
           DO_(input->IncrementRecursionDepth());
@@ -375,7 +375,7 @@ failure:
 void Struct::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:google.protobuf.Struct)
-  // map<string, .google.protobuf.Value> fields = 1;
+  // std::map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -437,7 +437,7 @@ void Struct::SerializeWithCachedSizes(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Struct)
-  // map<string, .google.protobuf.Value> fields = 1;
+  // std::map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -504,7 +504,7 @@ size_t Struct::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:google.protobuf.Struct)
   size_t total_size = 0;
 
-  // map<string, .google.protobuf.Value> fields = 1;
+  // std::map<string, .google.protobuf.Value> fields = 1;
   total_size += 1 *
       ::google::protobuf::internal::FromIntSize(this->fields_size());
   {
@@ -612,7 +612,7 @@ void Struct::InternalSwap(Struct* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Struct
 
-// map<string, .google.protobuf.Value> fields = 1;
+// std::map<string, .google.protobuf.Value> fields = 1;
 int Struct::fields_size() const {
   return fields_.size();
 }

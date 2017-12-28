@@ -45,9 +45,10 @@
 #endif
 #include <vector>
 
-#include "stubs/common.h"
 #include "descriptor.h"
 #include "message.h"
+#include "reflection.h"
+#include "stubs/common.h"
 
 namespace google {
 namespace protobuf {

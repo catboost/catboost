@@ -44,6 +44,11 @@
 #include "stubs/strutil.h"
 #include "stubs/substitute.h"
 
+// msvs defines STRICT macro
+#ifdef STRICT
+#undef STRICT
+#endif
+
 
 namespace google {
 namespace protobuf {

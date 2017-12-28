@@ -262,7 +262,7 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
 void RepeatedEnumFieldGenerator::
 GenerateInlineAccessorDefinitions(io::Printer* printer,
                                   bool is_inline) const {
-    std::map<string, string> variables(variables_);
+  std::map<string, string> variables(variables_);
   variables["inline"] = is_inline ? "inline " : "";
   printer->Print(variables,
     "$inline$$type$ $classname$::$name$(int index) const {\n"
