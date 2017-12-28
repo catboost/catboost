@@ -108,9 +108,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
       <Project>57275066-CBBF-3FD5-137B-685E648981E5</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
-      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
     </ProjectReference>

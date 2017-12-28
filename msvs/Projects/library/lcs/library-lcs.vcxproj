@@ -99,9 +99,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
       <Project>F2373D22-DBF0-B7E4-B028-8BF674973AED</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
-      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
     </ProjectReference>

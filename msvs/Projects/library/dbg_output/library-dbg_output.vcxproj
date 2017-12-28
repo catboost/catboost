@@ -105,9 +105,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>439BAFF9-1167-D24B-92A2-3A00BEE420B1</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
-      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
     </ProjectReference>
