@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='google/protobuf/source_context.proto',
   package='google.protobuf',
   syntax='proto3',
-  serialized_pb=_b('\n$google/protobuf/source_context.proto\x12\x0fgoogle.protobuf\"\"\n\rSourceContext\x12\x11\n\tfile_name\x18\x01 \x01(\tBU\n\x13\x63om.google.protobufB\x12SourceContextProtoP\x01\xa0\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
+  serialized_pb=_b('\n$google/protobuf/source_context.proto\x12\x0fgoogle.protobuf\"\"\n\rSourceContext\x12\x11\n\tfile_name\x18\x01 \x01(\tBR\n\x13\x63om.google.protobufB\x12SourceContextProtoP\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -67,5 +67,5 @@ _sym_db.RegisterMessage(SourceContext)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\022SourceContextProtoP\001\240\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\022SourceContextProtoP\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
 # @@protoc_insertion_point(module_scope)

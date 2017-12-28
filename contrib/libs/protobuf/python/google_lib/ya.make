@@ -8,6 +8,8 @@ LICENSE(
 
 NO_COMPILER_WARNINGS()
 
+NO_LINT()
+
 PEERDIR(
     ADDINCL contrib/libs/protobuf
     contrib/python/six
@@ -80,6 +82,7 @@ SRCS(
     protobuf/pyext/extension_dict.cc
     protobuf/pyext/map_container.cc
     protobuf/pyext/message.cc
+    protobuf/pyext/message_factory.cc
     protobuf/pyext/message_module.cc
     protobuf/pyext/repeated_composite_container.cc
     protobuf/pyext/repeated_scalar_container.cc

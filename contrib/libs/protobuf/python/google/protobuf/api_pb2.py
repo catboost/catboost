@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='google/protobuf/api.proto',
   package='google.protobuf',
   syntax='proto3',
-  serialized_pb=_b('\n\x19google/protobuf/api.proto\x12\x0fgoogle.protobuf\x1a$google/protobuf/source_context.proto\x1a\x1agoogle/protobuf/type.proto\"\x81\x02\n\x03\x41pi\x12\x0c\n\x04name\x18\x01 \x01(\t\x12(\n\x07methods\x18\x02 \x03(\x0b\x32\x17.google.protobuf.Method\x12(\n\x07options\x18\x03 \x03(\x0b\x32\x17.google.protobuf.Option\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x36\n\x0esource_context\x18\x05 \x01(\x0b\x32\x1e.google.protobuf.SourceContext\x12&\n\x06mixins\x18\x06 \x03(\x0b\x32\x16.google.protobuf.Mixin\x12\'\n\x06syntax\x18\x07 \x01(\x0e\x32\x17.google.protobuf.Syntax\"\xd5\x01\n\x06Method\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x18\n\x10request_type_url\x18\x02 \x01(\t\x12\x19\n\x11request_streaming\x18\x03 \x01(\x08\x12\x19\n\x11response_type_url\x18\x04 \x01(\t\x12\x1a\n\x12response_streaming\x18\x05 \x01(\x08\x12(\n\x07options\x18\x06 \x03(\x0b\x32\x17.google.protobuf.Option\x12\'\n\x06syntax\x18\x07 \x01(\x0e\x32\x17.google.protobuf.Syntax\"#\n\x05Mixin\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04root\x18\x02 \x01(\tBK\n\x13\x63om.google.protobufB\x08\x41piProtoP\x01\xa0\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
+  serialized_pb=_b('\n\x19google/protobuf/api.proto\x12\x0fgoogle.protobuf\x1a$google/protobuf/source_context.proto\x1a\x1agoogle/protobuf/type.proto\"\x81\x02\n\x03\x41pi\x12\x0c\n\x04name\x18\x01 \x01(\t\x12(\n\x07methods\x18\x02 \x03(\x0b\x32\x17.google.protobuf.Method\x12(\n\x07options\x18\x03 \x03(\x0b\x32\x17.google.protobuf.Option\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x36\n\x0esource_context\x18\x05 \x01(\x0b\x32\x1e.google.protobuf.SourceContext\x12&\n\x06mixins\x18\x06 \x03(\x0b\x32\x16.google.protobuf.Mixin\x12\'\n\x06syntax\x18\x07 \x01(\x0e\x32\x17.google.protobuf.Syntax\"\xd5\x01\n\x06Method\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x18\n\x10request_type_url\x18\x02 \x01(\t\x12\x19\n\x11request_streaming\x18\x03 \x01(\x08\x12\x19\n\x11response_type_url\x18\x04 \x01(\t\x12\x1a\n\x12response_streaming\x18\x05 \x01(\x08\x12(\n\x07options\x18\x06 \x03(\x0b\x32\x17.google.protobuf.Option\x12\'\n\x06syntax\x18\x07 \x01(\x0e\x32\x17.google.protobuf.Syntax\"#\n\x05Mixin\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04root\x18\x02 \x01(\tBH\n\x13\x63om.google.protobufB\x08\x41piProtoP\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_source__context__pb2.DESCRIPTOR,google_dot_protobuf_dot_type__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -246,5 +246,5 @@ _sym_db.RegisterMessage(Mixin)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\010ApiProtoP\001\240\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\010ApiProtoP\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
 # @@protoc_insertion_point(module_scope)

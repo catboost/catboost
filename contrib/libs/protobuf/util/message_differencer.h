@@ -298,9 +298,10 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
     MapKeyComparator();
     virtual ~MapKeyComparator();
 
-    virtual bool IsMatch(const Message& message1,
-                         const Message& message2,
-                         const std::vector<SpecificField>& parent_fields) const {
+    virtual bool IsMatch(
+        const Message& message1,
+        const Message& message2,
+        const std::vector<SpecificField>& parent_fields) const {
       GOOGLE_CHECK(false) << "IsMatch() is not implemented.";
       return false;
     }
@@ -551,9 +552,10 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
 
   // Same as above, except comparing only the list of fields specified by the
   // two vectors of FieldDescriptors.
-  bool CompareWithFields(const Message& message1, const Message& message2,
-                         const std::vector<const FieldDescriptor*>& message1_fields,
-                         const std::vector<const FieldDescriptor*>& message2_fields);
+  bool CompareWithFields(
+      const Message& message1, const Message& message2,
+      const std::vector<const FieldDescriptor*>& message1_fields,
+      const std::vector<const FieldDescriptor*>& message2_fields);
 
   // Automatically creates a reporter that will output the differences
   // found (if any) to the specified output string pointer. Note that this
@@ -718,12 +720,13 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // list of parent messages if it needs to recursively compare the given field.
   // To avoid confusing users you should not set it to NULL unless you modified
   // Reporter to handle the change of parent_fields correctly.
-  bool CompareFieldValueUsingParentFields(const Message& message1,
-                                          const Message& message2,
-                                          const FieldDescriptor* field,
-                                          int index1,
-                                          int index2,
-                                          std::vector<SpecificField>* parent_fields);
+  bool CompareFieldValueUsingParentFields(
+      const Message& message1,
+      const Message& message2,
+      const FieldDescriptor* field,
+      int index1,
+      int index2,
+      std::vector<SpecificField>* parent_fields);
 
   // Compares the specified field on the two messages, returning comparison
   // result, as returned by appropriate FieldComparator.
@@ -775,12 +778,13 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // This method returns false if the match failed. However, it doesn't mean
   // that the comparison succeeds when this method returns true (you need to
   // double-check in this case).
-  bool MatchRepeatedFieldIndices(const Message& message1,
-                                 const Message& message2,
-                                 const FieldDescriptor* repeated_field,
-                                 const std::vector<SpecificField>& parent_fields,
-                                 std::vector<int>* match_list1,
-                                 std::vector<int>* match_list2);
+  bool MatchRepeatedFieldIndices(
+      const Message& message1,
+      const Message& message2,
+      const FieldDescriptor* repeated_field,
+      const std::vector<SpecificField>& parent_fields,
+      std::vector<int>* match_list1,
+      std::vector<int>* match_list2);
 
   // If "any" is of type google.protobuf.Any, extract its payload using
   // DynamicMessageFactory and store in "data".
