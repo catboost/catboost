@@ -32,12 +32,10 @@
 
 #include "compiler/command_line_interface.h"
 #include "compiler/cpp/cpp_generator.h"
-
-#ifndef OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
+#include "compiler/java/java_generator.h"
 #include "compiler/perlxs/perlxs_generator.h"
 #include "compiler/python/python_generator.h"
-#include "compiler/java/java_generator.h"
-#endif  // ! OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
+
 
 int main(int argc, char* argv[]) {
 
@@ -49,15 +47,11 @@ int main(int argc, char* argv[]) {
   cli.RegisterGenerator("--cpp_out", "--cpp_opt", &cpp_generator,
                         "Generate C++ header and source.");
 
-#ifndef OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
   // Proto2 Java
   google::protobuf::compiler::java::JavaGenerator java_generator;
   cli.RegisterGenerator("--java_out", &java_generator,
                         "Generate Java source file.");
-#endif  // !OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
 
-
-#ifndef OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
   // Proto2 Python
   google::protobuf::compiler::python::Generator py_generator;
   cli.RegisterGenerator("--python_out", &py_generator,
@@ -67,7 +61,6 @@ int main(int argc, char* argv[]) {
   google::protobuf::compiler::perlxs::PerlXSGenerator perlxs_generator;
   cli.RegisterGenerator("--perlxs_out", &perlxs_generator,
                         "Generate Perl/XS source files.");
-#endif  // !OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
 
   return cli.Run(argc, argv);
 }

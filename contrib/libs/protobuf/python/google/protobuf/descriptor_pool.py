@@ -62,7 +62,7 @@ from google.protobuf import descriptor_database
 from google.protobuf import text_encoding
 
 
-_USE_C_DESCRIPTORS = descriptor._USE_C_DESCRIPTORS  # pylint: disable=protected-access
+_USE_C_DESCRIPTORS = descriptor._USE_C_DESCRIPTORS
 
 
 def _NormalizeFullyQualifiedName(name):
@@ -78,14 +78,6 @@ def _NormalizeFullyQualifiedName(name):
     A str, the normalized fully-qualified symbol name.
   """
   return name.lstrip('.')
-
-
-def _OptionsOrNone(descriptor_proto):
-  """Returns the value of the field `options`, or None if it is not set."""
-  if descriptor_proto.HasField('options'):
-    return descriptor_proto.options
-  else:
-    return None
 
 
 class DescriptorPool(object):
@@ -334,61 +326,78 @@ class DescriptorPool(object):
           name=file_proto.name,
           package=file_proto.package,
           syntax=file_proto.syntax,
-          options=_OptionsOrNone(file_proto),
+          options=file_proto.options,
           serialized_pb=file_proto.SerializeToString(),
           dependencies=direct_deps,
           public_dependencies=public_deps)
-      scope = {}
-
-      # This loop extracts all the message and enum types from all the
-      # dependencies of the file_proto. This is necessary to create the
-      # scope of available message types when defining the passed in
-      # file proto.
-      for dependency in built_deps:
-        scope.update(self._ExtractSymbols(
-            dependency.message_types_by_name.values()))
-        scope.update((_PrefixWithDot(enum.full_name), enum)
-                     for enum in dependency.enum_types_by_name.values())
-
-      for message_type in file_proto.message_type:
-        message_desc = self._ConvertMessageDescriptor(
-            message_type, file_proto.package, file_descriptor, scope,
-            file_proto.syntax)
-        file_descriptor.message_types_by_name[message_desc.name] = (
-            message_desc)
-
-      for enum_type in file_proto.enum_type:
-        file_descriptor.enum_types_by_name[enum_type.name] = (
-            self._ConvertEnumDescriptor(enum_type, file_proto.package,
-                                        file_descriptor, None, scope))
-
-      for index, extension_proto in enumerate(file_proto.extension):
-        extension_desc = self._MakeFieldDescriptor(
-            extension_proto, file_proto.package, index, is_extension=True)
-        extension_desc.containing_type = self._GetTypeFromScope(
-            file_descriptor.package, extension_proto.extendee, scope)
-        self._SetFieldType(extension_proto, extension_desc,
-                           file_descriptor.package, scope)
-        file_descriptor.extensions_by_name[extension_desc.name] = (
-            extension_desc)
-
-      for desc_proto in file_proto.message_type:
-        self._SetAllFieldTypes(file_proto.package, desc_proto, scope)
-
-      if file_proto.package:
-        desc_proto_prefix = _PrefixWithDot(file_proto.package)
+      if _USE_C_DESCRIPTORS:
+        # When using C++ descriptors, all objects defined in the file were added
+        # to the C++ database when the FileDescriptor was built above.
+        # Just add them to this descriptor pool.
+        def _AddMessageDescriptor(message_desc):
+          self._descriptors[message_desc.full_name] = message_desc
+          for nested in message_desc.nested_types:
+            _AddMessageDescriptor(nested)
+          for enum_type in message_desc.enum_types:
+            _AddEnumDescriptor(enum_type)
+        def _AddEnumDescriptor(enum_desc):
+          self._enum_descriptors[enum_desc.full_name] = enum_desc
+        for message_type in file_descriptor.message_types_by_name.values():
+          _AddMessageDescriptor(message_type)
+        for enum_type in file_descriptor.enum_types_by_name.values():
+          _AddEnumDescriptor(enum_type)
       else:
-        desc_proto_prefix = ''
+        scope = {}
 
-      for desc_proto in file_proto.message_type:
-        desc = self._GetTypeFromScope(
-            desc_proto_prefix, desc_proto.name, scope)
-        file_descriptor.message_types_by_name[desc_proto.name] = desc
+        # This loop extracts all the message and enum types from all the
+        # dependencies of the file_proto. This is necessary to create the
+        # scope of available message types when defining the passed in
+        # file proto.
+        for dependency in built_deps:
+          scope.update(self._ExtractSymbols(
+              dependency.message_types_by_name.values()))
+          scope.update((_PrefixWithDot(enum.full_name), enum)
+                       for enum in dependency.enum_types_by_name.values())
 
-      for index, service_proto in enumerate(file_proto.service):
-        file_descriptor.services_by_name[service_proto.name] = (
-            self._MakeServiceDescriptor(service_proto, index, scope,
-                                        file_proto.package, file_descriptor))
+        for message_type in file_proto.message_type:
+          message_desc = self._ConvertMessageDescriptor(
+              message_type, file_proto.package, file_descriptor, scope,
+              file_proto.syntax)
+          file_descriptor.message_types_by_name[message_desc.name] = (
+              message_desc)
+
+        for enum_type in file_proto.enum_type:
+          file_descriptor.enum_types_by_name[enum_type.name] = (
+              self._ConvertEnumDescriptor(enum_type, file_proto.package,
+                                          file_descriptor, None, scope))
+
+        for index, extension_proto in enumerate(file_proto.extension):
+          extension_desc = self._MakeFieldDescriptor(
+              extension_proto, file_proto.package, index, is_extension=True)
+          extension_desc.containing_type = self._GetTypeFromScope(
+              file_descriptor.package, extension_proto.extendee, scope)
+          self._SetFieldType(extension_proto, extension_desc,
+                            file_descriptor.package, scope)
+          file_descriptor.extensions_by_name[extension_desc.name] = (
+              extension_desc)
+
+        for desc_proto in file_proto.message_type:
+          self._SetAllFieldTypes(file_proto.package, desc_proto, scope)
+
+        if file_proto.package:
+          desc_proto_prefix = _PrefixWithDot(file_proto.package)
+        else:
+          desc_proto_prefix = ''
+
+        for desc_proto in file_proto.message_type:
+          desc = self._GetTypeFromScope(
+              desc_proto_prefix, desc_proto.name, scope)
+          file_descriptor.message_types_by_name[desc_proto.name] = desc
+
+        for index, service_proto in enumerate(file_proto.service):
+          file_descriptor.services_by_name[service_proto.name] = (
+              self._MakeServiceDescriptor(service_proto, index, scope,
+                                          file_proto.package, file_descriptor))
 
       self.Add(file_proto)
       self._file_descriptors[file_proto.name] = file_descriptor
@@ -404,7 +413,6 @@ class DescriptorPool(object):
       package: The package the proto should be located in.
       file_desc: The file containing this message.
       scope: Dict mapping short and full symbols to message and enum types.
-      syntax: string indicating syntax of the file ("proto2" or "proto3")
 
     Returns:
       The added descriptor.
@@ -455,7 +463,7 @@ class DescriptorPool(object):
         nested_types=nested,
         enum_types=enums,
         extensions=extensions,
-        options=_OptionsOrNone(desc_proto),
+        options=desc_proto.options,
         is_extendable=is_extendable,
         extension_ranges=extension_ranges,
         file=file_desc,
@@ -509,7 +517,7 @@ class DescriptorPool(object):
                                      file=file_desc,
                                      values=values,
                                      containing_type=containing_type,
-                                     options=_OptionsOrNone(enum_proto))
+                                     options=enum_proto.options)
     scope['.%s' % enum_name] = desc
     self._enum_descriptors[enum_name] = desc
     return desc
@@ -554,7 +562,7 @@ class DescriptorPool(object):
         default_value=None,
         is_extension=is_extension,
         extension_scope=None,
-        options=_OptionsOrNone(field_proto))
+        options=field_proto.options)
 
   def _SetAllFieldTypes(self, package, desc_proto, scope):
     """Sets all the descriptor's fields's types.
@@ -673,7 +681,7 @@ class DescriptorPool(object):
         name=value_proto.name,
         index=index,
         number=value_proto.number,
-        options=_OptionsOrNone(value_proto),
+        options=value_proto.options,
         type=None)
 
   def _MakeServiceDescriptor(self, service_proto, service_index, scope,
@@ -703,7 +711,7 @@ class DescriptorPool(object):
                                         full_name=service_name,
                                         index=service_index,
                                         methods=methods,
-                                        options=_OptionsOrNone(service_proto),
+                                        options=service_proto.options,
                                         file=file_desc)
     return desc
 
@@ -732,7 +740,7 @@ class DescriptorPool(object):
                                        containing_service=None,
                                        input_type=input_type,
                                        output_type=output_type,
-                                       options=_OptionsOrNone(method_proto))
+                                       options=method_proto.options)
 
   def _ExtractSymbols(self, descriptors):
     """Pulls out all the symbols from descriptor protos.

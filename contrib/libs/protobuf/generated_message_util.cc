@@ -32,6 +32,8 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include "stubs/common.h"
+
 #include "generated_message_util.h"
 
 #include <limits>
@@ -48,15 +50,15 @@ double NaN() {
   return std::numeric_limits<double>::quiet_NaN();
 }
 
-ExplicitlyConstructed< TProtoStringType> fixed_address_empty_string;
+const TProtoStringType* empty_string_;
 GOOGLE_PROTOBUF_DECLARE_ONCE(empty_string_once_init_);
 
 void DeleteEmptyString() {
-  GetEmptyStringAlreadyInited().~string();
+  delete empty_string_;
 }
 
 void InitEmptyString() {
-  fixed_address_empty_string.DefaultConstruct();
+  empty_string_ = new TProtoStringType;
   OnShutdown(&DeleteEmptyString);
 }
 

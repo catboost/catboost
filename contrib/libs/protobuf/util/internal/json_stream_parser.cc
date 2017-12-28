@@ -107,8 +107,7 @@ JsonStreamParser::JsonStreamParser(ObjectWriter* ow)
       parsed_storage_(),
       string_open_(0),
       chunk_storage_(),
-      coerce_to_utf8_(false),
-      allow_empty_null_(false) {
+      coerce_to_utf8_(false) {
   // Initialize the stack with a single value to be parsed.
   stack_.push(VALUE);
 }
@@ -278,10 +277,6 @@ util::Status JsonStreamParser::ParseValue(TokenType type) {
     case UNKNOWN:
       return ReportUnknown("Expected a value.");
     default: {
-      if (allow_empty_null_ && IsEmptyNullAllowed(type)) {
-        return ParseEmptyNull();
-      }
-
       // Special case for having been cut off while parsing, wait for more data.
       // This handles things like 'fals' being at the end of the string, we
       // don't know if the next char would be e, completing it, or something
@@ -298,8 +293,8 @@ util::Status JsonStreamParser::ParseString() {
   util::Status result = ParseStringHelper();
   if (result.ok()) {
     ow_->RenderString(key_, parsed_);
-    key_ = StringPiece();
-    parsed_ = StringPiece();
+    key_.clear();
+    parsed_.clear();
     parsed_storage_.clear();
   }
   return result;
@@ -476,17 +471,17 @@ util::Status JsonStreamParser::ParseNumber() {
     switch (number.type) {
       case NumberResult::DOUBLE:
         ow_->RenderDouble(key_, number.double_val);
-        key_ = StringPiece();
+        key_.clear();
         break;
 
       case NumberResult::INT:
         ow_->RenderInt64(key_, number.int_val);
-        key_ = StringPiece();
+        key_.clear();
         break;
 
       case NumberResult::UINT:
         ow_->RenderUint64(key_, number.uint_val);
-        key_ = StringPiece();
+        key_.clear();
         break;
 
       default:
@@ -570,7 +565,7 @@ util::Status JsonStreamParser::HandleBeginObject() {
   GOOGLE_DCHECK_EQ('{', *p_.data());
   Advance();
   ow_->StartObject(key_);
-  key_ = StringPiece();
+  key_.clear();
   stack_.push(ENTRY);
   return util::Status::OK;
 }
@@ -620,7 +615,7 @@ util::Status JsonStreamParser::ParseEntry(TokenType type) {
       } else {
         key_ = parsed_;
       }
-      parsed_ = StringPiece();
+      parsed_.clear();
     }
   } else if (type == BEGIN_KEY) {
     // Key is a bare key (back compat), create a StringPiece pointing to it.
@@ -653,7 +648,7 @@ util::Status JsonStreamParser::HandleBeginArray() {
   GOOGLE_DCHECK_EQ('[', *p_.data());
   Advance();
   ow_->StartList(key_);
-  key_ = StringPiece();
+  key_.clear();
   stack_.push(ARRAY_VALUE);
   return util::Status::OK;
 }
@@ -670,8 +665,7 @@ util::Status JsonStreamParser::ParseArrayValue(TokenType type) {
   }
 
   // The ParseValue call may push something onto the stack so we need to make
-  // sure an ARRAY_MID is after it, so we push it on now. Also, the parsing of
-  // empty-null array value is relying on this ARRAY_MID token.
+  // sure an ARRAY_MID is after it, so we push it on now.
   stack_.push(ARRAY_MID);
   util::Status result = ParseValue(type);
   if (result == util::Status::CANCELLED) {
@@ -705,35 +699,23 @@ util::Status JsonStreamParser::ParseArrayMid(TokenType type) {
 
 util::Status JsonStreamParser::ParseTrue() {
   ow_->RenderBool(key_, true);
-  key_ = StringPiece();
+  key_.clear();
   p_.remove_prefix(true_len);
   return util::Status::OK;
 }
 
 util::Status JsonStreamParser::ParseFalse() {
   ow_->RenderBool(key_, false);
-  key_ = StringPiece();
+  key_.clear();
   p_.remove_prefix(false_len);
   return util::Status::OK;
 }
 
 util::Status JsonStreamParser::ParseNull() {
   ow_->RenderNull(key_);
-  key_ = StringPiece();
+  key_.clear();
   p_.remove_prefix(null_len);
   return util::Status::OK;
-}
-
-util::Status JsonStreamParser::ParseEmptyNull() {
-  ow_->RenderNull(key_);
-  key_ = StringPiece();
-  return util::Status::OK;
-}
-
-bool JsonStreamParser::IsEmptyNullAllowed(TokenType type) {
-  if (stack_.empty()) return false;
-  return (stack_.top() == ARRAY_MID && type == VALUE_SEPARATOR) ||
-         stack_.top() == OBJ_MID;
 }
 
 util::Status JsonStreamParser::ReportFailure(StringPiece message) {

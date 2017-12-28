@@ -60,7 +60,7 @@ const int WireFormatLite::kMessageSetMessageTag;
 #endif
 
 // IBM xlC requires prefixing constants with WireFormatLite::
-const size_t WireFormatLite::kMessageSetItemTagsSize =
+const int WireFormatLite::kMessageSetItemTagsSize =
   io::CodedOutputStream::StaticVarintSize32<
       WireFormatLite::kMessageSetItemStartTag>::value +
   io::CodedOutputStream::StaticVarintSize32<

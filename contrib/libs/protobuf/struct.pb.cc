@@ -59,13 +59,14 @@ void protobuf_AssignDesc_google_2fprotobuf_2fstruct_2eproto() {
   Struct_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
       Struct_descriptor_,
-      Struct::internal_default_instance(),
+      Struct::default_instance_,
       Struct_offsets_,
       -1,
       -1,
       -1,
       sizeof(Struct),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Struct, _internal_metadata_));
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Struct, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Struct, _is_default_instance_));
   Struct_FieldsEntry_descriptor_ = Struct_descriptor_->nested_type(0);
   Value_descriptor_ = file->message_type(1);
   static const int Value_offsets_[7] = {
@@ -80,7 +81,7 @@ void protobuf_AssignDesc_google_2fprotobuf_2fstruct_2eproto() {
   Value_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
       Value_descriptor_,
-      Value::internal_default_instance(),
+      Value::default_instance_,
       Value_offsets_,
       -1,
       -1,
@@ -88,7 +89,8 @@ void protobuf_AssignDesc_google_2fprotobuf_2fstruct_2eproto() {
       Value_default_oneof_instance_,
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Value, _oneof_case_[0]),
       sizeof(Value),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Value, _internal_metadata_));
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Value, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Value, _is_default_instance_));
   ListValue_descriptor_ = file->message_type(2);
   static const int ListValue_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ListValue, values_),
@@ -96,20 +98,21 @@ void protobuf_AssignDesc_google_2fprotobuf_2fstruct_2eproto() {
   ListValue_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
       ListValue_descriptor_,
-      ListValue::internal_default_instance(),
+      ListValue::default_instance_,
       ListValue_offsets_,
       -1,
       -1,
       -1,
       sizeof(ListValue),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ListValue, _internal_metadata_));
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ListValue, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ListValue, _is_default_instance_));
   NullValue_descriptor_ = file->enum_type(0);
 }
 
 namespace {
 
 GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_AssignDescriptors_once_);
-void protobuf_AssignDescriptorsOnce() {
+inline void protobuf_AssignDescriptorsOnce() {
   ::google::protobuf::GoogleOnceInit(&protobuf_AssignDescriptors_once_,
                  &protobuf_AssignDesc_google_2fprotobuf_2fstruct_2eproto);
 }
@@ -118,7 +121,7 @@ void protobuf_RegisterTypes(const TProtoStringType&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const TProtoStringType&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      Struct_descriptor_, Struct::internal_default_instance());
+      Struct_descriptor_, &Struct::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
         Struct_FieldsEntry_descriptor_,
         ::google::protobuf::internal::MapEntry<
@@ -129,46 +132,30 @@ void protobuf_RegisterTypes(const TProtoStringType&) {
             0>::CreateDefaultInstance(
                 Struct_FieldsEntry_descriptor_));
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      Value_descriptor_, Value::internal_default_instance());
+      Value_descriptor_, &Value::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      ListValue_descriptor_, ListValue::internal_default_instance());
+      ListValue_descriptor_, &ListValue::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_google_2fprotobuf_2fstruct_2eproto() {
-  Struct_default_instance_.Shutdown();
+  delete Struct::default_instance_;
   delete Struct_reflection_;
-  Value_default_instance_.Shutdown();
+  delete Value::default_instance_;
   delete Value_default_oneof_instance_;
   delete Value_reflection_;
-  ListValue_default_instance_.Shutdown();
+  delete ListValue::default_instance_;
   delete ListValue_reflection_;
 }
 
-void protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto_impl() {
+void protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto() GOOGLE_ATTRIBUTE_COLD;
+void protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto() {
+  static bool already_here = false;
+  if (already_here) return;
+  already_here = true;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  ::google::protobuf::internal::GetEmptyString();
-  Struct_default_instance_.DefaultConstruct();
-  ::google::protobuf::internal::GetEmptyString();
-  Value_default_instance_.DefaultConstruct();
-  Value_default_oneof_instance_ = new ValueOneofInstance();
-  ListValue_default_instance_.DefaultConstruct();
-  Struct_default_instance_.get_mutable()->InitAsDefaultInstance();
-  Value_default_instance_.get_mutable()->InitAsDefaultInstance();
-  ListValue_default_instance_.get_mutable()->InitAsDefaultInstance();
-}
-
-GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto_once_);
-void protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto() {
-  ::google::protobuf::GoogleOnceInit(&protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto_once_,
-                 &protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto_impl);
-}
-void protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto_impl() {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\034google/protobuf/struct.proto\022\017google.p"
     "rotobuf\"\204\001\n\006Struct\0223\n\006fields\030\001 \003(\0132#.goo"
@@ -184,19 +171,21 @@ void protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto_impl() {
     "es\030\001 \003(\0132\026.google.protobuf.Value*\033\n\tNull"
     "Value\022\016\n\nNULL_VALUE\020\000B\201\001\n\023com.google.pro"
     "tobufB\013StructProtoP\001Z1github.com/golang/"
-    "protobuf/ptypes/struct;structpb\370\001\001\242\002\003GPB"
+    "protobuf/ptypes/struct;structpb\240\001\001\242\002\003GPB"
     "\252\002\036Google.Protobuf.WellKnownTypesb\006proto"
     "3", 641);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "google/protobuf/struct.proto", &protobuf_RegisterTypes);
+  Struct::default_instance_ = new Struct();
+  Value::default_instance_ = new Value();
+  Value_default_oneof_instance_ = new ValueOneofInstance();
+  ListValue::default_instance_ = new ListValue();
+  Struct::default_instance_->InitAsDefaultInstance();
+  Value::default_instance_->InitAsDefaultInstance();
+  ListValue::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_google_2fprotobuf_2fstruct_2eproto);
 }
 
-GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto_once_);
-void protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto() {
-  ::google::protobuf::GoogleOnceInit(&protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto_once_,
-                 &protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto_impl);
-}
 // Force AddDescriptors() to be called at static initialization time.
 struct StaticDescriptorInitializer_google_2fprotobuf_2fstruct_2eproto {
   StaticDescriptorInitializer_google_2fprotobuf_2fstruct_2eproto() {
@@ -208,23 +197,13 @@ const ::google::protobuf::EnumDescriptor* NullValue_descriptor() {
   return NullValue_descriptor_;
 }
 bool NullValue_IsValid(int value) {
-  switch (value) {
+  switch(value) {
     case 0:
       return true;
     default:
       return false;
   }
 }
-
-
-namespace {
-
-static void MergeFromFail(int line) GOOGLE_ATTRIBUTE_COLD GOOGLE_ATTRIBUTE_NORETURN;
-static void MergeFromFail(int line) {
-  ::google::protobuf::internal::MergeFromFail(__FILE__, line);
-}
-
-}  // namespace
 
 
 // ===================================================================
@@ -235,39 +214,30 @@ const int Struct::kFieldsFieldNumber;
 
 Struct::Struct()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (this != internal_default_instance()) protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
   SharedCtor();
   // @@protoc_insertion_point(constructor:google.protobuf.Struct)
 }
-Struct::Struct(::google::protobuf::Arena* arena)
-  : ::google::protobuf::Message(),
-  _internal_metadata_(arena),
-  fields_(arena) {
-#ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-#endif  // GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  SharedCtor();
-  RegisterArenaDtor(arena);
-  // @@protoc_insertion_point(arena_constructor:google.protobuf.Struct)
-}
 
 void Struct::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
 }
 
 Struct::Struct(const Struct& from)
   : ::google::protobuf::Message(),
     _internal_metadata_(NULL) {
   SharedCtor();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:google.protobuf.Struct)
 }
 
 void Struct::SharedCtor() {
+    _is_default_instance_ = false;
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
   fields_.SetAssignDescriptorCallback(
       protobuf_AssignDescriptorsOnce);
   fields_.SetEntryDescriptor(
       &::google::protobuf::Struct_FieldsEntry_descriptor_);
-  _cached_size_ = 0;
 }
 
 Struct::~Struct() {
@@ -276,19 +246,10 @@ Struct::~Struct() {
 }
 
 void Struct::SharedDtor() {
-  ::google::protobuf::Arena* arena = GetArenaNoVirtual();
-  if (arena != NULL) {
-    return;
+  if (this != default_instance_) {
   }
-
 }
 
-void Struct::ArenaDtor(void* object) {
-  Struct* _this = reinterpret_cast< Struct* >(object);
-  (void)_this;
-}
-void Struct::RegisterArenaDtor(::google::protobuf::Arena* arena) {
-}
 void Struct::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
@@ -300,14 +261,18 @@ const ::google::protobuf::Descriptor* Struct::descriptor() {
 }
 
 const Struct& Struct::default_instance() {
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-  return *internal_default_instance();
+  if (default_instance_ == NULL) protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto();
+  return *default_instance_;
 }
 
-::google::protobuf::internal::ExplicitlyConstructed<Struct> Struct_default_instance_;
+Struct* Struct::default_instance_ = NULL;
 
 Struct* Struct::New(::google::protobuf::Arena* arena) const {
-  return ::google::protobuf::Arena::CreateMessage<Struct>(arena);
+  Struct* n = new Struct;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
 }
 
 void Struct::Clear() {
@@ -325,7 +290,7 @@ bool Struct::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // map<string, .google.protobuf.Value> fields = 1;
+      // std::map<string, .google.protobuf.Value> fields = 1;
       case 1: {
         if (tag == 10) {
           DO_(input->IncrementRecursionDepth());
@@ -375,7 +340,7 @@ failure:
 void Struct::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:google.protobuf.Struct)
-  // map<string, .google.protobuf.Value> fields = 1;
+  // std::map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -408,9 +373,6 @@ void Struct::SerializeWithCachedSizes(
             items[i]->first, items[i]->second));
         ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
             1, *entry, output);
-        if (entry->GetArena() != NULL) {
-          entry.release();
-        }
         Utf8Check::Check(items[i]);
       }
     } else {
@@ -422,9 +384,6 @@ void Struct::SerializeWithCachedSizes(
             it->first, it->second));
         ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
             1, *entry, output);
-        if (entry->GetArena() != NULL) {
-          entry.release();
-        }
         Utf8Check::Check(&*it);
       }
     }
@@ -435,9 +394,8 @@ void Struct::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Struct::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Struct)
-  // map<string, .google.protobuf.Value> fields = 1;
+  // std::map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -472,9 +430,6 @@ void Struct::SerializeWithCachedSizes(
                    InternalWriteMessageNoVirtualToArray(
                        1, *entry, deterministic, target);
 ;
-        if (entry->GetArena() != NULL) {
-          entry.release();
-        }
         Utf8Check::Check(items[i]);
       }
     } else {
@@ -488,9 +443,6 @@ void Struct::SerializeWithCachedSizes(
                    InternalWriteMessageNoVirtualToArray(
                        1, *entry, deterministic, target);
 ;
-        if (entry->GetArena() != NULL) {
-          entry.release();
-        }
         Utf8Check::Check(&*it);
       }
     }
@@ -500,41 +452,35 @@ void Struct::SerializeWithCachedSizes(
   return target;
 }
 
-size_t Struct::ByteSizeLong() const {
+int Struct::ByteSize() const {
 // @@protoc_insertion_point(message_byte_size_start:google.protobuf.Struct)
-  size_t total_size = 0;
+  int total_size = 0;
 
-  // map<string, .google.protobuf.Value> fields = 1;
-  total_size += 1 *
-      ::google::protobuf::internal::FromIntSize(this->fields_size());
+  // std::map<string, .google.protobuf.Value> fields = 1;
+  total_size += 1 * this->fields_size();
   {
     ::google::protobuf::scoped_ptr<Struct_FieldsEntry> entry;
     for (::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_iterator
         it = this->fields().begin();
         it != this->fields().end(); ++it) {
-      if (entry.get() != NULL && entry->GetArena() != NULL) {
-        entry.release();
-      }
       entry.reset(fields_.NewEntryWrapper(it->first, it->second));
       total_size += ::google::protobuf::internal::WireFormatLite::
           MessageSizeNoVirtual(*entry);
     }
-    if (entry.get() != NULL && entry->GetArena() != NULL) {
-      entry.release();
-    }
   }
 
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
+  _cached_size_ = total_size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
   return total_size;
 }
 
 void Struct::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:google.protobuf.Struct)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) MergeFromFail(__LINE__);
-  const Struct* source =
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const Struct* source = 
       ::google::protobuf::internal::DynamicCastToGenerated<const Struct>(
           &from);
   if (source == NULL) {
@@ -542,21 +488,15 @@ void Struct::MergeFrom(const ::google::protobuf::Message& from) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:google.protobuf.Struct)
-    UnsafeMergeFrom(*source);
+    MergeFrom(*source);
   }
 }
 
 void Struct::MergeFrom(const Struct& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.Struct)
-  if (GOOGLE_PREDICT_TRUE(&from != this)) {
-    UnsafeMergeFrom(from);
-  } else {
-    MergeFromFail(__LINE__);
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-}
-
-void Struct::UnsafeMergeFrom(const Struct& from) {
-  GOOGLE_DCHECK(&from != this);
   fields_.MergeFrom(from.fields_);
 }
 
@@ -571,7 +511,7 @@ void Struct::CopyFrom(const Struct& from) {
 // @@protoc_insertion_point(class_specific_copy_from_start:google.protobuf.Struct)
   if (&from == this) return;
   Clear();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
 }
 
 bool Struct::IsInitialized() const {
@@ -581,18 +521,6 @@ bool Struct::IsInitialized() const {
 
 void Struct::Swap(Struct* other) {
   if (other == this) return;
-  if (GetArenaNoVirtual() == other->GetArenaNoVirtual()) {
-    InternalSwap(other);
-  } else {
-    Struct temp;
-    temp.UnsafeMergeFrom(*this);
-    CopyFrom(*other);
-    other->CopyFrom(temp);
-  }
-}
-void Struct::UnsafeArenaSwap(Struct* other) {
-  if (other == this) return;
-  GOOGLE_DCHECK(GetArenaNoVirtual() == other->GetArenaNoVirtual());
   InternalSwap(other);
 }
 void Struct::InternalSwap(Struct* other) {
@@ -612,7 +540,7 @@ void Struct::InternalSwap(Struct* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Struct
 
-// map<string, .google.protobuf.Value> fields = 1;
+// std::map<string, .google.protobuf.Value> fields = 1;
 int Struct::fields_size() const {
   return fields_.size();
 }
@@ -630,9 +558,6 @@ Struct::mutable_fields() {
   return fields_.MutableMap();
 }
 
-inline const Struct* Struct::internal_default_instance() {
-  return &Struct_default_instance_.get();
-}
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // ===================================================================
@@ -648,43 +573,33 @@ const int Value::kListValueFieldNumber;
 
 Value::Value()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (this != internal_default_instance()) protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
   SharedCtor();
   // @@protoc_insertion_point(constructor:google.protobuf.Value)
 }
-Value::Value(::google::protobuf::Arena* arena)
-  : ::google::protobuf::Message(),
-  _internal_metadata_(arena) {
-#ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-#endif  // GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  SharedCtor();
-  RegisterArenaDtor(arena);
-  // @@protoc_insertion_point(arena_constructor:google.protobuf.Value)
-}
 
 void Value::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
   Value_default_oneof_instance_->null_value_ = 0;
   Value_default_oneof_instance_->number_value_ = 0;
   Value_default_oneof_instance_->string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   Value_default_oneof_instance_->bool_value_ = false;
-  Value_default_oneof_instance_->struct_value_ = const_cast< ::google::protobuf::Struct*>(
-      ::google::protobuf::Struct::internal_default_instance());
-  Value_default_oneof_instance_->list_value_ = const_cast< ::google::protobuf::ListValue*>(
-      ::google::protobuf::ListValue::internal_default_instance());
+  Value_default_oneof_instance_->struct_value_ = const_cast< ::google::protobuf::Struct*>(&::google::protobuf::Struct::default_instance());
+  Value_default_oneof_instance_->list_value_ = const_cast< ::google::protobuf::ListValue*>(&::google::protobuf::ListValue::default_instance());
 }
 
 Value::Value(const Value& from)
   : ::google::protobuf::Message(),
     _internal_metadata_(NULL) {
   SharedCtor();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:google.protobuf.Value)
 }
 
 void Value::SharedCtor() {
-  clear_has_kind();
+    _is_default_instance_ = false;
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
+  clear_has_kind();
 }
 
 Value::~Value() {
@@ -693,22 +608,13 @@ Value::~Value() {
 }
 
 void Value::SharedDtor() {
-  ::google::protobuf::Arena* arena = GetArenaNoVirtual();
-  if (arena != NULL) {
-    return;
-  }
-
   if (has_kind()) {
     clear_kind();
   }
+  if (this != default_instance_) {
+  }
 }
 
-void Value::ArenaDtor(void* object) {
-  Value* _this = reinterpret_cast< Value* >(object);
-  (void)_this;
-}
-void Value::RegisterArenaDtor(::google::protobuf::Arena* arena) {
-}
 void Value::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
@@ -720,19 +626,23 @@ const ::google::protobuf::Descriptor* Value::descriptor() {
 }
 
 const Value& Value::default_instance() {
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-  return *internal_default_instance();
+  if (default_instance_ == NULL) protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto();
+  return *default_instance_;
 }
 
-::google::protobuf::internal::ExplicitlyConstructed<Value> Value_default_instance_;
+Value* Value::default_instance_ = NULL;
 
 Value* Value::New(::google::protobuf::Arena* arena) const {
-  return ::google::protobuf::Arena::CreateMessage<Value>(arena);
+  Value* n = new Value;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
 }
 
 void Value::clear_kind() {
 // @@protoc_insertion_point(one_of_clear_start:google.protobuf.Value)
-  switch (kind_case()) {
+  switch(kind_case()) {
     case kNullValue: {
       // No need to clear
       break;
@@ -742,8 +652,7 @@ void Value::clear_kind() {
       break;
     }
     case kStringValue: {
-      kind_.string_value_.Destroy(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-          GetArenaNoVirtual());
+      kind_.string_value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
       break;
     }
     case kBoolValue: {
@@ -751,15 +660,11 @@ void Value::clear_kind() {
       break;
     }
     case kStructValue: {
-      if (GetArenaNoVirtual() == NULL) {
-        delete kind_.struct_value_;
-      }
+      delete kind_.struct_value_;
       break;
     }
     case kListValue: {
-      if (GetArenaNoVirtual() == NULL) {
-        delete kind_.list_value_;
-      }
+      delete kind_.list_value_;
       break;
     }
     case KIND_NOT_SET: {
@@ -796,13 +701,14 @@ bool Value::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        goto after_list_value;
+        if (input->ExpectTag(17)) goto parse_number_value;
         break;
       }
 
       // optional double number_value = 2;
       case 2: {
         if (tag == 17) {
+         parse_number_value:
           clear_kind();
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
@@ -811,13 +717,14 @@ bool Value::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        goto after_list_value;
+        if (input->ExpectTag(26)) goto parse_string_value;
         break;
       }
 
       // optional string string_value = 3;
       case 3: {
         if (tag == 26) {
+         parse_string_value:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_string_value()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -827,13 +734,14 @@ bool Value::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        goto after_list_value;
+        if (input->ExpectTag(32)) goto parse_bool_value;
         break;
       }
 
       // optional bool bool_value = 4;
       case 4: {
         if (tag == 32) {
+         parse_bool_value:
           clear_kind();
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
@@ -842,13 +750,14 @@ bool Value::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        goto after_list_value;
+        if (input->ExpectTag(42)) goto parse_struct_value;
         break;
       }
 
       // optional .google.protobuf.Struct struct_value = 5;
       case 5: {
         if (tag == 42) {
+         parse_struct_value:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_struct_value()));
         } else {
@@ -867,7 +776,6 @@ bool Value::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-       after_list_value:
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -939,7 +847,6 @@ void Value::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Value::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Value)
   // optional .google.protobuf.NullValue null_value = 1;
   if (has_null_value()) {
@@ -986,9 +893,9 @@ void Value::SerializeWithCachedSizes(
   return target;
 }
 
-size_t Value::ByteSizeLong() const {
+int Value::ByteSize() const {
 // @@protoc_insertion_point(message_byte_size_start:google.protobuf.Value)
-  size_t total_size = 0;
+  int total_size = 0;
 
   switch (kind_case()) {
     // optional .google.protobuf.NullValue null_value = 1;
@@ -1032,17 +939,18 @@ size_t Value::ByteSizeLong() const {
       break;
     }
   }
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
+  _cached_size_ = total_size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
   return total_size;
 }
 
 void Value::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:google.protobuf.Value)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) MergeFromFail(__LINE__);
-  const Value* source =
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const Value* source = 
       ::google::protobuf::internal::DynamicCastToGenerated<const Value>(
           &from);
   if (source == NULL) {
@@ -1050,21 +958,15 @@ void Value::MergeFrom(const ::google::protobuf::Message& from) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:google.protobuf.Value)
-    UnsafeMergeFrom(*source);
+    MergeFrom(*source);
   }
 }
 
 void Value::MergeFrom(const Value& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.Value)
-  if (GOOGLE_PREDICT_TRUE(&from != this)) {
-    UnsafeMergeFrom(from);
-  } else {
-    MergeFromFail(__LINE__);
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-}
-
-void Value::UnsafeMergeFrom(const Value& from) {
-  GOOGLE_DCHECK(&from != this);
   switch (from.kind_case()) {
     case kNullValue: {
       set_null_value(from.null_value());
@@ -1107,7 +1009,7 @@ void Value::CopyFrom(const Value& from) {
 // @@protoc_insertion_point(class_specific_copy_from_start:google.protobuf.Value)
   if (&from == this) return;
   Clear();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
 }
 
 bool Value::IsInitialized() const {
@@ -1117,18 +1019,6 @@ bool Value::IsInitialized() const {
 
 void Value::Swap(Value* other) {
   if (other == this) return;
-  if (GetArenaNoVirtual() == other->GetArenaNoVirtual()) {
-    InternalSwap(other);
-  } else {
-    Value temp;
-    temp.UnsafeMergeFrom(*this);
-    CopyFrom(*other);
-    other->CopyFrom(temp);
-  }
-}
-void Value::UnsafeArenaSwap(Value* other) {
-  if (other == this) return;
-  GOOGLE_DCHECK(GetArenaNoVirtual() == other->GetArenaNoVirtual());
   InternalSwap(other);
 }
 void Value::InternalSwap(Value* other) {
@@ -1162,14 +1052,14 @@ void Value::clear_null_value() {
     clear_has_kind();
   }
 }
-::google::protobuf::NullValue Value::null_value() const {
+ ::google::protobuf::NullValue Value::null_value() const {
   // @@protoc_insertion_point(field_get:google.protobuf.Value.null_value)
   if (has_null_value()) {
     return static_cast< ::google::protobuf::NullValue >(kind_.null_value_);
   }
   return static_cast< ::google::protobuf::NullValue >(0);
 }
-void Value::set_null_value(::google::protobuf::NullValue value) {
+ void Value::set_null_value(::google::protobuf::NullValue value) {
   if (!has_null_value()) {
     clear_kind();
     set_has_null_value();
@@ -1191,14 +1081,14 @@ void Value::clear_number_value() {
     clear_has_kind();
   }
 }
-double Value::number_value() const {
+ double Value::number_value() const {
   // @@protoc_insertion_point(field_get:google.protobuf.Value.number_value)
   if (has_number_value()) {
     return kind_.number_value_;
   }
   return 0;
 }
-void Value::set_number_value(double value) {
+ void Value::set_number_value(double value) {
   if (!has_number_value()) {
     clear_kind();
     set_has_number_value();
@@ -1216,104 +1106,76 @@ void Value::set_has_string_value() {
 }
 void Value::clear_string_value() {
   if (has_string_value()) {
-    kind_.string_value_.Destroy(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-        GetArenaNoVirtual());
+    kind_.string_value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     clear_has_kind();
   }
 }
-const TProtoStringType& Value::string_value() const {
+ const TProtoStringType& Value::string_value() const {
   // @@protoc_insertion_point(field_get:google.protobuf.Value.string_value)
   if (has_string_value()) {
-    return kind_.string_value_.Get(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return kind_.string_value_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   return *&::google::protobuf::internal::GetEmptyStringAlreadyInited();
 }
-void Value::set_string_value(const TProtoStringType& value) {
+ void Value::set_string_value(const TProtoStringType& value) {
+  // @@protoc_insertion_point(field_set:google.protobuf.Value.string_value)
   if (!has_string_value()) {
     clear_kind();
     set_has_string_value();
     kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  kind_.string_value_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value,
-      GetArenaNoVirtual());
+  kind_.string_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
   // @@protoc_insertion_point(field_set:google.protobuf.Value.string_value)
 }
-void Value::set_string_value(const char* value) {
+ void Value::set_string_value(const char* value) {
   if (!has_string_value()) {
     clear_kind();
     set_has_string_value();
     kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  kind_.string_value_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      TProtoStringType(value), GetArenaNoVirtual());
+  kind_.string_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      TProtoStringType(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Value.string_value)
 }
-void Value::set_string_value(const char* value,
-                             size_t size) {
+ void Value::set_string_value(const char* value, size_t size) {
   if (!has_string_value()) {
     clear_kind();
     set_has_string_value();
     kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  kind_.string_value_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), TProtoStringType(
-      reinterpret_cast<const char*>(value), size),
-      GetArenaNoVirtual());
+  kind_.string_value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), TProtoStringType(
+      reinterpret_cast<const char*>(value), size));
   // @@protoc_insertion_point(field_set_pointer:google.protobuf.Value.string_value)
 }
-TProtoStringType* Value::mutable_string_value() {
+ TProtoStringType* Value::mutable_string_value() {
   if (!has_string_value()) {
     clear_kind();
     set_has_string_value();
     kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  return kind_.string_value_.Mutable(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      GetArenaNoVirtual());
   // @@protoc_insertion_point(field_mutable:google.protobuf.Value.string_value)
+  return kind_.string_value_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-TProtoStringType* Value::release_string_value() {
+ TProtoStringType* Value::release_string_value() {
   // @@protoc_insertion_point(field_release:google.protobuf.Value.string_value)
   if (has_string_value()) {
     clear_has_kind();
-    return kind_.string_value_.Release(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-        GetArenaNoVirtual());
+    return kind_.string_value_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   } else {
     return NULL;
   }
 }
-TProtoStringType* Value::unsafe_arena_release_string_value() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:google.protobuf.Value.string_value)
-  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
-  if (has_string_value()) {
-    clear_has_kind();
-    return kind_.string_value_.UnsafeArenaRelease(
-        &::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
-  } else {
-    return NULL;
-  }
-}
-void Value::set_allocated_string_value(TProtoStringType* string_value) {
+ void Value::set_allocated_string_value(TProtoStringType* string_value) {
   if (!has_string_value()) {
     kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   clear_kind();
   if (string_value != NULL) {
     set_has_string_value();
-    kind_.string_value_.SetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), string_value,
-        GetArenaNoVirtual());
+    kind_.string_value_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        string_value);
   }
   // @@protoc_insertion_point(field_set_allocated:google.protobuf.Value.string_value)
-}
-void Value::unsafe_arena_set_allocated_string_value(TProtoStringType* string_value) {
-  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
-  if (!has_string_value()) {
-    kind_.string_value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  }
-  clear_kind();
-  if (string_value) {
-    set_has_string_value();
-    kind_.string_value_.UnsafeArenaSetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), string_value, GetArenaNoVirtual());
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:google.protobuf.Value.string_value)
 }
 
 // optional bool bool_value = 4;
@@ -1329,14 +1191,14 @@ void Value::clear_bool_value() {
     clear_has_kind();
   }
 }
-bool Value::bool_value() const {
+ bool Value::bool_value() const {
   // @@protoc_insertion_point(field_get:google.protobuf.Value.bool_value)
   if (has_bool_value()) {
     return kind_.bool_value_;
   }
   return false;
 }
-void Value::set_bool_value(bool value) {
+ void Value::set_bool_value(bool value) {
   if (!has_bool_value()) {
     clear_kind();
     set_has_bool_value();
@@ -1354,9 +1216,7 @@ void Value::set_has_struct_value() {
 }
 void Value::clear_struct_value() {
   if (has_struct_value()) {
-    if (GetArenaNoVirtual() == NULL) {
-      delete kind_.struct_value_;
-    }
+    delete kind_.struct_value_;
     clear_has_kind();
   }
 }
@@ -1370,51 +1230,13 @@ void Value::clear_struct_value() {
   if (!has_struct_value()) {
     clear_kind();
     set_has_struct_value();
-    kind_.struct_value_ = 
-      ::google::protobuf::Arena::CreateMessage< ::google::protobuf::Struct >(
-      GetArenaNoVirtual());
+    kind_.struct_value_ = new ::google::protobuf::Struct;
   }
   // @@protoc_insertion_point(field_mutable:google.protobuf.Value.struct_value)
   return kind_.struct_value_;
 }
 ::google::protobuf::Struct* Value::release_struct_value() {
   // @@protoc_insertion_point(field_release:google.protobuf.Value.struct_value)
-  if (has_struct_value()) {
-    clear_has_kind();
-    if (GetArenaNoVirtual() != NULL) {
-      ::google::protobuf::Struct* temp = new ::google::protobuf::Struct(*kind_.struct_value_);
-      kind_.struct_value_ = NULL;
-      return temp;
-    } else {
-      ::google::protobuf::Struct* temp = kind_.struct_value_;
-      kind_.struct_value_ = NULL;
-      return temp;
-    }
-  } else {
-    return NULL;
-  }
-}
-void Value::set_allocated_struct_value(::google::protobuf::Struct* struct_value) {
-  clear_kind();
-  if (struct_value) {
-    if (GetArenaNoVirtual() != NULL &&
-        ::google::protobuf::Arena::GetArena(struct_value) == NULL) {
-      GetArenaNoVirtual()->Own(struct_value);
-    } else if (GetArenaNoVirtual() !=
-               ::google::protobuf::Arena::GetArena(struct_value)) {
-      ::google::protobuf::Struct* new_struct_value = 
-          ::google::protobuf::Arena::CreateMessage< ::google::protobuf::Struct >(
-          GetArenaNoVirtual());
-      new_struct_value->CopyFrom(*struct_value);
-      struct_value = new_struct_value;
-    }
-    set_has_struct_value();
-    kind_.struct_value_ = struct_value;
-  }
-  // @@protoc_insertion_point(field_set_allocated:google.protobuf.Value.struct_value)
-}
- ::google::protobuf::Struct* Value::unsafe_arena_release_struct_value() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:google.protobuf.Value.struct_value)
   if (has_struct_value()) {
     clear_has_kind();
     ::google::protobuf::Struct* temp = kind_.struct_value_;
@@ -1424,13 +1246,13 @@ void Value::set_allocated_struct_value(::google::protobuf::Struct* struct_value)
     return NULL;
   }
 }
- void Value::unsafe_arena_set_allocated_struct_value(::google::protobuf::Struct* struct_value) {
+void Value::set_allocated_struct_value(::google::protobuf::Struct* struct_value) {
   clear_kind();
   if (struct_value) {
     set_has_struct_value();
     kind_.struct_value_ = struct_value;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:google.protobuf.Value.struct_value)
+  // @@protoc_insertion_point(field_set_allocated:google.protobuf.Value.struct_value)
 }
 
 // optional .google.protobuf.ListValue list_value = 6;
@@ -1442,9 +1264,7 @@ void Value::set_has_list_value() {
 }
 void Value::clear_list_value() {
   if (has_list_value()) {
-    if (GetArenaNoVirtual() == NULL) {
-      delete kind_.list_value_;
-    }
+    delete kind_.list_value_;
     clear_has_kind();
   }
 }
@@ -1458,51 +1278,13 @@ void Value::clear_list_value() {
   if (!has_list_value()) {
     clear_kind();
     set_has_list_value();
-    kind_.list_value_ = 
-      ::google::protobuf::Arena::CreateMessage< ::google::protobuf::ListValue >(
-      GetArenaNoVirtual());
+    kind_.list_value_ = new ::google::protobuf::ListValue;
   }
   // @@protoc_insertion_point(field_mutable:google.protobuf.Value.list_value)
   return kind_.list_value_;
 }
 ::google::protobuf::ListValue* Value::release_list_value() {
   // @@protoc_insertion_point(field_release:google.protobuf.Value.list_value)
-  if (has_list_value()) {
-    clear_has_kind();
-    if (GetArenaNoVirtual() != NULL) {
-      ::google::protobuf::ListValue* temp = new ::google::protobuf::ListValue(*kind_.list_value_);
-      kind_.list_value_ = NULL;
-      return temp;
-    } else {
-      ::google::protobuf::ListValue* temp = kind_.list_value_;
-      kind_.list_value_ = NULL;
-      return temp;
-    }
-  } else {
-    return NULL;
-  }
-}
-void Value::set_allocated_list_value(::google::protobuf::ListValue* list_value) {
-  clear_kind();
-  if (list_value) {
-    if (GetArenaNoVirtual() != NULL &&
-        ::google::protobuf::Arena::GetArena(list_value) == NULL) {
-      GetArenaNoVirtual()->Own(list_value);
-    } else if (GetArenaNoVirtual() !=
-               ::google::protobuf::Arena::GetArena(list_value)) {
-      ::google::protobuf::ListValue* new_list_value = 
-          ::google::protobuf::Arena::CreateMessage< ::google::protobuf::ListValue >(
-          GetArenaNoVirtual());
-      new_list_value->CopyFrom(*list_value);
-      list_value = new_list_value;
-    }
-    set_has_list_value();
-    kind_.list_value_ = list_value;
-  }
-  // @@protoc_insertion_point(field_set_allocated:google.protobuf.Value.list_value)
-}
- ::google::protobuf::ListValue* Value::unsafe_arena_release_list_value() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:google.protobuf.Value.list_value)
   if (has_list_value()) {
     clear_has_kind();
     ::google::protobuf::ListValue* temp = kind_.list_value_;
@@ -1512,13 +1294,13 @@ void Value::set_allocated_list_value(::google::protobuf::ListValue* list_value) 
     return NULL;
   }
 }
- void Value::unsafe_arena_set_allocated_list_value(::google::protobuf::ListValue* list_value) {
+void Value::set_allocated_list_value(::google::protobuf::ListValue* list_value) {
   clear_kind();
   if (list_value) {
     set_has_list_value();
     kind_.list_value_ = list_value;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:google.protobuf.Value.list_value)
+  // @@protoc_insertion_point(field_set_allocated:google.protobuf.Value.list_value)
 }
 
 bool Value::has_kind() const {
@@ -1530,9 +1312,6 @@ void Value::clear_has_kind() {
 Value::KindCase Value::kind_case() const {
   return Value::KindCase(_oneof_case_[0]);
 }
-inline const Value* Value::internal_default_instance() {
-  return &Value_default_instance_.get();
-}
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // ===================================================================
@@ -1543,34 +1322,24 @@ const int ListValue::kValuesFieldNumber;
 
 ListValue::ListValue()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (this != internal_default_instance()) protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
   SharedCtor();
   // @@protoc_insertion_point(constructor:google.protobuf.ListValue)
 }
-ListValue::ListValue(::google::protobuf::Arena* arena)
-  : ::google::protobuf::Message(),
-  _internal_metadata_(arena),
-  values_(arena) {
-#ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-#endif  // GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
-  SharedCtor();
-  RegisterArenaDtor(arena);
-  // @@protoc_insertion_point(arena_constructor:google.protobuf.ListValue)
-}
 
 void ListValue::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
 }
 
 ListValue::ListValue(const ListValue& from)
   : ::google::protobuf::Message(),
     _internal_metadata_(NULL) {
   SharedCtor();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:google.protobuf.ListValue)
 }
 
 void ListValue::SharedCtor() {
+    _is_default_instance_ = false;
   _cached_size_ = 0;
 }
 
@@ -1580,19 +1349,10 @@ ListValue::~ListValue() {
 }
 
 void ListValue::SharedDtor() {
-  ::google::protobuf::Arena* arena = GetArenaNoVirtual();
-  if (arena != NULL) {
-    return;
+  if (this != default_instance_) {
   }
-
 }
 
-void ListValue::ArenaDtor(void* object) {
-  ListValue* _this = reinterpret_cast< ListValue* >(object);
-  (void)_this;
-}
-void ListValue::RegisterArenaDtor(::google::protobuf::Arena* arena) {
-}
 void ListValue::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
@@ -1604,14 +1364,18 @@ const ::google::protobuf::Descriptor* ListValue::descriptor() {
 }
 
 const ListValue& ListValue::default_instance() {
-  protobuf_InitDefaults_google_2fprotobuf_2fstruct_2eproto();
-  return *internal_default_instance();
+  if (default_instance_ == NULL) protobuf_AddDesc_google_2fprotobuf_2fstruct_2eproto();
+  return *default_instance_;
 }
 
-::google::protobuf::internal::ExplicitlyConstructed<ListValue> ListValue_default_instance_;
+ListValue* ListValue::default_instance_ = NULL;
 
 ListValue* ListValue::New(::google::protobuf::Arena* arena) const {
-  return ::google::protobuf::Arena::CreateMessage<ListValue>(arena);
+  ListValue* n = new ListValue;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
 }
 
 void ListValue::Clear() {
@@ -1680,7 +1444,6 @@ void ListValue::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ListValue::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.ListValue)
   // repeated .google.protobuf.Value values = 1;
   for (unsigned int i = 0, n = this->values_size(); i < n; i++) {
@@ -1693,32 +1456,30 @@ void ListValue::SerializeWithCachedSizes(
   return target;
 }
 
-size_t ListValue::ByteSizeLong() const {
+int ListValue::ByteSize() const {
 // @@protoc_insertion_point(message_byte_size_start:google.protobuf.ListValue)
-  size_t total_size = 0;
+  int total_size = 0;
 
   // repeated .google.protobuf.Value values = 1;
-  {
-    unsigned int count = this->values_size();
-    total_size += 1UL * count;
-    for (unsigned int i = 0; i < count; i++) {
-      total_size +=
-        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->values(i));
-    }
+  total_size += 1 * this->values_size();
+  for (int i = 0; i < this->values_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->values(i));
   }
 
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
+  _cached_size_ = total_size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
   return total_size;
 }
 
 void ListValue::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:google.protobuf.ListValue)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) MergeFromFail(__LINE__);
-  const ListValue* source =
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const ListValue* source = 
       ::google::protobuf::internal::DynamicCastToGenerated<const ListValue>(
           &from);
   if (source == NULL) {
@@ -1726,21 +1487,15 @@ void ListValue::MergeFrom(const ::google::protobuf::Message& from) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:google.protobuf.ListValue)
-    UnsafeMergeFrom(*source);
+    MergeFrom(*source);
   }
 }
 
 void ListValue::MergeFrom(const ListValue& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.ListValue)
-  if (GOOGLE_PREDICT_TRUE(&from != this)) {
-    UnsafeMergeFrom(from);
-  } else {
-    MergeFromFail(__LINE__);
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
   }
-}
-
-void ListValue::UnsafeMergeFrom(const ListValue& from) {
-  GOOGLE_DCHECK(&from != this);
   values_.MergeFrom(from.values_);
 }
 
@@ -1755,7 +1510,7 @@ void ListValue::CopyFrom(const ListValue& from) {
 // @@protoc_insertion_point(class_specific_copy_from_start:google.protobuf.ListValue)
   if (&from == this) return;
   Clear();
-  UnsafeMergeFrom(from);
+  MergeFrom(from);
 }
 
 bool ListValue::IsInitialized() const {
@@ -1765,18 +1520,6 @@ bool ListValue::IsInitialized() const {
 
 void ListValue::Swap(ListValue* other) {
   if (other == this) return;
-  if (GetArenaNoVirtual() == other->GetArenaNoVirtual()) {
-    InternalSwap(other);
-  } else {
-    ListValue temp;
-    temp.UnsafeMergeFrom(*this);
-    CopyFrom(*other);
-    other->CopyFrom(temp);
-  }
-}
-void ListValue::UnsafeArenaSwap(ListValue* other) {
-  if (other == this) return;
-  GOOGLE_DCHECK(GetArenaNoVirtual() == other->GetArenaNoVirtual());
   InternalSwap(other);
 }
 void ListValue::InternalSwap(ListValue* other) {
@@ -1826,9 +1569,6 @@ ListValue::values() const {
   return values_;
 }
 
-inline const ListValue* ListValue::internal_default_instance() {
-  return &ListValue_default_instance_.get();
-}
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // @@protoc_insertion_point(namespace_scope)

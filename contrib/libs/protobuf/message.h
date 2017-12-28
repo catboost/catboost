@@ -334,7 +334,7 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   virtual bool IsInitialized() const;
   virtual void CheckTypeAndMergeFrom(const MessageLite& other);
   virtual bool MergePartialFromCodedStream(io::CodedInputStream* input);
-  virtual size_t ByteSizeLong() const;
+  virtual int ByteSize() const;
   virtual void SerializeWithCachedSizes(io::CodedOutputStream* output) const;
 
  private:

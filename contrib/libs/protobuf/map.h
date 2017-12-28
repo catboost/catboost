@@ -600,7 +600,7 @@ class Map {
       // If arena is not given, malloc needs to be called which doesn't
       // construct element object.
       if (arena_ == NULL) {
-        return static_cast<pointer>(::operator new(n * sizeof(value_type)));
+        return reinterpret_cast<pointer>(malloc(n * sizeof(value_type)));
       } else {
         return reinterpret_cast<pointer>(
             Arena::CreateArray<uint8>(arena_, n * sizeof(value_type)));
@@ -609,11 +609,7 @@ class Map {
 
     void deallocate(pointer p, size_type n) {
       if (arena_ == NULL) {
-#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
-        ::operator delete(p, n * sizeof(value_type));
-#else
-        ::operator delete(p);
-#endif
+        free(p);
       }
     }
 

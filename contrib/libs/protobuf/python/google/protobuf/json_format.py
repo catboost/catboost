@@ -86,9 +86,7 @@ class ParseError(Error):
   """Thrown in case of parsing error."""
 
 
-def MessageToJson(message,
-                  including_default_value_fields=False,
-                  preserving_proto_field_name=False):
+def MessageToJson(message, including_default_value_fields=False):
   """Converts protobuf message to JSON format.
 
   Args:
@@ -97,40 +95,12 @@ def MessageToJson(message,
         repeated fields, and map fields will always be serialized.  If
         False, only serialize non-empty fields.  Singular message fields
         and oneof fields are not affected by this option.
-    preserving_proto_field_name: If True, use the original proto field
-        names as defined in the .proto file. If False, convert the field
-        names to lowerCamelCase.
 
   Returns:
     A string containing the JSON formatted protocol buffer message.
   """
-  printer = _Printer(including_default_value_fields,
-                     preserving_proto_field_name)
+  printer = _Printer(including_default_value_fields)
   return printer.ToJsonString(message)
-
-
-def MessageToDict(message,
-                  including_default_value_fields=False,
-                  preserving_proto_field_name=False):
-  """Converts protobuf message to a JSON dictionary.
-
-  Args:
-    message: The protocol buffers message instance to serialize.
-    including_default_value_fields: If True, singular primitive fields,
-        repeated fields, and map fields will always be serialized.  If
-        False, only serialize non-empty fields.  Singular message fields
-        and oneof fields are not affected by this option.
-    preserving_proto_field_name: If True, use the original proto field
-        names as defined in the .proto file. If False, convert the field
-        names to lowerCamelCase.
-
-  Returns:
-    A dict representation of the JSON formatted protocol buffer message.
-  """
-  printer = _Printer(including_default_value_fields,
-                     preserving_proto_field_name)
-  # pylint: disable=protected-access
-  return printer._MessageToJsonObject(message)
 
 
 def _IsMapEntry(field):
@@ -143,10 +113,8 @@ class _Printer(object):
   """JSON format printer for protocol message."""
 
   def __init__(self,
-               including_default_value_fields=False,
-               preserving_proto_field_name=False):
+               including_default_value_fields=False):
     self.including_default_value_fields = including_default_value_fields
-    self.preserving_proto_field_name = preserving_proto_field_name
 
   def ToJsonString(self, message):
     js = self._MessageToJsonObject(message)
@@ -169,10 +137,7 @@ class _Printer(object):
 
     try:
       for field, value in fields:
-        if self.preserving_proto_field_name:
-          name = field.name
-        else:
-          name = field.json_name
+        name = field.camelcase_name
         if _IsMapEntry(field):
           # Convert a map field.
           v_field = field.message_type.fields_by_name['value']
@@ -204,10 +169,7 @@ class _Printer(object):
                field.cpp_type == descriptor.FieldDescriptor.CPPTYPE_MESSAGE) or
               field.containing_oneof):
             continue
-          if self.preserving_proto_field_name:
-            name = field.name
-          else:
-            name = field.json_name
+          name = field.camelcase_name
           if name in js:
             # Skip the field which has been serailized already.
             continue
@@ -348,7 +310,7 @@ def Parse(text, message, ignore_unknown_fields=False):
 
   Args:
     text: Message JSON representation.
-    message: A protocol buffer message to merge into.
+    message: A protocol beffer message to merge into.
     ignore_unknown_fields: If True, do not raise errors for unknown fields.
 
   Returns:
@@ -366,22 +328,8 @@ def Parse(text, message, ignore_unknown_fields=False):
       js = json.loads(text, object_pairs_hook=_DuplicateChecker)
   except ValueError as e:
     raise ParseError('Failed to load JSON: {0}.'.format(str(e)))
-  return ParseDict(js, message, ignore_unknown_fields)
-
-
-def ParseDict(js_dict, message, ignore_unknown_fields=False):
-  """Parses a JSON dictionary representation into a message.
-
-  Args:
-    js_dict: Dict representation of a JSON message.
-    message: A protocol buffer message to merge into.
-    ignore_unknown_fields: If True, do not raise errors for unknown fields.
-
-  Returns:
-    The same message passed as argument.
-  """
   parser = _Parser(ignore_unknown_fields)
-  parser.ConvertMessage(js_dict, message)
+  parser.ConvertMessage(js, message)
   return message
 
 
@@ -426,13 +374,9 @@ class _Parser(object):
     """
     names = []
     message_descriptor = message.DESCRIPTOR
-    fields_by_json_name = dict((f.json_name, f)
-                               for f in message_descriptor.fields)
     for name in js:
       try:
-        field = fields_by_json_name.get(name, None)
-        if not field:
-          field = message_descriptor.fields_by_name.get(name, None)
+        field = message_descriptor.fields_by_camelcase_name.get(name, None)
         if not field:
           if self.ignore_unknown_fields:
             continue
@@ -455,12 +399,7 @@ class _Parser(object):
 
         value = js[name]
         if value is None:
-          if (field.cpp_type == descriptor.FieldDescriptor.CPPTYPE_MESSAGE
-              and field.message_type.full_name == 'google.protobuf.Value'):
-            sub_message = getattr(message, field.name)
-            sub_message.null_value = 0
-          else:
-            message.ClearField(field.name)
+          message.ClearField(field.name)
           continue
 
         # Parse field value.
@@ -492,7 +431,6 @@ class _Parser(object):
                   _ConvertScalarFieldValue(item, field))
         elif field.cpp_type == descriptor.FieldDescriptor.CPPTYPE_MESSAGE:
           sub_message = getattr(message, field.name)
-          sub_message.SetInParent()
           self.ConvertMessage(value, sub_message)
         else:
           setattr(message, field.name, _ConvertScalarFieldValue(value, field))
@@ -636,15 +574,10 @@ def _ConvertScalarFieldValue(value, field, require_str=False):
     # Convert an enum value.
     enum_value = field.enum_type.values_by_name.get(value, None)
     if enum_value is None:
-      try:
-        number = int(value)
-        enum_value = field.enum_type.values_by_number.get(number, None)
-      except ValueError:
-        raise ParseError('Invalid enum value {0} for enum type {1}.'.format(
-            value, field.enum_type.full_name))
-      if enum_value is None:
-        raise ParseError('Invalid enum value {0} for enum type {1}.'.format(
-            value, field.enum_type.full_name))
+      raise ParseError(
+          'Enum value must be a string literal with double quotes. '
+          'Type "{0}" has no value named {1}.'.format(
+              field.enum_type.full_name, value))
     return enum_value.number
 
 
@@ -660,7 +593,7 @@ def _ConvertInteger(value):
   Raises:
     ParseError: If an integer couldn't be consumed.
   """
-  if isinstance(value, float) and not value.is_integer():
+  if isinstance(value, float):
     raise ParseError('Couldn\'t parse integer: {0}.'.format(value))
 
   if isinstance(value, six.text_type) and value.find(' ') != -1:

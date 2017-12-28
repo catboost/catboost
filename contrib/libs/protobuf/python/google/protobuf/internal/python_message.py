@@ -63,10 +63,7 @@ except ImportError:
   # nothing like hermetic Python. This means lesser control on the system and
   # the six.moves package may be missing (is missing on 20150321 on gMac). Be
   # extra conservative and try to load the old replacement if it fails.
-  try:
-    import copy_reg as copyreg  #PY26
-  except ImportError:
-    import copyreg
+  import copy_reg as copyreg
 
 # We use "as" to avoid name collisions with variables.
 from google.protobuf.internal import containers
@@ -383,15 +380,13 @@ def _GetInitializeDefaultForMap(field):
   if _IsMessageMapField(field):
     def MakeMessageMapDefault(message):
       return containers.MessageMap(
-          message._listener_for_children, value_field.message_type, key_checker,
-          field.message_type)
+          message._listener_for_children, value_field.message_type, key_checker)
     return MakeMessageMapDefault
   else:
     value_checker = type_checkers.GetTypeChecker(value_field)
     def MakePrimitiveMapDefault(message):
       return containers.ScalarMap(
-          message._listener_for_children, key_checker, value_checker,
-          field.message_type)
+          message._listener_for_children, key_checker, value_checker)
     return MakePrimitiveMapDefault
 
 def _DefaultValueConstructorForField(field):

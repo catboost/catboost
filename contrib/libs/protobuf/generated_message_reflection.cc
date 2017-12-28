@@ -173,43 +173,62 @@ static void ReportReflectionUsageEnumTypeError(
 // ===================================================================
 
 GeneratedMessageReflection::GeneratedMessageReflection(
-    const Descriptor* descriptor, const Message* default_instance,
-    const int offsets[], int has_bits_offset, int unknown_fields_offset,
-    int extensions_offset, const DescriptorPool* descriptor_pool,
-    MessageFactory* factory, int object_size, int arena_offset)
-    : descriptor_(descriptor),
-      default_instance_(default_instance),
-      offsets_(offsets),
-      has_bits_offset_(has_bits_offset),
-      unknown_fields_offset_(unknown_fields_offset),
-      extensions_offset_(extensions_offset),
-      arena_offset_(arena_offset),
-      object_size_(object_size),
-      descriptor_pool_((descriptor_pool == NULL)
-                           ? DescriptorPool::generated_pool()
-                           : descriptor_pool),
-      message_factory_(factory) {}
+    const Descriptor* descriptor,
+    const Message* default_instance,
+    const int offsets[],
+    int has_bits_offset,
+    int unknown_fields_offset,
+    int extensions_offset,
+    const DescriptorPool* descriptor_pool,
+    MessageFactory* factory,
+    int object_size,
+    int arena_offset,
+    int is_default_instance_offset)
+  : descriptor_       (descriptor),
+    default_instance_ (default_instance),
+    offsets_          (offsets),
+    has_bits_offset_  (has_bits_offset),
+    unknown_fields_offset_(unknown_fields_offset),
+    extensions_offset_(extensions_offset),
+    arena_offset_     (arena_offset),
+    is_default_instance_offset_(is_default_instance_offset),
+    object_size_      (object_size),
+    descriptor_pool_  ((descriptor_pool == NULL) ?
+                         DescriptorPool::generated_pool() :
+                         descriptor_pool),
+    message_factory_  (factory) {
+}
 
 GeneratedMessageReflection::GeneratedMessageReflection(
-    const Descriptor* descriptor, const Message* default_instance,
-    const int offsets[], int has_bits_offset, int unknown_fields_offset,
-    int extensions_offset, const void* default_oneof_instance,
-    int oneof_case_offset, const DescriptorPool* descriptor_pool,
-    MessageFactory* factory, int object_size, int arena_offset)
-    : descriptor_(descriptor),
-      default_instance_(default_instance),
-      default_oneof_instance_(default_oneof_instance),
-      offsets_(offsets),
-      has_bits_offset_(has_bits_offset),
-      oneof_case_offset_(oneof_case_offset),
-      unknown_fields_offset_(unknown_fields_offset),
-      extensions_offset_(extensions_offset),
-      arena_offset_(arena_offset),
-      object_size_(object_size),
-      descriptor_pool_((descriptor_pool == NULL)
-                           ? DescriptorPool::generated_pool()
-                           : descriptor_pool),
-      message_factory_(factory) {}
+    const Descriptor* descriptor,
+    const Message* default_instance,
+    const int offsets[],
+    int has_bits_offset,
+    int unknown_fields_offset,
+    int extensions_offset,
+    const void* default_oneof_instance,
+    int oneof_case_offset,
+    const DescriptorPool* descriptor_pool,
+    MessageFactory* factory,
+    int object_size,
+    int arena_offset,
+    int is_default_instance_offset)
+  : descriptor_       (descriptor),
+    default_instance_ (default_instance),
+    default_oneof_instance_ (default_oneof_instance),
+    offsets_          (offsets),
+    has_bits_offset_  (has_bits_offset),
+    oneof_case_offset_(oneof_case_offset),
+    unknown_fields_offset_(unknown_fields_offset),
+    extensions_offset_(extensions_offset),
+    arena_offset_     (arena_offset),
+    is_default_instance_offset_(is_default_instance_offset),
+    object_size_      (object_size),
+    descriptor_pool_  ((descriptor_pool == NULL) ?
+                         DescriptorPool::generated_pool() :
+                         descriptor_pool),
+    message_factory_  (factory) {
+}
 
 GeneratedMessageReflection::~GeneratedMessageReflection() {}
 
@@ -1007,11 +1026,6 @@ struct FieldNumberSorter {
     return left->number() < right->number();
   }
 };
-
-inline bool IsIndexInHasBitSet(const uint32* has_bit_set, uint32 index) {
-  return ((has_bit_set[index / 32] >> (index % 32)) & static_cast<uint32>(1))
-      != 0;
-}
 }  // namespace
 
 void GeneratedMessageReflection::ListFields(
@@ -1022,12 +1036,6 @@ void GeneratedMessageReflection::ListFields(
   // Optimization:  The default instance never has any fields set.
   if (&message == default_instance_) return;
 
-  // Optimization: Avoid calling GetHasBits() and HasOneofField() many times
-  // within the field loop.
-  const uint32* const has_bits = GetHasBits(message);
-  const uint32* const oneof_case_array = reinterpret_cast<const uint32*>(
-      reinterpret_cast<const uint8*>(&message) + oneof_case_offset_);
-
   output->reserve(descriptor_->field_count());
   for (int i = 0; i < descriptor_->field_count(); i++) {
     const FieldDescriptor* field = descriptor_->field(i);
@@ -1036,18 +1044,11 @@ void GeneratedMessageReflection::ListFields(
         output->push_back(field);
       }
     } else {
-      const OneofDescriptor* containing_oneof = field->containing_oneof();
-      if (containing_oneof) {
-        // Equivalent to: HasOneofField(message, field)
-        if (oneof_case_array[containing_oneof->index()] == field->number()) {
+      if (field->containing_oneof()) {
+        if (HasOneofField(message, field)) {
           output->push_back(field);
         }
-      } else if (has_bits) {
-        // Equivalent to: HasBit(message, field)
-        if (IsIndexInHasBitSet(has_bits, i)) {
-          output->push_back(field);
-        }
-      } else if (HasBit(message, field)) {  // Fall back on proto3-style HasBit.
+      } else if (HasBit(message, field)) {
         output->push_back(field);
       }
     }
@@ -2000,7 +2001,12 @@ GeneratedMessageReflection::MutableInternalMetadataWithArena(
 inline bool
 GeneratedMessageReflection::GetIsDefaultInstance(
     const Message& message) const {
-  return &message == default_instance_;
+  if (is_default_instance_offset_ == kHasNoDefaultInstanceField) {
+    return false;
+  }
+  const void* ptr = reinterpret_cast<const uint8*>(&message) +
+      is_default_instance_offset_;
+  return *reinterpret_cast<const bool*>(ptr);
 }
 
 // Simple accessors for manipulating has_bits_.
@@ -2057,7 +2063,8 @@ inline bool GeneratedMessageReflection::HasBit(
       }
     }
   }
-  return IsIndexInHasBitSet(GetHasBits(message), field->index());
+  return GetHasBits(message)[field->index() / 32] &
+    (1 << (field->index() % 32));
 }
 
 inline void GeneratedMessageReflection::SetBit(
@@ -2065,9 +2072,7 @@ inline void GeneratedMessageReflection::SetBit(
   if (has_bits_offset_ == -1) {
     return;
   }
-  const uint32 index = static_cast<uint32>(field->index());
-  MutableHasBits(message)[index / 32] |=
-      (static_cast<uint32>(1) << (index % 32));
+  MutableHasBits(message)[field->index() / 32] |= (1 << (field->index() % 32));
 }
 
 inline void GeneratedMessageReflection::ClearBit(
@@ -2075,9 +2080,7 @@ inline void GeneratedMessageReflection::ClearBit(
   if (has_bits_offset_ == -1) {
     return;
   }
-  const uint32 index = static_cast<uint32>(field->index());
-  MutableHasBits(message)[index / 32] &=
-      ~(static_cast<uint32>(1) << (index % 32));
+  MutableHasBits(message)[field->index() / 32] &= ~(1 << (field->index() % 32));
 }
 
 inline void GeneratedMessageReflection::SwapBit(
@@ -2272,11 +2275,19 @@ GeneratedMessageReflection::NewGeneratedMessageReflection(
     int object_size,
     int arena_offset,
     int is_default_instance_offset) {
-  return new GeneratedMessageReflection(
-      descriptor, default_instance, offsets, has_bits_offset,
-      unknown_fields_offset, extensions_offset, default_oneof_instance,
-      oneof_case_offset, DescriptorPool::generated_pool(),
-      MessageFactory::generated_factory(), object_size, arena_offset);
+  return new GeneratedMessageReflection(descriptor,
+                                        default_instance,
+                                        offsets,
+                                        has_bits_offset,
+                                        unknown_fields_offset,
+                                        extensions_offset,
+                                        default_oneof_instance,
+                                        oneof_case_offset,
+                                        DescriptorPool::generated_pool(),
+                                        MessageFactory::generated_factory(),
+                                        object_size,
+                                        arena_offset,
+                                        is_default_instance_offset);
 }
 
 GeneratedMessageReflection*
@@ -2290,11 +2301,17 @@ GeneratedMessageReflection::NewGeneratedMessageReflection(
     int object_size,
     int arena_offset,
     int is_default_instance_offset) {
-  return new GeneratedMessageReflection(
-      descriptor, default_instance, offsets, has_bits_offset,
-      unknown_fields_offset, extensions_offset,
-      DescriptorPool::generated_pool(), MessageFactory::generated_factory(),
-      object_size, arena_offset);
+  return new GeneratedMessageReflection(descriptor,
+                                        default_instance,
+                                        offsets,
+                                        has_bits_offset,
+                                        unknown_fields_offset,
+                                        extensions_offset,
+                                        DescriptorPool::generated_pool(),
+                                        MessageFactory::generated_factory(),
+                                        object_size,
+                                        arena_offset,
+                                        is_default_instance_offset);
 }
 
 }  // namespace internal

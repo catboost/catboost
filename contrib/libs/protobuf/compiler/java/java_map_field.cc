@@ -92,11 +92,7 @@ void SetMessageVariables(const FieldDescriptor* descriptor,
   const JavaType valueJavaType = GetJavaType(value);
 
   (*variables)["key_type"] = TypeName(key, name_resolver, false);
-  string boxed_key_type = TypeName(key, name_resolver, true);
-  (*variables)["boxed_key_type"] = boxed_key_type;
-  // Used for calling the serialization function.
-  (*variables)["short_key_type"] =
-      boxed_key_type.substr(boxed_key_type.rfind('.') + 1);
+  (*variables)["boxed_key_type"] = TypeName(key, name_resolver, true);
   (*variables)["key_wire_type"] = WireType(key);
   (*variables)["key_default_value"] = DefaultValue(key, true, name_resolver);
   (*variables)["key_null_check"] = IsReferenceType(keyJavaType) ?
@@ -151,7 +147,6 @@ void SetMessageVariables(const FieldDescriptor* descriptor,
       name_resolver->GetImmutableClassName(descriptor->file()) +
       ".internal_" + UniqueFileScopeIdentifier(descriptor->message_type()) +
       "_descriptor, ";
-  (*variables)["ver"] = GeneratedCodeVersionSuffix();
 }
 
 }  // namespace
@@ -666,23 +661,21 @@ GenerateParsingCode(io::Printer* printer) const {
         variables_,
         "com.google.protobuf.ByteString bytes = input.readBytes();\n"
         "com.google.protobuf.MapEntry<$type_parameters$>\n"
-        "$name$__ = $default_entry$.getParserForType().parseFrom(bytes);\n");
+        "$name$ = $default_entry$.getParserForType().parseFrom(bytes);\n");
     printer->Print(
         variables_,
-        "if ($value_enum_type$.forNumber($name$__.getValue()) == null) {\n"
+        "if ($value_enum_type$.forNumber($name$.getValue()) == null) {\n"
         "  unknownFields.mergeLengthDelimitedField($number$, bytes);\n"
         "} else {\n"
-        "  $name$_.getMutableMap().put(\n"
-        "      $name$__.getKey(), $name$__.getValue());\n"
+        "  $name$_.getMutableMap().put($name$.getKey(), $name$.getValue());\n"
         "}\n");
   } else {
     printer->Print(
         variables_,
         "com.google.protobuf.MapEntry<$type_parameters$>\n"
-        "$name$__ = input.readMessage(\n"
+        "$name$ = input.readMessage(\n"
         "    $default_entry$.getParserForType(), extensionRegistry);\n"
-        "$name$_.getMutableMap().put(\n"
-        "    $name$__.getKey(), $name$__.getValue());\n");
+        "$name$_.getMutableMap().put($name$.getKey(), $name$.getValue());\n");
   }
 }
 
@@ -695,12 +688,15 @@ void ImmutableMapFieldGenerator::
 GenerateSerializationCode(io::Printer* printer) const {
   printer->Print(
       variables_,
-      "com.google.protobuf.GeneratedMessage$ver$\n"
-      "  .serialize$short_key_type$MapTo(\n"
-      "    output,\n"
-      "    internalGet$capitalized_name$(),\n"
-      "    $default_entry$,\n"
-      "    $number$);\n");
+      "for (java.util.Map.Entry<$type_parameters$> entry\n"
+      "     : internalGet$capitalized_name$().getMap().entrySet()) {\n"
+      "  com.google.protobuf.MapEntry<$type_parameters$>\n"
+      "  $name$ = $default_entry$.newBuilderForType()\n"
+      "      .setKey(entry.getKey())\n"
+      "      .setValue(entry.getValue())\n"
+      "      .build();\n"
+      "  output.writeMessage($number$, $name$);\n"
+      "}\n");
 }
 
 void ImmutableMapFieldGenerator::
@@ -710,12 +706,12 @@ GenerateSerializedSizeCode(io::Printer* printer) const {
       "for (java.util.Map.Entry<$type_parameters$> entry\n"
       "     : internalGet$capitalized_name$().getMap().entrySet()) {\n"
       "  com.google.protobuf.MapEntry<$type_parameters$>\n"
-      "  $name$__ = $default_entry$.newBuilderForType()\n"
+      "  $name$ = $default_entry$.newBuilderForType()\n"
       "      .setKey(entry.getKey())\n"
       "      .setValue(entry.getValue())\n"
       "      .build();\n"
       "  size += com.google.protobuf.CodedOutputStream\n"
-      "      .computeMessageSize($number$, $name$__);\n"
+      "      .computeMessageSize($number$, $name$);\n"
       "}\n");
 }
 

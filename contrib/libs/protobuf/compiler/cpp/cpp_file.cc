@@ -89,7 +89,7 @@ FileGenerator::FileGenerator(const FileDescriptor* file, const Options& options)
       new ExtensionGenerator(file->extension(i), options));
   }
 
-  package_parts_ = Split(file_->package(), ".", true);
+  SplitStringUsing(file_->package(), ".", &package_parts_);
 }
 
 FileGenerator::~FileGenerator() {}
@@ -336,20 +336,6 @@ void FileGenerator::GenerateSource(io::Printer* printer) {
 
   // Generate classes.
   for (int i = 0; i < file_->message_type_count(); i++) {
-    if (i == 0 && HasGeneratedMethods(file_, options_)) {
-      printer->Print(
-        "\n"
-        "namespace {\n"
-        "\n"
-        "static void MergeFromFail(int line) GOOGLE_ATTRIBUTE_COLD"
-        " GOOGLE_ATTRIBUTE_NORETURN;\n"
-        "static void MergeFromFail(int line) {\n"
-        "  ::google::protobuf::internal::MergeFromFail(__FILE__, line);\n"
-        "}\n"
-        "\n"
-        "}  // namespace\n"
-        "\n");
-    }
     printer->Print("\n");
     printer->Print(kThickSeparator);
     printer->Print("\n");
@@ -463,7 +449,6 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
 
   // In optimize_for = LITE_RUNTIME mode, we don't generate AssignDescriptors()
   // and we only use AddDescriptors() to allocate default instances.
-
   if (HasDescriptorMethods(file_, options_)) {
     printer->Print(
         "\n"
@@ -515,15 +500,15 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
     // AssignDescriptors().  All later times, waits for the first call to
     // complete and then returns.
     printer->Print(
-        "namespace {\n"
-        "\n"
-        "GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_AssignDescriptors_once_);\n"
-        "void protobuf_AssignDescriptorsOnce() {\n"
-        "  ::google::protobuf::GoogleOnceInit(&protobuf_AssignDescriptors_once_,\n"
-        "                 &$assigndescriptorsname$);\n"
-        "}\n"
-        "\n",
-        "assigndescriptorsname", GlobalAssignDescriptorsName(file_->name()));
+      "namespace {\n"
+      "\n"
+      "GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_AssignDescriptors_once_);\n"
+      "inline void protobuf_AssignDescriptorsOnce() {\n"
+      "  ::google::protobuf::GoogleOnceInit(&protobuf_AssignDescriptors_once_,\n"
+      "                 &$assigndescriptorsname$);\n"
+      "}\n"
+      "\n",
+      "assigndescriptorsname", GlobalAssignDescriptorsName(file_->name()));
 
     // protobuf_RegisterTypes():  Calls
     // MessageFactory::InternalRegisterGeneratedType() for each message type.
@@ -563,68 +548,44 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
 
   // -----------------------------------------------------------------
 
-  // Now generate the InitDefaults() function.
-  printer->Print(
-      "void $initdefaultsname$_impl() {\n"
+  // Now generate the AddDescriptors() function.
+  PrintHandlingOptionalStaticInitializers(
+      file_, options_, printer,
+      // With static initializers.
+      // Note that we don't need any special synchronization in the following
+      // code
+      // because it is called at static init time before any threads exist.
+      "void $adddescriptorsname$() GOOGLE_ATTRIBUTE_COLD;\n"
+      "void $adddescriptorsname$() {\n"
+      "  static bool already_here = false;\n"
+      "  if (already_here) return;\n"
+      "  already_here = true;\n"
+      "  GOOGLE_PROTOBUF_VERIFY_VERSION;\n"
+      "\n",
+      // Without.
+      "void $adddescriptorsname$_impl() {\n"
       "  GOOGLE_PROTOBUF_VERIFY_VERSION;\n"
       "\n",
       // Vars.
-      "initdefaultsname", GlobalInitDefaultsName(file_->name()));
+      "adddescriptorsname", GlobalAddDescriptorsName(file_->name()));
 
   printer->Indent();
 
-  // Call the InitDefaults() methods for all of our dependencies, to make
+  // Call the AddDescriptors() methods for all of our dependencies, to make
   // sure they get added first.
   for (int i = 0; i < file_->dependency_count(); i++) {
     const FileDescriptor* dependency = file_->dependency(i);
     // Print the namespace prefix for the dependency.
     string add_desc_name = QualifiedFileLevelSymbol(
-        dependency->package(), GlobalInitDefaultsName(dependency->name()));
+        dependency->package(), GlobalAddDescriptorsName(dependency->name()));
     // Call its AddDescriptors function.
     printer->Print(
       "$name$();\n",
       "name", add_desc_name);
   }
 
-  // Allocate and initialize default instances.  This can't be done lazily
-  // since default instances are returned by simple accessors and are used with
-  // extensions.  Speaking of which, we also register extensions at this time.
-  for (int i = 0; i < file_->message_type_count(); i++) {
-    message_generators_[i]->GenerateDefaultInstanceAllocator(printer);
-  }
-  for (int i = 0; i < file_->extension_count(); i++) {
-    extension_generators_[i]->GenerateRegistration(printer);
-  }
-  for (int i = 0; i < file_->message_type_count(); i++) {
-    message_generators_[i]->GenerateDefaultInstanceInitializer(printer);
-  }
-  printer->Outdent();
-  printer->Print(
-      "}\n"
-      "\n"
-      "GOOGLE_PROTOBUF_DECLARE_ONCE($initdefaultsname$_once_);\n"
-      "void $initdefaultsname$() {\n"
-      "  ::google::protobuf::GoogleOnceInit(&$initdefaultsname$_once_,\n"
-      "                 &$initdefaultsname$_impl);\n"
-      "}\n",
-      "initdefaultsname", GlobalInitDefaultsName(file_->name()));
-
-  // -----------------------------------------------------------------
-
-  // Now generate the AddDescriptors() function.
-  printer->Print(
-      "void $adddescriptorsname$_impl() {\n"
-      "  GOOGLE_PROTOBUF_VERIFY_VERSION;\n"
-      "\n"
-      "  $initdefaultsname$();\n",
-      // Vars.
-      "adddescriptorsname", GlobalAddDescriptorsName(file_->name()),
-      "initdefaultsname", GlobalInitDefaultsName(file_->name()));
-
-  printer->Indent();
   if (HasDescriptorMethods(file_, options_)) {
-    // Embed the descriptor.  We simply serialize the entire
-    // FileDescriptorProto
+    // Embed the descriptor.  We simply serialize the entire FileDescriptorProto
     // and embed it as a string literal, which is parsed and built into real
     // descriptors at initialization time.
     FileDescriptorProto file_proto;
@@ -694,37 +655,30 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
       "filename", file_->name());
   }
 
-  // Call the AddDescriptors() methods for all of our dependencies, to make
-  // sure they get added first.
-  for (int i = 0; i < file_->dependency_count(); i++) {
-    const FileDescriptor* dependency = file_->dependency(i);
-    // Print the namespace prefix for the dependency.
-    string add_desc_name = QualifiedFileLevelSymbol(
-        dependency->package(), GlobalAddDescriptorsName(dependency->name()));
-    // Call its AddDescriptors function.
-    printer->Print("$adddescriptorsname$();\n", "adddescriptorsname",
-                   add_desc_name);
+  // Allocate and initialize default instances.  This can't be done lazily
+  // since default instances are returned by simple accessors and are used with
+  // extensions.  Speaking of which, we also register extensions at this time.
+  for (int i = 0; i < file_->message_type_count(); i++) {
+    message_generators_[i]->GenerateDefaultInstanceAllocator(printer);
+  }
+  for (int i = 0; i < file_->extension_count(); i++) {
+    extension_generators_[i]->GenerateRegistration(printer);
+  }
+  for (int i = 0; i < file_->message_type_count(); i++) {
+    message_generators_[i]->GenerateDefaultInstanceInitializer(printer);
   }
 
   printer->Print(
-      "::google::protobuf::internal::OnShutdown(&$shutdownfilename$);\n",
-      "shutdownfilename", GlobalShutdownFileName(file_->name()));
+    "::google::protobuf::internal::OnShutdown(&$shutdownfilename$);\n",
+    "shutdownfilename", GlobalShutdownFileName(file_->name()));
 
   printer->Outdent();
   printer->Print(
-      "}\n"
-      "\n"
-      "GOOGLE_PROTOBUF_DECLARE_ONCE($adddescriptorsname$_once_);\n"
-      "void $adddescriptorsname$() {\n"
-      "  ::google::protobuf::GoogleOnceInit(&$adddescriptorsname$_once_,\n"
-      "                 &$adddescriptorsname$_impl);\n"
-      "}\n",
-      "adddescriptorsname", GlobalAddDescriptorsName(file_->name()));
+    "}\n"
+    "\n");
 
-  if (!StaticInitializersForced(file_, options_)) {
-    printer->Print("#ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER\n");
-  }
-  printer->Print(
+  PrintHandlingOptionalStaticInitializers(
+      file_, options_, printer,
       // With static initializers.
       "// Force AddDescriptors() to be called at static initialization time.\n"
       "struct StaticDescriptorInitializer_$filename$ {\n"
@@ -732,12 +686,15 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
       "    $adddescriptorsname$();\n"
       "  }\n"
       "} static_descriptor_initializer_$filename$_;\n",
+      // Without.
+      "GOOGLE_PROTOBUF_DECLARE_ONCE($adddescriptorsname$_once_);\n"
+      "void $adddescriptorsname$() {\n"
+      "  ::google::protobuf::GoogleOnceInit(&$adddescriptorsname$_once_,\n"
+      "                 &$adddescriptorsname$_impl);\n"
+      "}\n",
       // Vars.
       "adddescriptorsname", GlobalAddDescriptorsName(file_->name()), "filename",
       FilenameIdentifier(file_->name()));
-  if (!StaticInitializersForced(file_, options_)) {
-    printer->Print("#endif  // GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER\n");
-  }
 }
 
 void FileGenerator::GenerateNamespaceOpeners(io::Printer* printer) {
@@ -934,14 +891,12 @@ void FileGenerator::GenerateGlobalStateFunctionDeclarations(
   // Forward-declare the AddDescriptors, AssignDescriptors, and ShutdownFile
   // functions, so that we can declare them to be friends of each class.
   printer->Print(
-      "\n"
-      "// Internal implementation detail -- do not call these.\n"
-      "void $dllexport_decl$$adddescriptorsname$();\n"
-      "void $dllexport_decl$$initdefaultsname$();\n",
-      "initdefaultsname", GlobalInitDefaultsName(file_->name()),
-      "adddescriptorsname", GlobalAddDescriptorsName(file_->name()),
-      "dllexport_decl",
-      options_.dllexport_decl.empty() ? "" : options_.dllexport_decl + " ");
+    "\n"
+    "// Internal implementation detail -- do not call these.\n"
+    "void $dllexport_decl$$adddescriptorsname$();\n",
+    "adddescriptorsname", GlobalAddDescriptorsName(file_->name()),
+    "dllexport_decl",
+    options_.dllexport_decl.empty() ? "" : options_.dllexport_decl + " ");
 
   printer->Print(
     // Note that we don't put dllexport_decl on these because they are only

@@ -1354,8 +1354,8 @@ void ExtensionSet::SerializeWithCachedSizes(
   }
 }
 
-size_t ExtensionSet::ByteSize() const {
-  size_t total_size = 0;
+int ExtensionSet::ByteSize() const {
+  int total_size = 0;
 
   for (ExtensionMap::const_iterator iter = extensions_.begin();
        iter != extensions_.end(); ++iter) {
@@ -1536,8 +1536,8 @@ void ExtensionSet::Extension::SerializeFieldWithCachedSizes(
   }
 }
 
-size_t ExtensionSet::Extension::ByteSize(int number) const {
-  size_t result = 0;
+int ExtensionSet::Extension::ByteSize(int number) const {
+  int result = 0;
 
   if (is_repeated) {
     if (is_packed) {
@@ -1563,7 +1563,7 @@ size_t ExtensionSet::Extension::ByteSize(int number) const {
 #define HANDLE_TYPE(UPPERCASE, CAMELCASE, LOWERCASE)                        \
         case WireFormatLite::TYPE_##UPPERCASE:                              \
           result += WireFormatLite::k##CAMELCASE##Size *                    \
-                    FromIntSize(repeated_##LOWERCASE##_value->size());      \
+                    repeated_##LOWERCASE##_value->size();                   \
           break
         HANDLE_TYPE( FIXED32,  Fixed32, uint32);
         HANDLE_TYPE( FIXED64,  Fixed64, uint64);
@@ -1582,7 +1582,7 @@ size_t ExtensionSet::Extension::ByteSize(int number) const {
           break;
       }
 
-      cached_size = ToCachedSize(result);
+      cached_size = result;
       if (result > 0) {
         result += io::CodedOutputStream::VarintSize32(result);
         result += io::CodedOutputStream::VarintSize32(
@@ -1590,13 +1590,12 @@ size_t ExtensionSet::Extension::ByteSize(int number) const {
                 WireFormatLite::WIRETYPE_LENGTH_DELIMITED));
       }
     } else {
-      size_t tag_size = WireFormatLite::TagSize(number, real_type(type));
+      int tag_size = WireFormatLite::TagSize(number, real_type(type));
 
       switch (real_type(type)) {
 #define HANDLE_TYPE(UPPERCASE, CAMELCASE, LOWERCASE)                        \
         case WireFormatLite::TYPE_##UPPERCASE:                              \
-          result += tag_size *                                              \
-                    FromIntSize(repeated_##LOWERCASE##_value->size());      \
+          result += tag_size * repeated_##LOWERCASE##_value->size();        \
           for (int i = 0; i < repeated_##LOWERCASE##_value->size(); i++) {  \
             result += WireFormatLite::CAMELCASE##Size(                      \
               repeated_##LOWERCASE##_value->Get(i));                        \
@@ -1620,7 +1619,7 @@ size_t ExtensionSet::Extension::ByteSize(int number) const {
 #define HANDLE_TYPE(UPPERCASE, CAMELCASE, LOWERCASE)                        \
         case WireFormatLite::TYPE_##UPPERCASE:                              \
           result += (tag_size + WireFormatLite::k##CAMELCASE##Size) *       \
-                    FromIntSize(repeated_##LOWERCASE##_value->size());      \
+                    repeated_##LOWERCASE##_value->size();                   \
           break
         HANDLE_TYPE( FIXED32,  Fixed32, uint32);
         HANDLE_TYPE( FIXED64,  Fixed64, uint64);
@@ -1653,7 +1652,7 @@ size_t ExtensionSet::Extension::ByteSize(int number) const {
 #undef HANDLE_TYPE
       case WireFormatLite::TYPE_MESSAGE: {
         if (is_lazy) {
-          size_t size = lazymessage_value->ByteSize();
+          int size = lazymessage_value->ByteSize();
           result += io::CodedOutputStream::VarintSize32(size) + size;
         } else {
           result += WireFormatLite::MessageSize(*message_value);

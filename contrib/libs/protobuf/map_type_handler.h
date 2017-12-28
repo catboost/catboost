@@ -162,7 +162,7 @@ class MapTypeHandler<WireFormatLite::TYPE_MESSAGE, Type> {
       MapWireFieldTypeTraits<WireFormatLite::TYPE_MESSAGE, Type>::kIsEnum;
 
   // Functions used in parsing and serialization. ===================
-  static inline size_t ByteSize(const MapEntryAccessorType& value);
+  static inline int ByteSize(const MapEntryAccessorType& value);
   static inline int GetCachedSize(const MapEntryAccessorType& value);
   static inline bool Read(io::CodedInputStream* input,
                           MapEntryAccessorType* value);
@@ -280,7 +280,7 @@ MAP_HANDLER(BOOL)
 #undef MAP_HANDLER
 
 template <typename Type>
-inline size_t
+inline int
 MapTypeHandler<WireFormatLite::TYPE_MESSAGE, Type>::ByteSize(
     const MapEntryAccessorType& value) {
   return WireFormatLite::MessageSizeNoVirtual(value);

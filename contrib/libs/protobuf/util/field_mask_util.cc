@@ -456,12 +456,11 @@ void FieldMaskTree::TrimMessage(const Node* node, Message* message) {
   const int32 field_count = descriptor->field_count();
   for (int index = 0; index < field_count; ++index) {
     const FieldDescriptor* field = descriptor->field(index);
-    std::map<string, Node*>::const_iterator it = node->children.find(field->name());
-    if (it == node->children.end()) {
+    if (!ContainsKey(node->children, field->name())) {
       reflection->ClearField(message, field);
     } else {
       if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
-        Node* child = it->second;
+        Node* child = node->children.at(field->name());
         if (!child->children.empty()) {
           TrimMessage(child, reflection->MutableMessage(message, field));
         }
