@@ -1025,7 +1025,7 @@ void GeneratedMessageReflection::ListFields(
       schema_.HasHasbits() ? GetHasBits(message) : NULL;
   const uint32* const has_bits_indices = schema_.has_bit_indices_;
   const uint32* const oneof_case_array =
-      &GetConstRefAtOffset<uint32>(message, schema_.oneof_case_offset_);
+      GetConstPointerAtOffset<uint32>(&message, schema_.oneof_case_offset_);
 
   const int field_count = descriptor_->field_count();
   output->reserve(field_count);
