@@ -81,7 +81,7 @@ public:
     TJsonValue& AppendValue(TJsonValue&& value);
     TJsonValue& Back();
 
-    bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.');
+    bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.') const;
     bool SetValueByPath(TStringBuf path, const TJsonValue& value, char delimiter = '.');
     bool SetValueByPath(TStringBuf path, TJsonValue&& value, char delimiter = '.');
 
