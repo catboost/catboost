@@ -38,10 +38,11 @@ TLogger CreateLogger(
     const bool allowWriteFiles,
     const bool detailedProfile,
     const bool hasTrain,
-    const bool hasTest
+    const bool hasTest,
+    int consoleWritePeriod
 ) {
     TLogger logger;
-    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile);
+    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile, consoleWritePeriod);
     if (hasTrain) {
         logger.AddBackend("learn", consoleLoggingBackend);
         if (allowWriteFiles) {

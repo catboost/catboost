@@ -83,8 +83,9 @@ public:
 
 class TConsoleLoggingBackend : public ILoggingBackend {
 public:
-    explicit TConsoleLoggingBackend(const bool detailedProfile)
+    explicit TConsoleLoggingBackend(const bool detailedProfile, int writePeriod = 1)
         : DetailedProfile(detailedProfile)
+        , WritePeriod(writePeriod)
     {
     }
 
@@ -109,6 +110,10 @@ public:
     }
 
     void Flush(const int currentIteration) {
+        if (currentIteration % WritePeriod != 0) {
+            Stream.Clear();
+            return;
+        }
         if(!Stream.Empty()) {
             MATRIXNET_NOTICE_LOG << currentIteration << ":" << Stream.Str() << Endl;
             Stream.Clear();
@@ -117,6 +122,7 @@ public:
 
 private:
     bool DetailedProfile;
+    int WritePeriod;
     TStringStream Stream;
 };
 
@@ -288,7 +294,8 @@ TLogger CreateLogger(
     const bool allowWriteFiles,
     const bool detailedProfile,
     const bool hasTrain,
-    const bool hasTest
+    const bool hasTest,
+    int metricPeriod
 );
 
 void Log(

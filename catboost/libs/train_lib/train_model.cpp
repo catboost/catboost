@@ -176,7 +176,8 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         ctx->OutputOptions.AllowWriteFiles(),
         ctx->Params.IsProfile,
         true,
-        hasTest
+        hasTest,
+        ctx->OutputOptions.GetMetricPeriod()
     );
 
     TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
@@ -681,7 +682,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
             TLogger logger;
-            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
+            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true, outputOptions.GetMetricPeriod())));
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
         }

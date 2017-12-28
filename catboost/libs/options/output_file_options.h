@@ -22,14 +22,13 @@ namespace NCatboostOptions {
             , AllowWriteFilesFlag("allow_writing_files", true)
             , UseBestModel("use_best_model", false)
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
-            , MetricPeriod("metric_period", 1, taskType)
+            , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , EvalFileName("eval_file_name", "", taskType)
             , FstrRegularFileName("fstr_regular_file", "", taskType)
             , FstrInternalFileName("fstr_internal_file", "", taskType)
 
         {
-            MetricPeriod.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
@@ -192,7 +191,7 @@ namespace NCatboostOptions {
         TOption<bool> UseBestModel;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
-        TGpuOnlyOption<int> MetricPeriod;
+        TOption<int> MetricPeriod;
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
         TCpuOnlyOption<TString> EvalFileName;
