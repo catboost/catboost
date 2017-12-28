@@ -320,6 +320,62 @@ SIMPLE_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_VALUES_EQUAL(IsSorted(v2.begin(), v2.end(), TGreater<int>()), false);
     }
 
+    SIMPLE_UNIT_TEST(SortTestTwoIterators) {
+        TVector<int> collection = {10, 2, 7};
+        Sort(collection.begin(), collection.end());
+        TVector<int> expected = {2, 7, 10};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(SortTestTwoIteratorsAndComparator) {
+        TVector<int> collection = {10, 2, 7};
+        Sort(collection.begin(), collection.end(), [](int l, int r) { return l > r; });
+        TVector<int> expected = {10, 7, 2};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(SortTestContainer) {
+        TVector<int> collection = {10, 2, 7};
+        Sort(collection);
+        TVector<int> expected = {2, 7, 10};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(SortTestContainerAndComparator) {
+        TVector<int> collection = {10, 2, 7};
+        Sort(collection, [](int l, int r) { return l > r; });
+        TVector<int> expected = {10, 7, 2};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(StableSortTestTwoIterators) {
+        TVector<int> collection = {10, 2, 7};
+        StableSort(collection.begin(), collection.end());
+        TVector<int> expected = {2, 7, 10};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(StableSortTestTwoIteratorsAndComparator) {
+        TVector<int> collection = {404, 101, 106, 203, 102, 205, 401};
+        StableSort(collection.begin(), collection.end(), [](int l, int r) { return (l / 100) < (r / 100); });
+        TVector<int> expected = {101, 106, 102, 203, 205, 404, 401};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(StableSortTestContainer) {
+        TVector<int> collection = {10, 2, 7};
+        StableSort(collection);
+        TVector<int> expected = {2, 7, 10};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
+    SIMPLE_UNIT_TEST(StableSortTestContainerAndComparator) {
+        TVector<int> collection = {404, 101, 106, 203, 102, 205, 401};
+        StableSort(collection, [](int l, int r) { return (l / 100) < (r / 100); });
+        TVector<int> expected = {101, 106, 102, 203, 205, 404, 401};
+        UNIT_ASSERT_VALUES_EQUAL(collection, expected);
+    }
+
     SIMPLE_UNIT_TEST(SortByTest) {
         TVector<int> collection = {10, 2, 7};
         SortBy(collection, [](int x) { return -x; });
