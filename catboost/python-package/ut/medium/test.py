@@ -218,24 +218,24 @@ def test_multiclass():
     return local_canonical_file(PREDS_PATH)
 
 
-# def test_querywise():
-    # train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
-    # test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
-    # model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 8})
-    # model.fit(train_pool)
-    # pred1 = model.predict(test_pool)
+def test_querywise():
+    train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
+    test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
+    model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 8})
+    model.fit(train_pool)
+    pred1 = model.predict(test_pool)
 
-    # df = read_table(QUERY_TRAIN_FILE, delimiter='\t', header=None)
-    # train_query_id = df.loc[:, 1]
-    # train_target = df.loc[:, 0]
-    # train_data = df.drop([0, 1], axis=1).astype(str)
+    df = read_table(QUERY_TRAIN_FILE, delimiter='\t', header=None)
+    train_query_id = df.loc[:, 1]
+    train_target = df.loc[:, 0]
+    train_data = df.drop([0, 1], axis=1).astype(str)
 
-    # df = read_table(QUERY_TEST_FILE, delimiter='\t', header=None)
-    # test_data = df.drop([0, 1], axis=1).astype(str)
+    df = read_table(QUERY_TEST_FILE, delimiter='\t', header=None)
+    test_data = df.drop([0, 1], axis=1).astype(str)
 
-    # model.fit(train_data, train_target, query_id=train_query_id)
-    # pred2 = model.predict(test_data)
-    # assert _check_data(pred1, pred2)
+    model.fit(train_data, train_target, query_id=train_query_id)
+    pred2 = model.predict(test_data)
+    assert _check_data(pred1, pred2)
 
 
 def test_zero_baseline():
