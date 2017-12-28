@@ -20,9 +20,9 @@ namespace NCatboostOptions {
             , L2Reg("l2_leaf_reg", 3.0)
             , ModelSizeReg("model_size_reg", 0.5)
             , RandomStrength("random_strength", 1.0)
-            , BootstrapConfig("bootstrap", TBootstrapConfig())
+            , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
             , Rsm("rsm", 1.0, taskType)
-            , WeightSamplingFrequency("weight_sampling_frequency", EWeightSamplingFrequency::PerTreeLevel, taskType)
+            , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTreeLevel, taskType)
             , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
             , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
             , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
@@ -30,7 +30,7 @@ namespace NCatboostOptions {
             , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
         {
             Rsm.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
-            WeightSamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
+            SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
             FoldSizeLossNormalization.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
             AddRidgeToTargetFunctionFlag.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -48,7 +48,7 @@ namespace NCatboostOptions {
                         &MaxCtrComplexityForBordersCaching,
                         &Rsm,
                         &ObservationsToBootstrap,
-                        &WeightSamplingFrequency);
+                        &SamplingFrequency);
 
             Validate();
         }
@@ -58,15 +58,15 @@ namespace NCatboostOptions {
                        RandomStrength,
                        BootstrapConfig, FoldSizeLossNormalization, AddRidgeToTargetFunctionFlag,
                        ScoreFunction,
-                       MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, WeightSamplingFrequency);
+                       MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency);
         }
 
         bool operator==(const TObliviousTreeLearnerOptions& rhs) const {
             return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
-                            BootstrapConfig, Rsm, WeightSamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
+                            BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
                             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching) ==
                    std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
-                            rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.WeightSamplingFrequency,
+                            rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                             rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                             rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching);
         }
@@ -94,7 +94,7 @@ namespace NCatboostOptions {
         TOption<TBootstrapConfig> BootstrapConfig;
 
         TCpuOnlyOption<float> Rsm;
-        TCpuOnlyOption<EWeightSamplingFrequency> WeightSamplingFrequency;
+        TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
 
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;

@@ -1,11 +1,12 @@
 #pragma once
 
-#include "calc_score_cache.h"
 #include "online_ctr.h"
 #include "features_layout.h"
 #include "fold.h"
 #include "ctr_helper.h"
 #include "restorable_rng.h"
+#include "split.h"
+#include "calc_score_cache.h"
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/logging/logging.h>
@@ -58,6 +59,7 @@ public:
         , Layout(featureCount, catFeatures, featureId)
         , CatFeatures(catFeatures.begin(), catFeatures.end()) {
         LocalExecutor.RunAdditionalThreads(Params.SystemOptions->NumThreads - 1);
+        CB_ENSURE(static_cast<ui32>(LocalExecutor.GetThreadCount()) == Params.SystemOptions->NumThreads - 1);
     }
 
 public:
@@ -124,7 +126,8 @@ public:
     NCatboostOptions::TOutputFilesOptions OutputOptions;
     TOutputFiles Files;
 
-    TSmallestSplitSideFold ParamsUsedWithStatsFromPrevTree;
-    TStatsFromPrevTree StatsFromPrevTree;
+    TCalcScoreFold SmallestSplitSideDocs;
+    TCalcScoreFold SampledDocs;
+    TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
 };

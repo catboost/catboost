@@ -6,7 +6,7 @@ enum class EOverfittingDetectorType {
     Iter
 };
 
-enum class EWeightSamplingFrequency {
+enum class ESamplingFrequency {
     PerTree,
     PerTreeLevel
 };
