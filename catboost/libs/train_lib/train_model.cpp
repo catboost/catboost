@@ -405,7 +405,6 @@ class TCPUModelTrainer : public IModelTrainer {
             trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
         }
 
-
         const auto& metricOptions = ctx.Params.MetricOptions.Get();
         // TODO(nikitxskv): Add objective to CreateMetrics
         TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
@@ -474,10 +473,11 @@ class TCPUModelTrainer : public IModelTrainer {
         learnPool.Docs.Append(testPool.Docs);
         const int factorsCount = learnPool.Docs.GetFactorsCount();
         const int approxDim = learnPool.Docs.GetBaselineDimension();
+        bool hasQueryId = !learnPool.Docs.QueryId.empty();
 
         auto learnPoolGuard = Finally([&] {
             if (!allowClearPool) {
-                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim);
+                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId);
             }
         });
 
