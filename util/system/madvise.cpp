@@ -11,9 +11,9 @@
 #include <sys/mman.h>
 #endif
 
-#ifndef MADV_DONTDUMP   /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use
-                           for capability with Ubuntu 12.04, so we need to define it here manually */
-#define MADV_DONTDUMP   16      /* Explicity exclude from the core dump, overrides the coredump filter bits */
+#ifndef MADV_DONTDUMP    /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
+                            for capability with Ubuntu 12.04, so we need to define it here manually */
+#define MADV_DONTDUMP 16 /* Explicity exclude from the core dump, overrides the coredump filter bits */
 #endif
 
 namespace {
@@ -75,4 +75,3 @@ void MadviseEvict(const void* begin, size_t size) {
 void MadviseExcludeFromCoreDump(const void* begin, size_t size) {
     Madvise(M_MADVISE_DONTDUMP, begin, size);
 }
-
