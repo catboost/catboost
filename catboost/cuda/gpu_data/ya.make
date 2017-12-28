@@ -41,7 +41,6 @@ CUDA_NVCC_FLAGS(
     -gencode arch=compute_60,code=sm_60
     -gencode arch=compute_60,code=sm_60
     -gencode arch=compute_61,code=compute_61
-    --ptxas-options=-v
 )
 
 
