@@ -35,7 +35,7 @@ TTensorBoardLogger::TTensorBoardLogger(const TString& logDir) {
         MakePathIfNotExist(logDir.c_str());
     }
     TString logFile = JoinFsPaths(logDir, "events.out.tfevents");
-    OutputStream = THolder<TUnbufferedFileOutput>(new TUnbufferedFileOutput(logFile));
+    OutputStream = THolder<TOFStream>(new TOFStream(logFile));
 }
 
 int TTensorBoardLogger::AddScalar(const TString& tag, int step, float value) {

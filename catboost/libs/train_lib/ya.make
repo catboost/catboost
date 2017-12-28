@@ -12,11 +12,11 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/helpers
     catboost/libs/logging
+    catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/fstr
     catboost/libs/overfitting_detector
-    catboost/libs/tensorboard_logger
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash

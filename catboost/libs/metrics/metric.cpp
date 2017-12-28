@@ -1341,3 +1341,11 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description
     auto params = GetLossParams(description);
     return CreateMetric(metric, params, approxDimension);
 }
+
+TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {
+     TVector<TString> result;
+     for (const auto& metric : metrics) {
+         result.push_back(metric->GetDescription());
+     }
+     return result;
+}

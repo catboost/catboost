@@ -26,7 +26,6 @@ struct TMatrixnetMessageFormater {
     static TSimpleSharedPtr<TLogElement> StartRecord(TLog& logger, const TLogRecordContext& context, TSimpleSharedPtr<TLogElement> earlier);
 };
 
-
 inline void SetLogingLevel(ELoggingLevel level) {
     switch (level) {
         case ELoggingLevel::Silent:{
@@ -55,12 +54,9 @@ inline void SetSilentLogingMode() {
     SetLogingLevel(ELoggingLevel::Silent);
 }
 
-
 inline void SetVerboseLogingMode() {
     SetLogingLevel(ELoggingLevel::Debug);
 }
-
-
 
 using TCustomLoggingFunction = void(*)(const char*, size_t len);
 

@@ -13,7 +13,6 @@ SRCS(
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
-    logger.cpp
     model_build_helper.cpp
     online_ctr.cpp
     online_predictor.cpp
@@ -33,10 +32,10 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/logging
+    catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/overfitting_detector
-    catboost/libs/tensorboard_logger
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash
@@ -49,7 +48,5 @@ PEERDIR(
     library/object_factory
     library/threading/local_executor
 )
-
-GENERATE_ENUM_SERIALIZATION(logger.h)
 
 END()
