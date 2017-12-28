@@ -61,6 +61,8 @@ TLogger CreateLogger(
         logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
     }
 
+    // TODO(nikitxskv): Function CreateLogger should only create logger.
+    // It is not obvious from function name that this function writes logs.
     WriteHistory(
         metricsDescription,
         learnErrorsHistory,
