@@ -203,7 +203,7 @@ void* Arena::AllocFromBlock(Block* b, size_t n) {
   b->pos = p + n;
 #ifdef ADDRESS_SANITIZER
   ASAN_UNPOISON_MEMORY_REGION(reinterpret_cast<char*>(b) + p, n);
-#endif  return reinterpret_cast<char*>(b) + p;
+#endif
   return reinterpret_cast<char*>(b) + p;
 }
 
