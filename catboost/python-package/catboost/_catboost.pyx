@@ -112,6 +112,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TObliviousTrees:
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
+        void Truncate(size_t begin, size_t end) except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -896,6 +897,9 @@ cdef class _CatBoost:
         )
         return [[value for value in fstr[i]] for i in range(fstr.size())]
 
+    cpdef _base_shrink(self, int ntree_start, int ntree_end):
+        self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
+
     cpdef _load_model(self, model_file):
         cdef TFullModel tmp_model
         model_file = to_binary_str(model_file)
@@ -1034,6 +1038,9 @@ class _CatBoostBase(object):
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
+
+    def _base_shrink(self, ntree_start, ntree_end):
+        return self._object._base_shrink(ntree_start, ntree_end)
 
     def _save_model(self, output_file, format, export_parameters):
         if self.is_fitted_:

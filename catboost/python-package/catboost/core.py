@@ -887,6 +887,21 @@ class CatBoost(_CatBoostBase):
             return np.transpose(fstr)
         return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
+    def shrink(self, ntree_end, ntree_start=0):
+        """
+        Shrink the model.
+
+        Parameters
+        ----------
+        ntree_end: int
+            Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
+        ntree_start: int, optional (default=0)
+            Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
+        """
+        if ntree_start > ntree_end:
+            raise CatboostError("ntree_start should be less than ntree_end.")
+        self._base_shrink(ntree_start, ntree_end)
+
     def save_model(self, fname, format="cbm", export_parameters=None):
         """
         Save the model to a file.
