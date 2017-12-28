@@ -1,6 +1,6 @@
 #pragma once
 
-#include "contrib/libs/tensorboard/event.pb.h"
+#include <contrib/libs/tensorboard/event.pb.h>
 
 #include <util/generic/string.h>
 #include <util/generic/ptr.h>

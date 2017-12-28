@@ -3,6 +3,8 @@
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/kernel.h>
+#include <catboost/cuda/cuda_util/kernel/fill.cuh>
+#include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/cuda/targets/kernel/pointwise_targets.cuh>
 #include <catboost/cuda/targets/kernel/query_rmse.cuh>
 #include <catboost/cuda/targets/kernel/pair_logit.cuh>

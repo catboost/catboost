@@ -2,6 +2,8 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <util/generic/algorithm.h>
+
 namespace NCatboostCuda {
     struct TPointwiseDescentPoint {
         double Value = 0.0;

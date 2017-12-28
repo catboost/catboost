@@ -2,6 +2,7 @@
 
 #include "approx_calcer_helpers.h"
 #include "approx_util.h"
+#include <catboost/libs/data/pair.h>
 
 template <typename TError>
 void CalcShiftedApproxDersPairs(const TVector<double>& approx,

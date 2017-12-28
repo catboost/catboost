@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <contrib/libs/gamma_function_apache_math_port/gamma_function.h>
 #include <util/generic/vector.h>
