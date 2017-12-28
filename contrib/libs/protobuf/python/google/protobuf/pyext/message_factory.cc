@@ -100,7 +100,8 @@ PyObject* New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
       NewMessageFactory(type, reinterpret_cast<PyDescriptorPool*>(pool)));
 }
 
-static void Dealloc(PyMessageFactory* self) {
+static void Dealloc(PyObject* object) {
+  PyMessageFactory* self = reinterpret_cast<PyMessageFactory*>(object);
   // TODO(amauryfa): When the MessageFactory is not created from the
   // DescriptorPool this reference should be owned, not borrowed.
   // Py_CLEAR(self->pool);

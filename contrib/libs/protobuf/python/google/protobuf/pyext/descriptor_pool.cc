@@ -148,7 +148,8 @@ static PyObject* New(PyTypeObject* type,
       PyDescriptorPool_NewWithDatabase(database));
 }
 
-static void Dealloc(PyDescriptorPool* self) {
+static void Dealloc(PyObject* object) {
+  PyDescriptorPool* self = reinterpret_cast<PyDescriptorPool*>(object);
   descriptor_pool_map.erase(self->pool);
   Py_CLEAR(self->py_message_factory);
   for (hash_map<const void*, PyObject*>::iterator it =
