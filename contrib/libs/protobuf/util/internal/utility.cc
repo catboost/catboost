@@ -41,6 +41,10 @@
 #include "stubs/map_util.h"
 #include "stubs/mathlimits.h"
 
+#include <util/string/util.h>
+
+#include <algorithm>
+
 namespace google {
 namespace protobuf {
 namespace util {
@@ -178,6 +182,19 @@ const google::protobuf::Field* FindJsonFieldInTypeOrNull(
   return NULL;
 }
 
+const google::protobuf::Field* FindFieldInTypeByNumberOrNull(
+    const google::protobuf::Type* type, int32 number) {
+  if (type != NULL) {
+    for (int i = 0; i < type->fields_size(); ++i) {
+      const google::protobuf::Field& field = type->fields(i);
+      if (field.number() == number) {
+        return &field;
+      }
+    }
+  }
+  return NULL;
+}
+
 const google::protobuf::EnumValue* FindEnumValueByNameOrNull(
     const google::protobuf::Enum* enum_type, StringPiece enum_name) {
   if (enum_type != NULL) {
@@ -197,6 +214,29 @@ const google::protobuf::EnumValue* FindEnumValueByNumberOrNull(
     for (int i = 0; i < enum_type->enumvalue_size(); ++i) {
       const google::protobuf::EnumValue& enum_value = enum_type->enumvalue(i);
       if (enum_value.number() == value) {
+        return &enum_value;
+      }
+    }
+  }
+  return NULL;
+}
+
+const google::protobuf::EnumValue* FindEnumValueByNameWithoutUnderscoreOrNull(
+    const google::protobuf::Enum* enum_type, StringPiece enum_name) {
+  if (enum_type != NULL) {
+    for (int i = 0; i < enum_type->enumvalue_size(); ++i) {
+      const google::protobuf::EnumValue& enum_value = enum_type->enumvalue(i);
+      string enum_name_without_underscore = enum_value.name();
+
+      // Remove underscore from the name.
+      RemoveAll(enum_name_without_underscore, '_');
+      // Make the name uppercase.
+      for (string::iterator it = enum_name_without_underscore.begin();
+           it != enum_name_without_underscore.end(); ++it) {
+        *it = ascii_toupper(*it);
+      }
+
+      if (enum_name_without_underscore == enum_name) {
         return &enum_value;
       }
     }

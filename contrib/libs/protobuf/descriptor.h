@@ -557,6 +557,10 @@ class LIBPROTOBUF_EXPORT FieldDescriptor {
   // Does this field have an explicitly-declared default value?
   bool has_default_value() const;
 
+  // Whether the user has specified the json_name field option in the .proto
+  // file.
+  bool has_json_name() const;
+
   // Get the field default value if cpp_type() == CPPTYPE_INT32.  If no
   // explicit default was defined, the default is 0.
   int32 default_value_int32() const;
@@ -682,7 +686,7 @@ class LIBPROTOBUF_EXPORT FieldDescriptor {
   // file.
   bool has_json_name_;
   // If has_json_name_ is true, it's the value specified by the user.
-  // Otherwise, it has the same value as lowercase_name_.
+  // Otherwise, it has the same value as camelcase_name_.
   const string* json_name_;
   const FileDescriptor* file_;
   int number_;
@@ -1698,6 +1702,7 @@ PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, message_type, const Descriptor*)
 PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, enum_type, const EnumDescriptor*)
 PROTOBUF_DEFINE_OPTIONS_ACCESSOR(FieldDescriptor, FieldOptions)
 PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, has_default_value, bool)
+PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, has_json_name, bool)
 PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, default_value_int32 , int32 )
 PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, default_value_int64 , int64 )
 PROTOBUF_DEFINE_ACCESSOR(FieldDescriptor, default_value_uint32, uint32)

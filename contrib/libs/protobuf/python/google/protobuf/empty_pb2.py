@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='google/protobuf/empty.proto',
   package='google.protobuf',
   syntax='proto3',
-  serialized_pb=_b('\n\x1bgoogle/protobuf/empty.proto\x12\x0fgoogle.protobuf\"\x07\n\x05\x45mptyBy\n\x13\x63om.google.protobufB\nEmptyProtoP\x01Z\'github.com/golang/protobuf/ptypes/empty\xa0\x01\x01\xf8\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
+  serialized_pb=_b('\n\x1bgoogle/protobuf/empty.proto\x12\x0fgoogle.protobuf\"\x07\n\x05\x45mptyBv\n\x13\x63om.google.protobufB\nEmptyProtoP\x01Z\'github.com/golang/protobuf/ptypes/empty\xf8\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -60,5 +60,5 @@ _sym_db.RegisterMessage(Empty)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\nEmptyProtoP\001Z\'github.com/golang/protobuf/ptypes/empty\240\001\001\370\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\nEmptyProtoP\001Z\'github.com/golang/protobuf/ptypes/empty\370\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
 # @@protoc_insertion_point(module_scope)
