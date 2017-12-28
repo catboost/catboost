@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     SIMPLE_UNIT_TEST(TestPortsRange) {
         TFsPath workDir(GetYaPath() / "tmp/ports_test");
 
-        TPortsRangeManager pm(workDir);
+        TPortManager pm(workDir);
         ui16 port = pm.GetPortsRange(3000, 3);
         UNIT_ASSERT(port >= 3000);
 
