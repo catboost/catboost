@@ -86,7 +86,7 @@ public:
     bool Dequeue(T* res) {
         AtomicAdd(DequeueCount, 1);
         for (TNode* current = AtomicGet(Head); current; current = AtomicGet(Head)) {
-            if (AtomicCas(&Head, current->Next, current)) {
+            if (AtomicCas(&Head, AtomicGet(current->Next), current)) {
                 *res = current->Value;
                 // delete current; // ABA problem
                 // even more complex node deletion
@@ -97,7 +97,7 @@ public:
                 } else {
                     // Dequeue()s in progress, put node to free list
                     for (;;) {
-                        current->Next = AtomicGet(FreePtr);
+                        AtomicSet(current->Next, AtomicGet(FreePtr));
                         if (AtomicCas(&FreePtr, current, current->Next))
                             break;
                     }
@@ -133,7 +133,7 @@ public:
                         currentLast = currentLast->Next;
                     }
                     for (;;) {
-                        currentLast->Next = AtomicGet(FreePtr);
+                        AtomicSet(currentLast->Next, AtomicGet(FreePtr));
                         if (AtomicCas(&FreePtr, current, currentLast->Next))
                             break;
                     }
