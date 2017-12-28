@@ -863,6 +863,7 @@ class ToolchainOptions(object):
 
         if detector:
             self.type = detector.type
+            self.from_arcadia = False
 
             self.c_compiler = detector.c_compiler
             self.cxx_compiler = detector.cxx_compiler
@@ -871,6 +872,7 @@ class ToolchainOptions(object):
 
         else:
             self.type = self.params['type']
+            self.from_arcadia = True
 
             self.c_compiler = self.params['c_compiler']
             self.cxx_compiler = self.params['cxx_compiler']
@@ -899,6 +901,10 @@ class ToolchainOptions(object):
     @property
     def is_clang(self):
         return self.type == 'clang'
+
+    @property
+    def is_from_arcadia(self):
+        return self.from_arcadia
 
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
@@ -1278,7 +1284,7 @@ class Linker(object):
         self._print_linker_selector()
 
     def _print_linker_selector(self):
-        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux:
+        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and self.tc.is_from_arcadia:
             default_linker = 'lld'
             if is_positive('USE_LTO'):
                 default_linker = 'gold'
