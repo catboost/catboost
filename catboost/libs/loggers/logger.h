@@ -14,6 +14,7 @@ public:
     virtual TString GetMetricName() const = 0;
     virtual TString BuildHumanReadableMetricString() const = 0;
     virtual bool IsMainMetric() const = 0;
+    virtual ~IMetricEvalResult() = default;
 };
 
 class TMetricEvalResult : public IMetricEvalResult {
