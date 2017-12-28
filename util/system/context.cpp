@@ -12,7 +12,7 @@
 #if defined(_unix_)
 #include <cxxabi.h>
 
-#if defined(__IOS__)
+#   if !defined(Y_CXA_EH_GLOBALS_COMPLETE)
 namespace __cxxabiv1 {
     struct __cxa_eh_globals {
         void* caughtExceptions;
@@ -21,7 +21,7 @@ namespace __cxxabiv1 {
 
     extern "C" __cxa_eh_globals* __cxa_get_globals();
 }
-#endif
+#   endif
 #endif
 
 #include <util/stream/output.h>

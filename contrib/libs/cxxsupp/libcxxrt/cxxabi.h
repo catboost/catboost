@@ -183,6 +183,9 @@ struct __cxa_eh_globals
 	 */
 	unsigned int uncaughtExceptions;
 };
+
+#define Y_CXA_EH_GLOBALS_COMPLETE
+
 /**
  * ABI function returning the __cxa_eh_globals structure.
  */
