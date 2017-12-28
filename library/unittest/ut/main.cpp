@@ -109,3 +109,14 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         UNIT_ASSERT(port > anotherPort);
     }
 }
+
+SIMPLE_UNIT_TEST_SUITE(TestParams) {
+    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestDefault) {
+        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")
+    }
+
+    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
+        context.Processor->SetParam("key", "value");
+        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
+    }
+}
