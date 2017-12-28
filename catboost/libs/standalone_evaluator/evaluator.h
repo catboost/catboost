@@ -7,13 +7,19 @@
 
 namespace NCatboostStandalone {
     enum class EPredictionType {
+        //! Just raw sum of leaf values of model trees
         RawValue,
+        //! Apply sigmoid to raw sum of leaf values to evaluate probability
         Probability,
+        //! Get class prediction (if raw value is greater than zero return 1, else 0)
         Class
     };
 
-    // TODO: Currently this class contains only pointwise apply interface
-    // Should reuse formula evaluator from libs/model folder to get unified codebase
+    /**
+     * This class allows to apply catboost models without actual copying anything in memory.
+     * This class can be useful when you bundle model in resources section of your executable or have large number of models mapped in memory.
+     * TODO(kirillovs): Currently this class contains only pointwise apply interface. Should reuse formula evaluator from libs/model folder to get unified codebase
+     */
     class TZeroCopyEvaluator {
     public:
         TZeroCopyEvaluator() = default;
