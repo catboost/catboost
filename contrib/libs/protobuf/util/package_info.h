@@ -28,26 +28,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Defines utilities for the TypeResolver.
+// This file exists solely to document the google::protobuf::util namespace.
+// It is not compiled into anything, but it may be read by an automated
+// documentation generator.
 
-#ifndef GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__
-#define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__
-
-
-#include "stubs/common.h"
 namespace google {
+
 namespace protobuf {
-class DescriptorPool;
-namespace util {
-class TypeResolver;
 
-// Creates a TypeResolver that serves type information in the given descriptor
-// pool. Caller takes ownership of the returned TypeResolver.
-LIBPROTOBUF_EXPORT TypeResolver* NewTypeResolverForDescriptorPool(
-    const string& url_prefix, const DescriptorPool* pool);
+// Utility classes.
+//
+// This package contains various utilities for message comprasion, JSON
+// conversion, well known types, etc.
+namespace util {}
 
-}  // namespace util
 }  // namespace protobuf
-
 }  // namespace google
-#endif  // GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__

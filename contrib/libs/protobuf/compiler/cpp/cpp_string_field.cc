@@ -142,7 +142,8 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
     "$deprecated_attr$const TProtoStringType& $name$() const;\n"
     "$deprecated_attr$void set_$name$(const TProtoStringType& value);\n"
     "$deprecated_attr$void set_$name$(const char* value);\n"
-    "$deprecated_attr$void set_$name$(const $pointer_type$* value, size_t size);\n"
+    "$deprecated_attr$void set_$name$(const $pointer_type$* value, size_t size)"
+                 ";\n"
     "$deprecated_attr$TProtoStringType* mutable_$name$();\n"
     "$deprecated_attr$TProtoStringType* $release_name$();\n"
     "$deprecated_attr$void set_allocated_$name$(TProtoStringType* $name$);\n");
@@ -705,15 +706,20 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
     "$deprecated_attr$TProtoStringType* mutable_$name$(int index);\n"
     "$deprecated_attr$void set_$name$(int index, const TProtoStringType& value);\n"
     "$deprecated_attr$void set_$name$(int index, const char* value);\n"
-    "$deprecated_attr$void set_$name$(int index, const $pointer_type$* value, size_t size);\n"
+    ""
+    "$deprecated_attr$void set_$name$("
+                 "int index, const $pointer_type$* value, size_t size);\n"
     "$deprecated_attr$TProtoStringType* add_$name$();\n"
     "$deprecated_attr$void add_$name$(const TProtoStringType& value);\n"
     "$deprecated_attr$void add_$name$(const char* value);\n"
-    "$deprecated_attr$void add_$name$(const $pointer_type$* value, size_t size);\n");
+    "$deprecated_attr$void add_$name$(const $pointer_type$* value, size_t size)"
+                 ";\n");
 
   printer->Print(variables_,
-    "$deprecated_attr$const ::google::protobuf::RepeatedPtrField< TProtoStringType>& $name$() const;\n"
-    "$deprecated_attr$::google::protobuf::RepeatedPtrField< TProtoStringType>* mutable_$name$();\n");
+    "$deprecated_attr$const ::google::protobuf::RepeatedPtrField< TProtoStringType>& $name$() "
+                 "const;\n"
+    "$deprecated_attr$::google::protobuf::RepeatedPtrField< TProtoStringType>* mutable_$name$()"
+                 ";\n");
 
   if (unknown_ctype) {
     printer->Outdent();
