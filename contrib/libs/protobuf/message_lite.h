@@ -78,7 +78,7 @@ namespace internal {
 // is best when you only have a small number of message types linked
 // into your binary, in which case the size of the protocol buffers
 // runtime itself is the biggest problem.
-class /* LIBPROTOBUF_EXPORT */ MessageLite {
+class LIBPROTOBUF_EXPORT MessageLite {
  public:
   inline MessageLite() {}
   virtual ~MessageLite() {}

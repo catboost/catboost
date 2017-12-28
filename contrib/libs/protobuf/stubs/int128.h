@@ -48,7 +48,7 @@ struct uint128_pod;
 #endif
 
 // An unsigned 128-bit integer type. Thread-compatible.
-class /* LIBPROTOBUF_EXPORT */ uint128 {
+class LIBPROTOBUF_EXPORT uint128 {
  public:
   UINT128_CONSTEXPR uint128();  // Sets to 0, but don't trust on this behavior.
   UINT128_CONSTEXPR uint128(uint64 top, uint64 bottom);
@@ -84,7 +84,7 @@ class /* LIBPROTOBUF_EXPORT */ uint128 {
   friend uint64 Uint128High64(const uint128& v);
 
   // We add "std::" to avoid including all of port.h.
-  /* LIBPROTOBUF_EXPORT */ friend std::ostream& operator<<(std::ostream& o,
+  LIBPROTOBUF_EXPORT friend std::ostream& operator<<(std::ostream& o,
                                                      const uint128& b);
 
  private:
@@ -116,10 +116,10 @@ struct uint128_pod {
   uint64 lo;
 };
 
-/* LIBPROTOBUF_EXPORT */ extern const uint128_pod kuint128max;
+LIBPROTOBUF_EXPORT extern const uint128_pod kuint128max;
 
 // allow uint128 to be logged
-/* LIBPROTOBUF_EXPORT */ extern std::ostream& operator<<(std::ostream& o,
+LIBPROTOBUF_EXPORT extern std::ostream& operator<<(std::ostream& o,
                                                    const uint128& b);
 
 // Methods to access low and high pieces of 128-bit value.

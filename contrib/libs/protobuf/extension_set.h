@@ -116,7 +116,7 @@ struct ExtensionInfo {
 
 // Abstract interface for an object which looks up extension definitions.  Used
 // when parsing.
-class /* LIBPROTOBUF_EXPORT */ ExtensionFinder {
+class LIBPROTOBUF_EXPORT ExtensionFinder {
  public:
   virtual ~ExtensionFinder();
 
@@ -126,7 +126,7 @@ class /* LIBPROTOBUF_EXPORT */ ExtensionFinder {
 
 // Implementation of ExtensionFinder which finds extensions defined in .proto
 // files which have been compiled into the binary.
-class /* LIBPROTOBUF_EXPORT */ GeneratedExtensionFinder : public ExtensionFinder {
+class LIBPROTOBUF_EXPORT GeneratedExtensionFinder : public ExtensionFinder {
  public:
   GeneratedExtensionFinder(const MessageLite* containing_type)
       : containing_type_(containing_type) {}
@@ -156,7 +156,7 @@ class MessageSetFieldSkipper;
 // ExtensionSet.  When parsing, if a tag number is encountered which is
 // inside one of the message type's extension ranges, the tag is passed
 // off to the ExtensionSet for parsing.  Etc.
-class /* LIBPROTOBUF_EXPORT */ ExtensionSet {
+class LIBPROTOBUF_EXPORT ExtensionSet {
  public:
   ExtensionSet();
   explicit ExtensionSet(::google::protobuf::Arena* arena);
@@ -439,7 +439,7 @@ class /* LIBPROTOBUF_EXPORT */ ExtensionSet {
  private:
 
   // Interface of a lazily parsed singular message extension.
-  class /* LIBPROTOBUF_EXPORT */ LazyMessageExtension {
+  class LIBPROTOBUF_EXPORT LazyMessageExtension {
    public:
     LazyMessageExtension() {}
     virtual ~LazyMessageExtension() {}
@@ -744,9 +744,9 @@ class RepeatedPrimitiveTypeTraits {
   static const RepeatedFieldType* GetDefaultRepeatedField();
 };
 
-/* LIBPROTOBUF_EXPORT */ extern ProtobufOnceType repeated_primitive_generic_type_traits_once_init_;
+LIBPROTOBUF_EXPORT extern ProtobufOnceType repeated_primitive_generic_type_traits_once_init_;
 
-class /* LIBPROTOBUF_EXPORT */ RepeatedPrimitiveGenericTypeTraits {
+class LIBPROTOBUF_EXPORT RepeatedPrimitiveGenericTypeTraits {
  private:
   template<typename Type> friend class RepeatedPrimitiveTypeTraits;
   static void InitializeDefaultRepeatedFields();
@@ -821,7 +821,7 @@ PROTOBUF_DEFINE_PRIMITIVE_TYPE(  bool,   Bool)
 // StringTypeTraits
 
 // Strings support both Set() and Mutable().
-class /* LIBPROTOBUF_EXPORT */ StringTypeTraits {
+class LIBPROTOBUF_EXPORT StringTypeTraits {
  public:
   typedef const string& ConstType;
   typedef string* MutableType;
@@ -841,9 +841,9 @@ class /* LIBPROTOBUF_EXPORT */ StringTypeTraits {
   }
 };
 
-/* LIBPROTOBUF_EXPORT */ extern ProtobufOnceType repeated_string_type_traits_once_init_;
+LIBPROTOBUF_EXPORT extern ProtobufOnceType repeated_string_type_traits_once_init_;
 
-class /* LIBPROTOBUF_EXPORT */ RepeatedStringTypeTraits {
+class LIBPROTOBUF_EXPORT RepeatedStringTypeTraits {
  public:
   typedef const string& ConstType;
   typedef string* MutableType;
@@ -1063,11 +1063,11 @@ class RepeatedMessageTypeTraits {
   static const RepeatedFieldType* GetDefaultRepeatedField();
 };
 
-/* LIBPROTOBUF_EXPORT */ extern ProtobufOnceType repeated_message_generic_type_traits_once_init_;
+LIBPROTOBUF_EXPORT extern ProtobufOnceType repeated_message_generic_type_traits_once_init_;
 
 // This class exists only to hold a generic default empty repeated field for all
 // message-type repeated field extensions.
-class /* LIBPROTOBUF_EXPORT */ RepeatedMessageGenericTypeTraits {
+class LIBPROTOBUF_EXPORT RepeatedMessageGenericTypeTraits {
  public:
   typedef RepeatedPtrField< ::google::protobuf::MessageLite*> RepeatedFieldType;
  private:

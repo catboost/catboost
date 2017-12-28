@@ -61,7 +61,7 @@ class SourceLocationTable;
 // to a FileDescriptorProto.  It does not resolve import directives or perform
 // many other kinds of validation needed to construct a complete
 // FileDescriptor.
-class /* LIBPROTOBUF_EXPORT */ Parser {
+class LIBPROTOBUF_EXPORT Parser {
  public:
   Parser();
   ~Parser();
@@ -207,7 +207,7 @@ class /* LIBPROTOBUF_EXPORT */ Parser {
   // are recorded -- the constructor records the start location and the
   // destructor records the end location.  Since the parser is
   // recursive-descent, this works out beautifully.
-  class /* LIBPROTOBUF_EXPORT */ LocationRecorder {
+  class LIBPROTOBUF_EXPORT LocationRecorder {
    public:
     // Construct the file's "root" location.
     LocationRecorder(Parser* parser);
@@ -532,7 +532,7 @@ class /* LIBPROTOBUF_EXPORT */ Parser {
 // far more complete information about source locations.  However, as of this
 // writing you still need to use SourceLocationTable when integrating with
 // DescriptorPool.
-class /* LIBPROTOBUF_EXPORT */ SourceLocationTable {
+class LIBPROTOBUF_EXPORT SourceLocationTable {
  public:
   SourceLocationTable();
   ~SourceLocationTable();

@@ -64,7 +64,7 @@ class StringPieceField;
 // reflection.
 //
 // This class is really a namespace that contains only static methods.
-class /* LIBPROTOBUF_EXPORT */ WireFormatLite {
+class LIBPROTOBUF_EXPORT WireFormatLite {
  public:
 
   // -----------------------------------------------------------------
@@ -570,7 +570,7 @@ class /* LIBPROTOBUF_EXPORT */ WireFormatLite {
 // discards them.  WireFormat defines a subclass which writes to an
 // UnknownFieldSet.  This class is used by ExtensionSet::ParseField(), since
 // ExtensionSet is part of the lite library but UnknownFieldSet is not.
-class /* LIBPROTOBUF_EXPORT */ FieldSkipper {
+class LIBPROTOBUF_EXPORT FieldSkipper {
  public:
   FieldSkipper() {}
   virtual ~FieldSkipper() {}
@@ -590,7 +590,7 @@ class /* LIBPROTOBUF_EXPORT */ FieldSkipper {
 
 // Subclass of FieldSkipper which saves skipped fields to a CodedOutputStream.
 
-class /* LIBPROTOBUF_EXPORT */ CodedOutputStreamFieldSkipper : public FieldSkipper {
+class LIBPROTOBUF_EXPORT CodedOutputStreamFieldSkipper : public FieldSkipper {
  public:
   explicit CodedOutputStreamFieldSkipper(io::CodedOutputStream* unknown_fields)
       : unknown_fields_(unknown_fields) {}

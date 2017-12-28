@@ -96,7 +96,7 @@ class ExtensionSet;             // extension_set.h
 //    of whatever type the individual field would be.  Strings and
 //    Messages use RepeatedPtrFields while everything else uses
 //    RepeatedFields.
-class /* LIBPROTOBUF_EXPORT */ GeneratedMessageReflection : public Reflection {
+class LIBPROTOBUF_EXPORT GeneratedMessageReflection : public Reflection {
  public:
   // Constructs a GeneratedMessageReflection.
   // Parameters:

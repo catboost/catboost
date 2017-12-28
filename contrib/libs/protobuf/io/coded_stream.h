@@ -155,7 +155,7 @@ class ZeroCopyOutputStream;          // zero_copy_stream.h
 // Most methods of CodedInputStream that return a bool return false if an
 // underlying I/O error occurs or if the data is malformed.  Once such a
 // failure occurs, the CodedInputStream is broken and is no longer useful.
-class /* LIBPROTOBUF_EXPORT */ CodedInputStream {
+class LIBPROTOBUF_EXPORT CodedInputStream {
  public:
   // Create a CodedInputStream that reads from the given ZeroCopyInputStream.
   explicit CodedInputStream(ZeroCopyInputStream* input);
@@ -674,7 +674,7 @@ class /* LIBPROTOBUF_EXPORT */ CodedInputStream {
 //   }
 //
 //   delete coded_output;
-class /* LIBPROTOBUF_EXPORT */ CodedOutputStream {
+class LIBPROTOBUF_EXPORT CodedOutputStream {
  public:
   // Create an CodedOutputStream that writes to the given ZeroCopyOutputStream.
   explicit CodedOutputStream(ZeroCopyOutputStream* output);

@@ -61,7 +61,7 @@ class MergedDescriptorDatabase;
 // calling DescriptorPool::BuildFile() for each one.  Instead, a DescriptorPool
 // can be created which wraps a DescriptorDatabase and only builds particular
 // descriptors when they are needed.
-class /* LIBPROTOBUF_EXPORT */ DescriptorDatabase {
+class LIBPROTOBUF_EXPORT DescriptorDatabase {
  public:
   inline DescriptorDatabase() {}
   virtual ~DescriptorDatabase();
@@ -126,7 +126,7 @@ class /* LIBPROTOBUF_EXPORT */ DescriptorDatabase {
 // FileDescriptor::CopyTo()) will always use fully-qualified names for all
 // types.  You only need to worry if you are constructing FileDescriptorProtos
 // yourself, or are calling compiler::Parser directly.
-class /* LIBPROTOBUF_EXPORT */ SimpleDescriptorDatabase : public DescriptorDatabase {
+class LIBPROTOBUF_EXPORT SimpleDescriptorDatabase : public DescriptorDatabase {
  public:
   SimpleDescriptorDatabase();
   ~SimpleDescriptorDatabase();
@@ -264,7 +264,7 @@ class /* LIBPROTOBUF_EXPORT */ SimpleDescriptorDatabase : public DescriptorDatab
 //
 // The same caveats regarding FindFileContainingExtension() apply as with
 // SimpleDescriptorDatabase.
-class /* LIBPROTOBUF_EXPORT */ EncodedDescriptorDatabase : public DescriptorDatabase {
+class LIBPROTOBUF_EXPORT EncodedDescriptorDatabase : public DescriptorDatabase {
  public:
   EncodedDescriptorDatabase();
   ~EncodedDescriptorDatabase();
@@ -309,7 +309,7 @@ class /* LIBPROTOBUF_EXPORT */ EncodedDescriptorDatabase : public DescriptorData
 };
 
 // A DescriptorDatabase that fetches files from a given pool.
-class /* LIBPROTOBUF_EXPORT */ DescriptorPoolDatabase : public DescriptorDatabase {
+class LIBPROTOBUF_EXPORT DescriptorPoolDatabase : public DescriptorDatabase {
  public:
   explicit DescriptorPoolDatabase(const DescriptorPool& pool);
   ~DescriptorPoolDatabase();
@@ -332,7 +332,7 @@ class /* LIBPROTOBUF_EXPORT */ DescriptorPoolDatabase : public DescriptorDatabas
 
 // A DescriptorDatabase that wraps two or more others.  It first searches the
 // first database and, if that fails, tries the second, and so on.
-class /* LIBPROTOBUF_EXPORT */ MergedDescriptorDatabase : public DescriptorDatabase {
+class LIBPROTOBUF_EXPORT MergedDescriptorDatabase : public DescriptorDatabase {
  public:
   // Merge just two databases.  The sources remain property of the caller.
   MergedDescriptorDatabase(DescriptorDatabase* source1,

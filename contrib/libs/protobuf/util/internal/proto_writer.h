@@ -72,7 +72,7 @@ class ObjectLocationTracker;
 // special types by inheriting from it or by wrapping it.
 //
 // It also supports streaming.
-class /* LIBPROTOBUF_EXPORT */ ProtoWriter : public StructuredObjectWriter {
+class LIBPROTOBUF_EXPORT ProtoWriter : public StructuredObjectWriter {
  public:
 // Constructor. Does not take ownership of any parameter passed in.
   ProtoWriter(TypeResolver* type_resolver, const google::protobuf::Type& type,
@@ -148,7 +148,7 @@ class /* LIBPROTOBUF_EXPORT */ ProtoWriter : public StructuredObjectWriter {
   }
 
  protected:
-  class /* LIBPROTOBUF_EXPORT */ ProtoElement : public BaseElement, public LocationTrackerInterface {
+  class LIBPROTOBUF_EXPORT ProtoElement : public BaseElement, public LocationTrackerInterface {
    public:
     // Constructor for the root element. No parent nor field.
     ProtoElement(const TypeInfo* typeinfo, const google::protobuf::Type& type,

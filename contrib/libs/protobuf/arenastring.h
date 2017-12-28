@@ -52,7 +52,7 @@ namespace google {
 namespace protobuf {
 namespace internal {
 
-struct /* LIBPROTOBUF_EXPORT */ ArenaStringPtr {
+struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   inline void Set(const TProtoStringType* default_value,
                   const TProtoStringType& value, ::google::protobuf::Arena* arena) {
     if (ptr_ == default_value) {

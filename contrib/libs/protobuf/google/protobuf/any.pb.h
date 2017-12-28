@@ -33,7 +33,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fany_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fany_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2fany_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2fany_2eproto();
 
@@ -41,7 +41,7 @@ class Any;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ Any : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Any) */ {
+class LIBPROTOBUF_EXPORT Any : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Any) */ {
  public:
   Any();
   virtual ~Any();
@@ -142,7 +142,7 @@ class /* LIBPROTOBUF_EXPORT */ Any : public ::google::protobuf::Message /* @@pro
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
   ::google::protobuf::internal::AnyMetadata _any_metadata_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fany_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fany_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fany_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fany_2eproto();
 

@@ -32,7 +32,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fempty_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fempty_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2fempty_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2fempty_2eproto();
 
@@ -40,7 +40,7 @@ class Empty;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ Empty : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Empty) */ {
+class LIBPROTOBUF_EXPORT Empty : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Empty) */ {
  public:
   Empty();
   virtual ~Empty();
@@ -119,7 +119,7 @@ class /* LIBPROTOBUF_EXPORT */ Empty : public ::google::protobuf::Message /* @@p
   typedef void DestructorSkippable_;
   bool _is_default_instance_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fempty_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fempty_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fempty_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fempty_2eproto();
 

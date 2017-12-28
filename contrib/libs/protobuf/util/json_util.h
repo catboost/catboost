@@ -73,7 +73,7 @@ typedef JsonPrintOptions JsonOptions;
 // Converts from protobuf message to JSON. This is a simple wrapper of
 // BinaryToJsonString(). It will use the DescriptorPool of the passed-in
 // message to resolve Any types.
-/* LIBPROTOBUF_EXPORT */ util::Status MessageToJsonString(const Message& message,
+LIBPROTOBUF_EXPORT util::Status MessageToJsonString(const Message& message,
                                    string* output,
                                    const JsonOptions& options);
 
@@ -85,7 +85,7 @@ inline util::Status MessageToJsonString(const Message& message,
 // Converts from JSON to protobuf message. This is a simple wrapper of
 // JsonStringToBinary(). It will use the DescriptorPool of the passed-in
 // message to resolve Any types.
-/* LIBPROTOBUF_EXPORT */ util::Status JsonStringToMessage(const string& input,
+LIBPROTOBUF_EXPORT util::Status JsonStringToMessage(const string& input,
                                    Message* message,
                                    const JsonParseOptions& options);
 
@@ -100,7 +100,7 @@ inline util::Status JsonStringToMessage(const string& input,
 //   2. input is not valid protobuf wire format, or conflicts with the type
 //      information returned by TypeResolver.
 // Note that unknown fields will be discarded silently.
-/* LIBPROTOBUF_EXPORT */ util::Status BinaryToJsonStream(
+LIBPROTOBUF_EXPORT util::Status BinaryToJsonStream(
     TypeResolver* resolver,
     const string& type_url,
     io::ZeroCopyInputStream* binary_input,
@@ -115,7 +115,7 @@ inline util::Status BinaryToJsonStream(
                             JsonPrintOptions());
 }
 
-/* LIBPROTOBUF_EXPORT */ util::Status BinaryToJsonString(
+LIBPROTOBUF_EXPORT util::Status BinaryToJsonString(
     TypeResolver* resolver,
     const string& type_url,
     const string& binary_input,
@@ -135,7 +135,7 @@ inline util::Status BinaryToJsonString(TypeResolver* resolver,
 //   1. TypeResolver fails to resolve a type.
 //   2. input is not valid JSON format, or conflicts with the type
 //      information returned by TypeResolver.
-/* LIBPROTOBUF_EXPORT */ util::Status JsonToBinaryStream(
+LIBPROTOBUF_EXPORT util::Status JsonToBinaryStream(
     TypeResolver* resolver,
     const string& type_url,
     io::ZeroCopyInputStream* json_input,
@@ -151,7 +151,7 @@ inline util::Status JsonToBinaryStream(
                             JsonParseOptions());
 }
 
-/* LIBPROTOBUF_EXPORT */ util::Status JsonToBinaryString(
+LIBPROTOBUF_EXPORT util::Status JsonToBinaryString(
     TypeResolver* resolver,
     const string& type_url,
     const string& json_input,
@@ -169,7 +169,7 @@ inline util::Status JsonToBinaryString(
 
 namespace internal {
 // Internal helper class. Put in the header so we can write unit-tests for it.
-class /* LIBPROTOBUF_EXPORT */ ZeroCopyStreamByteSink : public strings::ByteSink {
+class LIBPROTOBUF_EXPORT ZeroCopyStreamByteSink : public strings::ByteSink {
  public:
   explicit ZeroCopyStreamByteSink(io::ZeroCopyOutputStream* stream)
       : stream_(stream) {}

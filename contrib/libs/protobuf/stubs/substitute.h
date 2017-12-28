@@ -136,7 +136,7 @@ class SubstituteArg {
 
 }  // namespace internal
 
-/* LIBPROTOBUF_EXPORT */ string Substitute(
+LIBPROTOBUF_EXPORT string Substitute(
   const char* format,
   const internal::SubstituteArg& arg0 = internal::SubstituteArg(),
   const internal::SubstituteArg& arg1 = internal::SubstituteArg(),
@@ -149,7 +149,7 @@ class SubstituteArg {
   const internal::SubstituteArg& arg8 = internal::SubstituteArg(),
   const internal::SubstituteArg& arg9 = internal::SubstituteArg());
 
-/* LIBPROTOBUF_EXPORT */ void SubstituteAndAppend(
+LIBPROTOBUF_EXPORT void SubstituteAndAppend(
   string* output, const char* format,
   const internal::SubstituteArg& arg0 = internal::SubstituteArg(),
   const internal::SubstituteArg& arg1 = internal::SubstituteArg(),

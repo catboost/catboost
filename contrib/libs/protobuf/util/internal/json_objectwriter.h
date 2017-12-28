@@ -84,7 +84,7 @@ namespace converter {
 // uint64 would lose precision if rendered as numbers.
 //
 // JsonObjectWriter is thread-unsafe.
-class /* LIBPROTOBUF_EXPORT */ JsonObjectWriter : public StructuredObjectWriter {
+class LIBPROTOBUF_EXPORT JsonObjectWriter : public StructuredObjectWriter {
  public:
   JsonObjectWriter(StringPiece indent_string,
                    google::protobuf::io::CodedOutputStream* out)
@@ -116,7 +116,7 @@ class /* LIBPROTOBUF_EXPORT */ JsonObjectWriter : public StructuredObjectWriter 
   }
 
  protected:
-  class /* LIBPROTOBUF_EXPORT */ Element : public BaseElement {
+  class LIBPROTOBUF_EXPORT Element : public BaseElement {
    public:
     explicit Element(Element* parent) : BaseElement(parent), is_first_(true) {}
 
@@ -139,7 +139,7 @@ class /* LIBPROTOBUF_EXPORT */ JsonObjectWriter : public StructuredObjectWriter 
   virtual Element* element() { return element_.get(); }
 
  private:
-  class /* LIBPROTOBUF_EXPORT */ ByteSinkWrapper : public strings::ByteSink {
+  class LIBPROTOBUF_EXPORT ByteSinkWrapper : public strings::ByteSink {
    public:
     explicit ByteSinkWrapper(google::protobuf::io::CodedOutputStream* stream)
         : stream_(stream) {}
