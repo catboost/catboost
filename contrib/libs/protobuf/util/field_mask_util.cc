@@ -128,8 +128,12 @@ bool FieldMaskUtil::FromJsonString(StringPiece str, FieldMask* out) {
   return true;
 }
 
-bool FieldMaskUtil::InternalIsValidPath(const Descriptor* descriptor,
-                                        StringPiece path) {
+bool FieldMaskUtil::GetFieldDescriptors(
+    const Descriptor* descriptor, StringPiece path,
+    std::vector<const FieldDescriptor*>* field_descriptors) {
+  if (field_descriptors != NULL) {
+    field_descriptors->clear();
+  }
   std::vector<string> parts = Split(path, ".");
   for (int i = 0; i < parts.size(); ++i) {
     const string& field_name = parts[i];
@@ -139,6 +143,9 @@ bool FieldMaskUtil::InternalIsValidPath(const Descriptor* descriptor,
     const FieldDescriptor* field = descriptor->FindFieldByName(field_name);
     if (field == NULL) {
       return false;
+    }
+    if (field_descriptors != NULL) {
+      field_descriptors->push_back(field);
     }
     if (!field->is_repeated() &&
         field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
@@ -456,7 +463,8 @@ void FieldMaskTree::TrimMessage(const Node* node, Message* message) {
   const int32 field_count = descriptor->field_count();
   for (int index = 0; index < field_count; ++index) {
     const FieldDescriptor* field = descriptor->field(index);
-    std::map<string, Node*>::const_iterator it = node->children.find(field->name());
+    std::map<string, Node*>::const_iterator it =
+        node->children.find(field->name());
     if (it == node->children.end()) {
       reflection->ClearField(message, field);
     } else {

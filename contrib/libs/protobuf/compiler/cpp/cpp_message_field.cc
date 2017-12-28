@@ -486,6 +486,23 @@ GenerateClearingCode(io::Printer* printer) const {
 }
 
 void MessageFieldGenerator::
+GenerateMessageClearingCode(io::Printer* printer) const {
+  if (!HasFieldPresence(descriptor_->file())) {
+    // If we don't have has-bits, message presence is indicated only by ptr !=
+    // NULL. Thus on clear, we need to delete the object.
+    printer->Print(variables_,
+      "if (GetArenaNoVirtual() == NULL && $name$_ != NULL) {\n"
+      "  delete $name$_;\n"
+      "}\n"
+      "$name$_ = NULL;\n");
+  } else {
+    printer->Print(variables_,
+      "GOOGLE_DCHECK($name$_ != NULL);\n"
+      "$name$_->$type$::Clear();\n");
+  }
+}
+
+void MessageFieldGenerator::
 GenerateMergingCode(io::Printer* printer) const {
   printer->Print(variables_,
     "mutable_$name$()->$type$::MergeFrom(from.$name$());\n");
@@ -497,8 +514,48 @@ GenerateSwappingCode(io::Printer* printer) const {
 }
 
 void MessageFieldGenerator::
+GenerateDestructorCode(io::Printer* printer) const {
+  // In google3 a default instance will never get deleted so we don't need to
+  // worry about that but in opensource protobuf default instances are deleted
+  // in shutdown process and we need to take special care when handling them.
+  printer->Print(variables_,
+    "if (this != internal_default_instance()) {\n"
+    "  delete $name$_;\n"
+    "}\n");
+}
+
+void MessageFieldGenerator::
 GenerateConstructorCode(io::Printer* printer) const {
   printer->Print(variables_, "$name$_ = NULL;\n");
+}
+
+void MessageFieldGenerator::
+GenerateCopyConstructorCode(io::Printer* printer) const {
+  // For non-Arena enabled messages, everything always goes on the heap.
+  //
+  // For Arena enabled messages, the logic is a bit more convoluted.
+  //
+  // In the copy constructor, we call InternalMetadataWithArena::MergeFrom,
+  // which does *not* copy the Arena pointer.  In the generated MergeFrom
+  // (see MessageFieldGenerator::GenerateMergingCode), we:
+  // -> copy the has bits (but this is done in bulk by a memcpy in the copy
+  //    constructor)
+  // -> check whether the destination field pointer is NULL (it will be, since
+  //    we're initializing it and would have called SharedCtor) and if so:
+  // -> call _slow_mutable_$name$(), which calls either
+  //    ::google::protobuf::Arena::CreateMessage<>(GetArenaNoVirtual()), or
+  //    ::google::protobuf::Arena::Create<>(GetArenaNoVirtual())
+  //
+  // At this point, GetArenaNoVirtual returns NULL since the Arena pointer
+  // wasn't copied, so both of these methods allocate the submessage on the
+  // heap.
+
+  printer->Print(variables_,
+    "if (from.has_$name$()) {\n"
+    "  $name$_ = new $type$(*from.$name$_);\n"
+    "} else {\n"
+    "  $name$_ = NULL;\n"
+    "}\n");
 }
 
 void MessageFieldGenerator::
@@ -622,9 +679,8 @@ GenerateNonInlineAccessorDefinitions(io::Printer* printer) const {
   //printer->Print(variables,
 }
 
-void MessageOneofFieldGenerator::
-InternalGenerateInlineAccessorDefinitions(const std::map<string, string>& variables,
-                                          io::Printer* printer) const {
+void MessageOneofFieldGenerator::InternalGenerateInlineAccessorDefinitions(
+    const std::map<string, string>& variables, io::Printer* printer) const {
   printer->Print(variables,
     "$tmpl$"
     "$inline$ "
@@ -808,8 +864,19 @@ GenerateClearingCode(io::Printer* printer) const {
 }
 
 void MessageOneofFieldGenerator::
+GenerateMessageClearingCode(io::Printer* printer) const {
+  GenerateClearingCode(printer);
+}
+
+void MessageOneofFieldGenerator::
 GenerateSwappingCode(io::Printer* printer) const {
   // Don't print any swapping code. Swapping the union will swap this field.
+}
+
+void MessageOneofFieldGenerator::
+GenerateDestructorCode(io::Printer* printer) const {
+  // We inherit from MessageFieldGenerator, so we need to override the default
+  // behavior.
 }
 
 void MessageOneofFieldGenerator::
@@ -915,7 +982,6 @@ GenerateDependentInlineAccessorDefinitions(io::Printer* printer) const {
     "  return $this_message$$name$_.Add();\n"
     "}\n");
 
-
   if (dependent_getter_) {
     printer->Print(variables,
       "template <class T>\n"
@@ -965,7 +1031,6 @@ GenerateInlineAccessorDefinitions(io::Printer* printer,
       "  return $name$_.Add();\n"
       "}\n");
   }
-
 
   if (!dependent_field_) {
     printer->Print(variables,

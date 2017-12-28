@@ -1238,10 +1238,7 @@ bool ProtoStreamObjectWriter::IsMap(const google::protobuf::Field& field) {
   const google::protobuf::Type* field_type =
       typeinfo()->GetTypeByTypeUrl(field.type_url());
 
-  // TODO(xiaofeng): Unify option names.
-  return GetBoolOptionOrDefault(field_type->options(),
-                                "google.protobuf.MessageOptions.map_entry", false) ||
-         GetBoolOptionOrDefault(field_type->options(), "map_entry", false);
+  return google::protobuf::util::converter::IsMap(field, *field_type);
 }
 
 bool ProtoStreamObjectWriter::IsAny(const google::protobuf::Field& field) {

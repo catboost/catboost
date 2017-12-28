@@ -49,6 +49,7 @@ namespace io { class ZeroCopyOutputStream; }
 class FileDescriptor;
 
 namespace compiler {
+class Version;
 
 // Defined in this file.
 class CodeGenerator;
@@ -142,6 +143,10 @@ class LIBPROTOC_EXPORT GeneratorContext {
   // differently when compiled as a set rather than individually.
   virtual void ListParsedFiles(std::vector<const FileDescriptor*>* output);
 
+  // Retrieves the version number of the protocol compiler associated with
+  // this GeneratorContext.
+  virtual void GetCompilerVersion(Version* version) const;
+
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GeneratorContext);
 };
@@ -156,7 +161,7 @@ typedef GeneratorContext OutputDirectory;
 //   "foo=bar,baz,qux=corge"
 // parses to the pairs:
 //   ("foo", "bar"), ("baz", ""), ("qux", "corge")
-extern void ParseGeneratorParameter(const string&,
+extern void LIBPROTOC_EXPORT ParseGeneratorParameter(const string&,
             std::vector<std::pair<string, string> >*);
 
 }  // namespace compiler

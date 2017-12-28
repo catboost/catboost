@@ -60,7 +60,8 @@ class TypeInfoForTypeResolver : public TypeInfo {
 
   virtual util::StatusOr<const google::protobuf::Type*> ResolveTypeUrl(
       StringPiece type_url) const {
-    std::map<StringPiece, StatusOrType>::iterator it = cached_types_.find(type_url);
+    std::map<StringPiece, StatusOrType>::iterator it =
+        cached_types_.find(type_url);
     if (it != cached_types_.end()) {
       return it->second;
     }
@@ -85,7 +86,8 @@ class TypeInfoForTypeResolver : public TypeInfo {
 
   virtual const google::protobuf::Enum* GetEnumByTypeUrl(
       StringPiece type_url) const {
-    std::map<StringPiece, StatusOrEnum>::iterator it = cached_enums_.find(type_url);
+    std::map<StringPiece, StatusOrEnum>::iterator it =
+        cached_enums_.find(type_url);
     if (it != cached_enums_.end()) {
       return it->second.ok() ? it->second.ValueOrDie() : NULL;
     }

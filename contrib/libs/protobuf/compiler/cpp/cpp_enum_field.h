@@ -57,6 +57,7 @@ class EnumFieldGenerator : public FieldGenerator {
   void GenerateMergingCode(io::Printer* printer) const;
   void GenerateSwappingCode(io::Printer* printer) const;
   void GenerateConstructorCode(io::Printer* printer) const;
+  void GenerateCopyConstructorCode(io::Printer* printer) const;
   void GenerateMergeFromCodedStream(io::Printer* printer) const;
   void GenerateSerializeWithCachedSizes(io::Printer* printer) const;
   void GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const;
@@ -100,9 +101,9 @@ class RepeatedEnumFieldGenerator : public FieldGenerator {
                                          bool is_inline) const;
   void GenerateClearingCode(io::Printer* printer) const;
   void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateUnsafeMergingCode(io::Printer* printer) const;
   void GenerateSwappingCode(io::Printer* printer) const;
   void GenerateConstructorCode(io::Printer* printer) const;
+  void GenerateCopyConstructorCode(io::Printer* printer) const {}
   void GenerateMergeFromCodedStream(io::Printer* printer) const;
   void GenerateMergeFromCodedStreamWithPacking(io::Printer* printer) const;
   void GenerateSerializeWithCachedSizes(io::Printer* printer) const;

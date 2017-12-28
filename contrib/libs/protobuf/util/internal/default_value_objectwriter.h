@@ -139,8 +139,9 @@ class LIBPROTOBUF_EXPORT DefaultValueObjectWriter : public ObjectWriter {
   class LIBPROTOBUF_EXPORT Node {
    public:
     Node(const string& name, const google::protobuf::Type* type, NodeKind kind,
-         const DataPiece& data, bool is_placeholder, const std::vector<string>& path,
-         bool suppress_empty_list, FieldScrubCallBack* field_scrub_callback);
+         const DataPiece& data, bool is_placeholder,
+         const std::vector<string>& path, bool suppress_empty_list,
+         FieldScrubCallBack* field_scrub_callback);
     virtual ~Node() {
       for (int i = 0; i < children_.size(); ++i) {
         delete children_[i];

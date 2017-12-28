@@ -41,6 +41,8 @@
 #include "stubs/common.h"
 #include "stubs/stringprintf.h"
 #include "descriptor.h"
+#include "dynamic_message.h"
+#include "map_field.h"
 #include "wire_format_lite_inl.h"
 #include "descriptor.pb.h"
 #include "io/coded_stream.h"
@@ -833,6 +835,13 @@ void WireFormat::SerializeFieldWithCachedSizes(
     count = 1;
   }
 
+  // map_entries is for maps that'll be deterministically serialized.
+  std::vector<const Message*> map_entries;
+  if (count > 1 && field->is_map() && output->IsSerializationDeterministic()) {
+    map_entries =
+        DynamicMapSorter::Sort(message, count, message_reflection, field);
+  }
+
   const bool is_packed = field->is_packed();
   if (is_packed && count > 0) {
     WireFormatLite::WriteTag(field->number(),
@@ -876,15 +885,17 @@ void WireFormat::SerializeFieldWithCachedSizes(
       HANDLE_PRIMITIVE_TYPE(BOOL, bool, Bool, Bool)
 #undef HANDLE_PRIMITIVE_TYPE
 
-#define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                       \
-      case FieldDescriptor::TYPE_##TYPE:                                     \
-        WireFormatLite::Write##TYPE_METHOD(                                  \
-              field->number(),                                               \
-              field->is_repeated() ?                                         \
-                message_reflection->GetRepeated##CPPTYPE_METHOD(             \
-                  message, field, j) :                                       \
-                message_reflection->Get##CPPTYPE_METHOD(message, field),     \
-              output);                                                       \
+#define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                      \
+      case FieldDescriptor::TYPE_##TYPE:                                    \
+        WireFormatLite::Write##TYPE_METHOD(                                 \
+              field->number(),                                              \
+              field->is_repeated() ?                                        \
+                (map_entries.empty() ?                                      \
+                     message_reflection->GetRepeated##CPPTYPE_METHOD(       \
+                                     message, field, j) :                   \
+                     *map_entries[j]) :                                     \
+                message_reflection->Get##CPPTYPE_METHOD(message, field),    \
+              output);                                                      \
         break;
 
       HANDLE_TYPE(GROUP  , Group  , Message)

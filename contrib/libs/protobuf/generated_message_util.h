@@ -46,6 +46,14 @@
 
 #include <util/generic/singleton.h>
 
+#ifndef PROTOBUF_FINAL
+#if LANG_CXX11
+#define PROTOBUF_FINAL final
+#else
+#define PROTOBUF_FINAL
+#endif
+#endif  // !PROTOBUF_FINAL
+
 namespace google {
 
 namespace protobuf {
@@ -101,7 +109,13 @@ class ExplicitlyConstructed {
     }
   }
 
-  const T& get() const { return reinterpret_cast<const T&>(union_); }
+#if LANG_CXX11
+  constexpr
+#endif
+      const T&
+      get() const {
+    return reinterpret_cast<const T&>(union_);
+  }
   T* get_mutable() { return reinterpret_cast<T*>(&union_); }
 
  private:
@@ -121,7 +135,7 @@ class ExplicitlyConstructed {
 
 // Default empty string object. Don't use this directly. Instead, call
 // GetEmptyString() to get the reference.
-extern ExplicitlyConstructed< TProtoStringType> fixed_address_empty_string;
+LIBPROTOBUF_EXPORT extern ExplicitlyConstructed< TProtoStringType> fixed_address_empty_string;
 LIBPROTOBUF_EXPORT extern ProtobufOnceType empty_string_once_init_;
 LIBPROTOBUF_EXPORT void InitEmptyString();
 
@@ -150,9 +164,7 @@ template <class Type> bool AllAreInitialized(const Type& t) {
   return true;
 }
 
-// Helper function to crash on merge failure.
-// Moved out of generated code to reduce binary size.
-LIBPROTOBUF_EXPORT void MergeFromFail(const char* file, int line) GOOGLE_ATTRIBUTE_NORETURN;
+LIBPROTOBUF_EXPORT void InitProtobufDefaults();
 
 // We compute sizes as size_t but cache them as int.  This function converts a
 // computed size to a cached size.  Since we don't proceed with serialization if

@@ -122,6 +122,11 @@ GenerateConstructorCode(io::Printer* printer) const {
 }
 
 void EnumFieldGenerator::
+GenerateCopyConstructorCode(io::Printer* printer) const {
+  printer->Print(variables_, "$name$_ = from.$name$_;\n");
+}
+
+void EnumFieldGenerator::
 GenerateMergeFromCodedStream(io::Printer* printer) const {
   printer->Print(variables_,
     "int value;\n"
@@ -142,7 +147,7 @@ GenerateMergeFromCodedStream(io::Printer* printer) const {
     } else {
       printer->Print(
         "} else {\n"
-        "  unknown_fields_stream.WriteVarint32($tag$);\n"
+        "  unknown_fields_stream.WriteVarint32($tag$u);\n"
         "  unknown_fields_stream.WriteVarint32(value);\n",
         "tag", SimpleItoa(internal::WireFormat::MakeTag(descriptor_)));
     }
@@ -223,8 +228,9 @@ GenerateSwappingCode(io::Printer* printer) const {
 
 void EnumOneofFieldGenerator::
 GenerateConstructorCode(io::Printer* printer) const {
-  printer->Print(variables_,
-    "  $classname$_default_oneof_instance_->$name$_ = $default$;\n");
+  printer->Print(
+      variables_,
+      "_$classname$_default_instance_.$name$_ = $default$;\n");
 }
 
 // ===================================================================
@@ -308,11 +314,6 @@ GenerateClearingCode(io::Printer* printer) const {
 void RepeatedEnumFieldGenerator::
 GenerateMergingCode(io::Printer* printer) const {
   printer->Print(variables_, "$name$_.MergeFrom(from.$name$_);\n");
-}
-
-void RepeatedEnumFieldGenerator::
-GenerateUnsafeMergingCode(io::Printer* printer) const {
-  printer->Print(variables_, "$name$_.UnsafeMergeFrom(from.$name$_);\n");
 }
 
 void RepeatedEnumFieldGenerator::

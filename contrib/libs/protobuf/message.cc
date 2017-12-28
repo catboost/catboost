@@ -289,38 +289,6 @@ void* Reflection::MutableRawRepeatedString(
 }
 
 
-// Default EnumValue API implementations. Real reflection implementations should
-// override these. However, there are several legacy implementations that do
-// not, and cannot easily be changed at the same time as the Reflection API, so
-// we provide these for now.
-// TODO: Remove these once all Reflection implementations are updated.
-int Reflection::GetEnumValue(const Message& message,
-                             const FieldDescriptor* field) const {
-  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
-  return 0;
-}
-void Reflection::SetEnumValue(Message* message,
-                  const FieldDescriptor* field,
-                  int value) const {
-  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
-}
-int Reflection::GetRepeatedEnumValue(
-    const Message& message,
-    const FieldDescriptor* field, int index) const {
-  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
-  return 0;
-}
-void Reflection::SetRepeatedEnumValue(Message* message,
-                                  const FieldDescriptor* field, int index,
-                                  int value) const {
-  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
-}
-void Reflection::AddEnumValue(Message* message,
-                  const FieldDescriptor* field,
-                  int value) const {
-  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
-}
-
 MapIterator Reflection::MapBegin(
     Message* message,
     const FieldDescriptor* field) const {

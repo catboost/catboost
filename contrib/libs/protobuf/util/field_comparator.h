@@ -30,8 +30,6 @@
 
 // Defines classes for field comparison.
 
-// Author: ksroka@google.com (Krzysztof Sroka)
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 

@@ -46,6 +46,7 @@ ServiceGenerator::ServiceGenerator(const ServiceDescriptor* descriptor,
                                    const Options& options)
   : descriptor_(descriptor) {
   vars_["classname"] = descriptor_->name();
+  vars_["file_namespace"] = FileLevelNamespace(descriptor_->file()->name());
   vars_["full_name"] = descriptor_->full_name();
   if (options.dllexport_decl.empty()) {
     vars_["dllexport"] = "";
@@ -172,19 +173,20 @@ void ServiceGenerator::GenerateDescriptorInitializer(
 // ===================================================================
 
 void ServiceGenerator::GenerateImplementation(io::Printer* printer) {
-  printer->Print(vars_,
-    "$classname$::~$classname$() {}\n"
-    "\n"
-    "const ::google::protobuf::ServiceDescriptor* $classname$::descriptor() {\n"
-    "  protobuf_AssignDescriptorsOnce();\n"
-    "  return $classname$_descriptor_;\n"
-    "}\n"
-    "\n"
-    "const ::google::protobuf::ServiceDescriptor* $classname$::GetDescriptor() {\n"
-    "  protobuf_AssignDescriptorsOnce();\n"
-    "  return $classname$_descriptor_;\n"
-    "}\n"
-    "\n");
+  vars_["index"] = SimpleItoa(index_in_metadata_);
+  printer->Print(
+      vars_,
+      "$classname$::~$classname$() {}\n"
+      "\n"
+      "const ::google::protobuf::ServiceDescriptor* $classname$::descriptor() {\n"
+      "  $file_namespace$::protobuf_AssignDescriptorsOnce();\n"
+      "  return $file_namespace$::file_level_service_descriptors[$index$];\n"
+      "}\n"
+      "\n"
+      "const ::google::protobuf::ServiceDescriptor* $classname$::GetDescriptor() {\n"
+      "  return descriptor();\n"
+      "}\n"
+      "\n");
 
   // Generate methods of the interface.
   GenerateNotImplementedMethods(printer);
@@ -232,14 +234,16 @@ void ServiceGenerator::GenerateNotImplementedMethods(io::Printer* printer) {
 }
 
 void ServiceGenerator::GenerateCallMethod(io::Printer* printer) {
-  printer->Print(vars_,
-    "void $classname$::CallMethod(const ::google::protobuf::MethodDescriptor* method,\n"
-    "                             ::google::protobuf::RpcController* controller,\n"
-    "                             const ::google::protobuf::Message* request,\n"
-    "                             ::google::protobuf::Message* response,\n"
-    "                             ::google::protobuf::Closure* done) {\n"
-    "  GOOGLE_DCHECK_EQ(method->service(), $classname$_descriptor_);\n"
-    "  switch(method->index()) {\n");
+  printer->Print(
+      vars_,
+      "void $classname$::CallMethod(const ::google::protobuf::MethodDescriptor* method,\n"
+      "                             ::google::protobuf::RpcController* controller,\n"
+      "                             const ::google::protobuf::Message* request,\n"
+      "                             ::google::protobuf::Message* response,\n"
+      "                             ::google::protobuf::Closure* done) {\n"
+      "  GOOGLE_DCHECK_EQ(method->service(), "
+      "$file_namespace$::file_level_service_descriptors[$index$]);\n"
+      "  switch(method->index()) {\n");
 
   for (int i = 0; i < descriptor_->method_count(); i++) {
     const MethodDescriptor* method = descriptor_->method(i);
