@@ -30,8 +30,8 @@ SRCS(
     compiler/importer.cc
     compiler/parser.cc
     descriptor.cc
-    descriptor_database.cc
     descriptor.pb.cc
+    descriptor_database.cc
     duration.pb.cc
     dynamic_message.cc
     empty.pb.cc
@@ -88,9 +88,9 @@ SRCS(
     util/internal/json_objectwriter.cc
     util/internal/json_stream_parser.cc
     util/internal/object_writer.cc
+    util/internal/proto_writer.cc
     util/internal/protostream_objectsource.cc
     util/internal/protostream_objectwriter.cc
-    util/internal/proto_writer.cc
     util/internal/type_info.cc
     util/internal/utility.cc
     util/json_util.cc
