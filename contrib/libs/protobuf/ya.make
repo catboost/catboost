@@ -17,6 +17,10 @@ ADDINCL(
 
 JOINSRC()
 
+IF (OS_ANDROID)
+    EXTRALIBS(-llog)
+ENDIF()
+
 CFLAGS(-DHAVE_ZLIB)
 
 PEERDIR(ADDINCL contrib/libs/zlib)
