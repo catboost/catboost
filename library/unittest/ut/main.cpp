@@ -39,8 +39,10 @@ TEST(ETest, Test1) {
 }
 
 SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
+    TFsPath workDir(GetWorkPath() + "/tmp/ports_test");
+
     SIMPLE_UNIT_TEST(TestValidPortsIpv4) {
-        TPortManager pm;
+        TPortManager pm(workDir);
         ui16 port = pm.GetPort();
         TInetStreamSocket sock;
         TSockAddrInet addr((TIpHost)INADDR_ANY, port);
@@ -50,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestValidPortsIpv6) {
-        TPortManager pm;
+        TPortManager pm(workDir);
         ui16 port = pm.GetPort();
         TInet6StreamSocket sock;
         TSockAddrInet6 addr("::", port);
@@ -60,7 +62,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestOccupancy) {
-        TPortManager pm;
+        TPortManager pm(workDir);
         TSet<ui16> ports;
         for (int i = 0; i < 1000; i++) {
             ui16 port = pm.GetPort();
@@ -70,14 +72,14 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestRandomPort) {
-        TPortManager pm;
+        TPortManager pm(workDir);
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), pm.GetPort(8123));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), 8123);
     }
 
     SIMPLE_UNIT_TEST(TestRequiredPort) {
-        TPortManager pm;
+        TPortManager pm(workDir);
         SetEnv("NO_RANDOM_PORTS", "1");
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
         UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(8123), pm.GetPort(8123));
@@ -92,8 +94,6 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestPortsRange) {
-        TFsPath workDir(GetYaPath() / "tmp/ports_test");
-
         TPortManager pm(workDir);
         ui16 port = pm.GetPortsRange(3000, 3);
         UNIT_ASSERT(port >= 3000);

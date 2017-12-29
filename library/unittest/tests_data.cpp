@@ -1,10 +1,17 @@
 #include <util/folder/dirut.h>
 #include <util/generic/vector.h>
 #include <util/network/sock.h>
+#include <util/random/random.h>
+#include <util/stream/file.h>
 #include <util/system/env.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
 #include <util/system/mutex.h>
+
+#ifdef _darwin_
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
 
 #include "tests_data.h"
 
@@ -79,10 +86,11 @@ class TPortManager::TPortManagerImpl {
     };
 
 public:
-    TPortManagerImpl(const TString& syncDir) {
+    TPortManagerImpl(const TString& syncDir): ValidPortsCount(0) {
         SyncDir = GetEnv("PORT_SYNC_PATH", syncDir);
         if (IsSyncDirSet())
             NFs::MakeDirectoryRecursive(SyncDir);
+        InitValidPortRange();
     }
 
     ui16 GetUdpPort(ui16 port) {
@@ -99,27 +107,32 @@ public:
             return port;
         }
 
-        size_t retries = 20;
-        int bind_error = 0;
+        ui16 salt = RandomNumber<ui16>();
+        for (ui16 attempt = 0; attempt < ValidPortsCount; ++attempt) {
+            port = (salt + attempt) % ValidPortsCount;
 
-        while (retries--) {
+            for (auto&& range : ValidPortRanges) {
+                if (port >= range.second - range.first + 1)
+                    port -= range.second - range.first + 1;
+                else {
+                    port += range.first;
+                    break;
+                }
+            }
+
             THolder<TSocketType> sock = new TSocketType();
             SetReuseAddressAndPort(*sock);
 
-            TSockAddrInet6 addr("::", 0);
-            bind_error = sock->Bind(&addr);
-            if (bind_error < 0)
+            TSockAddrInet6 addr("::", port);
+            if (sock->Bind(&addr) < 0)
                 continue;
 
-            ui16 port = addr.GetPort();
             if (IsSyncDirSet() && !LockPort(port))
                 continue;
 
             Sockets.push_back(std::move(sock));
             return port;
         }
-        if (bind_error)
-            ythrow yexception() << "Can't bind: " << LastSystemErrorText(-bind_error);
         ythrow yexception() << "Failed to find port";
     }
 
@@ -189,11 +202,54 @@ private:
         return locked;
     }
 
+    void InitValidPortRange() {
+        const ui16 first_valid = 1025;
+        const ui16 last_valid = (1 << 16) - 1;
+
+        auto ephemeral = GetEphemeralRange();
+        const ui16 first_invalid = std::max(ephemeral.first, first_valid);
+        const ui16 last_invalid = std::min(ephemeral.second, last_valid);
+
+        ValidPortRanges.clear();
+        if (first_invalid > first_valid)
+            ValidPortRanges.emplace_back(first_valid, first_invalid - 1);
+        if (last_invalid < last_valid)
+            ValidPortRanges.emplace_back(last_invalid + 1, last_valid);
+
+        ValidPortsCount = 0;
+        for (auto&& range : ValidPortRanges)
+            ValidPortsCount += range.second - range.first + 1;
+
+        Y_VERIFY(ValidPortsCount);
+    }
+
+    std::pair<ui16, ui16> GetEphemeralRange() {
+        // IANA suggestion
+        std::pair<ui16, ui16> pair{(1 << 15) + (1 << 14), (1 << 16) - 1};
+#ifdef _linux_
+        if (NFs::Exists("/proc/sys/net/ipv4/ip_local_port_range")) {
+            TIFStream fileStream("/proc/sys/net/ipv4/ip_local_port_range");
+            fileStream >> pair.first >> pair.second;
+        }
+#endif
+#ifdef _darwin_
+        ui32 first, last;
+        size_t size;
+        sysctlbyname("net.inet.ip.portrange.first", &first, &size, NULL, 0);
+        sysctlbyname("net.inet.ip.portrange.last", &last, &size, NULL, 0);
+        pair.first = first;
+        pair.second = last;
+#endif
+        return pair;
+    }
+
 private:
     TVector<THolder<TBaseSocket>> Sockets;
     TString SyncDir;
     TVector<TPortGuard::TPtr> ReservedPorts;
     TMutex Lock;
+    ui16 ValidPortsCount;
+    TVector<std::pair<ui16, ui16>> ValidPortRanges;
 };
 
 TPortManager::TPortManager(const TString& syncDir)
