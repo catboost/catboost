@@ -69,6 +69,29 @@ namespace NKernel {
         }
     };
 
+    struct TSMAPETarget  {
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            return abs(target - prediction) / (abs(target) + abs(prediction));
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float sumabs = abs(target) + abs(prediction);
+            const float diff = target - prediction;
+            const float absdiff = abs(diff);
+            return diff / (absdiff * sumabs) + (prediction * absdiff) / (abs(prediction) * sumabs * sumabs);
+        }
+
+        __device__ __forceinline__  float Der2(float target, float prediction) const {
+            const float sumabs = abs(target) + abs(prediction);
+            const float sumabs2 = sumabs * sumabs;
+            const float sumabs3 = sumabs2 * sumabs;
+            const float diff = target - prediction;
+            const float absdiff = abs(diff);
+            return -2 * (absdiff / sumabs3 + (prediction * diff) / (abs(prediction) * absdiff * sumabs2));
+        }
+    };
+
     struct TPoissonTarget  {
 
         __device__ __forceinline__ float Score(float target, float prediction) const {
@@ -321,6 +344,12 @@ namespace NKernel {
             case ELossFunction::MAPE:
             {
                 TMAPETarget target;
+                POINTWISE_TARGET()
+                break;
+            }
+            case ELossFunction::SMAPE:
+            {
+                TSMAPETarget target;
                 POINTWISE_TARGET()
                 break;
             }

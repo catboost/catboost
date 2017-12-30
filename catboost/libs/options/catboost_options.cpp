@@ -9,7 +9,6 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     ui32 defaultNewtonIterations = 1;
     ui32 defaultGradientIterations = 1;
     ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
-
     switch (lossFunctionConfig.GetLossFunction()) {
         case ELossFunction::RMSE: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
@@ -46,6 +45,12 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             break;
         }
+        case ELossFunction::SMAPE: {
+            defaultNewtonIterations = 1;                     
+            defaultGradientIterations = 1;                   
+            defaultEstimationMethod = ELeavesEstimation::Newton;          
+            break;
+        }   
         case ELossFunction::PairLogit: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultNewtonIterations = 1;
@@ -211,7 +216,8 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
     if (ctr.TargetBinarization->BorderCount > 1) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
-                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE,
+                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::SMAPE ||
+                      lossFunction == ELossFunction::MAE,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
     CB_ENSURE(ctr.GetPriors().size(), "Provide at least one prior for CTR" << ToString(*this));
