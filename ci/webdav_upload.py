@@ -21,7 +21,7 @@ if not client.check(work_dir):
     client.mkdir(work_dir)
 
 for path in sys.argv[1:]:
-    print client.upload(
+    client.upload(
         os.path.join(work_dir, os.path.basename(path)),
         path
     )
