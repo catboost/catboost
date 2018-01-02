@@ -60,7 +60,7 @@ if [ "${CB_BUILD_AGENT}" == 'R-clang-darwin-x86_64-release' ] || [ "${CB_BUILD_A
     cp -r man catboost
     cp -r tests catboost
 
-    ../../ya make -r src
+    ../../ya make -r -T src
 
     mkdir catboost/inst/libs
     cp $(readlink src/libcatboostr.so) catboost/inst/libs
