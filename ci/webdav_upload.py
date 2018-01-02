@@ -14,9 +14,11 @@ base_dir = "webdav_test"
 
 work_dir = os.path.join(
     base_dir, 
-    os.environ.get("TRAVIS_BUILD_NUMBER", "") + "_" + str(int(time.time()))
+    os.environ.get("TRAVIS_BUILD_NUMBER", "")
 )
-client.mkdir(work_dir)
+
+if not client.check(work_dir):
+    client.mkdir(work_dir)
 
 for path in sys.argv[1:]:
     print client.upload(
