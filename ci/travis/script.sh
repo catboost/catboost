@@ -65,7 +65,7 @@ if [ "${CB_BUILD_AGENT}" == 'R-clang-darwin-x86_64-release' ] || [ "${CB_BUILD_A
     mkdir catboost/inst/libs
     cp $(readlink src/libcatboostr.so) catboost/inst/libs
 
-    tar -cvzf catboost.tgz catboost
-    python ../../ci/webdav_upload.py catboost.tgz
+    tar -cvzf catboost-R-$(uname).tgz catboost
+    python ../../ci/webdav_upload.py catboost-R-*.tgz
 fi
 
