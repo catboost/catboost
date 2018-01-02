@@ -94,4 +94,14 @@ matrix:
         skip_cleanup: true
         on:
           tags: true
+    - os: osx
+      osx_image: xcode8.3
+      language: cpp
+      env: CB_BUILD_AGENT='R-clang-darwin-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+    - os: linux
+      dist: trusty
+      language: cpp
+      env: CB_BUILD_AGENT='R-clang-linux-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
 

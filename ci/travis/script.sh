@@ -44,3 +44,28 @@ if [ "${CB_BUILD_AGENT}" == 'clang-darwin-x86_64-release' ]; then
     cp $(readlink catboost/app/catboost) catboost-darwin;
     python ci/webdav_upload.py catboost-darwin
 fi
+
+if [ "${CB_BUILD_AGENT}" == 'R-clang-darwin-x86_64-release' ] || [ "${CB_BUILD_AGENT}" == 'R-clang-linux-x86_64-release' ]; then
+    cd catboost/R-package
+
+    mkdir catboost
+
+    cp DESCRIPTION catboost
+    cp NAMESPACE catboost
+    cp README.md catboost
+
+    cp -r R catboost
+
+    cp -r inst catboost
+    cp -r man catboost
+    cp -r tests catboost
+
+    ../../ya make -r src
+
+    mkdir catboost/inst/libs
+    cp $(readlink src/libcatboostr.so) catboost/inst/libs
+
+    tar -cvzf catboost.tgz catboost
+    python ../../ci/webdav_upload.py catboost.tgz
+fi
+
