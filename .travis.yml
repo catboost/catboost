@@ -24,7 +24,7 @@ before_script: |
     #
     unset CC
     unset CXX
-    sudo pip2 install webdavclient
+    pip2 install webdavclient || sudo pip2 install webdavclient
 
 matrix:
   include:
