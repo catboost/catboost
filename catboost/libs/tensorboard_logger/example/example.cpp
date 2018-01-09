@@ -1,4 +1,4 @@
-#include "catboost/libs/tensorboard_logger/tensorboard_logger.h"
+#include <catboost/libs/tensorboard_logger/tensorboard_logger.h>
 
 int main() {
     TTensorBoardLogger logger("./first_experiment");

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/helpers/clear_array.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>

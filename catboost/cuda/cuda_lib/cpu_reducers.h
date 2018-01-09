@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/system/types.h>
+
 namespace NReducers {
     template <class T>
     class TSumReducer {
