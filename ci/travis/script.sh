@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
+    export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages
+fi
+
 function install_cuda_linux()
 {
     wget https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda-repo-ubuntu1404-8-0-local-ga2_8.0.61-1_amd64-deb -O cuda-repo-ubuntu1404-8-0-local-ga2_8.0.61-1_amd64.deb
