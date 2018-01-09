@@ -1,6 +1,7 @@
 
 #include <util/system/atomic.h>
 #include <util/system/event.h>
+#include <util/generic/deque.h>
 #include <library/threading/future/legacy_future.h>
 
 #include <library/unittest/registar.h>
@@ -187,5 +188,69 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(1, p.RefCount());
+    }
+
+    struct TFreeListTester {
+        size_t Threads;
+        size_t OperationsPerThread;
+
+        TCountDownLatch StartLatch;
+        TLockFreeStack<int> Stack;
+
+        TFreeListTester()
+            : Threads(10)
+            , OperationsPerThread(100000)
+            , StartLatch(Threads)
+        {
+        }
+
+        void Worker() {
+            StartLatch.CountDown();
+            StartLatch.Await();
+
+            TVector<int> unused;
+            for (size_t i = 0; i < OperationsPerThread; ++i) {
+                switch (GetCycleCount() % 4) {
+                    case 0: {
+                        Stack.Enqueue(i);
+                        break;
+                    }
+                    case 1: {
+                        int unused;
+                        Stack.Dequeue(&unused);
+                        break;
+                    }
+                    case 2: {
+                        Stack.DequeueAll(&unused);
+                        unused.clear();
+                        break;
+                    }
+                    case 3: {
+                        unused.resize(5);
+                        Stack.EnqueueAll(unused);
+                        unused.clear();
+                        break;
+                    }
+                }
+            }
+        }
+
+        void Run() {
+            TDeque<NThreading::TLegacyFuture<>> futures;
+
+            for (size_t i = 0; i < Threads; ++i) {
+                futures.emplace_back(std::bind(&TFreeListTester::Worker, this));
+            }
+
+            futures.clear();
+
+            TVector<int> left;
+            Stack.DequeueAll(&left);
+        }
+    };
+
+    // Test for catching thread sanitizer problems
+    SIMPLE_UNIT_TEST(TestFreeList) {
+        TFreeListTester().Run();
     }
 }
