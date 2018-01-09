@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/tensorboard_logger
+    catboost/libs/loggers
 )
 
 END()

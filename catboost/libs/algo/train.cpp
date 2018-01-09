@@ -1,14 +1,13 @@
 #include "train.h"
 #include "fold.h"
-#include "logger.h"
-
-#include <catboost/libs/logging/profile_info.h>
 #include "error_functions.h"
 #include "online_ctr.h"
 #include "score_calcer.h"
 #include "approx_calcer.h"
 #include "greedy_tensor_search.h"
 
+#include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/helpers/interrupt.h>
 
 namespace {
@@ -151,9 +150,6 @@ void TrainOneIter(const TTrainData& data,
 
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.TreeStruct.ysize();
-
-    MATRIXNET_NOTICE_LOG << currentIteration << ": ";
-    profile.StartNextIteration();
 
     CheckInterrupted(); // check after long-lasting operation
 

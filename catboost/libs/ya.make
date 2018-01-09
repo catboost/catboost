@@ -8,7 +8,7 @@ RECURSE(
     model/ut
     model_interface
     overfitting_detector
-    tensorboard_logger
+    loggers
     algo/ut
     algo
     data

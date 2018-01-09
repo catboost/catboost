@@ -11,14 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{6F9BA27F-7853-1464-BB51-1321A3D1AC80}</ProjectGUID>
+    <ProjectGUID>{7499FA48-11C9-7404-EB31-713BEE8796E9}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>catboost-libs-tensorboard_logger</ProjectName>
+    <ProjectName>tensorboard_logger_example</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v140</PlatformToolset>
@@ -30,10 +30,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>catboost-libs-tensorboard_logger</TargetName>
-    <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\tensorboard_logger\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\6F9BA27F-7853-1464-BB51-1321A3D1AC80\</IntDir>
+    <TargetName>tensorboard_logger_example</TargetName>
+    <TargetExtention>.exe</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\loggers\tensorboard_logger_example\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\7499FA48-11C9-7404-EB31-713BEE8796E9\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -75,12 +75,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\tensorboard_logger\tensorboard_logger.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\tensorboard_logger\tensorboard_logger.h"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\loggers\tensorboard_logger_example\example.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
+      <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
+      <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
       <Project>1EE751F2-33FA-3640-4C59-F20313BE143E</Project>
     </ProjectReference>
@@ -113,6 +118,21 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
       <Project>60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
+      <Project>D1EB170E-C5D0-989C-A93C-B5A2CD895E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
+      <Project>83A191D5-D636-DE22-2633-0CBA3DEA99BB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
+      <Project>32459880-AE0E-8CCD-4A48-44F805C4FC9B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
+      <Project>B5163097-6C21-9F9C-985E-1E21018EDE5E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
       <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>

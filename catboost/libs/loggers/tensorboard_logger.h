@@ -15,7 +15,7 @@
 
 class TTensorBoardLogger {
 private:
-    THolder<TUnbufferedFileOutput> OutputStream;
+    THolder<TOFStream> OutputStream;
 
     int AddEvent(int64_t step, THolder<tensorboard::Summary>* summary);
     int Write(tensorboard::Event& event);

@@ -34,6 +34,7 @@ struct TLearnProgress {
 
     TVector<TVector<double>> LearnErrorsHistory;
     TVector<TVector<double>> TestErrorsHistory;
+    TVector<TVector<double>> TimeHistory;
 
     THashSet<std::pair<ECtrType, TProjection>> UsedCtrSplits;
 
@@ -106,8 +107,7 @@ public:
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
-        , TimeLeftLog(outputOptions.AllowWriteFiles() ? new TOFStream(Files.TimeLeftLogFile) : nullptr)
-        , Profile(Params.IsProfile, (int)Params.BoostingOptions->IterationCount, TimeLeftLog.Get()) {
+        , Profile((int)Params.BoostingOptions->IterationCount) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: except learn on CPU task type, got " << taskType);
@@ -126,11 +126,5 @@ public:
 
     TSmallestSplitSideFold ParamsUsedWithStatsFromPrevTree;
     TStatsFromPrevTree StatsFromPrevTree;
-
-private:
-    THolder<TOFStream> TimeLeftLog;
-
-public:
     TProfileInfo Profile;
-
 };

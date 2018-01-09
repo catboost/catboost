@@ -11,11 +11,8 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
-
-
-#include <catboost/libs/algo/logger.h>
 #include <catboost/libs/logging/profile_info.h>
-
+#include <catboost/libs/loggers/logger.h>
 
 #include <library/grid_creator/binarization.h>
 
@@ -69,55 +66,76 @@ void ShrinkModel(int itCount, TLearnProgress* progress) {
     progress->TreeStruct.resize(itCount);
 }
 
-void CalcAndLogLearnErrors(const TVector<TVector<double>>& avrgApprox, const TVector<float>& target, const TVector<float>& weight, const TVector<ui32>& queryId, const THashMap<ui32, ui32>& queriesSize, const TVector<TPair>& pairs, const TVector<THolder<IMetric>>& errors, int learnSampleCount, int iteration, TVector<TVector<double>>* learnErrorsHistory, NPar::TLocalExecutor* localExecutor, TLogger* logger) {
-    learnErrorsHistory->emplace_back();
-    for (int i = 0; i < errors.ysize(); ++i) {
-        double learnErr = errors[i]->GetFinalError(
-            errors[i]->GetErrorType() == EErrorType::PerObjectError ?
-            errors[i]->Eval(avrgApprox, target, weight, 0, learnSampleCount, *localExecutor) :
-            errors[i]->GetErrorType() == EErrorType::PairwiseError ?
-            errors[i]->EvalPairwise(avrgApprox, pairs, 0, learnSampleCount) :
-            errors[i]->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, 0, learnSampleCount));
-        if (i == 0) {
-            MATRIXNET_NOTICE_LOG << "learn: " << Prec(learnErr, 7);
-        }
-        learnErrorsHistory->back().push_back(learnErr);
-    }
-
-    if (logger != nullptr) {
-        Log(iteration, learnErrorsHistory->back(), errors, logger, EPhase::Learn);
-    }
+static double EvalErrors(
+    const TVector<TVector<double>>& avrgApprox,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<ui32>& queryId,
+    const THashMap<ui32, ui32>& queriesSize,
+    const TVector<TPair>& pairs,
+    const THolder<IMetric>& error,
+    int learnSampleCount,
+    int sampleCount,
+    NPar::TLocalExecutor* localExecutor
+) {
+    return error->GetFinalError(
+        error->GetErrorType() == EErrorType::PerObjectError ?
+            error->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor) :
+            error->GetErrorType() == EErrorType::PairwiseError ?
+                error->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount):
+                error->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, learnSampleCount, sampleCount));
 }
 
-void CalcAndLogTestErrors(const TVector<TVector<double>>& avrgApprox, const TVector<float>& target, const TVector<float>& weight, const TVector<ui32>& queryId, const THashMap<ui32, ui32>& queriesSize, const TVector<TPair>& pairs, const TVector<THolder<IMetric>>& errors, int learnSampleCount, int sampleCount, int iteration, TErrorTracker& errorTracker, TVector<TVector<double>>* testErrorsHistory, NPar::TLocalExecutor* localExecutor, TLogger* logger) {
-    TVector<double> valuesToLog;
-
-    testErrorsHistory->emplace_back();
-    for (int i = 0; i < errors.ysize(); ++i) {
-        double testErr = errors[i]->GetFinalError(
-            errors[i]->GetErrorType() == EErrorType::PerObjectError ?
-            errors[i]->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor) :
-            errors[i]->GetErrorType() == EErrorType::PairwiseError ?
-            errors[i]->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount) :
-            errors[i]->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, learnSampleCount, sampleCount));
-
-        if (i == 0) {
-            errorTracker.AddError(testErr, iteration, &valuesToLog);
-            double bestErr = errorTracker.GetBestError();
-
-            MATRIXNET_NOTICE_LOG << "\ttest: " << Prec(testErr, 7) << "\tbestTest: " << Prec(bestErr, 7)
-                << " (" << errorTracker.GetBestIteration() << ")";
-        }
-        testErrorsHistory->back().push_back(testErr);
+static void CalcErrors(
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<ui32>& queryId,
+    const THashMap<ui32, ui32>& queriesSize,
+    const TVector<TPair>& pairs,
+    const TVector<THolder<IMetric>>& errors,
+    int learnSampleCount,
+    int sampleCount,
+    bool hasTest,
+    TLearnProgress* learnProgress,
+    NPar::TLocalExecutor* localExecutor
+) {
+    learnProgress->LearnErrorsHistory.emplace_back();
+    if (hasTest) {
+        learnProgress->TestErrorsHistory.emplace_back();
     }
 
-    if (logger != nullptr) {
-        Log(iteration, testErrorsHistory->back(), errors, logger, EPhase::Test);
+    for (int i = 0; i < errors.ysize(); ++i) {
+        double learnErr = EvalErrors(
+            learnProgress->AvrgApprox,
+            target,
+            weight,
+            queryId,
+            queriesSize,
+            pairs,
+            errors[i],
+            0,
+            learnSampleCount,
+            localExecutor
+        );
+        learnProgress->LearnErrorsHistory.back().push_back(learnErr);
+
+        if (hasTest) {
+            double testErr = EvalErrors(
+                learnProgress->AvrgApprox,
+                target,
+                weight,
+                queryId,
+                queriesSize,
+                pairs,
+                errors[i],
+                learnSampleCount,
+                sampleCount,
+                localExecutor
+            );
+            learnProgress->TestErrorsHistory.back().push_back(testErr);
+        }
     }
 }
-
-
-
 
 void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
@@ -127,17 +145,17 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     const bool hasTest = sampleCount > data.LearnSampleCount;
     auto trainOneIterationFunc = GetOneIterationFunc(ctx->Params.LossFunctionDescription->GetLossFunction());
     const auto& metricOptions = ctx->Params.MetricOptions.Get();
-    TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
+    TVector<THolder<IMetric>> metrics = CreateMetrics(
+        metricOptions.EvalMetric,
         ctx->EvalMetricDescriptor,
         metricOptions.CustomMetrics,
-        approxDimension);
+        approxDimension
+    );
 
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
     CB_ENSURE(hasTest || !useBestModel, "cannot select best model, no test provided");
-
-    THolder<TLogger> logger;
 
     if (ctx->TryLoadProgress()) {
         for (int dim = 0; dim < approxDimension; ++dim) {
@@ -145,9 +163,22 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
                 ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
         }
     }
-    if (ctx->OutputOptions.AllowWriteFiles()) {
-        logger = CreateLogger(metrics, *ctx, hasTest);
-    }
+
+    TLogger logger = CreateLogger(
+        GetMetricsDescription(metrics),
+        ctx->LearnProgress.LearnErrorsHistory,
+        ctx->LearnProgress.TestErrorsHistory,
+        ctx->LearnProgress.TimeHistory,
+        ctx->Files.LearnErrorLogFile,
+        ctx->Files.TestErrorLogFile,
+        ctx->Files.TimeLeftLogFile,
+        ctx->OutputOptions.GetTrainDir(),
+        ctx->OutputOptions.AllowWriteFiles(),
+        ctx->Params.IsProfile,
+        true,
+        hasTest
+    );
+
     TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
     TVector<double> valuesToLog;
     for (int i = 0; i < errorsHistory.ysize(); ++i) {
@@ -159,19 +190,24 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         folds.push_back(&fold);
     }
 
-
     if (AreStatsFromPrevTreeUsed(ctx->Params.ObliviousTreeOptions.Get())) {
         ctx->ParamsUsedWithStatsFromPrevTree.Create(*folds[0]); // assume that all folds have the same shape
         const int approxDimension = folds[0]->GetApproxDimension();
         const int bodyTailCount = folds[0]->BodyTailArr.ysize();
-        ctx->StatsFromPrevTree.Create(CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth), approxDimension, bodyTailCount);
+        ctx->StatsFromPrevTree.Create(
+            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
+            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth),
+            approxDimension,
+            bodyTailCount
+        );
     }
 
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
+        profile.StartNextIteration();
+
         trainOneIterationFunc(data, ctx);
 
-        CalcAndLogLearnErrors(
-            ctx->LearnProgress.AvrgApprox,
+        CalcErrors(
             data.Target,
             data.Weights,
             data.QueryId,
@@ -179,41 +215,42 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             data.Pairs,
             metrics,
             data.LearnSampleCount,
-            iter,
-            &ctx->LearnProgress.LearnErrorsHistory,
-            &ctx->LocalExecutor,
-            logger.Get());
+            sampleCount,
+            hasTest,
+            &ctx->LearnProgress,
+            &ctx->LocalExecutor
+        );
 
-        profile.AddOperation("Calc learn errors");
+        profile.AddOperation("Calc errors");
 
         if (hasTest) {
-            CalcAndLogTestErrors(
-                ctx->LearnProgress.AvrgApprox,
-                data.Target,
-                data.Weights,
-                data.QueryId,
-                data.QuerySize,
-                data.Pairs,
-                metrics,
-                data.LearnSampleCount,
-                sampleCount,
-                iter,
-                errorTracker,
-                &ctx->LearnProgress.TestErrorsHistory,
-                &ctx->LocalExecutor,
-                logger.Get());
-
-            profile.AddOperation("Calc test errors");
+            TVector<double> valuesToLog;
+            errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[0], iter, &valuesToLog);
 
             if ((useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) || !useBestModel) {
                 for (int dim = 0; dim < approxDimension; ++dim) {
                     (*testMultiApprox)[dim].assign(
-                        ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
+                        ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end()
+                    );
                 }
             }
         }
 
         profile.FinishIteration();
+
+        TProfileResults profileResults = profile.GetProfileResults();
+        ctx->LearnProgress.TimeHistory.push_back({profileResults.PassedTime,profileResults.RemainingTime});
+
+        Log(
+            GetMetricsDescription(metrics),
+            ctx->LearnProgress.LearnErrorsHistory,
+            ctx->LearnProgress.TestErrorsHistory,
+            errorTracker.GetBestError(),
+            errorTracker.GetBestIteration(),
+            profileResults,
+            &logger
+        );
+
         ctx->SaveProgress();
 
         if (IsNan(ctx->LearnProgress.LearnErrorsHistory.back()[0])) {
@@ -241,7 +278,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     }
 
     if (ctx->Params.IsProfile || ctx->Params.LoggingLevel == ELoggingLevel::Debug) {
-        profile.PrintAverages();
+        LogAverages(profile.GetProfileResults());
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
@@ -255,16 +292,17 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
 
 class TCPUModelTrainer : public IModelTrainer {
 
-    void TrainModel(const NJson::TJsonValue& jsonParams,
-                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                    TPool& learnPool,
-                    bool allowClearPool,
-                    const TPool& testPool,
-                    TFullModel* modelPtr,
-                    TEvalResult* evalResult) const override
-    {
+    void TrainModel(
+        const NJson::TJsonValue& jsonParams,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        TPool& learnPool,
+        bool allowClearPool,
+        const TPool& testPool,
+        TFullModel* modelPtr,
+        TEvalResult* evalResult
+    ) const override {
         CB_ENSURE(learnPool.Docs.GetDocCount() != 0, "Train dataset is empty");
 
         auto sortedCatFeatures = learnPool.CatFeatures;
@@ -291,7 +329,8 @@ class TCPUModelTrainer : public IModelTrainer {
             outputOptions,
             featureCount,
             sortedCatFeatures,
-            learnPool.FeatureId);
+            learnPool.FeatureId
+        );
         SetLogingLevel(ctx.Params.LoggingLevel);
 
         auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
@@ -451,7 +490,8 @@ class TCPUModelTrainer : public IModelTrainer {
             allowClearPool,
             ctx.LocalExecutor,
             &learnPool.Docs,
-            &trainData.AllFeatures);
+            &trainData.AllFeatures
+        );
 
         if (allowClearPool) {
             learnPool.Docs.Clear();
@@ -517,7 +557,8 @@ class TCPUModelTrainer : public IModelTrainer {
                 catFeatureParams.CtrLeafCountLimit,
                 catFeatureParams.StoreAllSimpleCtrs,
                 catFeatureParams.CounterCalcMethod,
-                &resTable);
+                &resTable
+            );
             resTable.ModelCtrBase = ctr;
             MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " " << BuildDescription(ctx.Layout, ctr.Projection) << Endl;
             return resTable;
@@ -550,9 +591,11 @@ class TCPUModelTrainer : public IModelTrainer {
         }
     }
 
-    void TrainModel(const NCatboostOptions::TPoolLoadParams& loadOptions,
-                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                    const NJson::TJsonValue& trainJson) const override {
+    void TrainModel(
+        const NCatboostOptions::TPoolLoadParams& loadOptions,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        const NJson::TJsonValue& trainJson
+    ) const override {
         THPTimer runTimer;
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
         catBoostOptions.Load(trainJson);
@@ -565,29 +608,33 @@ class TCPUModelTrainer : public IModelTrainer {
 
         TPool learnPool;
         if (!loadOptions.LearnFile.empty()) {
-            ReadPool(loadOptions.CdFile,
-                        loadOptions.LearnFile,
-                        loadOptions.PairsFile,
-                        threadCount,
-                        verbose,
-                        loadOptions.Delimiter,
-                        loadOptions.HasHeader,
-                        catBoostOptions.DataProcessingOptions->ClassNames,
-                        &learnPool);
+            ReadPool(
+                loadOptions.CdFile,
+                loadOptions.LearnFile,
+                loadOptions.PairsFile,
+                threadCount,
+                verbose,
+                loadOptions.Delimiter,
+                loadOptions.HasHeader,
+                catBoostOptions.DataProcessingOptions->ClassNames,
+                &learnPool
+            );
             profile.AddOperation("Build learn pool");
         }
 
         TPool testPool;
         if (!loadOptions.TestFile.empty()) {
-            ReadPool(loadOptions.CdFile,
-                        loadOptions.TestFile,
-                        loadOptions.TestPairsFile,
-                        threadCount,
-                        verbose,
-                        loadOptions.Delimiter,
-                        loadOptions.HasHeader,
-                        catBoostOptions.DataProcessingOptions->ClassNames,
-                        &testPool);
+            ReadPool(
+                loadOptions.CdFile,
+                loadOptions.TestFile,
+                loadOptions.TestPairsFile,
+                threadCount,
+                verbose,
+                loadOptions.Delimiter,
+                loadOptions.HasHeader,
+                catBoostOptions.DataProcessingOptions->ClassNames,
+                &testPool
+            );
             profile.AddOperation("Build test pool");
         }
 
@@ -598,13 +645,14 @@ class TCPUModelTrainer : public IModelTrainer {
             Y_VERIFY(cvParams.FoldIdx != -1);
 
             BuildCvPools(
-                    cvParams.FoldIdx,
-                    cvParams.FoldCount,
-                    cvParams.Inverted,
-                    cvParams.RandSeed,
-                    threadCount,
-                    &learnPool,
-                    &testPool);
+                cvParams.FoldIdx,
+                cvParams.FoldCount,
+                cvParams.Inverted,
+                cvParams.RandSeed,
+                threadCount,
+                &learnPool,
+                &testPool
+            );
             profile.AddOperation("Build cv pools");
         }
 
@@ -631,7 +679,10 @@ class TCPUModelTrainer : public IModelTrainer {
         profile.AddOperation("Train model");
 
         if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
-            profile.LogState();
+            TLogger logger;
+            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
+            TOneInterationLogger oneIterLogger(logger);
+            oneIterLogger.OutputProfile(profile.GetProfileResults());
         }
 
         if (needFstr) {
@@ -675,8 +726,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, modelPtr, evalResult);
 }
 
-void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx)
-{
+void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx) {
     SetLogingLevel(ctx->Params.LoggingLevel);
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
@@ -687,9 +737,11 @@ void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx)
     GetOneIterationFunc(lossFunction)(trainData, ctx);
 }
 
-void CheckFitParams(const NJson::TJsonValue& plainOptions,
-                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+void CheckFitParams(
+    const NJson::TJsonValue& plainOptions,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputJsonOptions;
     NCatboostOptions::PlainJsonToOptions(plainOptions, &catBoostJsonOptions, &outputJsonOptions);
