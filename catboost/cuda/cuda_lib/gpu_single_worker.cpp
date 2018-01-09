@@ -54,7 +54,7 @@ namespace NCudaLib {
                         //synchronized always
                     case EGpuHostCommandType::HostTask: {
                         auto taskPtr = dynamic_cast<IHostTask*>(task.Get());
-                        if (taskPtr->IsSystemTask()) {
+                        if (!taskPtr->IsSystemTask()) {
                             WaitSubmitAndSync();
                             DeleteObjects();
                         }
