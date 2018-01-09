@@ -112,11 +112,11 @@ static const int kMinHeaderVersionForProtoc = 3000000;
 
 // Verifies that the headers and libraries are compatible.  Use the macro
 // below to call this.
-void /* LIBPROTOBUF_EXPORT */ VerifyVersion(int headerVersion, int minLibraryVersion,
+void LIBPROTOBUF_EXPORT VerifyVersion(int headerVersion, int minLibraryVersion,
                                       const char* filename);
 
 // Converts a numeric version number to a string.
-TProtoStringType /* LIBPROTOBUF_EXPORT */ VersionString(int version);
+TProtoStringType LIBPROTOBUF_EXPORT VersionString(int version);
 
 }  // namespace internal
 
@@ -138,14 +138,14 @@ namespace internal {
 
 // Checks if the buffer contains structurally-valid UTF-8.  Implemented in
 // structurally_valid.cc.
-/* LIBPROTOBUF_EXPORT */ bool IsStructurallyValidUTF8(const char* buf, int len);
+LIBPROTOBUF_EXPORT bool IsStructurallyValidUTF8(const char* buf, int len);
 
 inline bool IsStructurallyValidUTF8(const TProtoStringType& str) {
   return IsStructurallyValidUTF8(str.data(), static_cast<int>(str.length()));
 }
 
 // Returns initial number of bytes of structually valid UTF-8.
-/* LIBPROTOBUF_EXPORT */ int UTF8SpnStructurallyValid(const StringPiece& str);
+LIBPROTOBUF_EXPORT int UTF8SpnStructurallyValid(const StringPiece& str);
 
 // Coerce UTF-8 byte string in src_str to be
 // a structurally-valid equal-length string by selectively
@@ -159,7 +159,7 @@ inline bool IsStructurallyValidUTF8(const TProtoStringType& str) {
 //
 // Optimized for: all structurally valid and no byte copying is done.
 //
-/* LIBPROTOBUF_EXPORT */ char* UTF8CoerceToStructurallyValid(
+LIBPROTOBUF_EXPORT char* UTF8CoerceToStructurallyValid(
     const StringPiece& str, char* dst, char replace_char);
 
 }  // namespace internal
@@ -181,12 +181,12 @@ inline bool IsStructurallyValidUTF8(const TProtoStringType& str) {
 // It is safe to call this multiple times.  However, it is not safe to use
 // any other part of the protocol buffers library after
 // ShutdownProtobufLibrary() has been called.
-/* LIBPROTOBUF_EXPORT */ void ShutdownProtobufLibrary();
+LIBPROTOBUF_EXPORT void ShutdownProtobufLibrary();
 
 namespace internal {
 
 // Register a function to be called when ShutdownProtocolBuffers() is called.
-/* LIBPROTOBUF_EXPORT */ void OnShutdown(void (*func)());
+LIBPROTOBUF_EXPORT void OnShutdown(void (*func)());
 
 }  // namespace internal
 }  // namespace protobuf

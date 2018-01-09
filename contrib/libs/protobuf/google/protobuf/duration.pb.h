@@ -32,7 +32,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fduration_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fduration_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2fduration_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2fduration_2eproto();
 
@@ -40,7 +40,7 @@ class Duration;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ Duration : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Duration) */ {
+class LIBPROTOBUF_EXPORT Duration : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Duration) */ {
  public:
   Duration();
   virtual ~Duration();
@@ -120,7 +120,7 @@ class /* LIBPROTOBUF_EXPORT */ Duration : public ::google::protobuf::Message /* 
   ::google::protobuf::int64 seconds_;
   ::google::protobuf::int32 nanos_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fduration_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fduration_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fduration_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fduration_2eproto();
 

@@ -50,7 +50,7 @@ namespace util {
 namespace converter {
 
 // Interface for error listener.
-class /* LIBPROTOBUF_EXPORT */ ErrorListener {
+class LIBPROTOBUF_EXPORT ErrorListener {
  public:
   virtual ~ErrorListener() {}
 
@@ -75,7 +75,7 @@ class /* LIBPROTOBUF_EXPORT */ ErrorListener {
 };
 
 // An error listener that ignores all errors.
-class /* LIBPROTOBUF_EXPORT */ NoopErrorListener : public ErrorListener {
+class LIBPROTOBUF_EXPORT NoopErrorListener : public ErrorListener {
  public:
   NoopErrorListener() {}
   virtual ~NoopErrorListener() {}

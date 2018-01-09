@@ -55,7 +55,7 @@ class DataPiece;
 //
 // TODO(xinb): seems like a prime candidate to apply the RAII paradigm
 // and get rid the need to call EndXXX().
-class /* LIBPROTOBUF_EXPORT */ ObjectWriter {
+class LIBPROTOBUF_EXPORT ObjectWriter {
  public:
   virtual ~ObjectWriter() {}
 

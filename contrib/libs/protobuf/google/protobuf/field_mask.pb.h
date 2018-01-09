@@ -32,7 +32,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2ffield_5fmask_2eproto();
 
@@ -40,7 +40,7 @@ class FieldMask;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ FieldMask : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.FieldMask) */ {
+class LIBPROTOBUF_EXPORT FieldMask : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.FieldMask) */ {
  public:
   FieldMask();
   virtual ~FieldMask();
@@ -123,7 +123,7 @@ class /* LIBPROTOBUF_EXPORT */ FieldMask : public ::google::protobuf::Message /*
   bool _is_default_instance_;
   ::google::protobuf::RepeatedPtrField< TProtoStringType> paths_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2ffield_5fmask_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2ffield_5fmask_2eproto();
 

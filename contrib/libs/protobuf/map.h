@@ -98,7 +98,7 @@ class GeneratedMessageReflection;
 
 // MapKey is an union type for representing any possible
 // map key.
-class /* LIBPROTOBUF_EXPORT */ MapKey {
+class LIBPROTOBUF_EXPORT MapKey {
  public:
   MapKey() : type_(0) {
   }
@@ -298,7 +298,7 @@ class /* LIBPROTOBUF_EXPORT */ MapKey {
 };
 
 // MapValueRef points to a map value.
-class /* LIBPROTOBUF_EXPORT */ MapValueRef {
+class LIBPROTOBUF_EXPORT MapValueRef {
  public:
   MapValueRef() : data_(NULL), type_(0) {}
 

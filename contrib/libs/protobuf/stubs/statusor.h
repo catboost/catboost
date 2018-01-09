@@ -161,7 +161,7 @@ class StatusOr {
 
 namespace internal {
 
-class /* LIBPROTOBUF_EXPORT */ StatusOrHelper {
+class LIBPROTOBUF_EXPORT StatusOrHelper {
  public:
   // Move type-agnostic error handling to the .cc.
   static void Crash(const util::Status& status);

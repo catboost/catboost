@@ -77,8 +77,8 @@ namespace internal {
 
 
 // Constants for special floating point values.
-/* LIBPROTOBUF_EXPORT */ double Infinity();
-/* LIBPROTOBUF_EXPORT */ double NaN();
+LIBPROTOBUF_EXPORT double Infinity();
+LIBPROTOBUF_EXPORT double NaN();
 
 // TODO(jieluo): Change to template. We have tried to use template,
 // but it causes net/rpc/python:rpcutil_test fail (the empty string will
@@ -87,21 +87,21 @@ namespace internal {
 
 // Default empty string object. Don't use the pointer directly. Instead, call
 // GetEmptyString() to get the reference.
-/* LIBPROTOBUF_EXPORT */ extern const TProtoStringType* empty_string_;
-/* LIBPROTOBUF_EXPORT */ extern ProtobufOnceType empty_string_once_init_;
-/* LIBPROTOBUF_EXPORT */ void InitEmptyString();
+LIBPROTOBUF_EXPORT extern const TProtoStringType* empty_string_;
+LIBPROTOBUF_EXPORT extern ProtobufOnceType empty_string_once_init_;
+LIBPROTOBUF_EXPORT void InitEmptyString();
 
 
-/* LIBPROTOBUF_EXPORT */ inline const TProtoStringType& GetEmptyStringAlreadyInited() {
+LIBPROTOBUF_EXPORT inline const TProtoStringType& GetEmptyStringAlreadyInited() {
   assert(empty_string_ != NULL);
   return *empty_string_;
 }
-/* LIBPROTOBUF_EXPORT */ inline const TProtoStringType& GetEmptyString() {
+LIBPROTOBUF_EXPORT inline const TProtoStringType& GetEmptyString() {
   ::google::protobuf::GoogleOnceInit(&empty_string_once_init_, &InitEmptyString);
   return GetEmptyStringAlreadyInited();
 }
 
-/* LIBPROTOBUF_EXPORT */ int StringSpaceUsedExcludingSelf(const string& str);
+LIBPROTOBUF_EXPORT int StringSpaceUsedExcludingSelf(const string& str);
 
 
 // True if IsInitialized() is true for all elements of t.  Type is expected
@@ -122,13 +122,13 @@ class ArenaString;
 // pointer to a copy of the string that resides in *arena.  Requires both
 // args to be non-NULL.  If something goes wrong while reading the data
 // then NULL is returned (e.g., input does not start with a valid varint).
-/* LIBPROTOBUF_EXPORT */ ArenaString* ReadArenaString(
+LIBPROTOBUF_EXPORT ArenaString* ReadArenaString(
     ::google::protobuf::io::CodedInputStream* input,
     ::google::protobuf::Arena* arena);
 
 // Helper function to crash on merge failure.
 // Moved out of generated code to reduce binary size.
-/* LIBPROTOBUF_EXPORT */ void MergeFromFail(const char* file, int line) GOOGLE_ATTRIBUTE_NORETURN;
+LIBPROTOBUF_EXPORT void MergeFromFail(const char* file, int line) GOOGLE_ATTRIBUTE_NORETURN;
 
 }  // namespace internal
 }  // namespace protobuf

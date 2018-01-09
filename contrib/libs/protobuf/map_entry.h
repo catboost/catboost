@@ -56,12 +56,12 @@ namespace internal {
 
 // Register all MapEntry default instances so we can delete them in
 // ShutdownProtobufLibrary().
-void /* LIBPROTOBUF_EXPORT */ RegisterMapEntryDefaultInstance(
+void LIBPROTOBUF_EXPORT RegisterMapEntryDefaultInstance(
     MessageLite* default_instance);
 
 // This is the common base class for MapEntry. It is used by MapFieldBase in
 // reflection api, in which the static type of key and value is unknown.
-class /* LIBPROTOBUF_EXPORT */ MapEntryBase : public Message {
+class LIBPROTOBUF_EXPORT MapEntryBase : public Message {
  public:
   ::google::protobuf::Metadata GetMetadata() const {
     ::google::protobuf::Metadata metadata;

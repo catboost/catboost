@@ -66,10 +66,10 @@
   #endif
 #endif
 #if defined(_MSC_VER) && defined(PROTOBUF_USE_DLLS)
-  #ifdef /* LIBPROTOBUF_EXPORT */S
-    #define /* LIBPROTOBUF_EXPORT */ __declspec(dllexport)
+  #ifdef LIBPROTOBUF_EXPORTS
+    #define LIBPROTOBUF_EXPORT __declspec(dllexport)
   #else
-    #define /* LIBPROTOBUF_EXPORT */ __declspec(dllimport)
+    #define LIBPROTOBUF_EXPORT __declspec(dllimport)
   #endif
   #ifdef LIBPROTOC_EXPORTS
     #define LIBPROTOC_EXPORT   __declspec(dllexport)
@@ -317,7 +317,7 @@ static inline uint64 bswap_64(uint64 x) {
 
 // ===================================================================
 // from google3/util/endian/endian.h
-/* LIBPROTOBUF_EXPORT */ uint32 ghtonl(uint32 x);
+LIBPROTOBUF_EXPORT uint32 ghtonl(uint32 x);
 
 class BigEndian {
  public:

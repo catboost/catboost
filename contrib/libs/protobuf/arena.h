@@ -213,9 +213,9 @@ struct ArenaOptions {
 // well as RepeatedPtrField.
 
 #if __cplusplus >= 201103L
-class /* LIBPROTOBUF_EXPORT */ Arena final {
+class LIBPROTOBUF_EXPORT Arena final {
 #else
-class /* LIBPROTOBUF_EXPORT */ Arena {
+class LIBPROTOBUF_EXPORT Arena {
 #endif
  public:
   // Arena constructor taking custom options. See ArenaOptions below for

@@ -67,7 +67,7 @@ namespace protobuf {
 //   string my_str;
 //   NewCallback(&Foo, my_str);  // WON'T WORK:  Can't use referecnes.
 // However, correctly-typed pointers will work just fine.
-class /* LIBPROTOBUF_EXPORT */ Closure {
+class LIBPROTOBUF_EXPORT Closure {
  public:
   Closure() {}
   virtual ~Closure();
@@ -91,7 +91,7 @@ class ResultCallback {
 };
 
 template<typename R, typename A1>
-class /* LIBPROTOBUF_EXPORT */ ResultCallback1 {
+class LIBPROTOBUF_EXPORT ResultCallback1 {
  public:
   ResultCallback1() {}
   virtual ~ResultCallback1() {}
@@ -103,7 +103,7 @@ class /* LIBPROTOBUF_EXPORT */ ResultCallback1 {
 };
 
 template<typename R, typename A1, typename A2>
-class /* LIBPROTOBUF_EXPORT */ ResultCallback2 {
+class LIBPROTOBUF_EXPORT ResultCallback2 {
  public:
   ResultCallback2() {}
   virtual ~ResultCallback2() {}
@@ -116,7 +116,7 @@ class /* LIBPROTOBUF_EXPORT */ ResultCallback2 {
 
 namespace internal {
 
-class /* LIBPROTOBUF_EXPORT */ FunctionClosure0 : public Closure {
+class LIBPROTOBUF_EXPORT FunctionClosure0 : public Closure {
  public:
   typedef void (*FunctionType)();
 
@@ -537,7 +537,7 @@ inline ResultCallback2<R, A1, A2>* NewPermanentCallback(
 
 // A function which does nothing.  Useful for creating no-op callbacks, e.g.:
 //   Closure* nothing = NewCallback(&DoNothing);
-void /* LIBPROTOBUF_EXPORT */ DoNothing();
+void LIBPROTOBUF_EXPORT DoNothing();
 
 
 }  // namespace protobuf

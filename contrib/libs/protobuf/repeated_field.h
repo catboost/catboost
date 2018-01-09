@@ -362,7 +362,7 @@ struct TypeImplementsMergeBehavior< TProtoStringType > {
 //     // Only needs to be implemented if SpaceUsedExcludingSelf() is called.
 //     static int SpaceUsed(const Type&);
 //   };
-class /* LIBPROTOBUF_EXPORT */ RepeatedPtrFieldBase {
+class LIBPROTOBUF_EXPORT RepeatedPtrFieldBase {
  protected:
   // The reflection implementation needs to call protected methods directly,
   // reinterpreting pointers as being to Message instead of a specific Message
@@ -680,7 +680,7 @@ inline const Message& GenericTypeHandler<Message>::default_instance() {
 //   exported.
 // TODO(kenton):  Now that StringSpaceUsedExcludingSelf() is in the lite
 //   library, this can be cleaned up.
-class /* LIBPROTOBUF_EXPORT */ StringTypeHandlerBase {
+class LIBPROTOBUF_EXPORT StringTypeHandlerBase {
  public:
   typedef string Type;
 

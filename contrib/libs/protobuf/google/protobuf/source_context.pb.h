@@ -32,7 +32,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2fsource_5fcontext_2eproto();
 
@@ -40,7 +40,7 @@ class SourceContext;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ SourceContext : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.SourceContext) */ {
+class LIBPROTOBUF_EXPORT SourceContext : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.SourceContext) */ {
  public:
   SourceContext();
   virtual ~SourceContext();
@@ -118,7 +118,7 @@ class /* LIBPROTOBUF_EXPORT */ SourceContext : public ::google::protobuf::Messag
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr file_name_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fsource_5fcontext_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fsource_5fcontext_2eproto();
 

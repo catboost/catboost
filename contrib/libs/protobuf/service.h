@@ -122,7 +122,7 @@ class Message;               // message.h
 // stubs), but they subclass this base interface.  The methods of this
 // interface can be used to call the methods of the Service without knowing
 // its exact type at compile time (analogous to Reflection).
-class /* LIBPROTOBUF_EXPORT */ Service {
+class LIBPROTOBUF_EXPORT Service {
  public:
   inline Service() {}
   virtual ~Service();
@@ -199,7 +199,7 @@ class /* LIBPROTOBUF_EXPORT */ Service {
 // "least common denominator" set of features which we expect all
 // implementations to support.  Specific implementations may provide more
 // advanced features (e.g. deadline propagation).
-class /* LIBPROTOBUF_EXPORT */ RpcController {
+class LIBPROTOBUF_EXPORT RpcController {
  public:
   inline RpcController() {}
   virtual ~RpcController();
@@ -265,7 +265,7 @@ class /* LIBPROTOBUF_EXPORT */ RpcController {
 //   RpcChannel* channel = new MyRpcChannel("remotehost.example.com:1234");
 //   MyService* service = new MyService::Stub(channel);
 //   service->MyMethod(request, &response, callback);
-class /* LIBPROTOBUF_EXPORT */ RpcChannel {
+class LIBPROTOBUF_EXPORT RpcChannel {
  public:
   inline RpcChannel() {}
   virtual ~RpcChannel();

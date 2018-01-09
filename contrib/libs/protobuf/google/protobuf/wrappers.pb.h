@@ -32,7 +32,7 @@ namespace google {
 namespace protobuf {
 
 // Internal implementation detail -- do not call these.
-void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
 void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
 void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -48,7 +48,7 @@ class UInt64Value;
 
 // ===================================================================
 
-class /* LIBPROTOBUF_EXPORT */ DoubleValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.DoubleValue) */ {
+class LIBPROTOBUF_EXPORT DoubleValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.DoubleValue) */ {
  public:
   DoubleValue();
   virtual ~DoubleValue();
@@ -134,7 +134,7 @@ class /* LIBPROTOBUF_EXPORT */ DoubleValue : public ::google::protobuf::Message 
   bool _is_default_instance_;
   double value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -143,7 +143,7 @@ class /* LIBPROTOBUF_EXPORT */ DoubleValue : public ::google::protobuf::Message 
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ FloatValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.FloatValue) */ {
+class LIBPROTOBUF_EXPORT FloatValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.FloatValue) */ {
  public:
   FloatValue();
   virtual ~FloatValue();
@@ -229,7 +229,7 @@ class /* LIBPROTOBUF_EXPORT */ FloatValue : public ::google::protobuf::Message /
   bool _is_default_instance_;
   float value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -238,7 +238,7 @@ class /* LIBPROTOBUF_EXPORT */ FloatValue : public ::google::protobuf::Message /
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ Int64Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Int64Value) */ {
+class LIBPROTOBUF_EXPORT Int64Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Int64Value) */ {
  public:
   Int64Value();
   virtual ~Int64Value();
@@ -324,7 +324,7 @@ class /* LIBPROTOBUF_EXPORT */ Int64Value : public ::google::protobuf::Message /
   bool _is_default_instance_;
   ::google::protobuf::int64 value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -333,7 +333,7 @@ class /* LIBPROTOBUF_EXPORT */ Int64Value : public ::google::protobuf::Message /
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ UInt64Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.UInt64Value) */ {
+class LIBPROTOBUF_EXPORT UInt64Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.UInt64Value) */ {
  public:
   UInt64Value();
   virtual ~UInt64Value();
@@ -419,7 +419,7 @@ class /* LIBPROTOBUF_EXPORT */ UInt64Value : public ::google::protobuf::Message 
   bool _is_default_instance_;
   ::google::protobuf::uint64 value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -428,7 +428,7 @@ class /* LIBPROTOBUF_EXPORT */ UInt64Value : public ::google::protobuf::Message 
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ Int32Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Int32Value) */ {
+class LIBPROTOBUF_EXPORT Int32Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.Int32Value) */ {
  public:
   Int32Value();
   virtual ~Int32Value();
@@ -514,7 +514,7 @@ class /* LIBPROTOBUF_EXPORT */ Int32Value : public ::google::protobuf::Message /
   bool _is_default_instance_;
   ::google::protobuf::int32 value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -523,7 +523,7 @@ class /* LIBPROTOBUF_EXPORT */ Int32Value : public ::google::protobuf::Message /
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ UInt32Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.UInt32Value) */ {
+class LIBPROTOBUF_EXPORT UInt32Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.UInt32Value) */ {
  public:
   UInt32Value();
   virtual ~UInt32Value();
@@ -609,7 +609,7 @@ class /* LIBPROTOBUF_EXPORT */ UInt32Value : public ::google::protobuf::Message 
   bool _is_default_instance_;
   ::google::protobuf::uint32 value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -618,7 +618,7 @@ class /* LIBPROTOBUF_EXPORT */ UInt32Value : public ::google::protobuf::Message 
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ BoolValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.BoolValue) */ {
+class LIBPROTOBUF_EXPORT BoolValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.BoolValue) */ {
  public:
   BoolValue();
   virtual ~BoolValue();
@@ -704,7 +704,7 @@ class /* LIBPROTOBUF_EXPORT */ BoolValue : public ::google::protobuf::Message /*
   bool _is_default_instance_;
   bool value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -713,7 +713,7 @@ class /* LIBPROTOBUF_EXPORT */ BoolValue : public ::google::protobuf::Message /*
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ StringValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.StringValue) */ {
+class LIBPROTOBUF_EXPORT StringValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.StringValue) */ {
  public:
   StringValue();
   virtual ~StringValue();
@@ -807,7 +807,7 @@ class /* LIBPROTOBUF_EXPORT */ StringValue : public ::google::protobuf::Message 
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 
@@ -816,7 +816,7 @@ class /* LIBPROTOBUF_EXPORT */ StringValue : public ::google::protobuf::Message 
 };
 // -------------------------------------------------------------------
 
-class /* LIBPROTOBUF_EXPORT */ BytesValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.BytesValue) */ {
+class LIBPROTOBUF_EXPORT BytesValue : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:google.protobuf.BytesValue) */ {
  public:
   BytesValue();
   virtual ~BytesValue();
@@ -910,7 +910,7 @@ class /* LIBPROTOBUF_EXPORT */ BytesValue : public ::google::protobuf::Message /
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
-  friend void /* LIBPROTOBUF_EXPORT */ protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
+  friend void LIBPROTOBUF_EXPORT protobuf_AddDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_AssignDesc_google_2fprotobuf_2fwrappers_2eproto();
   friend void protobuf_ShutdownFile_google_2fprotobuf_2fwrappers_2eproto();
 

@@ -63,7 +63,7 @@ namespace io {
 // of messages.
 //
 // This class is really a namespace that contains only static methods.
-class /* LIBPROTOBUF_EXPORT */ TextFormat {
+class LIBPROTOBUF_EXPORT TextFormat {
  public:
   // Outputs a textual representation of the given message to the given
   // output stream.
@@ -96,7 +96,7 @@ class /* LIBPROTOBUF_EXPORT */ TextFormat {
   // You can derive from this FieldValuePrinter if you want to have
   // fields to be printed in a different way and register it at the
   // Printer.
-  class /* LIBPROTOBUF_EXPORT */ FieldValuePrinter {
+  class LIBPROTOBUF_EXPORT FieldValuePrinter {
    public:
     FieldValuePrinter();
     virtual ~FieldValuePrinter();
@@ -128,7 +128,7 @@ class /* LIBPROTOBUF_EXPORT */ TextFormat {
 
   // Class for those users which require more fine-grained control over how
   // a protobuffer message is printed out.
-  class /* LIBPROTOBUF_EXPORT */ Printer {
+  class LIBPROTOBUF_EXPORT Printer {
    public:
     Printer();
     ~Printer();
@@ -342,7 +342,7 @@ class /* LIBPROTOBUF_EXPORT */ TextFormat {
   // Interface that TextFormat::Parser can use to find extensions.
   // This class may be extended in the future to find more information
   // like fields, etc.
-  class /* LIBPROTOBUF_EXPORT */ Finder {
+  class LIBPROTOBUF_EXPORT Finder {
    public:
     virtual ~Finder();
 
@@ -365,7 +365,7 @@ class /* LIBPROTOBUF_EXPORT */ TextFormat {
 
   // Data structure which is populated with the locations of each field
   // value parsed from the text.
-  class /* LIBPROTOBUF_EXPORT */ ParseInfoTree {
+  class LIBPROTOBUF_EXPORT ParseInfoTree {
    public:
     ParseInfoTree();
     ~ParseInfoTree();
@@ -405,7 +405,7 @@ class /* LIBPROTOBUF_EXPORT */ TextFormat {
   };
 
   // For more control over parsing, use this class.
-  class /* LIBPROTOBUF_EXPORT */ Parser {
+  class LIBPROTOBUF_EXPORT Parser {
    public:
     Parser();
     ~Parser();

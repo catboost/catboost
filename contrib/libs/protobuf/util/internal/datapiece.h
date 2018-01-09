@@ -56,7 +56,7 @@ namespace converter {
 // Just like StringPiece, the DataPiece class does not own the storage for
 // the actual string or Cord, so it is the user's responsiblity to guarantee
 // that the underlying storage is still valid when the DataPiece is accessed.
-class /* LIBPROTOBUF_EXPORT */ DataPiece {
+class LIBPROTOBUF_EXPORT DataPiece {
  public:
   // Identifies data type of the value.
   // These are the types supported by DataPiece.
