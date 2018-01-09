@@ -970,6 +970,14 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       'Silent'
 #'
+#'     \item metric_period
+#'
+#'       The frequency of iterations to print the information to stdout. The value should be a positive integer.
+#'
+#'       Default value:
+#'
+#'       1
+#'
 #'     \item train_dir
 #'
 #'       The directory for storing the files generated during training.

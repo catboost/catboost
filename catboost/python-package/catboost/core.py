@@ -1083,6 +1083,8 @@ class CatBoostClassifier(CatBoost):
             - 'Verbose'
             - 'Info'
             - 'Debug'
+    metric_period : int, [default=1]
+        The frequency of iterations to print the information to stdout. The value should be a positive integer.
     simple_ctr: list of strings, [default=None]
         Binarization settings for categorical features.
             Format : see documentation
@@ -1204,6 +1206,7 @@ class CatBoostClassifier(CatBoost):
         use_best_model=None,
         verbose=None,
         logging_level=None,
+        metric_period=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
@@ -1501,6 +1504,7 @@ class CatBoostRegressor(CatBoost):
         use_best_model=None,
         verbose=None,
         logging_level=None,
+        metric_period=None,
         ctr_leaf_count_limit=None,
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
