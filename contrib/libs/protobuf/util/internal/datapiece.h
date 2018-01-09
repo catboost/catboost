@@ -56,7 +56,7 @@ namespace converter {
 // Just like StringPiece, the DataPiece class does not own the storage for
 // the actual string or Cord, so it is the user's responsiblity to guarantee
 // that the underlying storage is still valid when the DataPiece is accessed.
-class LIBPROTOBUF_EXPORT DataPiece {
+class /* LIBPROTOBUF_EXPORT */ DataPiece {
  public:
   // Identifies data type of the value.
   // These are the types supported by DataPiece.
@@ -75,22 +75,13 @@ class LIBPROTOBUF_EXPORT DataPiece {
   };
 
   // Constructors and Destructor
-  explicit DataPiece(const int32 value)
-      : type_(TYPE_INT32), i32_(value), use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const int64 value)
-      : type_(TYPE_INT64), i64_(value), use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const uint32 value)
-      : type_(TYPE_UINT32), u32_(value), use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const uint64 value)
-      : type_(TYPE_UINT64), u64_(value), use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const double value)
-      : type_(TYPE_DOUBLE),
-        double_(value),
-        use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const float value)
-      : type_(TYPE_FLOAT), float_(value), use_strict_base64_decoding_(false) {}
-  explicit DataPiece(const bool value)
-      : type_(TYPE_BOOL), bool_(value), use_strict_base64_decoding_(false) {}
+  explicit DataPiece(const int32 value) : type_(TYPE_INT32), i32_(value) {}
+  explicit DataPiece(const int64 value) : type_(TYPE_INT64), i64_(value) {}
+  explicit DataPiece(const uint32 value) : type_(TYPE_UINT32), u32_(value) {}
+  explicit DataPiece(const uint64 value) : type_(TYPE_UINT64), u64_(value) {}
+  explicit DataPiece(const double value) : type_(TYPE_DOUBLE), double_(value) {}
+  explicit DataPiece(const float value) : type_(TYPE_FLOAT), float_(value) {}
+  explicit DataPiece(const bool value) : type_(TYPE_BOOL), bool_(value) {}
   DataPiece(StringPiece value, bool use_strict_base64_decoding)
       : type_(TYPE_STRING),
         str_(StringPiecePod::CreateFromStringPiece(value)),
@@ -115,8 +106,6 @@ class LIBPROTOBUF_EXPORT DataPiece {
 
   // Accessors
   Type type() const { return type_; }
-
-  bool use_strict_base64_decoding() { return use_strict_base64_decoding_; }
 
   StringPiece str() const {
     GOOGLE_LOG_IF(DFATAL, type_ != TYPE_STRING) << "Not a string type.";
@@ -158,20 +147,16 @@ class LIBPROTOBUF_EXPORT DataPiece {
   // string, first attempts conversion by name, trying names as follows:
   //   1) the directly provided string value.
   //   2) the value upper-cased and replacing '-' by '_'
-  //   3) if use_lower_camel_for_enums is true it also attempts by comparing
-  //   enum name without underscore with the value upper cased above.
   // If the value is not a string, attempts to convert to a 32-bit integer.
   // If none of these succeeds, returns a conversion error status.
-  util::StatusOr<int> ToEnum(const google::protobuf::Enum* enum_type,
-                               bool use_lower_camel_for_enums) const;
+  util::StatusOr<int> ToEnum(const google::protobuf::Enum* enum_type) const;
 
  private:
   // Disallow implicit constructor.
   DataPiece();
 
   // Helper to create NULL or ENUM types.
-  DataPiece(Type type, int32 val)
-      : type_(type), i32_(val), use_strict_base64_decoding_(false) {}
+  DataPiece(Type type, int32 val) : type_(type), i32_(val) {}
 
   // For numeric conversion between
   //     int32, int64, uint32, uint64, double, float and bool

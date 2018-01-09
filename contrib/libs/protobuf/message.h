@@ -179,7 +179,7 @@ struct Metadata {
 // optimized for speed will want to override these with faster implementations,
 // but classes optimized for code size may be happy with keeping them.  See
 // the optimize_for option in descriptor.proto.
-class LIBPROTOBUF_EXPORT Message : public MessageLite {
+class /* LIBPROTOBUF_EXPORT */ Message : public MessageLite {
  public:
   inline Message() {}
   virtual ~Message() {}
@@ -334,7 +334,7 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   virtual bool IsInitialized() const;
   virtual void CheckTypeAndMergeFrom(const MessageLite& other);
   virtual bool MergePartialFromCodedStream(io::CodedInputStream* input);
-  virtual size_t ByteSizeLong() const;
+  virtual int ByteSize() const;
   virtual void SerializeWithCachedSizes(io::CodedOutputStream* output) const;
 
  private:
@@ -435,7 +435,7 @@ class MutableRepeatedFieldRef;
 //
 // TODO(kenton):  Create a utility class which callers can use to read and
 //   write fields from a Reflection without paying attention to the type.
-class LIBPROTOBUF_EXPORT Reflection {
+class /* LIBPROTOBUF_EXPORT */ Reflection {
  public:
   inline Reflection() {}
   virtual ~Reflection();
@@ -556,7 +556,7 @@ class LIBPROTOBUF_EXPORT Reflection {
   // will only be present when the new unknown-enum-value semantics are enabled
   // for a message.)
   virtual int GetEnumValue(
-      const Message& message, const FieldDescriptor* field) const = 0;
+      const Message& message, const FieldDescriptor* field) const;
 
   // See MutableMessage() for the meaning of the "factory" parameter.
   virtual const Message& GetMessage(const Message& message,
@@ -612,7 +612,7 @@ class LIBPROTOBUF_EXPORT Reflection {
   // messages with new unknown-enum-value semantics.
   virtual void SetEnumValue(Message* message,
                             const FieldDescriptor* field,
-                            int value) const = 0;
+                            int value) const;
 
   // Get a mutable pointer to a field with a message type.  If a MessageFactory
   // is provided, it will be used to construct instances of the sub-message;
@@ -683,7 +683,7 @@ class LIBPROTOBUF_EXPORT Reflection {
   // for a message.)
   virtual int GetRepeatedEnumValue(
       const Message& message,
-      const FieldDescriptor* field, int index) const = 0;
+      const FieldDescriptor* field, int index) const;
   virtual const Message& GetRepeatedMessage(
       const Message& message,
       const FieldDescriptor* field, int index) const = 0;
@@ -730,7 +730,7 @@ class LIBPROTOBUF_EXPORT Reflection {
   // messages with new unknown-enum-value semantics.
   virtual void SetRepeatedEnumValue(Message* message,
                                     const FieldDescriptor* field, int index,
-                                    int value) const = 0;
+                                    int value) const;
   // Get a mutable pointer to an element of a repeated field with a message
   // type.
   virtual Message* MutableRepeatedMessage(
@@ -766,7 +766,7 @@ class LIBPROTOBUF_EXPORT Reflection {
   // messages with new unknown-enum-value semantics.
   virtual void AddEnumValue(Message* message,
                             const FieldDescriptor* field,
-                            int value) const = 0;
+                            int value) const;
   // See MutableMessage() for comments on the "factory" parameter.
   virtual Message* AddMessage(Message* message,
                               const FieldDescriptor* field,
@@ -885,31 +885,34 @@ class LIBPROTOBUF_EXPORT Reflection {
   // downgrade to a compatible value or use the UnknownFieldSet if not. For
   // example:
   //
-  //   int new_value = GetValueFromApplicationLogic();
-  //   if (reflection->SupportsUnknownEnumValues()) {
+  // int new_value = GetValueFromApplicationLogic();
+  // if (reflection->SupportsUnknownEnumValues()) {
   //     reflection->SetEnumValue(message, field, new_value);
-  //   } else {
+  // } else {
   //     if (field_descriptor->enum_type()->
-  //             FindValueByNumber(new_value) != NULL) {
-  //       reflection->SetEnumValue(message, field, new_value);
+  //             FindValueByNumver(new_value) != NULL) {
+  //         reflection->SetEnumValue(message, field, new_value);
   //     } else if (emit_unknown_enum_values) {
-  //       reflection->MutableUnknownFields(message)->AddVarint(
-  //           field->number(), new_value);
+  //         reflection->MutableUnknownFields(message)->AddVarint(
+  //             field->number(),
+  //             new_value);
   //     } else {
-  //       // convert value to a compatible/default value.
-  //       new_value = CompatibleDowngrade(new_value);
-  //       reflection->SetEnumValue(message, field, new_value);
+  //         // convert value to a compatible/default value.
+  //         new_value = CompatibleDowngrade(new_value);
+  //         reflection->SetEnumValue(message, field, new_value);
   //     }
-  //   }
+  // }
   virtual bool SupportsUnknownEnumValues() const { return false; }
 
   // Returns the MessageFactory associated with this message.  This can be
   // useful for determining if a message is a generated message or not, for
   // example:
-  //   if (message->GetReflection()->GetMessageFactory() ==
-  //       google::protobuf::MessageFactory::generated_factory()) {
-  //     // This is a generated message.
-  //   }
+  //
+  // if (message->GetReflection()->GetMessageFactory() ==
+  //     google::protobuf::MessageFactory::generated_factory()) {
+  //   // This is a generated message.
+  // }
+  //
   // It can also be used to create more messages of this type, though
   // Message::New() is an easier way to accomplish this.
   virtual MessageFactory* GetMessageFactory() const;
@@ -1037,7 +1040,7 @@ class LIBPROTOBUF_EXPORT Reflection {
 };
 
 // Abstract interface for a factory for message objects.
-class LIBPROTOBUF_EXPORT MessageFactory {
+class /* LIBPROTOBUF_EXPORT */ MessageFactory {
  public:
   inline MessageFactory() {}
   virtual ~MessageFactory();
@@ -1102,12 +1105,12 @@ class LIBPROTOBUF_EXPORT MessageFactory {
 
 #define DECLARE_GET_REPEATED_FIELD(TYPE)                         \
 template<>                                                       \
-LIBPROTOBUF_EXPORT                                               \
+/* LIBPROTOBUF_EXPORT */                                               \
 const RepeatedField<TYPE>& Reflection::GetRepeatedField<TYPE>(   \
     const Message& message, const FieldDescriptor* field) const; \
                                                                  \
 template<>                                                       \
-LIBPROTOBUF_EXPORT                                               \
+/* LIBPROTOBUF_EXPORT */                                               \
 RepeatedField<TYPE>* Reflection::MutableRepeatedField<TYPE>(     \
     Message* message, const FieldDescriptor* field) const;
 

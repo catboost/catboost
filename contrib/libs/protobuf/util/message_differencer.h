@@ -107,7 +107,7 @@ class FieldContext;  // declared below MessageDifferencer
 // guard it with a lock to use the same MessageDifferencer instance from
 // multiple threads. Note that it's fine to call static comparison methods
 // (like MessageDifferencer::Equals) concurrently.
-class LIBPROTOBUF_EXPORT MessageDifferencer {
+class /* LIBPROTOBUF_EXPORT */ MessageDifferencer {
  public:
   // Determines whether the supplied messages are equal. Equality is defined as
   // all fields within the two messages being set to the same value. Primitive
@@ -215,7 +215,7 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // FieldDescriptors. The first will be the field of the embedded message
   // itself and the second will be the actual field in the embedded message
   // that was added/deleted/modified.
-  class LIBPROTOBUF_EXPORT Reporter {
+  class /* LIBPROTOBUF_EXPORT */ Reporter {
    public:
     Reporter();
     virtual ~Reporter();
@@ -293,15 +293,14 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
 
   // MapKeyComparator is used to determine if two elements have the same key
   // when comparing elements of a repeated field as a map.
-  class LIBPROTOBUF_EXPORT MapKeyComparator {
+  class /* LIBPROTOBUF_EXPORT */ MapKeyComparator {
    public:
     MapKeyComparator();
     virtual ~MapKeyComparator();
 
-    virtual bool IsMatch(
-        const Message& message1,
-        const Message& message2,
-        const std::vector<SpecificField>& parent_fields) const {
+    virtual bool IsMatch(const Message& message1,
+                         const Message& message2,
+                         const std::vector<SpecificField>& parent_fields) const {
       GOOGLE_CHECK(false) << "IsMatch() is not implemented.";
       return false;
     }
@@ -316,7 +315,7 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // field IsIgnored is called on each added IgnoreCriteria until one returns
   // true or all return false.
   // IsIgnored is called for fields where at least one side has a value.
-  class LIBPROTOBUF_EXPORT IgnoreCriteria {
+  class /* LIBPROTOBUF_EXPORT */ IgnoreCriteria {
    public:
     IgnoreCriteria();
     virtual ~IgnoreCriteria();
@@ -552,10 +551,9 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
 
   // Same as above, except comparing only the list of fields specified by the
   // two vectors of FieldDescriptors.
-  bool CompareWithFields(
-      const Message& message1, const Message& message2,
-      const std::vector<const FieldDescriptor*>& message1_fields,
-      const std::vector<const FieldDescriptor*>& message2_fields);
+  bool CompareWithFields(const Message& message1, const Message& message2,
+                         const std::vector<const FieldDescriptor*>& message1_fields,
+                         const std::vector<const FieldDescriptor*>& message2_fields);
 
   // Automatically creates a reporter that will output the differences
   // found (if any) to the specified output string pointer. Note that this
@@ -580,7 +578,7 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // complete until after you destroy the reporter. For example, if you use a
   // StreamReporter to write to a StringOutputStream, the target string may
   // contain uninitialized data until the reporter is destroyed.
-  class LIBPROTOBUF_EXPORT StreamReporter : public Reporter {
+  class /* LIBPROTOBUF_EXPORT */ StreamReporter : public Reporter {
    public:
     explicit StreamReporter(io::ZeroCopyOutputStream* output);
     explicit StreamReporter(io::Printer* printer);  // delimiter '$'
@@ -720,13 +718,12 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // list of parent messages if it needs to recursively compare the given field.
   // To avoid confusing users you should not set it to NULL unless you modified
   // Reporter to handle the change of parent_fields correctly.
-  bool CompareFieldValueUsingParentFields(
-      const Message& message1,
-      const Message& message2,
-      const FieldDescriptor* field,
-      int index1,
-      int index2,
-      std::vector<SpecificField>* parent_fields);
+  bool CompareFieldValueUsingParentFields(const Message& message1,
+                                          const Message& message2,
+                                          const FieldDescriptor* field,
+                                          int index1,
+                                          int index2,
+                                          std::vector<SpecificField>* parent_fields);
 
   // Compares the specified field on the two messages, returning comparison
   // result, as returned by appropriate FieldComparator.
@@ -778,13 +775,12 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
   // This method returns false if the match failed. However, it doesn't mean
   // that the comparison succeeds when this method returns true (you need to
   // double-check in this case).
-  bool MatchRepeatedFieldIndices(
-      const Message& message1,
-      const Message& message2,
-      const FieldDescriptor* repeated_field,
-      const std::vector<SpecificField>& parent_fields,
-      std::vector<int>* match_list1,
-      std::vector<int>* match_list2);
+  bool MatchRepeatedFieldIndices(const Message& message1,
+                                 const Message& message2,
+                                 const FieldDescriptor* repeated_field,
+                                 const std::vector<SpecificField>& parent_fields,
+                                 std::vector<int>* match_list1,
+                                 std::vector<int>* match_list2);
 
   // If "any" is of type google.protobuf.Any, extract its payload using
   // DynamicMessageFactory and store in "data".
@@ -823,6 +819,7 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
 
   FieldSet ignored_fields_;
 
+  bool compare_unknown_fields_;
   bool report_matches_;
 
   string* output_string_;
@@ -833,7 +830,7 @@ class LIBPROTOBUF_EXPORT MessageDifferencer {
 
 // This class provides extra information to the FieldComparator::Compare
 // function.
-class LIBPROTOBUF_EXPORT FieldContext {
+class /* LIBPROTOBUF_EXPORT */ FieldContext {
  public:
   explicit FieldContext(
       std::vector<MessageDifferencer::SpecificField>* parent_fields)

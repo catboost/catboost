@@ -250,7 +250,7 @@ inline bool WireFormatLite::ReadRepeatedFixedSizePrimitive(
     uint32 tag,
     io::CodedInputStream* input,
     RepeatedField<CType>* values) {
-  GOOGLE_DCHECK_EQ(UInt32Size(tag), static_cast<size_t>(tag_size));
+  GOOGLE_DCHECK_EQ(UInt32Size(tag), tag_size);
   CType value;
   if (!ReadPrimitive<CType, DeclaredType>(input, &value))
     return false;
@@ -273,9 +273,8 @@ inline bool WireFormatLite::ReadRepeatedFixedSizePrimitive(
     // The number of bytes each type occupies on the wire.
     const int per_value_size = tag_size + sizeof(value);
 
-    // parentheses around (std::min) prevents macro expansion of min(...)
     int elements_available =
-        (std::min)(values->Capacity() - values->size(),
+        std::min(values->Capacity() - values->size(),
           static_cast<int>(size / per_value_size));
     int num_read = 0;
     while (num_read < elements_available &&
@@ -367,9 +366,8 @@ inline bool WireFormatLite::ReadPackedFixedSizePrimitive(
   if (bytes_limit == -1) {
     bytes_limit = input->BytesUntilLimit();
   } else {
-    // parentheses around (std::min) prevents macro expansion of min(...)
     bytes_limit =
-        (std::min)(bytes_limit, static_cast<int64>(input->BytesUntilLimit()));
+        std::min(bytes_limit, static_cast<int64>(input->BytesUntilLimit()));
   }
   if (bytes_limit >= new_bytes) {
     // Fast-path that pre-allocates *values to the final size.
@@ -812,91 +810,63 @@ inline uint8* WireFormatLite::InternalWriteMessageNoVirtualToArray(
 
 // ===================================================================
 
-inline size_t WireFormatLite::Int32Size(int32 value) {
+inline int WireFormatLite::Int32Size(int32 value) {
   return io::CodedOutputStream::VarintSize32SignExtended(value);
 }
-inline size_t WireFormatLite::Int64Size(int64 value) {
+inline int WireFormatLite::Int64Size(int64 value) {
   return io::CodedOutputStream::VarintSize64(static_cast<uint64>(value));
 }
-inline size_t WireFormatLite::UInt32Size(uint32 value) {
+inline int WireFormatLite::UInt32Size(uint32 value) {
   return io::CodedOutputStream::VarintSize32(value);
 }
-inline size_t WireFormatLite::UInt64Size(uint64 value) {
+inline int WireFormatLite::UInt64Size(uint64 value) {
   return io::CodedOutputStream::VarintSize64(value);
 }
-inline size_t WireFormatLite::SInt32Size(int32 value) {
+inline int WireFormatLite::SInt32Size(int32 value) {
   return io::CodedOutputStream::VarintSize32(ZigZagEncode32(value));
 }
-inline size_t WireFormatLite::SInt64Size(int64 value) {
+inline int WireFormatLite::SInt64Size(int64 value) {
   return io::CodedOutputStream::VarintSize64(ZigZagEncode64(value));
 }
-inline size_t WireFormatLite::EnumSize(int value) {
+inline int WireFormatLite::EnumSize(int value) {
   return io::CodedOutputStream::VarintSize32SignExtended(value);
 }
 
-inline size_t WireFormatLite::StringSize(const string& value) {
-  return LengthDelimitedSize(value.size());
+inline int WireFormatLite::StringSize(const string& value) {
+  return static_cast<int>(
+      io::CodedOutputStream::VarintSize32(static_cast<uint32>(value.size())) +
+      value.size());
 }
-inline size_t WireFormatLite::BytesSize(const string& value) {
-  return LengthDelimitedSize(value.size());
+inline int WireFormatLite::BytesSize(const string& value) {
+  return static_cast<int>(
+      io::CodedOutputStream::VarintSize32(static_cast<uint32>(value.size())) +
+      value.size());
 }
 
 
-inline size_t WireFormatLite::GroupSize(const MessageLite& value) {
-  return value.ByteSizeLong();
+inline int WireFormatLite::GroupSize(const MessageLite& value) {
+  return value.ByteSize();
 }
-inline size_t WireFormatLite::MessageSize(const MessageLite& value) {
-  return LengthDelimitedSize(value.ByteSizeLong());
+inline int WireFormatLite::MessageSize(const MessageLite& value) {
+  return LengthDelimitedSize(value.ByteSize());
 }
 
 // See comment on ReadGroupNoVirtual to understand the need for this template
 // parameter name.
 template<typename MessageType_WorkAroundCppLookupDefect>
-inline size_t WireFormatLite::GroupSizeNoVirtual(
+inline int WireFormatLite::GroupSizeNoVirtual(
     const MessageType_WorkAroundCppLookupDefect& value) {
-  return value.MessageType_WorkAroundCppLookupDefect::ByteSizeLong();
+  return value.MessageType_WorkAroundCppLookupDefect::ByteSize();
 }
 template<typename MessageType_WorkAroundCppLookupDefect>
-inline size_t WireFormatLite::MessageSizeNoVirtual(
+inline int WireFormatLite::MessageSizeNoVirtual(
     const MessageType_WorkAroundCppLookupDefect& value) {
   return LengthDelimitedSize(
-      value.MessageType_WorkAroundCppLookupDefect::ByteSizeLong());
+      value.MessageType_WorkAroundCppLookupDefect::ByteSize());
 }
 
-inline size_t WireFormatLite::LengthDelimitedSize(size_t length) {
-  // The static_cast here prevents an error in certain compiler configurations
-  // but is not technically correct--if length is too large to fit in a uint32
-  // then it will be silently truncated. We will need to fix this if we ever
-  // decide to start supporting serialized messages greater than 2 GiB in size.
-  return length + io::CodedOutputStream::VarintSize32(
-      static_cast<uint32>(length));
-}
-
-size_t WireFormatLite::Int64Size (const RepeatedField< int64>& value) {
-  size_t out = 0;
-  const int n = value.size();
-  for (int i = 0; i < n; i++) {
-    out += Int64Size(value.Get(i));
-  }
-  return out;
-}
-
-size_t WireFormatLite::UInt64Size(const RepeatedField<uint64>& value) {
-  size_t out = 0;
-  const int n = value.size();
-  for (int i = 0; i < n; i++) {
-    out += UInt64Size(value.Get(i));
-  }
-  return out;
-}
-
-size_t WireFormatLite::SInt64Size(const RepeatedField< int64>& value) {
-  size_t out = 0;
-  const int n = value.size();
-  for (int i = 0; i < n; i++) {
-    out += SInt64Size(value.Get(i));
-  }
-  return out;
+inline int WireFormatLite::LengthDelimitedSize(int length) {
+  return io::CodedOutputStream::VarintSize32(length) + length;
 }
 
 }  // namespace internal

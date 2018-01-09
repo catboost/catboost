@@ -461,4 +461,3 @@ ELossFunction GetLossType(const TString& lossDescription);
 
 THashMap<TString, float> GetLossParams(const TString& lossDescription);
 
-TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);

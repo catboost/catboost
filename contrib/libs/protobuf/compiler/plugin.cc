@@ -62,12 +62,9 @@ namespace compiler {
 
 class GeneratorResponseContext : public GeneratorContext {
  public:
-  GeneratorResponseContext(
-      const Version& compiler_version,
-      CodeGeneratorResponse* response,
-      const std::vector<const FileDescriptor*>& parsed_files)
-      : compiler_version_(compiler_version),
-        response_(response),
+  GeneratorResponseContext(CodeGeneratorResponse* response,
+                           const std::vector<const FileDescriptor*>& parsed_files)
+      : response_(response),
         parsed_files_(parsed_files) {}
   virtual ~GeneratorResponseContext() {}
 
@@ -91,12 +88,7 @@ class GeneratorResponseContext : public GeneratorContext {
     *output = parsed_files_;
   }
 
-  void GetCompilerVersion(Version* version) const {
-    *version = compiler_version_;
-  }
-
  private:
-  Version compiler_version_;
   CodeGeneratorResponse* response_;
   const std::vector<const FileDescriptor*>& parsed_files_;
 };
@@ -124,19 +116,37 @@ bool GenerateCode(const CodeGeneratorRequest& request,
     }
   }
 
-  GeneratorResponseContext context(
-      request.compiler_version(), response, parsed_files);
+  GeneratorResponseContext context(response, parsed_files);
 
-  string error;
-  bool succeeded = generator.GenerateAll(
-      parsed_files, request.parameter(), &context, &error);
+  if (generator.HasGenerateAll()) {
+    string error;
+    bool succeeded = generator.GenerateAll(
+        parsed_files, request.parameter(), &context, &error);
 
-  if (!succeeded && error.empty()) {
-    error = "Code generator returned false but provided no error "
-            "description.";
-  }
-  if (!error.empty()) {
-    response->set_error(error);
+    if (!succeeded && error.empty()) {
+      error = "Code generator returned false but provided no error "
+              "description.";
+    }
+    if (!error.empty()) {
+      response->set_error(error);
+    }
+  } else {
+    for (int i = 0; i < parsed_files.size(); i++) {
+      const FileDescriptor* file = parsed_files[i];
+
+      string error;
+      bool succeeded = generator.Generate(
+          file, request.parameter(), &context, &error);
+
+      if (!succeeded && error.empty()) {
+        error = "Code generator returned false but provided no error "
+                "description.";
+      }
+      if (!error.empty()) {
+        response->set_error(file->name() + ": " + error);
+        break;
+      }
+    }
   }
 
   return true;

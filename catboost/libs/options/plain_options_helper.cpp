@@ -141,7 +141,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "score_function", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "fold_size_loss_normalization", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "add_ridge_penalty_to_loss_function", &treeOptions, &seenKeys);
-        CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
+        CopyOption(plainOptions, "weight_sampling_frequency", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "dev_max_ctr_complexity_for_border_cache", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
 

@@ -13,6 +13,7 @@ SRCS(
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
+    logger.cpp
     model_build_helper.cpp
     online_ctr.cpp
     online_predictor.cpp
@@ -22,20 +23,6 @@ SRCS(
     split.cpp
     target_classifier.cpp
     train.cpp
-    train_one_iter_cross_entropy.cpp
-    train_one_iter_custom.cpp
-    train_one_iter_log_lin_quantile.cpp
-    train_one_iter_logloss.cpp
-    train_one_iter_map.cpp
-    train_one_iter_multi_class.cpp
-    train_one_iter_multi_class_one_vs_all.cpp
-    train_one_iter_pair_logit.cpp
-    train_one_iter_poisson.cpp
-    train_one_iter_quantile.cpp
-    train_one_iter_query_rmse.cpp
-    train_one_iter_rmse.cpp
-    train_one_iter_user_per_object.cpp
-    train_one_iter_user_querywise.cpp
     tree_print.cpp
     helpers.cpp
     cv_data_partition.cpp
@@ -46,10 +33,10 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/logging
-    catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/overfitting_detector
+    catboost/libs/tensorboard_logger
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash
@@ -62,5 +49,7 @@ PEERDIR(
     library/object_factory
     library/threading/local_executor
 )
+
+GENERATE_ENUM_SERIALIZATION(logger.h)
 
 END()

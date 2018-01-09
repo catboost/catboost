@@ -34,7 +34,8 @@ public:
         FactorCount = poolMetaInfo.FactorCount;
         BaselineCount = poolMetaInfo.BaselineCount;
 
-        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasQueryIds);
+        Pool->Docs.Resize(docCount, FactorCount, BaselineCount);
+
         Pool->CatFeatures = poolMetaInfo.CatFeatureIds;
     }
 

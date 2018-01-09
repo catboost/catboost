@@ -232,7 +232,7 @@ public abstract class AbstractParser<MessageType extends MessageLite>
       }
       size = CodedInputStream.readRawVarint32(firstByte, input);
     } catch (IOException e) {
-      throw new InvalidProtocolBufferException(e);
+      throw new InvalidProtocolBufferException(e.getMessage());
     }
     InputStream limitedInput = new LimitedInputStream(input, size);
     return parsePartialFrom(limitedInput, extensionRegistry);

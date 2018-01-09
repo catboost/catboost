@@ -139,7 +139,7 @@ template<> struct is_integral<int> : true_type { };
 template<> struct is_integral<unsigned int> : true_type { };
 template<> struct is_integral<long> : true_type { };
 template<> struct is_integral<unsigned long> : true_type { };
-#if defined(HAVE_LONG_LONG) || defined(_MSC_VER)
+#ifdef HAVE_LONG_LONG
 template<> struct is_integral<long long> : true_type { };
 template<> struct is_integral<unsigned long long> : true_type { };
 #endif

@@ -113,9 +113,7 @@ void SubstituteAndAppend(
   for (int i = 0; format[i] != '\0'; i++) {
     if (format[i] == '$') {
       if (ascii_isdigit(format[i+1])) {
-        unsigned int index = format[i+1] - '0';
-        assert(index < 10);
-        const SubstituteArg* src = args_array[index];
+        const SubstituteArg* src = args_array[format[i+1] - '0'];
         memcpy(target, src->data(), src->size());
         target += src->size();
         ++i;  // Skip next char.

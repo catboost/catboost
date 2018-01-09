@@ -34,10 +34,8 @@
 
 #include "compiler/code_generator.h"
 
-#include "compiler/plugin.pb.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"
-#include "descriptor.h"
 #include "stubs/strutil.h"
 
 namespace google {
@@ -45,33 +43,6 @@ namespace protobuf {
 namespace compiler {
 
 CodeGenerator::~CodeGenerator() {}
-
-bool CodeGenerator::GenerateAll(
-    const std::vector<const FileDescriptor*>& files,
-    const string& parameter,
-    GeneratorContext* generator_context,
-    string* error) const {
-  // Default implemenation is just to call the per file method, and prefix any
-  // error string with the file to provide context.
-  bool succeeded = true;
-  for (int i = 0; i < files.size(); i++) {
-    const FileDescriptor* file = files[i];
-    succeeded = Generate(file, parameter, generator_context, error);
-    if (!succeeded && error && error->empty()) {
-      *error = "Code generator returned false but provided no error "
-               "description.";
-    }
-    if (error && !error->empty()) {
-      *error = file->name() + ": " + *error;
-      break;
-    }
-    if (!succeeded) {
-      break;
-    }
-  }
-  return succeeded;
-}
-
 GeneratorContext::~GeneratorContext() {}
 
 io::ZeroCopyOutputStream*
@@ -88,13 +59,6 @@ io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
 void GeneratorContext::ListParsedFiles(
     std::vector<const FileDescriptor*>* output) {
   GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
-}
-
-void GeneratorContext::GetCompilerVersion(Version* version) const {
-  version->set_major(GOOGLE_PROTOBUF_VERSION / 1000000);
-  version->set_minor(GOOGLE_PROTOBUF_VERSION / 1000 % 1000);
-  version->set_patch(GOOGLE_PROTOBUF_VERSION % 1000);
-  version->set_suffix(GOOGLE_PROTOBUF_VERSION_SUFFIX);
 }
 
 // Parses a set of comma-delimited name/value pairs.

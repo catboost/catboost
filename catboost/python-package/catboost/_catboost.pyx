@@ -69,7 +69,7 @@ cdef extern from "catboost/libs/data/pool.h":
         void Swap(TDocumentStorage& other) except +ProcessException
         void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
         void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
-        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId) except +ProcessException
+        void Resize(int docCount, int featureCount, int approxDim) except +ProcessException
         void Clear() except +ProcessException
         void Append(const TDocumentStorage& documents) except +ProcessException
 
@@ -112,7 +112,6 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TObliviousTrees:
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
-        void Truncate(size_t begin, size_t end) except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -572,8 +571,7 @@ cdef class _PoolBase:
         self.__pool.Docs.Clear()
         if len(data) == 0:
             return
-        cdef bool_t has_query_id = not self.__pool.Docs.QueryId.empty()
-        self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_query_id)
+        self.__pool.Docs.Resize(len(data), len(data[0]), 0)
         cdef TString factor_str
         cat_features = set(self.get_cat_feature_indices())
         for i in range(len(data)):
@@ -610,9 +608,6 @@ cdef class _PoolBase:
 
     cpdef _set_query_id(self, query_id):
         rows = self.num_row()
-        if rows == 0:
-            return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True)
         for i in range(rows):
             self.__pool.Docs.QueryId[i] = int(query_id[i])
 
@@ -625,7 +620,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]), False)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]))
         for i in range(rows):
             for j, value in enumerate(baseline[i]):
                 self.__pool.Docs.Baseline[j][i] = float(value)
@@ -897,9 +892,6 @@ cdef class _CatBoost:
         )
         return [[value for value in fstr[i]] for i in range(fstr.size())]
 
-    cpdef _base_shrink(self, int ntree_start, int ntree_end):
-        self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
-
     cpdef _load_model(self, model_file):
         cdef TFullModel tmp_model
         model_file = to_binary_str(model_file)
@@ -1038,9 +1030,6 @@ class _CatBoostBase(object):
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
-
-    def _base_shrink(self, ntree_start, ntree_end):
-        return self._object._base_shrink(ntree_start, ntree_end)
 
     def _save_model(self, output_file, format, export_parameters):
         if self.is_fitted_:

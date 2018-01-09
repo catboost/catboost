@@ -122,9 +122,6 @@ class ImmutableServiceGenerator : public ServiceGenerator {
   void GenerateBlockingMethodSignature(io::Printer* printer,
                                        const MethodDescriptor* method);
 
-  // Return the output type of the method.
-  string GetOutput(const MethodDescriptor* method);
-
   Context* context_;
   ClassNameResolver* name_resolver_;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableServiceGenerator);

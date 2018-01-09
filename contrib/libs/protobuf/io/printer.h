@@ -48,7 +48,7 @@ namespace io {
 class ZeroCopyOutputStream;     // zero_copy_stream.h
 
 // Records annotations about a Printer's output.
-class LIBPROTOBUF_EXPORT AnnotationCollector {
+class /* LIBPROTOBUF_EXPORT */ AnnotationCollector {
  public:
   // Records that the bytes in file_path beginning with begin_offset and ending
   // before end_offset are associated with the SourceCodeInfo-style path.
@@ -72,8 +72,7 @@ class AnnotationProtoCollector : public AnnotationCollector {
 
   // Override for AnnotationCollector::AddAnnotation.
   virtual void AddAnnotation(size_t begin_offset, size_t end_offset,
-                             const string& file_path,
-                             const std::vector<int>& path) {
+                             const string& file_path, const std::vector<int>& path) {
     typename AnnotationProto::Annotation* annotation =
         annotation_proto_->add_annotation();
     for (int i = 0; i < path.size(); ++i) {
@@ -161,7 +160,7 @@ class AnnotationProtoCollector : public AnnotationCollector {
 // This code associates the span covering "call(bar,bar)" in the output with the
 // call_ descriptor.
 
-class LIBPROTOBUF_EXPORT Printer {
+class /* LIBPROTOBUF_EXPORT */ Printer {
  public:
   // Create a printer that writes text to the given output stream.  Use the
   // given character as the delimiter for variables.
@@ -337,8 +336,7 @@ class LIBPROTOBUF_EXPORT Printer {
   // varname if varname was used once in the last call to Print. If varname
   // was not used, or if it was used multiple times, returns false (and
   // fails a debug assertion).
-  bool GetSubstitutionRange(const char* varname,
-                            std::pair<size_t, size_t>* range);
+  bool GetSubstitutionRange(const char* varname, std::pair<size_t, size_t>* range);
 
   // If non-null, annotation_collector_ is used to store annotations about
   // generated code.

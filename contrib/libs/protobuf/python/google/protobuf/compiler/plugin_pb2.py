@@ -20,64 +20,12 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='google/protobuf/compiler/plugin.proto',
   package='google.protobuf.compiler',
   syntax='proto2',
-  serialized_pb=_b('\n%google/protobuf/compiler/plugin.proto\x12\x18google.protobuf.compiler\x1a google/protobuf/descriptor.proto\"F\n\x07Version\x12\r\n\x05major\x18\x01 \x01(\x05\x12\r\n\x05minor\x18\x02 \x01(\x05\x12\r\n\x05patch\x18\x03 \x01(\x05\x12\x0e\n\x06suffix\x18\x04 \x01(\t\"\xba\x01\n\x14\x43odeGeneratorRequest\x12\x18\n\x10\x66ile_to_generate\x18\x01 \x03(\t\x12\x11\n\tparameter\x18\x02 \x01(\t\x12\x38\n\nproto_file\x18\x0f \x03(\x0b\x32$.google.protobuf.FileDescriptorProto\x12;\n\x10\x63ompiler_version\x18\x03 \x01(\x0b\x32!.google.protobuf.compiler.Version\"\xaa\x01\n\x15\x43odeGeneratorResponse\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x42\n\x04\x66ile\x18\x0f \x03(\x0b\x32\x34.google.protobuf.compiler.CodeGeneratorResponse.File\x1a>\n\x04\x46ile\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x0finsertion_point\x18\x02 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x0f \x01(\tB7\n\x1c\x63om.google.protobuf.compilerB\x0cPluginProtosZ\tplugin_go')
+  serialized_pb=_b('\n%google/protobuf/compiler/plugin.proto\x12\x18google.protobuf.compiler\x1a google/protobuf/descriptor.proto\"}\n\x14\x43odeGeneratorRequest\x12\x18\n\x10\x66ile_to_generate\x18\x01 \x03(\t\x12\x11\n\tparameter\x18\x02 \x01(\t\x12\x38\n\nproto_file\x18\x0f \x03(\x0b\x32$.google.protobuf.FileDescriptorProto\"\xaa\x01\n\x15\x43odeGeneratorResponse\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x42\n\x04\x66ile\x18\x0f \x03(\x0b\x32\x34.google.protobuf.compiler.CodeGeneratorResponse.File\x1a>\n\x04\x46ile\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x0finsertion_point\x18\x02 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x0f \x01(\tB7\n\x1c\x63om.google.protobuf.compilerB\x0cPluginProtosZ\tplugin_go')
   ,
   dependencies=[google_dot_protobuf_dot_descriptor__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-
-
-_VERSION = _descriptor.Descriptor(
-  name='Version',
-  full_name='google.protobuf.compiler.Version',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='major', full_name='google.protobuf.compiler.Version.major', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='minor', full_name='google.protobuf.compiler.Version.minor', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='patch', full_name='google.protobuf.compiler.Version.patch', index=2,
-      number=3, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='suffix', full_name='google.protobuf.compiler.Version.suffix', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=101,
-  serialized_end=171,
-)
 
 
 _CODEGENERATORREQUEST = _descriptor.Descriptor(
@@ -108,13 +56,6 @@ _CODEGENERATORREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='compiler_version', full_name='google.protobuf.compiler.CodeGeneratorRequest.compiler_version', index=3,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -127,8 +68,8 @@ _CODEGENERATORREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=174,
-  serialized_end=360,
+  serialized_start=101,
+  serialized_end=226,
 )
 
 
@@ -172,8 +113,8 @@ _CODEGENERATORRESPONSE_FILE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=471,
-  serialized_end=533,
+  serialized_start=337,
+  serialized_end=399,
 )
 
 _CODEGENERATORRESPONSE = _descriptor.Descriptor(
@@ -209,24 +150,15 @@ _CODEGENERATORRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=363,
-  serialized_end=533,
+  serialized_start=229,
+  serialized_end=399,
 )
 
 _CODEGENERATORREQUEST.fields_by_name['proto_file'].message_type = google_dot_protobuf_dot_descriptor__pb2._FILEDESCRIPTORPROTO
-_CODEGENERATORREQUEST.fields_by_name['compiler_version'].message_type = _VERSION
 _CODEGENERATORRESPONSE_FILE.containing_type = _CODEGENERATORRESPONSE
 _CODEGENERATORRESPONSE.fields_by_name['file'].message_type = _CODEGENERATORRESPONSE_FILE
-DESCRIPTOR.message_types_by_name['Version'] = _VERSION
 DESCRIPTOR.message_types_by_name['CodeGeneratorRequest'] = _CODEGENERATORREQUEST
 DESCRIPTOR.message_types_by_name['CodeGeneratorResponse'] = _CODEGENERATORRESPONSE
-
-Version = _reflection.GeneratedProtocolMessageType('Version', (_message.Message,), dict(
-  DESCRIPTOR = _VERSION,
-  __module__ = 'google.protobuf.compiler.plugin_pb2'
-  # @@protoc_insertion_point(class_scope:google.protobuf.compiler.Version)
-  ))
-_sym_db.RegisterMessage(Version)
 
 CodeGeneratorRequest = _reflection.GeneratedProtocolMessageType('CodeGeneratorRequest', (_message.Message,), dict(
   DESCRIPTOR = _CODEGENERATORREQUEST,

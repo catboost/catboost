@@ -661,14 +661,6 @@
             "uri": "file://test.test_regularization/test.eval"
         }
     ],
-    "test.test_sample_rate_per_tree": {
-        "checksum": "c988a5c768a2daf4f02660df7d25c7b2",
-        "uri": "file://test.test_sample_rate_per_tree/test.eval"
-    },
-    "test.test_sample_rate_per_tree_level": {
-        "checksum": "7c00fc437a0b0ee8a1509d574084ba73",
-        "uri": "file://test.test_sample_rate_per_tree_level/test.eval"
-    },
     "test.test_shrink_model": [
         {
             "checksum": "3f16084b2b0cbe908f8021bf6ae4d88f",

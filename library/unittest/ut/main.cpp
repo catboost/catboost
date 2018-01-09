@@ -39,10 +39,8 @@ TEST(ETest, Test1) {
 }
 
 SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
-    TFsPath workDir(GetWorkPath() + "/tmp/ports_test");
-
     SIMPLE_UNIT_TEST(TestValidPortsIpv4) {
-        TPortManager pm(workDir);
+        TPortManager pm;
         ui16 port = pm.GetPort();
         TInetStreamSocket sock;
         TSockAddrInet addr((TIpHost)INADDR_ANY, port);
@@ -52,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestValidPortsIpv6) {
-        TPortManager pm(workDir);
+        TPortManager pm;
         ui16 port = pm.GetPort();
         TInet6StreamSocket sock;
         TSockAddrInet6 addr("::", port);
@@ -62,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestOccupancy) {
-        TPortManager pm(workDir);
+        TPortManager pm;
         TSet<ui16> ports;
         for (int i = 0; i < 1000; i++) {
             ui16 port = pm.GetPort();
@@ -72,14 +70,14 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestRandomPort) {
-        TPortManager pm(workDir);
+        TPortManager pm;
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), pm.GetPort(8123));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), 8123);
     }
 
     SIMPLE_UNIT_TEST(TestRequiredPort) {
-        TPortManager pm(workDir);
+        TPortManager pm;
         SetEnv("NO_RANDOM_PORTS", "1");
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
         UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(8123), pm.GetPort(8123));
@@ -94,7 +92,9 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestPortsRange) {
-        TPortManager pm(workDir);
+        TFsPath workDir(GetYaPath() / "tmp/ports_test");
+
+        TPortsRangeManager pm(workDir);
         ui16 port = pm.GetPortsRange(3000, 3);
         UNIT_ASSERT(port >= 3000);
 
@@ -107,16 +107,5 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
 
         port = pm.GetPortsRange(anotherPort, 1);
         UNIT_ASSERT(port > anotherPort);
-    }
-}
-
-SIMPLE_UNIT_TEST_SUITE(TestParams) {
-    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestDefault) {
-        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")
-    }
-
-    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
-        context.Processor->SetParam("key", "value");
-        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
     }
 }

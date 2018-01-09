@@ -525,6 +525,7 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
   SourceCodeInfo source_code_info;
   source_code_info_ = &source_code_info;
 
+  std::vector<string> top_doc_comments;
   if (LookingAtType(io::Tokenizer::TYPE_START)) {
     // Advance to first token.
     input_->NextWithComments(NULL, &upcoming_detached_comments_,
@@ -543,12 +544,10 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
       // Store the syntax into the file.
       if (file != NULL) file->set_syntax(syntax_identifier_);
     } else if (!stop_after_syntax_identifier_) {
-      // Yandex-specific: disable warning about syntax (default is proto2)
       // GOOGLE_LOG(WARNING) << "No syntax specified for the proto file: "
       //              << file->name() << ". Please use 'syntax = \"proto2\";' "
       //              << "or 'syntax = \"proto3\";' to specify a syntax "
       //              << "version. (Defaulted to proto2 syntax.)";
-      // End of Yandex-specific
       syntax_identifier_ = "proto2";
     }
 
@@ -572,7 +571,6 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
 
   input_ = NULL;
   source_code_info_ = NULL;
-  assert(file != NULL);
   source_code_info.Swap(file->mutable_source_code_info());
   return !had_errors_;
 }

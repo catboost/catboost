@@ -1979,7 +1979,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 191256773,
+                "sandbox_id": 190107396,
                 "match": "YMake"
             },
             "executable": {
@@ -1997,7 +1997,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 191243275,
+                "sandbox_id": 190144098,
                 "match": "test_tool"
             },
             "executable": {
@@ -2006,7 +2006,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 190868322,
+                "sandbox_id": 184108784,
                 "match": "coverage_uploader"
             },
             "executable": {

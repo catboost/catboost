@@ -63,12 +63,6 @@ class MessageGenerator {
   MessageGenerator(const Descriptor* descriptor, const Options& options);
   ~MessageGenerator();
 
-  // Appends the pre-order walk of the nested generators to list.
-  void Flatten(std::vector<MessageGenerator*>* list);
-  // Append the two types of nested generators to the corresponding vector.
-  void AddGenerators(std::vector<EnumGenerator*>* enum_generators,
-                     std::vector<ExtensionGenerator*>* extension_generators);
-
   // Header stuff.
 
   // Return names for forward declarations of this class and all its nested
@@ -77,6 +71,16 @@ class MessageGenerator {
   // used to associate the descriptor with the code generated for it.
   void FillMessageForwardDeclarations(
       std::map<string, const Descriptor*>* class_names);
+  void FillEnumForwardDeclarations(
+      std::map<string, const EnumDescriptor*>* enum_names);
+
+  // Generate definitions of all nested enums (must come before class
+  // definitions because those classes use the enums definitions).
+  void GenerateEnumDefinitions(io::Printer* printer);
+
+  // Generate specializations of GetEnumDescriptor<MyEnum>().
+  // Precondition: in ::google::protobuf namespace.
+  void GenerateGetEnumDescriptorSpecializations(io::Printer* printer);
 
   // Generate definitions for this class and all its nested types.
   void GenerateClassDefinition(io::Printer* printer);
@@ -90,8 +94,13 @@ class MessageGenerator {
 
   // Source file stuff.
 
-  // Generate extra fields
-  void GenerateExtraDefaultFields(io::Printer* printer);
+  // Generate code which declares all the global descriptor pointers which
+  // will be initialized by the methods below.
+  void GenerateDescriptorDeclarations(io::Printer* printer);
+
+  // Generate code that initializes the global variable storing the message's
+  // descriptor.
+  void GenerateDescriptorInitializer(io::Printer* printer, int index);
 
   // Generate code that calls MessageFactory::InternalRegisterGeneratedMessage()
   // for all types.
@@ -120,10 +129,8 @@ class MessageGenerator {
   void GenerateDependentFieldAccessorDefinitions(io::Printer* printer);
   void GenerateFieldAccessorDefinitions(io::Printer* printer, bool is_inline);
 
-  // Generate the field offsets array.  Returns the a pair of the total numer
-  // of entries generated and the index of the first has_bit entry.
-  std::pair<size_t, size_t> GenerateOffsets(io::Printer* printer);
-  void GenerateSchema(io::Printer* printer, int offset, int has_offset);
+  // Generate the field offsets array.
+  void GenerateOffsets(io::Printer* printer);
 
   // Generate constructors and destructor.
   void GenerateStructors(io::Printer* printer);
@@ -157,11 +164,6 @@ class MessageGenerator {
   void GenerateSerializeOneField(io::Printer* printer,
                                  const FieldDescriptor* field,
                                  bool unbounded);
-  // Generate a switch statement to serialize 2+ fields from the same oneof.
-  // Or, if fields.size() == 1, just call GenerateSerializeOneField().
-  void GenerateSerializeOneofFields(
-      io::Printer* printer, const std::vector<const FieldDescriptor*>& fields,
-      bool to_array);
   void GenerateSerializeOneExtensionRange(
       io::Printer* printer, const Descriptor::ExtensionRange* range,
       bool unbounded);
@@ -182,33 +184,18 @@ class MessageGenerator {
                           const std::map<string, string>& vars,
                           io::Printer* printer);
 
-  void GenerateConstructorBody(io::Printer* printer,
-                               std::vector<bool> already_processed,
-                               bool copy_constructor) const;
-
-  size_t HasBitsSize() const;
-  std::vector<uint32> RequiredFieldsBitMask() const;
-
   const Descriptor* descriptor_;
   string classname_;
   Options options_;
   FieldGeneratorMap field_generators_;
-  // optimized_order_ is the order we layout the message's fields in the class.
-  // This is reused to initialize the fields in-order for cache efficiency.
-  //
-  // optimized_order_ excludes oneof fields.
-  std::vector<const FieldDescriptor *> optimized_order_;
-  std::vector<int> has_bit_indices_;
-  int max_has_bit_index_;
+  std::vector< std::vector<string> > runs_of_fields_;  // that might be trivially cleared
   google::protobuf::scoped_array<google::protobuf::scoped_ptr<MessageGenerator> > nested_generators_;
   google::protobuf::scoped_array<google::protobuf::scoped_ptr<EnumGenerator> > enum_generators_;
   google::protobuf::scoped_array<google::protobuf::scoped_ptr<ExtensionGenerator> > extension_generators_;
   int num_required_fields_;
+  bool uses_string_;
   bool use_dependent_base_;
 
-  int index_in_metadata_;
-
-  friend class FileGenerator;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MessageGenerator);
 };
 

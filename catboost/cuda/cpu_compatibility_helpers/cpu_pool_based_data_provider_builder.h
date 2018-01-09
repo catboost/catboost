@@ -50,7 +50,6 @@ namespace NCatboostCuda {
             }
 
             DataProvider.GroupIds = Pool.Docs.GroupId;
-            DataProvider.Timestamp = Pool.Docs.Timestamp;
         }
 
         template <class TContainer>

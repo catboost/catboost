@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Defines classes for field comparison.
+// Author: ksroka@google.com (Krzysztof Sroka)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -55,7 +55,7 @@ class FieldContext;
 // Regular users should consider using or subclassing DefaultFieldComparator
 // rather than this interface.
 // Currently, this does not support comparing unknown fields.
-class LIBPROTOBUF_EXPORT FieldComparator {
+class /* LIBPROTOBUF_EXPORT */ FieldComparator {
  public:
   FieldComparator();
   virtual ~FieldComparator();
@@ -96,7 +96,7 @@ class LIBPROTOBUF_EXPORT FieldComparator {
 // Basic implementation of FieldComparator.  Supports three modes of floating
 // point value comparison: exact, approximate using MathUtil::AlmostEqual
 // method, and arbitrarily precise using MathUtil::WithinFractionOrMargin.
-class LIBPROTOBUF_EXPORT DefaultFieldComparator : public FieldComparator {
+class /* LIBPROTOBUF_EXPORT */ DefaultFieldComparator : public FieldComparator {
  public:
   enum FloatComparison {
      EXACT,               // Floats and doubles are compared exactly.

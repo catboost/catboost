@@ -406,7 +406,6 @@ final class RopeByteString extends ByteString {
     right.writeTo(output);
   }
 
-
   @Override
   protected String toStringInternal(Charset charset) {
     return new String(toByteArray(), charset);

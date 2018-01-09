@@ -446,7 +446,8 @@ GenerateMembers(io::Printer* printer) const {
     "  for (com.google.protobuf.LazyFieldLite lf : $name$_) {\n"
     "    list.add(($type$) lf.getValue($type$.getDefaultInstance()));\n"
     "  }\n"
-    "  return java.util.Collections.unmodifiableList(list);\n"
+    // TODO(dweis): Make this list immutable?
+    "  return list;\n"
     "}\n");
   WriteFieldDocComment(printer, descriptor_);
   printer->Print(variables_,

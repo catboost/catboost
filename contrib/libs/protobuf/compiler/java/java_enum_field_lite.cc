@@ -67,15 +67,13 @@ void SetEnumVariables(const FieldDescriptor* descriptor,
   (*variables)["default"] = ImmutableDefaultValue(descriptor, name_resolver);
   (*variables)["default_number"] = SimpleItoa(
       descriptor->default_value_enum()->number());
-  (*variables)["tag"] =
-      SimpleItoa(static_cast<int32>(internal::WireFormat::MakeTag(descriptor)));
+  (*variables)["tag"] = SimpleItoa(internal::WireFormat::MakeTag(descriptor));
   (*variables)["tag_size"] = SimpleItoa(
       internal::WireFormat::TagSize(descriptor->number(), GetType(descriptor)));
   // TODO(birdo): Add @deprecated javadoc when generating javadoc is supported
   // by the proto compiler
   (*variables)["deprecation"] = descriptor->options().deprecated()
       ? "@java.lang.Deprecated " : "";
-  (*variables)["required"] = descriptor->is_required() ? "true" : "false";
 
   if (SupportFieldPresence(descriptor->file())) {
     // For singular messages and builders, one bit is used for the hasField bit.

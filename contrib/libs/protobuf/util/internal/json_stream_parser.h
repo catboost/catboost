@@ -68,7 +68,7 @@ class ObjectWriter;
 //
 // This parser is thread-compatible as long as only one thread is calling a
 // Parse() method at a time.
-class LIBPROTOBUF_EXPORT JsonStreamParser {
+class /* LIBPROTOBUF_EXPORT */ JsonStreamParser {
  public:
   // Creates a JsonStreamParser that will write to the given ObjectWriter.
   explicit JsonStreamParser(ObjectWriter* ow);
@@ -178,10 +178,6 @@ class LIBPROTOBUF_EXPORT JsonStreamParser {
   util::Status ParseTrue();
   util::Status ParseFalse();
   util::Status ParseNull();
-  util::Status ParseEmptyNull();
-
-  // Whether an empty-null is allowed in the current state.
-  bool IsEmptyNullAllowed(TokenType type);
 
   // Report a failure as a util::Status.
   util::Status ReportFailure(StringPiece message);
@@ -249,13 +245,6 @@ class LIBPROTOBUF_EXPORT JsonStreamParser {
 
   // Whether to allow non UTF-8 encoded input and replace invalid code points.
   bool coerce_to_utf8_;
-
-  // Whether allows empty string represented null array value or object entry
-  // value.
-  bool allow_empty_null_;
-
-  // Whether allows out-of-range floating point numbers or reject them.
-  bool loose_float_number_conversion_;
 
   GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(JsonStreamParser);
 };

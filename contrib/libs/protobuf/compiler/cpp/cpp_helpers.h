@@ -149,12 +149,17 @@ string DefaultValue(const FieldDescriptor* field);
 // Convert a file name into a valid identifier.
 string FilenameIdentifier(const string& filename);
 
-// For each .proto file generates a unique namespace. In this namespace global
-// definitions are put to prevent collisions.
-string FileLevelNamespace(const string& filename);
+// Return the name of the AddDescriptors() function for a given file.
+string GlobalAddDescriptorsName(const string& filename);
+
+// Return the name of the AssignDescriptors() function for a given file.
+string GlobalAssignDescriptorsName(const string& filename);
 
 // Return the qualified C++ name for a file level symbol.
 string QualifiedFileLevelSymbol(const string& package, const string& name);
+
+// Return the name of the ShutdownFile() function for a given file.
+string GlobalShutdownFileName(const string& filename);
 
 // Escape C++ trigraphs by escaping question marks to \?
 string EscapeTrigraphs(const string& to_escape);
@@ -222,6 +227,22 @@ inline bool HasFastArraySerialization(const FileDescriptor* file,
 // Returns whether we have to generate code with static initializers.
 bool StaticInitializersForced(const FileDescriptor* file,
                               const Options& options);
+
+// Prints 'with_static_init' if static initializers have to be used for the
+// provided file. Otherwise emits both 'with_static_init' and
+// 'without_static_init' using #ifdef.
+void PrintHandlingOptionalStaticInitializers(
+    const FileDescriptor* file, const Options& options, io::Printer* printer,
+    const char* with_static_init, const char* without_static_init,
+    const char* var1 = NULL, const string& val1 = "", const char* var2 = NULL,
+    const string& val2 = "");
+
+void PrintHandlingOptionalStaticInitializers(const std::map<string, string>& vars,
+                                             const FileDescriptor* file,
+                                             const Options& options,
+                                             io::Printer* printer,
+                                             const char* with_static_init,
+                                             const char* without_static_init);
 
 
 inline bool IsMapEntryMessage(const Descriptor* descriptor) {

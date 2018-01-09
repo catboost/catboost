@@ -89,7 +89,7 @@ using TCandidateList = TVector<TCandidatesInfoList>;
 
 static void AddFloatFeatures(const TTrainData& data,
                              TLearnContext* ctx,
-                             TBucketStatsCache* statsFromPrevTree,
+                             TStatsFromPrevTree* statsFromPrevTree,
                              TCandidateList* candList) {
     for (int f = 0; f < data.AllFeatures.FloatHistograms.ysize(); ++f) {
         if (data.AllFeatures.FloatHistograms[f].empty()) {
@@ -109,7 +109,7 @@ static void AddFloatFeatures(const TTrainData& data,
 
 static void AddOneHotFeatures(const TTrainData& data,
                               TLearnContext* ctx,
-                              TBucketStatsCache* statsFromPrevTree,
+                              TStatsFromPrevTree* statsFromPrevTree,
                               TCandidateList* candList) {
     for (int cf = 0; cf < data.AllFeatures.CatFeatures.ysize(); ++cf) {
         if (data.AllFeatures.CatFeatures[cf].empty() ||
@@ -158,7 +158,7 @@ static void AddCtrsToCandList(const TFold& fold,
 static void DropStatsForProjection(const TFold& fold,
                                    const TLearnContext& ctx,
                                    const TProjection& proj,
-                                   TBucketStatsCache* statsFromPrevTree) {
+                                   TStatsFromPrevTree* statsFromPrevTree) {
     const auto& ctrsHelper = ctx.CtrsHelper;
     const auto& ctrsInfo = ctrsHelper.GetCtrInfo(proj);
     for (int ctrIdx = 0 ; ctrIdx < ctrsInfo.ysize(); ++ctrIdx) {
@@ -180,7 +180,7 @@ static void DropStatsForProjection(const TFold& fold,
 static void AddSimpleCtrs(const TTrainData& data,
                           TFold* fold,
                           TLearnContext* ctx,
-                          TBucketStatsCache* statsFromPrevTree,
+                          TStatsFromPrevTree* statsFromPrevTree,
                           TCandidateList* candList) {
     for (int cf = 0; cf < data.AllFeatures.CatFeatures.ysize(); ++cf) {
         if (data.AllFeatures.CatFeatures[cf].empty() ||
@@ -204,7 +204,7 @@ static void AddTreeCtrs(const TTrainData& data,
                         const TSplitTree& currentTree,
                         TFold* fold,
                         TLearnContext* ctx,
-                        TBucketStatsCache* statsFromPrevTree,
+                        TStatsFromPrevTree* statsFromPrevTree,
                         TCandidateList* candList) {
     using TSeenProjHash = THashSet<TProjection>;
     TSeenProjHash seenProj;
@@ -329,37 +329,34 @@ void GreedyTensorSearch(const TTrainData& data,
     TSplitTree currentSplitTree;
     TrimOnlineCTRcache({fold});
 
-    TVector<TIndexType> indices(data.LearnSampleCount); // always for all documents
+    TVector<TIndexType> indices(data.LearnSampleCount);
     MATRIXNET_INFO_LOG << "\n";
 
-    const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get());
-    if (isSamplingPerTree) {
-        AssignRandomWeights(data.LearnSampleCount, ctx, fold); // TODO(espetrov): merge with sampling
-        ctx->SampledDocs.Sample(*fold, indices, ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction(), &ctx->Rand, &ctx->LocalExecutor);
-        ctx->PrevTreeLevelStats.GarbageCollect();
+    const bool useStatsFromPrevTree = AreStatsFromPrevTreeUsed(ctx->Params.ObliviousTreeOptions.Get());
+    if (useStatsFromPrevTree) {
+        AssignRandomWeights(data.LearnSampleCount, ctx, fold);
+        ctx->StatsFromPrevTree.GarbageCollect();
     }
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidateList candList;
-        AddFloatFeatures(data, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddOneHotFeatures(data, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddSimpleCtrs(data, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddTreeCtrs(data, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddFloatFeatures(data, ctx, &ctx->StatsFromPrevTree, &candList);
+        AddOneHotFeatures(data, ctx, &ctx->StatsFromPrevTree, &candList);
+        AddSimpleCtrs(data, fold, ctx, &ctx->StatsFromPrevTree, &candList);
+        AddTreeCtrs(data, currentSplitTree, fold, ctx, &ctx->StatsFromPrevTree, &candList);
 
         auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
         SelectCtrsToDropAfterCalc(ctx->Params.SystemOptions->CpuUsedRamLimit, data.GetSampleCount(), ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation
-        if (!isSamplingPerTree) {
-            AssignRandomWeights(data.LearnSampleCount, ctx, fold); // TODO(espetrov): merge with sampling
-            ctx->SampledDocs.Sample(*fold, indices, ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction(), &ctx->Rand, &ctx->LocalExecutor);
+        if (!useStatsFromPrevTree) {
+            AssignRandomWeights(data.LearnSampleCount, ctx, fold);
         }
         profile.AddOperation(TStringBuilder() << "AssignRandomWeights, depth " << curDepth);
         double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
 
         TVector<size_t> candLeafCount(candList.ysize(), 1);
         const ui64 randSeed = ctx->Rand.GenRand();
-        CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
         ctx->LocalExecutor.ExecRange([&](int id) {
             auto& candidate = candList[id];
             if (candidate.Candidates[0].SplitCandidate.Type == ESplitType::OnlineCtr) {
@@ -382,13 +379,13 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
                 allScores[oneCandidate] = CalcScore(data.AllFeatures,
                                                     splitCounts,
-                                                    fold->GetAllCtrs(),
-                                                    ctx->SampledDocs,
-                                                    ctx->SmallestSplitSideDocs,
+                                                    *fold,
+                                                    indices,
+                                                    ctx->ParamsUsedWithStatsFromPrevTree,
                                                     ctx->Params,
                                                     candidate.Candidates[oneCandidate].SplitCandidate,
                                                     currentSplitTree.GetDepth(),
-                                                    &ctx->PrevTreeLevelStats);
+                                                    &ctx->StatsFromPrevTree);
             }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
              , NPar::TLocalExecutor::WAIT_COMPLETE);
             if (candidate.Candidates[0].SplitCandidate.Type == ESplitType::OnlineCtr && candidate.ShouldDropCtrAfterCalc) {
@@ -456,15 +453,14 @@ void GreedyTensorSearch(const TTrainData& data,
                                   ctx,
                                   &fold->GetCtrRef(proj),
                                   &totalLeafCount);
-                DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
+                DropStatsForProjection(*fold, *ctx, proj, &ctx->StatsFromPrevTree);
             }
         } else if (bestSplit.Type == ESplitType::OneHotFeature) {
             bestSplit.BinBorder = data.AllFeatures.OneHotValues[bestSplit.FeatureIdx][bestSplit.BinBorder];
         }
         SetPermutedIndices(bestSplit, data.AllFeatures, curDepth + 1, *fold, &indices, ctx);
-        if (isSamplingPerTree) {
-            ctx->SampledDocs.UpdateIndices(indices, &ctx->LocalExecutor);
-            ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);
+        if (useStatsFromPrevTree) {
+            ctx->ParamsUsedWithStatsFromPrevTree.SelectParametersForSmallestSplitSide(curDepth + 1, *fold, indices, &ctx->LocalExecutor);
         }
         currentSplitTree.AddSplit(bestSplit);
         MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, bestSplit);

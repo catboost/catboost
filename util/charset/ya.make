@@ -15,9 +15,13 @@ JOIN_SRCS(
 )
 
 IF (ARCH_X86_64)
-    SRC_CPP_SSE41(wide_sse41.cpp)
+    PEERDIR(
+        util/charset/sse41
+    )
 ELSE()
-    SRC(wide_sse41.cpp -DSSE41_STUB)
+    PEERDIR(
+        util/charset/scalar
+    )
 ENDIF()
 
 END()

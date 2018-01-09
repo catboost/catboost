@@ -71,7 +71,7 @@ class TypeInfo;
 //                              <your message google::protobuf::Type>);
 //
 //   Status status = os.WriteTo(<some ObjectWriter>);
-class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
+class /* LIBPROTOBUF_EXPORT */ ProtoStreamObjectSource : public ObjectSource {
  public:
   ProtoStreamObjectSource(google::protobuf::io::CodedInputStream* stream,
                           TypeResolver* type_resolver,
@@ -128,28 +128,6 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
                                       bool include_start_and_end,
                                       ObjectWriter* ow) const;
 
-  // Renders a repeating field (packed or unpacked).  Returns the next tag after
-  // reading all sequential repeating elements. The caller should use this tag
-  // before reading more tags from the stream.
-  virtual util::StatusOr<uint32> RenderList(
-      const google::protobuf::Field* field, StringPiece name, uint32 list_tag,
-      ObjectWriter* ow) const;
-
-  // Looks up a field and verify its consistency with wire type in tag.
-  const google::protobuf::Field* FindAndVerifyField(
-      const google::protobuf::Type& type, uint32 tag) const;
-
-  // Renders a field value to the ObjectWriter.
-  util::Status RenderField(const google::protobuf::Field* field,
-                             StringPiece field_name, ObjectWriter* ow) const;
-
-  // Reads field value according to Field spec in 'field' and returns the read
-  // value as string. This only works for primitive datatypes (no message
-  // types).
-  const string ReadFieldValueAsString(
-      const google::protobuf::Field& field) const;
-
-
  private:
   ProtoStreamObjectSource(google::protobuf::io::CodedInputStream* stream,
                           const TypeInfo* typeinfo,
@@ -159,9 +137,19 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
                                          const google::protobuf::Type&,
                                          StringPiece, ObjectWriter*);
 
+  // Looks up a field and verify its consistency with wire type in tag.
+  const google::protobuf::Field* FindAndVerifyField(
+      const google::protobuf::Type& type, uint32 tag) const;
+
   // TODO(skarvaje): Mark these methods as non-const as they modify internal
   // state (stream_).
   //
+  // Renders a repeating field (packed or unpacked).
+  // Returns the next tag after reading all sequential repeating elements. The
+  // caller should use this tag before reading more tags from the stream.
+  util::StatusOr<uint32> RenderList(const google::protobuf::Field* field,
+                                      StringPiece name, uint32 list_tag,
+                                      ObjectWriter* ow) const;
   // Renders a NWP map.
   // Returns the next tag after reading all map entries. The caller should use
   // this tag before reading more tags from the stream.
@@ -245,12 +233,22 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
   static void DeleteRendererMap();
   static TypeRenderer* FindTypeRenderer(const string& type_url);
 
+  // Renders a field value to the ObjectWriter.
+  util::Status RenderField(const google::protobuf::Field* field,
+                             StringPiece field_name, ObjectWriter* ow) const;
+
   // Same as above but renders all non-message field types. Callers don't call
   // this function directly. They just use RenderField.
   util::Status RenderNonMessageField(const google::protobuf::Field* field,
                                        StringPiece field_name,
                                        ObjectWriter* ow) const;
 
+
+  // Reads field value according to Field spec in 'field' and returns the read
+  // value as string. This only works for primitive datatypes (no message
+  // types).
+  const string ReadFieldValueAsString(
+      const google::protobuf::Field& field) const;
 
   // Utility function to detect proto maps. The 'field' MUST be repeated.
   bool IsMap(const google::protobuf::Field& field) const;
@@ -272,7 +270,6 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
   // Type information for all the types used in the descriptor. Used to find
   // google::protobuf::Type of nested messages/enums.
   const TypeInfo* typeinfo_;
-
   // Whether this class owns the typeinfo_ object. If true the typeinfo_ object
   // should be deleted in the destructor.
   bool own_typeinfo_;
@@ -292,9 +289,6 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
 
   // Whether to render unknown fields.
   bool render_unknown_fields_;
-
-  // Whether to add trailing zeros for timestamp and duration.
-  bool add_trailing_zeros_for_timestamp_and_duration_;
 
   GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(ProtoStreamObjectSource);
 };

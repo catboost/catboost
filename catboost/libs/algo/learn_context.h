@@ -1,12 +1,11 @@
 #pragma once
 
+#include "calc_score_cache.h"
 #include "online_ctr.h"
 #include "features_layout.h"
 #include "fold.h"
 #include "ctr_helper.h"
 #include "restorable_rng.h"
-#include "split.h"
-#include "calc_score_cache.h"
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/logging/logging.h>
@@ -35,7 +34,6 @@ struct TLearnProgress {
 
     TVector<TVector<double>> LearnErrorsHistory;
     TVector<TVector<double>> TestErrorsHistory;
-    TVector<TVector<double>> TimeHistory;
 
     THashSet<std::pair<ECtrType, TProjection>> UsedCtrSplits;
 
@@ -59,7 +57,6 @@ public:
         , Layout(featureCount, catFeatures, featureId)
         , CatFeatures(catFeatures.begin(), catFeatures.end()) {
         LocalExecutor.RunAdditionalThreads(Params.SystemOptions->NumThreads - 1);
-        CB_ENSURE(static_cast<ui32>(LocalExecutor.GetThreadCount()) == Params.SystemOptions->NumThreads - 1);
     }
 
 public:
@@ -109,7 +106,8 @@ public:
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
-        , Profile((int)Params.BoostingOptions->IterationCount) {
+        , TimeLeftLog(outputOptions.AllowWriteFiles() ? new TOFStream(Files.TimeLeftLogFile) : nullptr)
+        , Profile(Params.IsProfile, (int)Params.BoostingOptions->IterationCount, TimeLeftLog.Get()) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: except learn on CPU task type, got " << taskType);
@@ -126,8 +124,13 @@ public:
     NCatboostOptions::TOutputFilesOptions OutputOptions;
     TOutputFiles Files;
 
-    TCalcScoreFold SmallestSplitSideDocs;
-    TCalcScoreFold SampledDocs;
-    TBucketStatsCache PrevTreeLevelStats;
+    TSmallestSplitSideFold ParamsUsedWithStatsFromPrevTree;
+    TStatsFromPrevTree StatsFromPrevTree;
+
+private:
+    THolder<TOFStream> TimeLeftLog;
+
+public:
     TProfileInfo Profile;
+
 };

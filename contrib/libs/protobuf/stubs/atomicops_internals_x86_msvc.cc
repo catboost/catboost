@@ -44,10 +44,9 @@ namespace google {
 namespace protobuf {
 namespace internal {
 
-inline void MemoryBarrierInternal() {
-  // On ARM this is a define while on x86/x64 this is
-  // a function declared in WinNT.h
-  MemoryBarrier();
+inline void MemoryBarrier() {
+  // We use MemoryBarrier from WinNT.h
+  ::MemoryBarrier();
 }
 
 Atomic32 NoBarrier_CompareAndSwap(volatile Atomic32* ptr,

@@ -50,13 +50,13 @@ namespace util {
 namespace converter {
 
 // Interface for error listener.
-class LIBPROTOBUF_EXPORT ErrorListener {
+class /* LIBPROTOBUF_EXPORT */ ErrorListener {
  public:
   virtual ~ErrorListener() {}
 
   // Reports an invalid name at the given location.
   virtual void InvalidName(const LocationTrackerInterface& loc,
-                           StringPiece invalid_name, StringPiece message) = 0;
+                           StringPiece unknown_name, StringPiece message) = 0;
 
   // Reports an invalid value for a field.
   virtual void InvalidValue(const LocationTrackerInterface& loc,
@@ -75,13 +75,13 @@ class LIBPROTOBUF_EXPORT ErrorListener {
 };
 
 // An error listener that ignores all errors.
-class LIBPROTOBUF_EXPORT NoopErrorListener : public ErrorListener {
+class /* LIBPROTOBUF_EXPORT */ NoopErrorListener : public ErrorListener {
  public:
   NoopErrorListener() {}
   virtual ~NoopErrorListener() {}
 
   virtual void InvalidName(const LocationTrackerInterface& loc,
-                           StringPiece invalid_name, StringPiece message) {}
+                           StringPiece unknown_name, StringPiece message) {}
 
   virtual void InvalidValue(const LocationTrackerInterface& loc,
                             StringPiece type_name, StringPiece value) {}

@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3312318 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3312318 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3302205 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3302205 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -88,6 +88,8 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\logger.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\algo\logger.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\model_build_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
@@ -97,21 +99,34 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_cross_entropy.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_custom.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_log_lin_quantile.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_logloss.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_map.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class_one_vs_all.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_pair_logit.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_poisson.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_quantile.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_query_rmse.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_rmse.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_per_object.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tree_print.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\algo\logger.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/logger.h" "--include-path" "catboost/libs/algo/logger.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/logger.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\algo
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/algo/logger.h" "--include-path" "catboost/libs/algo/logger.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/algo/logger.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/algo/logger.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\algo\logger.h;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\algo\logger.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
@@ -143,7 +158,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -164,9 +178,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
-      <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
     </ProjectReference>
@@ -184,6 +195,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\tensorboard_logger\catboost-libs-tensorboard_logger.vcxproj">
+      <Project>6F9BA27F-7853-1464-BB51-1321A3D1AC80</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
@@ -316,6 +330,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
+      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>

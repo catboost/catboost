@@ -175,7 +175,7 @@ using stringpiece_ssize_type = int64_t;
 #define STRINGPIECE_CHECK_SIZE 0
 #endif
 
-class LIBPROTOBUF_EXPORT StringPiece {
+class /* LIBPROTOBUF_EXPORT */ StringPiece {
  private:
   const char* ptr_;
   stringpiece_ssize_type length_;

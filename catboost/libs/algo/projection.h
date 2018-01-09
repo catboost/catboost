@@ -83,10 +83,6 @@ struct TProjection {
         return BinFeatures.empty() && OneHotFeatures.empty() && CatFeatures.ysize() == 1;
     }
 
-    bool HasSingleFeature() const {
-        return BinFeatures.ysize() + CatFeatures.ysize() == 1;
-    }
-
     void AddCatFeature(int f) {
         CatFeatures.push_back(f);
         Sort(CatFeatures.begin(), CatFeatures.end());

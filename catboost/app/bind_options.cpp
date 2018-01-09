@@ -188,12 +188,6 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["train_dir"] = path;
         });
 
-    parser.AddLongOption("metric-period", "period of printing metrics to stdout")
-        .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& period) {
-        (*plainJsonPtr)["metric_period"] = FromString<int>(period);
-    });
-
     parser.AddLongOption("snapshot-file", "use progress file for restoring progress after crashes")
         .RequiredArgument("PATH")
         .Handler1T<TString>([plainJsonPtr](const TString& path) {
@@ -383,12 +377,12 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default). Available for Bayessian bootstap only");
 
-    parser.AddLongOption("sampling-frequency")
+    parser.AddLongOption("weight-sampling-frequency")
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr](const TString& target) {
-            (*plainJsonPtr)["sampling_frequency"] = target;
+            (*plainJsonPtr)["weight_sampling_frequency"] = target;
         })
-        .Help("Controls how frequently to sample weights and objects when constructing trees. Possible values are PerTree and PerTreeLevel.");
+        .Help("Controls how frequently to sample weights when constructing trees. Possible values are PerTree and PerTreeLevel.");
 
     parser
         .AddLongOption("sample-rate")
@@ -396,8 +390,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<float>([plainJsonPtr](float rate) {
             (*plainJsonPtr)["sample_rate"] = rate;
         })
-        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli. Possible values are from (0, 1]; 1 by default."
-        );
+        .Help("GPU only. Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Uniform");
 
     parser
         .AddLongOption("observations-to-bootstrap")

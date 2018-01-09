@@ -136,9 +136,6 @@ TFold BuildAveragingFold(const TTrainData& data, const TVector<TTargetClassifier
 
     if (shuffle) {
         Shuffle(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), rand);
-        ff.PermutationBlockSize = 1;
-    } else {
-        ff.PermutationBlockSize = data.LearnSampleCount;
     }
 
     ff.AssignTarget(data.Target, targetClassifiers);

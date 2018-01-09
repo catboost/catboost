@@ -61,8 +61,6 @@
 #define _LIBCPP_OBJECT_FORMAT_MACHO 1
 #elif defined(_WIN32) || defined(__CYGWIN__)
 #define _LIBCPP_OBJECT_FORMAT_COFF  1
-#elif defined(__wasm__)
-#define _LIBCPP_OBJECT_FORMAT_WASM  1
 #else
 #error Unknown object file format
 #endif
@@ -278,8 +276,6 @@
   // random data even when using sandboxing mechanisms such as chroots,
   // Capsicum, etc.
 # define _LIBCPP_USING_ARC4_RANDOM
-#elif defined(__Fuchsia__)
-# define _LIBCPP_USING_GETENTROPY
 #elif defined(__native_client__)
   // NaCl's sandbox (which PNaCl also runs in) doesn't allow filesystem access,
   // including accesses to the special files under /dev. C++11's
@@ -1303,6 +1299,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
       _Pragma("pop_macro(\"max\")")
 # endif
 #endif // defined(_LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO)
+
 
 #endif // __cplusplus
 

@@ -38,10 +38,6 @@ BUILDWITH_CYTHON_CPP(
     --module-name _catboost
 )
 
-IF (NOT OS_WINDOWS)
-    ALLOCATOR(LF)
-ELSE()
-    ALLOCATOR(J)
-ENDIF()
+ALLOCATOR(LF)
 
 END()

@@ -91,35 +91,32 @@ namespace internal {
 
 // The current version, represented as a single integer to make comparison
 // easier:  major * 10^6 + minor * 10^3 + micro
-#define GOOGLE_PROTOBUF_VERSION 3002000
-
-// A suffix string for alpha, beta or rc releases. Empty for stable releases.
-#define GOOGLE_PROTOBUF_VERSION_SUFFIX ""
+#define GOOGLE_PROTOBUF_VERSION 3000000
 
 // The minimum library version which works with the current version of the
 // headers.
-#define GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION 3002000
+#define GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION 3000000
 
 // The minimum header version which works with the current version of
 // the library.  This constant should only be used by protoc's C++ code
 // generator.
-static const int kMinHeaderVersionForLibrary = 3002000;
+static const int kMinHeaderVersionForLibrary = 3000000;
 
 // The minimum protoc version which works with the current version of the
 // headers.
-#define GOOGLE_PROTOBUF_MIN_PROTOC_VERSION 3002000
+#define GOOGLE_PROTOBUF_MIN_PROTOC_VERSION 3000000
 
 // The minimum header version which works with the current version of
 // protoc.  This constant should only be used in VerifyVersion().
-static const int kMinHeaderVersionForProtoc = 3002000;
+static const int kMinHeaderVersionForProtoc = 3000000;
 
 // Verifies that the headers and libraries are compatible.  Use the macro
 // below to call this.
-void LIBPROTOBUF_EXPORT VerifyVersion(int headerVersion, int minLibraryVersion,
+void /* LIBPROTOBUF_EXPORT */ VerifyVersion(int headerVersion, int minLibraryVersion,
                                       const char* filename);
 
 // Converts a numeric version number to a string.
-TProtoStringType LIBPROTOBUF_EXPORT VersionString(int version);
+TProtoStringType /* LIBPROTOBUF_EXPORT */ VersionString(int version);
 
 }  // namespace internal
 
@@ -141,14 +138,14 @@ namespace internal {
 
 // Checks if the buffer contains structurally-valid UTF-8.  Implemented in
 // structurally_valid.cc.
-LIBPROTOBUF_EXPORT bool IsStructurallyValidUTF8(const char* buf, int len);
+/* LIBPROTOBUF_EXPORT */ bool IsStructurallyValidUTF8(const char* buf, int len);
 
 inline bool IsStructurallyValidUTF8(const TProtoStringType& str) {
   return IsStructurallyValidUTF8(str.data(), static_cast<int>(str.length()));
 }
 
 // Returns initial number of bytes of structually valid UTF-8.
-LIBPROTOBUF_EXPORT int UTF8SpnStructurallyValid(const StringPiece& str);
+/* LIBPROTOBUF_EXPORT */ int UTF8SpnStructurallyValid(const StringPiece& str);
 
 // Coerce UTF-8 byte string in src_str to be
 // a structurally-valid equal-length string by selectively
@@ -162,7 +159,7 @@ LIBPROTOBUF_EXPORT int UTF8SpnStructurallyValid(const StringPiece& str);
 //
 // Optimized for: all structurally valid and no byte copying is done.
 //
-LIBPROTOBUF_EXPORT char* UTF8CoerceToStructurallyValid(
+/* LIBPROTOBUF_EXPORT */ char* UTF8CoerceToStructurallyValid(
     const StringPiece& str, char* dst, char replace_char);
 
 }  // namespace internal
@@ -184,12 +181,12 @@ LIBPROTOBUF_EXPORT char* UTF8CoerceToStructurallyValid(
 // It is safe to call this multiple times.  However, it is not safe to use
 // any other part of the protocol buffers library after
 // ShutdownProtobufLibrary() has been called.
-LIBPROTOBUF_EXPORT void ShutdownProtobufLibrary();
+/* LIBPROTOBUF_EXPORT */ void ShutdownProtobufLibrary();
 
 namespace internal {
 
 // Register a function to be called when ShutdownProtocolBuffers() is called.
-LIBPROTOBUF_EXPORT void OnShutdown(void (*func)());
+/* LIBPROTOBUF_EXPORT */ void OnShutdown(void (*func)());
 
 }  // namespace internal
 }  // namespace protobuf

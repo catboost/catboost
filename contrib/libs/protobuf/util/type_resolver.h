@@ -28,8 +28,6 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Defines a TypeResolver for the Any message.
-
 #ifndef GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_H__
 #define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_H__
 
@@ -52,7 +50,7 @@ namespace util {
 // Abstract interface for a type resovler.
 //
 // Implementations of this interface must be thread-safe.
-class LIBPROTOBUF_EXPORT TypeResolver {
+class /* LIBPROTOBUF_EXPORT */ TypeResolver {
  public:
   TypeResolver() {}
   virtual ~TypeResolver() {}

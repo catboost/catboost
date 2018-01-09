@@ -41,8 +41,6 @@
 #include "stubs/common.h"
 #include "stubs/stringprintf.h"
 #include "descriptor.h"
-#include "dynamic_message.h"
-#include "map_field.h"
 #include "wire_format_lite_inl.h"
 #include "descriptor.pb.h"
 #include "io/coded_stream.h"
@@ -308,9 +306,9 @@ uint8* WireFormat::SerializeUnknownMessageSetItemsToArray(
   return target;
 }
 
-size_t WireFormat::ComputeUnknownFieldsSize(
+int WireFormat::ComputeUnknownFieldsSize(
     const UnknownFieldSet& unknown_fields) {
-  size_t size = 0;
+  int size = 0;
   for (int i = 0; i < unknown_fields.field_count(); i++) {
     const UnknownField& field = unknown_fields.field(i);
 
@@ -356,9 +354,9 @@ size_t WireFormat::ComputeUnknownFieldsSize(
   return size;
 }
 
-size_t WireFormat::ComputeUnknownMessageSetItemsSize(
+int WireFormat::ComputeUnknownMessageSetItemsSize(
     const UnknownFieldSet& unknown_fields) {
-  size_t size = 0;
+  int size = 0;
   for (int i = 0; i < unknown_fields.field_count(); i++) {
     const UnknownField& field = unknown_fields.field(i);
 
@@ -835,18 +833,11 @@ void WireFormat::SerializeFieldWithCachedSizes(
     count = 1;
   }
 
-  // map_entries is for maps that'll be deterministically serialized.
-  std::vector<const Message*> map_entries;
-  if (count > 1 && field->is_map() && output->IsSerializationDeterministic()) {
-    map_entries =
-        DynamicMapSorter::Sort(message, count, message_reflection, field);
-  }
-
   const bool is_packed = field->is_packed();
   if (is_packed && count > 0) {
     WireFormatLite::WriteTag(field->number(),
         WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    const size_t data_size = FieldDataOnlyByteSize(field, message);
+    const int data_size = FieldDataOnlyByteSize(field, message);
     output->WriteVarint32(data_size);
   }
 
@@ -885,17 +876,15 @@ void WireFormat::SerializeFieldWithCachedSizes(
       HANDLE_PRIMITIVE_TYPE(BOOL, bool, Bool, Bool)
 #undef HANDLE_PRIMITIVE_TYPE
 
-#define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                      \
-      case FieldDescriptor::TYPE_##TYPE:                                    \
-        WireFormatLite::Write##TYPE_METHOD(                                 \
-              field->number(),                                              \
-              field->is_repeated() ?                                        \
-                (map_entries.empty() ?                                      \
-                     message_reflection->GetRepeated##CPPTYPE_METHOD(       \
-                                     message, field, j) :                   \
-                     *map_entries[j]) :                                     \
-                message_reflection->Get##CPPTYPE_METHOD(message, field),    \
-              output);                                                      \
+#define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                       \
+      case FieldDescriptor::TYPE_##TYPE:                                     \
+        WireFormatLite::Write##TYPE_METHOD(                                  \
+              field->number(),                                               \
+              field->is_repeated() ?                                         \
+                message_reflection->GetRepeated##CPPTYPE_METHOD(             \
+                  message, field, j) :                                       \
+                message_reflection->Get##CPPTYPE_METHOD(message, field),     \
+              output);                                                       \
         break;
 
       HANDLE_TYPE(GROUP  , Group  , Message)
@@ -974,11 +963,11 @@ void WireFormat::SerializeMessageSetItemWithCachedSizes(
 
 // ===================================================================
 
-size_t WireFormat::ByteSize(const Message& message) {
+int WireFormat::ByteSize(const Message& message) {
   const Descriptor* descriptor = message.GetDescriptor();
   const Reflection* message_reflection = message.GetReflection();
 
-  size_t our_size = 0;
+  int our_size = 0;
 
   std::vector<const FieldDescriptor*> fields;
   message_reflection->ListFields(message, &fields);
@@ -997,7 +986,7 @@ size_t WireFormat::ByteSize(const Message& message) {
   return our_size;
 }
 
-size_t WireFormat::FieldByteSize(
+int WireFormat::FieldByteSize(
     const FieldDescriptor* field,
     const Message& message) {
   const Reflection* message_reflection = message.GetReflection();
@@ -1009,15 +998,15 @@ size_t WireFormat::FieldByteSize(
     return MessageSetItemByteSize(field, message);
   }
 
-  size_t count = 0;
+  int count = 0;
   if (field->is_repeated()) {
-    count = FromIntSize(message_reflection->FieldSize(message, field));
+    count = message_reflection->FieldSize(message, field);
   } else if (message_reflection->HasField(message, field)) {
     count = 1;
   }
 
-  const size_t data_size = FieldDataOnlyByteSize(field, message);
-  size_t our_size = data_size;
+  const int data_size = FieldDataOnlyByteSize(field, message);
+  int our_size = data_size;
   if (field->is_packed()) {
     if (data_size > 0) {
       // Packed fields get serialized like a string, not their native type.
@@ -1032,20 +1021,19 @@ size_t WireFormat::FieldByteSize(
   return our_size;
 }
 
-size_t WireFormat::FieldDataOnlyByteSize(
+int WireFormat::FieldDataOnlyByteSize(
     const FieldDescriptor* field,
     const Message& message) {
   const Reflection* message_reflection = message.GetReflection();
 
-  size_t count = 0;
+  int count = 0;
   if (field->is_repeated()) {
-    count =
-        internal::FromIntSize(message_reflection->FieldSize(message, field));
+    count = message_reflection->FieldSize(message, field);
   } else if (message_reflection->HasField(message, field)) {
     count = 1;
   }
 
-  size_t data_size = 0;
+  int data_size = 0;
   switch (field->type()) {
 #define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                     \
     case FieldDescriptor::TYPE_##TYPE:                                     \
@@ -1119,19 +1107,19 @@ size_t WireFormat::FieldDataOnlyByteSize(
   return data_size;
 }
 
-size_t WireFormat::MessageSetItemByteSize(
+int WireFormat::MessageSetItemByteSize(
     const FieldDescriptor* field,
     const Message& message) {
   const Reflection* message_reflection = message.GetReflection();
 
-  size_t our_size = WireFormatLite::kMessageSetItemTagsSize;
+  int our_size = WireFormatLite::kMessageSetItemTagsSize;
 
   // type_id
   our_size += io::CodedOutputStream::VarintSize32(field->number());
 
   // message
   const Message& sub_message = message_reflection->GetMessage(message, field);
-  size_t message_size = sub_message.ByteSizeLong();
+  int message_size = sub_message.ByteSize();
 
   our_size += io::CodedOutputStream::VarintSize32(message_size);
   our_size += message_size;

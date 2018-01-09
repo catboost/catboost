@@ -47,9 +47,9 @@
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "descriptor.pb.h"
+#include "map_field.h"
 #include "descriptor.h"
 #include "generated_message_util.h"
-#include "map_field.h"
 #include "reflection_ops.h"
 #include "wire_format.h"
 #include "stubs/strutil.h"
@@ -153,9 +153,9 @@ void Message::SerializeWithCachedSizes(
   WireFormat::SerializeWithCachedSizes(*this, GetCachedSize(), output);
 }
 
-size_t Message::ByteSizeLong() const {
-  size_t size = WireFormat::ByteSize(*this);
-  SetCachedSize(internal::ToCachedSize(size));
+int Message::ByteSize() const {
+  int size = WireFormat::ByteSize(*this);
+  SetCachedSize(size);
   return size;
 }
 
@@ -289,6 +289,38 @@ void* Reflection::MutableRawRepeatedString(
 }
 
 
+// Default EnumValue API implementations. Real reflection implementations should
+// override these. However, there are several legacy implementations that do
+// not, and cannot easily be changed at the same time as the Reflection API, so
+// we provide these for now.
+// TODO: Remove these once all Reflection implementations are updated.
+int Reflection::GetEnumValue(const Message& message,
+                             const FieldDescriptor* field) const {
+  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
+  return 0;
+}
+void Reflection::SetEnumValue(Message* message,
+                  const FieldDescriptor* field,
+                  int value) const {
+  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
+}
+int Reflection::GetRepeatedEnumValue(
+    const Message& message,
+    const FieldDescriptor* field, int index) const {
+  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
+  return 0;
+}
+void Reflection::SetRepeatedEnumValue(Message* message,
+                                  const FieldDescriptor* field, int index,
+                                  int value) const {
+  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
+}
+void Reflection::AddEnumValue(Message* message,
+                  const FieldDescriptor* field,
+                  int value) const {
+  GOOGLE_LOG(FATAL) << "Unimplemented EnumValue API.";
+}
+
 MapIterator Reflection::MapBegin(
     Message* message,
     const FieldDescriptor* field) const {
@@ -331,8 +363,8 @@ class GeneratedMessageFactory : public MessageFactory {
   hash_map<const char*, RegistrationFunc*,
            hash<const char*>, streq> file_map_;
 
-  Mutex mutex_;
   // Initialized lazily, so requires locking.
+  Mutex mutex_;
   hash_map<const Descriptor*, const Message*> type_map_;
 };
 

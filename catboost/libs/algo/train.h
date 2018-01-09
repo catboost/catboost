@@ -6,6 +6,7 @@
 using TTrainOneIterationFunc = std::function<void(const TTrainData& data,
                                                   TLearnContext* ctx)>;
 
+
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction);
 
 TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx);

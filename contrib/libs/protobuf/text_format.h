@@ -40,10 +40,11 @@
 
 #include <map>
 #include <memory>
+#include <vector>
+
 #ifndef _SHARED_PTR_H
 #include "stubs/shared_ptr.h"
 #endif
-#include <vector>
 
 #include "descriptor.h"
 #include "message.h"
@@ -62,7 +63,7 @@ namespace io {
 // of messages.
 //
 // This class is really a namespace that contains only static methods.
-class LIBPROTOBUF_EXPORT TextFormat {
+class /* LIBPROTOBUF_EXPORT */ TextFormat {
  public:
   // Outputs a textual representation of the given message to the given
   // output stream.
@@ -75,8 +76,6 @@ class LIBPROTOBUF_EXPORT TextFormat {
                                  io::ZeroCopyOutputStream* output);
 
   // Like Print(), but outputs directly to a string.
-  // Note: output will be cleared before prior to printing, and will
-  // be left empty even if printing fails.
   static bool PrintToString(const Message& message, string* output);
 
   // Like PrintUnknownFields(), but outputs directly to a string.
@@ -97,7 +96,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
   // You can derive from this FieldValuePrinter if you want to have
   // fields to be printed in a different way and register it at the
   // Printer.
-  class LIBPROTOBUF_EXPORT FieldValuePrinter {
+  class /* LIBPROTOBUF_EXPORT */ FieldValuePrinter {
    public:
     FieldValuePrinter();
     virtual ~FieldValuePrinter();
@@ -129,7 +128,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
 
   // Class for those users which require more fine-grained control over how
   // a protobuffer message is printed out.
-  class LIBPROTOBUF_EXPORT Printer {
+  class /* LIBPROTOBUF_EXPORT */ Printer {
    public:
     Printer();
     ~Printer();
@@ -304,7 +303,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
 
     google::protobuf::scoped_ptr<const FieldValuePrinter> default_field_value_printer_;
     typedef std::map<const FieldDescriptor*,
-                     const FieldValuePrinter*> CustomPrinterMap;
+                const FieldValuePrinter*> CustomPrinterMap;
     CustomPrinterMap custom_printers_;
   };
 
@@ -343,7 +342,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
   // Interface that TextFormat::Parser can use to find extensions.
   // This class may be extended in the future to find more information
   // like fields, etc.
-  class LIBPROTOBUF_EXPORT Finder {
+  class /* LIBPROTOBUF_EXPORT */ Finder {
    public:
     virtual ~Finder();
 
@@ -366,7 +365,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
 
   // Data structure which is populated with the locations of each field
   // value parsed from the text.
-  class LIBPROTOBUF_EXPORT ParseInfoTree {
+  class /* LIBPROTOBUF_EXPORT */ ParseInfoTree {
    public:
     ParseInfoTree();
     ~ParseInfoTree();
@@ -393,13 +392,11 @@ class LIBPROTOBUF_EXPORT TextFormat {
     ParseInfoTree* CreateNested(const FieldDescriptor* field);
 
     // Defines the map from the index-th field descriptor to its parse location.
-    typedef std::map<const FieldDescriptor*,
-                     std::vector<ParseLocation> > LocationMap;
+    typedef std::map<const FieldDescriptor*, std::vector<ParseLocation> > LocationMap;
 
     // Defines the map from the index-th field descriptor to the nested parse
     // info tree.
-    typedef std::map<const FieldDescriptor*,
-                     std::vector<ParseInfoTree*> > NestedMap;
+    typedef std::map<const FieldDescriptor*, std::vector<ParseInfoTree*> > NestedMap;
 
     LocationMap locations_;
     NestedMap nested_;
@@ -408,7 +405,7 @@ class LIBPROTOBUF_EXPORT TextFormat {
   };
 
   // For more control over parsing, use this class.
-  class LIBPROTOBUF_EXPORT Parser {
+  class /* LIBPROTOBUF_EXPORT */ Parser {
    public:
     Parser();
     ~Parser();

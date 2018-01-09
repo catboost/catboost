@@ -220,7 +220,6 @@ final class FieldSet<FieldDescriptorType extends
     return fields.entrySet().iterator();
   }
 
-
   /**
    * Useful for implementing
    * {@link Message#hasField(Descriptors.FieldDescriptor)}.

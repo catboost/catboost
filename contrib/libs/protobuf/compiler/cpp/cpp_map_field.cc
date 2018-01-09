@@ -48,9 +48,7 @@ void SetMessageVariables(const FieldDescriptor* descriptor,
                          std::map<string, string>* variables,
                          const Options& options) {
   SetCommonFieldVariables(descriptor, variables, options);
-  (*variables)["type"] = ClassName(descriptor->message_type(), false);
-  (*variables)["file_namespace"] =
-      FileLevelNamespace(descriptor->file()->name());
+  (*variables)["type"] = FieldMessageTypeName(descriptor);
   (*variables)["stream_writer"] =
       (*variables)["declared_type"] +
       (HasFastArraySerialization(descriptor->message_type()->file(), options)
@@ -175,17 +173,11 @@ void MapFieldGenerator::
 GenerateConstructorCode(io::Printer* printer) const {
   if (HasDescriptorMethods(descriptor_->file(), options_)) {
     printer->Print(variables_,
-                   "$name$_.SetAssignDescriptorCallback(\n"
-                   "    $file_namespace$::protobuf_AssignDescriptorsOnce);\n"
-                   "$name$_.SetEntryDescriptor(\n"
-                   "    &$type$_descriptor);\n");
+        "$name$_.SetAssignDescriptorCallback(\n"
+        "    protobuf_AssignDescriptorsOnce);\n"
+        "$name$_.SetEntryDescriptor(\n"
+        "    &$type$_descriptor_);\n");
   }
-}
-
-void MapFieldGenerator::
-GenerateCopyConstructorCode(io::Printer* printer) const {
-  GenerateConstructorCode(printer);
-  GenerateMergingCode(printer);
 }
 
 void MapFieldGenerator::
@@ -232,7 +224,7 @@ GenerateMergeFromCodedStream(io::Printer* printer) const {
           "->AddLengthDelimited($number$, data);\n");
     } else {
       printer->Print(variables_,
-          "    unknown_fields_stream.WriteVarint32($tag$u);\n"
+          "    unknown_fields_stream.WriteVarint32($tag$);\n"
           "    unknown_fields_stream.WriteVarint32(data.size());\n"
           "    unknown_fields_stream.WriteString(data);\n");
     }
@@ -303,7 +295,7 @@ GenerateSerializeWithCachedSizes(io::Printer* printer) const {
   variables["write_entry"] = "::google::protobuf::internal::WireFormatLite::Write" +
                              variables["stream_writer"] + "(\n            " +
                              variables["number"] + ", *entry, output)";
-  variables["deterministic"] = "output->IsSerializationDeterministic()";
+  variables["deterministic"] = "output->IsSerializationDeterminstic()";
   GenerateSerializeWithCachedSizes(printer, variables);
 }
 
@@ -407,8 +399,7 @@ void MapFieldGenerator::GenerateSerializeWithCachedSizes(
 void MapFieldGenerator::
 GenerateByteSize(io::Printer* printer) const {
   printer->Print(variables_,
-      "total_size += $tag_size$ *\n"
-      "    ::google::protobuf::internal::FromIntSize(this->$name$_size());\n"
+      "total_size += $tag_size$ * this->$name$_size();\n"
       "{\n"
       "  ::google::protobuf::scoped_ptr<$map_classname$> entry;\n"
       "  for (::google::protobuf::Map< $key_cpp$, $val_cpp$ >::const_iterator\n"

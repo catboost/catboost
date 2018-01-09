@@ -40,7 +40,6 @@
 #include "pyext/descriptor_containers.h"
 #include "pyext/descriptor_pool.h"
 #include "pyext/message.h"
-#include "pyext/message_factory.h"
 #include "pyext/scoped_pyobject_ptr.h"
 
 #if PY_MAJOR_VERSION >= 3
@@ -204,9 +203,8 @@ static PyObject* GetOrBuildOptions(const DescriptorClass *descriptor) {
   // read-only instance.
   const Message& options(descriptor->options());
   const Descriptor *message_type = options.GetDescriptor();
-  PyMessageFactory* message_factory = pool->py_message_factory;
-  CMessageClass* message_class = message_factory::GetMessageClass(
-      message_factory, message_type);
+  CMessageClass* message_class(
+      cdescriptor_pool::GetMessageClass(pool, message_type));
   if (message_class == NULL) {
     // The Options message was not found in the current DescriptorPool.
     // This means that the pool cannot contain any extensions to the Options
@@ -214,9 +212,7 @@ static PyObject* GetOrBuildOptions(const DescriptorClass *descriptor) {
     // the chances of successfully parsing the options.
     PyErr_Clear();
     pool = GetDefaultDescriptorPool();
-    message_factory = pool->py_message_factory;
-    message_class = message_factory::GetMessageClass(
-      message_factory, message_type);
+    message_class = cdescriptor_pool::GetMessageClass(pool, message_type);
   }
   if (message_class == NULL) {
     PyErr_Format(PyExc_TypeError, "Could not retrieve class for Options: %s",
@@ -246,7 +242,7 @@ static PyObject* GetOrBuildOptions(const DescriptorClass *descriptor) {
     options.SerializeToString(&serialized);
     io::CodedInputStream input(
         reinterpret_cast<const uint8*>(serialized.c_str()), serialized.size());
-    input.SetExtensionRegistry(pool->pool, message_factory->message_factory);
+    input.SetExtensionRegistry(pool->pool, pool->message_factory);
     bool success = cmsg->message->MergePartialFromCodedStream(&input);
     if (!success) {
       PyErr_Format(PyExc_ValueError, "Error parsing Options message");
@@ -442,9 +438,8 @@ static PyObject* GetConcreteClass(PyBaseDescriptor* self, void *closure) {
   // which contains this descriptor.
   // This might not be the one you expect! For example the returned object does
   // not know about extensions defined in a custom pool.
-  CMessageClass* concrete_class(message_factory::GetMessageClass(
-      GetDescriptorPool_FromPool(
-          _GetDescriptor(self)->file()->pool())->py_message_factory,
+  CMessageClass* concrete_class(cdescriptor_pool::GetMessageClass(
+      GetDescriptorPool_FromPool(_GetDescriptor(self)->file()->pool()),
       _GetDescriptor(self)));
   Py_XINCREF(concrete_class);
   return concrete_class->AsPyObject();
@@ -703,10 +698,6 @@ static PyObject* GetCamelcaseName(PyBaseDescriptor* self, void *closure) {
   return PyString_FromCppString(_GetDescriptor(self)->camelcase_name());
 }
 
-static PyObject* GetJsonName(PyBaseDescriptor* self, void *closure) {
-  return PyString_FromCppString(_GetDescriptor(self)->json_name());
-}
-
 static PyObject* GetType(PyBaseDescriptor *self, void *closure) {
   return PyInt_FromLong(_GetDescriptor(self)->type());
 }
@@ -896,7 +887,6 @@ static PyGetSetDef Getters[] = {
   { "full_name", (getter)GetFullName, NULL, "Full name"},
   { "name", (getter)GetName, NULL, "Unqualified name"},
   { "camelcase_name", (getter)GetCamelcaseName, NULL, "Camelcase name"},
-  { "json_name", (getter)GetJsonName, NULL, "Json name"},
   { "type", (getter)GetType, NULL, "C++ Type"},
   { "cpp_type", (getter)GetCppType, NULL, "C++ Type"},
   { "label", (getter)GetLabel, NULL, "Label"},

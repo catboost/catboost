@@ -1,17 +1,3 @@
-# Release 0.5.2
-  
-## Major Features And Improvements
-- We've made single document formula applier 4 times faster! 
-- `model.shrink` function added in [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_shrink-docpage/) and R wrappers. 
-- Added new [training parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `metric_period` that controls output frequency. 
-- Added new ranking [metric](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/) `QueryAverage`. 
-- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_custom_loss_tutorial.md).
-
-## Bug Fixes and Other Changes
-- Stability improvements and bug fixes
-
-As usual we are grateful to all who filed issues, asked and answered questions.
-
 # Release 0.5
 
 ## Breaking Changes

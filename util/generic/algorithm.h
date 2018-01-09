@@ -73,16 +73,6 @@ static inline void StableSort(T f, T l, C c) {
     std::stable_sort(f, l, c);
 }
 
-template <class TContainer>
-static inline void StableSort(TContainer& container) {
-    StableSort(container.begin(), container.end());
-}
-
-template <class TContainer, typename TCompare>
-static inline void StableSort(TContainer& container, TCompare compare) {
-    StableSort(container.begin(), container.end(), compare);
-}
-
 template <class TIterator, typename TGetKey>
 static inline void StableSortBy(TIterator begin, TIterator end, const TGetKey& getKey) {
     StableSort(begin, end, [&](auto&& left, auto&& right) { return getKey(left) < getKey(right); });

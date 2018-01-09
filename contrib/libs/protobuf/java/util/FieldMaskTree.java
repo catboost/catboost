@@ -217,12 +217,7 @@ final class FieldMaskTree {
       Message source,
       Message.Builder destination,
       FieldMaskUtil.MergeOptions options) {
-    if (source.getDescriptorForType() != destination.getDescriptorForType()) {
-      throw new IllegalArgumentException(
-          String.format(
-              "source (%s) and destination (%s) descriptor must be equal",
-              source.getDescriptorForType(), destination.getDescriptorForType()));
-    }
+    assert source.getDescriptorForType() == destination.getDescriptorForType();
 
     Descriptor descriptor = source.getDescriptorForType();
     for (Entry<String, Node> entry : node.children.entrySet()) {

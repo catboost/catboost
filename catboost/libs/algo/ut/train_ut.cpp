@@ -15,7 +15,7 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
 
         TReallyFastRng32 rng(123);
         TPool pool;
-        pool.Docs.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0, /*has queryId*/ false);
+        pool.Docs.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0);
         for (size_t i = 0; i < TestDocCount; ++i) {
             pool.Docs.Target[i] = rng.GenRandReal2();
             for (size_t j = 0; j < FactorCount; ++j) {

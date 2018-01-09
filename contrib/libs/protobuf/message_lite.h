@@ -39,9 +39,7 @@
 #ifndef GOOGLE_PROTOBUF_MESSAGE_LITE_H__
 #define GOOGLE_PROTOBUF_MESSAGE_LITE_H__
 
-#include <climits>
 #include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
 
 
 namespace google {
@@ -80,7 +78,7 @@ namespace internal {
 // is best when you only have a small number of message types linked
 // into your binary, in which case the size of the protocol buffers
 // runtime itself is the biggest problem.
-class LIBPROTOBUF_EXPORT MessageLite {
+class /* LIBPROTOBUF_EXPORT */ MessageLite {
  public:
   inline MessageLite() {}
   virtual ~MessageLite() {}
@@ -241,22 +239,16 @@ class LIBPROTOBUF_EXPORT MessageLite {
   bool AppendPartialToString(string* output) const;
 
   // Computes the serialized size of the message.  This recursively calls
-  // ByteSizeLong() on all embedded messages.
+  // ByteSize() on all embedded messages.  If a subclass does not override
+  // this, it MUST override SetCachedSize().
   //
-  // ByteSizeLong() is generally linear in the number of fields defined for the
+  // ByteSize() is generally linear in the number of fields defined for the
   // proto.
-  virtual size_t ByteSizeLong() const = 0;
+  virtual int ByteSize() const = 0;
 
-  // Legacy ByteSize() API.
-  int ByteSize() const {
-    size_t result = ByteSizeLong();
-    GOOGLE_DCHECK_LE(result, static_cast<size_t>(INT_MAX));
-    return static_cast<int>(result);
-  }
-
-  // Serializes the message without recomputing the size.  The message must not
-  // have changed since the last call to ByteSize(), and the value returned by
-  // ByteSize must be non-negative.  Otherwise the results are undefined.
+  // Serializes the message without recomputing the size.  The message must
+  // not have changed since the last call to ByteSize(); if it has, the results
+  // are undefined.
   virtual void SerializeWithCachedSizes(
       io::CodedOutputStream* output) const = 0;
 

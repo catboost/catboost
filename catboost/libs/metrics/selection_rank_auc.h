@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/ymath.h>
-#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 
 namespace NSelectionRankAucMetric

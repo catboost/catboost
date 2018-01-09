@@ -33,11 +33,8 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <climits>
-
-#include "arena.h"
-#include "generated_message_util.h"
 #include "message_lite.h"
+#include "arena.h"
 #include "repeated_field.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"
@@ -60,9 +57,9 @@ namespace {
 // protobuf implementation but is more likely caused by concurrent modification
 // of the message.  This function attempts to distinguish between the two and
 // provide a useful error message.
-void ByteSizeConsistencyError(size_t byte_size_before_serialization,
-                              size_t byte_size_after_serialization,
-                              size_t bytes_produced_by_serialization,
+void ByteSizeConsistencyError(int byte_size_before_serialization,
+                              int byte_size_after_serialization,
+                              int bytes_produced_by_serialization,
                               const MessageLite& message) {
   GOOGLE_CHECK_EQ(byte_size_before_serialization, byte_size_after_serialization)
       << message.GetTypeName()
@@ -228,7 +225,6 @@ uint8* MessageLite::InternalSerializeWithCachedSizesToArray(
   int size = GetCachedSize();
   io::ArrayOutputStream out(target, size);
   io::CodedOutputStream coded_out(&out);
-  coded_out.SetSerializationDeterministic(deterministic);
   SerializeWithCachedSizes(&coded_out);
   GOOGLE_CHECK(!coded_out.HadError());
   return target + size;
@@ -241,18 +237,18 @@ bool MessageLite::SerializeToCodedStream(io::CodedOutputStream* output) const {
 
 bool MessageLite::SerializePartialToCodedStream(
     io::CodedOutputStream* output) const {
-  const size_t size = ByteSizeLong();  // Force size to be cached.
-  if (size > INT_MAX) {
-    GOOGLE_LOG(ERROR) << "Exceeded maximum protobuf size of 2GB: " << size;
+  const int size = ByteSize();  // Force size to be cached.
+  if (size < 0) {
+    // Messages >2G cannot be serialized due to overflow computing ByteSize.
+    GOOGLE_LOG(ERROR) << "Error computing ByteSize (possible overflow?).";
     return false;
   }
 
   uint8* buffer = output->GetDirectBufferForNBytesAndAdvance(size);
   if (buffer != NULL) {
-    uint8* end = InternalSerializeWithCachedSizesToArray(
-        output->IsSerializationDeterministic(), buffer);
+    uint8* end = SerializeWithCachedSizesToArray(buffer);
     if (end - buffer != size) {
-      ByteSizeConsistencyError(size, ByteSizeLong(), end - buffer, *this);
+      ByteSizeConsistencyError(size, ByteSize(), end - buffer, *this);
     }
     return true;
   } else {
@@ -264,7 +260,7 @@ bool MessageLite::SerializePartialToCodedStream(
     int final_byte_count = output->ByteCount();
 
     if (final_byte_count - original_byte_count != size) {
-      ByteSizeConsistencyError(size, ByteSizeLong(),
+      ByteSizeConsistencyError(size, ByteSize(),
                                final_byte_count - original_byte_count, *this);
     }
 
@@ -290,10 +286,11 @@ bool MessageLite::AppendToString(string* output) const {
 }
 
 bool MessageLite::AppendPartialToString(string* output) const {
-  size_t old_size = output->size();
-  size_t byte_size = ByteSizeLong();
-  if (byte_size > INT_MAX) {
-    GOOGLE_LOG(ERROR) << "Exceeded maximum protobuf size of 2GB: " << byte_size;
+  int old_size = output->size();
+  int byte_size = ByteSize();
+  if (byte_size < 0) {
+    // Messages >2G cannot be serialized due to overflow computing ByteSize.
+    GOOGLE_LOG(ERROR) << "Error computing ByteSize (possible overflow?).";
     return false;
   }
 
@@ -302,7 +299,7 @@ bool MessageLite::AppendPartialToString(string* output) const {
       reinterpret_cast<uint8*>(io::mutable_string_data(output) + old_size);
   uint8* end = SerializeWithCachedSizesToArray(start);
   if (end - start != byte_size) {
-    ByteSizeConsistencyError(byte_size, ByteSizeLong(), end - start, *this);
+    ByteSizeConsistencyError(byte_size, ByteSize(), end - start, *this);
   }
   return true;
 }
@@ -323,12 +320,12 @@ bool MessageLite::SerializeToArray(void* data, int size) const {
 }
 
 bool MessageLite::SerializePartialToArray(void* data, int size) const {
-  int byte_size = ByteSizeLong();
+  int byte_size = ByteSize();
   if (size < byte_size) return false;
   uint8* start = reinterpret_cast<uint8*>(data);
   uint8* end = SerializeWithCachedSizesToArray(start);
   if (end - start != byte_size) {
-    ByteSizeConsistencyError(byte_size, ByteSizeLong(), end - start, *this);
+    ByteSizeConsistencyError(byte_size, ByteSize(), end - start, *this);
   }
   return true;
 }

@@ -1576,22 +1576,14 @@ public final class TextFormat {
       // Support specifying repeated field values as a comma-separated list.
       // Ex."foo: [1, 2, 3]"
       if (field.isRepeated() && tokenizer.tryConsume("[")) {
-        if (!tokenizer.tryConsume("]")) {  // Allow "foo: []" to be treated as empty.
-          while (true) {
-            consumeFieldValue(
-                tokenizer,
-                extensionRegistry,
-                target,
-                field,
-                extension,
-                parseTreeBuilder,
-                unknownFields);
-            if (tokenizer.tryConsume("]")) {
-              // End of list.
-              break;
-            }
-            tokenizer.consume(",");
+        while (true) {
+          consumeFieldValue(tokenizer, extensionRegistry, target, field, extension,
+              parseTreeBuilder, unknownFields);
+          if (tokenizer.tryConsume("]")) {
+            // End of list.
+            break;
           }
+          tokenizer.consume(",");
         }
       } else {
         consumeFieldValue(tokenizer, extensionRegistry, target, field,

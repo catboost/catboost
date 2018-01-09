@@ -14,7 +14,6 @@ RECURSE(
     jemalloc
     libbz2
     libunwind_master
-    libunwind_master/ut
     linuxvdso
     lz4
     lz4/generated
@@ -27,7 +26,6 @@ RECURSE(
     platform
     protobuf
     protobuf/python
-    protobuf/python/test
     protobuf/java
     protobuf/ut
     snappy

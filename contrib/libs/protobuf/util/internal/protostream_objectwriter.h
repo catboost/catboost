@@ -71,7 +71,7 @@ class ObjectLocationTracker;
 // the ProtoWriter class to write raw proto bytes.
 //
 // It also supports streaming.
-class LIBPROTOBUF_EXPORT ProtoStreamObjectWriter : public ProtoWriter {
+class /* LIBPROTOBUF_EXPORT */ ProtoStreamObjectWriter : public ProtoWriter {
  public:
   // Options that control ProtoStreamObjectWriter class's behavior.
   struct Options {
@@ -86,14 +86,8 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectWriter : public ProtoWriter {
     // just ignore it and continue to process the rest.
     bool ignore_unknown_fields;
 
-    // If true, check if enum name in camel case or without underscore matches
-    // the field name.
-    bool use_lower_camel_for_enums;
-
     Options()
-        : struct_integers_as_strings(false),
-          ignore_unknown_fields(false),
-          use_lower_camel_for_enums(false) {}
+        : struct_integers_as_strings(false), ignore_unknown_fields(false) {}
 
     // Default instance of Options with all options set to defaults.
     static const Options& Defaults() {
@@ -127,7 +121,7 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectWriter : public ProtoWriter {
                                          const DataPiece&);
 
   // Handles writing Anys out using nested object writers and the like.
-  class LIBPROTOBUF_EXPORT AnyWriter {
+  class /* LIBPROTOBUF_EXPORT */ AnyWriter {
    public:
     explicit AnyWriter(ProtoStreamObjectWriter* parent);
     ~AnyWriter();
@@ -150,57 +144,6 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectWriter : public ProtoWriter {
     void RenderDataPiece(StringPiece name, const DataPiece& value);
 
    private:
-    // Before the "@type" field is encountered, we store all incoming data
-    // into this Event struct and replay them after we get the "@type" field.
-    class LIBPROTOBUF_EXPORT Event {
-     public:
-      enum Type {
-        START_OBJECT = 0,
-        END_OBJECT = 1,
-        START_LIST = 2,
-        END_LIST = 3,
-        RENDER_DATA_PIECE = 4,
-      };
-
-      // Constructor for END_OBJECT and END_LIST events.
-      explicit Event(Type type) : type_(type), value_(DataPiece::NullData()) {}
-
-      // Constructor for START_OBJECT and START_LIST events.
-      explicit Event(Type type, StringPiece name)
-          : type_(type),
-            name_(name.ToString()),
-            value_(DataPiece::NullData()) {}
-
-      // Constructor for RENDER_DATA_PIECE events.
-      explicit Event(StringPiece name, const DataPiece& value)
-          : type_(RENDER_DATA_PIECE), name_(name.ToString()), value_(value) {
-        DeepCopy();
-      }
-
-      Event(const Event& other)
-          : type_(other.type_), name_(other.name_), value_(other.value_) {
-        DeepCopy();
-      }
-
-      Event& operator=(const Event& other) {
-        type_ = other.type_;
-        name_ = other.name_;
-        value_ = other.value_;
-        DeepCopy();
-        return *this;
-      }
-
-      void Replay(AnyWriter* writer) const;
-
-     private:
-      void DeepCopy();
-
-      Type type_;
-      string name_;
-      DataPiece value_;
-      string value_storage_;
-    };
-
     // Handles starting up the any once we have a type.
     void StartAny(const DataPiece& value);
 
@@ -236,14 +179,11 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectWriter : public ProtoWriter {
     // }
     bool is_well_known_type_;
     TypeRenderer* well_known_type_render_;
-
-    // Store data before the "@type" field.
-    std::vector<Event> uninterpreted_events_;
   };
 
   // Represents an item in a stack of items used to keep state between
   // ObjectWrier events.
-  class LIBPROTOBUF_EXPORT Item : public BaseElement {
+  class /* LIBPROTOBUF_EXPORT */ Item : public BaseElement {
    public:
     // Indicates the type of item.
     enum ItemType {

@@ -70,9 +70,7 @@ struct TDocumentStorage {
         DoSwap(Target[doc1Idx], Target[doc2Idx]);
         DoSwap(Weight[doc1Idx], Weight[doc2Idx]);
         DoSwap(Id[doc1Idx], Id[doc2Idx]);
-        if (!QueryId.empty()) {
-            DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
-        }
+        DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
         DoSwap(GroupId[doc1Idx], GroupId[doc2Idx]);
         DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
     }
@@ -89,14 +87,12 @@ struct TDocumentStorage {
         Target[destinationIdx] = sourceDocs.Target[sourceIdx];
         Weight[destinationIdx] = sourceDocs.Weight[sourceIdx];
         Id[destinationIdx] = sourceDocs.Id[sourceIdx];
-        if (!sourceDocs.QueryId.empty()) {
-            QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
-        }
+        QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
         GroupId[destinationIdx] = sourceDocs.GroupId[sourceIdx];
         Timestamp[destinationIdx] = sourceDocs.Timestamp[sourceIdx];
     }
 
-    inline void Resize(int docCount, int featureCount, int approxDim = 0, bool hasQueryId = false) {
+    inline void Resize(int docCount, int featureCount, int approxDim) {
         Factors.resize(featureCount);
         for (auto& factor : Factors) {
             factor.resize(docCount);
@@ -111,9 +107,7 @@ struct TDocumentStorage {
         for (int ind = 0; ind < docCount; ++ ind) {
             Id[ind] = ToString(ind);
         }
-        if (hasQueryId) {
-            QueryId.resize(docCount);
-        }
+        QueryId.resize(docCount);
         GroupId.resize(docCount);
         Timestamp.resize(docCount);
     }

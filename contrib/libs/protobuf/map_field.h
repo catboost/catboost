@@ -57,7 +57,7 @@ class MapFieldAccessor;
 // This class provides access to map field using reflection, which is the same
 // as those provided for RepeatedPtrField<Message>. It is used for internal
 // reflection implentation only. Users should never use this directly.
-class LIBPROTOBUF_EXPORT MapFieldBase {
+class /* LIBPROTOBUF_EXPORT */ MapFieldBase {
  public:
   MapFieldBase()
       : arena_(NULL),
@@ -295,7 +295,7 @@ class MapField : public TypeDefinedMapFieldBase<Key, T>,
   friend class ::google::protobuf::Arena;
 };
 
-class LIBPROTOBUF_EXPORT DynamicMapField: public TypeDefinedMapFieldBase<MapKey, MapValueRef> {
+class /* LIBPROTOBUF_EXPORT */ DynamicMapField: public TypeDefinedMapFieldBase<MapKey, MapValueRef> {
  public:
   explicit DynamicMapField(const Message* default_entry);
   DynamicMapField(const Message* default_entry, Arena* arena);
@@ -324,7 +324,7 @@ class LIBPROTOBUF_EXPORT DynamicMapField: public TypeDefinedMapFieldBase<MapKey,
 
 }  // namespace internal
 
-class LIBPROTOBUF_EXPORT MapIterator {
+class /* LIBPROTOBUF_EXPORT */ MapIterator {
  public:
   MapIterator(Message* message, const FieldDescriptor* field) {
     const Reflection* reflection = message->GetReflection();

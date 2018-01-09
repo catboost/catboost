@@ -28,8 +28,6 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Defines utilities for the TypeResolver.
-
 #ifndef GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__
 #define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__
 
@@ -43,7 +41,7 @@ class TypeResolver;
 
 // Creates a TypeResolver that serves type information in the given descriptor
 // pool. Caller takes ownership of the returned TypeResolver.
-LIBPROTOBUF_EXPORT TypeResolver* NewTypeResolverForDescriptorPool(
+/* LIBPROTOBUF_EXPORT */ TypeResolver* NewTypeResolverForDescriptorPool(
     const string& url_prefix, const DescriptorPool* pool);
 
 }  // namespace util

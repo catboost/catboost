@@ -957,55 +957,55 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->field_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindFieldByName(name);
 }
 
-static const void* GetByCamelcaseName(PyContainer* self,
+static ItemDescriptor GetByCamelcaseName(PyContainer* self,
                                          const string& name) {
   return GetDescriptor(self)->FindFieldByCamelcaseName(name);
 }
 
-static const void* GetByNumber(PyContainer* self, int number) {
+static ItemDescriptor GetByNumber(PyContainer* self, int number) {
   return GetDescriptor(self)->FindFieldByNumber(number);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->field(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFieldDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFieldDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static const string& GetItemCamelcaseName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->camelcase_name();
+static const string& GetItemCamelcaseName(ItemDescriptor item) {
+  return item->camelcase_name();
 }
 
-static int GetItemNumber(const void* item) {
-  return static_cast<ItemDescriptor>(item)->number();
+static int GetItemNumber(ItemDescriptor item) {
+  return item->number();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageFields",
-  Count,
-  GetByIndex,
-  GetByName,
-  GetByCamelcaseName,
-  GetByNumber,
-  NewObjectFromItem,
-  GetItemName,
-  GetItemCamelcaseName,
-  GetItemNumber,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)GetByCamelcaseName,
+  (GetByNumberMethod)GetByNumber,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)GetItemCamelcaseName,
+  (GetItemNumberMethod)GetItemNumber,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace fields
@@ -1035,38 +1035,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->nested_type_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindNestedTypeByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->nested_type(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyMessageDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyMessageDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageNestedTypes",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace nested_types
@@ -1087,38 +1087,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->enum_type_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindEnumTypeByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->enum_type(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyEnumDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyEnumDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageNestedEnums",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace enums
@@ -1150,11 +1150,11 @@ static int Count(PyContainer* self) {
   return count;
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindEnumValueByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   // This is not optimal, but the number of enums *types* in a given message
   // is small.  This function is only used when iterating over the mapping.
   const EnumDescriptor* enum_type = NULL;
@@ -1173,27 +1173,26 @@ static const void* GetByIndex(PyContainer* self, int index) {
   return enum_type->value(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyEnumValueDescriptor_FromDescriptor(
-      static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyEnumValueDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageEnumValues",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  NULL,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)NULL,
 };
 
 }  // namespace enumvalues
@@ -1210,38 +1209,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->extension_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindExtensionByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->extension(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFieldDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFieldDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageExtensions",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace extensions
@@ -1262,38 +1261,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->oneof_decl_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindOneofByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->oneof_decl(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyOneofDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyOneofDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "MessageOneofs",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace oneofs
@@ -1324,47 +1323,46 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->value_count();
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->value(index);
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindValueByName(name);
 }
 
-static const void* GetByNumber(PyContainer* self, int number) {
+static ItemDescriptor GetByNumber(PyContainer* self, int number) {
   return GetDescriptor(self)->FindValueByNumber(number);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyEnumValueDescriptor_FromDescriptor(
-      static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyEnumValueDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemNumber(const void* item) {
-  return static_cast<ItemDescriptor>(item)->number();
+static int GetItemNumber(ItemDescriptor item) {
+  return item->number();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "EnumValues",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  GetByNumber,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  GetItemNumber,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)GetByNumber,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)GetItemNumber,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace enumvalues
@@ -1399,30 +1397,30 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->field_count();
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->field(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFieldDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFieldDescriptor_FromDescriptor(item);
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index_in_oneof();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index_in_oneof();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "OneofFields",
-  Count,
-  GetByIndex,
-  NULL,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  NULL,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)NULL,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)NULL,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace fields
@@ -1449,38 +1447,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->method_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindMethodByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->method(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyMethodDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyMethodDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "ServiceMethods",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace methods
@@ -1511,38 +1509,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->message_type_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindMessageTypeByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->message_type(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyMessageDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyMessageDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FileMessages",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace messages
@@ -1559,38 +1557,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->enum_type_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindEnumTypeByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->enum_type(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyEnumDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyEnumDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FileEnums",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace enums
@@ -1607,38 +1605,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->extension_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindExtensionByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->extension(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFieldDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFieldDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FileExtensions",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace extensions
@@ -1655,38 +1653,38 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->service_count();
 }
 
-static const void* GetByName(PyContainer* self, const string& name) {
+static ItemDescriptor GetByName(PyContainer* self, const string& name) {
   return GetDescriptor(self)->FindServiceByName(name);
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->service(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyServiceDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyServiceDescriptor_FromDescriptor(item);
 }
 
-static const string& GetItemName(const void* item) {
-  return static_cast<ItemDescriptor>(item)->name();
+static const string& GetItemName(ItemDescriptor item) {
+  return item->name();
 }
 
-static int GetItemIndex(const void* item) {
-  return static_cast<ItemDescriptor>(item)->index();
+static int GetItemIndex(ItemDescriptor item) {
+  return item->index();
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FileServices",
-  Count,
-  GetByIndex,
-  GetByName,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  GetItemName,
-  NULL,
-  NULL,
-  GetItemIndex,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)GetByName,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)GetItemName,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)GetItemIndex,
 };
 
 }  // namespace services
@@ -1703,26 +1701,26 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->dependency_count();
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->dependency(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFileDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFileDescriptor_FromDescriptor(item);
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FileDependencies",
-  Count,
-  GetByIndex,
-  NULL,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)NULL,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)NULL,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)NULL,
 };
 
 }  // namespace dependencies
@@ -1739,26 +1737,26 @@ static int Count(PyContainer* self) {
   return GetDescriptor(self)->public_dependency_count();
 }
 
-static const void* GetByIndex(PyContainer* self, int index) {
+static ItemDescriptor GetByIndex(PyContainer* self, int index) {
   return GetDescriptor(self)->public_dependency(index);
 }
 
-static PyObject* NewObjectFromItem(const void* item) {
-  return PyFileDescriptor_FromDescriptor(static_cast<ItemDescriptor>(item));
+static PyObject* NewObjectFromItem(ItemDescriptor item) {
+  return PyFileDescriptor_FromDescriptor(item);
 }
 
 static DescriptorContainerDef ContainerDef = {
   "FilePublicDependencies",
-  Count,
-  GetByIndex,
-  NULL,
-  NULL,
-  NULL,
-  NewObjectFromItem,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  (CountMethod)Count,
+  (GetByIndexMethod)GetByIndex,
+  (GetByNameMethod)NULL,
+  (GetByCamelcaseNameMethod)NULL,
+  (GetByNumberMethod)NULL,
+  (NewObjectFromItemMethod)NewObjectFromItem,
+  (GetItemNameMethod)NULL,
+  (GetItemCamelcaseNameMethod)NULL,
+  (GetItemNumberMethod)NULL,
+  (GetItemIndexMethod)NULL,
 };
 
 }  // namespace public_dependencies

@@ -179,7 +179,6 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
   MaybePrintGeneratedAnnotation(context_, printer, descriptor_,
                                 /* immutable = */ true);
 
-
   // The builder_type stores the super type name of the nested Builder class.
   string builder_type;
   if (descriptor_->extension_range_count() > 0) {
@@ -203,6 +202,7 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
     builder_type = "com.google.protobuf.GeneratedMessageLite.Builder";
   }
   printer->Indent();
+
 
   GenerateConstructor(printer);
 
@@ -238,11 +238,11 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
   // oneof
   std::map<string, string> vars;
   for (int i = 0; i < descriptor_->oneof_decl_count(); i++) {
-    const OneofDescriptor* oneof = descriptor_->oneof_decl(i);
-    vars["oneof_name"] = context_->GetOneofGeneratorInfo(oneof)->name;
+    vars["oneof_name"] = context_->GetOneofGeneratorInfo(
+        descriptor_->oneof_decl(i))->name;
     vars["oneof_capitalized_name"] = context_->GetOneofGeneratorInfo(
-        oneof)->capitalized_name;
-    vars["oneof_index"] = SimpleItoa(oneof->index());
+        descriptor_->oneof_decl(i))->capitalized_name;
+    vars["oneof_index"] = SimpleItoa(descriptor_->oneof_decl(i)->index());
     // oneofCase_ and oneof_
     printer->Print(vars,
       "private int $oneof_name$Case_ = 0;\n"
@@ -252,8 +252,8 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
       "public enum $oneof_capitalized_name$Case\n"
       "    implements com.google.protobuf.Internal.EnumLite {\n");
     printer->Indent();
-    for (int j = 0; j < oneof->field_count(); j++) {
-      const FieldDescriptor* field = oneof->field(j);
+    for (int j = 0; j < descriptor_->oneof_decl(i)->field_count(); j++) {
+      const FieldDescriptor* field = descriptor_->oneof_decl(i)->field(j);
       printer->Print(
         "$field_name$($field_number$),\n",
         "field_name",
@@ -281,8 +281,8 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
       "\n"
       "public static $oneof_capitalized_name$Case forNumber(int value) {\n"
       "  switch (value) {\n");
-    for (int j = 0; j < oneof->field_count(); j++) {
-      const FieldDescriptor* field = oneof->field(j);
+    for (int j = 0; j < descriptor_->oneof_decl(i)->field_count(); j++) {
+      const FieldDescriptor* field = descriptor_->oneof_decl(i)->field(j);
       printer->Print(
         "    case $field_number$: return $field_name$;\n",
         "field_number",
@@ -523,13 +523,8 @@ GenerateMessageSerializationMethods(io::Printer* printer) {
   }
 
   if (PreserveUnknownFields(descriptor_)) {
-    if (descriptor_->options().message_set_wire_format()) {
-      printer->Print(
-        "unknownFields.writeAsMessageSetTo(output);\n");
-    } else {
-      printer->Print(
-        "unknownFields.writeTo(output);\n");
-    }
+    printer->Print(
+      "unknownFields.writeTo(output);\n");
   }
 
   printer->Outdent();
@@ -558,13 +553,8 @@ GenerateMessageSerializationMethods(io::Printer* printer) {
   }
 
   if (PreserveUnknownFields(descriptor_)) {
-    if (descriptor_->options().message_set_wire_format()) {
-      printer->Print(
-        "size += unknownFields.getSerializedSizeAsMessageSet();\n");
-    } else {
-      printer->Print(
-        "size += unknownFields.getSerializedSize();\n");
-    }
+    printer->Print(
+      "size += unknownFields.getSerializedSize();\n");
   }
 
   printer->Outdent();
@@ -758,7 +748,7 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodIsInitialized(
         case FieldDescriptor::LABEL_REPEATED:
           if (IsMapEntry(field->message_type())) {
             printer->Print(
-              "for ($type$ item : get$name$Map().values()) {\n"
+              "for ($type$ item : get$name$().values()) {\n"
               "  if (!item.isInitialized()) {\n"
               "    if (shouldMemoize) {\n"
               "      memoizedIsInitialized = 0;\n"
@@ -928,10 +918,10 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodMergeFromStream(
       "com.google.protobuf.CodedInputStream input =\n"
       "    (com.google.protobuf.CodedInputStream) arg0;\n"
       "com.google.protobuf.ExtensionRegistryLite extensionRegistry =\n"
-      "    (com.google.protobuf.ExtensionRegistryLite) arg1;\n");
-  printer->Print(
+      "    (com.google.protobuf.ExtensionRegistryLite) arg1;\n"
       "try {\n");
   printer->Indent();
+
   printer->Print(
     "boolean done = false;\n"
     "while (!done) {\n");
@@ -949,26 +939,14 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodMergeFromStream(
 
   if (PreserveUnknownFields(descriptor_)) {
     if (descriptor_->extension_range_count() > 0) {
-      if (descriptor_->options().message_set_wire_format()) {
-        printer->Print(
-            "default: {\n"
-            "  if (!parseUnknownFieldAsMessageSet(\n"
-            "      getDefaultInstanceForType(), input, extensionRegistry,\n"
-            "      tag)) {\n"
-            "    done = true;\n"  // it's an endgroup tag
-            "  }\n"
-            "  break;\n"
-            "}\n");
-      } else {
-        printer->Print(
-            "default: {\n"
-            "  if (!parseUnknownField(getDefaultInstanceForType(),\n"
-            "      input, extensionRegistry, tag)) {\n"
-            "    done = true;\n"  // it's an endgroup tag
-            "  }\n"
-            "  break;\n"
-            "}\n");
-      }
+      printer->Print(
+        "default: {\n"
+        "  if (!parseUnknownField(getDefaultInstanceForType(),\n"
+        "                         input, extensionRegistry, tag)) {\n"
+        "    done = true;\n"  // it's an endgroup tag
+        "  }\n"
+        "  break;\n"
+        "}\n");
     } else {
       printer->Print(
         "default: {\n"
@@ -997,7 +975,7 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodMergeFromStream(
 
     printer->Print(
       "case $tag$: {\n",
-      "tag", SimpleItoa(static_cast<int32>(tag)));
+      "tag", SimpleItoa(tag));
     printer->Indent();
 
     field_generators_.get(field).GenerateParsingCode(printer);
@@ -1014,7 +992,7 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodMergeFromStream(
         WireFormatLite::WIRETYPE_LENGTH_DELIMITED);
       printer->Print(
         "case $tag$: {\n",
-        "tag", SimpleItoa(static_cast<int32>(packed_tag)));
+        "tag", SimpleItoa(packed_tag));
       printer->Indent();
 
       field_generators_.get(field).GenerateParsingCodeFromPacked(printer);

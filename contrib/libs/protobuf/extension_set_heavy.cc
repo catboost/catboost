@@ -35,7 +35,6 @@
 // Contains methods defined in extension_set.h which cannot be part of the
 // lite library because they use descriptors or reflection.
 
-#include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
 #include "descriptor.h"
 #include "extension_set.h"
@@ -414,16 +413,12 @@ uint8* ExtensionSet::SerializeWithCachedSizesToArray(int start_field_number,
                                                      int end_field_number,
                                                      uint8* target) const {
   return InternalSerializeWithCachedSizesToArray(
-      start_field_number, end_field_number,
-      google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(),
-      target);
+      start_field_number, end_field_number, false, target);
 }
 
 uint8* ExtensionSet::SerializeMessageSetWithCachedSizesToArray(
     uint8* target) const {
-  return InternalSerializeMessageSetWithCachedSizesToArray(
-      google::protobuf::io::CodedOutputStream::IsDefaultSerializationDeterministic(),
-      target);
+  return InternalSerializeMessageSetWithCachedSizesToArray(false, target);
 }
 
 uint8* ExtensionSet::InternalSerializeWithCachedSizesToArray(
@@ -592,12 +587,11 @@ ExtensionSet::Extension::InternalSerializeMessageSetItemWithCachedSizesToArray(
       WireFormatLite::kMessageSetTypeIdNumber, number, target);
   // Write message.
   if (is_lazy) {
-    target = lazymessage_value->InternalWriteMessageToArray(
-        WireFormatLite::kMessageSetMessageNumber, deterministic, target);
+    target = lazymessage_value->WriteMessageToArray(
+        WireFormatLite::kMessageSetMessageNumber, target);
   } else {
-    target = WireFormatLite::InternalWriteMessageToArray(
-        WireFormatLite::kMessageSetMessageNumber, *message_value, deterministic,
-        target);
+    target = WireFormatLite::WriteMessageToArray(
+        WireFormatLite::kMessageSetMessageNumber, *message_value, target);
   }
   // End group.
   target = io::CodedOutputStream::WriteTagToArray(
@@ -662,7 +656,7 @@ bool ExtensionSet::ParseMessageSetItem(io::CodedInputStream* input,
   string message_data;
 
   while (true) {
-    const uint32 tag = input->ReadTagNoLastTag();
+    const uint32 tag = input->ReadTag();
     if (tag == 0) return false;
 
     switch (tag) {
@@ -755,7 +749,7 @@ void ExtensionSet::Extension::SerializeMessageSetItemWithCachedSizes(
   output->WriteTag(WireFormatLite::kMessageSetItemEndTag);
 }
 
-size_t ExtensionSet::Extension::MessageSetItemByteSize(int number) const {
+int ExtensionSet::Extension::MessageSetItemByteSize(int number) const {
   if (type != WireFormatLite::TYPE_MESSAGE || is_repeated) {
     // Not a valid MessageSet extension, but compute the byte size for it the
     // normal way.
@@ -764,13 +758,13 @@ size_t ExtensionSet::Extension::MessageSetItemByteSize(int number) const {
 
   if (is_cleared) return 0;
 
-  size_t our_size = WireFormatLite::kMessageSetItemTagsSize;
+  int our_size = WireFormatLite::kMessageSetItemTagsSize;
 
   // type_id
   our_size += io::CodedOutputStream::VarintSize32(number);
 
   // message
-  size_t message_size = 0;
+  int message_size = 0;
   if (is_lazy) {
     message_size = lazymessage_value->ByteSize();
   } else {
@@ -791,8 +785,8 @@ void ExtensionSet::SerializeMessageSetWithCachedSizes(
   }
 }
 
-size_t ExtensionSet::MessageSetByteSize() const {
-  size_t total_size = 0;
+int ExtensionSet::MessageSetByteSize() const {
+  int total_size = 0;
 
   for (ExtensionMap::const_iterator iter = extensions_.begin();
        iter != extensions_.end(); ++iter) {

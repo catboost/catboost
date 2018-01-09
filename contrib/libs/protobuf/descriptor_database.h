@@ -61,7 +61,7 @@ class MergedDescriptorDatabase;
 // calling DescriptorPool::BuildFile() for each one.  Instead, a DescriptorPool
 // can be created which wraps a DescriptorDatabase and only builds particular
 // descriptors when they are needed.
-class LIBPROTOBUF_EXPORT DescriptorDatabase {
+class /* LIBPROTOBUF_EXPORT */ DescriptorDatabase {
  public:
   inline DescriptorDatabase() {}
   virtual ~DescriptorDatabase();
@@ -126,7 +126,7 @@ class LIBPROTOBUF_EXPORT DescriptorDatabase {
 // FileDescriptor::CopyTo()) will always use fully-qualified names for all
 // types.  You only need to worry if you are constructing FileDescriptorProtos
 // yourself, or are calling compiler::Parser directly.
-class LIBPROTOBUF_EXPORT SimpleDescriptorDatabase : public DescriptorDatabase {
+class /* LIBPROTOBUF_EXPORT */ SimpleDescriptorDatabase : public DescriptorDatabase {
  public:
   SimpleDescriptorDatabase();
   ~SimpleDescriptorDatabase();
@@ -264,7 +264,7 @@ class LIBPROTOBUF_EXPORT SimpleDescriptorDatabase : public DescriptorDatabase {
 //
 // The same caveats regarding FindFileContainingExtension() apply as with
 // SimpleDescriptorDatabase.
-class LIBPROTOBUF_EXPORT EncodedDescriptorDatabase : public DescriptorDatabase {
+class /* LIBPROTOBUF_EXPORT */ EncodedDescriptorDatabase : public DescriptorDatabase {
  public:
   EncodedDescriptorDatabase();
   ~EncodedDescriptorDatabase();
@@ -297,8 +297,7 @@ class LIBPROTOBUF_EXPORT EncodedDescriptorDatabase : public DescriptorDatabase {
                                std::vector<int>* output);
 
  private:
-  SimpleDescriptorDatabase::DescriptorIndex<std::pair<const void*, int> >
-      index_;
+  SimpleDescriptorDatabase::DescriptorIndex<std::pair<const void*, int> > index_;
   std::vector<void*> files_to_delete_;
 
   // If encoded_file.first is non-NULL, parse the data into *output and return
@@ -310,7 +309,7 @@ class LIBPROTOBUF_EXPORT EncodedDescriptorDatabase : public DescriptorDatabase {
 };
 
 // A DescriptorDatabase that fetches files from a given pool.
-class LIBPROTOBUF_EXPORT DescriptorPoolDatabase : public DescriptorDatabase {
+class /* LIBPROTOBUF_EXPORT */ DescriptorPoolDatabase : public DescriptorDatabase {
  public:
   explicit DescriptorPoolDatabase(const DescriptorPool& pool);
   ~DescriptorPoolDatabase();
@@ -333,7 +332,7 @@ class LIBPROTOBUF_EXPORT DescriptorPoolDatabase : public DescriptorDatabase {
 
 // A DescriptorDatabase that wraps two or more others.  It first searches the
 // first database and, if that fails, tries the second, and so on.
-class LIBPROTOBUF_EXPORT MergedDescriptorDatabase : public DescriptorDatabase {
+class /* LIBPROTOBUF_EXPORT */ MergedDescriptorDatabase : public DescriptorDatabase {
  public:
   // Merge just two databases.  The sources remain property of the caller.
   MergedDescriptorDatabase(DescriptorDatabase* source1,
@@ -341,8 +340,7 @@ class LIBPROTOBUF_EXPORT MergedDescriptorDatabase : public DescriptorDatabase {
   // Merge more than two databases.  The sources remain property of the caller.
   // The vector may be deleted after the constructor returns but the
   // DescriptorDatabases need to stick around.
-  explicit MergedDescriptorDatabase(
-      const std::vector<DescriptorDatabase*>& sources);
+  explicit MergedDescriptorDatabase(const std::vector<DescriptorDatabase*>& sources);
   ~MergedDescriptorDatabase();
 
   // implements DescriptorDatabase -----------------------------------

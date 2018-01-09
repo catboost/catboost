@@ -101,8 +101,7 @@ bool SimpleDescriptorDatabase::DescriptorIndex<Value>::AddSymbol(
 
   if (iter == by_symbol_.end()) {
     // Apparently the map is currently empty.  Just insert and be done with it.
-    by_symbol_.insert(
-        typename std::map<string, Value>::value_type(name, value));
+    by_symbol_.insert(typename std::map<string, Value>::value_type(name, value));
     return true;
   }
 
@@ -129,8 +128,7 @@ bool SimpleDescriptorDatabase::DescriptorIndex<Value>::AddSymbol(
 
   // Insert the new symbol using the iterator as a hint, the new entry will
   // appear immediately before the one the iterator is pointing at.
-  by_symbol_.insert(iter,
-                    typename std::map<string, Value>::value_type(name, value));
+  by_symbol_.insert(iter, typename std::map<string, Value>::value_type(name, value));
 
   return true;
 }
@@ -219,8 +217,7 @@ SimpleDescriptorDatabase::DescriptorIndex<Value>::FindLastLessOrEqual(
   // Find the last key in the map which sorts less than or equal to the
   // symbol name.  Since upper_bound() returns the *first* key that sorts
   // *greater* than the input, we want the element immediately before that.
-  typename std::map<string, Value>::iterator iter =
-      by_symbol_.upper_bound(name);
+  typename std::map<string, Value>::iterator iter = by_symbol_.upper_bound(name);
   if (iter != by_symbol_.begin()) --iter;
   return iter;
 }
@@ -355,7 +352,7 @@ bool EncodedDescriptorDatabase::FindNameOfFileContainingSymbol(
       FileDescriptorProto::kNameFieldNumber,
       internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED);
 
-  if (input.ReadTagNoLastTag() == kNameTag) {
+  if (input.ReadTag() == kNameTag) {
     // Success!
     return internal::WireFormatLite::ReadString(&input, output);
   } else {
@@ -527,9 +524,9 @@ bool MergedDescriptorDatabase::FindAllExtensionNumbers(
 
   for (int i = 0; i < sources_.size(); i++) {
     if (sources_[i]->FindAllExtensionNumbers(extendee_type, &results)) {
-      std::copy(results.begin(), results.end(),
-                std::insert_iterator<std::set<int> >(merged_results,
-                                                     merged_results.begin()));
+      std::copy(
+          results.begin(), results.end(),
+          std::insert_iterator<std::set<int> >(merged_results, merged_results.begin()));
       success = true;
     }
     results.clear();

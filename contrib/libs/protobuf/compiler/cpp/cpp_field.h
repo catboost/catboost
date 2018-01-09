@@ -123,19 +123,9 @@ class FieldGenerator {
     io::Printer* /*printer*/) const {}
 
   // Generate lines of code (statements, not declarations) which clear the
-  // field.  This is used to define the clear_$name$() method
+  // field.  This is used to define the clear_$name$() method as well as
+  // the Clear() method for the whole message.
   virtual void GenerateClearingCode(io::Printer* printer) const = 0;
-
-  // Generate lines of code (statements, not declarations) which clear the field
-  // as part of the Clear() method for the whole message.  For message types
-  // which have field presence bits, MessageGenerator::GenerateClear will have
-  // already checked the presence bits.
-  //
-  // Since most field types can re-use GenerateClearingCode, this method is not
-  // pure virtual.
-  virtual void GenerateMessageClearingCode(io::Printer* printer) const {
-    GenerateClearingCode(printer);
-  }
 
   // Generate lines of code (statements, not declarations) which merges the
   // contents of the field from the current message to the target message,
@@ -144,9 +134,6 @@ class FieldGenerator {
   // Details of this usage can be found in message.cc under the
   // GenerateMergeFrom method.
   virtual void GenerateMergingCode(io::Printer* printer) const = 0;
-
-  // Generates a copy constructor
-  virtual void GenerateCopyConstructorCode(io::Printer* printer) const = 0;
 
   // Generate lines of code (statements, not declarations) which swaps
   // this field and the corresponding field of another message, which

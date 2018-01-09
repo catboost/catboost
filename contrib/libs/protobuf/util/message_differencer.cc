@@ -302,8 +302,7 @@ void MessageDifferencer::TreatAsMapWithMultipleFieldPathsAsKey(
       << "Field has to be message type.  Field name is: "
       << field->full_name();
   for (int i = 0; i < key_field_paths.size(); ++i) {
-    const std::vector<const FieldDescriptor*>& key_field_path =
-        key_field_paths[i];
+    const std::vector<const FieldDescriptor*>& key_field_path = key_field_paths[i];
     for (int j = 0; j < key_field_path.size(); ++j) {
       const FieldDescriptor* parent_field =
           j == 0 ? field : key_field_path[j - 1];
@@ -627,7 +626,6 @@ bool MessageDifferencer::CompareWithFieldsInternal(
       }
 
       if (reporter_ != NULL) {
-        assert(field1 != NULL);
         int count = field1->is_repeated() ?
             reflection1->FieldSize(message1, field1) : 1;
 
@@ -708,7 +706,6 @@ bool MessageDifferencer::CompareWithFieldsInternal(
     }
 
     bool fieldDifferent = false;
-    assert(field1 != NULL);
     if (field1->is_repeated()) {
       fieldDifferent = !CompareRepeatedField(message1, message2, field1,
                                              parent_fields);
@@ -747,11 +744,12 @@ bool MessageDifferencer::CompareWithFieldsInternal(
   return !isDifferent;
 }
 
-bool MessageDifferencer::IsMatch(
-    const FieldDescriptor* repeated_field,
-    const MapKeyComparator* key_comparator, const Message* message1,
-    const Message* message2, const std::vector<SpecificField>& parent_fields,
-    int index1, int index2) {
+bool MessageDifferencer::IsMatch(const FieldDescriptor* repeated_field,
+                                 const MapKeyComparator* key_comparator,
+                                 const Message* message1,
+                                 const Message* message2,
+                                 const std::vector<SpecificField>& parent_fields,
+                                 int index1, int index2) {
   std::vector<SpecificField> current_parent_fields(parent_fields);
   if (repeated_field->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) {
     return CompareFieldValueUsingParentFields(
@@ -877,7 +875,6 @@ bool MessageDifferencer::CompareRepeatedField(
 
   for (int i = 0; i < count1; ++i) {
     if (match_list1[i] != -1) continue;
-    assert(reporter_ != NULL);
     specific_field.index = i;
     parent_fields->push_back(specific_field);
     reporter_->ReportDeleted(message1, message2, *parent_fields);
@@ -977,8 +974,7 @@ bool MessageDifferencer::IsIgnored(
 
 bool MessageDifferencer::IsUnknownFieldIgnored(
     const Message& message1, const Message& message2,
-    const SpecificField& field,
-    const std::vector<SpecificField>& parent_fields) {
+    const SpecificField& field, const std::vector<SpecificField>& parent_fields) {
   for (int i = 0; i < ignore_criteria_.size(); ++i) {
     if (ignore_criteria_[i]->IsUnknownFieldIgnored(message1, message2, field,
                                                    parent_fields)) {
@@ -1326,8 +1322,7 @@ int MaximumMatcher::FindMaximumMatch(bool early_return) {
 
 bool MaximumMatcher::Match(int left, int right) {
   std::pair<int, int> p(left, right);
-  std::map<std::pair<int, int>, bool>::iterator it =
-      cached_match_results_.find(p);
+  std::map<std::pair<int, int>, bool>::iterator it = cached_match_results_.find(p);
   if (it != cached_match_results_.end()) {
     return it->second;
   }
@@ -1395,7 +1390,7 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
       // algorithm will fail to find a maximum matching.
       // Here we use the argumenting path algorithm.
       MaximumMatcher::NodeMatchCallback* callback =
-          NewPermanentCallback(
+          ::google::protobuf::internal::NewPermanentCallback(
               this, &MessageDifferencer::IsMatch,
               repeated_field, key_comparator,
               &message1, &message2, parent_fields);

@@ -1,12 +1,8 @@
 #pragma once
 
-#include <catboost/libs/helpers/exception.h>
-#include <util/generic/map.h>
-#include <util/stream/file.h>
 #include <util/system/fs.h>
 #include <util/system/spinlock.h>
 #include <util/system/tempfile.h>
-#include <util/ysaveload.h>
 
 namespace NCatboostCuda {
     class TCatFeaturesPerfectHash {

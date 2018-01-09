@@ -7,7 +7,6 @@
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
 #include <catboost/cuda/cuda_lib/mapping.h>
-#include <catboost/cuda/cuda_lib/cpu_reducers.h>
 #include <util/ysafeptr.h>
 #include <util/generic/vector.h>
 

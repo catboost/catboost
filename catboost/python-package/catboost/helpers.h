@@ -4,8 +4,6 @@
 
 #include <util/generic/noncopyable.h>
 
-#include <Python.h>
-
 class TGilGuard : public TNonCopyable {
 public:
     TGilGuard()

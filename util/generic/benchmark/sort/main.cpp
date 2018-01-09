@@ -4,6 +4,11 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 
+template <class C>
+static inline void StableSort(C& c) {
+    StableSort(c.begin(), c.end());
+}
+
 Y_CPU_BENCHMARK(Sort1, iface) {
     TVector<int> x = {1};
 

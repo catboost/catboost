@@ -1,7 +1,5 @@
 #pragma once
 
-#include <catboost/cuda/cuda_lib/task.h>
-
 namespace NCudaLib {
     template <EPtrType PtrType>
     class TCudaMallocTask: public IAllocateMemoryTask {
@@ -25,7 +23,7 @@ namespace NCudaLib {
             return Size;
         }
 
-        EPtrType GetPtrType() const override {
+        EPtrType GetPtrType() const {
             return PtrType;
         }
 

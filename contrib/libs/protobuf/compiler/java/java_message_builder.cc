@@ -184,11 +184,6 @@ Generate(io::Printer* printer) {
       "}\n"
       "\n");
   } else {
-    // Override methods declared in GeneratedMessage to return the concrete
-    // generated type so callsites won't depend on GeneratedMessage. This
-    // is needed to keep binary compatibility when we change generated code
-    // to subclass a different GeneratedMessage class (e.g., in v3.0.0 release
-    // we changed all generated code to subclass GeneratedMessageV3).
     printer->Print(
       "public final Builder setUnknownFields(\n"
       "    final com.google.protobuf.UnknownFieldSet unknownFields) {\n"
@@ -461,11 +456,6 @@ GenerateCommonBuilderMethods(io::Printer* printer) {
     "\n",
     "classname", name_resolver_->GetImmutableClassName(descriptor_));
 
-  // Override methods declared in GeneratedMessage to return the concrete
-  // generated type so callsites won't depend on GeneratedMessage. This
-  // is needed to keep binary compatibility when we change generated code
-  // to subclass a different GeneratedMessage class (e.g., in v3.0.0 release
-  // we changed all generated code to subclass GeneratedMessageV3).
   printer->Print(
     "public Builder clone() {\n"
     "  return (Builder) super.clone();\n"
@@ -606,6 +596,7 @@ GenerateCommonBuilderMethods(io::Printer* printer) {
       "  return this;\n"
       "}\n"
       "\n");
+
   }
 }
 
@@ -699,7 +690,7 @@ void MessageBuilderGenerator::GenerateIsInitialized(
         case FieldDescriptor::LABEL_REPEATED:
           if (IsMapEntry(field->message_type())) {
             printer->Print(
-              "for ($type$ item : get$name$Map().values()) {\n"
+              "for ($type$ item : get$name$().values()) {\n"
               "  if (!item.isInitialized()) {\n"
               "    return false;\n"
               "  }\n"

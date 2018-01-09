@@ -360,7 +360,6 @@ const char* BoxedPrimitiveTypeName(JavaType type) {
   return NULL;
 }
 
-
 const char* FieldTypeName(FieldDescriptor::Type field_type) {
   switch (field_type) {
     case FieldDescriptor::TYPE_INT32   : return "INT32";

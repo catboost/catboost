@@ -94,24 +94,19 @@ StatusOr<To> FloatingPointToIntConvertAndCheck(From before) {
 }
 
 // For conversion between double and float only.
-StatusOr<double> FloatToDouble(float before) {
-  // Casting float to double should just work as double has more precision
-  // than float.
-  return static_cast<double>(before);
-}
+template <typename To, typename From>
+StatusOr<To> FloatingPointConvertAndCheck(From before) {
+  if (MathLimits<From>::IsNaN(before)) {
+    return std::numeric_limits<To>::quiet_NaN();
+  }
 
-StatusOr<float> DoubleToFloat(double before) {
-  if (MathLimits<double>::IsNaN(before)) {
-    return std::numeric_limits<float>::quiet_NaN();
-  } else if (!MathLimits<double>::IsFinite(before)) {
-    // Converting a double +inf/-inf to float should just work.
-    return static_cast<float>(before);
-  } else if (before > std::numeric_limits<float>::max() ||
-             before < -std::numeric_limits<float>::max()) {
-    // Double value outside of the range of float.
-    return InvalidArgument(DoubleAsString(before));
+  To after = static_cast<To>(before);
+  if (MathUtil::AlmostEquals<To>(after, before)) {
+    return after;
   } else {
-    return static_cast<float>(before);
+    return InvalidArgument(::google::protobuf::internal::is_same<From, double>::value
+                               ? DoubleAsString(before)
+                               : FloatAsString(before));
   }
 }
 
@@ -167,27 +162,20 @@ StatusOr<uint64> DataPiece::ToUint64() const {
 
 StatusOr<double> DataPiece::ToDouble() const {
   if (type_ == TYPE_FLOAT) {
-    return FloatToDouble(float_);
+    return FloatingPointConvertAndCheck<double, float>(float_);
   }
   if (type_ == TYPE_STRING) {
     if (str_ == "Infinity") return std::numeric_limits<double>::infinity();
     if (str_ == "-Infinity") return -std::numeric_limits<double>::infinity();
     if (str_ == "NaN") return std::numeric_limits<double>::quiet_NaN();
-    StatusOr<double> value = StringToNumber<double>(safe_strtod);
-    if (value.ok() && !MathLimits<double>::IsFinite(value.ValueOrDie())) {
-      // safe_strtod converts out-of-range values to +inf/-inf, but we want
-      // to report them as errors.
-      return InvalidArgument(StrCat("\"", str_, "\""));
-    } else {
-      return value;
-    }
+    return StringToNumber<double>(safe_strtod);
   }
   return GenericConvert<double>();
 }
 
 StatusOr<float> DataPiece::ToFloat() const {
   if (type_ == TYPE_DOUBLE) {
-    return DoubleToFloat(double_);
+    return FloatingPointConvertAndCheck<float, double>(double_);
   }
   if (type_ == TYPE_STRING) {
     if (str_ == "Infinity") return std::numeric_limits<float>::infinity();
@@ -271,8 +259,7 @@ StatusOr<string> DataPiece::ToBytes() const {
   }
 }
 
-StatusOr<int> DataPiece::ToEnum(const google::protobuf::Enum* enum_type,
-                                bool use_lower_camel_for_enums) const {
+StatusOr<int> DataPiece::ToEnum(const google::protobuf::Enum* enum_type) const {
   if (type_ == TYPE_NULL) return google::protobuf::NULL_VALUE;
 
   if (type_ == TYPE_STRING) {
@@ -281,34 +268,20 @@ StatusOr<int> DataPiece::ToEnum(const google::protobuf::Enum* enum_type,
     const google::protobuf::EnumValue* value =
         FindEnumValueByNameOrNull(enum_type, enum_name);
     if (value != NULL) return value->number();
-
-    // Check if int version of enum is sent as string.
-    StatusOr<int32> int_value = ToInt32();
-    if (int_value.ok()) {
-      if (const google::protobuf::EnumValue* enum_value =
-              FindEnumValueByNumberOrNull(enum_type, int_value.ValueOrDie())) {
-        return enum_value->number();
-      }
-    }
-
     // Next try a normalized name.
     for (string::iterator it = enum_name.begin(); it != enum_name.end(); ++it) {
       *it = *it == '-' ? '_' : ascii_toupper(*it);
     }
     value = FindEnumValueByNameOrNull(enum_type, enum_name);
     if (value != NULL) return value->number();
-
-    // If use_lower_camel_for_enums is true try with enum name without
-    // underscore. This will also accept camel case names as the enum_name has
-    // been normalized before.
-    if (use_lower_camel_for_enums) {
-      value = FindEnumValueByNameWithoutUnderscoreOrNull(enum_type, enum_name);
-      if (value != NULL) return value->number();
-    }
   } else {
-    // We don't need to check whether the value is actually declared in the
-    // enum because we preserve unknown enum values as well.
-    return ToInt32();
+    StatusOr<int32> value = ToInt32();
+    if (value.ok()) {
+      if (const google::protobuf::EnumValue* enum_value =
+              FindEnumValueByNumberOrNull(enum_type, value.ValueOrDie())) {
+        return enum_value->number();
+      }
+    }
   }
   return InvalidArgument(
       ValueAsStringOrDefault("Cannot find enum with given value."));
@@ -381,7 +354,6 @@ bool DataPiece::DecodeBase64(StringPiece src, string* dest) const {
 
 void DataPiece::InternalCopy(const DataPiece& other) {
   type_ = other.type_;
-  use_strict_base64_decoding_ = other.use_strict_base64_decoding_;
   switch (type_) {
     case TYPE_INT32:
     case TYPE_INT64:

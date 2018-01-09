@@ -9,13 +9,10 @@
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/data/pair.h>
-#include <catboost/libs/options/defaults_helper.h>
 
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 #include <util/generic/ymath.h>
-
-#include <tuple>
 
 TVector<int> InvertPermutation(const TVector<int>& permutation);
 
@@ -47,14 +44,14 @@ struct TFold {
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;
     size_t EffectiveDocCount = 0;
-    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int PermutationBlockSize = 0;
 
     TOnlineCTRHash& GetCtrs(const TProjection& proj) {
-        return proj.HasSingleFeature() ? OnlineSingleCtrs : OnlineCTR;
+        return HasSingleFeature(proj) ? OnlineSingleCtrs : OnlineCTR;
     }
 
     const TOnlineCTRHash& GetCtrs(const TProjection& proj) const {
-        return proj.HasSingleFeature() ? OnlineSingleCtrs : OnlineCTR;
+        return HasSingleFeature(proj) ? OnlineSingleCtrs : OnlineCTR;
     }
 
     TOnlineCTR& GetCtrRef(const TProjection& proj) {
@@ -66,10 +63,6 @@ struct TFold {
     }
 
     void DropEmptyCTRs();
-
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&> GetAllCtrs() const {
-        return std::tie(OnlineSingleCtrs, OnlineCTR);
-    }
 
     void AssignTarget(const TVector<float>& target,
                       const TVector<TTargetClassifier>& targetClassifiers);
@@ -104,6 +97,9 @@ struct TFold {
 private:
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
+    static bool HasSingleFeature(const TProjection& proj) {
+        return proj.BinFeatures.ysize() + proj.CatFeatures.ysize() == 1;
+    }
 };
 
 void InitFromBaseline(const int beginIdx, const int endIdx,

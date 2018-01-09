@@ -4,6 +4,8 @@
 #include <util/generic/ptr.h>
 #include <util/folder/path.h>
 #include <util/generic/string.h>
+#include <util/system/file_lock.h>
+#include <util/system/mutex.h>
 #include <util/network/sock.h>
 
 class TInet6StreamSocket;
@@ -33,7 +35,7 @@ void SetReuseAddressAndPort(const TSocketType& sock) {
 
 class TPortManager: public TNonCopyable {
 public:
-    TPortManager(const TString& syncDir = TString());
+    TPortManager();
     ~TPortManager();
 
     // Gets free TCP port
@@ -48,10 +50,39 @@ public:
     // Gets one free port for use in both TCP and UDP protocols
     ui16 GetTcpAndUdpPort(ui16 port = 0);
 
-    ui16 GetPortsRange(const ui16 startPort, const ui16 range);
-
 private:
     class TPortManagerImpl;
     THolder<TPortManagerImpl> Impl_;
+};
 
+class TPortsRangeManager {
+    class TPortGuard {
+    public:
+        using TPtr = TSimpleSharedPtr<TPortGuard>;
+
+        TPortGuard(const TFsPath& root, const ui16 port);
+
+        bool IsLocked() const;
+
+        ui16 GetPort() const;
+
+        ~TPortGuard();
+
+    private:
+        TFsPath Path;
+        ui16 Port;
+        TFileLock Lock;
+        TSimpleSharedPtr<TInet6StreamSocket> Socket;
+        bool Locked = false;
+    };
+
+public:
+    TPortsRangeManager(const TString& syncDir);
+
+    ui16 GetPortsRange(const ui16 startPort, const ui16 range);
+
+private:
+    TFsPath WorkDir;
+    TVector<TPortGuard::TPtr> ReservedPorts;
+    TMutex Lock;
 };

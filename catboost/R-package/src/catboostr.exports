@@ -11,5 +11,4 @@ C CatBoostGetModelParams_R
 C CatBoostPredictMulti_R
 C CatBoostPrepareEval_R
 C CatBoostPoolSlice_R
-C CatBoostShrinkModel_R
 C CatBoostCalcRegularFeatureEffect_R

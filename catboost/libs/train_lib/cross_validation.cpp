@@ -185,17 +185,6 @@ void CrossValidate(
 
     for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
         contexts[foldIdx]->InitData(folds[foldIdx]);
-
-        TLearnContext& ctx = *contexts[foldIdx];
-        const TFold& firstFold = ctx.LearnProgress.Folds[0];
-        const TTrainData& data = folds[foldIdx];
-        if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
-            ctx.SmallestSplitSideDocs.Create(firstFold); // assume that all folds have the same shape
-            const int approxDimension = firstFold.GetApproxDimension();
-            const int bodyTailCount = firstFold.BodyTailArr.ysize();
-            ctx.PrevTreeLevelStats.Create(CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth), approxDimension, bodyTailCount);
-        }
-        ctx.SampledDocs.Create(firstFold); // TODO(espetrov): create only if sample rate < 1
     }
 
     const ui32 approxDimension = ctx->LearnProgress.ApproxDimension;

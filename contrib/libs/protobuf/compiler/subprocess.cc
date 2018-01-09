@@ -261,11 +261,12 @@ string Subprocess::Win32ErrorMessage(DWORD error_code) {
   char* message;
 
   // WTF?
-  FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                     FORMAT_MESSAGE_IGNORE_INSERTS,
-                 NULL, error_code, 0,
-                 (LPSTR)&message,  // NOT A BUG!
-                 0, NULL);
+  FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL, error_code, 0,
+                (LPTSTR)&message,  // NOT A BUG!
+                0, NULL);
 
   string result = message;
   LocalFree(message);

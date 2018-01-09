@@ -35,9 +35,8 @@ void BuildCvPools(
     const size_t docCount = allDocs.GetDocCount();
     const size_t testCount = (docCount - 1 - foldIdx) / foldCount + 1; // number of foldIdx + n*foldCount in [0, docCount)
     const size_t learnCount = docCount - testCount;
-    bool hasQueryId = !learnPool->Docs.QueryId.empty();
-    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
-    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
+    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension());
+    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension());
 
     size_t learnIdx = 0;
     size_t testIdx = 0;

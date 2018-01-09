@@ -65,7 +65,6 @@ ProtoWriter::ProtoWriter(TypeResolver* type_resolver,
       own_typeinfo_(true),
       done_(false),
       ignore_unknown_fields_(false),
-      use_lower_camel_for_enums_(false),
       element_(NULL),
       size_insert_(),
       output_(output),
@@ -84,7 +83,6 @@ ProtoWriter::ProtoWriter(const TypeInfo* typeinfo,
       own_typeinfo_(false),
       done_(false),
       ignore_unknown_fields_(false),
-      use_lower_camel_for_enums_(false),
       element_(NULL),
       size_insert_(),
       output_(output),
@@ -266,9 +264,8 @@ inline Status WriteString(int field_number, const DataPiece& data,
 // Writes an ENUM field, including tag, to the stream.
 inline Status WriteEnum(int field_number, const DataPiece& data,
                         const google::protobuf::Enum* enum_type,
-                        CodedOutputStream* stream,
-                        bool use_lower_camel_for_enums) {
-  StatusOr<int> e = data.ToEnum(enum_type, use_lower_camel_for_enums);
+                        CodedOutputStream* stream) {
+  StatusOr<int> e = data.ToEnum(enum_type);
   if (e.ok()) {
     WireFormatLite::WriteEnum(field_number, e.ValueOrDie(), stream);
   }
@@ -665,7 +662,7 @@ ProtoWriter* ProtoWriter::RenderPrimitiveField(
     case google::protobuf::Field_Kind_TYPE_ENUM: {
       status = WriteEnum(field.number(), data,
                          typeinfo_->GetEnumByTypeUrl(field.type_url()),
-                         stream_.get(), use_lower_camel_for_enums_);
+                         stream_.get());
       break;
     }
     default:  // TYPE_GROUP or TYPE_MESSAGE

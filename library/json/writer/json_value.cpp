@@ -857,8 +857,8 @@ namespace {
     }
 } // anonymous namespace
 
-bool TJsonValue::GetValueByPath(const TStringBuf path, TJsonValue& result, char delimiter) const {
-    const TJsonValue* const ptr = GetValuePtrByPath<false>(this, path, delimiter);
+bool TJsonValue::GetValueByPath(const TStringBuf path, TJsonValue& result, char delimiter) {
+    TJsonValue* const ptr = GetValuePtrByPath<false>(this, path, delimiter);
     if (ptr) {
         result = *ptr;
         return true;

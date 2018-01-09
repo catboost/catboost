@@ -4161,14 +4161,6 @@ curand.h
 cusparse.h
 driver_types.h
 nvToolsExt.h
-cuda/include/cuComplex.h
-cuda/include/cublas_v2.h
-cuda/include/cuda.h
-cuda/include/cuda_runtime_api.h
-cuda/include/cudnn.h
-cuda/include/cufft.h
-cuda/include/curand.h
-cuda/include/cusolverDn.h
 #endif
 #if defined(__X11__)
 X11/XKBlib.h
