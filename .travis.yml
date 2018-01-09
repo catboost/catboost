@@ -24,7 +24,7 @@ before_script: |
     #
     unset CC
     unset CXX
-    pip install webdavclient || sudo pip2 install webdavclient
+    pip install webdavclient || sudo pip2 install webdavclient -v
 
 matrix:
   include:
@@ -84,8 +84,7 @@ matrix:
           tags: true
     - os: osx
       osx_image: xcode8.3
-      language: python
-      python: 2.7
+      language: cpp
       env: CB_BUILD_AGENT='clang-darwin-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
       deploy:
@@ -97,8 +96,7 @@ matrix:
           tags: true
     - os: osx
       osx_image: xcode8.3
-      language: python
-      python: 2.7
+      language: cpp
       env: CB_BUILD_AGENT='R-clang-darwin-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: linux
