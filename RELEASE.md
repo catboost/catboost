@@ -5,7 +5,7 @@
 - `model.shrink` function added in Python and R wrappers. 
 - Added new training parameter `metric_period` that controls output frequency. 
 - Added new ranking metric `QueryAverage`. 
-- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/tree/master/catboost/tutorials#adding-custom-per-object-error-function-tutorial).
+- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_custom_loss_tutorial.md).
 
 ## Bug Fixes and Other Changes
 - Stability improvements and bug fixes
