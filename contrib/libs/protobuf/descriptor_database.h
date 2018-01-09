@@ -297,7 +297,8 @@ class LIBPROTOBUF_EXPORT EncodedDescriptorDatabase : public DescriptorDatabase {
                                std::vector<int>* output);
 
  private:
-  SimpleDescriptorDatabase::DescriptorIndex<std::pair<const void*, int> > index_;
+  SimpleDescriptorDatabase::DescriptorIndex<std::pair<const void*, int> >
+      index_;
   std::vector<void*> files_to_delete_;
 
   // If encoded_file.first is non-NULL, parse the data into *output and return
@@ -340,7 +341,8 @@ class LIBPROTOBUF_EXPORT MergedDescriptorDatabase : public DescriptorDatabase {
   // Merge more than two databases.  The sources remain property of the caller.
   // The vector may be deleted after the constructor returns but the
   // DescriptorDatabases need to stick around.
-  explicit MergedDescriptorDatabase(const std::vector<DescriptorDatabase*>& sources);
+  explicit MergedDescriptorDatabase(
+      const std::vector<DescriptorDatabase*>& sources);
   ~MergedDescriptorDatabase();
 
   // implements DescriptorDatabase -----------------------------------

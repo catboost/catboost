@@ -106,7 +106,8 @@ void Printer::Annotate(const char* begin_varname, const char* end_varname,
   }
 }
 
-void Printer::Print(const std::map<string, string>& variables, const char* text) {
+void Printer::Print(const std::map<string, string>& variables,
+                    const char* text) {
   int size = strlen(text);
   int pos = 0;  // The number of bytes we've written so far.
   substitutions_.clear();
@@ -149,8 +150,9 @@ void Printer::Print(const std::map<string, string>& variables, const char* text)
         } else {
           size_t begin = offset_;
           WriteRaw(iter->second.data(), iter->second.size());
-          std::pair<std::map<string, std::pair<size_t, size_t> >::iterator, bool> inserted =
-              substitutions_.insert(
+          std::pair<std::map<string, std::pair<size_t, size_t> >::iterator,
+                    bool>
+              inserted = substitutions_.insert(
                   std::make_pair(varname, std::make_pair(begin, offset_)));
           if (!inserted.second) {
             // This variable was used multiple times.  Make its span have

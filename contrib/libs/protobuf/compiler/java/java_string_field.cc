@@ -70,7 +70,8 @@ void SetPrimitiveVariables(const FieldDescriptor* descriptor,
   (*variables)["default_init"] =
       "= " + ImmutableDefaultValue(descriptor, name_resolver);
   (*variables)["capitalized_type"] = "String";
-  (*variables)["tag"] = SimpleItoa(WireFormat::MakeTag(descriptor));
+  (*variables)["tag"] =
+      SimpleItoa(static_cast<int32>(WireFormat::MakeTag(descriptor)));
   (*variables)["tag_size"] = SimpleItoa(
       WireFormat::TagSize(descriptor->number(), GetType(descriptor)));
   (*variables)["null_check"] =

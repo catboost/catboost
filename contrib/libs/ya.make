@@ -27,6 +27,7 @@ RECURSE(
     platform
     protobuf
     protobuf/python
+    protobuf/python/test
     protobuf/java
     protobuf/ut
     snappy

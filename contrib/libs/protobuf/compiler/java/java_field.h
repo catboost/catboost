@@ -168,7 +168,7 @@ struct FieldGeneratorInfo {
   string disambiguated_reason;
 };
 
-// Oneof information used in OneofFieldGeneartors.
+// Oneof information used in OneofFieldGenerators.
 struct OneofGeneratorInfo {
   string name;
   string capitalized_name;

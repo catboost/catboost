@@ -619,7 +619,6 @@ class Map {
 
 #if __cplusplus >= 201103L && !defined(GOOGLE_PROTOBUF_OS_APPLE) && \
     !defined(GOOGLE_PROTOBUF_OS_NACL) &&                            \
-    !defined(GOOGLE_PROTOBUF_OS_ANDROID) &&                         \
     !defined(GOOGLE_PROTOBUF_OS_EMSCRIPTEN)
     template<class NodeType, class... Args>
     void construct(NodeType* p, Args&&... args) {
@@ -658,7 +657,8 @@ class Map {
 
     // To support Visual Studio 2008
     size_type max_size() const {
-      return std::numeric_limits<size_type>::max();
+      // parentheses around (std::...:max) prevents macro warning of max()
+      return (std::numeric_limits<size_type>::max)();
     }
 
     // To support gcc-4.4, which does not properly
@@ -1088,8 +1088,9 @@ class Map {
         // index_of_first_non_null_, so we skip the code to update it.
         return InsertUniqueInTree(b, node);
       }
+      // parentheses around (std::min) prevents macro expansion of min(...)
       index_of_first_non_null_ =
-          std::min(index_of_first_non_null_, result.bucket_index_);
+          (std::min)(index_of_first_non_null_, result.bucket_index_);
       return result;
     }
 
@@ -1536,8 +1537,9 @@ class Map {
 
   // Lookup
   size_type count(const key_type& key) const {
-    if (find(key) != end()) assert(key == find(key)->first);
-    return find(key) == end() ? 0 : 1;
+    const_iterator it = find(key);
+    GOOGLE_DCHECK(it == end() || key == it->first);
+    return it == end() ? 0 : 1;
   }
   const_iterator find(const key_type& key) const {
     return old_style_ ? const_iterator(deprecated_elements_->find(key))

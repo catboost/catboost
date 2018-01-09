@@ -567,7 +567,6 @@ GenerateMessageSerializationMethods(io::Printer* printer) {
   }
   std::sort(sorted_extensions.begin(), sorted_extensions.end(),
             ExtensionRangeOrdering());
-
   printer->Print(
     "public void writeTo(com.google.protobuf.CodedOutputStream output)\n"
     "                    throws java.io.IOException {\n");
@@ -1093,7 +1092,12 @@ GenerateEqualsAndHashCode(io::Printer* printer) {
     "}\n"
     "int hash = 41;\n");
 
-  printer->Print("hash = (19 * hash) + getDescriptorForType().hashCode();\n");
+  // If we output a getDescriptor() method, use that as it is more efficient.
+  if (descriptor_->options().no_standard_descriptor_accessor()) {
+    printer->Print("hash = (19 * hash) + getDescriptorForType().hashCode();\n");
+  } else {
+    printer->Print("hash = (19 * hash) + getDescriptor().hashCode();\n");
+  }
 
   // hashCode non-oneofs.
   for (int i = 0; i < descriptor_->field_count(); i++) {
@@ -1254,7 +1258,7 @@ GenerateParsingConstructor(io::Printer* printer) {
 
     printer->Print(
       "case $tag$: {\n",
-      "tag", SimpleItoa(tag));
+      "tag", SimpleItoa(static_cast<int32>(tag)));
     printer->Indent();
 
     field_generators_.get(field).GenerateParsingCode(printer);
@@ -1271,7 +1275,7 @@ GenerateParsingConstructor(io::Printer* printer) {
         WireFormatLite::WIRETYPE_LENGTH_DELIMITED);
       printer->Print(
         "case $tag$: {\n",
-        "tag", SimpleItoa(packed_tag));
+        "tag", SimpleItoa(static_cast<int32>(packed_tag)));
       printer->Indent();
 
       field_generators_.get(field).GenerateParsingCodeFromPacked(printer);
@@ -1417,7 +1421,7 @@ void ImmutableMessageGenerator::GenerateAnyMethods(io::Printer* printer) {
     "}\n"
     "\n"
     "/**\n"
-    " * Packs a message uisng the given type URL prefix. The type URL will\n"
+    " * Packs a message using the given type URL prefix. The type URL will\n"
     " * be constructed by concatenating the message type's full name to the\n"
     " * prefix with an optional \"/\" separator if the prefix doesn't end\n"
     " * with \"/\" already.\n"
