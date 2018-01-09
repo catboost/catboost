@@ -131,9 +131,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\sse41\util-charset-sse41.vcxproj">
-      <Project>3C6412E3-C043-4893-360A-3ED740DCB2B9</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
     </ProjectReference>

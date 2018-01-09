@@ -1,7 +1,16 @@
 #include <util/charset/wide.h>
+#include <util/system/types.h>
+
+#ifdef SSE41_STUB
+
+namespace NDetail {
+    void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar16*&) noexcept {
+    }
+}
+
+#else
 
 #include <util/system/compiler.h>
-#include <util/system/types.h>
 
 #include <cstring>
 #include <emmintrin.h>
@@ -128,3 +137,5 @@ namespace NDetail {
         // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
     }
 }
+
+#endif
