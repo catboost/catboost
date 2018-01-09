@@ -97,6 +97,20 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_cross_entropy.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_custom.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_log_lin_quantile.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_logloss.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_map.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class_one_vs_all.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_pair_logit.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_poisson.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_quantile.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_query_rmse.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_rmse.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_per_object.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tree_print.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
@@ -129,6 +143,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
