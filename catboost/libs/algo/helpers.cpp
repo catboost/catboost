@@ -126,7 +126,7 @@ int GetClassesCount(const TVector<float>& target, int classesCount) {
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
     if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        MATRIXNET_WARNING_LOG << "link me with lfalloc please" << Endl;
+        MATRIXNET_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
     }
 #endif
 }

@@ -363,6 +363,17 @@ Default value:
 
 3
 
+\item model_size_reg
+
+Model size regularization coefficient. The influence coefficient of the model size for choosing tree structure.
+      To get a smaller model size - increase this coefficient.
+
+Any positive values are allowed.
+
+Default value:
+
+0.5
+
 \item has_time
 
 Use the order of objects in the input data (do not perform random permutations during the
@@ -372,33 +383,6 @@ Use the order of objects in the input data (do not perform random permutations d
 Default value:
 
 FALSE (not used; generate random permutations)
-
-\item priors
-
-Use the specified priors during training.
-
-Format:
-
-c(<prior 1>,<prior 2>,...,<prior N>)
-
-Default value:
-
-c(0,0.5,1)
-
-\item feature_priors
-
-Specify individual priors for categorical features (used at the Transforming categorical
-
-Given in the form of a comma-separated list of prior descriptions for each specified feature.
-      The description for each feature contains a colon-separated feature index and prior values.
-
-Format:
-
-\code{с('<ID of feature 1>:<prior 1.1>:<prior 1.2>:...:<prior 1.N1>',...,'<ID of feature M>:<prior M.1>:<prior M.2>:...:<prior M.NM>')}
-
-Default value:
-
-Each feature uses the default priors
 
 \item name
 

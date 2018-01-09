@@ -11,11 +11,17 @@
 #include <sys/mman.h>
 #endif
 
+#ifndef MADV_DONTDUMP    /* This flag is defined in sys/mman.h since Linux 3.4, but currently old libc header is in use \
+                            for capability with Ubuntu 12.04, so we need to define it here manually */
+#define MADV_DONTDUMP 16 /* Explicity exclude from the core dump, overrides the coredump filter bits */
+#endif
+
 namespace {
     enum EMadvise {
         M_MADVISE_SEQUENTIAL = 0,
         M_MADVISE_RANDOM = 1,
-        M_MADVISE_EVICT = 2
+        M_MADVISE_EVICT = 2,
+        M_MADVISE_DONTDUMP = 3
     };
 
     void Madvise(EMadvise madv, const void* cbegin, size_t size) {
@@ -40,6 +46,7 @@ namespace {
 #else // freebsd, osx
             MADV_FREE,
 #endif
+            MADV_DONTDUMP
         };
 
         const int flag = madviseFlags[madv];
@@ -63,4 +70,8 @@ void MadviseRandomAccess(const void* begin, size_t size) {
 
 void MadviseEvict(const void* begin, size_t size) {
     Madvise(M_MADVISE_EVICT, begin, size);
+}
+
+void MadviseExcludeFromCoreDump(const void* begin, size_t size) {
+    Madvise(M_MADVISE_DONTDUMP, begin, size);
 }

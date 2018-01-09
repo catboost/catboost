@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='google/protobuf/duration.proto',
   package='google.protobuf',
   syntax='proto3',
-  serialized_pb=_b('\n\x1egoogle/protobuf/duration.proto\x12\x0fgoogle.protobuf\"*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x42|\n\x13\x63om.google.protobufB\rDurationProtoP\x01Z*github.com/golang/protobuf/ptypes/duration\xa0\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
+  serialized_pb=_b('\n\x1egoogle/protobuf/duration.proto\x12\x0fgoogle.protobuf\"*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x42|\n\x13\x63om.google.protobufB\rDurationProtoP\x01Z*github.com/golang/protobuf/ptypes/duration\xf8\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -74,5 +74,5 @@ _sym_db.RegisterMessage(Duration)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\rDurationProtoP\001Z*github.com/golang/protobuf/ptypes/duration\240\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023com.google.protobufB\rDurationProtoP\001Z*github.com/golang/protobuf/ptypes/duration\370\001\001\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes'))
 # @@protoc_insertion_point(module_scope)

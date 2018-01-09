@@ -2,6 +2,10 @@
 #include <util/generic/vector.h>
 #include <util/network/sock.h>
 #include <util/system/env.h>
+#include <util/system/file_lock.h>
+#include <util/system/fs.h>
+#include <util/system/mutex.h>
+
 #include "tests_data.h"
 
 #ifdef _win_
@@ -57,7 +61,30 @@ TFsPath GetOutputPath() {
 }
 
 class TPortManager::TPortManagerImpl {
+    class TPortGuard {
+    public:
+        using TPtr = TSimpleSharedPtr<TPortGuard>;
+
+        TPortGuard(const TFsPath& root, const ui16 port);
+        ~TPortGuard();
+
+        bool IsLocked() const;
+        ui16 GetPort() const;
+    private:
+        TFsPath Path;
+        ui16 Port;
+        TFileLock Lock;
+        TSimpleSharedPtr<TInet6StreamSocket> Socket;
+        bool Locked = false;
+    };
+
 public:
+    TPortManagerImpl(const TString& syncDir) {
+        SyncDir = GetEnv("PORT_SYNC_PATH", syncDir);
+        if (IsSyncDirSet())
+            NFs::MakeDirectoryRecursive(SyncDir);
+    }
+
     ui16 GetUdpPort(ui16 port) {
         return GetPort<TInet6DgramSocket>(port);
     }
@@ -72,17 +99,28 @@ public:
             return port;
         }
 
-        TSocketType* sock = new TSocketType();
-        Sockets.push_back(sock);
+        size_t retries = 20;
+        int bind_error = 0;
 
-        SetReuseAddressAndPort(*sock);
+        while (retries--) {
+            THolder<TSocketType> sock = new TSocketType();
+            SetReuseAddressAndPort(*sock);
 
-        TSockAddrInet6 addr("::", 0);
-        const int ret = sock->Bind(&addr);
-        if (ret < 0) {
-            ythrow yexception() << "can't bind: " << LastSystemErrorText(-ret);
+            TSockAddrInet6 addr("::", 0);
+            bind_error = sock->Bind(&addr);
+            if (bind_error < 0)
+                continue;
+
+            ui16 port = addr.GetPort();
+            if (IsSyncDirSet() && !LockPort(port))
+                continue;
+
+            Sockets.push_back(std::move(sock));
+            return port;
         }
-        return addr.GetPort();
+        if (bind_error)
+            ythrow yexception() << "Can't bind: " << LastSystemErrorText(-bind_error);
+        ythrow yexception() << "Failed to find port";
     }
 
     ui16 GetTcpAndUdpPort(ui16 port) {
@@ -113,17 +151,53 @@ public:
         ythrow yexception() << "Failed to find port";
     }
 
+    ui16 GetPortsRange(const ui16 startPort, const ui16 range) {
+        Y_ENSURE(range > 0);
+        TGuard<TMutex> g(Lock);
+
+        TVector<TPortGuard::TPtr> candidates;
+
+        for (ui16 port = startPort; candidates.size() < range && port < Max<ui16>() - range; ++port) {
+            TPortGuard::TPtr guard(new TPortGuard(SyncDir, port));
+            if (!guard->IsLocked()) {
+                candidates.clear();
+            } else {
+                candidates.push_back(guard);
+            }
+        }
+
+        Y_ENSURE(candidates.size() == range);
+        ReservedPorts.insert(ReservedPorts.end(), candidates.begin(), candidates.end());
+        return candidates.front()->GetPort();
+    }
+
 private:
     static bool NoRandomPorts() {
         return !GetEnv("NO_RANDOM_PORTS").empty();
     }
 
+    bool IsSyncDirSet() {
+        return !SyncDir.empty();
+    }
+
+    bool LockPort(ui16 port) {
+        TGuard<TMutex> g(Lock);
+        TPortGuard::TPtr guard(new TPortGuard(SyncDir, port));
+        bool locked = guard->IsLocked();
+        if (locked)
+            ReservedPorts.push_back(guard);
+        return locked;
+    }
+
 private:
     TVector<THolder<TBaseSocket>> Sockets;
+    TString SyncDir;
+    TVector<TPortGuard::TPtr> ReservedPorts;
+    TMutex Lock;
 };
 
-TPortManager::TPortManager()
-    : Impl_(new TPortManagerImpl())
+TPortManager::TPortManager(const TString& syncDir)
+    : Impl_(new TPortManagerImpl(syncDir))
 {
 }
 
@@ -146,7 +220,11 @@ ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
     return Impl_->GetTcpAndUdpPort(port);
 }
 
-TPortsRangeManager::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
+ui16 TPortManager::GetPortsRange(const ui16 startPort, const ui16 range) {
+    return Impl_->GetPortsRange(startPort, range);
+}
+
+TPortManager::TPortManagerImpl::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
     : Path(root / ::ToString(port))
     , Port(port)
     , Lock(Path)
@@ -163,43 +241,17 @@ TPortsRangeManager::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
     }
 }
 
-bool TPortsRangeManager::TPortGuard::IsLocked() const {
+bool TPortManager::TPortManagerImpl::TPortGuard::IsLocked() const {
     return Locked;
 }
 
-ui16 TPortsRangeManager::TPortGuard::GetPort() const {
+ui16 TPortManager::TPortManagerImpl::TPortGuard::GetPort() const {
     return Port;
 }
 
-TPortsRangeManager::TPortGuard::~TPortGuard() {
+TPortManager::TPortManagerImpl::TPortGuard::~TPortGuard() {
     if (Locked) {
         NFs::Remove(Path.GetPath());
         Lock.Release();
     }
-}
-
-TPortsRangeManager::TPortsRangeManager(const TString& syncDir)
-    : WorkDir(syncDir)
-{
-    NFs::MakeDirectoryRecursive(WorkDir.GetPath());
-}
-
-ui16 TPortsRangeManager::GetPortsRange(const ui16 startPort, const ui16 range) {
-    Y_ENSURE(range > 0);
-    TGuard<TMutex> g(Lock);
-
-    TVector<TPortGuard::TPtr> candidates;
-
-    for (ui16 port = startPort; candidates.size() < range && port < Max<ui16>() - range; ++port) {
-        TPortGuard::TPtr guard(new TPortGuard(WorkDir, port));
-        if (!guard->IsLocked()) {
-            candidates.clear();
-        } else {
-            candidates.push_back(guard);
-        }
-    }
-
-    Y_ENSURE(candidates.size() == range);
-    ReservedPorts.insert(ReservedPorts.end(), candidates.begin(), candidates.end());
-    return candidates.front()->GetPort();
 }

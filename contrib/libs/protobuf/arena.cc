@@ -30,6 +30,14 @@
 
 #include "arena.h"
 
+#include <algorithm>
+#include <limits>
+
+
+#ifdef ADDRESS_SANITIZER
+#include <sanitizer/asan_interface.h>
+#endif
+
 namespace google {
 namespace protobuf {
 
@@ -120,15 +128,20 @@ Arena::Block* Arena::NewBlock(void* me, Block* my_last_block, size_t n,
   } else {
     size = start_block_size;
   }
-  if (n > size - kHeaderSize) {
-    // TODO(sanjay): Check if n + kHeaderSize would overflow
-    size = kHeaderSize + n;
-  }
+  // Verify that n + kHeaderSize won't overflow.
+  GOOGLE_CHECK_LE(n, std::numeric_limits<size_t>::max() - kHeaderSize);
+  size = std::max(size, kHeaderSize + n);
 
   Block* b = reinterpret_cast<Block*>(options_.block_alloc(size));
   b->pos = kHeaderSize + n;
   b->size = size;
   b->owner = me;
+#ifdef ADDRESS_SANITIZER
+  // Poison the rest of the block for ASAN. It was unpoisoned by the underlying
+  // malloc but it's not yet usable until we return it as part of an allocation.
+  ASAN_POISON_MEMORY_REGION(
+      reinterpret_cast<char*>(b) + b->pos, b->size - b->pos);
+#endif
   return b;
 }
 
@@ -190,6 +203,9 @@ void* Arena::AllocateAligned(const std::type_info* allocated, size_t n) {
 void* Arena::AllocFromBlock(Block* b, size_t n) {
   size_t p = b->pos;
   b->pos = p + n;
+#ifdef ADDRESS_SANITIZER
+  ASAN_UNPOISON_MEMORY_REGION(reinterpret_cast<char*>(b) + p, n);
+#endif
   return reinterpret_cast<char*>(b) + p;
 }
 

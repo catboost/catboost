@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 cache:
   packages: true
   apt: true
@@ -30,71 +30,67 @@ matrix:
     - os: linux
       dist: trusty
       language: cpp
-      env: CB_BUILD_AGENT='clang-linux-x86_64-debug'
+      env: CB_BUILD_AGENT='clang-linux-x86_64-release-cuda'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-    - os: linux
-      dist: trusty
-      language: cpp
-      env: CB_BUILD_AGENT='clang-linux-x86_64-release'
-      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file: catboost-cuda-linux
+        skip_cleanup: true
+        on:
+          tags: true
     - os: linux
       dist: trusty
       language: python
       python: 2.7
       env: CB_BUILD_AGENT='python2-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: catboost/python-package/*.whl
+        skip_cleanup: true
+        on:
+          tags: true
     - os: linux
       dist: trusty
       language: python
-      python: 3.4
-      env: CB_BUILD_AGENT='python3-linux-x86_64-release'
+      python: 3.5
+      env: CB_BUILD_AGENT='python35-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: catboost/python-package/*.whl
+        skip_cleanup: true
+        on:
+          tags: true
     - os: linux
       dist: trusty
-      language: r
-      r: release
-      before_install: cd catboost/R-package
-      env: CB_BUILD_AGENT='r-linux-x86_64-release'
-    - os: osx
-      osx_image: xcode8.3
-      language: cpp
-      env: CB_BUILD_AGENT='clang-darwin-x86_64-debug'
+      language: python
+      python: 3.6
+      env: CB_BUILD_AGENT='python36-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: catboost/python-package/*.whl
+        skip_cleanup: true
+        on:
+          tags: true
     - os: osx
       osx_image: xcode8.3
       language: cpp
       env: CB_BUILD_AGENT='clang-darwin-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-    - os: osx
-      osx_image: xcode8.3
-      # python runtime is not available yet [1], so we have to prepare sandbox by ourselves
-      # [1] https://github.com/travis-ci/travis-ci/issues/2312
-      #
-      language: generic
-      before_install: brew update
-      install: |
-        # vm already has python 2.7 installed, we do it here only for consistency with python3 build
-        #
-        brew install python
-        virtualenv py2env -p python2
-        source py2env/bin/activate
-      env: CB_BUILD_AGENT='python2-darwin-x86_64-release'
-      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-    - os: osx
-      osx_image: xcode8.3
-      language: generic
-      before_install: brew update
-      install: |
-        brew install python3
-        virtualenv py3env -p python3
-        source py3env/bin/activate
-      env: CB_BUILD_AGENT='python3-darwin-x86_64-release'
-      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-    - os: osx
-      osx_image: xcode8.3
-      language: r
-      r: release
-      before_install: cd catboost/R-package
-      env: CB_BUILD_AGENT='r-darwin-x86_64-release'
-  allow_failures:
-    - language: r
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file: catboost-darwin
+        skip_cleanup: true
+        on:
+          tags: true
+

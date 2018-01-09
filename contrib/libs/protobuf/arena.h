@@ -28,6 +28,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// This file defines an Arena allocator for better allocation performance.
+
 #ifndef GOOGLE_PROTOBUF_ARENA_H__
 #define GOOGLE_PROTOBUF_ARENA_H__
 
@@ -77,8 +79,13 @@ template<typename T> void arena_destruct_object(void* object) {
 template<typename T> void arena_delete_object(void* object) {
   delete reinterpret_cast<T*>(object);
 }
-inline void arena_free(void* object, size_t /* size */) {
-  free(object);
+inline void arena_free(void* object, size_t size) {
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+  ::operator delete(object, size);
+#else
+  Y_UNUSED(size);
+  ::operator delete(object);
+#endif
 }
 
 }  // namespace internal
@@ -142,7 +149,7 @@ struct ArenaOptions {
         max_block_size(kDefaultMaxBlockSize),
         initial_block(NULL),
         initial_block_size(0),
-        block_alloc(&malloc),
+        block_alloc(&::operator new),
         block_dealloc(&internal::arena_free),
         on_arena_init(NULL),
         on_arena_reset(NULL),
@@ -211,12 +218,10 @@ struct ArenaOptions {
 //
 // This protocol is implemented by all arena-enabled proto2 message classes as
 // well as RepeatedPtrField.
-
-#if __cplusplus >= 201103L
-class LIBPROTOBUF_EXPORT Arena final {
-#else
+//
+// Do NOT subclass Arena. This class will be marked as final when C++11 is
+// enabled.
 class LIBPROTOBUF_EXPORT Arena {
-#endif
  public:
   // Arena constructor taking custom options. See ArenaOptions below for
   // descriptions of the options available.
@@ -608,6 +613,7 @@ class LIBPROTOBUF_EXPORT Arena {
                    const T>(static_cast<const T*>(0))) == sizeof(char) ||
                 google::protobuf::internal::has_trivial_destructor<T>::value> {};
 
+ private:
   // CreateMessage<T> requires that T supports arenas, but this private method
   // works whether or not T supports arenas. These are not exposed to user code
   // as it can cause confusing API usages, and end up having double free in

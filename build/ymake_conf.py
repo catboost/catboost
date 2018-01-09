@@ -1230,8 +1230,8 @@ class GnuCompiler(Compiler):
         append('EXTRA_OUTPUT')
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
-        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT', '$SRCFLAGS'] + style
-        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT', '$SRCFLAGS'] + style
+        cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
+        c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
 
         print 'macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
         print 'macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args)

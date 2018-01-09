@@ -1,10 +1,10 @@
 #include "logger.h"
 
-static void WriteHistory(
+void WriteHistory(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
-    const TVector<TVector<double>> timeHistory,
+    const TVector<TVector<double>>& timeHistory,
     TLogger* logger
 ) {
     for (int iteration = 0; iteration < timeHistory.ysize(); ++iteration) {
@@ -26,49 +26,41 @@ static void WriteHistory(
     }
 }
 
-TLogger CreateLogger(
-    const TVector<TString>& metricsDescription,
-    const TVector<TVector<double>>& learnErrorsHistory,
-    const TVector<TVector<double>>& testErrorsHistory,
-    const TVector<TVector<double>>& timeHistory,
-    const TString learnErrorLogFile,
-    const TString testErrorLogFile,
-    const TString timeLogFile,
-    const TString trainDir,
-    const bool allowWriteFiles,
-    const bool detailedProfile,
+void AddFileLoggers(
+    const TString& learnErrorLogFile,
+    const TString& testErrorLogFile,
+    const TString& timeLogFile,
+    const TString& trainDir,
     const bool hasTrain,
-    const bool hasTest
+    const bool hasTest,
+    TLogger* logger
 ) {
-    TLogger logger;
-    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile);
     if (hasTrain) {
-        logger.AddBackend("learn", consoleLoggingBackend);
-        if (allowWriteFiles) {
-            logger.AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(learnErrorLogFile)));
-            logger.AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "train"))));
-        }
+        logger->AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(learnErrorLogFile)));
+        logger->AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "train"))));
     }
     if (hasTest) {
-        logger.AddBackend("test", consoleLoggingBackend);
-        if (allowWriteFiles) {
-            logger.AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(testErrorLogFile)));
-            logger.AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "test"))));
-        }
+        logger->AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(testErrorLogFile)));
+        logger->AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "test"))));
     }
-    logger.AddProfileBackend(consoleLoggingBackend);
-    if (allowWriteFiles) {
-        logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
-    }
+    logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
+}
 
-    WriteHistory(
-        metricsDescription,
-        learnErrorsHistory,
-        testErrorsHistory,
-        timeHistory,
-        &logger
-    );
-    return logger;
+void AddConsoleLogger(
+    const bool detailedProfile,
+    const bool hasTrain,
+    const bool hasTest,
+    int metricPeriod,
+    TLogger* logger
+) {
+    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile, metricPeriod);
+    if (hasTrain) {
+        logger->AddBackend("learn", consoleLoggingBackend);
+    }
+    if (hasTest) {
+        logger->AddBackend("test", consoleLoggingBackend);
+    }
+    logger->AddProfileBackend(consoleLoggingBackend);
 }
 
 void Log(

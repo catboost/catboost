@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     SIMPLE_UNIT_TEST(TestPortsRange) {
         TFsPath workDir(GetYaPath() / "tmp/ports_test");
 
-        TPortsRangeManager pm(workDir);
+        TPortManager pm(workDir);
         ui16 port = pm.GetPortsRange(3000, 3);
         UNIT_ASSERT(port >= 3000);
 
@@ -107,5 +107,16 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
 
         port = pm.GetPortsRange(anotherPort, 1);
         UNIT_ASSERT(port > anotherPort);
+    }
+}
+
+SIMPLE_UNIT_TEST_SUITE(TestParams) {
+    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestDefault) {
+        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")
+    }
+
+    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
+        context.Processor->SetParam("key", "value");
+        UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
     }
 }

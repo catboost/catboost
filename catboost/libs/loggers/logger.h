@@ -14,6 +14,7 @@ public:
     virtual TString GetMetricName() const = 0;
     virtual TString BuildHumanReadableMetricString() const = 0;
     virtual bool IsMainMetric() const = 0;
+    virtual ~IMetricEvalResult() = default;
 };
 
 class TMetricEvalResult : public IMetricEvalResult {
@@ -83,8 +84,9 @@ public:
 
 class TConsoleLoggingBackend : public ILoggingBackend {
 public:
-    explicit TConsoleLoggingBackend(const bool detailedProfile)
+    explicit TConsoleLoggingBackend(const bool detailedProfile, int writePeriod = 1)
         : DetailedProfile(detailedProfile)
+        , WritePeriod(writePeriod)
     {
     }
 
@@ -109,6 +111,10 @@ public:
     }
 
     void Flush(const int currentIteration) {
+        if (currentIteration % WritePeriod != 0) {
+            Stream.Clear();
+            return;
+        }
         if(!Stream.Empty()) {
             MATRIXNET_NOTICE_LOG << currentIteration << ":" << Stream.Str() << Endl;
             Stream.Clear();
@@ -117,6 +123,7 @@ public:
 
 private:
     bool DetailedProfile;
+    int WritePeriod;
     TStringStream Stream;
 };
 
@@ -276,19 +283,30 @@ private:
     TLogger& Logger;
 };
 
-TLogger CreateLogger(
+void WriteHistory(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
     const TVector<TVector<double>>& timeHistory,
-    const TString learnErrorLogFile,
-    const TString testErrorLogFile,
-    const TString timeLogFile,
-    const TString trainDir,
-    const bool allowWriteFiles,
+    TLogger* logger
+);
+
+void AddFileLoggers(
+    const TString& learnErrorLogFile,
+    const TString& testErrorLogFile,
+    const TString& timeLogFile,
+    const TString& trainDir,
+    const bool hasTrain,
+    const bool hasTest,
+    TLogger* logger
+);
+
+void AddConsoleLogger(
     const bool detailedProfile,
     const bool hasTrain,
-    const bool hasTest
+    const bool hasTest,
+    int metricPeriod,
+    TLogger* logger
 );
 
 void Log(

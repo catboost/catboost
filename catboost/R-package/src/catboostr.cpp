@@ -345,6 +345,14 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountPar
     return result;
 }
 
+SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeCountEndParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    model->ObliviousTrees.Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
+    R_API_END();
+    return ScalarLogical(1);
+}
+
 SEXP CatBoostGetModelParams_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();

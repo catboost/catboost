@@ -39,6 +39,7 @@
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl.h"
+#include "metadata.h"
 #include "wire_format.h"
 #include "stubs/stl_util.h"
 
@@ -114,6 +115,12 @@ void UnknownFieldSet::MergeFromAndDestroy(UnknownFieldSet* other) {
   }
   delete other->fields_;
   other->fields_ = NULL;
+}
+
+void UnknownFieldSet::MergeToInternalMetdata(
+    const UnknownFieldSet& other,
+    internal::InternalMetadataWithArena* metadata) {
+  metadata->mutable_unknown_fields()->MergeFrom(other);
 }
 
 int UnknownFieldSet::SpaceUsedExcludingSelf() const {

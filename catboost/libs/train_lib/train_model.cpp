@@ -164,19 +164,33 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         }
     }
 
-    TLogger logger = CreateLogger(
+    TLogger logger;
+    if (ctx->OutputOptions.AllowWriteFiles()) {
+        AddFileLoggers(
+            ctx->Files.LearnErrorLogFile,
+            ctx->Files.TestErrorLogFile,
+            ctx->Files.TimeLeftLogFile,
+            ctx->OutputOptions.GetTrainDir(),
+            true,
+            hasTest,
+            &logger
+        );
+    }
+
+    WriteHistory(
         GetMetricsDescription(metrics),
         ctx->LearnProgress.LearnErrorsHistory,
         ctx->LearnProgress.TestErrorsHistory,
         ctx->LearnProgress.TimeHistory,
-        ctx->Files.LearnErrorLogFile,
-        ctx->Files.TestErrorLogFile,
-        ctx->Files.TimeLeftLogFile,
-        ctx->OutputOptions.GetTrainDir(),
-        ctx->OutputOptions.AllowWriteFiles(),
+        &logger
+    );
+
+    AddConsoleLogger(
         ctx->Params.IsProfile,
         true,
-        hasTest
+        hasTest,
+        ctx->OutputOptions.GetMetricPeriod(),
+        &logger
     );
 
     TVector<TVector<double>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
@@ -404,7 +418,6 @@ class TCPUModelTrainer : public IModelTrainer {
             trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
         }
 
-
         const auto& metricOptions = ctx.Params.MetricOptions.Get();
         // TODO(nikitxskv): Add objective to CreateMetrics
         TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
@@ -473,10 +486,11 @@ class TCPUModelTrainer : public IModelTrainer {
         learnPool.Docs.Append(testPool.Docs);
         const int factorsCount = learnPool.Docs.GetFactorsCount();
         const int approxDim = learnPool.Docs.GetBaselineDimension();
+        bool hasQueryId = !learnPool.Docs.QueryId.empty();
 
         auto learnPoolGuard = Finally([&] {
             if (!allowClearPool) {
-                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim);
+                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId);
             }
         });
 
@@ -681,7 +695,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
             TLogger logger;
-            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
+            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true, outputOptions.GetMetricPeriod())));
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
         }

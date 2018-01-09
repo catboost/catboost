@@ -2,8 +2,11 @@
 
 template<typename TDataType>
 static inline void ApplyPermutation(const TVector<ui64>& permutation, TVector<TDataType>* elements) {
-    TVector<ui64> toIndices(permutation);
     const ui64 elementCount = elements->size();
+    if (elementCount == 0) {
+        return;
+    }
+    TVector<ui64> toIndices(permutation);
     for (ui64 elementIdx = 0; elementIdx < elementCount; ++elementIdx) {
         while (toIndices[elementIdx] != elementIdx) {
             auto destinationIndex = toIndices[elementIdx];

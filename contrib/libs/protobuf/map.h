@@ -28,6 +28,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// This file defines the map container and its helpers to support protobuf maps.
+//
+// The Map and MapIterator types are provided by this header file.
+// Please avoid using other types defined here, unless they are public
+// types within Map or MapIterator, such as Map::value_type.
+
 #ifndef GOOGLE_PROTOBUF_MAP_H__
 #define GOOGLE_PROTOBUF_MAP_H__
 
@@ -54,9 +60,6 @@
 namespace google {
 namespace protobuf {
 
-// The Map and MapIterator types are provided by this header file.
-// Please avoid using other types defined here, unless they are public
-// types within Map or MapIterator, such as Map::value_type.
 template <typename Key, typename T>
 class Map;
 
@@ -597,7 +600,7 @@ class Map {
       // If arena is not given, malloc needs to be called which doesn't
       // construct element object.
       if (arena_ == NULL) {
-        return reinterpret_cast<pointer>(malloc(n * sizeof(value_type)));
+        return static_cast<pointer>(::operator new(n * sizeof(value_type)));
       } else {
         return reinterpret_cast<pointer>(
             Arena::CreateArray<uint8>(arena_, n * sizeof(value_type)));
@@ -606,7 +609,11 @@ class Map {
 
     void deallocate(pointer p, size_type n) {
       if (arena_ == NULL) {
-        free(p);
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+        ::operator delete(p, n * sizeof(value_type));
+#else
+        ::operator delete(p);
+#endif
       }
     }
 

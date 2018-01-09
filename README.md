@@ -25,6 +25,9 @@ Tutorials
 --------------
 * Tutorials are avaliable [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
 
+Catboost models in production
+--------------
+* If you want to evaluate Catboost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
 
 For contributors
 --------------

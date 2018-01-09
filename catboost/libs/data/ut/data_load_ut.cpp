@@ -18,7 +18,7 @@ SIMPLE_UNIT_TEST_SUITE(TDataLoadTest) {
         const size_t TestDocCount = 20000;
         const size_t FactorCount = 250;
         TDocumentStorage documents;
-        documents.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0);
+        documents.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0, /*hasQueryId*/ false);
         for (size_t i = 0; i < TestDocCount; ++i) {
             documents.Target[i] = rng.GenRandReal2();
             for (size_t j = 0; j < FactorCount; ++j) {

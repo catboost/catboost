@@ -406,7 +406,7 @@ namespace {
 
         template <class U>
         bool ProcessUint(U u) {
-            if (Y_LIKELY(u <= Max<int64_t>())) {
+            if (Y_LIKELY(u <= uint64_t(Max<int64_t>()))) {
                 return Impl.OnInteger(int64_t(u));
             } else {
                 return Impl.OnUInteger(u);

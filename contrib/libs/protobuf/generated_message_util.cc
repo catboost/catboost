@@ -50,15 +50,15 @@ double NaN() {
   return std::numeric_limits<double>::quiet_NaN();
 }
 
-const TProtoStringType* empty_string_;
+ExplicitlyConstructed< TProtoStringType> fixed_address_empty_string;
 GOOGLE_PROTOBUF_DECLARE_ONCE(empty_string_once_init_);
 
 void DeleteEmptyString() {
-  delete empty_string_;
+  GetEmptyStringAlreadyInited().~string();
 }
 
 void InitEmptyString() {
-  empty_string_ = new TProtoStringType;
+  fixed_address_empty_string.DefaultConstruct();
   OnShutdown(&DeleteEmptyString);
 }
 

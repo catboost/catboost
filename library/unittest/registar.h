@@ -59,9 +59,23 @@ namespace NUnitTest {
     class TAssertException: public yexception {
     };
 
+    class ITestSuiteProcessor;
+
     struct TTestContext {
+        TTestContext()
+            : Processor(nullptr) {
+        }
+
+        explicit TTestContext(ITestSuiteProcessor* processor)
+            : Processor(processor) {
+        }
+
+        const TString& GetParam(const TString& key, const TString& def) const;
+
         using TMetrics = THashMap<TString, double>;
         TMetrics Metrics;
+
+        ITestSuiteProcessor* Processor;
     };
 
     class ITestSuiteProcessor {
@@ -127,6 +141,10 @@ namespace NUnitTest {
 
         // --fork-tests is set (warning: this may be false, but never the less test will be forked if called inside UNIT_FORKED_TEST)
         virtual bool GetForkTests() const;
+
+        virtual void SetParam(const TString& /*key*/, const TString& /*value*/);
+
+        virtual const TString& GetParam(const TString& /*key*/, const TString& /*def*/) const;
 
     private:
         virtual void OnStart();
@@ -222,7 +240,6 @@ namespace NUnitTest {
 
         bool GetForkTests() const;
 
-    private:
         ITestSuiteProcessor* Processor() const noexcept;
 
     private:
@@ -289,22 +306,22 @@ private:                                                   \
         this->TTestBase::Run(std::bind(&T##F##Caller::X, this, context), StaticName(), (#F), FF); \
     }
 
-#define UNIT_TEST_IMPL(F, FF)                                   \
-    UNIT_TEST_CHECK_TEST_IS_DECLARED_ONLY_ONCE(F) {             \
-        NUnitTest::TTestContext context;                        \
-        if (this->CheckAccessTest((#F))) {                      \
-            try {                                               \
-                UNIT_TEST_RUN(F, FF, context)                   \
-            } catch (const ::NUnitTest::TAssertException&) {    \
-            } catch (const yexception& e) {                     \
-                CATCH_REACTION_BT((#F), e, &context);           \
-            } catch (const std::exception& e) {                 \
-                CATCH_REACTION((#F), e, &context);              \
-            } catch (...) {                                     \
-                this->AddError("non-std exception!", &context); \
-            }                                                   \
-            this->Finish((#F), &context);                       \
-        }                                                       \
+#define UNIT_TEST_IMPL(F, FF)                                          \
+    UNIT_TEST_CHECK_TEST_IS_DECLARED_ONLY_ONCE(F) {                    \
+        NUnitTest::TTestContext context(this->TTestBase::Processor()); \
+        if (this->CheckAccessTest((#F))) {                             \
+            try {                                                      \
+                UNIT_TEST_RUN(F, FF, context)                          \
+            } catch (const ::NUnitTest::TAssertException&) {           \
+            } catch (const yexception& e) {                            \
+                CATCH_REACTION_BT((#F), e, &context);                  \
+            } catch (const std::exception& e) {                        \
+                CATCH_REACTION((#F), e, &context);                     \
+            } catch (...) {                                            \
+                this->AddError("non-std exception!", &context);        \
+            }                                                          \
+            this->Finish((#F), &context);                              \
+        }                                                              \
     }
 
 #define UNIT_TEST(F) UNIT_TEST_IMPL(F, false)
@@ -317,7 +334,7 @@ private:                                                   \
         UNIT_TEST_IMPL(F, false);                                                                                      \
         /* forked process (or main without "--fork-tests") treats some exceptions as success - it's exception test! */ \
     } else {                                                                                                           \
-        NUnitTest::TTestContext context;                                                                               \
+        NUnitTest::TTestContext context(this->TTestBase::Processor());                                                 \
         if (this->CheckAccessTest((#F))) {                                                                             \
             try {                                                                                                      \
                 UNIT_TEST_RUN(F, false, context)                                                                       \
@@ -620,6 +637,8 @@ public:                       \
 
 #define UNIT_ADD_METRIC(name, value) context.Metrics[name] = value
 
+#define UNIT_GET_PARAM(key, def) context.Processor->GetParam(key, def)
+
     class TTestFactory {
         friend class TTestBase;
         friend class ITestBaseFactory;
@@ -781,7 +800,7 @@ public:                       \
                     if (!this->CheckAccessTest(i->Name)) {                                                              \
                         continue;                                                                                       \
                     }                                                                                                   \
-                    NUnitTest::TTestContext context;                                                                    \
+                    NUnitTest::TTestContext context(this->TTestBase::Processor());                                      \
                     try {                                                                                               \
                         this->BeforeTest(i->Name);                                                                      \
                         {                                                                                               \
