@@ -111,9 +111,6 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.TreeStruct.ysize();
 
-    MATRIXNET_NOTICE_LOG << currentIteration << ": ";
-    profile.StartNextIteration();
-
     CheckInterrupted(); // check after long-lasting operation
 
     double modelLength = currentIteration * ctx->Params.BoostingOptions->LearningRate;
