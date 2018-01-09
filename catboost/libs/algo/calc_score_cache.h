@@ -2,6 +2,7 @@
 
 #include "fold.h"
 #include "split.h"
+#include "restorable_rng.h"
 
 #include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
@@ -10,7 +11,17 @@
 #include <util/system/atomic.h>
 #include <util/system/spinlock.h>
 
-bool AreStatsFromPrevTreeUsed(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
+bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
+
+template<typename TData, typename TAlloc>
+static inline TData* GetDataPtr(TVector<TData, TAlloc>& vector) {
+    return vector.empty() ? nullptr : vector.data();
+}
+
+template<typename TData, typename TAlloc>
+static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& vector) {
+    return vector.empty() ? nullptr : vector.data();
+}
 
 struct TBucketStats {
     double SumWeightedDelta;
@@ -46,7 +57,7 @@ inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TVec
     return nonCtrBucketCount;
 }
 
-struct TStatsFromPrevTree {
+struct TBucketStatsCache {
     TAdaptiveLock Lock;
     THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
     THolder<TMemoryPool> MemoryPool;
@@ -61,10 +72,16 @@ private:
     size_t InitialSize;
 };
 
-struct TSmallestSplitSideFold {
+struct TCalcScoreFold {
+    template<typename TDataType>
+    class TUnsizedVector : public TVector<TDataType> {
+        size_t size() = delete;
+        int ysize() = delete;
+    };
+
     struct TBodyTail {
-        TVector<TVector<double>> Derivatives;
-        TVector<TVector<double>> WeightedDer;
+        TUnsizedVector<TUnsizedVector<double>> Derivatives;
+        TUnsizedVector<TUnsizedVector<double>> WeightedDer;
 
         TAtomic BodyFinish = 0;
         TAtomic TailFinish = 0;
@@ -89,38 +106,43 @@ struct TSmallestSplitSideFold {
             }
             template<typename TData>
             inline TArrayRef<TData> GetRef(TVector<TData>& vector) const {
-                return MakeArrayRef(vector.data() + Offset, Size);
+                const TSlice clippedSlice = Clip(vector.ysize());
+                return MakeArrayRef(vector.data() + clippedSlice.Offset, clippedSlice.Size);
             }
         };
-        TVector<TSlice> Slices;
+        TUnsizedVector<TSlice> Slices;
         void Create(const NPar::TLocalExecutor::TExecRangeParams& blockParams);
-        void CreateForSmallestSide(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TIndexType* indices, int curDepth, NPar::TLocalExecutor* localExecutor);
-        void Complement(const TVectorSlicing& slicing);
+        void CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor);
     };
-    TVector<TIndexType> Indices;
-    TVector<int> LearnPermutation;
-    TVector<int> IndexInFold;
-    TVector<float> LearnWeights;
-    TVector<float> SampleWeights;
-    TVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
+    TUnsizedVector<TIndexType> Indices;
+    TUnsizedVector<int> LearnPermutation;
+    TUnsizedVector<int> IndexInFold;
+    TUnsizedVector<float> LearnWeights;
+    TUnsizedVector<float> SampleWeights;
+    TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
-    int DocCount;
+    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
     void Create(const TFold& fold);
-    void SelectParametersForSmallestSplitSide(int curDepth, const TFold& fold, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
+    void Sample(const TFold& fold, const TVector<TIndexType>& indices, float sampleRate, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
+    void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    int GetDocCount() const;
+    int GetBodyTailCount() const;
     int GetApproxDimension() const;
 private:
-    inline void SetDocCount(int docCount) {
-        DocCount = docCount;
+    inline void ClearBodyTail() {
         for (auto& bodyTail : BodyTailArr) {
             bodyTail.BodyFinish = bodyTail.TailFinish = 0;
         }
     }
-    template<typename TData>
-    static inline TData GetElement(const TData* source, size_t j) {
-        return source[j];
-    }
     using TSlice = TVectorSlicing::TSlice;
-    template<typename TSetElementsFunc, typename TGetIndexFunc>
-    void SelectBlockFromFold(const TFold& fold, TSetElementsFunc SetElementsFunc, TGetIndexFunc GetIndexFunc, TSlice srcBlock, TSlice dstBlock);
+    template<typename TFoldType>
+    void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
+    void SetSmallestSideControl(int curDepth, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void SetSampledControl(int docCount, float sampleRate, TRestorableFastRng64* rand);
+    TUnsizedVector<bool> Control;
+    int DocCount;
+    int BodyTailCount;
+    int ApproxDimension;
 };

@@ -190,17 +190,18 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         folds.push_back(&fold);
     }
 
-    if (AreStatsFromPrevTreeUsed(ctx->Params.ObliviousTreeOptions.Get())) {
-        ctx->ParamsUsedWithStatsFromPrevTree.Create(*folds[0]); // assume that all folds have the same shape
+    if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
+        ctx->SmallestSplitSideDocs.Create(*folds[0]); // assume that all folds have the same shape
         const int approxDimension = folds[0]->GetApproxDimension();
         const int bodyTailCount = folds[0]->BodyTailArr.ysize();
-        ctx->StatsFromPrevTree.Create(
+        ctx->PrevTreeLevelStats.Create(
             CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
             static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth),
             approxDimension,
             bodyTailCount
         );
     }
+    ctx->SampledDocs.Create(*folds[0]); // TODO(espetrov): create only if sample rate < 1
 
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();

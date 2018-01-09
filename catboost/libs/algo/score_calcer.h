@@ -31,10 +31,10 @@ struct TFeatureScore {
 TVector<double> CalcScore(
     const TAllFeatures& af,
     const TVector<int>& splitsCount,
-    const TFold& fold,
-    const TVector<TIndexType>& indices,
-    const TSmallestSplitSideFold& ifHistFromPrevLevelUsed,
+    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const TCalcScoreFold& fold,
+    const TCalcScoreFold& prevLevelData,
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
-    TStatsFromPrevTree* statsFromPrevTree);
+    TBucketStatsCache* statsFromPrevTree);
