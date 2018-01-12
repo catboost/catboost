@@ -16,7 +16,7 @@ private:
         UNIT_ASSERT_VALUES_EQUAL_C(MaskK<bits>(), MaskLowerBits(bits), bits);
         UNIT_ASSERT_VALUES_EQUAL_C(FlagK<bits>(), Flag(bits), bits);
 
-        for (ui32 i = 0; i < 65; ++i) {
+        for (ui32 i = 0; i < 64; ++i) {
             UNIT_ASSERT_VALUES_EQUAL_C(MaskK<bits>(i), MaskLowerBits(bits, i), bits);
         }
     }
