@@ -366,7 +366,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("bootstrap-type")
         .RequiredArgument("STRING")
-        .Help("Could be changed for GPU only. Bootstrap type. Change default way of sampling documents weights. One of"
+        .Help("Bootstrap type. Change default way of sampling documents weights. One of"
               " Poisson,"
               " Bayesian,"
               " Bernoulli,"
@@ -381,7 +381,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<float>([plainJsonPtr](float baggingTemperature) {
             (*plainJsonPtr)["bagging_temperature"] = baggingTemperature;
         })
-        .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default). Available for Bayessian bootstap only");
+        .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default). Available for Bayesian bootstap only");
 
     parser.AddLongOption("sampling-frequency")
         .RequiredArgument("string")
