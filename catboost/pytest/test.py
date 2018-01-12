@@ -1628,6 +1628,7 @@ def test_sample_rate_per_tree():
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--sampling-frequency', 'PerTree',
+        '--bootstrap-type', 'Bernoulli',
         '--sample-rate', '0.5',
     )
     yatest.common.execute(cmd)
@@ -1654,7 +1655,34 @@ def test_sample_rate_per_tree_level():
         '--eval-file', output_eval_path,
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
+        '--bootstrap-type', 'Bernoulli',
         '--sample-rate', '0.5',
+    )
+    yatest.common.execute(cmd)
+    return local_canonical_file(output_eval_path)
+
+
+def test_sample_rate_per_tree_level():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--bagging-temperature', '0.5',
     )
     yatest.common.execute(cmd)
     return local_canonical_file(output_eval_path)
