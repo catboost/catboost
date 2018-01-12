@@ -377,7 +377,7 @@ Y_FORCE_INLINE ui64 ReverseBits(ui64 t) {
  */
 template <typename T>
 Y_FORCE_INLINE T ReverseBits(T v, ui64 bits) {
-    return T(v & ::InverseMaskLowerBits(bits)) | T(ReverseBits(T(v & ::MaskLowerBits(bits)))) >> ((ui64{sizeof(T)} << ui64{3}) - bits);
+    return bits ? (T(v & ::InverseMaskLowerBits(bits)) | T(ReverseBits(T(v & ::MaskLowerBits(bits)))) >> ((ui64{sizeof(T)} << ui64{3}) - bits)) : v;
 }
 
 /*
