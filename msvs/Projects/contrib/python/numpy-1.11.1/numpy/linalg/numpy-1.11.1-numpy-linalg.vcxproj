@@ -75,7 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.obj"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\linalg\lapack_lite\python_xerbla.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -88,15 +88,11 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy-1.11.1\numpy\linalg\umath_linalg.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/_mnchyeruoeex56vdppm77qx4ky.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/_mnchyeruoeex56vdppm77qx4ky.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,11 +103,43 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/_mnchyeruoeex56vdppm77qx4ky.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/_mnchyeruoeex56vdppm77qx4ky.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy-1.11.1/numpy/linalg/_mnchyeruoeex56vdppm77qx4ky.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg\_mnchyeruoeex56vdppm77qx4ky.obj"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg._umath_linalg.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/numpy.linalg.lapack_lite.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -127,15 +155,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/linalg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/linalg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -146,15 +174,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/info.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\linalg
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/linalg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy-1.11.1/numpy/linalg/linalg.py-" "$(SolutionDir)../contrib/python/numpy-1.11.1/numpy/linalg/linalg.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/linalg/linalg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -76,13 +76,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\h2vow4vzlqlxwis3lrjv6ger64.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/_h2vow4vzlqlxwis3lrjv6ger64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_h2vow4vzlqlxwis3lrjv6ger64.obj"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

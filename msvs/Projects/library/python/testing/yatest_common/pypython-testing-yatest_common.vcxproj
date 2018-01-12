@@ -76,9 +76,65 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_isiabzpuiorki5mfr6kf2jpg3m.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/yatest_common/_i75limocfn543f2tgnsm65wb4y.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_i75limocfn543f2tgnsm65wb4y.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_icjtulchzmz4iy2vrmippolfuu.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_icjtulchzmz4iy2vrmippolfuu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_icjtulchzmz4iy2vrmippolfuu.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_icjtulchzmz4iy2vrmippolfuu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/yatest_common/_icjtulchzmz4iy2vrmippolfuu.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_icjtulchzmz4iy2vrmippolfuu.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\process.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
@@ -110,7 +166,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +177,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_isiabzpuiorki5mfr6kf2jpg3m.cpp" "library/python/testing/yatest_common/icjtulchzmz4iy2vrmippolfuu.cpp" "library/python/testing/yatest_common/i75limocfn543f2tgnsm65wb4y.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -137,59 +193,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/benchmark.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/benchmark.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/benchmark.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/benchmark.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/benchmark.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/benchmark.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/canonical.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/canonical.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/canonical.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/canonical.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/canonical.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/canonical.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/cores.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/cores.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/cores.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/cores.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/cores.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/cores.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/environment.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/environment.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/environment.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/environment.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/environment.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/errors.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/errors.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/errors.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/errors.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/errors.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/errors.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/legacy.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/legacy.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/legacy.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/legacy.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/legacy.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/legacy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/network.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/network.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/network.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/network.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/network.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/network.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/path.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/path.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/path.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/path.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/path.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/path.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/process.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/process.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/process.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/process.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/process.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/process.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime_java.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime_java.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime_java.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime_java.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime_java.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime_java.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/tags.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/tags.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/tags.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/tags.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/tags.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/tags.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -200,59 +256,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/__init__.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/__init__.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/benchmark.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/benchmark.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/benchmark.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/benchmark.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/benchmark.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/benchmark.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/canonical.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/canonical.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/canonical.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/canonical.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/canonical.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/canonical.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/cores.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/cores.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/cores.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/cores.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/cores.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/cores.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/environment.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/environment.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/environment.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/environment.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/environment.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/errors.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/errors.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/errors.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/errors.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/errors.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/errors.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/legacy.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/legacy.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/legacy.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/legacy.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/legacy.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/legacy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/network.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/network.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/network.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/network.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/network.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/network.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/path.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/path.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/path.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/path.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/path.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/path.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/process.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/process.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/process.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/process.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/process.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/process.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime_java.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime_java.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime_java.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/runtime_java.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/runtime_java.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/runtime_java.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/tags.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/tags.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/tags.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_common/yatest/common/tags.py-" "$(SolutionDir)../library/python/testing/yatest_common/yatest/common/tags.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/yatest/common/tags.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

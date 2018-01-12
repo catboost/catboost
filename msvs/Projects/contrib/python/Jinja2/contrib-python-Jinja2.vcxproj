@@ -75,11 +75,95 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_skic3vfdvyxowpwcf2633krooe.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\__init__.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -111,7 +195,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_skic3vfdvyxowpwcf2633krooe.cpp" "contrib/python/Jinja2/2dhyogxjssninb6yuzjqzcgcni.cpp" "contrib/python/Jinja2/ilosqtotc2hoebmrtlub2g54jm.cpp" "contrib/python/Jinja2/cfsejonlsslozhaocnuseqwb7e.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_skic3vfdvyxowpwcf2633krooe.cpp" "contrib/python/Jinja2/2dhyogxjssninb6yuzjqzcgcni.cpp" "contrib/python/Jinja2/ilosqtotc2hoebmrtlub2g54jm.cpp" "contrib/python/Jinja2/cfsejonlsslozhaocnuseqwb7e.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +206,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_skic3vfdvyxowpwcf2633krooe.cpp" "contrib/python/Jinja2/2dhyogxjssninb6yuzjqzcgcni.cpp" "contrib/python/Jinja2/ilosqtotc2hoebmrtlub2g54jm.cpp" "contrib/python/Jinja2/cfsejonlsslozhaocnuseqwb7e.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_skic3vfdvyxowpwcf2633krooe.cpp" "contrib/python/Jinja2/2dhyogxjssninb6yuzjqzcgcni.cpp" "contrib/python/Jinja2/ilosqtotc2hoebmrtlub2g54jm.cpp" "contrib/python/Jinja2/cfsejonlsslozhaocnuseqwb7e.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -138,95 +222,95 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -237,95 +321,95 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

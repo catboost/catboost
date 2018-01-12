@@ -75,14 +75,182 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_4iik7ydbhieveasfjecuejk3su.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_clib.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -222,7 +390,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -233,7 +401,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_4iik7ydbhieveasfjecuejk3su.cpp" "contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp" "contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp" "contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp" "contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp" "contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp" "contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,207 +417,207 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py26compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py26compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py26compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py26compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py26compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py26compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py36compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py36compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -460,207 +628,207 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/pkg_resources/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/pkg_resources/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/archive_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/archive_util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/__init__.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/alias.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/alias.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_egg.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_egg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_rpm.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_rpm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/bdist_wininst.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/bdist_wininst.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_clib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_clib.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_ext.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/build_py.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/build_py.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/develop.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/develop.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/easy_install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/egg_info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_egg_info.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_egg_info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_lib.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_lib.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/install_scripts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/install_scripts.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/py36compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/register.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/register.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/rotate.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/rotate.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/saveopts.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/saveopts.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/sdist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/sdist.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/setopt.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/setopt.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/test.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/command/upload_docs.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/command/upload_docs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/config.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dep_util.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dep_util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/depends.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/depends.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/dist.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/dist.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/extension.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/extension.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/glob.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/glob.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/launch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/launch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/lib2to3_ex.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/lib2to3_ex.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/monkey.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/monkey.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/msvc.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/msvc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/namespaces.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/namespaces.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/package_index.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/package_index.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py26compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py26compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py26compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py26compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py26compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py26compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py27compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py27compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py31compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py31compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py33compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py33compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py36compat.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/py36compat.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/py36compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/sandbox.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/site-patch.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/site-patch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/ssl_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/ssl_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/unicode_utils.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/unicode_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/version.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/setuptools/setuptools/windows_support.py-" "$(SolutionDir)../contrib/python/setuptools/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/setuptools/windows_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

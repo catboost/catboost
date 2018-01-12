@@ -75,12 +75,124 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.obj"/>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.yasm"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.yasm"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\join_jsqtpbk7r7sablyhsx64cnlmqa.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_5zmfz3unc52mxdqoiqkqge4jl4.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_5zmfz3unc52mxdqoiqkqge4jl4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_5zmfz3unc52mxdqoiqkqge4jl4.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_5zmfz3unc52mxdqoiqkqge4jl4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py-1.4.30/_5zmfz3unc52mxdqoiqkqge4jl4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_5zmfz3unc52mxdqoiqkqge4jl4.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_7lw2oayq5zajb5p26odocu2quy.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_7lw2oayq5zajb5p26odocu2quy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_7lw2oayq5zajb5p26odocu2quy.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_7lw2oayq5zajb5p26odocu2quy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py-1.4.30/_7lw2oayq5zajb5p26odocu2quy.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_7lw2oayq5zajb5p26odocu2quy.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_p327e5wojitkxrjrt45jd6jswe.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_p327e5wojitkxrjrt45jd6jswe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_p327e5wojitkxrjrt45jd6jswe.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_p327e5wojitkxrjrt45jd6jswe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py-1.4.30/_p327e5wojitkxrjrt45jd6jswe.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_p327e5wojitkxrjrt45jd6jswe.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_xefxbssid4ae5xqhijdhyoavlu.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_xefxbssid4ae5xqhijdhyoavlu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_xefxbssid4ae5xqhijdhyoavlu.obj" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/_xefxbssid4ae5xqhijdhyoavlu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py-1.4.30/_xefxbssid4ae5xqhijdhyoavlu.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\_xefxbssid4ae5xqhijdhyoavlu.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py-1.4.30\py\_path\__init__.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
@@ -139,7 +251,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/join_jsqtpbk7r7sablyhsx64cnlmqa.cpp" "contrib/python/py-1.4.30/7lw2oayq5zajb5p26odocu2quy.cpp" "contrib/python/py-1.4.30/p327e5wojitkxrjrt45jd6jswe.cpp" "contrib/python/py-1.4.30/xefxbssid4ae5xqhijdhyoavlu.cpp" "contrib/python/py-1.4.30/5zmfz3unc52mxdqoiqkqge4jl4.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/join_jsqtpbk7r7sablyhsx64cnlmqa.cpp" "contrib/python/py-1.4.30/7lw2oayq5zajb5p26odocu2quy.cpp" "contrib/python/py-1.4.30/p327e5wojitkxrjrt45jd6jswe.cpp" "contrib/python/py-1.4.30/xefxbssid4ae5xqhijdhyoavlu.cpp" "contrib/python/py-1.4.30/5zmfz3unc52mxdqoiqkqge4jl4.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,7 +262,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/join_jsqtpbk7r7sablyhsx64cnlmqa.cpp" "contrib/python/py-1.4.30/7lw2oayq5zajb5p26odocu2quy.cpp" "contrib/python/py-1.4.30/p327e5wojitkxrjrt45jd6jswe.cpp" "contrib/python/py-1.4.30/xefxbssid4ae5xqhijdhyoavlu.cpp" "contrib/python/py-1.4.30/5zmfz3unc52mxdqoiqkqge4jl4.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/join_jsqtpbk7r7sablyhsx64cnlmqa.cpp" "contrib/python/py-1.4.30/7lw2oayq5zajb5p26odocu2quy.cpp" "contrib/python/py-1.4.30/p327e5wojitkxrjrt45jd6jswe.cpp" "contrib/python/py-1.4.30/xefxbssid4ae5xqhijdhyoavlu.cpp" "contrib/python/py-1.4.30/5zmfz3unc52mxdqoiqkqge4jl4.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -166,135 +278,135 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__metainfo.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__metainfo.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_apipkg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_apipkg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_builtin.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_builtin.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_builtin.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_builtin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionnew.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionnew.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionold.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionold.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_py2traceback.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_py2traceback.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/assertion.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/assertion.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/code.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/code.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/code.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/code.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/source.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/source.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/source.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/source.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_error.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_error.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_error.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_error.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_iniconfig.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_iniconfig.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/capture.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/capture.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/saferepr.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/saferepr.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/terminalwriter.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/terminalwriter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/log.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/log.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/log.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/log.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/warning.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/warning.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/cacheutil.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/cacheutil.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/common.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/common.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/common.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/common.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/local.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/local.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/local.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/local.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnurl.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnurl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnwc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnwc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/cmdexec.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/cmdexec.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/forkedfunc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/forkedfunc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/killproc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/killproc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_std.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_std.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_std.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_std.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_xmlgen.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_xmlgen.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/test.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/test.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/test.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -305,135 +417,135 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__metainfo.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/__metainfo.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_apipkg.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_apipkg.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_builtin.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_builtin.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_builtin.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_builtin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionnew.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionnew.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionold.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_assertionold.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_py2traceback.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/_py2traceback.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/assertion.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/assertion.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/code.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/code.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/code.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/code.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/source.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/source.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_code/source.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_code/source.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_error.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_error.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_error.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_error.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_iniconfig.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_iniconfig.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/capture.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/capture.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/saferepr.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/saferepr.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/terminalwriter.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_io/terminalwriter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/log.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/log.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/log.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/log.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/warning.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_log/warning.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/cacheutil.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/cacheutil.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/common.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/common.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/common.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/common.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/local.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/local.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/local.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/local.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnurl.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnurl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnwc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_path/svnwc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/cmdexec.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/cmdexec.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/forkedfunc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/forkedfunc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/killproc.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_process/killproc.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_std.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_std.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_std.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_std.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_xmlgen.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/_xmlgen.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py-1.4.30
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/test.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/test.py.yapyc"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py-1.4.30/py/test.py-" "$(SolutionDir)../contrib/python/py-1.4.30/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py-1.4.30/py/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -111,11 +111,11 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath.reg.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath_tests.reg.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -126,11 +126,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath.reg.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy-1.11.1\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath_tests.reg.cpp"
+"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy-1.11.1/numpy/core/src/umath/numpy.core.umath_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
