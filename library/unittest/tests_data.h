@@ -53,5 +53,4 @@ public:
 private:
     class TPortManagerImpl;
     THolder<TPortManagerImpl> Impl_;
-
 };

@@ -63,11 +63,13 @@ namespace NUnitTest {
 
     struct TTestContext {
         TTestContext()
-            : Processor(nullptr) {
+            : Processor(nullptr)
+        {
         }
 
         explicit TTestContext(ITestSuiteProcessor* processor)
-            : Processor(processor) {
+            : Processor(processor)
+        {
         }
 
         const TString& GetParam(const TString& key, const TString& def) const;

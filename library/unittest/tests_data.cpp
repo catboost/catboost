@@ -77,6 +77,7 @@ class TPortManager::TPortManagerImpl {
 
         bool IsLocked() const;
         ui16 GetPort() const;
+
     private:
         TFsPath Path;
         ui16 Port;
@@ -86,7 +87,9 @@ class TPortManager::TPortManagerImpl {
     };
 
 public:
-    TPortManagerImpl(const TString& syncDir): ValidPortsCount(0) {
+    TPortManagerImpl(const TString& syncDir)
+        : ValidPortsCount(0)
+    {
         SyncDir = GetEnv("PORT_SYNC_PATH", syncDir);
         if (IsSyncDirSet())
             NFs::MakeDirectoryRecursive(SyncDir);
