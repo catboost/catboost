@@ -28,7 +28,7 @@ RECURSE(
     pytest
     pytz
     pytz/tests
-    PyYAML-3.11
+    PyYAML
     requests
     setuptools
     simplegeneric-0.8.1

@@ -1,5 +1,5 @@
 
-cdef extern from "<contrib/python/PyYAML-3.11/ext/_yaml.h>":
+cdef extern from "<contrib/python/PyYAML/ext/_yaml.h>":
 
     void malloc(int l)
     void memcpy(char *d, char *s, int l)

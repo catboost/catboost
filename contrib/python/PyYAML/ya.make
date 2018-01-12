@@ -1,5 +1,7 @@
 LIBRARY(yaml)
 
+VERSION(3.11)
+
 LICENSE(
     MIT
 )
@@ -7,7 +9,7 @@ LICENSE(
 
 
 IF (NOT MSVC)
-    PEERDIR(contrib/python/PyYAML-3.11/ext)
+    PEERDIR(contrib/python/PyYAML/ext)
 ENDIF()
 
 PY_SRCS(
@@ -32,7 +34,7 @@ PY_SRCS(
 )
 
 SRCDIR(
-    contrib/python/PyYAML-3.11/lib
+    contrib/python/PyYAML/lib
 )
 
 NO_LINT()

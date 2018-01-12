@@ -13,7 +13,7 @@ PEERDIR(
     library/python/testing/yatest_lib
     contrib/python/py-1.4.30
     contrib/python/pytest
-    contrib/python/PyYAML-3.11
+    contrib/python/PyYAML
     contrib/python/dateutil
     contrib/python/requests
 )
