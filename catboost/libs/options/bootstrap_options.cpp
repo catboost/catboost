@@ -21,18 +21,16 @@ namespace NCatboostOptions {
                 break;
             }
             case EBootstrapType::Poisson: {
-                if (TakenFraction.IsSet() && TaskType == ETaskType::CPU) {
+                if (TaskType == ETaskType::CPU) {
                     ythrow TCatboostException()
-                        << "Error: poisson bootstrap doesn't yet support taken fraction option on CPU";
+                        << "Error: poisson bootstrap is not supported on CPU";
                 }
                 break;
             }
             default: {
+                Y_ASSERT(type == EBootstrapType::Bernoulli);
                 if (BaggingTemperature.IsSet()) {
                     ythrow TCatboostException() << "Error: bagging temperature available for bayesian bootstrap only";
-                }
-                if (TakenFraction.Get() >= 0.99f && TaskType == ETaskType::GPU) {
-                    MATRIXNET_WARNING_LOG << "Big taken fraction (" << TakenFraction.Get() << ") disables bagging. If you don't want bootstrap, just set bootstrap-type No.";
                 }
                 break;
             }

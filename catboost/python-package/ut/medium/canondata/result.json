@@ -1,10 +1,10 @@
 {
     "test.test_class_weights": {
-        "checksum": "6b058686066f2da82160d6830af3aec2",
+        "checksum": "c55def3a05e46a0582f20c63bdcad1fd",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
-        "checksum": "c032866906b8a9cd36e86dc4c94206dc",
+        "checksum": "35524dd00eb800545b26bea233788246",
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
@@ -24,11 +24,11 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "48959264607bac1e3adc196e9f419a69",
+        "checksum": "b559cc7fe4b9813d3e828db9fe3d4621",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "3a19654dace238c34a92892f5603c55b",
+        "checksum": "6f7bfc55789284328295db99c330a388",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
@@ -48,7 +48,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "b8eeba09daa98c6b6e7e025172476618",
+        "checksum": "00dcfe3a882c5d8b77339d518e0bc91e",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
@@ -56,7 +56,7 @@
         "uri": "file://test.test_one_doc_feature_importance/feature_importance.npy"
     },
     "test.test_ones_weight": {
-        "checksum": "e5d823ca87238f92013727ffd9c245e6",
+        "checksum": "e9e8b892d33c470649d8701d658d67c3",
         "uri": "file://test.test_ones_weight/model.bin"
     },
     "test.test_predict_class": {
@@ -76,7 +76,7 @@
         "uri": "file://test.test_predict_regress/model.bin"
     },
     "test.test_predict_sklearn_class": {
-        "checksum": "35731adcafd368e66d5aa72214733619",
+        "checksum": "b9381d7bdfd9099b1c1d08b35e4b9f02",
         "uri": "file://test.test_predict_sklearn_class/model.bin"
     },
     "test.test_predict_sklearn_regress": {
@@ -96,7 +96,7 @@
         "uri": "file://test.test_staged_predict/predictions.npy"
     },
     "test.test_zero_baseline": {
-        "checksum": "b9381d7bdfd9099b1c1d08b35e4b9f02",
+        "checksum": "35731adcafd368e66d5aa72214733619",
         "uri": "file://test.test_zero_baseline/model.bin"
     }
 }

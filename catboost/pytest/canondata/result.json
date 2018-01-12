@@ -666,11 +666,11 @@
         }
     ],
     "test.test_sample_rate_per_tree": {
-        "checksum": "c988a5c768a2daf4f02660df7d25c7b2",
+        "checksum": "d0c7341ec488c45350d3251ae11a570a",
         "uri": "file://test.test_sample_rate_per_tree/test.eval"
     },
     "test.test_sample_rate_per_tree_level": {
-        "checksum": "7c00fc437a0b0ee8a1509d574084ba73",
+        "checksum": "b3b4c0e6881166b257cb31e6ccde07aa",
         "uri": "file://test.test_sample_rate_per_tree_level/test.eval"
     },
     "test.test_shrink_model": [

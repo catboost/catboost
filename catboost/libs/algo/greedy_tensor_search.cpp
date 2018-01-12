@@ -22,9 +22,13 @@ void TrimOnlineCTRcache(const TVector<TFold*>& folds) {
     }
 }
 
-static void AssignRandomWeights(int learnSampleCount,
-                                TLearnContext* ctx,
-                                TFold* fold) {
+static void GenerateRandomWeights(int learnSampleCount,
+                                  TLearnContext* ctx,
+                                  TFold* fold) {
+    const float baggingTemperature = ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
+    if (baggingTemperature == 0) {
+        return;
+    }
     TVector<float> sampleWeights;
     sampleWeights.yresize(learnSampleCount);
 
@@ -34,7 +38,6 @@ static void AssignRandomWeights(int learnSampleCount,
     ctx->LocalExecutor.ExecRange([&](int blockIdx) {
         TFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
-        const float baggingTemperature = ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
         float* sampleWeightsData = sampleWeights.data();
         NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&rand, sampleWeightsData, baggingTemperature](int i) {
             const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
@@ -44,6 +47,13 @@ static void AssignRandomWeights(int learnSampleCount,
 
     TFold& ff = *fold;
     ff.AssignPermuted(sampleWeights, &ff.SampleWeights);
+}
+
+
+static void CalcWeightedData(int learnSampleCount,
+                                TLearnContext* ctx,
+                                TFold* fold) {
+    TFold& ff = *fold;
     if (!ff.LearnWeights.empty()) {
         for (int i = 0; i < learnSampleCount; ++i) {
             ff.SampleWeights[i] *= ff.LearnWeights[i];
@@ -319,6 +329,28 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
     }
 }
 
+static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig,
+               const TVector<TIndexType>& indices,
+               int learnSampleCount,
+               TFold* fold,
+               TLearnContext* ctx) {
+    float takenFraction = 1;
+    switch (samplingConfig->GetBootstrapType()) {
+        case EBootstrapType::Bernoulli:
+            takenFraction = samplingConfig->GetTakenFraction();
+            break;
+        case EBootstrapType::Bayesian:
+            GenerateRandomWeights(learnSampleCount, ctx, fold);
+            break;
+        case EBootstrapType::No:
+            break;
+        default:
+            CB_ENSURE(false, "Not supported bootstrap type on CPU: " << samplingConfig->GetBootstrapType());
+    }
+    CalcWeightedData(learnSampleCount, ctx, fold);
+    ctx->SampledDocs.Sample(*fold, indices, takenFraction, &ctx->Rand, &ctx->LocalExecutor);
+}
+
 void GreedyTensorSearch(const TTrainData& data,
                         const TVector<int>& splitCounts,
                         double modelLength,
@@ -333,9 +365,9 @@ void GreedyTensorSearch(const TTrainData& data,
     MATRIXNET_INFO_LOG << "\n";
 
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get());
+    const auto& samplingConfig = ctx->Params.ObliviousTreeOptions->BootstrapConfig;
     if (isSamplingPerTree) {
-        AssignRandomWeights(data.LearnSampleCount, ctx, fold); // TODO(espetrov): merge with sampling
-        ctx->SampledDocs.Sample(*fold, indices, ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction(), &ctx->Rand, &ctx->LocalExecutor);
+        Bootstrap(samplingConfig, indices, data.LearnSampleCount, fold, ctx);
         ctx->PrevTreeLevelStats.GarbageCollect();
     }
 
@@ -351,10 +383,9 @@ void GreedyTensorSearch(const TTrainData& data,
 
         CheckInterrupted(); // check after long-lasting operation
         if (!isSamplingPerTree) {
-            AssignRandomWeights(data.LearnSampleCount, ctx, fold); // TODO(espetrov): merge with sampling
-            ctx->SampledDocs.Sample(*fold, indices, ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction(), &ctx->Rand, &ctx->LocalExecutor);
+            Bootstrap(samplingConfig, indices, data.LearnSampleCount, fold, ctx);
         }
-        profile.AddOperation(TStringBuilder() << "AssignRandomWeights, depth " << curDepth);
+        profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
         double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
 
         TVector<size_t> candLeafCount(candList.ysize(), 1);

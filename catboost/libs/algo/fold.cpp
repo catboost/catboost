@@ -71,6 +71,7 @@ TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId) {
 
 TFold BuildLearnFold(const TTrainData& data, const TVector<TTargetClassifier>& targetClassifiers, bool shuffle, int permuteBlockSize, int approxDimension, double multiplier, bool storeExpApproxes, TRestorableFastRng64& rand) {
     TFold ff;
+    ff.SampleWeights.resize(data.LearnSampleCount, 1);
     ff.LearnPermutation.resize(data.LearnSampleCount);
     std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
     if (shuffle) {
