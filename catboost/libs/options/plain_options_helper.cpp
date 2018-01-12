@@ -197,6 +197,7 @@ namespace NCatboostOptions {
         systemOptions.SetType(NJson::JSON_MAP);
 
         CopyOption(plainOptions, "thread_count", &systemOptions, &seenKeys);
+        CopyOptionWithNewKey(plainOptions, "device_config", "devices", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "devices", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "used_ram_limit", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "gpu_ram_part", &systemOptions, &seenKeys);

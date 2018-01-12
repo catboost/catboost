@@ -1178,8 +1178,8 @@ class CatBoostClassifier(CatBoost):
         Possible values:
             - 'CPU'
             - 'GPU'
-    device_config : string, [default=None]
-        GPU devices to use.
+    device_config : string, [default=None], deprecated, use devices instead
+    devices : string, [default=None], GPU devices to use.
         Format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
     """
     def __init__(
@@ -1234,6 +1234,7 @@ class CatBoostClassifier(CatBoost):
         ctr_description=None,
         task_type=None,
         device_config=None,
+        devices=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
@@ -1529,6 +1530,7 @@ class CatBoostRegressor(CatBoost):
         ctr_description=None,
         task_type=None,
         device_config=None,
+        devices=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
