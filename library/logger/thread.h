@@ -21,3 +21,10 @@ private:
     class TImpl;
     THolder<TImpl> Impl_;
 };
+
+class TOwningThreadedLogBackend: public THolder<TLogBackend>, public TThreadedLogBackend {
+public:
+    TOwningThreadedLogBackend(TLogBackend* slave);
+    TOwningThreadedLogBackend(TLogBackend* slave, size_t queuelen);
+    ~TOwningThreadedLogBackend() override;
+};

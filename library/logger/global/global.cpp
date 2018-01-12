@@ -4,6 +4,10 @@ void DoInitGlobalLog(const TString& logType, const int logLevel, const bool rota
     NLoggingImpl::InitLogImpl<TGlobalLog>(logType, logLevel, rotation, startAsDaemon);
 }
 
+void DoInitGlobalLog(TAutoPtr<TLogBackend> backend) {
+    TLoggerOperator<TGlobalLog>::Set(new TGlobalLog(backend));
+}
+
 bool GlobalLogInitialized() {
     return TLoggerOperator<TGlobalLog>::Usage();
 }

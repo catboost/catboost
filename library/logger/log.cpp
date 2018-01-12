@@ -2,6 +2,7 @@
 #include "file.h"
 #include "stream.h"
 #include "null.h"
+#include "thread.h"
 
 #include <util/string/cast.h>
 #include <util/stream/printf.h>
@@ -46,6 +47,13 @@ static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, TLogP
     }
 
     return new TStreamLogBackend(&Cerr);
+}
+
+TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, TLogPriority priority, bool threaded) {
+    if (!threaded) {
+        return BackendFactory(fname, priority);
+    }
+    return new TFilteredLogBackend<TOwningThreadedLogBackend>(new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release()), priority);
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {

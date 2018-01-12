@@ -7,6 +7,7 @@
 
 bool GlobalLogInitialized();
 void DoInitGlobalLog(const TString& logType, const int logLevel, const bool rotation, const bool startAsDaemon);
+void DoInitGlobalLog(TAutoPtr<TLogBackend> backend);
 
 inline void InitGlobalLog2Null() {
     DoInitGlobalLog("null", TLOG_EMERG, false, false);
@@ -22,6 +23,11 @@ public:
         : TLog(logType, priority)
     {
     }
+
+    TGlobalLog(TAutoPtr<TLogBackend> backend)
+        : TLog(backend)
+    {
+    }
 };
 
 template <>
@@ -31,6 +37,11 @@ class TNullLog: public TLog {
 public:
     TNullLog(const TString& logType, TLogPriority priority = LOG_MAX_PRIORITY)
         : TLog(logType, priority)
+    {
+    }
+
+    TNullLog(TAutoPtr<TLogBackend> backend)
+        : TLog(backend)
     {
     }
 };

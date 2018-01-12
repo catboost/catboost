@@ -125,3 +125,19 @@ void TThreadedLogBackend::ReopenLog() {
 void TThreadedLogBackend::WriteEmergencyData(const TLogRecord& rec) {
     Impl_->WriteEmergencyData(rec);
 }
+
+
+TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave)
+    : THolder<TLogBackend>(slave)
+    , TThreadedLogBackend(Get())
+{
+}
+
+TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave, size_t queuelen)
+    : THolder<TLogBackend>(slave)
+    , TThreadedLogBackend(Get(), queuelen)
+{
+}
+
+TOwningThreadedLogBackend::~TOwningThreadedLogBackend() {
+}

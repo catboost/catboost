@@ -75,3 +75,6 @@ private:
     TSimpleIntrusivePtr<TImpl> Impl_;
     TLogFormatter Formatter;
 };
+
+TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, TLogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
+
