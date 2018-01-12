@@ -18,11 +18,12 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #endif
-#include "atomic_support.h"
 
 #if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG) && !defined(_LIBCPP_USE_ATOMIC)
 #define _LIBCPP_USE_ATOMIC
 #include <atomic>
+#else
+#include "atomic_support.h"
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
