@@ -58,4 +58,4 @@ def onacceleo(unit, *args):
         if kv.get(k):
             run_java += [k] + kv[k]
 
-    unit.onrun_java(run_java)
+    unit.on_run_java(run_java)

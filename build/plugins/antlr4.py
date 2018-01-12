@@ -14,7 +14,7 @@ def onrun_antlr4(unit, *args):
 
     # XXX workaround ymake swag behavior
     unit.set(['ANTLR4', '$(ANTLR4)'])
-    unit.onrun_java(arg_list)
+    unit.on_run_java(arg_list)
 
 def onrun_antlr4_cpp(unit, *args):
     unit.onexternal_resource(['ANTLR4', 'sbr:' + ANTLR4_RESOURCE_ID])
