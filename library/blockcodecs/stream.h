@@ -31,6 +31,8 @@ namespace NBlockCodecs {
     class TDecodedInput: public IWalkInput {
     public:
         TDecodedInput(IInputStream* in);
+        TDecodedInput(IInputStream* in, const ICodec* codec);
+
         ~TDecodedInput() override;
 
     private:
@@ -39,5 +41,6 @@ namespace NBlockCodecs {
     private:
         TBuffer D_;
         IInputStream* S_;
+        const ICodec* C_;
     };
 }

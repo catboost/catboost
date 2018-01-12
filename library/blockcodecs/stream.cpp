@@ -151,6 +151,13 @@ void TCodedOutput::DoFinish() {
 
 TDecodedInput::TDecodedInput(IInputStream* in)
     : S_(in)
+    , C_(nullptr)
+{
+}
+
+TDecodedInput::TDecodedInput(IInputStream* in, const ICodec* codec)
+    : S_(in)
+    , C_(codec)
 {
 }
 
@@ -193,12 +200,16 @@ size_t TDecodedInput::DoUnboundedNext(const void** ptr) {
 
     auto codec = CodecByID(codecId);
 
+    if (C_) {
+        Y_ENSURE(C_->Name() == codec->Name(), STRINGBUF("incorrect stream codec"));
+    }
+
     if (codec->DecompressedLength(block) > MAX_BUF_LEN) {
         ythrow yexception() << "broken stream";
     }
 
     codec->Decode(block, D_);
-
     *ptr = D_.Data();
+
     return D_.Size();
 }
