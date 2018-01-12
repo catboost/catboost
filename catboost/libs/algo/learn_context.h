@@ -4,7 +4,6 @@
 #include "features_layout.h"
 #include "fold.h"
 #include "ctr_helper.h"
-#include "restorable_rng.h"
 #include "split.h"
 #include "calc_score_cache.h"
 
@@ -12,6 +11,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 
 #include <library/json/json_reader.h>
 #include <library/threading/local_executor/local_executor.h>

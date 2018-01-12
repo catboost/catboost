@@ -362,10 +362,9 @@ class TCPUModelTrainer : public IModelTrainer {
 
         const NCatboostOptions::TLossDescription& lossDescription = ctx.Params.LossFunctionDescription;
         ELossFunction lossFunction = lossDescription.GetLossFunction();
-        if (!(ctx.Params.DataProcessingOptions->HasTimeFlag || IsQuerywiseError(lossFunction))) {
-            Shuffle(indices.begin(), indices.end(), ctx.Rand);
+        if (!ctx.Params.DataProcessingOptions->HasTimeFlag) {
+            Shuffle(learnPool.Docs.QueryId, ctx.Rand, &indices);
         }
-        // TODO(annaveronika): shuffle in querywise modes.
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
 
@@ -430,6 +429,7 @@ class TCPUModelTrainer : public IModelTrainer {
             }
         }
         if (hasQuerywiseMetric) {
+            CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
             bool isDataCorrect = IsCorrectQueryIdsFormat(trainData.QueryId);
             if (testPool.Docs.GetDocCount() != 0) {
                 isDataCorrect &= learnPool.Docs.QueryId.back() != testPool.Docs.QueryId.front();

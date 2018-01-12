@@ -17,7 +17,6 @@ SRCS(
     online_ctr.cpp
     online_predictor.cpp
     ctr_helper.cpp
-    restorable_rng.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp

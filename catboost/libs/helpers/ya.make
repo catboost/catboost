@@ -11,6 +11,7 @@ SRCS(
     interrupt.cpp
     eval_helpers.cpp
     permutation.cpp
+    restorable_rng.cpp
 )
 
 PEERDIR(

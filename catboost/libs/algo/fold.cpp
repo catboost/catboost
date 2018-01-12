@@ -1,6 +1,8 @@
 #include "fold.h"
-#include "restorable_rng.h"
 #include "train_data.h"
+
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/permutation.h>
 
 TVector<int> InvertPermutation(const TVector<int>& permutation) {
     TVector<int> result(permutation.size());
@@ -9,7 +11,6 @@ TVector<int> InvertPermutation(const TVector<int>& permutation) {
     }
     return result;
 }
-
 
 int UpdateSizeForQueries(int size, const TVector<int>& queriesFinishIndex) {
     if (!queriesFinishIndex.empty()) {
@@ -54,6 +55,9 @@ void InitFromBaseline(const int beginIdx, const int endIdx, const TVector<TVecto
 
 TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId) {
     TVector<int> queriesFinishIndex;
+    if (queriesId.empty()) {
+        return queriesFinishIndex;
+    }
     ui32 lastQueryId = queriesId[0];
     for (int docId = 0; docId < queriesId.ysize(); ++docId) {
         if (queriesId[docId] != lastQueryId) {
@@ -65,13 +69,13 @@ TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId) {
     return queriesFinishIndex;
 }
 
-TFold BuildLearnFold(const TTrainData& data, const TVector<TTargetClassifier>& targetClassifiers, bool shuffle, int permuteBlockSize, int approxDimension, double multiplier, bool storeExpApproxes, bool isQuerywiseError, TRestorableFastRng64& rand) {
+TFold BuildLearnFold(const TTrainData& data, const TVector<TTargetClassifier>& targetClassifiers, bool shuffle, int permuteBlockSize, int approxDimension, double multiplier, bool storeExpApproxes, TRestorableFastRng64& rand) {
     TFold ff;
     ff.LearnPermutation.resize(data.LearnSampleCount);
     std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
     if (shuffle) {
-        if (permuteBlockSize == 1) { // shortcut for speed
-            Shuffle(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), rand);
+        if (permuteBlockSize == 1 || !data.QueryId.empty()) {
+            Shuffle(data.QueryId, rand, &ff.LearnPermutation);
         } else {
             const int blocksCount = (data.LearnSampleCount + permuteBlockSize - 1) / permuteBlockSize;
             TVector<int> blockedPermute(blocksCount);
@@ -99,14 +103,11 @@ TFold BuildLearnFold(const TTrainData& data, const TVector<TTargetClassifier>& t
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    TVector<int> queriesFinishIndex;
-    if (isQuerywiseError) {
-        CB_ENSURE(!data.QueryId.empty(), "If loss-function is Querywise then query ids should be provided");
+    if (!data.QueryId.empty()) {
         ff.AssignPermuted(data.QueryId, &ff.LearnQueryId);
-        ff.LearnQuerySize = data.QuerySize;
-        queriesFinishIndex = CalcQueriesFinishIndex(ff.LearnQueryId);
     }
-
+    ff.LearnQuerySize = data.QuerySize;
+    TVector<int> queriesFinishIndex = CalcQueriesFinishIndex(ff.LearnQueryId);
     ff.EffectiveDocCount = data.LearnSampleCount;
 
     TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
@@ -129,13 +130,13 @@ TFold BuildLearnFold(const TTrainData& data, const TVector<TTargetClassifier>& t
     return ff;
 }
 
-TFold BuildAveragingFold(const TTrainData& data, const TVector<TTargetClassifier>& targetClassifiers, bool shuffle, int approxDimension, bool storeExpApproxes, bool isQuerywiseError, TRestorableFastRng64& rand) {
+TFold BuildAveragingFold(const TTrainData& data, const TVector<TTargetClassifier>& targetClassifiers, bool shuffle, int approxDimension, bool storeExpApproxes, TRestorableFastRng64& rand) {
     TFold ff;
     ff.LearnPermutation.resize(data.LearnSampleCount);
     std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
 
     if (shuffle) {
-        Shuffle(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), rand);
+        Shuffle(data.QueryId, rand, &ff.LearnPermutation);
         ff.PermutationBlockSize = 1;
     } else {
         ff.PermutationBlockSize = data.LearnSampleCount;
@@ -147,7 +148,7 @@ TFold BuildAveragingFold(const TTrainData& data, const TVector<TTargetClassifier
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    if (isQuerywiseError) {
+    if (!data.QueryId.empty()) {
         ff.AssignPermuted(data.QueryId, &ff.LearnQueryId);
         ff.LearnQuerySize = data.QuerySize;
     }

@@ -2,8 +2,8 @@
 
 #include "fold.h"
 #include "split.h"
-#include "restorable_rng.h"
 
+#include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
 

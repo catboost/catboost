@@ -124,7 +124,6 @@ TFold BuildLearnFold(const TTrainData& data,
                             int approxDimension,
                             double multiplier,
                             bool storeExpApproxes,
-                            bool isQuerywiseError,
                             TRestorableFastRng64& rand);
 
 TFold BuildAveragingFold(const TTrainData& data,
@@ -132,5 +131,4 @@ TFold BuildAveragingFold(const TTrainData& data,
                                 bool shuffle,
                                 int approxDimension,
                                 bool storeExpApproxes,
-                                bool isQuerywiseError,
                                 TRestorableFastRng64& rand);

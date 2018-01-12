@@ -88,7 +88,6 @@ void TLearnContext::OutputMeta() {
 void TLearnContext::InitData(const TTrainData& data) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     const auto sampleCount = data.GetSampleCount();
-    const auto isQuerywiseError = IsQuerywiseError(lossFunction);
     const int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
     LearnProgress.Folds.reserve(foldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
@@ -118,17 +117,15 @@ void TLearnContext::InitData(const TTrainData& data) {
                 LearnProgress.ApproxDimension,
                 boostingOptions.FoldLenMultiplier,
                 storeExpApproxes,
-                isQuerywiseError,
                 Rand));
     }
 
     LearnProgress.AveragingFold = BuildAveragingFold(
         data,
         CtrsHelper.GetTargetClassifiers(),
-        !(Params.DataProcessingOptions->HasTimeFlag|| isQuerywiseError),
+        !(Params.DataProcessingOptions->HasTimeFlag),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
-        isQuerywiseError,
         Rand
     );
 

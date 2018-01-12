@@ -1,5 +1,7 @@
 #include "permutation.h"
 
+#include <util/random/shuffle.h>
+
 template<typename TDataType>
 static inline void ApplyPermutation(const TVector<ui64>& permutation, TVector<TDataType>* elements) {
     const ui64 elementCount = elements->size();

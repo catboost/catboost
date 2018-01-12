@@ -3,9 +3,9 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/helpers/permutation.h>
 
 #include <util/random/fast.h>
-#include <util/random/shuffle.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -23,7 +23,7 @@ void BuildCvPools(
     TVector<ui64> permutation;
     permutation.yresize(learnPool->Docs.GetDocCount());
     std::iota(permutation.begin(), permutation.end(), /*starting value*/ 0);
-    Shuffle(permutation.begin(), permutation.end(), rand);
+    Shuffle(learnPool->Docs.QueryId, rand, &permutation);
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     ApplyPermutation(InvertPermutation(permutation), learnPool, &localExecutor);
@@ -33,6 +33,7 @@ void BuildCvPools(
     TDocumentStorage allDocs;
     allDocs.Swap(learnPool->Docs);
     const size_t docCount = allDocs.GetDocCount();
+    // TODO(annaveronika): fix learn and test count when query id is fixed.
     const size_t testCount = (docCount - 1 - foldIdx) / foldCount + 1; // number of foldIdx + n*foldCount in [0, docCount)
     const size_t learnCount = docCount - testCount;
     bool hasQueryId = !learnPool->Docs.QueryId.empty();
