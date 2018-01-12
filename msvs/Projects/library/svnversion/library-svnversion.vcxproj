@@ -80,13 +80,13 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\svnversion
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/4/0/199698204/tmp/ymake --python"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/0/7/199702370/tmp/ymake --python"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\svnversion
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/4/0/199698204/tmp/ymake --python"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/0/7/199702370/tmp/ymake --python"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/4/0/199698204/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
+"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
