@@ -1721,6 +1721,7 @@ public:
     UNIT_TEST(TestPrefixSuffix);
     UNIT_TEST(TestCharRef);
     UNIT_TEST(TestBack)
+    UNIT_TEST(TestFront)
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 };
@@ -1747,6 +1748,7 @@ public:
     UNIT_TEST(TestPrefixSuffix);
     UNIT_TEST(TestCharRef);
     UNIT_TEST(TestBack);
+    UNIT_TEST(TestFront)
     UNIT_TEST(TestDecodingMethods);
     UNIT_TEST_SUITE_END();
 

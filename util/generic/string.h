@@ -761,6 +761,13 @@ public:
         return TCharRef(*This(), length() - 1);
     }
 
+    using TBase::front;
+
+    inline TCharRef front() noexcept {
+        Y_ASSERT(!this->empty());
+        return TCharRef(*This(), 0);
+    }
+
     inline size_t length() const noexcept {
         return GetData()->Length;
     }
