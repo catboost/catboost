@@ -37,7 +37,7 @@ bool ReadJsonTree(IInputStream *in, bool allowComments, TJsonValue *out, bool th
 bool ReadJsonTree(IInputStream *in, const TJsonReaderConfig *config, TJsonValue *out, bool throwOnError = false);
 
 TJsonValue ReadJsonTree(IInputStream* in, bool throwOnError = false);
-TJsonValue ReadJsonTree(IInputStream* in, bool allowComments, bool throwOnError = false);
+TJsonValue ReadJsonTree(IInputStream* in, bool allowComments, bool throwOnError);
 TJsonValue ReadJsonTree(IInputStream *in, const TJsonReaderConfig *config, bool throwOnError = false);
 
 bool ReadJson(IInputStream *in, TJsonCallbacks *callbacks);
