@@ -110,35 +110,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -149,35 +149,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

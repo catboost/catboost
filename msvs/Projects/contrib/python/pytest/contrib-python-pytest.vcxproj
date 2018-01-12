@@ -251,7 +251,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_hl35sx3fgcx43hcsfpzor22ng4.cpp" "contrib/python/pytest/g5pt266cozb2d4zpn3ho5ewi5a.cpp" "contrib/python/pytest/n7vllakpy56ddbtyc3pttiq5ve.cpp" "contrib/python/pytest/44elxeyubdxmnjim2ppuhf4yqa.cpp" "contrib/python/pytest/jf5c2nun2ww5mhdqu3k2zrhjfu.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_hl35sx3fgcx43hcsfpzor22ng4.cpp" "contrib/python/pytest/g5pt266cozb2d4zpn3ho5ewi5a.cpp" "contrib/python/pytest/n7vllakpy56ddbtyc3pttiq5ve.cpp" "contrib/python/pytest/44elxeyubdxmnjim2ppuhf4yqa.cpp" "contrib/python/pytest/jf5c2nun2ww5mhdqu3k2zrhjfu.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -262,7 +262,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_hl35sx3fgcx43hcsfpzor22ng4.cpp" "contrib/python/pytest/g5pt266cozb2d4zpn3ho5ewi5a.cpp" "contrib/python/pytest/n7vllakpy56ddbtyc3pttiq5ve.cpp" "contrib/python/pytest/44elxeyubdxmnjim2ppuhf4yqa.cpp" "contrib/python/pytest/jf5c2nun2ww5mhdqu3k2zrhjfu.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_hl35sx3fgcx43hcsfpzor22ng4.cpp" "contrib/python/pytest/g5pt266cozb2d4zpn3ho5ewi5a.cpp" "contrib/python/pytest/n7vllakpy56ddbtyc3pttiq5ve.cpp" "contrib/python/pytest/44elxeyubdxmnjim2ppuhf4yqa.cpp" "contrib/python/pytest/jf5c2nun2ww5mhdqu3k2zrhjfu.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -278,167 +278,167 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_pluggy.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_pluggy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/pluggy.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/pluggy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -449,167 +449,167 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_pluggy.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_pluggy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/pluggy.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/vendored_packages/pluggy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/vendored_packages/pluggy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/vendored_packages/pluggy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

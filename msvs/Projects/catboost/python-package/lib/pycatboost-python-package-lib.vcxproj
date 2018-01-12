@@ -112,7 +112,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,7 +123,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -139,23 +139,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -166,23 +166,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -225,7 +225,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,7 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -166,7 +166,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -177,7 +177,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/join_rbd3sewzftosaskhj3zrygldu4.cpp" "contrib/python/PyYAML-3.11/kiy2pzeaor4jvbsw5fk375k3wu.cpp" "contrib/python/PyYAML-3.11/74tg7nq5rsxx5qqwqatc545tke.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -193,71 +193,71 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/__init__.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/__init__.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/composer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/composer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/composer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/composer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/composer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/composer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/constructor.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/constructor.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/constructor.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/constructor.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/constructor.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/constructor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/cyaml.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/cyaml.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/cyaml.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/cyaml.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/cyaml.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/cyaml.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/dumper.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/dumper.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/dumper.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/dumper.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/dumper.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/dumper.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/emitter.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/emitter.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/emitter.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/emitter.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/emitter.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/emitter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/error.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/error.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/error.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/error.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/error.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/error.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/events.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/events.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/events.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/events.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/events.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/events.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/loader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/loader.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/loader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/loader.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/nodes.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/nodes.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/nodes.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/parser.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/parser.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/parser.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/reader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/reader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/reader.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/reader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/reader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/reader.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/representer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/representer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/representer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/representer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/representer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/representer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/resolver.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/resolver.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/resolver.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/resolver.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/resolver.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/resolver.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/scanner.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/scanner.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/scanner.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/scanner.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/scanner.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/scanner.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/serializer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/serializer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/serializer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/serializer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/serializer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/serializer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/tokens.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/tokens.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/tokens.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/tokens.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -268,71 +268,71 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/__init__.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/__init__.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/composer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/composer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/composer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/composer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/composer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/composer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/constructor.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/constructor.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/constructor.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/constructor.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/constructor.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/constructor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/cyaml.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/cyaml.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/cyaml.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/cyaml.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/cyaml.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/cyaml.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/dumper.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/dumper.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/dumper.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/dumper.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/dumper.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/dumper.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/emitter.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/emitter.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/emitter.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/emitter.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/emitter.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/emitter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/error.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/error.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/error.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/error.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/error.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/error.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/events.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/events.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/events.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/events.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/events.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/events.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/loader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/loader.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/loader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/loader.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/nodes.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/nodes.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/nodes.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/parser.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/parser.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/parser.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/reader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/reader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/reader.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/reader.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/reader.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/reader.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/representer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/representer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/representer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/representer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/representer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/representer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/resolver.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/resolver.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/resolver.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/resolver.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/resolver.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/resolver.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/scanner.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/scanner.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/scanner.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/scanner.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/scanner.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/scanner.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/serializer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/serializer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/serializer.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/serializer.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/serializer.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/serializer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML-3.11
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/7/199702370/tmp/ymake" "--python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/tokens.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/tokens.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/PyYAML-3.11/lib/yaml/tokens.py-" "$(SolutionDir)../contrib/python/PyYAML-3.11/lib/yaml/tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/PyYAML-3.11/yaml/tokens.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
