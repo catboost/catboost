@@ -1173,6 +1173,11 @@ class CatBoostClassifier(CatBoost):
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
         If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
+    boosting_type : string, [default='Dynamic']
+        Boosting scheme.
+        Possible values:
+            - 'Dynamic' - Gives better quality, but may slow down the training.
+            - 'Plain' - The classic gradient boosting scheme. May result in quality degradation, but does not slow down the training.
     task_type : string, [default=None]
         The calcer type used to train the model.
         Possible values:
@@ -1228,6 +1233,7 @@ class CatBoostClassifier(CatBoost):
         used_ram_limit=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        boosting_type=None,
         simple_ctr=None,
         combinations_ctr=None,
         per_feature_ctr=None,
@@ -1524,6 +1530,7 @@ class CatBoostRegressor(CatBoost):
         used_ram_limit=None,
         allow_writing_files=None,
         approx_on_full_history=None,
+        boosting_type=None,
         simple_ctr=None,
         combinations_ctr=None,
         per_feature_ctr=None,
