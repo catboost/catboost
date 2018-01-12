@@ -109,6 +109,10 @@
         "checksum": "7825d3c5f243a3d9d826a3fb8e98422e",
         "uri": "file://test.test_apply_missing_vals/test.eval"
     },
+    "test.test_bagging_per_tree_level": {
+        "checksum": "26c5df98c8e78c19c45731f2503f7bd0",
+        "uri": "file://test.test_bagging_per_tree_level/test.eval"
+    },
     "test.test_baseline": [
         {
             "checksum": "1f1a9213cf3b30c1fd51e2d1c44e7dd2",
@@ -666,7 +670,7 @@
         "uri": "file://test.test_sample_rate_per_tree/test.eval"
     },
     "test.test_sample_rate_per_tree_level": {
-        "checksum": "26c5df98c8e78c19c45731f2503f7bd0",
+        "checksum": "7c00fc437a0b0ee8a1509d574084ba73",
         "uri": "file://test.test_sample_rate_per_tree_level/test.eval"
     },
     "test.test_shrink_model": [

@@ -1662,7 +1662,7 @@ def test_sample_rate_per_tree_level():
     return local_canonical_file(output_eval_path)
 
 
-def test_sample_rate_per_tree_level():
+def test_bagging_per_tree_level():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
