@@ -33,67 +33,35 @@ matrix:
       language: cpp
       env: CB_BUILD_AGENT='clang-linux-x86_64-release-cuda'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file: catboost-cuda-linux
-        skip_cleanup: true
-        on:
-          tags: true
     - os: linux
       dist: trusty
       language: python
       python: 2.7
       env: CB_BUILD_AGENT='python2-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file_glob: true
-        file: catboost/python-package/*.whl
-        skip_cleanup: true
-        on:
-          tags: true
     - os: linux
       dist: trusty
       language: python
       python: 3.5
       env: CB_BUILD_AGENT='python35-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file_glob: true
-        file: catboost/python-package/*.whl
-        skip_cleanup: true
-        on:
-          tags: true
+    - os: linux
+      dist: trusty
+      language: python
+      python: 3.4
+      env: CB_BUILD_AGENT='python34-linux-x86_64-release'
+      script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
     - os: linux
       dist: trusty
       language: python
       python: 3.6
       env: CB_BUILD_AGENT='python36-linux-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file_glob: true
-        file: catboost/python-package/*.whl
-        skip_cleanup: true
-        on:
-          tags: true
     - os: osx
       osx_image: xcode8.3
       language: cpp
       env: CB_BUILD_AGENT='clang-darwin-x86_64-release'
       script: ~/build/${TRAVIS_REPO_SLUG}/ci/travis/script.sh
-      deploy:
-        provider: releases
-        api_key: $GITHUB_OAUTH_TOKEN
-        file: catboost-darwin
-        skip_cleanup: true
-        on:
-          tags: true
     - os: osx
       osx_image: xcode8.3
       language: cpp
