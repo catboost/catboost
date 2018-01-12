@@ -2099,19 +2099,12 @@ class Yasm(object):
             self.flags += ['-g', 'dwarf2']
 
     def print_variables(self):
-        print '''\
-when ($ASM_PREFIX) {
-    ASM_PREFIX_VALUE=--prefix=$ASM_PREFIX
-}
-otherwise {
-    ASM_PREFIX_VALUE=
-}
-'''
         d_platform = ' '.join([('-D ' + i) for i in self.platform])
         output = '${{output;noext:SRC.{}}}'.format('o' if self.fmt != 'win' else 'obj')
         print '''\
-macro _SRC_yasm(SRC) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} -o {} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
+    .CMD={} -f {}$HARDWARE_ARCH {} -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} -o {} ${{pre=-P :PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}} ${{input;hide:PREINCLUDES}}
+
 }}
 '''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)
 
