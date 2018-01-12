@@ -537,6 +537,21 @@ public:
         TStringType emptyStr;
         UNIT_ASSERT_VALUES_EQUAL(emptyStr.back(), '\0');
     }
+
+    void TestFront() {
+        const char_type chars[] = {'f', 'o', 'o', 0};
+
+        TStringType str = chars;
+        const TStringType constStr = str;
+
+        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), 'f');
+        UNIT_ASSERT_VALUES_EQUAL(str.front(), 'f');
+
+        str.front() = 'r';
+        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), 'f');
+        UNIT_ASSERT_VALUES_EQUAL(str.front(), 'r');
+    }
+
 };
 
 class TStringTestZero: public TTestBase {

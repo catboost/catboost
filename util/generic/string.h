@@ -197,6 +197,16 @@ public:
         return Ptr()[Len() - 1];
     }
 
+    inline const TCharType& front() const noexcept {
+        Y_ASSERT(!empty());
+        return Ptr()[0];
+    }
+
+    inline TCharType& front() noexcept {
+        Y_ASSERT(!empty());
+        return Ptr()[0];
+    }
+
     constexpr inline size_t size() const noexcept {
         return Len();
     }
