@@ -185,7 +185,7 @@ public:
         TString tmpString;
         TString line;
         bool lastReadSuccess;
-        while (lastReadSuccess = TextInput->ReadLine(line)) {
+        while ((lastReadSuccess = TextInput->ReadLine(line))) {
             if (line.Empty()) {
                 break;
             }
