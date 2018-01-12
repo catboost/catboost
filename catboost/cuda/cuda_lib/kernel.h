@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cuda_base.h"
+#include "remote_objects.h"
 
 namespace NKernelHost {
     using EPtrType = NCudaLib::EPtrType;
@@ -10,17 +11,17 @@ namespace NKernelHost {
 
     class IMemoryManager {
     protected:
-        virtual void* AllocateImpl(EPtrType ptrType,
-                                   ui64 size) = 0;
+        virtual ui64 AllocateImpl(EPtrType ptrType,
+                                  ui64 size) = 0;
 
     public:
         virtual ~IMemoryManager() {
         }
 
-        template <class T, EPtrType ptrType = EPtrType::CudaDevice>
-        T* Allocate(ui64 count) {
-            void* ptr = AllocateImpl(ptrType, count * sizeof(T));
-            return reinterpret_cast<T*>(ptr);
+        template <class T, EPtrType PtrType = EPtrType::CudaDevice>
+        NCudaLib::THandleBasedMemoryPointer<T, PtrType> Allocate(ui64 count) {
+            ui64 handle = AllocateImpl(PtrType, count * sizeof(T));
+            return NCudaLib::THandleBasedMemoryPointer<T, PtrType>(handle);
         };
     };
 

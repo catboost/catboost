@@ -99,13 +99,9 @@ namespace NCudaLib {
 
             ~THandleBasedObject() {
                 if (Handle != EMPTY_HANDLE) {
-                    Device->ResetPointer(GetPointer());
+                    Device->ResetPointer<T>(Handle);
                     Device->FreeHandles.push_back(Handle);
                 }
-            }
-
-            THandleBasedPointer<T> GetPointer() const {
-                return THandleBasedPointer<T>(Handle);
             }
 
             friend class TCudaSingleDevice;
@@ -218,6 +214,13 @@ namespace NCudaLib {
             }
             WaitComplete().Wait();
             AddTask(MakeHolder<TStopCommand>());
+
+            //TODO(noxoomo): will be done on device side after mpi merge
+            for (auto& handle : FreeHandles) {
+                GetHandleStorage().FreeHandle(handle);
+            }
+            FreeHandles.resize(0);
+
             IsStoppedFlag = true;
         }
 
@@ -245,9 +248,9 @@ namespace NCudaLib {
         }
 
         template <class T>
-        void ResetPointer(THandleBasedPointer<T> ptr) {
-            using TTask = TResetRemotePointerCommand<T>;
-            TaskQueue.AddTask(MakeHolder<TTask>(ptr));
+        void ResetPointer(ui64 handle) {
+            using TTask = TResetPointerCommand<T>;
+            TaskQueue.AddTask(MakeHolder<TTask>(handle));
         }
 
         template <class TFunc>

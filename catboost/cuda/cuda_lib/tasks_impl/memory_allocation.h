@@ -32,19 +32,21 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(Handle, Size);
     };
 
-    template <class T>
-    class TResetRemotePointerCommand: public IFreeMemoryTask {
+    template <class T, bool FreeHandle = false>
+    class TResetPointerCommand : public IFreeMemoryTask {
     private:
-        THandleBasedPointer<T> Ptr;
-
+        ui64 Handle;
     public:
-        explicit TResetRemotePointerCommand(THandleBasedPointer<T> ptr)
-            : Ptr(ptr)
+        explicit TResetPointerCommand(ui64 handle)
+            : Handle(handle)
         {
         }
 
-        void Exec() override {
-            Ptr.Reset();
+        void Exec() override final {
+            THandleBasedPointer<T>(Handle).Reset();
+            if (FreeHandle) {
+                GetHandleStorage().FreeHandle(Handle);
+            }
         }
     };
 

@@ -74,7 +74,7 @@ namespace NKernelHost {
                 //fill temp storage size by cub
                 CUDA_SAFE_CALL(NKernel::SegmentedRadixSort((K*)nullptr, (V*)nullptr, (K*)nullptr, (V*)nullptr,
                                                            size, nullptr, nullptr, PartCount, *context, 0));
-                context->TempStorage = manager.Allocate<char>(context->TempStorageSize);
+                context->TempStorage = manager.Allocate<char>(context->TempStorageSize).Get();
             }
             return context;
         }

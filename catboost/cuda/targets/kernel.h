@@ -141,9 +141,14 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
-            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
-            context->MseDer = memoryManager.Allocate<float>(Relevs.Size());
+            //TODO(noxoomo): make temp memory more robust
+            auto queryMeansPtr = memoryManager.Allocate<float>(QuerySizes.Size());
+            auto qidsPtr = memoryManager.Allocate<ui32>(Relevs.Size());
+            auto relevsPtr = memoryManager.Allocate<float>(Relevs.Size());
+
+            context->QueryMeans = queryMeansPtr.Get();
+            context->Qids = qidsPtr.Get();
+            context->MseDer = relevsPtr.Get();
             return context;
         }
 
@@ -223,17 +228,30 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Relevs, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2, Seed, PermutationCount);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            //TODO(noxoomo): make temp memory more robust
             auto context = MakeHolder<TKernelContext>();
-            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
-            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
-            context->LastProceededQid = memoryManager.Allocate<ui32>(1);
-            context->Approxes = memoryManager.Allocate<float>(Relevs.Size());
+            auto queryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
+            auto qids = memoryManager.Allocate<ui32>(Relevs.Size());
+            auto lastProceededQid = memoryManager.Allocate<ui32>(1);
+            auto approxesTemp = memoryManager.Allocate<float>(Relevs.Size());
+
+            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::CudaDevice> tempDers;
+            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::CudaDevice> tempWeights;
+            if (Indices.Size()) {
+                tempDers = memoryManager.Allocate<float>(Relevs.Size());
+                tempWeights = memoryManager.Allocate<float>(Relevs.Size());
+            }
+
+            //now ptrs would not change until kernel is finished
+            context->QueryMeans = queryMeans.Get();
+            context->Qids = qids.Get();
+            context->LastProceededQid = lastProceededQid.Get();
+            context->Approxes = approxesTemp.Get();
 
             if (Indices.Size()) {
-                context->TempDers = memoryManager.Allocate<float>(Relevs.Size());
-                context->TempWeights = memoryManager.Allocate<float>(Relevs.Size());
+                context->TempDers = tempDers.Get();
+                context->TempWeights = tempWeights.Get();
             }
-            context->LastProceededQid = memoryManager.Allocate<ui32>(1);
             return context;
         }
 
@@ -331,7 +349,8 @@ namespace NKernelHost {
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
             if (Indices.Get()) {
-                context->GatheredPoint = memoryManager.Allocate<float>(Indices.Size());
+                //TODO(noxoomo): make temp memory more robust
+                context->GatheredPoint = memoryManager.Allocate<float>(Indices.Size()).Get();
             }
             return context;
         }

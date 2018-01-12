@@ -140,6 +140,7 @@ namespace NCudaLib {
         }
 
         void MemoryDefragmentation() {
+            DeviceSynchronize();
             auto startTime = Now();
 
             auto cursor = FirstFreeBlock;
@@ -311,7 +312,7 @@ namespace NCudaLib {
             MATRIXNET_INFO_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
 
             if ((memoryToDefragment > LastBlock->Size) && (LastBlock->Size < MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) {
-                ythrow yexception() << "Error: We don't have enough memory to defragmentation";
+                ythrow TCatboostException() << "Error: We don't have enough memory to defragmentation";
             } else {
                 //this algorithm copies everything in last block and then copies back.
                 MemoryDefragmentation();

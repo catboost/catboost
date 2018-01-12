@@ -93,13 +93,19 @@ namespace NKernelHost {
 
         template <bool NeedOnlyTempStorage = false>
         static inline void AllocateMemory(IMemoryManager& manager, ui32 size, NKernel::TRadixSortContext& context) {
+            //don't reorder. memory allocation could move pointers. arcadia cuda support is bad
+            //TODO(noxoomo): make temp memory more robust
+            auto tmpStorage = manager.Allocate<char>(context.TempStorageSize);
+
             if (!NeedOnlyTempStorage) {
-                context.TempKeys = manager.Allocate<char>(size * sizeof(K));
+
+                auto tempKeys = manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
-                    context.TempValues = manager.Allocate<char>(size * context.ValueSize);
+                    context.TempValues = manager.Allocate<char>(size * context.ValueSize).Get();
                 }
+                context.TempKeys = tempKeys.Get();
             }
-            context.TempStorage = manager.Allocate<char>(context.TempStorageSize);
+            context.TempStorage = tmpStorage.Get();
         }
 
         inline void MakeTempKeysAndValuesPtrs(NKernel::TRadixSortContext& context) const {

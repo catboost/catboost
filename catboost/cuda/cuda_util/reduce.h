@@ -34,7 +34,8 @@ namespace NKernelHost {
             auto context = MakeHolder<TKernelContext>();
             CUDA_SAFE_CALL(NKernel::Reduce(Input.Get(), Output.Get(), Input.Size(), Type, *context, 0));
             if (context->TempStorageSize) {
-                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize);
+                //TODO(noxoomo): make temp memory more robust
+                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize).Get();
             }
             context->Initialized = true;
             return context;
@@ -83,7 +84,8 @@ namespace NKernelHost {
                                                 Sizes.Get(), Type, *context,
                                                 0));
             if (context->TempStorageSize) {
-                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize);
+                //TODO(noxoomo): make temp memory more robust
+                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize).Get();
             }
             context->Initialized = true;
             return context;
@@ -129,7 +131,8 @@ namespace NKernelHost {
                                                     Offsets.Get(), Offsets.Size() - 1,
                                                     Output.Get(), Type, *context, 0));
             if (context->TempStorageSize) {
-                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize);
+                //TODO(noxoomo): make temp memory more robust
+                context->TempStorage = memoryManager.Allocate<char>(context->TempStorageSize).Get();
             }
             context->Initialized = true;
             return context;

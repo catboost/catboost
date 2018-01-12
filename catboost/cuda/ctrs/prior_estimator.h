@@ -25,8 +25,8 @@ public:
 
         inline double LogLikelihood(ui32 k, ui32 n) const {
             double ll = LogGamma(n + 1) - LogGamma(k + 1) - LogGamma(n - k + 1);
-            ll += LogGamma(Alpha) + LogGamma(Beta) + LogGamma(Beta + n - k) + LogGamma(Alpha + k);
-            ll -= LogGamma(Alpha + Beta + n) + LogGamma(Alpha + Beta);
+            ll += LogGamma(Alpha + Beta) - LogGamma(Alpha) - LogGamma(Beta);
+            ll += LogGamma(Beta + n - k) + LogGamma(Alpha + k) - LogGamma(Alpha + Beta + n);
             return ll;
         }
 

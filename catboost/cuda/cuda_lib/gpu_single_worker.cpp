@@ -1,6 +1,47 @@
 #include "gpu_single_worker.h"
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 
 namespace NCudaLib {
+
+    void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size)  {
+        switch (ptrType) {
+            case CudaHost: {
+                using TRawPtr = typename TMemoryProviderImplTrait<CudaHost>::TRawFreeMemory;
+                using TCmd = TResetPointerCommand<TRawPtr, true>;
+                Y_ASSERT(HostMemoryProvider);
+                TCudaMallocTask<CudaHost> task(handle, size);
+                AllocateMemory(task);
+                auto cmd = MakeHolder<TCmd>(handle);
+                ObjectsToFree.push_back(std::move(cmd));
+                return;
+            }
+            case CudaDevice: {
+                using TRawPtr = typename TMemoryProviderImplTrait<CudaDevice>::TRawFreeMemory;
+                using TCmd = TResetPointerCommand<TRawPtr, true>;
+
+                Y_ASSERT(HostMemoryProvider);
+                TCudaMallocTask<CudaDevice> task(handle, size);
+                AllocateMemory(task);
+                auto cmd = MakeHolder<TCmd>(handle);
+                ObjectsToFree.push_back(std::move(cmd));
+                return;
+            }
+            case Host: {
+                using TRawPtr = typename TMemoryProviderImplTrait<Host>::TRawFreeMemory;
+                using TCmd = TResetPointerCommand<TRawPtr, true>;
+
+                TCudaMallocTask<Host> task(handle, size);
+                AllocateMemory(task);
+                auto cmd = MakeHolder<TCmd>(handle);
+                ObjectsToFree.push_back(std::move(cmd));
+                return;
+            }
+            default: {
+                ythrow TCatboostException() << "Unsupported operation type";
+            }
+        }
+    }
+
     bool TGpuOneDeviceWorker::RunIteration() {
         bool shouldStop = false;
         try {

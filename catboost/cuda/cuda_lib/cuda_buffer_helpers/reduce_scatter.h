@@ -41,7 +41,8 @@ namespace NKernelHost {
             HasPeerAccess = NCudaLib::GetPeerDevicesHelper().HasPeerAccess(sourceDevId, dstDevId);
 
             if (!HasPeerAccess) {
-                context->TempBuffer = memoryManager.Allocate<T>(Src.Size());
+                //TODO(noxoomo): make temp memory more robust
+                context->TempBuffer = memoryManager.Allocate<T>(Src.Size()).Get();
             }
             return context;
         }
@@ -82,7 +83,7 @@ namespace NKernelHost {
             auto context = MakeHolder<TKernelContext>();
 
             if (Slice.Size() && Slice.Left) {
-                context->TempBuffer = memoryManager.Allocate<T>(Data.SliceMemorySize(Slice));
+                context->TempBuffer = memoryManager.Allocate<T>(Data.SliceMemorySize(Slice)).Get();
             }
             return context;
         }

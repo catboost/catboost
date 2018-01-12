@@ -226,12 +226,12 @@ namespace NCudaLib {
 
         using TKernelContext = typename NHelpers::TKernelContextTrait<TKernel>::TKernelContext;
 
-        THolder<NKernel::IKernelContext> PrepareExec(NKernelHost::IMemoryManager& memoryManager) const override {
+        THolder<NKernel::IKernelContext> PrepareExec(NKernelHost::IMemoryManager& memoryManager) const final {
             return NHelpers::TKernelPrepareHelper<TKernel, TKernelContext>(Kernel).PrepareContext(memoryManager);
         }
 
         void SubmitAsyncExec(const TCudaStream& stream,
-                             NKernel::IKernelContext* data) override {
+                             NKernel::IKernelContext* data) final {
             NHelpers::TKernelRunHelper<TKernel, TKernelContext>(Kernel).Run(stream, data);
             if (NeedPostProcess) {
                 CudaEvent = CreateCudaEvent(true);
@@ -240,7 +240,7 @@ namespace NCudaLib {
         }
 
         bool ReadyToSubmitNext(const TCudaStream& stream,
-                               NKernel::IKernelContext* data) override {
+                               NKernel::IKernelContext* data) final {
             if (PostProcessDone) {
                 return true;
             }

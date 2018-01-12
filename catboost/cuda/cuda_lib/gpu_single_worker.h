@@ -118,57 +118,16 @@ namespace NCudaLib {
         private:
             TGpuOneDeviceWorker* Owner;
 
-            template <EPtrType PtrType>
-            class TRemoveObjectCommand: public IFreeMemoryTask {
-            private:
-                using TPtr = THolder<typename TMemoryProviderImplTrait<PtrType>::TRawFreeMemory>;
-                TPtr MemoryPtr;
-
-            public:
-                explicit TRemoveObjectCommand(TPtr&& ptr)
-                    : MemoryPtr(std::move(ptr))
-                {
-                }
-
-                void* GetPtr() {
-                    return MemoryPtr->Get();
-                }
-
-                void Exec() override {
-                    MemoryPtr.Reset(nullptr);
-                }
-            };
 
         protected:
             TTempMemoryManager(TGpuOneDeviceWorker* owner)
-                : Owner(owner)
-            {
+                : Owner(owner) {
             }
 
-            void* AllocateImpl(EPtrType ptrType, ui64 size) override {
-                switch (ptrType) {
-                    case CudaHost: {
-                        auto rawPtr = Owner->HostMemoryProvider->Create(size);
-                        using TType = std::remove_pointer_t<decltype(rawPtr)>;
-                        auto cmd = new TRemoveObjectCommand<CudaHost>(THolder<TType>(rawPtr));
-                        void* ptr = cmd->GetPtr();
-                        Owner->AddFreeMemoryTask(cmd);
-                        return ptr;
-                    }
-                    case CudaDevice: {
-                        auto rawPtr = Owner->DeviceMemoryProvider->Create(size);
-                        using TType = std::remove_pointer_t<decltype(rawPtr)>;
-                        auto cmd = new TRemoveObjectCommand<CudaDevice>(THolder<TType>(rawPtr));
-                        void* ptr = cmd->GetPtr();
-                        Owner->AddFreeMemoryTask(cmd);
-                        return ptr;
-                    }
-                    case Host:
-                    default: {
-                        ythrow yexception() << "Unsupported operation type";
-                    }
-                }
-                CB_ENSURE("Not here");
+            ui64 AllocateImpl(EPtrType ptrType, ui64 size) final {
+                auto handle = GetHandleStorage().GetHandle(1)[0];
+                Owner->AllocateTempMemory(handle, ptrType, size);
+                return handle;
             }
 
         public:
@@ -260,9 +219,7 @@ namespace NCudaLib {
             Streams[id]->Synchronize();
         }
 
-        void AddFreeMemoryTask(THolder<IFreeMemoryTask>&& freeMemoryTask) {
-            ObjectsToFree.push_back(std::move(freeMemoryTask));
-        }
+        void AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size);
 
         void RunErrorCallbacks(const TString& errorMessage) const {
             TGuard<TAdaptiveLock> guard(CallbackLock);

@@ -144,7 +144,8 @@ namespace NCudaLib {
         {
         }
 
-        explicit THandleBasedMemoryPointer(ui64 handle, ui64 offset = 0)
+        explicit THandleBasedMemoryPointer(ui64 handle,
+                                           ui64 offset = 0)
             : Handle(handle)
             , Offset(offset)
         {

@@ -51,7 +51,8 @@ namespace NKernelHost {
             context->Size = size;
             context->PartResultSize = ((size + 1023) / 1024);
             //we don't need gpu-side buffer for this
-            context->PartResults = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize);
+            //TODO(noxoomo): make temp memory more robust
+            context->PartResults = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize).Get();
             return context;
         }
 
