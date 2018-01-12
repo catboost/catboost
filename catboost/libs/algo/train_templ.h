@@ -197,7 +197,7 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
                     double* approxData = bt.Approx[dim].data();
                     ctx->LocalExecutor.ExecRange([=](int z) {
                         approxData[z] = UpdateApprox<TError::StoreExpApprox>(approxData[z], ApplyLearningRate<TError::StoreExpApprox>(approxDeltaData[z], learningRate));
-                    }, NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(10000)
+                    }, NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(1000)
                         , NPar::TLocalExecutor::WAIT_COMPLETE);
                 }
             }
@@ -250,7 +250,7 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
                     approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
                 }
                 avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
-            }, NPar::TLocalExecutor::TExecRangeParams(0, sampleCount).SetBlockSize(10000)
+            }, NPar::TLocalExecutor::TExecRangeParams(0, sampleCount).SetBlockSize(1000)
                 , NPar::TLocalExecutor::WAIT_COMPLETE);
         }
 

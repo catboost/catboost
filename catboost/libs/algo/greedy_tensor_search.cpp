@@ -34,7 +34,7 @@ static void GenerateRandomWeights(int learnSampleCount,
 
     const ui64 randSeed = ctx->Rand.GenRand();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, learnSampleCount);
-    blockParams.SetBlockSize(10000);
+    blockParams.SetBlockSize(1000);
     ctx->LocalExecutor.ExecRange([&](int blockIdx) {
         TFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads

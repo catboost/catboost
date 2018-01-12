@@ -61,7 +61,7 @@ inline void UpdateApproxDeltas(const TVector<TIndexType>& indices,
     const double* leafValuesData = leafValues->data();
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockSize(10000);
+    blockParams.SetBlockSize(1000);
 
     ctx->LocalExecutor.ExecRange([=] (int blockIdx) {
         UpdateApproxBlock<StoreExpApprox>(blockParams, leafValuesData, indicesData, blockIdx, resArrData);
