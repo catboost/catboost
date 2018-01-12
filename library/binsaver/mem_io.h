@@ -69,19 +69,22 @@ namespace NMemIoInternals {
     class THugeMemoryStream: public IBinaryStream {
         TVector<TVector<char>>& Data;
         i64 Block, Pos;
+        bool ShrinkOnRead;
 
         enum {
-            MAX_BLOCK_SIZE = 1024 * 1024 * 1024
+            MAX_BLOCK_SIZE = 1024 * 1024 // Aligned with cache size
         };
 
     public:
-        THugeMemoryStream(TVector<TVector<char>>* data)
+        THugeMemoryStream(TVector<TVector<char>>* data, bool shrinkOnRead = false)
             : Data(*data)
             , Block(0)
             , Pos(0)
+            , ShrinkOnRead(shrinkOnRead)
         {
             Y_ASSERT(!data->empty());
         }
+
         ~THugeMemoryStream() override {
         } // keep gcc happy
 
@@ -143,6 +146,9 @@ namespace NMemIoInternals {
                         memset(userData, 0, size);
                         return rv;
                     }
+                    if (ShrinkOnRead) {
+                        TVector<char>().swap(Data[Block]);
+                    }
                     ++Block;
                     Pos = 0;
                 } else {
@@ -188,4 +194,19 @@ inline void SerializeToMem(D* data, T& c, bool stableOutput = false) {
 template <class T, class D>
 inline void SerializeFromMem(D* data, T& c, bool stableOutput = false) {
     NMemIoInternals::SerializeMem(true, data, c, stableOutput);
+}
+
+// Frees memory in (*data)[i] immediately upon it's deserialization, thus keeps low overall memory consumption for data + object.
+template <class T>
+inline void SerializeFromMemShrinkInput(TVector<TVector<char>>* data, T& c) {
+    if (data->empty()) {
+        data->resize(1);
+    }
+    NMemIoInternals::THugeMemoryStream f(data, true);
+    {
+        IBinSaver bs(f, true, false);
+        bs.Add(1, &c);
+    }
+    data->resize(0);
+    data->shrink_to_fit();
 }
