@@ -3492,6 +3492,7 @@ WindowsSideShow.h
 WindowsSideShowAPI.h
 windowssideshowdriverevents.h
 winefs.h
+WinError.h
 winevt.h
 WinFax.h
 wingdi.h
