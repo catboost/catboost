@@ -1,9 +1,7 @@
-import collections
 import re
 import os
 
 import _import_wrapper as iw
-import _common as common
 
 INCLUDE_PATTERN = re.compile(' *%(include|INCLUDE) *"([^"]*)"')
 
