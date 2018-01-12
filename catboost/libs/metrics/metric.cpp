@@ -1285,19 +1285,33 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
     return CreateMetric(metric, params, approxDimension);
 }
 
-TVector<THolder<IMetric>> CreateMetrics(const NCatboostOptions::TLossDescription& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                                        const TVector<NCatboostOptions::TLossDescription>& customLoss, int approxDimension) {
+TVector<THolder<IMetric>> CreateMetrics(
+    const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
+    const NCatboostOptions::TCpuOnlyOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    int approxDimension
+) {
     TVector<THolder<IMetric>> errors;
-    if (evalMetric.GetLossFunction() == ELossFunction::Custom) {
-        errors.emplace_back(new TCustomMetric(*evalMetricDescriptor));
-    } else {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetric, approxDimension);
+
+    if(evalMetricOptions->EvalMetric.IsSet()) {
+        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
+            errors.emplace_back(new TCustomMetric(*evalMetricDescriptor));
+        } else {
+            TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetricOptions->EvalMetric, approxDimension);
+            for (auto& metric : createdMetrics) {
+                errors.push_back(std::move(metric));
+            }
+        }
+    }
+
+    if (lossFunctionOption->GetLossFunction() != ELossFunction::Custom) {
+        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
         for (auto& metric : createdMetrics) {
             errors.push_back(std::move(metric));
         }
     }
 
-    for (const auto& description : customLoss) {
+    for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(description, approxDimension);
         for (auto& metric : createdMetrics) {
             errors.push_back(std::move(metric));

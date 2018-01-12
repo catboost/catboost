@@ -75,9 +75,12 @@ void TLearnContext::OutputMeta() {
         meta << "testErrorLog\t" << FilePathForMeta(OutputOptions.GetTestErrorFilename(), Files.NamesPrefix) << Endl;
     }
     meta << "timeLeft\t" << FilePathForMeta(OutputOptions.GetTimeLeftLogFilename(), Files.NamesPrefix) << Endl;
-    auto losses = CreateMetrics(Params.MetricOptions->EvalMetric, EvalMetricDescriptor,
-                                Params.MetricOptions->CustomMetrics,
-                                LearnProgress.ApproxDimension);
+    auto losses = CreateMetrics(
+        Params.LossFunctionDescription,
+        Params.MetricOptions,
+        EvalMetricDescriptor,
+        LearnProgress.ApproxDimension
+    );
 
     for (const auto& loss : losses) {
         meta << "loss\t" << loss->GetDescription() << "\t" << (loss->IsMaxOptimal() ? "max" : "min") << Endl;

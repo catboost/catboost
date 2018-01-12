@@ -199,11 +199,12 @@ void CrossValidate(
     }
 
     const ui32 approxDimension = ctx->LearnProgress.ApproxDimension;
-    const auto& metricOptions = ctx->Params.MetricOptions.Get();
-    TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
-                                                     ctx->EvalMetricDescriptor,
-                                                     metricOptions.CustomMetrics,
-                                                     approxDimension);
+    TVector<THolder<IMetric>> metrics = CreateMetrics(
+         ctx->Params.LossFunctionDescription,
+         ctx->Params.MetricOptions,
+         ctx->EvalMetricDescriptor,
+         approxDimension
+    );
 
     TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), /* hasTest */ true, ctx.Get());
 

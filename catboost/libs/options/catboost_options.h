@@ -76,7 +76,6 @@ namespace NCatboostOptions {
         void SetNotSpecifiedOptionsToDefaults() {
             SetLeavesEstimationDefault();
             SetCtrDefaults();
-            SetMetricDefaults(LossFunctionDescription.Get());
 
             if (IsQuerywiseError(LossFunctionDescription->GetLossFunction()) || DataProcessingOptions->HasTimeFlag) {
                 BoostingOptions->PermutationCount = 1;
@@ -103,8 +102,6 @@ namespace NCatboostOptions {
         void SetLeavesEstimationDefault();
 
         TCtrDescription CreateDefaultCounter(EProjectionType projectionType) const;
-
-        void SetMetricDefaults(const TLossDescription& lossFunction);
 
         void SetCtrDefaults();
 

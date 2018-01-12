@@ -100,11 +100,12 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
     const auto sampleCount = data.GetSampleCount();
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
 
-    const auto& metricOptions = ctx->Params.MetricOptions.Get();
-    TVector<THolder<IMetric>> errors = CreateMetrics(metricOptions.EvalMetric,
+    TVector<THolder<IMetric>> errors = CreateMetrics(
+        ctx->Params.LossFunctionDescription,
+        ctx->Params.MetricOptions,
         ctx->EvalMetricDescriptor,
-        metricOptions.CustomMetrics,
-        approxDimension);
+        approxDimension
+    );
 
     auto splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
 

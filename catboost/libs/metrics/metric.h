@@ -10,6 +10,7 @@
 
 #include <util/generic/hash.h>
 #include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/metric_options.h>
 
 
 struct TCustomMetricDescriptor {
@@ -452,8 +453,12 @@ private:
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
 
-TVector<THolder<IMetric>> CreateMetrics(const NCatboostOptions::TLossDescription& evalMetric, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                                        const TVector<NCatboostOptions::TLossDescription>& customLoss, int approxDimension);
+TVector<THolder<IMetric>> CreateMetrics(
+    const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
+    const NCatboostOptions::TCpuOnlyOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    int approxDimension
+);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension);
 

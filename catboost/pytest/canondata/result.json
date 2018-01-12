@@ -271,11 +271,11 @@
     ],
     "test.test_custom_overfitting_detector_metric": [
         {
-            "checksum": "9fd5933b80b25afec605cf3a4bf0daca",
+            "checksum": "11bbd75e4f1ffdf3179c73a11fe96b9e",
             "uri": "file://test.test_custom_overfitting_detector_metric/learn_error.tsv"
         },
         {
-            "checksum": "fcb555eae6df222c60204b5b8abae59a",
+            "checksum": "65e82e927858f50045d1208513d82dc8",
             "uri": "file://test.test_custom_overfitting_detector_metric/test_error.tsv"
         }
     ],

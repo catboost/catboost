@@ -144,11 +144,10 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     const int approxDimension = testMultiApprox->ysize();
     const bool hasTest = sampleCount > data.LearnSampleCount;
     auto trainOneIterationFunc = GetOneIterationFunc(ctx->Params.LossFunctionDescription->GetLossFunction());
-    const auto& metricOptions = ctx->Params.MetricOptions.Get();
     TVector<THolder<IMetric>> metrics = CreateMetrics(
-        metricOptions.EvalMetric,
+        ctx->Params.LossFunctionDescription,
+        ctx->Params.MetricOptions,
         ctx->EvalMetricDescriptor,
-        metricOptions.CustomMetrics,
         approxDimension
     );
 
@@ -417,11 +416,12 @@ class TCPUModelTrainer : public IModelTrainer {
             trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
         }
 
-        const auto& metricOptions = ctx.Params.MetricOptions.Get();
-        // TODO(nikitxskv): Add objective to CreateMetrics
-        TVector<THolder<IMetric>> metrics = CreateMetrics(metricOptions.EvalMetric,
+        TVector<THolder<IMetric>> metrics = CreateMetrics(
+            ctx.Params.LossFunctionDescription,
+            ctx.Params.MetricOptions,
             ctx.EvalMetricDescriptor,
-            metricOptions.CustomMetrics, 1);
+            1
+        );
         bool hasQuerywiseMetric = false;
         for (const auto& metric : metrics) {
             if (metric.Get()->GetErrorType() == EErrorType::QuerywiseError) {
@@ -766,7 +766,7 @@ void CheckFitParams(
         CB_ENSURE(objectiveDescriptor.Defined(), "Error: provide objective descriptor for custom loss");
     }
 
-    if (options.MetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
+    if (options.MetricOptions->EvalMetric.IsSet() && options.MetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
         CB_ENSURE(evalMetricDescriptor.Defined(), "Error: provide eval metric descriptor for custom eval metric");
     }
 }

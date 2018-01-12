@@ -282,15 +282,4 @@ namespace NCatboostOptions {
         }
         ValidateCtrs(CatFeatureParams->CombinationCtrs, lossFunction, true);
     }
-
-    void TCatboostOptions::SetMetricDefaults(const TLossDescription& lossFunction) {
-        if (GetTaskType() == ETaskType::CPU) {
-            auto& evalMetric = MetricOptions->EvalMetric;
-            if (evalMetric.IsSet()) {
-                return;
-            } else {
-                evalMetric = lossFunction;
-            }
-        }
-    }
 }
