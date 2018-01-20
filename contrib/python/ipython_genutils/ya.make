@@ -1,5 +1,7 @@
 LIBRARY(ipython_genutils)
 
+VERSION(0.1.0)
+
 LICENSE(
     BSD
 )

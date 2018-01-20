@@ -9,7 +9,7 @@ RECURSE(
     enum34
     ipython
     ipython/bin
-    ipython_genutils-0.1.0
+    ipython_genutils
     Jinja2
     MarkupSafe
     numpy-1.11.1
