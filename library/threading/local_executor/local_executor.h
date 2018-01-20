@@ -134,9 +134,9 @@ namespace NPar {
             bool BlockEqualToThreads;
         };
 
-        template<typename TBody>
+        template <typename TBody>
         inline static auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
-            return [=] (int blockId) {
+            return [=](int blockId) {
                 const int blockFirstId = params.FirstId + blockId * params.BlockSize;
                 const int blockLastId = Min(params.LastId, blockFirstId + params.BlockSize);
                 for (int i = blockFirstId; i < blockLastId; ++i) {

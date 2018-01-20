@@ -9,215 +9,220 @@
 #include <util/system/spinlock.h>
 
 namespace NThreading {
+    ////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-
-struct TFutureException: public yexception {};
-
-template <typename T>
-class TFuture;
-
-template <typename T>
-class TPromise;
-
-// creates unset promise
-template <typename T> TPromise<T> NewPromise();
-TPromise<void> NewPromise();
-
-// creates preset future
-template <typename T> TFuture<T> MakeFuture(const T& value);
-template <typename T> TFuture<std::remove_reference_t<T>> MakeFuture(T&& value);
-template <typename T> TFuture<T> MakeFuture();
-TFuture<void> MakeFuture();
-
-// waits for all futures
-TFuture<void> WaitAll(const TFuture<void>& f1);
-TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2);
-template <typename TContainer> TFuture<void> WaitAll(const TContainer& futures);
-
-// waits for any future
-TFuture<void> WaitAny(const TFuture<void>& f1);
-TFuture<void> WaitAny(const TFuture<void>& f1, const TFuture<void>& f2);
-template <typename TContainer> TFuture<void> WaitAny(const TContainer& futures);
-
-////////////////////////////////////////////////////////////////////////////////
-
-namespace NImpl {
-    template <typename T>
-    class TFutureState;
+    struct TFutureException: public yexception {};
 
     template <typename T>
-    struct TFutureType {
-        using TType = T;
+    class TFuture;
+
+    template <typename T>
+    class TPromise;
+
+    // creates unset promise
+    template <typename T>
+    TPromise<T> NewPromise();
+    TPromise<void> NewPromise();
+
+    // creates preset future
+    template <typename T>
+    TFuture<T> MakeFuture(const T& value);
+    template <typename T>
+    TFuture<std::remove_reference_t<T>> MakeFuture(T&& value);
+    template <typename T>
+    TFuture<T> MakeFuture();
+    TFuture<void> MakeFuture();
+
+    // waits for all futures
+    TFuture<void> WaitAll(const TFuture<void>& f1);
+    TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2);
+    template <typename TContainer>
+    TFuture<void> WaitAll(const TContainer& futures);
+
+    // waits for any future
+    TFuture<void> WaitAny(const TFuture<void>& f1);
+    TFuture<void> WaitAny(const TFuture<void>& f1, const TFuture<void>& f2);
+    template <typename TContainer>
+    TFuture<void> WaitAny(const TContainer& futures);
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+    namespace NImpl {
+        template <typename T>
+        class TFutureState;
+
+        template <typename T>
+        struct TFutureType {
+            using TType = T;
+        };
+
+        template <typename T>
+        struct TFutureType<TFuture<T>> {
+            using TType = typename TFutureType<T>::TType;
+        };
+    }
+
+    template <typename F>
+    using TFutureType = typename NImpl::TFutureType<F>::TType;
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+    template <typename T>
+    class TFuture {
+        using TFutureState = NImpl::TFutureState<T>;
+
+    private:
+        TIntrusivePtr<TFutureState> State;
+
+    public:
+        TFuture();
+        TFuture(const TFuture<T>& other);
+        TFuture(const TIntrusivePtr<TFutureState>& state);
+
+        TFuture<T>& operator=(const TFuture<T>& other);
+        void Swap(TFuture<T>& other);
+
+        bool Initialized() const;
+
+        bool HasValue() const;
+        const T& GetValue(TDuration timeout = TDuration::Zero()) const;
+        const T& GetValueSync() const;
+        T ExtractValue(TDuration timeout = TDuration::Zero());
+        T ExtractValueSync();
+
+        bool HasException() const;
+
+        void Wait() const;
+        bool Wait(TDuration timeout) const;
+        bool Wait(TInstant deadline) const;
+
+        template <typename F>
+        const TFuture<T>& Subscribe(F&& callback) const;
+
+        template <typename F>
+        TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
+
+        TFuture<void> IgnoreResult() const;
+
+    private:
+        void EnsureInitialized() const;
     };
 
-    template <typename T>
-    struct TFutureType<TFuture<T>> {
-        using TType = typename TFutureType<T>::TType;
+    ////////////////////////////////////////////////////////////////////////////////
+
+    template <>
+    class TFuture<void> {
+        using TFutureState = NImpl::TFutureState<void>;
+
+    private:
+        TIntrusivePtr<TFutureState> State;
+
+    public:
+        TFuture();
+        TFuture(const TFuture<void>& other);
+        TFuture(const TIntrusivePtr<TFutureState>& state);
+
+        TFuture<void>& operator=(const TFuture<void>& other);
+        void Swap(TFuture<void>& other);
+
+        bool Initialized() const;
+
+        bool HasValue() const;
+        void GetValue(TDuration timeout = TDuration::Zero()) const;
+        void GetValueSync() const;
+
+        bool HasException() const;
+
+        void Wait() const;
+        bool Wait(TDuration timeout) const;
+        bool Wait(TInstant deadline) const;
+
+        template <typename F>
+        const TFuture<void>& Subscribe(F&& callback) const;
+
+        template <typename F>
+        TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
+
+        template <typename R>
+        TFuture<R> Return(const R& value) const;
+
+    private:
+        void EnsureInitialized() const;
     };
-}   // namespace NImpl
 
-template <typename F>
-using TFutureType = typename NImpl::TFutureType<F>::TType;
+    ////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    class TPromise {
+        using TFutureState = NImpl::TFutureState<T>;
 
-template <typename T>
-class TFuture {
-    using TFutureState = NImpl::TFutureState<T>;
+    private:
+        TIntrusivePtr<TFutureState> State;
 
-private:
-    TIntrusivePtr<TFutureState> State;
+    public:
+        TPromise();
+        TPromise(const TPromise<T>& other);
+        TPromise(const TIntrusivePtr<TFutureState>& state);
 
-public:
-    TFuture();
-    TFuture(const TFuture<T>& other);
-    TFuture(const TIntrusivePtr<TFutureState>& state);
+        TPromise<T>& operator=(const TPromise<T>& other);
+        void Swap(TPromise<T>& other);
 
-    TFuture<T>& operator =(const TFuture<T>& other);
-    void Swap(TFuture<T>& other);
+        bool Initialized() const;
 
-    bool Initialized() const;
+        bool HasValue() const;
+        const T& GetValue() const;
+        T ExtractValue();
 
-    bool HasValue() const;
-    const T& GetValue(TDuration timeout = TDuration::Zero()) const;
-    const T& GetValueSync() const;
-    T ExtractValue(TDuration timeout = TDuration::Zero());
-    T ExtractValueSync();
+        void SetValue(const T& value);
+        void SetValue(T&& value);
 
-    bool HasException() const;
+        bool HasException() const;
+        void SetException(const TString& e);
+        void SetException(std::exception_ptr e);
 
-    void Wait() const;
-    bool Wait(TDuration timeout) const;
-    bool Wait(TInstant deadline) const;
+        TFuture<T> GetFuture() const;
+        operator TFuture<T>() const;
 
-    template <typename F>
-    const TFuture<T>& Subscribe(F&& callback) const;
+    private:
+        void EnsureInitialized() const;
+    };
 
-    template <typename F>
-    TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
+    ////////////////////////////////////////////////////////////////////////////////
 
-    TFuture<void> IgnoreResult() const;
+    template <>
+    class TPromise<void> {
+        using TFutureState = NImpl::TFutureState<void>;
 
-private:
-    void EnsureInitialized() const;
-};
+    private:
+        TIntrusivePtr<TFutureState> State;
 
-////////////////////////////////////////////////////////////////////////////////
+    public:
+        TPromise();
+        TPromise(const TPromise<void>& other);
+        TPromise(const TIntrusivePtr<TFutureState>& state);
 
-template <>
-class TFuture<void> {
-    using TFutureState = NImpl::TFutureState<void>;
+        TPromise<void>& operator=(const TPromise<void>& other);
+        void Swap(TPromise<void>& other);
 
-private:
-    TIntrusivePtr<TFutureState> State;
+        bool Initialized() const;
 
-public:
-    TFuture();
-    TFuture(const TFuture<void>& other);
-    TFuture(const TIntrusivePtr<TFutureState>& state);
+        bool HasValue() const;
+        void GetValue() const;
 
-    TFuture<void>& operator =(const TFuture<void>& other);
-    void Swap(TFuture<void>& other);
+        void SetValue();
 
-    bool Initialized() const;
+        bool HasException() const;
+        void SetException(const TString& e);
+        void SetException(std::exception_ptr e);
 
-    bool HasValue() const;
-    void GetValue(TDuration timeout = TDuration::Zero()) const;
-    void GetValueSync() const;
+        TFuture<void> GetFuture() const;
+        operator TFuture<void>() const;
 
-    bool HasException() const;
+    private:
+        void EnsureInitialized() const;
+    };
 
-    void Wait() const;
-    bool Wait(TDuration timeout) const;
-    bool Wait(TInstant deadline) const;
-
-    template <typename F>
-    const TFuture<void>& Subscribe(F&& callback) const;
-
-    template <typename F>
-    TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
-
-    template <typename R>
-    TFuture<R> Return(const R& value) const;
-
-private:
-    void EnsureInitialized() const;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-class TPromise {
-    using TFutureState = NImpl::TFutureState<T>;
-
-private:
-    TIntrusivePtr<TFutureState> State;
-
-public:
-    TPromise();
-    TPromise(const TPromise<T>& other);
-    TPromise(const TIntrusivePtr<TFutureState>& state);
-
-    TPromise<T>& operator=(const TPromise<T>& other);
-    void Swap(TPromise<T>& other);
-
-    bool Initialized() const;
-
-    bool HasValue() const;
-    const T& GetValue() const;
-    T ExtractValue();
-
-    void SetValue(const T& value);
-    void SetValue(T&& value);
-
-    bool HasException() const;
-    void SetException(const TString& e);
-    void SetException(std::exception_ptr e);
-
-    TFuture<T> GetFuture() const;
-    operator TFuture<T>() const;
-
-private:
-    void EnsureInitialized() const;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-class TPromise<void> {
-    using TFutureState = NImpl::TFutureState<void>;
-
-private:
-    TIntrusivePtr<TFutureState> State;
-
-public:
-    TPromise();
-    TPromise(const TPromise<void>& other);
-    TPromise(const TIntrusivePtr<TFutureState>& state);
-
-    TPromise<void>& operator=(const TPromise<void>& other);
-    void Swap(TPromise<void>& other);
-
-    bool Initialized() const;
-
-    bool HasValue() const;
-    void GetValue() const;
-
-    void SetValue();
-
-    bool HasException() const;
-    void SetException(const TString& e);
-    void SetException(std::exception_ptr e);
-
-    TFuture<void> GetFuture() const;
-    operator TFuture<void>() const;
-
-private:
-    void EnsureInitialized() const;
-};
-
-}   // namespace NThreading
+}
 
 #define INCLUDE_FUTURE_INL_H
 #include "future-inl.h"

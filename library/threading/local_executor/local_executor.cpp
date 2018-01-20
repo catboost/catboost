@@ -20,7 +20,6 @@ static void RegularYield() {
 #endif
 
 namespace NPar {
-
     class TLocalRangeExecutor: public ILocallyExecutable {
         TIntrusivePtr<ILocallyExecutable> Exec;
         TAtomic Counter, WorkerCount;
@@ -71,13 +70,14 @@ namespace NPar {
         }
     };
 
-    class TFunctionWrapperWithPromise : public ILocallyExecutable {
+    class TFunctionWrapperWithPromise: public ILocallyExecutable {
     private:
         TLocallyExecutableFunction Exec;
         int FirstId, LastId;
         TVector<NThreading::TPromise<void>> Promises;
+
     public:
-       TFunctionWrapperWithPromise(TLocallyExecutableFunction exec, int firstId, int lastId)
+        TFunctionWrapperWithPromise(TLocallyExecutableFunction exec, int firstId, int lastId)
             : Exec(exec)
             , FirstId(firstId)
             , LastId(lastId)
