@@ -4,7 +4,7 @@ import _common as common
 import _import_wrapper as iw
 
 
-class Yasm(iw.CustomCommand):
+class ROData(iw.CustomCommand):
     def __init__(self, path, unit):
         self._path = path
         self._flags = []
@@ -40,6 +40,11 @@ class Yasm(iw.CustomCommand):
         self._fmt += unit.get('hardware_arch')
         self._type = unit.get('hardware_type')
 
+        if unit.enabled('darwin') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
+            self._prefix = '_'
+        else:
+            self._prefix = ''
+
     def parse_flags(self, path, unit, flags):
         while flags:
             flag = flags.popleft()
@@ -70,7 +75,19 @@ class Yasm(iw.CustomCommand):
         return common.make_tuples([common.tobuilddir(common.stripext(self._path)) + '.o'])
 
     def run(self, binary):
-        return self.do_run(binary, self._path)
+        in_file = self.resolve_path(common.get(self.input, 0))
+        in_file_no_ext = common.stripext(in_file)
+        file_name = os.path.basename(in_file_no_ext)
+        tmp_file = self.resolve_path(common.get(self.output, 0) + '.asm')
+
+        with open(tmp_file, 'w') as f:
+            f.write('global ' + self._prefix + file_name + '\n')
+            f.write('global ' + self._prefix + file_name + 'Size' + '\n')
+            f.write('SECTION .rodata\n')
+            f.write(self._prefix + file_name + ':\nincbin "' + in_file + '"\n')
+            f.write(self._prefix + file_name + 'Size:\ndd ' + str(os.path.getsize(in_file)) + '\n')
+
+        return self.do_run(binary, tmp_file)
 
     def do_run(self, binary, path):
         def plt():
@@ -85,31 +102,6 @@ class Yasm(iw.CustomCommand):
 
         cmd = [binary, '-f', self._fmt] + list(plt()) + ['-D', '_' + self._type + '_', '-D_YASM_'] + self._flags + list(incls()) + ['-o', common.get(self.output, 0), path]
         self.call(cmd)
-
-
-class ROData(Yasm):
-    def __init__(self, path, unit):
-        Yasm.__init__(self, path, unit)
-
-        if unit.enabled('darwin') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
-            self._prefix = '_'
-        else:
-            self._prefix = ''
-
-    def run(self, binary):
-        in_file = self.resolve_path(common.get(self.input, 0))
-        in_file_no_ext = common.stripext(in_file)
-        file_name = os.path.basename(in_file_no_ext)
-        tmp_file = self.resolve_path(common.get(self.output, 0) + '.asm')
-
-        with open(tmp_file, 'w') as f:
-            f.write('global ' + self._prefix + file_name + '\n')
-            f.write('global ' + self._prefix + file_name + 'Size' + '\n')
-            f.write('SECTION .rodata\n')
-            f.write(self._prefix + file_name + ':\nincbin "' + in_file + '"\n')
-            f.write(self._prefix + file_name + 'Size:\ndd ' + str(os.path.getsize(in_file)) + '\n')
-
-        return self.do_run(binary, tmp_file)
 
 
 class RODataCXX(iw.CustomCommand):
