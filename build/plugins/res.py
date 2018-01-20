@@ -1,4 +1,4 @@
-from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir
+from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir, filter_out_by_keyword
 
 
 def split(lst, limit):
@@ -107,8 +107,9 @@ def onresource(unit, *args):
         else:
             unit.onsrcs(['GLOBAL'] + outs)
 
+
 def onfrom_sandbox(unit, *args):
-    unit.onsetup_from_sandbox(list(args))
+    unit.onsetup_from_sandbox(filter_out_by_keyword(list(args), 'AUTOUPDATED'))
     res_id = args[0]
     if res_id == "FILE":
         res_id = args[1]

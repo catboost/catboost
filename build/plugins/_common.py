@@ -164,6 +164,19 @@ def get_interpreter_path():
     return interpreter_path
 
 
+def filter_out_by_keyword(test_data, keyword):
+    def _iterate():
+        i = 0
+        while i < len(test_data):
+            if test_data[i] == keyword:
+                i += 2
+            else:
+                yield test_data[i]
+                i += 1
+
+    return list(_iterate())
+
+
 # ----------------_common tests------------------ #
 def test_sort_by_keywords():
     keywords = {'KEY1': 2, 'KEY2': 0, 'KEY3': 1}
@@ -183,3 +196,16 @@ def test_sort_by_keywords():
     flat, spec = sort_by_keywords(keywords, args)
     assert flat == []
     assert spec == {'KEY1': ['k10', 'k11', 'k13'], 'KEY2': ['k20', 'k21']}
+
+
+def test_filter_out_by_keyword():
+    assert filter_out_by_keyword([], 'A') == []
+    assert filter_out_by_keyword(['x'], 'A') == ['x']
+    assert filter_out_by_keyword(['x', 'A'], 'A') == ['x']
+    assert filter_out_by_keyword(['x', 'A', 'B'], 'A') == ['x']
+    assert filter_out_by_keyword(['x', 'A', 'B', 'y'], 'A') == ['x', 'y']
+    assert filter_out_by_keyword(['x', 'A', 'A', 'y'], 'A') == ['x', 'y']
+    assert filter_out_by_keyword(['x', 'A', 'A', 'A'], 'A') == ['x']
+    assert filter_out_by_keyword(['x', 'A', 'A', 'A', 'B', 'y'], 'A') == ['x', 'y']
+    assert filter_out_by_keyword(['x', 'A', 'A', 'A', 'B', 'y', 'A'], 'A') == ['x', 'y']
+    assert filter_out_by_keyword(['x', 'A', 'A', 'A', 'B', 'y', 'A', 'F', 'z'], 'A') == ['x', 'y', 'z']
