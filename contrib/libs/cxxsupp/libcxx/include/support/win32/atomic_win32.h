@@ -181,6 +181,12 @@ static inline void __msvc_atomic_store32(volatile long* __a, long __val,
 
 static inline void __msvc_atomic_store64(volatile __int64* __a, __int64 __val,
                                          memory_order __order) {
+#if defined(_M_IX86)
+    __int64 __tmp;
+    do {
+        __tmp = *__a;
+    } while (__tmp != _InterlockedCompareExchange64(__a, __val, __tmp));
+#else
     if (__order == memory_order_relaxed) {
 #if defined(_M_ARM) || defined(_M_ARM64)
         __iso_volatile_store64(__a, __val);
@@ -204,6 +210,7 @@ static inline void __msvc_atomic_store64(volatile __int64* __a, __int64 __val,
         _InterlockedExchange64(__a, __val);
 #endif
     }
+#endif    
 }
 
 template <typename _Tp>
@@ -324,6 +331,11 @@ static inline long __msvc_atomic_load32(volatile long* __a, memory_order __order
 
 static inline __int64 __msvc_atomic_load64(volatile __int64* __a, memory_order __order) {
     __int64 __result;
+#if defined(_M_X86)
+    do {
+        __result = *__a;
+    } while (__result != _InterlockedCompareExchange64(__a, __result, __result));
+#else
     if (__order == memory_order_relaxed) {
 #if defined(_M_ARM) || defined(_M_ARM64)
         __result = __iso_volatile_load64(__a);
@@ -350,6 +362,7 @@ static inline __int64 __msvc_atomic_load64(volatile __int64* __a, memory_order _
         _ReadWriteBarrier();
 #endif
     }
+#endif
     return __result;
 }
 
@@ -443,7 +456,11 @@ static inline long __msvc_atomic_exchange32(volatile long* __a, long __val,
 static inline __int64 __msvc_atomic_exchange64(volatile __int64* __a, __int64 __val,
                                             memory_order __order) {
     __int64 __result;
-#if defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86)
+    do {
+        __result = *__a;
+    } while (__result != _InterlockedCompareExchange64(__a, __val, __result));
+#elif defined(_M_ARM) || defined(_M_ARM64)
     if (__order == memory_order_relaxed) {
         __result = _InterlockedExchange64_nf(__a, __val);
     } else if (__order == memory_order_acquire ||
@@ -733,7 +750,13 @@ static inline long __msvc_atomic_fetch_add32(volatile long* __a, long __delta,
 
 static inline __int64 __msvc_atomic_fetch_add64(volatile __int64* __a, __int64 __delta,
                                                 memory_order __order) {
-#if defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86)
+    __int64 __tmp;
+    do {
+        __tmp = *__a;
+    } while (__tmp != _InterlockedCompareExchange64(__a, __tmp + __delta, __tmp));
+    return __tmp;
+#elif defined(_M_ARM) || defined(_M_ARM64)
     if (__order == memory_order_relaxed) {
         return _InterlockedExchangeAdd64_nf(__a, __delta);
     } else if (__order == memory_order_acquire) {
@@ -860,7 +883,13 @@ static inline long __msvc_atomic_fetch_and32(volatile long* __a, long __value,
 
 static inline __int64 __msvc_atomic_fetch_and64(volatile __int64* __a, __int64 __value,
                                                 memory_order __order) {
-#if defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86)
+    __int64 __tmp;
+    do {
+        __tmp = *__a;
+    } while (__tmp != _InterlockedCompareExchange64(__a, __tmp & __value, __tmp));
+    return __tmp;
+#elif defined(_M_ARM) || defined(_M_ARM64)
     if (__order == memory_order_relaxed) {
         return _InterlockedAnd64_nf(__a, __value);
     } else if (__order == memory_order_acquire) {
@@ -958,7 +987,13 @@ static inline long __msvc_atomic_fetch_or32(volatile long* __a, long __value,
 
 static inline __int64 __msvc_atomic_fetch_or64(volatile __int64* __a, __int64 __value,
                                                memory_order __order) {
-#if defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86)
+    __int64 __tmp;
+    do {
+        __tmp = *__a;
+    } while (__tmp != _InterlockedCompareExchange64(__a, __tmp | __value, __tmp));
+    return __tmp;
+#elif defined(_M_ARM) || defined(_M_ARM64)
     if (__order == memory_order_relaxed) {
         return _InterlockedOr64_nf(__a, __value);
     } else if (__order == memory_order_acquire) {
@@ -1056,7 +1091,13 @@ static inline long __msvc_atomic_fetch_xor32(volatile long* __a, long __value,
 
 static inline __int64 __msvc_atomic_fetch_xor64(volatile __int64* __a, __int64 __value,
                                                 memory_order __order) {
-#if defined(_M_ARM) || defined(_M_ARM64)
+#if defined(_M_IX86)
+    __int64 __tmp;
+    do {
+        __tmp = *__a;
+    } while (__tmp != _InterlockedCompareExchange64(__a, __tmp ^ __value, __tmp));
+    return __tmp;
+#elif defined(_M_ARM) || defined(_M_ARM64)
     if (__order == memory_order_relaxed) {
         return _InterlockedXor64_nf(__a, __value);
     } else if (__order == memory_order_acquire) {
