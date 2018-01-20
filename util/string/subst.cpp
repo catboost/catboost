@@ -81,7 +81,7 @@ static inline size_t SubstGlobalImpl(TStringType& s, const TStringViewType from,
 
     // string will not grow: use inplace algo
     size_t dstPos = 0;
-    typename TStringType::value_type* ptr = s.begin();
+    typename TStringType::value_type* ptr = &*s.begin();
     for (; (off = TStringViewType(s).find(from, off)) != TStringType::npos; off += fromSize) {
         Y_ASSERT(dstPos <= srcPos);
         MoveBlock<TStringType, TStringViewType, true>(ptr, srcPos, dstPos, off, to, toSize);
@@ -109,11 +109,11 @@ inline size_t SubstCharGlobalImpl(TStringType& s, typename TStringType::value_ty
 
     // s.begin() might cause memory copying, so call it only if needed
     if (fromPos != TStringType::npos) {
-        auto* it = s.begin() + fromPos;
+        auto* it = &*s.begin() + fromPos;
         *it = to;
         ++result;
         // at this point string is copied and it's safe to use constant s.end() to iterate
-        const auto* const sEnd = s.end();
+        const auto* const sEnd = &*s.end();
         // unrolled loop goes first because it is more likely that `it` will be properly aligned
         for (const auto* const end = sEnd - (sEnd - it) % 4; it < end;) {
             if (*it == from) {
