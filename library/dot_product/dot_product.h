@@ -11,6 +11,11 @@ float DotProduct(const float* lhs, const float *rhs, int length) noexcept;
 double DotProduct(const double* lhs, const double *rhs, int length) noexcept;
 
 /**
+ * Dot product to itself
+ */
+float L2NormSqared(const float* v, int length) noexcept;
+
+/**
  * Dot product implementation without SSE optimizations.
  */
 i32 DotProductSlow(const i8* lhs, const i8* rhs, int length) noexcept;

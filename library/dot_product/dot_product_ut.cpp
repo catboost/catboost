@@ -78,6 +78,20 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
+    SIMPLE_UNIT_TEST(TestL2NormSqaredf) {
+        TVector<float> a(100);
+        FillWithRandomFloats(~a, 179, 100);
+        TVector<float> b(100);
+        FillWithRandomFloats(~b, 239, 100);
+
+        for (int i = 0; i < 30; ++i) {
+            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+                UNIT_ASSERT(std::fabs(L2NormSqared(~a + i, length) - DotProductSlow(~a + i, ~a + i, length)) < EPSILON);
+                UNIT_ASSERT(std::fabs(L2NormSqared(~b + i, length) - DotProductSlow(~b + i, ~b + i, length)) < EPSILON);
+            }
+        }
+    }
+
     SIMPLE_UNIT_TEST(TestDotProductd) {
         TVector<double> a(100);
         FillWithRandomFloats(~a, 179, 100);

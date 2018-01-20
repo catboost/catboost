@@ -106,6 +106,64 @@ float DotProduct(const float* lhs, const float *rhs, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
+float L2NormSqared(const float* v, int length) noexcept {
+    __m128 sum1 = _mm_setzero_ps();
+    __m128 sum2 = _mm_setzero_ps();
+    __m128 a1, a2, m1, m2;
+
+    while (length >= 8) {
+        a1 = _mm_loadu_ps(v);
+        m1 = _mm_mul_ps(a1, a1);
+
+        a2 = _mm_loadu_ps(v + 4);
+        sum1 = _mm_add_ps(sum1, m1);
+
+        m2 = _mm_mul_ps(a2, a2);
+        sum2 = _mm_add_ps(sum2, m2);
+
+        length -= 8;
+        v += 8;
+    }
+
+    if (length >= 4) {
+        a1 = _mm_loadu_ps(v);
+        sum1 = _mm_add_ps(sum1, _mm_mul_ps(a1, a1));
+
+        length -= 4;
+        v += 4;
+    }
+
+    sum1 = _mm_add_ps(sum1, sum2);
+
+    if (length) {
+        switch (length) {
+            case 3:
+                a1 = _mm_set_ps(v[0], v[1], v[2], 0.0f);
+                break;
+
+            case 2:
+                a1 = _mm_set_ps(v[0], v[1], 0.0f, 0.0f);
+                break;
+
+            case 1:
+                a1 = _mm_set_ps(v[0], 0.0f, 0.0f, 0.0f);
+                break;
+
+            default:
+                // unreachable
+                a1 = _mm_setzero_ps();
+                break;
+        }
+
+        sum1 = _mm_add_ps(sum1, _mm_mul_ps(a1, a1));
+    }
+
+    alignas(16) float res[4];
+    _mm_store_ps(res, sum1);
+
+    return res[0] + res[1] + res[2] + res[3];
+}
+
 double DotProduct(const double* lhs, const double *rhs, int length) noexcept {
     __m128d sum1 = _mm_setzero_pd();
     __m128d sum2 = _mm_setzero_pd();
