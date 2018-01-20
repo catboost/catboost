@@ -55,7 +55,7 @@ void CalcApproxDersQueriesRange(const TVector<TIndexType>& indices,
     for (int docId = 0; docId < sampleCount; ++docId) {
         TDer1Der2& currentDers = bucketDers[indices[docId]];
         currentDers.Der1 += (*scratchDers)[docId].Der1;
-        bucketWeights[indices[docId]] += 1;
+        bucketWeights[indices[docId]] += weight.empty() ? 1.0f : weight[docId];
     }
 
     for (int leafId = 0; leafId < leafCount; ++leafId) {
