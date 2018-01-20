@@ -5,10 +5,12 @@
 #include "approx_util.h"
 
 template <bool StoreExpApprox>
-inline void UpdateApproxDeltasMulti(const TVector<TIndexType>& indices,
-                                    int docCount,
-                                    TVector<TVector<double>>* leafValues, //leafValues[dimension][bucketId]
-                                    TVector<TVector<double>>* resArr) {
+inline void UpdateApproxDeltasMulti(
+    const TVector<TIndexType>& indices,
+    int docCount,
+    TVector<TVector<double>>* leafValues, //leafValues[dimension][bucketId]
+    TVector<TVector<double>>* resArr
+) {
     for (int dim = 0; dim < leafValues->ysize(); ++dim) {
         ExpApproxIf(StoreExpApprox, &(*leafValues)[dim]);
         for (int z = 0; z < docCount; ++z) {
@@ -18,8 +20,14 @@ inline void UpdateApproxDeltasMulti(const TVector<TIndexType>& indices,
 }
 
 template <typename TError>
-void AddSampleToBucketNewtonMulti(const TError& error, const TVector<double>& approx,
-                                  float target, double weight, int iteration, TSumMulti* bucket) {
+void AddSampleToBucketNewtonMulti(
+    const TError& error,
+    const TVector<double>& approx,
+    float target,
+    double weight,
+    int iteration,
+    TSumMulti* bucket
+) {
     const int approxDimension = approx.ysize();
     TVector<double> curDer(approxDimension);
     TArray2D<double> curDer2(approxDimension, approxDimension);
@@ -28,25 +36,33 @@ void AddSampleToBucketNewtonMulti(const TError& error, const TVector<double>& ap
 }
 
 template <typename TError>
-void AddSampleToBucketGradientMulti(const TError& error, const TVector<double>& approx,
-                                    float target, double weight, int iteration, TSumMulti* bucket) {
+void AddSampleToBucketGradientMulti(
+    const TError& error,
+    const TVector<double>& approx,
+    float target,
+    double weight,
+    int iteration,
+    TSumMulti* bucket
+) {
     TVector<double> curDer(approx.ysize());
     error.CalcDersMulti(approx, target, weight, &curDer, nullptr);
     bucket->AddDerWeight(curDer, weight, iteration);
 }
 
 template <typename TError, typename TCalcModel, typename TAddSampleToBucket>
-void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
-                                   TAddSampleToBucket AddSampleToBucket,
-                                   const TVector<TIndexType>& indices,
-                                   const TVector<float>& target,
-                                   const TVector<float>& weight,
-                                   const TFold::TBodyTail& bt,
-                                   const TError& error,
-                                   int iteration,
-                                   float l2Regularizer,
-                                   TVector<TSumMulti>* buckets,
-                                   TVector<TVector<double>>* resArr) {
+void CalcApproxDeltaIterationMulti(
+    TCalcModel CalcModel,
+    TAddSampleToBucket AddSampleToBucket,
+    const TVector<TIndexType>& indices,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TFold::TBodyTail& bt,
+    const TError& error,
+    int iteration,
+    float l2Regularizer,
+    TVector<TSumMulti>* buckets,
+    TVector<TVector<double>>* resArr
+) {
     int approxDimension = resArr->ysize();
     int leafCount = buckets->ysize();
 
@@ -90,12 +106,14 @@ void CalcApproxDeltaIterationMulti(TCalcModel CalcModel,
 
 
 template <typename TError>
-void CalcApproxDeltaMulti(const TFold& ff,
-                          const TSplitTree& tree,
-                          const TError& error,
-                          TLearnContext* ctx,
-                          TVector<TVector<TVector<double>>>* approxDelta,
-                          TVector<TIndexType>* ind) {
+void CalcApproxDeltaMulti(
+    const TFold& ff,
+    const TSplitTree& tree,
+    const TError& error,
+    TLearnContext* ctx,
+    TVector<TVector<TVector<double>>>* approxDelta,
+    TVector<TIndexType>* ind
+) {
     auto& indices = *ind;
     approxDelta->resize(ff.BodyTailArr.ysize());
     const int approxDimension = ff.GetApproxDimension();
@@ -134,16 +152,18 @@ void CalcApproxDeltaMulti(const TFold& ff,
 }
 
 template <typename TCalcModel, typename TAddSampleToBucket, typename TError>
-void CalcLeafValuesIterationMulti(TCalcModel CalcModel,
-                                  TAddSampleToBucket AddSampleToBucket,
-                                  const TVector<TIndexType>& indices,
-                                  const TVector<float>& target,
-                                  const TVector<float>& weight,
-                                  const TError& error,
-                                  int iteration,
-                                  float l2Regularizer,
-                                  TVector<TSumMulti>* buckets,
-                                  TVector<TVector<double>>* approx) {
+void CalcLeafValuesIterationMulti(
+    TCalcModel CalcModel,
+    TAddSampleToBucket AddSampleToBucket,
+    const TVector<TIndexType>& indices,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TError& error,
+    int iteration,
+    float l2Regularizer,
+    TVector<TSumMulti>* buckets,
+    TVector<TVector<double>>* approx
+) {
     int leafCount = buckets->ysize();
     int approxDimension = approx->ysize();
     int learnSampleCount = (*approx)[0].ysize();
@@ -171,13 +191,15 @@ void CalcLeafValuesIterationMulti(TCalcModel CalcModel,
 }
 
 template <typename TError>
-void CalcLeafValuesMulti(const TTrainData& data,
-                         const TSplitTree& tree,
-                         const TError& error,
-                         TLearnContext* ctx,
-                         TVector<TVector<double>>* leafValues,
-                         TVector<TIndexType>* ind) {
-    const TFold& ff = ctx->LearnProgress.AveragingFold;
+void CalcLeafValuesMulti(
+    const TTrainData& data,
+    const TSplitTree& tree,
+    const TError& error,
+    const TFold& ff,
+    TLearnContext* ctx,
+    TVector<TVector<double>>* leafValues,
+    TVector<TIndexType>* ind
+) {
     auto& indices = *ind;
     indices = BuildIndices(ff, tree, data, &ctx->LocalExecutor);
 

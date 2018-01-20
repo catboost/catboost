@@ -187,15 +187,20 @@ void CrossValidate(
         contexts[foldIdx]->InitData(folds[foldIdx]);
 
         TLearnContext& ctx = *contexts[foldIdx];
-        const TFold& firstFold = ctx.LearnProgress.Folds[0];
+        TFold* learnFold;
+        if (!ctx.LearnProgress.Folds.empty()) {
+            learnFold = &ctx.LearnProgress.Folds[0];
+        } else {
+            learnFold = &ctx.LearnProgress.AveragingFold;
+        }
         const TTrainData& data = folds[foldIdx];
         if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
-            ctx.SmallestSplitSideDocs.Create(firstFold); // assume that all folds have the same shape
-            const int approxDimension = firstFold.GetApproxDimension();
-            const int bodyTailCount = firstFold.BodyTailArr.ysize();
+            ctx.SmallestSplitSideDocs.Create(*learnFold); // assume that all folds have the same shape
+            const int approxDimension = learnFold->GetApproxDimension();
+            const int bodyTailCount = learnFold->BodyTailArr.ysize();
             ctx.PrevTreeLevelStats.Create(CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth), approxDimension, bodyTailCount);
         }
-        ctx.SampledDocs.Create(firstFold); // TODO(espetrov): create only if sample rate < 1
+        ctx.SampledDocs.Create(*learnFold); // TODO(espetrov): create only if sample rate < 1
     }
 
     const ui32 approxDimension = ctx->LearnProgress.ApproxDimension;
