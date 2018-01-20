@@ -551,7 +551,6 @@ public:
         UNIT_ASSERT_VALUES_EQUAL(constStr.front(), 'f');
         UNIT_ASSERT_VALUES_EQUAL(str.front(), 'r');
     }
-
 };
 
 class TStringTestZero: public TTestBase {
