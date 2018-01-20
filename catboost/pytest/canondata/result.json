@@ -511,6 +511,12 @@
             "uri": "file://test.test_permutation_block/test.eval"
         }
     ],
+    "test.test_plain": [
+        {
+            "checksum": "53ae61df1ac46c75980e5adab4eae944",
+            "uri": "file://test.test_plain/test.eval"
+        }
+    ],
     "test.test_prediction_type[Class-CrossEntropy]": [
         {
             "checksum": "414ab280b24af410d8f0c6cb15250d13",

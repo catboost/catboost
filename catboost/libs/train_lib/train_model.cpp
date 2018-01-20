@@ -198,15 +198,17 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         errorTracker.AddError(errorsHistory[i][0], i, &valuesToLog);
     }
 
-    TVector<TFold*> folds;
-    for (auto& fold : ctx->LearnProgress.Folds) {
-        folds.push_back(&fold);
+    TFold* fold;
+    if (!ctx->LearnProgress.Folds.empty()) {
+        fold = &ctx->LearnProgress.Folds[0]; // assume that all folds have the same shape
+    } else {
+        fold = &ctx->LearnProgress.AveragingFold;
     }
 
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
-        ctx->SmallestSplitSideDocs.Create(*folds[0]); // assume that all folds have the same shape
-        const int approxDimension = folds[0]->GetApproxDimension();
-        const int bodyTailCount = folds[0]->BodyTailArr.ysize();
+        ctx->SmallestSplitSideDocs.Create(*fold);
+        const int approxDimension = fold->GetApproxDimension();
+        const int bodyTailCount = fold->BodyTailArr.ysize();
         ctx->PrevTreeLevelStats.Create(
             CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
             static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth),
@@ -214,7 +216,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             bodyTailCount
         );
     }
-    ctx->SampledDocs.Create(*folds[0]); // TODO(espetrov): create only if sample rate < 1
+    ctx->SampledDocs.Create(*fold); // TODO(espetrov): create only if sample rate < 1
 
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();
@@ -371,6 +373,8 @@ class TCPUModelTrainer : public IModelTrainer {
 
         TTrainData trainData;
         trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
+
+        UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &ctx.Params.BoostingOptions->BoostingType);
 
         trainData.Target.reserve(learnPool.Docs.GetDocCount() + testPool.Docs.GetDocCount());
 
