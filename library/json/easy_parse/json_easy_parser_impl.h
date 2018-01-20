@@ -22,7 +22,7 @@ namespace NJson {
         {
         }
 
-        TPathElemImpl(const TStringType &key)
+        TPathElemImpl(const TStringType& key)
             : Type(NImpl::MAP_KEY)
             , Key(key)
             , ArrayCounter()
@@ -31,7 +31,8 @@ namespace NJson {
 
         TPathElemImpl(int arrayCounter)
             : Type(NImpl::ARRAY)
-            , ArrayCounter(arrayCounter) {
+            , ArrayCounter(arrayCounter)
+        {
         }
     };
 

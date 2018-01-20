@@ -7,10 +7,12 @@
 using namespace NJson;
 
 class TReformatCallbacks: public TJsonCallbacks {
-    TJsonWriter &Writer;
-public:
+    TJsonWriter& Writer;
 
-    TReformatCallbacks(TJsonWriter &writer): Writer(writer) {
+public:
+    TReformatCallbacks(TJsonWriter& writer)
+        : Writer(writer)
+    {
     }
 
     bool OnBoolean(bool val) override {
@@ -28,7 +30,7 @@ public:
         return true;
     }
 
-    bool OnString(const TStringBuf &val) override {
+    bool OnString(const TStringBuf& val) override {
         Writer.Write(val);
         return true;
     }
@@ -58,15 +60,13 @@ public:
         return true;
     }
 
-    bool OnMapKey(const TStringBuf &val) override {
+    bool OnMapKey(const TStringBuf& val) override {
         Writer.Write(val);
         return true;
     }
-
 };
 
 SIMPLE_UNIT_TEST_SUITE(TJsonReaderTest) {
-
     SIMPLE_UNIT_TEST(JsonReformatTest) {
         TString data = "{\"null value\": null, \"intkey\": 10, \"double key\": 11.11, \"string key\": \"string\", \"array\": [1,2,3,\"TString\"], \"bool key\": true}";
 
@@ -94,7 +94,6 @@ SIMPLE_UNIT_TEST_SUITE(TJsonReaderTest) {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(result1, result2);
-
     }
 
     SIMPLE_UNIT_TEST(TJsonTreeTest) {
@@ -122,7 +121,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonReaderTest) {
         UNIT_ASSERT_VALUES_EQUAL(value["array"].GetStringRobust(), "[1,2,3,\"TString\"]");
         UNIT_ASSERT_VALUES_EQUAL(value["null value"].GetStringRobust(), "null");
 
-        const TJsonValue::TArray *array;
+        const TJsonValue::TArray* array;
         UNIT_ASSERT(GetArrayPointer(value, "array", &array));
         UNIT_ASSERT_VALUES_EQUAL(value["array"].GetArray().size(), array->size());
         UNIT_ASSERT_VALUES_EQUAL(value["array"][0].GetInteger(), (*array)[0].GetInteger());
@@ -330,7 +329,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonReaderTest) {
             UNIT_ASSERT_EQUAL(value["test"].GetDouble(), 0.0);
             UNIT_ASSERT_EQUAL(value["test"].GetDoubleRobust(), static_cast<double>(Max<ui64>()));
         } // Max<ui64>()
-    } // TJsonDoubleTest
+    }     // TJsonDoubleTest
 
     SIMPLE_UNIT_TEST(TJsonInvalidTest) {
         {

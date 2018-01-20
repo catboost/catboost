@@ -15,12 +15,12 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
             .UnsafeWritePair("\"xk\":13")
             .WriteKey("key2")
             .BeginList()
-                .BeginObject()
-                .EndObject()
-                .BeginObject()
-                .EndObject()
+            .BeginObject()
+            .EndObject()
+            .BeginObject()
+            .EndObject()
             .EndList()
-        .EndObject();
+            .EndObject();
         w.WriteInt(43);
         w.UnsafeWriteValue("\"x\"");
         w.WriteString("...");
@@ -74,9 +74,11 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
     SIMPLE_UNIT_TEST(BareKey) {
         NJsonWriter::TBuf w;
         w.BeginObject()
-         .CompatWriteKeyWithoutQuotes("p").WriteInt(1)
-         .CompatWriteKeyWithoutQuotes("n").WriteInt(0)
-        .EndObject();
+            .CompatWriteKeyWithoutQuotes("p")
+            .WriteInt(1)
+            .CompatWriteKeyWithoutQuotes("n")
+            .WriteInt(0)
+            .EndObject();
         TString ws = w.Str();
         const char* exp = "{p:1,n:0}";
         UNIT_ASSERT_STRINGS_EQUAL(ws.c_str(), exp);
@@ -105,10 +107,12 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
             .WriteInt(1)
             .WriteString("hello")
             .BeginObject()
-                .WriteKey("abc").WriteInt(3)
-                .WriteKey("def").WriteInt(4)
+            .WriteKey("abc")
+            .WriteInt(3)
+            .WriteKey("def")
+            .WriteInt(4)
             .EndObject()
-        .EndList();
+            .EndList();
         const char* exp = "[\n"
                           "  1,\n"
                           "  \"hello\",\n"
@@ -191,10 +195,12 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
             .WriteFloat(244.13854, PREC_NDIGITS, 4)
             .WriteFloat(10385.8324, PREC_POINT_DIGITS, 2)
             .BeginObject()
-                .WriteKey("1").WriteDouble(1111.71, PREC_POINT_DIGITS, 0)
-                .WriteKey("2").WriteDouble(1111.71, PREC_NDIGITS, 1)
+            .WriteKey("1")
+            .WriteDouble(1111.71, PREC_POINT_DIGITS, 0)
+            .WriteKey("2")
+            .WriteDouble(1111.71, PREC_NDIGITS, 1)
             .EndObject()
-        .EndList();
+            .EndList();
         const char exp[] = "[0.123457,0.1234567899,0.316,244.1,10385.83,{\"1\":1112,\"2\":1e+03}]";
         UNIT_ASSERT_STRINGS_EQUAL(exp, buf.Str());
     }
@@ -231,14 +237,17 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
             buf.SetWriteNanAsString();
 
             buf.BeginObject()
-                .WriteKey("nanvalue").WriteFloat(std::numeric_limits<double>::quiet_NaN())
-                .WriteKey("infvalue").WriteFloat(std::numeric_limits<double>::infinity())
-                .WriteKey("minus_infvalue").WriteFloat(-std::numeric_limits<float>::infinity())
+                .WriteKey("nanvalue")
+                .WriteFloat(std::numeric_limits<double>::quiet_NaN())
+                .WriteKey("infvalue")
+                .WriteFloat(std::numeric_limits<double>::infinity())
+                .WriteKey("minus_infvalue")
+                .WriteFloat(-std::numeric_limits<float>::infinity())
                 .WriteKey("l")
-                    .BeginList()
-                        .WriteFloat(std::numeric_limits<float>::quiet_NaN())
-                    .EndList()
-            .EndObject();
+                .BeginList()
+                .WriteFloat(std::numeric_limits<float>::quiet_NaN())
+                .EndList()
+                .EndObject();
 
             UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"raw_json({"nanvalue":"nan","infvalue":"inf","minus_infvalue":"-inf","l":["nan"]})raw_json");
         }
@@ -246,9 +255,11 @@ SIMPLE_UNIT_TEST_SUITE(JsonWriter) {
         {
             NJsonWriter::TBuf buf;
             buf.BeginObject()
-                .WriteKey("<>&").WriteString("Ololo")
-                .UnsafeWriteKey("<>&").WriteString("Ololo2")
-            .EndObject();
+                .WriteKey("<>&")
+                .WriteString("Ololo")
+                .UnsafeWriteKey("<>&")
+                .WriteString("Ololo2")
+                .EndObject();
 
             UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"({"\u003C\u003E&":"Ololo","<>&":"Ololo2"})");
         }

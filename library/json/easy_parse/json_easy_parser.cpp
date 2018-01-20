@@ -4,232 +4,232 @@
 #include <util/string/strip.h>
 
 namespace NJson {
+    static TString MAP_IDENTIFIER = "{}";
+    static TString ARRAY_IDENTIFIER = "[]";
+    static TString ANY_IDENTIFIER = "*";
 
-static TString MAP_IDENTIFIER = "{}";
-static TString ARRAY_IDENTIFIER = "[]";
-static TString ANY_IDENTIFIER = "*";
-
-static void ParsePath(TString path, TVector<TPathElem> *res) {
-    TVector<const char*> parts;
-    Split(path.begin(), '/', &parts);
-    for (size_t n = 0; n < parts.size(); ++n) {
-        TString part = strip(parts[n]);
-        if (!part.empty()) {
-            if (part[0] != '[') {
-                res->push_back(TPathElem(NImpl::MAP));
-                res->push_back(TPathElem(part));
-            } else {
-                int arrayCounter;
-                try {
-                    arrayCounter = FromString<int>(part.substr(1, part.length() - 2));
-                } catch (yexception&) {
-                    arrayCounter = -1;
+    static void ParsePath(TString path, TVector<TPathElem>* res) {
+        TVector<const char*> parts;
+        Split(path.begin(), '/', &parts);
+        for (size_t n = 0; n < parts.size(); ++n) {
+            TString part = strip(parts[n]);
+            if (!part.empty()) {
+                if (part[0] != '[') {
+                    res->push_back(TPathElem(NImpl::MAP));
+                    res->push_back(TPathElem(part));
+                } else {
+                    int arrayCounter;
+                    try {
+                        arrayCounter = FromString<int>(part.substr(1, part.length() - 2));
+                    } catch (yexception&) {
+                        arrayCounter = -1;
+                    }
+                    res->push_back(TPathElem(arrayCounter));
                 }
-                res->push_back(TPathElem(arrayCounter));
             }
         }
     }
-}
 
-void TJsonParser::AddField(const TString &path, bool nonEmpty) {
-    Fields.emplace_back();
-    Fields.back().NonEmpty = nonEmpty;
-    ParsePath(path, &Fields.back().Path);
-}
-
-TString TJsonParser::ConvertToTabDelimited(const TString &json) const {
-    TStringInput in(json);
-    TStringStream out;
-    ConvertToTabDelimited(in, out);
-    return out.Str();
-}
-
-class TRewriteJsonImpl: public NJson::TJsonCallbacks {
-    const TJsonParser &Parent;
-    TVector<TString> FieldValues;
-    TVector<TPathElem> Stack;
-    bool ShouldUpdateOnArrayChange;
-    int CurrentFieldIdx;
-    bool HasFormatError;
-
-private:
-    static bool PathElementMatch(const TPathElem &templ, const TPathElem &real) {
-        if (templ.Type != real.Type)
-            return false;
-        if (templ.Type == NImpl::ARRAY)
-            return templ.ArrayCounter == -1 || templ.ArrayCounter == real.ArrayCounter;
-        if (templ.Type == NImpl::MAP_KEY)
-            return templ.Key == ANY_IDENTIFIER || templ.Key == real.Key;
-        return true;
+    void TJsonParser::AddField(const TString& path, bool nonEmpty) {
+        Fields.emplace_back();
+        Fields.back().NonEmpty = nonEmpty;
+        ParsePath(path, &Fields.back().Path);
     }
 
-    bool CheckFilter(const TVector<TPathElem> &path) const {
-        if (Stack.size() < path.size())
-            return false;
-        for (size_t n = 0; n < +path; ++n) {
-            if (!PathElementMatch(path[n], Stack[n]))
+    TString TJsonParser::ConvertToTabDelimited(const TString& json) const {
+        TStringInput in(json);
+        TStringStream out;
+        ConvertToTabDelimited(in, out);
+        return out.Str();
+    }
+
+    class TRewriteJsonImpl: public NJson::TJsonCallbacks {
+        const TJsonParser& Parent;
+        TVector<TString> FieldValues;
+        TVector<TPathElem> Stack;
+        bool ShouldUpdateOnArrayChange;
+        int CurrentFieldIdx;
+        bool HasFormatError;
+
+    private:
+        static bool PathElementMatch(const TPathElem& templ, const TPathElem& real) {
+            if (templ.Type != real.Type)
                 return false;
+            if (templ.Type == NImpl::ARRAY)
+                return templ.ArrayCounter == -1 || templ.ArrayCounter == real.ArrayCounter;
+            if (templ.Type == NImpl::MAP_KEY)
+                return templ.Key == ANY_IDENTIFIER || templ.Key == real.Key;
+            return true;
         }
-        return true;
-    }
 
-    void UpdateRule() {
-        for (size_t n = 0; n < +Parent.Fields; ++n) {
-            if (FieldValues[n].empty() && CheckFilter(Parent.Fields[n].Path)) {
-                CurrentFieldIdx = n;
-                return;
+        bool CheckFilter(const TVector<TPathElem>& path) const {
+            if (Stack.size() < path.size())
+                return false;
+            for (size_t n = 0; n < +path; ++n) {
+                if (!PathElementMatch(path[n], Stack[n]))
+                    return false;
+            }
+            return true;
+        }
+
+        void UpdateRule() {
+            for (size_t n = 0; n < +Parent.Fields; ++n) {
+                if (FieldValues[n].empty() && CheckFilter(Parent.Fields[n].Path)) {
+                    CurrentFieldIdx = n;
+                    return;
+                }
+            }
+            CurrentFieldIdx = -1;
+        }
+
+        void Pop() {
+            Stack.pop_back();
+        }
+
+        void IncreaseArrayCounter() {
+            if (!Stack.empty() && Stack.back().Type == NImpl::ARRAY) {
+                ++Stack.back().ArrayCounter;
+                if (ShouldUpdateOnArrayChange)
+                    UpdateRule();
             }
         }
-        CurrentFieldIdx = -1;
-    }
 
-    void Pop() {
-        Stack.pop_back();
-    }
-
-    void IncreaseArrayCounter() {
-        if (!Stack.empty() && Stack.back().Type == NImpl::ARRAY) {
-            ++Stack.back().ArrayCounter;
-            if (ShouldUpdateOnArrayChange)
+        template <class T>
+        bool OnValue(const T& val) {
+            IncreaseArrayCounter();
+            if (CurrentFieldIdx >= 0) {
+                FieldValues[CurrentFieldIdx] = ToString(val);
                 UpdateRule();
+            }
+            return true;
         }
-    }
 
-    template <class T> bool OnValue(const T& val) {
-        IncreaseArrayCounter();
-        if (CurrentFieldIdx >= 0) {
-            FieldValues[CurrentFieldIdx] = ToString(val);
-            UpdateRule();
+    public:
+        TRewriteJsonImpl(const TJsonParser& parent)
+            : Parent(parent)
+            , FieldValues(parent.Fields.size())
+            , ShouldUpdateOnArrayChange(false)
+            , CurrentFieldIdx(-1)
+            , HasFormatError(false)
+        {
+            for (size_t n = 0; n < +Parent.Fields; ++n) {
+                if (Parent.Fields[n].Path.back().Type == NImpl::ARRAY)
+                    ShouldUpdateOnArrayChange = true;
+            }
         }
-        return true;
-    }
 
-public:
-    TRewriteJsonImpl(const TJsonParser &parent)
-        : Parent(parent)
-        , FieldValues(parent.Fields.size())
-        , ShouldUpdateOnArrayChange(false)
-        , CurrentFieldIdx(-1)
-        , HasFormatError(false)
-    {
-        for (size_t n = 0; n < +Parent.Fields; ++n) {
-            if (Parent.Fields[n].Path.back().Type == NImpl::ARRAY)
-                ShouldUpdateOnArrayChange = true;
+        bool OnOpenMap() override {
+            IncreaseArrayCounter();
+            Stack.push_back(TPathElem(NImpl::MAP));
+            if (CurrentFieldIdx >= 0)
+                HasFormatError = true;
+            else
+                UpdateRule();
+            return true;
         }
-    }
 
-    bool OnOpenMap() override {
-        IncreaseArrayCounter();
-        Stack.push_back(TPathElem(NImpl::MAP));
-        if (CurrentFieldIdx >= 0)
-            HasFormatError = true;
-        else
-            UpdateRule();
-        return true;
-    }
-
-    bool OnOpenArray() override {
-        IncreaseArrayCounter();
-        Stack.push_back(TPathElem(-1));
-        if (CurrentFieldIdx >= 0)
-            HasFormatError = true;
-        else
-            UpdateRule();
-        return true;
-    }
-
-    bool OnCloseMap() override {
-        while (!Stack.empty() && Stack.back().Type != NImpl::MAP)
-            Pop();
-        if (!Stack.empty())
-            Pop();
-        UpdateRule();
-        return true;
-    }
-
-    bool OnCloseArray() override {
-        if (!Stack.empty())
-            Pop();
-        UpdateRule();
-        return true;
-    }
-
-    bool OnMapKey(const TStringBuf &key) override {
-        if (!Stack.empty() && Stack.back().Type == NImpl::MAP_KEY) {
-            Pop();
-            UpdateRule();
+        bool OnOpenArray() override {
+            IncreaseArrayCounter();
+            Stack.push_back(TPathElem(-1));
+            if (CurrentFieldIdx >= 0)
+                HasFormatError = true;
+            else
+                UpdateRule();
+            return true;
         }
-        Stack.push_back(TPathElem(key.ToString()));
-        if (CurrentFieldIdx >= 0)
-            HasFormatError = true;
-        else
+
+        bool OnCloseMap() override {
+            while (!Stack.empty() && Stack.back().Type != NImpl::MAP)
+                Pop();
+            if (!Stack.empty())
+                Pop();
             UpdateRule();
-        return true;
-    }
+            return true;
+        }
 
-    bool OnBoolean(bool b) override {
-        return OnValue(b);
-    }
+        bool OnCloseArray() override {
+            if (!Stack.empty())
+                Pop();
+            UpdateRule();
+            return true;
+        }
 
-    bool OnInteger(long long i) override {
-        return OnValue(i);
-    }
+        bool OnMapKey(const TStringBuf& key) override {
+            if (!Stack.empty() && Stack.back().Type == NImpl::MAP_KEY) {
+                Pop();
+                UpdateRule();
+            }
+            Stack.push_back(TPathElem(key.ToString()));
+            if (CurrentFieldIdx >= 0)
+                HasFormatError = true;
+            else
+                UpdateRule();
+            return true;
+        }
 
-    bool OnDouble(double f) override {
-        return OnValue(f);
-    }
+        bool OnBoolean(bool b) override {
+            return OnValue(b);
+        }
 
-    bool OnString(const TStringBuf &str) override {
-        return OnValue(str);
-    }
+        bool OnInteger(long long i) override {
+            return OnValue(i);
+        }
 
-    bool IsOK() const {
-        if (HasFormatError)
-            return false;
-        for (size_t n = 0; n < +FieldValues; ++n)
-            if (Parent.Fields[n].NonEmpty && FieldValues[n].empty())
+        bool OnDouble(double f) override {
+            return OnValue(f);
+        }
+
+        bool OnString(const TStringBuf& str) override {
+            return OnValue(str);
+        }
+
+        bool IsOK() const {
+            if (HasFormatError)
                 return false;
-        return true;
+            for (size_t n = 0; n < +FieldValues; ++n)
+                if (Parent.Fields[n].NonEmpty && FieldValues[n].empty())
+                    return false;
+            return true;
+        }
+
+        void WriteTo(IOutputStream& out) const {
+            for (size_t n = 0; n < +FieldValues; ++n)
+                out << "\t" << FieldValues[n];
+        }
+
+        void WriteTo(TVector<TString>* res) const {
+            *res = FieldValues;
+        }
+    };
+
+    void TJsonParser::ConvertToTabDelimited(IInputStream& in, IOutputStream& out) const {
+        TRewriteJsonImpl impl(*this);
+        ReadJson(&in, &impl);
+        if (impl.IsOK()) {
+            out << Prefix;
+            impl.WriteTo(out);
+            out.Flush();
+        }
     }
 
-    void WriteTo(IOutputStream &out) const {
-        for (size_t n = 0; n < +FieldValues; ++n)
-            out << "\t" << FieldValues[n];
+    bool TJsonParser::Parse(const TString& json, TVector<TString>* res) const {
+        TRewriteJsonImpl impl(*this);
+        TStringInput in(json);
+        ReadJson(&in, &impl);
+        if (impl.IsOK()) {
+            impl.WriteTo(res);
+            return true;
+        } else
+            return false;
     }
 
-    void WriteTo(TVector<TString> *res) const {
-        *res = FieldValues;
-    }
-};
-
-void TJsonParser::ConvertToTabDelimited(IInputStream &in, IOutputStream &out) const {
-    TRewriteJsonImpl impl(*this);
-    ReadJson(&in, &impl);
-    if (impl.IsOK()) {
-        out << Prefix;
-        impl.WriteTo(out);
-        out.Flush();
-    }
-}
-
-bool TJsonParser::Parse(const TString &json, TVector<TString> *res) const {
-    TRewriteJsonImpl impl(*this);
-    TStringInput in(json);
-    ReadJson(&in, &impl);
-    if (impl.IsOK()) {
-        impl.WriteTo(res);
-        return true;
-    } else
-        return false;
-}
-
-//struct TTestMe {
-//    TTestMe() {
-//        TJsonParser worker;
-//        worker.AddField("/x/y/z", true);
-//        TString ret1 = worker.ConvertToTabDelimited("{ \"x\" : { \"y\" : { \"w\" : 1, \"z\" : 2 } } }");
-//        TString ret2 = worker.ConvertToTabDelimited(" [1, 2, 3, 4, 5] ");
-//    }
-//} testMe;
+    //struct TTestMe {
+    //    TTestMe() {
+    //        TJsonParser worker;
+    //        worker.AddField("/x/y/z", true);
+    //        TString ret1 = worker.ConvertToTabDelimited("{ \"x\" : { \"y\" : { \"w\" : 1, \"z\" : 2 } } }");
+    //        TString ret2 = worker.ConvertToTabDelimited(" [1, 2, 3, 4, 5] ");
+    //    }
+    //} testMe;
 
 }

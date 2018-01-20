@@ -103,9 +103,7 @@ struct TJsonTraits {
     // boolean ops
     static inline void Get(TConstValueRef v, bool def, bool& b) {
         b =
-            v->GetType() == NJson::JSON_UNDEFINED ? def :
-            v->IsNull() ? def :
-            v->GetBooleanRobust();
+            v->GetType() == NJson::JSON_UNDEFINED ? def : v->IsNull() ? def : v->GetBooleanRobust();
     }
 
     static inline void Get(TConstValueRef v, bool& b) {
@@ -116,14 +114,14 @@ struct TJsonTraits {
         return v->IsBoolean();
     }
 
-#define INTEGER_OPS(type, checkOp, getOp)                               \
-    static inline void Get(TConstValueRef v, type def, type& i) {        \
-        i = v->checkOp() ? v->getOp() : def;                            \
-    }                                                                   \
-    static inline void Get(TConstValueRef v, type& i) {                  \
-        i = v->getOp();                                                 \
-    }                                                                   \
-    static inline bool IsValidPrimitive(const type&, TConstValueRef v) { \
+#define INTEGER_OPS(type, checkOp, getOp)                                              \
+    static inline void Get(TConstValueRef v, type def, type& i) {                      \
+        i = v->checkOp() ? v->getOp() : def;                                           \
+    }                                                                                  \
+    static inline void Get(TConstValueRef v, type& i) {                                \
+        i = v->getOp();                                                                \
+    }                                                                                  \
+    static inline bool IsValidPrimitive(const type&, TConstValueRef v) {               \
         return v->checkOp() && v->getOp() >= Min<type>() && v->getOp() <= Max<type>(); \
     }
 
