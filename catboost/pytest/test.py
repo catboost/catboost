@@ -1483,6 +1483,7 @@ def test_class_weight_with_lost_class():
 def test_one_hot():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
 
     cmd = (
         CATBOOST_PATH,
@@ -1503,6 +1504,17 @@ def test_one_hot():
     )
     yatest.common.execute(cmd)
 
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', calc_eval_path
+    )
+    yatest.common.execute(calc_cmd)
+
+    assert(compare_evals(output_eval_path, calc_eval_path))
     return [local_canonical_file(output_eval_path)]
 
 
