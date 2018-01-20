@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/system/types.h>
+
 class IInputStream;
 class IOutputStream;
 
@@ -44,7 +46,7 @@ struct TEol;
 template <typename TEndOfToken>
 class TStreamTokenizer;
 
-enum ETraceLevel : int;
+enum ETraceLevel : ui8;
 
 class IWalkInput;
 
@@ -53,7 +55,7 @@ struct TZLibCompressorError;
 struct TZLibDecompressorError;
 
 namespace ZLib {
-    enum StreamType : int;
+    enum StreamType : ui8;
 }
 
 class TZLibDecompres;
