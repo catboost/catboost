@@ -5,10 +5,10 @@
 namespace NMemIoInternals {
     class TMemoryStream: public IBinaryStream {
         TVector<char>& Data;
-        i64 Pos;
+        ui64 Pos;
 
     public:
-        TMemoryStream(TVector<char>* data, i64 pos = 0)
+        TMemoryStream(TVector<char>* data, ui64 pos = 0)
             : Data(*data)
             , Pos(pos)
         {
@@ -28,7 +28,7 @@ namespace NMemIoInternals {
             if (size == 0)
                 return 0;
             Y_ASSERT(size > 0);
-            if (Pos + size > Data.ysize())
+            if (Pos + size > Data.size())
                 Data.yresize(Pos + size);
             memcpy(&Data[Pos], userBuffer, size);
             Pos += size;
@@ -38,7 +38,7 @@ namespace NMemIoInternals {
             if (size == 0)
                 return 0;
             Y_ASSERT(size > 0);
-            int res = Min(Data.ysize() - Pos, (i64)size);
+            int res = Min(Data.size() - Pos, (ui64)size);
             if (res)
                 memcpy(userBuffer, &Data[Pos], res);
             Pos += res;
