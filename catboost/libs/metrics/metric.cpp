@@ -97,11 +97,10 @@ TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction)
     Y_ASSERT(lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy);
 }
 
-TMetricHolder TCrossEntropyMetric::Eval(const TVector<TVector<double>>& approx,
-                                       const TVector<float>& target,
-                                       const TVector<float>& weight,
-                                       int begin, int end,
-                                       NPar::TLocalExecutor& executor) const {
+TMetricHolder TCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                    const TVector<float>& target,
+                                                    const TVector<float>& weight,
+                                                    int begin, int end) const {
     // p * log(1/(1+exp(-f))) + (1-p) * log(1 - 1/(1+exp(-f))) =
     // p * log(exp(f) / (exp(f) + 1)) + (1-p) * log(exp(-f)/(1+exp(-f))) =
     // p * log(exp(f) / (exp(f) + 1)) + (1-p) * log(1/(exp(f) + 1)) =
@@ -114,33 +113,17 @@ TMetricHolder TCrossEntropyMetric::Eval(const TVector<TVector<double>>& approx,
     const auto& approxVec = approx.front();
     Y_ASSERT(approxVec.size() == target.size());
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
-    blockParams.SetBlockCount(executor.GetThreadCount() + 1);
-    TVector<TMetricHolder> errorHolders(blockParams.GetBlockCount());
-
-    executor.ExecRange([&](int blockId) {
-        TMetricHolder holder;
-        const double* approxPtr = approxVec.data();
-        const float* targetPtr = target.data();
-
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [approxPtr, targetPtr, &holder, &weight](int i) {
-            float w = weight.empty() ? 1 : weight[i];
-            const double approxExp = exp(approxPtr[i]);
-            const float prob = targetPtr[i];
-            holder.Error += w * (log(1 + approxExp) - prob * approxPtr[i]);
-            holder.Weight += w;
-        })(blockId);
-
-        errorHolders[blockId] = holder;
-    },
-                       0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-
-    TMetricHolder error;
-    for (const auto& eh : errorHolders) {
-        error.Add(eh);
+    TMetricHolder holder;
+    const double* approxPtr = approxVec.data();
+    const float* targetPtr = target.data();
+    for (int i = begin; i < end; ++i) {
+        float w = weight.empty() ? 1 : weight[i];
+        const double approxExp = exp(approxPtr[i]);
+        const float prob = targetPtr[i];
+        holder.Error += w * (log(1 + approxExp) - prob * approxPtr[i]);
+        holder.Weight += w;
     }
-
-    return error;
+    return holder;
 }
 
 TString TCrossEntropyMetric::GetDescription() const {
@@ -153,11 +136,10 @@ bool TCrossEntropyMetric::IsMaxOptimal() const {
 
 /* RMSE */
 
-TMetricHolder TRMSEMetric::Eval(const TVector<TVector<double>>& approx,
-                               const TVector<float>& target,
-                               const TVector<float>& weight,
-                               int begin, int end,
-                               NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TRMSEMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                            const TVector<float>& target,
+                                            const TVector<float>& weight,
+                                            int begin, int end) const {
     CB_ENSURE(approx.size() == 1, "Metric RMSE supports only single-dimensional data");
 
     const auto& approxVec = approx.front();
@@ -196,11 +178,10 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
               "Alpha parameter for quantile metric should be in interval [0, 1]");
 }
 
-TMetricHolder TQuantileMetric::Eval(const TVector<TVector<double>>& approx,
-                                   const TVector<float>& target,
-                                   const TVector<float>& weight,
-                                   int begin, int end,
-                                   NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TQuantileMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                const TVector<float>& target,
+                                                const TVector<float>& weight,
+                                                int begin, int end) const {
     CB_ENSURE(approx.size() == 1, "Metric quantile supports only single-dimensional data");
 
     const auto& approxVec = approx.front();
@@ -242,11 +223,10 @@ TLogLinQuantileMetric::TLogLinQuantileMetric(double alpha)
               "Alpha parameter for log-linear quantile metric should be in interval (0, 1)");
 }
 
-TMetricHolder TLogLinQuantileMetric::Eval(const TVector<TVector<double>>& approx,
-                                         const TVector<float>& target,
-                                         const TVector<float>& weight,
-                                         int begin, int end,
-                                         NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TLogLinQuantileMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                      const TVector<float>& target,
+                                                      const TVector<float>& weight,
+                                                      int begin, int end) const {
     CB_ENSURE(approx.size() == 1, "Metric log-linear quantile supports only single-dimensional data");
 
     const auto& approxVec = approx.front();
@@ -275,11 +255,10 @@ bool TLogLinQuantileMetric::IsMaxOptimal() const {
 
 /* MAPE */
 
-TMetricHolder TMAPEMetric::Eval(const TVector<TVector<double>>& approx,
-                               const TVector<float>& target,
-                               const TVector<float>& weight,
-                               int begin, int end,
-                               NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TMAPEMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                            const TVector<float>& target,
+                                            const TVector<float>& weight,
+                                            int begin, int end) const {
     CB_ENSURE(approx.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
 
     const auto& approxVec = approx.front();
@@ -305,11 +284,10 @@ bool TMAPEMetric::IsMaxOptimal() const {
 
 /* Poisson */
 
-TMetricHolder TPoissonMetric::Eval(const TVector<TVector<double>>& approx,
-                                  const TVector<float>& target,
-                                  const TVector<float>& weight,
-                                  int begin, int end,
-                                  NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TPoissonMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                               const TVector<float>& target,
+                                               const TVector<float>& weight,
+                                               int begin, int end) const {
     // Error function:
     // Sum_d[approx(d) - target(d) * log(approx(d))]
     // approx(d) == exp(Sum(tree_value))
@@ -339,11 +317,10 @@ bool TPoissonMetric::IsMaxOptimal() const {
 
 /* MultiClass */
 
-TMetricHolder TMultiClassMetric::Eval(const TVector<TVector<double>>& approx,
-                                     const TVector<float>& target,
-                                     const TVector<float>& weight,
-                                     int begin, int end,
-                                     NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TMultiClassMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                  const TVector<float>& target,
+                                                  const TVector<float>& weight,
+                                                  int begin, int end) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
     int approxDimension = approx.ysize();
 
@@ -385,11 +362,10 @@ bool TMultiClassMetric::IsMaxOptimal() const {
 
 /* MultiClassOneVsAll */
 
-TMetricHolder TMultiClassOneVsAllMetric::Eval(const TVector<TVector<double>>& approx,
-                                             const TVector<float>& target,
-                                             const TVector<float>& weight,
-                                             int begin, int end,
-                                             NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                          const TVector<float>& target,
+                                                          const TVector<float>& weight,
+                                                          int begin, int end) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
     int approxDimension = approx.ysize();
 
@@ -684,11 +660,10 @@ bool TAUCMetric::IsMaxOptimal() const {
 
 /* Accuracy */
 
-TMetricHolder TAccuracyMetric::Eval(const TVector<TVector<double>>& approx,
-                                   const TVector<float>& target,
-                                   const TVector<float>& weight,
-                                   int begin, int end,
-                                   NPar::TLocalExecutor& /* executor */) const {
+TMetricHolder TAccuracyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                const TVector<float>& target,
+                                                const TVector<float>& weight,
+                                                int begin, int end) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
 
     TMetricHolder error;
