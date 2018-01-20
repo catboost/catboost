@@ -19,6 +19,8 @@ void BuildCvPools(
     TPool* testPool)
 {
     CB_ENSURE(foldIdx >= 0 && foldIdx < foldCount);
+    CB_ENSURE(learnPool->Docs.GetDocCount() > 1, "Not enough documents for cross validataion");
+
     TFastRng64 rand(seed);
     TVector<ui64> permutation;
     permutation.yresize(learnPool->Docs.GetDocCount());
