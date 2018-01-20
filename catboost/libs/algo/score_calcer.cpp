@@ -110,12 +110,13 @@ static void SetSingleIndex(const TCalcScoreFold& fold,
     const TIndexType* indices = GetDataPtr(fold.Indices);
 
     singleIdx->yresize(docCount);
-    if (docPermutation == nullptr) {
+    if (docPermutation == nullptr || permBlockSize == docCount) {
         for (int doc = 0; doc < docCount; ++doc) {
             (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[doc]);
         }
-    } else if (permBlockSize != FoldPermutationBlockSizeNotSet) {
+    } else if (permBlockSize > 1) {
         const int blockCount = (docCount + permBlockSize - 1) / permBlockSize;
+        Y_ASSERT(docPermutation[0] / permBlockSize + 1 == blockCount || docPermutation[0] + permBlockSize - 1 == docPermutation[permBlockSize - 1]);
         int blockStart = 0;
         while (blockStart < docCount) {
             const int blockIdx = docPermutation[blockStart] / permBlockSize;
