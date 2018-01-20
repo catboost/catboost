@@ -1,5 +1,7 @@
 
 
+IF (NOT SANITIZER_TYPE STREQUAL "undefined")  # XXX
+
 RECURSE(
     app
     libs
@@ -9,3 +11,5 @@ RECURSE(
     cuda
     tools
 )
+
+ENDIF()
