@@ -143,7 +143,7 @@ namespace {
             const int ret = fastlz_decompress(~in, +in, out, len);
 
             if (ret < 0 || (size_t)ret != len) {
-                ythrow TDataError() << "can not decompress";
+                ythrow TDataError() << STRINGBUF("can not decompress");
             }
         }
 
@@ -266,6 +266,10 @@ namespace {
         }
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
+            if (+in <= LZMA_PROPS_SIZE) {
+                ythrow TDataError() << STRINGBUF("broken lzma stream");
+            }
+
             const unsigned char* props = (const unsigned char*)~in;
             const unsigned char* data = props + LZMA_PROPS_SIZE;
             size_t destLen = len;
