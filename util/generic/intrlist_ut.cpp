@@ -354,23 +354,11 @@ public:
         ++Counter_;
     }
 
-    TSelfCountingInt(const TSelfCountingInt& rhs) noexcept
-        : Counter_(rhs.Counter_)
-        , Value_(rhs.Value_)
-    {
-        ++Counter_;
-    }
-
     TSelfCountingInt(TSelfCountingInt&& rhs) noexcept
         : Counter_(rhs.Counter_)
         , Value_(rhs.Value_)
     {
         rhs.Value_ = 0xDEAD;
-    }
-
-    TSelfCountingInt& operator=(const TSelfCountingInt& rhs) noexcept {
-        Value_ = rhs.Value_;
-        return *this;
     }
 
     TSelfCountingInt& operator=(TSelfCountingInt&& rhs) noexcept {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utility.h"
-#include "noncopyable.h"
 
 #include <util/system/yassert.h>
 #include <iterator>
@@ -10,7 +9,7 @@
  * two-way linked list
  */
 template <class T>
-class TIntrusiveListItem: public TNonCopyable {
+class TIntrusiveListItem {
 private:
     using TListItem = TIntrusiveListItem<T>;
 
@@ -109,12 +108,16 @@ public:
     }
 
 private:
+    inline TIntrusiveListItem(const TIntrusiveListItem&) = delete;
+    inline TIntrusiveListItem& operator=(const TIntrusiveListItem&) = delete;
+
+private:
     TListItem* Next_;
     TListItem* Prev_;
 };
 
 template <class T>
-class TIntrusiveList: public TNonCopyable {
+class TIntrusiveList {
 private:
     using TListItem = TIntrusiveListItem<T>;
 
@@ -336,6 +339,8 @@ public:
 
 public:
     inline TIntrusiveList() noexcept = default;
+
+    inline ~TIntrusiveList() = default;
 
     inline TIntrusiveList(TIntrusiveList&& right) noexcept {
         this->Swap(right);
@@ -564,6 +569,10 @@ public:
         PushBack(pivot);
         Append(bigger);
     }
+
+private:
+    inline TIntrusiveList(const TIntrusiveList&) = delete;
+    inline TIntrusiveList& operator=(const TIntrusiveList&) = delete;
 
 private:
     TListItem End_;
