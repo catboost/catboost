@@ -48,6 +48,10 @@ public:
         return *this;
     }
 
+    void SetDeleteTmpDirOnExit(bool flag) {
+        DeleteTmpDirOnExitFlag = flag;
+    }
+
     TMetricsPlotCalcer& ProceedDataSet(const TPool& pool);
 
     template <class TOutput>
