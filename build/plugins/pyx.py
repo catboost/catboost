@@ -27,7 +27,13 @@ class PyxParser(object):
     def __init__(self, path, unit):
         self._path = path
         self._includes = []
+        self._induced = []
         retargeted = os.path.join(unit.path(), os.path.basename(path))
+
+        if path.endswith('.pyx'):
+            pxd = path[:-4] + '.pxd'
+            if os.path.exists(pxd):
+                self._includes.append(unit.resolve_arc_path(pxd))
 
         with open(path, 'rb') as f:
             includes, induced, susp_includes = self.parse_includes(f.readlines())
@@ -41,8 +47,11 @@ class PyxParser(object):
                         if f != '*':
                             includes.append(susp_incl[0] + '/' + f + '.pxd')
 
-        self._includes = unit.resolve_include([retargeted] + includes + list(find_init_files(includes, unit))) if includes else []
-        self._induced = unit.resolve_include([retargeted] + induced + list(find_init_files(induced, unit))) if induced else []
+        if includes:
+            self._includes += unit.resolve_include([retargeted] + includes + list(find_init_files(includes, unit)))
+
+        if induced:
+            self._induced += unit.resolve_include([retargeted] + induced + list(find_init_files(induced, unit)))
 
     @staticmethod
     def get_perm_includes():
