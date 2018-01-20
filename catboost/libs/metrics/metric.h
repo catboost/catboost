@@ -432,7 +432,7 @@ private:
 
 class TQueryAverage : public TQuerywiseAdditiveMetric {
 public:
-    explicit TQueryAverage(int topSize) : TopSize(topSize) {
+    explicit TQueryAverage(float topSize) : TopSize(topSize) {
         CB_ENSURE(topSize > 0, "top size for QueryAverage should be greater than 0");
         CB_ENSURE(topSize == (int)topSize, "top size for QueryAverage should be an integer value");
     }
