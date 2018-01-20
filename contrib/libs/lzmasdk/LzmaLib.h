@@ -1,20 +1,14 @@
 /* LzmaLib.h -- LZMA library interface
-2008-08-05
-Igor Pavlov
-Public domain */
+2013-01-18 : Igor Pavlov : Public domain */
 
-#ifndef __LZMALIB_H
-#define __LZMALIB_H
+#ifndef __LZMA_LIB_H
+#define __LZMA_LIB_H
 
-#include "Types.h"
+#include "7zTypes.h"
 
-#ifdef __cplusplus
-  #define MY_EXTERN_C extern "C"
-#else
-  #define MY_EXTERN_C extern
-#endif
+EXTERN_C_BEGIN
 
-#define MY_STDAPI MY_EXTERN_C int MY_STD_CALL
+#define MY_STDAPI int MY_STD_CALL
 
 #define LZMA_PROPS_SIZE 5
 
@@ -131,5 +125,7 @@ Returns:
 
 MY_STDAPI LzmaUncompress(unsigned char *dest, size_t *destLen, const unsigned char *src, SizeT *srcLen,
   const unsigned char *props, size_t propsSize);
+
+EXTERN_C_END
 
 #endif
