@@ -42,10 +42,11 @@ void TCalcScoreFold::TVectorSlicing::Create(const NPar::TLocalExecutor::TExecRan
 void TCalcScoreFold::TVectorSlicing::CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor) {
     Slices.yresize(blockParams.GetBlockCount());
     const bool* controlData = GetDataPtr(control);
-    localExecutor->ExecRange([&](int sliceIdx) {
+    TSlice* slicesData = GetDataPtr(Slices);
+    localExecutor->ExecRange([=](int sliceIdx) {
         int sliceSize = 0; // use a local var instead of Slices[sliceIdx].Size so that the compiler can use a register
         NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &sliceSize](int doc) { sliceSize += controlData[doc]; })(sliceIdx);
-        Slices[sliceIdx].Size = sliceSize;
+        slicesData[sliceIdx].Size = sliceSize;
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     int offset = 0;
     for (auto& slice : Slices) {
@@ -56,7 +57,9 @@ void TCalcScoreFold::TVectorSlicing::CreateByControl(const NPar::TLocalExecutor:
 }
 
 
-void TCalcScoreFold::Create(const TFold& fold) {
+void TCalcScoreFold::Create(const TFold& fold, float sampleRate) {
+    BernoulliSampleRate = sampleRate;
+    Y_ASSERT(BernoulliSampleRate > 0.0f && BernoulliSampleRate <= 1.0f);
     DocCount = fold.LearnPermutation.ysize();
     Y_ASSERT(DocCount > 0);
     Indices.yresize(DocCount);
@@ -88,6 +91,11 @@ static inline void SetElements(TArrayRef<const bool> srcControlRef, TSrcRef srcR
     const size_t sourceCount = srcRef.size();
     auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
+    if (sourceData != nullptr && srcControlRef.size() == destinationCount) {
+        Copy(sourceData, sourceData + sourceCount, destinationData);
+        *dstCount = sourceCount;
+        return;
+    }
     const bool* controlData = srcControlRef.data();
     size_t endElementIdx = 0;
 #pragma unroll(4)
@@ -154,7 +162,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 }
 
-void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indices, float sampleRate, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
+void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, indices.ysize());
     blockParams.SetBlockSize(2000);
     const int blockCount = blockParams.GetBlockCount();
@@ -162,7 +170,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
     srcBlocks.Create(blockParams);
 
     TVectorSlicing dstBlocks;
-    SetSampledControl(indices.ysize(), sampleRate, rand);
+    SetSampledControl(indices.ysize(), rand);
     dstBlocks.CreateByControl(blockParams, Control, localExecutor);
 
     DocCount = dstBlocks.Total;
@@ -176,7 +184,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
         SetElements(srcControlRef, srcBlock.GetConstRef(TVector<int>()), [=](const int*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
-    PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    PermutationBlockSize = BernoulliSampleRate == 1.0f ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet;
 }
 
 void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
@@ -187,8 +195,7 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     srcBlocks.Create(blockParams);
 
     TVectorSlicing dstBlocks;
-    const bool isLineSampling = DocCount < indices.ysize(); // sampleRate == 1.0f
-    if (isLineSampling) {
+    if (BernoulliSampleRate < 1.0f) {
         dstBlocks.CreateByControl(blockParams, Control, localExecutor);
     } else {
         dstBlocks = srcBlocks;
@@ -198,15 +205,9 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     localExecutor->ExecRange([&](int blockIdx) {
         const auto srcBlock = srcBlocks.Slices[blockIdx];
         const auto dstBlock = dstBlocks.Slices[blockIdx];
-        if (isLineSampling) {
-            int ignored;
-            const auto srcControlRef = srcBlock.GetConstRef(Control);
-            SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
-        } else {
-            const auto srcRef = srcBlock.GetConstRef(indices);
-            const auto dstRef = dstBlock.GetRef(Indices);
-            Copy(srcRef.data(), srcRef.data() + srcRef.size(), dstRef.data());
-        }
+        int ignored;
+        const auto srcControlRef = srcBlock.GetConstRef(Control);
+        SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
@@ -232,10 +233,11 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, const TVector<TIndexTy
     const int blockCount = blockParams.GetBlockCount();
 
     TVector<int> blockSize(blockCount, 0);
-    localExecutor->ExecRange([&](int blockIdx) {
+    const TIndexType* indicesData = GetDataPtr(indices);
+    localExecutor->ExecRange([=, &blockSize](int blockIdx) {
         int size = 0;
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int docIdx) {
-            size += indices[docIdx] >> (curDepth - 1);
+        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &size](int docIdx) {
+            size += indicesData[docIdx] >> (curDepth - 1);
         })(blockIdx);
         blockSize[blockIdx] = size;
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -246,7 +248,6 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, const TVector<TIndexTy
     }
     const TIndexType splitWeight = 1 << (curDepth - 1);
     bool* controlData = GetDataPtr(Control);
-    const TIndexType* indicesData = GetDataPtr(indices);
     if (trueCount * 2 > docCount) {
         SmallestSplitSideValue = false;
         localExecutor->ExecRange([=](int docIdx) {
@@ -260,13 +261,12 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, const TVector<TIndexTy
     }
 }
 
-void TCalcScoreFold::SetSampledControl(int docCount, float sampleRate, TRestorableFastRng64* rand) {
-    Control.yresize(docCount);
-    if (sampleRate == 1.0f) {
+void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand) {
+    if (BernoulliSampleRate == 1.0f) {
         Fill(Control.begin(), Control.end(), true);
         return;
     }
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
-        Control[docIdx] = rand->GenRandReal1() < sampleRate;
+        Control[docIdx] = rand->GenRandReal1() < BernoulliSampleRate;
     }
 }

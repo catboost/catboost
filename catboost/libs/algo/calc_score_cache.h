@@ -14,13 +14,20 @@
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
 template<typename TData, typename TAlloc>
-static inline TData* GetDataPtr(TVector<TData, TAlloc>& vector) {
-    return vector.empty() ? nullptr : vector.data();
+static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
+    return data.empty() ? nullptr : data.data() + offset;
 }
 
 template<typename TData, typename TAlloc>
-static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& vector) {
-    return vector.empty() ? nullptr : vector.data();
+static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
+    return data.empty() ? nullptr : data.data() + offset;
+}
+
+static inline float GetBernoulliSampleRate(const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig) {
+    if (samplingConfig->GetBootstrapType() == EBootstrapType::Bernoulli) {
+        return samplingConfig->GetTakenFraction();
+    }
+    return 1.0f;
 }
 
 struct TBucketStats {
@@ -101,13 +108,13 @@ struct TCalcScoreFold {
                 return clippedSlice;
             }
             template<typename TData>
-            inline TArrayRef<const TData> GetConstRef(const TVector<TData>& vector) const {
-                return MakeArrayRef(vector.data() + Offset, Size);
+            inline TArrayRef<const TData> GetConstRef(const TVector<TData>& data) const {
+                return MakeArrayRef(GetDataPtr(data, Offset), Size);
             }
             template<typename TData>
-            inline TArrayRef<TData> GetRef(TVector<TData>& vector) const {
-                const TSlice clippedSlice = Clip(vector.ysize());
-                return MakeArrayRef(vector.data() + clippedSlice.Offset, clippedSlice.Size);
+            inline TArrayRef<TData> GetRef(TVector<TData>& data) const {
+                const TSlice clippedSlice = Clip(data.ysize());
+                return MakeArrayRef(GetDataPtr(data, clippedSlice.Offset), clippedSlice.Size);
             }
         };
         TUnsizedVector<TSlice> Slices;
@@ -123,9 +130,9 @@ struct TCalcScoreFold {
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
-    void Create(const TFold& fold);
+    void Create(const TFold& fold, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
-    void Sample(const TFold& fold, const TVector<TIndexType>& indices, float sampleRate, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
+    void Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     int GetDocCount() const;
     int GetBodyTailCount() const;
@@ -140,9 +147,10 @@ private:
     template<typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
-    void SetSampledControl(int docCount, float sampleRate, TRestorableFastRng64* rand);
+    void SetSampledControl(int docCount, TRestorableFastRng64* rand);
     TUnsizedVector<bool> Control;
     int DocCount;
     int BodyTailCount;
     int ApproxDimension;
+    float BernoulliSampleRate;
 };

@@ -216,7 +216,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             bodyTailCount
         );
     }
-    ctx->SampledDocs.Create(*fold); // TODO(espetrov): create only if sample rate < 1
+    ctx->SampledDocs.Create(*fold, GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)); // TODO(espetrov): create only if sample rate < 1
 
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();

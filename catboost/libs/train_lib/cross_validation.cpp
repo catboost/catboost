@@ -200,7 +200,7 @@ void CrossValidate(
             const int bodyTailCount = learnFold->BodyTailArr.ysize();
             ctx.PrevTreeLevelStats.Create(CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues), static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth), approxDimension, bodyTailCount);
         }
-        ctx.SampledDocs.Create(*learnFold); // TODO(espetrov): create only if sample rate < 1
+        ctx.SampledDocs.Create(*learnFold, GetBernoulliSampleRate(ctx.Params.ObliviousTreeOptions->BootstrapConfig)); // TODO(espetrov): create only if sample rate < 1
     }
 
     const ui32 approxDimension = ctx->LearnProgress.ApproxDimension;

@@ -335,10 +335,8 @@ static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstr
                int learnSampleCount,
                TFold* fold,
                TLearnContext* ctx) {
-    float takenFraction = 1;
     switch (samplingConfig->GetBootstrapType()) {
         case EBootstrapType::Bernoulli:
-            takenFraction = samplingConfig->GetTakenFraction();
             break;
         case EBootstrapType::Bayesian:
             GenerateRandomWeights(learnSampleCount, ctx, fold);
@@ -349,7 +347,7 @@ static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstr
             CB_ENSURE(false, "Not supported bootstrap type on CPU: " << samplingConfig->GetBootstrapType());
     }
     CalcWeightedData(learnSampleCount, ctx, fold);
-    ctx->SampledDocs.Sample(*fold, indices, takenFraction, &ctx->Rand, &ctx->LocalExecutor);
+    ctx->SampledDocs.Sample(*fold, indices, &ctx->Rand, &ctx->LocalExecutor);
 }
 
 void GreedyTensorSearch(const TTrainData& data,
