@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "input.h"
 #include "output.h"
 #include "buffered.h"
@@ -23,7 +24,7 @@ struct TZLibDecompressorError: public TZLibError {
 };
 
 namespace ZLib {
-    enum StreamType {
+    enum StreamType : int {
         Auto = 0, /**< Auto detect format. Can be used for decompression only. */
         ZLib = 1,
         GZip = 2,
@@ -166,7 +167,5 @@ public:
 
     ~TBufferedZLibDecompress() override;
 };
-
-using TZDecompress = TBufferedZLibDecompress;
 
 /** @} */

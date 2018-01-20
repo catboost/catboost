@@ -214,6 +214,7 @@ JOIN_SRCS(
     stream/labeled.cpp
     stream/tokenizer.cpp
     stream/trace.cpp
+    stream/fwd.cpp
 )
 
 # string

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "labeled.h"
 
 #include <util/generic/noncopyable.h>
@@ -200,8 +201,6 @@ inline void Out<const char*>(IOutputStream& o, const char* t) {
 
 template <>
 void Out<const wchar16*>(IOutputStream& o, const wchar16* w);
-
-using TStreamManipulator = void (*)(IOutputStream&);
 
 static inline IOutputStream& operator<<(IOutputStream& o, TStreamManipulator m) {
     m(o);

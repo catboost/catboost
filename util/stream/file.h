@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "input.h"
 #include "output.h"
 #include "buffered.h"
@@ -85,8 +86,6 @@ public:
     ~TFileInput() override = default;
 };
 
-using TIFStream = TFileInput;
-
 /**
  * Buffered file output stream.
  *
@@ -105,14 +104,5 @@ public:
 
     ~TFixedBufferFileOutput() override = default;
 };
-
-using TOFStream = TFixedBufferFileOutput;
-
-/**
- * Adaptively buffered file output stream.
- *
- * @see TAdaptivelyBuffered
- */
-using TFileOutput = TAdaptivelyBuffered<TUnbufferedFileOutput>;
 
 /** @} */

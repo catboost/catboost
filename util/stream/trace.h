@@ -5,7 +5,7 @@
 /**
  * Debug level, as set via `DBGOUT` environment variable.
  */
-enum ETraceLevel {
+enum ETraceLevel : int {
     TRACE_ERR = 1,
     TRACE_WARN = 2,
     TRACE_NOTICE = 3,
