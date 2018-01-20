@@ -1,5 +1,7 @@
 LIBRARY(decorator)
 
+VERSION(4.0.6)
+
 LICENSE(
     BSD2
 )
@@ -11,7 +13,7 @@ PY_SRCS(
     decorator.py
 )
 
-SRCDIR(contrib/python/decorator-4.0.6/src)
+SRCDIR(contrib/python/decorator/src)
 
 NO_LINT()
 

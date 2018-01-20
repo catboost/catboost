@@ -9,7 +9,7 @@ LICENSE(
 
 
 PEERDIR(
-    contrib/python/decorator-4.0.6
+    contrib/python/decorator
     contrib/python/enum34
     contrib/python/ipython_genutils
     contrib/python/six

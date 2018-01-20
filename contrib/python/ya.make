@@ -5,7 +5,7 @@ RECURSE(
     backports-shutil_get_terminal_size
     colorama
     dateutil
-    decorator-4.0.6
+    decorator
     enum34
     ipython
     ipython/bin
