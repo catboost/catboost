@@ -2256,7 +2256,7 @@
         },
         "kythe_to_proto": {
             "formula": {
-                "sandbox_id": [144731057],
+                "sandbox_id": [199184765],
                 "match": "KYTHETOPROTO"
             }
         },
@@ -2289,7 +2289,7 @@
         },
         "yndexer": {
             "formula": {
-                "sandbox_id": 146269024,
+                "sandbox_id": 199184237,
                 "match": "YNDEXER"
             },
             "executable": {
@@ -2298,7 +2298,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 137146838,
+                "sandbox_id": 199184578,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -2307,7 +2307,7 @@
         },
         "pyndexer": {
             "formula": {
-                "sandbox_id": 177084483,
+                "sandbox_id": 199822917,
                 "match": "PYNDEXER"
             },
             "executable": {
