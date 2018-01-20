@@ -268,10 +268,6 @@ namespace NCatboostCuda {
         TVector<ui64> indices(learnPool.Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
 
-        if (catBoostOptions.BoostingOptions->BoostingType.NotSet()) {
-            UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &catBoostOptions.BoostingOptions->BoostingType);
-        }
-
         ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
         ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
         if (minTimestamp != maxTimestamp) {
@@ -428,9 +424,6 @@ namespace NCatboostCuda {
             UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
             UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
             EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
-            if (catBoostOptions.BoostingOptions->BoostingType.NotSet()) {
-                UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
-            }
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);

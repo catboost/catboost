@@ -110,42 +110,23 @@ void TLearnContext::InitData(const TTrainData& data) {
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params);
 
-    if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
-            LearnProgress.Folds.emplace_back(
-                BuildPlainFold(
-                    data,
-                    CtrsHelper.GetTargetClassifiers(),
-                    foldIdx != 0,
-                    foldPermutationBlockSize,
-                    LearnProgress.ApproxDimension,
-                    storeExpApproxes,
-                    Rand
-                )
-            );
-        }
-    } else {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
-            LearnProgress.Folds.emplace_back(
-                BuildDynamicFold(
-                    data,
-                    CtrsHelper.GetTargetClassifiers(),
-                    foldIdx != 0,
-                    foldPermutationBlockSize,
-                    LearnProgress.ApproxDimension,
-                    boostingOptions.FoldLenMultiplier,
-                    storeExpApproxes,
-                    Rand
-                )
-            );
-        }
+    for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
+        LearnProgress.Folds.emplace_back(
+            BuildLearnFold(
+                data,
+                CtrsHelper.GetTargetClassifiers(),
+                foldIdx != 0,
+                foldPermutationBlockSize,
+                LearnProgress.ApproxDimension,
+                boostingOptions.FoldLenMultiplier,
+                storeExpApproxes,
+                Rand));
     }
 
-    LearnProgress.AveragingFold = BuildPlainFold(
+    LearnProgress.AveragingFold = BuildAveragingFold(
         data,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),
-        /*permuteBlockSize=*/1,
         LearnProgress.ApproxDimension,
         storeExpApproxes,
         Rand

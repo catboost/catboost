@@ -117,23 +117,18 @@ TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId);
 struct TRestorableFastRng64;
 class TTrainData;
 
-TFold BuildDynamicFold(
-    const TTrainData& data,
-    const TVector<TTargetClassifier>& targetClassifiers,
-    bool shuffle,
-    int permuteBlockSize,
-    int approxDimension,
-    double multiplier,
-    bool storeExpApproxes,
-    TRestorableFastRng64& rand
-);
+TFold BuildLearnFold(const TTrainData& data,
+                            const TVector<TTargetClassifier>& targetClassifiers,
+                            bool shuffle,
+                            int permuteBlockSize,
+                            int approxDimension,
+                            double multiplier,
+                            bool storeExpApproxes,
+                            TRestorableFastRng64& rand);
 
-TFold BuildPlainFold(
-    const TTrainData& data,
-    const TVector<TTargetClassifier>& targetClassifiers,
-    bool shuffle,
-    int permuteBlockSize,
-    int approxDimension,
-    bool storeExpApproxes,
-    TRestorableFastRng64& rand
-);
+TFold BuildAveragingFold(const TTrainData& data,
+                                const TVector<TTargetClassifier>& targetClassifiers,
+                                bool shuffle,
+                                int approxDimension,
+                                bool storeExpApproxes,
+                                TRestorableFastRng64& rand);

@@ -42,7 +42,3 @@ bool IsPairwiseError(ELossFunction lossFunction) {
 bool IsQuerywiseError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::QueryRMSE);
 }
-
-bool IsPlainMode(EBoostingType boostingType) {
-    return (boostingType == EBoostingType::Plain);
-}

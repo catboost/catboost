@@ -3,7 +3,9 @@
 #include "score_calcer.h"
 #include "tree_print.h"
 
+
 #include <catboost/libs/logging/profile_info.h>
+
 #include <catboost/libs/helpers/interrupt.h>
 
 #include <library/dot_product/dot_product.h>
@@ -60,17 +62,13 @@ static void CalcWeightedData(int learnSampleCount,
 
     const int approxDimension = ff.GetApproxDimension();
     for (TFold::TBodyTail& bt : ff.BodyTailArr) {
-        int begin = 0;
-        if (!IsPlainMode(ctx->Params.BoostingOptions->BoostingType)) {
-            begin = bt.BodyFinish;
-        }
         for (int dim = 0; dim < approxDimension; ++dim) {
             double* weightedDerData = bt.WeightedDer[dim].data();
             const double* derData = bt.Derivatives[dim].data();
             const float* sampleWeightsData = ff.SampleWeights.data();
             ctx->LocalExecutor.ExecRange([=](int z) {
                 weightedDerData[z] = derData[z] * sampleWeightsData[z];
-            }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)
+            }, NPar::TLocalExecutor::TExecRangeParams(bt.BodyFinish, bt.TailFinish).SetBlockSize(4000)
              , NPar::TLocalExecutor::WAIT_COMPLETE);
         }
     }

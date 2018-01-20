@@ -14,5 +14,3 @@ bool IsMultiClassError(ELossFunction lossFunction);
 bool IsPairwiseError(ELossFunction lossFunction);
 
 bool IsQuerywiseError(ELossFunction lossFunction);
-
-bool IsPlainMode(EBoostingType boostingType);
