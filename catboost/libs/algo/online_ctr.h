@@ -13,6 +13,7 @@ const int SIMPLE_CLASSES_COUNT = 2;
 
 struct TOnlineCTR {
     TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
+    size_t FeatureValueCount = 0;
 };
 
 using TOnlineCTRHash = THashMap<TProjection, TOnlineCTR>;
@@ -37,8 +38,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
-                       TOnlineCTR* dst,
-                       size_t* totalLeafCount);
+                       TOnlineCTR* dst);
 
 struct TCalcOnlineCTRsBatchTask {
     TProjection Projection;

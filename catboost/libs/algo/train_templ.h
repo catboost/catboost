@@ -157,17 +157,22 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
             allFolds.push_back(&ctx->LearnProgress.AveragingFold);
 
             TVector<TCalcOnlineCTRsBatchTask> parallelJobsData;
+            THashSet<TProjection> seenProjections;
             for (const auto& split : bestSplitTree.Splits) {
                 if (split.Type != ESplitType::OnlineCtr) {
                     continue;
                 }
 
-                auto& proj = split.Ctr.Projection;
+                const auto& proj = split.Ctr.Projection;
+                if (seenProjections.has(proj)) {
+                    continue;
+                }
                 for (auto* foldPtr : allFolds) {
-                    if (!foldPtr->GetCtrs(proj).has(proj)) {
+                    if (!foldPtr->GetCtrs(proj).has(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
                         parallelJobsData.emplace_back(TCalcOnlineCTRsBatchTask{ proj, foldPtr, &foldPtr->GetCtrRef(proj) });
                     }
                 }
+                seenProjections.insert(proj);
             }
             CalcOnlineCTRsBatch(parallelJobsData, data, ctx);
         }

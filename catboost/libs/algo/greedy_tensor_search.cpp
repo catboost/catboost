@@ -92,7 +92,6 @@ struct TCandidatesInfoList {
     // TODO(annaveronika): put projection out, because currently it's not clear.
     TVector<TCandidateInfo> Candidates;
     bool ShouldDropCtrAfterCalc = false;
-    size_t ResultingCtrTableSize = 0;
 };
 
 using TCandidateList = TVector<TCandidatesInfoList>;
@@ -388,7 +387,7 @@ void GreedyTensorSearch(const TTrainData& data,
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
         double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
 
-        TVector<size_t> candLeafCount(candList.ysize(), 1);
+        TVector<size_t> candFeatureValueCount(candList.ysize(), 1);
         const ui64 randSeed = ctx->Rand.GenRand();
         CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
         ctx->LocalExecutor.ExecRange([&](int id) {
@@ -400,10 +399,9 @@ void GreedyTensorSearch(const TTrainData& data,
                                       *fold,
                                       proj,
                                       ctx,
-                                      &fold->GetCtrRef(proj),
-                                      &candidate.ResultingCtrTableSize);
-                    candLeafCount[id] = candidate.ResultingCtrTableSize;
+                                      &fold->GetCtrRef(proj));
                 }
+                candFeatureValueCount[id] = fold->GetCtrRef(proj).FeatureValueCount;
             }
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor.ExecRange([&](int oneCandidate) {
@@ -442,9 +440,9 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
             }
         }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
-        size_t maxLeafCount = 1;
-        for (size_t leafCount : candLeafCount) {
-            maxLeafCount = Max(maxLeafCount, leafCount);
+        size_t maxFeatureValueCount = 1;
+        for (size_t featureValueCount : candFeatureValueCount) {
+            maxFeatureValueCount = Max(maxFeatureValueCount, featureValueCount);
         }
         fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
@@ -458,8 +456,12 @@ void GreedyTensorSearch(const TTrainData& data,
                 TProjection projection = candidate.SplitCandidate.Ctr.Projection;
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
-                if (!ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) && score != MINIMAL_SCORE) {
-                    score *= pow(1 / (1 + subList.ResultingCtrTableSize / static_cast<double>(maxLeafCount)), ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                if (candidate.SplitCandidate.Type == ESplitType::OnlineCtr &&
+                    !ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) &&
+                    score != MINIMAL_SCORE)
+                {
+                    score *= pow(1 + fold->GetCtrRef(projection).FeatureValueCount / static_cast<double>(maxFeatureValueCount),
+                                 -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
                 }
                 if (score > bestScore) {
                     bestScore = score;
@@ -480,13 +482,11 @@ void GreedyTensorSearch(const TTrainData& data,
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             const auto& proj = bestSplit.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
-                size_t totalLeafCount;
                 ComputeOnlineCTRs(data,
                                   *fold,
                                   proj,
                                   ctx,
-                                  &fold->GetCtrRef(proj),
-                                  &totalLeafCount);
+                                  &fold->GetCtrRef(proj));
                 DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
             }
         } else if (bestSplit.Type == ESplitType::OneHotFeature) {
