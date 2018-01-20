@@ -260,30 +260,39 @@ template <class T>
 constexpr std::add_const_t<T>& AsConst(T& t) noexcept {
     return t;
 }
+
 template <class T>
 void AsConst(T&& t) = delete;
 
 //NOTE: to be replaced with std::negation in c++17
 template <class B>
-struct TNegation : std::integral_constant<bool, !bool(B::value)> {};
+struct TNegation : std::integral_constant<bool, !bool(B::value)> {
+};
 
 template <class T>
-struct TIsPointerToConstMemberFunction : std::false_type {};
+struct TIsPointerToConstMemberFunction : std::false_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const> : std::true_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &> : std::true_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &&> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &&> : std::true_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const> : std::true_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &> : std::true_type {
+};
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &&> : std::true_type {};
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &&> : std::true_type {
+};
