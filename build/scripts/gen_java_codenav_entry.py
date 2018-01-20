@@ -44,6 +44,7 @@ def just_do_it(java, kythe, kythe_to_proto, out_name, binding_only, kindexes):
     print >> sys.stderr, '[INFO] Preprocessing execution time:', (datetime.datetime.now() - preprocess_start).total_seconds(), 'seconds'
     print >> sys.stderr, '[INFO] Total execution time:', (datetime.datetime.now() - start).total_seconds(), 'seconds'
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--java", help="java path")
