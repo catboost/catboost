@@ -12,7 +12,7 @@ RECURSE(
     ipython_genutils
     Jinja2
     MarkupSafe
-    numpy-1.11.1
+    numpy
     packaging
     pandas
     pandas/matplotlib

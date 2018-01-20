@@ -309,23 +309,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
       <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\contrib-python-numpy-1.11.1.vcxproj">
-      <Project>5DD8AD20-3875-B0FF-6624-12D1EAEED8A4</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
+      <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
-      <Project>2EC6EAD1-3B90-3448-B799-D7695DBFAFD6</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
+      <Project>83EDB3BB-30AF-677F-74C1-971A8947E4E5</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\numpy\core\src\umath\core-src-umath.vcxproj">
-      <Project>A536FEC4-B451-87B0-8063-1E8202C0F692</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
+      <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\numpy\fft\numpy-1.11.1-numpy-fft.vcxproj">
-      <Project>64A1691E-662F-2F03-F707-7CF55A3E8113</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
+      <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\numpy\linalg\numpy-1.11.1-numpy-linalg.vcxproj">
-      <Project>A55D8DFC-10F6-2F82-DD97-D06BA454A377</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
+      <Project>2C53A7F8-146C-2E01-A4DD-B0D7D23E4518</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy-1.11.1\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
-      <Project>FF2FEF04-4AB5-7661-99E9-1D85DA7DCB33</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
+      <Project>794E1CFC-77F3-9455-DA27-A631729E33E2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\pycontrib-python-packaging.vcxproj">
       <Project>6C15063A-DDDE-66AF-5176-3D80158617E3</Project>

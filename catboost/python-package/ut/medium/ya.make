@@ -7,7 +7,7 @@ FORK_SUBTESTS()
 
 PEERDIR(
     contrib/python/pandas
-    contrib/python/numpy-1.11.1
+    contrib/python/numpy
     library/python/pytest
     catboost/python-package/lib
     catboost/pytest/lib
