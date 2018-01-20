@@ -5,6 +5,7 @@
 
 #include <catboost/libs/helpers/eval_helpers.h>
 
+
 TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          const TPool& pool,
                                          const EPredictionType predictionType,
@@ -89,3 +90,47 @@ TVector<double> ApplyModel(const TFullModel& model,
     return ApplyModelMulti(model, pool, verbose, predictionType, begin, end, threadCount)[0];
 }
 
+
+void TModelCalcerOnPool::ApplyModelMulti(const EPredictionType predictionType, int begin, int end, TVector<TVector<double>>* approx) {
+
+    const int docCount = Pool.Docs.GetDocCount();
+    auto approxDimension = Model.ObliviousTrees.ApproxDimension;
+    TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
+
+    if (end == 0) {
+        end = Model.GetTreeCount();
+    } else {
+        end = Min<int>(end, Model.GetTreeCount());
+    }
+
+    Executor.ExecRange([&](int blockId) {
+        auto& calcer = *ThreadCalcers[blockId];
+        const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
+        const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
+        TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
+        calcer.Calc(begin, end, resultRef);
+    }, 0, BlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+    approx->resize(approxDimension);
+
+    if (approxDimension == 1) { //shortcut
+        (*approx)[0].swap(approxFlat);
+    } else {
+        for (auto& approxProjection : *approx) {
+            approxProjection.clear();
+            approxProjection.resize(docCount);
+        }
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            for (int doc = 0; doc < docCount; ++doc) {
+                (*approx)[dim][doc] = approxFlat[approxDimension * doc + dim];
+            };
+        }
+    }
+
+    if (predictionType == EPredictionType::RawFormulaVal) {
+        //shortcut
+        return;
+    } else {
+        (*approx) = PrepareEval(predictionType, *approx, &Executor);
+    }
+}

@@ -27,9 +27,13 @@ static TEvalResult Apply(
     if (pool.Docs.Baseline.ysize() > 0) {
         rawValues.assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
     }
+    TModelCalcerOnPool modelCalcerOnPool(model, pool, *executor);
+    TVector<TVector<double>> approx;
     for (; begin < end; begin += evalPeriod) {
-        TVector<TVector<double>> approx = ApplyModelMulti(model, pool, EPredictionType::RawFormulaVal,
-                                                          begin, Min(begin + evalPeriod, end), *executor);
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
+                                          begin,
+                                          Min(begin + evalPeriod, end),
+                                          &approx);
         if (rawValues.empty()) {
             rawValues.swap(approx);
         } else {

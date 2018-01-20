@@ -41,10 +41,10 @@ void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
 }
 
 TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
-                                               const TPool& pool,
-                                               const TVector<float>& target,
-                                               const TVector<float>& weights,
-                                               const TVector<TVector<double>>& approx) {
+                                                const TPool& pool,
+                                                const TVector<float>& target,
+                                                const TVector<float>& weights,
+                                                const TVector<TVector<double>>& approx) {
     const auto docCount = static_cast<int>(target.size());
 
     if (metric.GetErrorType() == EErrorType::PerObjectError) {
@@ -81,15 +81,18 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
     TVector<TVector<double>> cursor(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));
     ui32 currentIter = 0;
     ui32 idx = 0;
+    TModelCalcerOnPool modelCalcerOnPool(Model, pool, Executor);
+
+    TVector<TVector<double>> approxBuffer;
+    TVector<TVector<double>> nextBatchApprox;
+
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
         ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
-        auto nextBatchApprox = ApplyModelMulti(Model,
-                                               pool,
-                                               EPredictionType::RawFormulaVal,
-                                               nextBatchStart,
-                                               nextBatchEnd,
-                                               Executor);
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
+                                          (int)nextBatchStart,
+                                          (int)nextBatchEnd,
+                                          &nextBatchApprox);
         Append(nextBatchApprox, &cursor);
         currentIter = nextBatchEnd;
         ++idx;
@@ -168,6 +171,15 @@ TVector<TVector<double>> TMetricsPlotCalcer::LoadApprox(ui32 plotLineIndex) {
     return result;
 }
 
+static inline void CreateMetricsFromDescription(const TVector<TString>& description, int approxDim, TVector<THolder<IMetric>>* metrics) {
+    for (const auto& metricDescription : description) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
+        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
+            metrics->push_back(std::move(metricsBatch[i]));
+        }
+    }
+}
+
 TMetricsPlotCalcer CreateMetricCalcer(
     const TFullModel& model,
     const TVector<TString>& metricsDescription,
@@ -184,12 +196,7 @@ TMetricsPlotCalcer CreateMetricCalcer(
         end = Min<int>(end, model.GetTreeCount());
     }
 
-    for (const auto& metricDescription : metricsDescription) {
-        auto metricsBatch = CreateMetricFromDescription(metricDescription, model.ObliviousTrees.ApproxDimension);
-        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
-            metrics->push_back(std::move(metricsBatch[i]));
-        }
-    }
+    CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension, metrics);
 
     TMetricsPlotCalcer plotCalcer(model, executor, tmpDir);
     plotCalcer

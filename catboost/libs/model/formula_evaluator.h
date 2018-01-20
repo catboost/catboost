@@ -319,6 +319,57 @@ inline void CalcGeneric(
     }
 }
 
+
+/*
+ * Warning: use aggressive caching. Stores all binarized features in RAM
+ */
+class TFeatureCachedTreeEvaluator {
+public:
+    template<typename TFloatFeatureAccessor,
+             typename TCatFeatureAccessor>
+    TFeatureCachedTreeEvaluator(const TFullModel& model,
+                                TFloatFeatureAccessor floatFeatureAccessor,
+                                TCatFeatureAccessor catFeaturesAccessor,
+                                size_t docCount)
+            : Model(model)
+            , DocCount(docCount) {
+        size_t blockSize;
+        if (Model.ObliviousTrees.CtrFeatures.empty()) {
+            blockSize = 128;
+        } else {
+            blockSize = 4096;
+        }
+        BlockSize = Min(blockSize, docCount);
+
+        TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
+        TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
+        {
+            for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+                const auto docCountInBlock = Min(blockSize, docCount - blockStart);
+                TVector<ui8> binFeatures(model.ObliviousTrees.GetBinaryFeaturesCount() * blockSize);
+                BinarizeFeatures(
+                        model,
+                        floatFeatureAccessor,
+                        catFeaturesAccessor,
+                        blockStart,
+                        blockStart + docCountInBlock,
+                        binFeatures,
+                        transposedHash,
+                        ctrs
+                );
+                BinFeatures.push_back(std::move(binFeatures));
+            }
+        }
+    }
+
+    void Calc(size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+private:
+    const TFullModel& Model;
+    TVector<TVector<ui8>> BinFeatures;
+    ui64 DocCount;
+    ui64 BlockSize;
+};
+
 template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     const TFullModel& model,
