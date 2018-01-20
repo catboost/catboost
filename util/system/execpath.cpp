@@ -20,13 +20,14 @@
 
 #include <util/folder/dirut.h>
 #include <util/generic/singleton.h>
+#include <util/generic/function.h>
 #include <util/generic/yexception.h>
 #include <util/memory/tempbuf.h>
 #include <util/stream/file.h>
 #include <util/stream/pipe.h>
 #include <util/string/cast.h>
-#include "filemap.h"
 
+#include "filemap.h"
 #include "execpath.h"
 #include "fs.h"
 
@@ -100,7 +101,7 @@ static TString GetExecPathImpl() {
 #elif defined(_darwin_)
     TTempBuf execNameBuf;
     for (size_t i = 0; i < 2; ++i) {
-        uint32_t bufsize = (uint32_t)execNameBuf.Size();
+        std::remove_pointer_t<TFunctionArg<decltype(_NSGetExecutablePath), 1>> bufsize = execNameBuf.Size();
         int r = _NSGetExecutablePath(execNameBuf.Data(), &bufsize);
         if (r == 0) {
             return execNameBuf.Data();
