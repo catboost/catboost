@@ -147,9 +147,9 @@ class PortManager(object):
             if self._sync_dir:
                 # yatest.common should try do be hermetic and don't have peerdirs
                 # otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work
-                import exts.filelock
+                import library.python.filelock
 
-                filelock = exts.filelock.FileLock(os.path.join(self._sync_dir, str(port)))
+                filelock = library.python.filelock.FileLock(os.path.join(self._sync_dir, str(port)))
                 if not filelock.acquire(blocking=False):
                     return False
                 self._filelocks[port] = filelock

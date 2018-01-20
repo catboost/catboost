@@ -23,6 +23,7 @@ PY_SRCS(
 )
 
 PEERDIR(
+    library/python/filelock
 )
 
 END()
