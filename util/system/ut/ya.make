@@ -9,6 +9,10 @@ TIMEOUT(300)
 
 SIZE(MEDIUM)
 
+PEERDIR(
+    library/testing/benchmark
+)
+
 SRCS(
     system/align_ut.cpp
     system/atexit_ut.cpp

@@ -2,40 +2,19 @@
 
 #include "defaults.h"
 
-#if defined(_x86_64_) || defined(_i386_) || defined(_arm64_)
-#define UNALIGNED_ACCESS_OK
-#endif
-
-#if !defined(UNALIGNED_ACCESS_OK)
 #include <string.h>
-#endif
+
+// The following code used to have smart tricks assuming that unaligned reads and writes are OK on x86. This assumption
+// is wrong because compiler may emit alignment-sensitive x86 instructions e.g. movaps. See IGNIETFERRO-735.
 
 template <class T>
-inline T ReadUnaligned(const void* from) noexcept Y_NO_SANITIZE("undefined") {
-#if defined(UNALIGNED_ACCESS_OK)
-    using TAliasedType = T alias_hack;
-
-    static_assert(sizeof(T) == sizeof(TAliasedType), "ups, some completely wrong here");
-
-    return *(TAliasedType*)from;
-#else
+inline T ReadUnaligned(const void* from) noexcept {
     T ret;
-
     memcpy(&ret, from, sizeof(T));
-
     return ret;
-#endif
 }
 
 template <class T>
-inline void WriteUnaligned(void* to, const T& t) noexcept Y_NO_SANITIZE("undefined") {
-#if defined(UNALIGNED_ACCESS_OK)
-    using TAliasedType = T alias_hack;
-
-    static_assert(sizeof(T) == sizeof(TAliasedType), "ups, some completely wrong here");
-
-    *(TAliasedType*)to = t;
-#else
+inline void WriteUnaligned(void* to, const T& t) noexcept {
     memcpy(to, &t, sizeof(T));
-#endif
 }
