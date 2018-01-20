@@ -13,7 +13,7 @@ double DotProduct(const double* lhs, const double *rhs, int length) noexcept;
 /**
  * Dot product to itself
  */
-float L2NormSqared(const float* v, int length) noexcept;
+float L2NormSquared(const float *v, int length) noexcept;
 
 /**
  * Dot product implementation without SSE optimizations.

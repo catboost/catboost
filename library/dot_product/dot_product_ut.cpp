@@ -86,8 +86,8 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         for (int i = 0; i < 30; ++i) {
             for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
-                UNIT_ASSERT(std::fabs(L2NormSqared(~a + i, length) - DotProductSlow(~a + i, ~a + i, length)) < EPSILON);
-                UNIT_ASSERT(std::fabs(L2NormSqared(~b + i, length) - DotProductSlow(~b + i, ~b + i, length)) < EPSILON);
+                UNIT_ASSERT(std::fabs(L2NormSquared(~a + i, length) - DotProductSlow(~a + i, ~a + i, length)) < EPSILON);
+                UNIT_ASSERT(std::fabs(L2NormSquared(~b + i, length) - DotProductSlow(~b + i, ~b + i, length)) < EPSILON);
             }
         }
     }

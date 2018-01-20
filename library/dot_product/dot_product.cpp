@@ -106,7 +106,7 @@ float DotProduct(const float* lhs, const float *rhs, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-float L2NormSqared(const float* v, int length) noexcept {
+float L2NormSquared(const float *v, int length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
     __m128 sum2 = _mm_setzero_ps();
     __m128 a1, a2, m1, m2;
