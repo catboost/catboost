@@ -1270,6 +1270,14 @@ class Clang(GnuCompiler):
             self.c_flags.append('-Wno-exceptions')
             self.c_flags.append('-Wno-address-of-packed-member')
 
+    def print_compiler(self):
+        super(Clang, self).print_compiler()
+
+        # fuzzing configuration
+        if self.tc.version_at_least(5,0):
+            emit('FSANITIZE_FUZZER_SUPPORTED', 'yes')
+            emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
+
 
 class Linker(object):
     def __init__(self, tc, build):
