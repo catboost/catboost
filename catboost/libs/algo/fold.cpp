@@ -79,6 +79,7 @@ TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId) {
 static void ShuffleData(const TTrainData& data, int permuteBlockSize, TRestorableFastRng64& rand, TFold* fold) {
     if (permuteBlockSize == 1 || !data.QueryId.empty()) {
         Shuffle(data.QueryId, rand, &fold->LearnPermutation);
+        fold->PermutationBlockSize = 1;
     } else {
         const int blocksCount = (data.LearnSampleCount + permuteBlockSize - 1) / permuteBlockSize;
         TVector<int> blockedPermute(blocksCount);
@@ -94,6 +95,7 @@ static void ShuffleData(const TTrainData& data, int permuteBlockSize, TRestorabl
             }
             currentIdx += blockEndIndx - blockStartIdx;
         }
+        fold->PermutationBlockSize = permuteBlockSize;
     }
 }
 
@@ -114,7 +116,6 @@ TFold BuildDynamicFold(
     std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
     if (shuffle) {
         ShuffleData(data, permuteBlockSize, rand, &ff);
-        ff.PermutationBlockSize = permuteBlockSize;
     } else {
         ff.PermutationBlockSize = data.LearnSampleCount;
     }
@@ -168,7 +169,6 @@ TFold BuildPlainFold(
     std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
     if (shuffle) {
         ShuffleData(data, permuteBlockSize, rand, &ff);
-        ff.PermutationBlockSize = permuteBlockSize;
     } else {
         ff.PermutationBlockSize = data.LearnSampleCount;
     }
