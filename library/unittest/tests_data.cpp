@@ -133,7 +133,9 @@ public:
             if (IsSyncDirSet() && !LockPort(port))
                 continue;
 
+            Lock.Acquire();
             Sockets.push_back(std::move(sock));
+            Lock.Release();
             return port;
         }
         ythrow yexception() << "Failed to find port";
