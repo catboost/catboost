@@ -14,13 +14,13 @@
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
 template<typename TData, typename TAlloc>
-static inline TData* GetDataPtr(TVector<TData, TAlloc>& vector) {
-    return vector.empty() ? nullptr : vector.data();
+static inline TData* GetDataPtr(TVector<TData, TAlloc>& vector, size_t offset = 0) {
+    return vector.empty() ? nullptr : vector.data() + offset;
 }
 
 template<typename TData, typename TAlloc>
-static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& vector) {
-    return vector.empty() ? nullptr : vector.data();
+static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& vector, size_t offset = 0) {
+    return vector.empty() ? nullptr : vector.data() + offset;
 }
 
 struct TBucketStats {
@@ -102,12 +102,12 @@ struct TCalcScoreFold {
             }
             template<typename TData>
             inline TArrayRef<const TData> GetConstRef(const TVector<TData>& vector) const {
-                return MakeArrayRef(vector.data() + Offset, Size);
+                return MakeArrayRef(GetDataPtr(vector, Offset), Size);
             }
             template<typename TData>
             inline TArrayRef<TData> GetRef(TVector<TData>& vector) const {
                 const TSlice clippedSlice = Clip(vector.ysize());
-                return MakeArrayRef(vector.data() + clippedSlice.Offset, clippedSlice.Size);
+                return MakeArrayRef(GetDataPtr(vector, clippedSlice.Offset), clippedSlice.Size);
             }
         };
         TUnsizedVector<TSlice> Slices;
