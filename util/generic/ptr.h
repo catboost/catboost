@@ -421,7 +421,7 @@ struct TThrRefBase: public TRefCounted<TThrRefBase, TAtomicCounter> {
  *
  * @warning Additional care should be taken with regard to inheritance.  If used
  * as a base class, @p T should either declare a virtual destructor, or be
- * derived from @p TThRefBase instead. Otherwise, only destructor of class @p T
+ * derived from @p TThrRefBase instead. Otherwise, only destructor of class @p T
  * would be called, potentially slicing the object and creating memory leaks.
  *
  * @note To avoid accidental inheritance when it is not originally intended,
