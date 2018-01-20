@@ -44,7 +44,7 @@ static inline bool AtomicCas(TAtomic* a, intptr_t exchange, intptr_t compare) {
     return _InterlockedCompareExchange((volatile long*)a, exchange, compare) == compare;
 }
 
-static inline intptr_ AtomicGetAndCas(TAtomic* a, intptr_t exchange, intptr_t compare) {
+static inline intptr_t AtomicGetAndCas(TAtomic* a, intptr_t exchange, intptr_t compare) {
     return _InterlockedCompareExchange((volatile long*)a, exchange, compare);
 }
 
