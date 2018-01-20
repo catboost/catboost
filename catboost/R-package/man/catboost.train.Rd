@@ -693,6 +693,17 @@ If this flag is set to TRUE, each approximated value is calculated using all the
 Default value:
 
 FALSE
+
+\item boosting_type
+
+Boosting scheme.
+     Possible values:
+         - 'Dynamic' - Gives better quality, but may slow down the training.
+         - 'Plain' - The classic gradient boosting scheme. May result in quality degradation, but does not slow down the training.
+
+Default value:
+
+'Dynamic'
   }
 }
 }
