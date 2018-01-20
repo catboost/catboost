@@ -3,7 +3,7 @@
 RECURSE(
     appdirs
     backports-shutil_get_terminal_size
-    colorama-0.3.6
+    colorama
     dateutil
     decorator-4.0.6
     enum34

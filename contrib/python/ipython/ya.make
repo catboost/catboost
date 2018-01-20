@@ -22,7 +22,7 @@ PEERDIR(
 
 IF (OS_WINDOWS)
     PEERDIR(
-        contrib/python/colorama-0.3.6
+        contrib/python/colorama
     )
 ELSE ()
     PEERDIR(

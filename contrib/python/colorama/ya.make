@@ -1,5 +1,7 @@
 LIBRARY(colorama)
 
+VERSION(0.3.6)
+
 LICENSE(
     BSD3
 )
