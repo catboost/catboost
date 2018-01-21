@@ -23,7 +23,7 @@ The following implementations are available:
 
 Tutorials
 --------------
-* Tutorials are avaliable [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
+* Tutorials are available [here](https://github.com/catboost/catboost/tree/master/catboost/tutorials).
 
 Catboost models in production
 --------------
