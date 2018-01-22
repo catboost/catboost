@@ -62,4 +62,5 @@ build_script:
 
     if "%target%"=="exe" call ci\appveyor\build_apps.cmd
     if "%target%"=="whl" call ci\appveyor\build_whls.cmd
+    if "%target%"=="R" call ci\appveyor\build_r.cmd
    
