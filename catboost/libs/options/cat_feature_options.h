@@ -127,7 +127,7 @@ namespace NCatboostOptions {
             , CombinationCtrs("combinations_ctrs", TVector<TCtrDescription>())
             , PerFeatureCtrs("per_feature_ctrs", TMap<ui32, TVector<TCtrDescription>>())
             , MaxTensorComplexity("max_ctr_complexity", 4)
-            , OneHotMaxSize("one_hot_max_size", 0)
+            , OneHotMaxSize("one_hot_max_size", 2)
             , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
             , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
             , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
