@@ -470,6 +470,8 @@ class CatBoost(_CatBoostBase):
         if params is None:
             params = {}
 
+        self._process_synonyms(params)
+
         self._additional_params = ['calc_feature_importance']
         kwargs = {}
         for param in self._additional_params:
