@@ -552,16 +552,22 @@ class CatBoost(_CatBoostBase):
             del params['reg_lambda']
 
         if 'n_estimators' in params:
-            if 'iterations' in params or 'num_trees' in params:
-                raise CatboostError('only one of parameters iterations, n_estimators, num_trees should be initialised.')
+            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
             params['iterations'] = params['n_estimators']
             del params['n_estimators']
 
         if 'num_trees' in params:
-            if 'iterations' in params or 'n_estimators' in params:
-                raise CatboostError('only one of parameters iterations, n_estimators, num_trees should be initialised.')
+            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
             params['iterations'] = params['num_trees']
             del params['num_trees']
+
+        if 'num_boost_round' in params:
+            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
+            params['iterations'] = params['num_boost_round']
+            del params['num_boost_round']
 
     def _clear_tsv_files(self, train_dir):
         for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
@@ -1277,6 +1283,8 @@ class CatBoostClassifier(CatBoost):
 
     num_trees : int, synonym for iterations.
 
+    num_boost_round : int, synonym for iterations.
+
     colsample_bylevel : float, synonym for rsm.
 
     random_state : int, synonym for random_seed.
@@ -1340,6 +1348,7 @@ class CatBoostClassifier(CatBoost):
         devices=None,
         max_depth=None,
         n_estimators=None,
+        num_boost_round=None,
         num_trees=None,
         colsample_bylevel=None,
         random_state=None,
@@ -1646,6 +1655,7 @@ class CatBoostRegressor(CatBoost):
         devices=None,
         max_depth=None,
         n_estimators=None,
+        num_boost_round=None,
         num_trees=None,
         colsample_bylevel=None,
         random_state=None,
