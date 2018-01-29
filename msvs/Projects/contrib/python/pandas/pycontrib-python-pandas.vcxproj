@@ -75,21 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_rpbujce2v2l37gigzow7vu5n4u.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._join.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._period.reg.cpp"/>
@@ -178,11 +164,11 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\pandas\pandas\util\move.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -193,7 +179,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,403 +187,11 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.obj;</Outputs>
+      <Message>$B/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/pandas/pandas" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/src" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/datetime" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/klib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/msgpack" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/parser" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/lib" "-I" "$(SolutionDir)../contrib/python/pandas/pandas/ujson/python" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\compat\openpyxl_compat.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -867,6 +461,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\tseries\util.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\api.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\api.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\cast.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\cast.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\common.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\common.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\concat.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\concat.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\dtypes.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\dtypes.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\generic.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\generic.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\inference.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\inference.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\types\missing.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\types\missing.py.yapyc;$(SolutionDir)..\contrib\python\pandas\pandas\util\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\util\__init__.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_j67iqjjh3iu3vzy5rwptjjn6z4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ja2hlgi6sv4vkfo5kgfeiyncr4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_6qzazx7heosuwuy77tmjx52wki.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_f7dgdmghw6zp36nf56c5nxmtty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ikdwjz7dhy2vwzfmjpiomwztie.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_e7v5qsds6ys2ybe7h37j2x3kgy.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_vdtumx7ovcoswwsb7s5anc4jxa.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_niibyefe6axhrmfxrv6sb5sm34.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ery6vblajslnyk2uiqg3nvyid4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_fvpyjwfa4izqxst636kxpqshku.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_uubmyl73wlcrwye33bbokgnpty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_6vdjtkah5ig54iqhwjfeddof6y.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_psgu7f3bkfqfl34uym7scecei4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_e5yayggmlex43eplx7sxxzmmty.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_iweej35p623lgxbfwx4ikxu6fi.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_53tyzqjouffddod5pwhequ7epm.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_j3a2kwpcko5lwmzcjqab7jenkq.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_v434ypdtsqhwhk7tin7uidmmn4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_wqypb43nqo4fky7fxypw5vqf3e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_ooc5tpbld7bjlctpybs3awbdjm.rodata;$(SolutionDir)$(Configuration)\contrib\python\pandas\_dfk62awgbzhwe6lbrfedtebkle.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rgp65xvmv2q6nykwyxqmbzvizi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_jyskvmusg2va4mlci3xwzog3aq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_yagbig47fw7i2thcoaaaitgjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_4t6btxmeej6e6hfatgbdxijm54.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_frn6prut4srzj7rflp76e5tiuy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_wgyyrcizto6iy2ci3lqylilhxi.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mbwtfihb2zivhwgaozf5rafncy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_pi7pjvjqtkajkkbwntlabvlceu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_mwocjiaehnuwvesjl6os65gvpy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_rcpfzqdgjmi2nzbacyn3or6oxu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_x7b3vtx6bhy6mez3k42a6mfx3y.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_cf6jf5p5mveuzjycnfilnposty.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dt7k7ldhzkbuy25htu66psdj24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_dxk5v4jmlev5mlvxfdguzktphy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/_2b477y2gufrchv4cgmcgxvfzey.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pandas/join_efediyshakkrnmn2fs5k6qpiam.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\pandas\_rgp65xvmv2q6nykwyxqmbzvizi.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_jyskvmusg2va4mlci3xwzog3aq.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_yagbig47fw7i2thcoaaaitgjsq.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_4t6btxmeej6e6hfatgbdxijm54.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_frn6prut4srzj7rflp76e5tiuy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_wgyyrcizto6iy2ci3lqylilhxi.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_mbwtfihb2zivhwgaozf5rafncy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_pi7pjvjqtkajkkbwntlabvlceu.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_mwocjiaehnuwvesjl6os65gvpy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_rcpfzqdgjmi2nzbacyn3or6oxu.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_x7b3vtx6bhy6mez3k42a6mfx3y.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_cf6jf5p5mveuzjycnfilnposty.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_dt7k7ldhzkbuy25htu66psdj24.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_dxk5v4jmlev5mlvxfdguzktphy.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\_2b477y2gufrchv4cgmcgxvfzey.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\join_efediyshakkrnmn2fs5k6qpiam.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

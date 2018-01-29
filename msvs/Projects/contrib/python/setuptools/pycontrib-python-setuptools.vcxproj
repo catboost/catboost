@@ -75,19 +75,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_4iik7ydbhieveasfjecuejk3su.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm">
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +92,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -106,151 +100,11 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj;</Outputs>
+      <Message>$B/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_clib.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -385,6 +239,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\unicode_utils.py.yapyc;$(SolutionDir)..\contrib\python\setuptools\setuptools\version.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\version.py.yapyc;$(SolutionDir)..\contrib\python\setuptools\setuptools\windows_support.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\windows_support.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmi46xrthelci5wjafdbq64mfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_vpif25uyjeovcp2n75wq7orlme.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_y3enakq555b2xe6kjvb63evw2i.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_llg5qxke6aznpqexojucddrvvq.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_wecyyv46nowqduir6zpyugohu4.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_urzaofl4g6hglfyuybn6nz7ife.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_emd3yoiirtsosqeezjafdyavpa.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b63m5bhri2fxbkjw6ribo4mgni.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_2ibixrosgzoowakbfpksdbht4q.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_gsrnb3qhv2cwsyhpcxddepxgwe.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_mmgy5ukfyuc4szabyaq2c4ygpm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/join_m7w2ghsagy2dtju26f665cnhom.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_m7w2ghsagy2dtju26f665cnhom.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -54,6 +54,7 @@ def onresource(unit, *args):
     unit.onpeerdir(['library/resource'])
 
     outs = []
+    compressed_outs = []
 
     for part_args in split(args, 8000):
         srcs_gen = []
@@ -87,7 +88,7 @@ def onresource(unit, *args):
                 cmd += ['IN'] + compressed_input
             cmd += ['OUT_NOAUTO', fake_yasm] + compressed_output
             unit.onrun_program(cmd)
-            unit.onsrcs(['GLOBAL', tobuilddir(unit.path() + '/' + fake_yasm)])
+            compressed_outs.append(fake_yasm)
 
         if srcs_gen:
             output = listid(part_args) + '.cpp'
@@ -106,6 +107,11 @@ def onresource(unit, *args):
             unit.onjoin_srcs_global(['join_' + listid(outs) + '.cpp'] + outs)
         else:
             unit.onsrcs(['GLOBAL'] + outs)
+    if compressed_outs:
+        if len(compressed_outs) > 1:
+            unit.onflat_join_srcs_global(['join_' + listid(compressed_outs) + '.yasm'] + compressed_outs)
+        else:
+            unit.onsrcs(['GLOBAL'] + compressed_outs)
 
 
 def onfrom_sandbox(unit, *args):

@@ -45,5 +45,10 @@ if __name__ == '__main__':
             shutil.copy(args[0], args[1])
         else:
             os.link(args[0], args[1])
+    elif mode == 'cat':
+        with open(args[0], 'w') as dst:
+            for input_name in args[1:]:
+                with open(input_name) as src:
+                    dst.write(src.read())
     else:
         raise Exception('unsupported tool %s' % mode)

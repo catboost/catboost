@@ -75,95 +75,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_skic3vfdvyxowpwcf2633krooe.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\__init__.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -190,6 +103,61 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\__init__.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\lexer.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\lexer.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\loaders.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\loaders.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\meta.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\meta.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\nodes.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\nodes.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\optimizer.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\optimizer.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\parser.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\parser.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\runtime.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\runtime.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\sandbox.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\sandbox.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\_stringdefs.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\_stringdefs.py.yapyc;$(SolutionDir)..\contrib\python\Jinja2\jinja2\tests.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\tests.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_inrwwvgmd4vdmvbrpsl7xyu6t4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_3y2pebyu2aooerbtg4u4digxwe.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_nabgmu2e75dojb4bbqia37bdqu.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_4dozvzxsxli7trvfjmapmu7w6y.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_yvxfbfouc4klqe37yyqivkq7qi.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_gnssnnub3tmnqlv7iojrw4sweq.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_5sczxxdqns3colbm7lguobd2im.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_nm6hgzcsjszgopf7erfmmvrlt4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_twsqn52kppgupayiemcyy3fbdq.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_gmgcroxw6fi55pevngfp7kaey4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_qyuvxol2awot6wzeuvc4q5t7nq.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cstbrx2xmvqcqydr6qae27vybq.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_vjmwejlkpldp5t24b26l5ribyy.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2bfo4rxtxdyjtxjkpuv4f7btry.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_yvqorlnfcqf7jo3ifv6gzwlfl4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_tbgaqlr63yi7khubpdbtad6qs4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ba3qrwksionio7cwlpmml3lvl4.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_q5aosdwyuw4ur6hrnaevobqtdm.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b2dnjwel4n4okjvecpzvbbzn4u.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_bkz3hf5ljubc52nlfisnlxvdnq.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7ymuqdflxhopiilk43clbiermi.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.obj"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_2dhyogxjssninb6yuzjqzcgcni.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_ilosqtotc2hoebmrtlub2g54jm.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_cfsejonlsslozhaocnuseqwb7e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/join_evy5d25xxgepovqe3fmgsnmatu.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_2dhyogxjssninb6yuzjqzcgcni.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_ilosqtotc2hoebmrtlub2g54jm.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_cfsejonlsslozhaocnuseqwb7e.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_evy5d25xxgepovqe3fmgsnmatu.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
