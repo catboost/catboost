@@ -482,6 +482,8 @@ class CatBoost(_CatBoostBase):
         params['kwargs'] = kwargs
 
         if 'verbose' in params:
+            if not isinstance(params['verbose'], bool):
+                raise CatboostError('verbose should be bool')
             if 'logging_level' in params:
                 raise CatboostError('only one of parameters logging_level, verbose should be set.')
             if params['verbose'] is True:
