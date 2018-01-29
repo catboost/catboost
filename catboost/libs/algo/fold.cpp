@@ -13,24 +13,6 @@ TVector<int> InvertPermutation(const TVector<int>& permutation) {
     return result;
 }
 
-struct TQueryEndInfo {
-    int QueryEnd;
-    int QueryIndex;
-};
-
-static TVector<TQueryEndInfo> GetQueryEndInfo(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount) {
-    TVector<TQueryEndInfo> queriesInfoForDocs;
-    queriesInfoForDocs.reserve(learnSampleCount);
-    for (int queryIndex = 0; queryIndex < queriesInfo.ysize(); ++queryIndex) {
-        queriesInfoForDocs.insert(
-            queriesInfoForDocs.end(),
-            queriesInfo[queryIndex].End- queriesInfo[queryIndex].Begin,
-            {queriesInfo[queryIndex].End, queryIndex}
-        );
-    }
-    return queriesInfoForDocs;
-}
-
 static int UpdateSize(int size, const TVector<TQueryEndInfo>& queryEndInfo, int learnSampleCount) {
     size = Min(size, learnSampleCount);
     if (!queryEndInfo.empty()) {

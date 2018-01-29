@@ -59,81 +59,6 @@ void ShrinkModel(int itCount, TLearnProgress* progress) {
     progress->TreeStruct.resize(itCount);
 }
 
-static double EvalErrors(
-    const TVector<TVector<double>>& avrgApprox,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    const TVector<TPair>& pairs,
-    const THolder<IMetric>& error,
-    int queryStartIndex,
-    int queryEndIndex,
-    int begin,
-    int end,
-    NPar::TLocalExecutor* localExecutor
-) {
-    return error->GetFinalError(
-        error->GetErrorType() == EErrorType::PerObjectError ?
-            error->Eval(avrgApprox, target, weight, begin, end, *localExecutor) :
-            error->GetErrorType() == EErrorType::PairwiseError ?
-                error->EvalPairwise(avrgApprox, pairs, begin, end):
-                error->EvalQuerywise(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex));
-}
-
-static void CalcErrors(
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    const TVector<TPair>& pairs,
-    const TVector<THolder<IMetric>>& errors,
-    int learnQueryCount,
-    int queryCount,
-    int learnSampleCount,
-    int sampleCount,
-    bool hasTest,
-    TLearnProgress* learnProgress,
-    NPar::TLocalExecutor* localExecutor
-) {
-    learnProgress->LearnErrorsHistory.emplace_back();
-    if (hasTest) {
-        learnProgress->TestErrorsHistory.emplace_back();
-    }
-
-    for (int i = 0; i < errors.ysize(); ++i) {
-        double learnErr = EvalErrors(
-            learnProgress->AvrgApprox,
-            target,
-            weight,
-            queriesInfo,
-            pairs,
-            errors[i],
-            /*queryStartIndex=*/0,
-            learnQueryCount,
-            /*begin=*/0,
-            learnSampleCount,
-            localExecutor
-        );
-        learnProgress->LearnErrorsHistory.back().push_back(learnErr);
-
-        if (hasTest) {
-            double testErr = EvalErrors(
-                learnProgress->AvrgApprox,
-                target,
-                weight,
-                queriesInfo,
-                pairs,
-                errors[i],
-                learnQueryCount,
-                queryCount,
-                learnSampleCount,
-                sampleCount,
-                localExecutor
-            );
-            learnProgress->TestErrorsHistory.back().push_back(testErr);
-        }
-    }
-}
-
 void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
 
@@ -232,20 +157,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
 
         trainOneIterationFunc(data, ctx);
 
-        CalcErrors(
-            data.Target,
-            data.Weights,
-            data.QueryInfo,
-            data.Pairs,
-            metrics,
-            data.LearnQueryCount,
-            data.GetQueryCount(),
-            data.LearnSampleCount,
-            sampleCount,
-            hasTest,
-            &ctx->LearnProgress,
-            &ctx->LocalExecutor
-        );
+        CalcErrors(data, metrics, /*hasTrain=*/true, hasTest, ctx);
 
         profile.AddOperation("Calc errors");
 

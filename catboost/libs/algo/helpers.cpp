@@ -151,3 +151,61 @@ void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVect
     }
     queryInfo->push_back({end - currentQuerySize, end});
 }
+
+TVector<TQueryEndInfo> GetQueryEndInfo(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount) {
+    TVector<TQueryEndInfo> queriesInfoForDocs;
+    queriesInfoForDocs.reserve(learnSampleCount);
+    for (int queryIndex = 0; queryIndex < queriesInfo.ysize(); ++queryIndex) {
+        queriesInfoForDocs.insert(
+            queriesInfoForDocs.end(),
+            queriesInfo[queryIndex].End- queriesInfo[queryIndex].Begin,
+            {queriesInfo[queryIndex].End, queryIndex}
+        );
+    }
+    return queriesInfoForDocs;
+}
+
+void CalcErrors(
+    const TTrainData& data,
+    const TVector<THolder<IMetric>>& errors,
+    bool hasTrain,
+    bool hasTest,
+    TLearnContext* ctx
+) {
+    if (hasTrain) {
+        ctx->LearnProgress.LearnErrorsHistory.emplace_back();
+        for (int i = 0; i < errors.ysize(); ++i) {
+            ctx->LearnProgress.LearnErrorsHistory.back().push_back(EvalErrors(
+                ctx->LearnProgress.AvrgApprox,
+                data.Target,
+                data.Weights,
+                data.QueryInfo,
+                data.Pairs,
+                errors[i],
+                /*queryStartIndex=*/0,
+                data.LearnQueryCount,
+                /*begin=*/0,
+                data.LearnSampleCount,
+                &ctx->LocalExecutor
+            ));
+        }
+    }
+    if (hasTest) {
+        ctx->LearnProgress.TestErrorsHistory.emplace_back();
+        for (int i = 0; i < errors.ysize(); ++i) {
+            ctx->LearnProgress.TestErrorsHistory.back().push_back(EvalErrors(
+                ctx->LearnProgress.AvrgApprox,
+                data.Target,
+                data.Weights,
+                data.QueryInfo,
+                data.Pairs,
+                errors[i],
+                data.LearnQueryCount,
+                data.GetQueryCount(),
+                data.LearnSampleCount,
+                data.GetSampleCount(),
+                &ctx->LocalExecutor
+            ));
+        }
+    }
+}

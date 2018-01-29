@@ -4,7 +4,7 @@ import os
 import filecmp
 import csv
 
-from catboost_pytest_lib import data_file, local_canonical_file
+from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
@@ -523,6 +523,27 @@ def test_inverted_cv():
         '-r', '0',
         '-m', output_model_path,
         '-Y', '2/10',
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_cv_for_query():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '-X', '2/7',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1749,3 +1770,52 @@ def test_bootstrap():
     assert(filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bernoulli.eval')))
 
     return [local_canonical_file(ref_eval_path)]
+
+
+def test_json_logging():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    json_path = yatest.common.test_output_path('catboost_training.json')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--json-log', json_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(remove_time_from_json(json_path))]
+
+
+def test_json_logging_metric_period():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    json_path = yatest.common.test_output_path('catboost_training.json')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--json-log', json_path,
+        '--metric-period', '2',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(remove_time_from_json(json_path))]

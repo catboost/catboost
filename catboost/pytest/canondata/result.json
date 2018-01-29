@@ -293,8 +293,14 @@
     ],
     "test.test_cv": [
         {
-            "checksum": "8cdcb795bc84f54c0ca7de5d3cbe4192",
+            "checksum": "5af59d33e3847eb5f3107ba09f4952b5",
             "uri": "file://test.test_cv/test.eval"
+        }
+    ],
+    "test.test_cv_for_query": [
+        {
+            "checksum": "19f7b9f92a9586578eab007b78b78bd5",
+            "uri": "file://test.test_cv_for_query/test.eval"
         }
     ],
     "test.test_deep_tree_classification[4]": [
@@ -401,8 +407,20 @@
     ],
     "test.test_inverted_cv": [
         {
-            "checksum": "98512bdbc61604d2a134c668a2bb9228",
+            "checksum": "38699a7e8ab7c38537644afc53c8ec41",
             "uri": "file://test.test_inverted_cv/test.eval"
+        }
+    ],
+    "test.test_json_logging": [
+        {
+            "checksum": "c86999b5581ca8e12fd9ec37d41799f0",
+            "uri": "file://test.test_json_logging/catboost_training.json"
+        }
+    ],
+    "test.test_json_logging_metric_period": [
+        {
+            "checksum": "6e9899ef11c13ee480a4af9d1661ad79",
+            "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
     "test.test_lost_class": [

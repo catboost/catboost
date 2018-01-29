@@ -1328,3 +1328,24 @@ TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics)
      }
      return result;
 }
+
+double EvalErrors(
+    const TVector<TVector<double>>& avrgApprox,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<TQueryInfo>& queriesInfo,
+    const TVector<TPair>& pairs,
+    const THolder<IMetric>& error,
+    int queryStartIndex,
+    int queryEndIndex,
+    int begin,
+    int end,
+    NPar::TLocalExecutor* localExecutor
+) {
+    return error->GetFinalError(
+        error->GetErrorType() == EErrorType::PerObjectError ?
+            error->Eval(avrgApprox, target, weight, begin, end, *localExecutor) :
+            error->GetErrorType() == EErrorType::PairwiseError ?
+                error->EvalPairwise(avrgApprox, pairs, begin, end):
+                error->EvalQuerywise(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex));
+}

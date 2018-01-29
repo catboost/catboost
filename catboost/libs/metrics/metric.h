@@ -491,3 +491,17 @@ ELossFunction GetLossType(const TString& lossDescription);
 THashMap<TString, float> GetLossParams(const TString& lossDescription);
 
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
+
+double EvalErrors(
+    const TVector<TVector<double>>& avrgApprox,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<TQueryInfo>& queriesInfo,
+    const TVector<TPair>& pairs,
+    const THolder<IMetric>& error,
+    int queryStartIndex,
+    int queryEndIndex,
+    int begin,
+    int end,
+    NPar::TLocalExecutor* localExecutor
+);

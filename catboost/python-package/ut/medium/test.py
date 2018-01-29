@@ -6,7 +6,7 @@ from pandas import read_table, DataFrame, Series
 
 from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv
 
-from catboost_pytest_lib import data_file, local_canonical_file
+from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 import yatest.common
 
 EPS = 1e-5
@@ -30,6 +30,7 @@ QUERY_CD_FILE = data_file('querywise_pool', 'train_full3.cd')
 OUTPUT_MODEL_PATH = 'model.bin'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
+JSON_LOG_PATH = 'catboost_training.json'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
@@ -560,6 +561,18 @@ def test_cv():
         prev_value = value
 
 
+def test_cv_query():
+    pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
+    results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "QueryRMSE"})
+    assert isinstance(results, dict)
+    assert "QueryRMSE_train_avg" in results
+
+    prev_value = results["QueryRMSE_train_avg"][0]
+    for value in results["QueryRMSE_train_avg"][1:]:
+        assert value < prev_value
+        prev_value = value
+
+
 def test_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0)
@@ -643,3 +656,9 @@ def test_bad_params_in_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     with pytest.warns(UserWarning):
         cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "use_best_model": True})
+
+
+def test_cv_logging():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
