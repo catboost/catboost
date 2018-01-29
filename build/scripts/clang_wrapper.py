@@ -22,6 +22,10 @@ def fix(s):
     if s.startswith('-fabi-version'):
         return None
 
+    # clang 5 option
+    if s == '-Wno-c++17-extensions':
+        return None
+
     # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
     return s.replace('\\', '/')
 
