@@ -41,9 +41,8 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::PairLogit: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
-            //TODO(noxoomo): update to 10 after options merge
             defaultNewtonIterations = 1;
-            defaultGradientIterations = 1;
+            defaultGradientIterations = 10;
             break;
         }
         case ELossFunction::Poisson: {

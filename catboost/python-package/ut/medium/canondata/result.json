@@ -4,7 +4,7 @@
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
-        "checksum": "68fbbe932ce0fe1cb9421ba2e2386e10",
+        "checksum": "685161a9222b396abd25cfa549aa576e",
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
@@ -24,7 +24,7 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "bef5e53a5800e21b83b2dba36d891ce3",
+        "checksum": "e38d561faec43b5b804d9c01d055959e",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
@@ -48,7 +48,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "6cc602904a56d4ce46dbdfd2cb03971d",
+        "checksum": "64f1aaaae31a9dfdff06202ca732c6c1",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
@@ -84,7 +84,7 @@
         "uri": "file://test.test_predict_sklearn_regress/model.bin"
     },
     "test.test_priors": {
-        "checksum": "c1d79d654dd0131fdab9ea2f30a3e563",
+        "checksum": "81490a7239197bf60b764e4f65b3d5de",
         "uri": "file://test.test_priors/model.bin"
     },
     "test.test_regression_ctr": {
