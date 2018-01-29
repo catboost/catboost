@@ -468,6 +468,21 @@ Default value:
 
 1
 
+\item bootstrap_type
+
+Bootstrap type. Defines the method for sampling the weights of documents.
+
+Possible values:
+      \itemize{
+        \item 'Bayesian'
+        \item 'Bernoulli'
+        \item 'No'
+      }
+
+Default value:
+
+\code{'Bayesian'}
+
 \item bagging_temperature
 
 Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
@@ -479,6 +494,31 @@ Possible values are in the range \eqn{[0, +\infty)}.
 Default value:
 
 1
+
+\item sample_rate
+
+Sample rate for bagging. This parameter can be used if one of the following bootstrap types is defined:
+      \itemize{
+        \item 'Bernoulli'
+      }
+
+Default value:
+
+0.66
+
+\item sampling_frequency
+
+Frequency to sample weights and objects when building trees.
+
+Possible values:
+      \itemize{
+        \item 'PerTree'
+        \item 'PerTreeLevel'
+      }
+
+Default value:
+
+\code{'PerTreeLevel'}
   }
   \item CTR settings
   \itemize{
