@@ -176,6 +176,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["json_log"] = name;
         });
 
+    parser.AddLongOption("profile-log", "file to log profile information")
+        .RequiredArgument("file")
+        .Handler1T<TString>([plainJsonPtr](const TString& name) {
+            (*plainJsonPtr)["profile_log"] = name;
+        });
+
     parser.AddLongOption("use-best-model", "save all trees until best iteration on test")
         .NoArgument()
         .Handler0([plainJsonPtr]() {

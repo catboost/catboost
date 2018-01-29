@@ -54,6 +54,10 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
     const TString& jsonLogFilename = params.GetJsonLogFilename();
     CB_ENSURE(!jsonLogFilename.empty(), "empty json_log filename");
     JsonLogFile = TOutputFiles::AlignFilePath(trainDir, jsonLogFilename, "");
+
+    const TString& profileLogFilename = params.GetProfileLogFilename();
+    CB_ENSURE(!profileLogFilename.empty(), "empty profile_log filename");
+    ProfileLogFile = TOutputFiles::AlignFilePath(trainDir, profileLogFilename, "");
 }
 
 TString FilePathForMeta(const TString& filename, const TString& namePrefix) {

@@ -89,10 +89,13 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     TString learnToken = "learn", testToken = "test";
     if (ctx->OutputOptions.AllowWriteFiles()) {
         AddFileLoggers(
+            ctx->Params.IsProfile,
+            ctx->Params.BoostingOptions->IterationCount,
             ctx->Files.LearnErrorLogFile,
             ctx->Files.TestErrorLogFile,
             ctx->Files.TimeLeftLogFile,
             ctx->Files.JsonLogFile,
+            ctx->Files.ProfileLogFile,
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
                 {ctx},
@@ -117,7 +120,6 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     );
 
     AddConsoleLogger(
-        ctx->Params.IsProfile,
         learnToken,
         testToken,
         /*hasTrain=*/true,
@@ -215,10 +217,6 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
         MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
         MATRIXNET_NOTICE_LOG << "\n";
-    }
-
-    if (ctx->Params.IsProfile || ctx->Params.LoggingLevel == ELoggingLevel::Debug) {
-        LogAverages(profile.GetProfileResults());
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {

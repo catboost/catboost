@@ -29,10 +29,13 @@ void WriteHistory(
 }
 
 void AddFileLoggers(
+    bool detailedProfile,
+    int iterationCount,
     const TString& learnErrorLogFile,
     const TString& testErrorLogFile,
     const TString& timeLogFile,
     const TString& jsonLogFile,
+    const TString& profileLogFile,
     const TString& trainDir,
     const NJson::TJsonValue& metaJson,
     int metricPeriod,
@@ -53,10 +56,12 @@ void AddFileLoggers(
     }
     logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
     logger->AddProfileBackend(jsonLoggingBackend);
+    if (detailedProfile) {
+        logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TProfileLoggingBackend(profileLogFile, iterationCount)));
+    }
 }
 
 void AddConsoleLogger(
-    bool detailedProfile,
     const TString& learnToken,
     const TString& testToken,
     bool hasTrain,
@@ -64,7 +69,7 @@ void AddConsoleLogger(
     int metricPeriod,
     TLogger* logger
 ) {
-    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile, metricPeriod);
+    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(/*detailedProfile=*/false, metricPeriod);
     if (hasTrain) {
         logger->AddBackend(learnToken, consoleLoggingBackend);
     }

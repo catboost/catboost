@@ -86,6 +86,7 @@ public:
     TString SnapshotFile;
     TString MetaFile;
     TString JsonLogFile;
+    TString ProfileLogFile;
     static TString AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
 
 private:

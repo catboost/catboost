@@ -277,10 +277,13 @@ void CrossValidate(
     TString testToken = "test";
     if (ctx->OutputOptions.AllowWriteFiles()) {
         AddFileLoggers(
+            /*detailedProfile=*/false,
+            ctx->Params.BoostingOptions->IterationCount,
             ctx->Files.LearnErrorLogFile,
             ctx->Files.TestErrorLogFile,
             ctx->Files.TimeLeftLogFile,
             ctx->Files.JsonLogFile,
+            ctx->Files.ProfileLogFile,
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
                 GetRawPointers(contexts),
@@ -295,7 +298,6 @@ void CrossValidate(
     }
 
     AddConsoleLogger(
-        /*detailedProfile=*/false,
         learnToken,
         testToken,
         /*hasTrain=*/true,
