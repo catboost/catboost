@@ -391,10 +391,10 @@ void ParseCommandLine(int argc, const char* argv[],
         .Help("Controls how frequently to sample weights and objects when constructing trees. Possible values are PerTree and PerTreeLevel.");
 
     parser
-        .AddLongOption("sample-rate")
+        .AddLongOption("subsample")
         .RequiredArgument("Float")
         .Handler1T<float>([plainJsonPtr](float rate) {
-            (*plainJsonPtr)["sample_rate"] = rate;
+            (*plainJsonPtr)["subsample"] = rate;
         })
         .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli. Possible values are from (0, 1]; 0.66 by default."
         );

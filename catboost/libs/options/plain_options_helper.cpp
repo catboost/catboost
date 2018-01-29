@@ -151,7 +151,7 @@ namespace NCatboostOptions {
 
         CopyOptionWithNewKey(plainOptions, "bootstrap_type", "type", &bootstrapOptions, &seenKeys);
         CopyOption(plainOptions, "bagging_temperature", &bootstrapOptions, &seenKeys);
-        CopyOption(plainOptions, "sample_rate", &bootstrapOptions, &seenKeys);
+        CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
 
         //cat-features
         auto& ctrOptions = trainOptions["cat_feature_params"];

@@ -1619,7 +1619,7 @@ def test_allow_writing_files_and_used_ram_limit():
     return [local_canonical_file(output_eval_path)]
 
 
-def test_sample_rate_per_tree():
+def test_subsample_per_tree():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -1641,13 +1641,13 @@ def test_sample_rate_per_tree():
         '--test-err-log', test_error_path,
         '--sampling-frequency', 'PerTree',
         '--bootstrap-type', 'Bernoulli',
-        '--sample-rate', '0.5',
+        '--subsample', '0.5',
     )
     yatest.common.execute(cmd)
     return local_canonical_file(output_eval_path)
 
 
-def test_sample_rate_per_tree_level():
+def test_subsample_per_tree_level():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -1668,7 +1668,7 @@ def test_sample_rate_per_tree_level():
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--bootstrap-type', 'Bernoulli',
-        '--sample-rate', '0.5',
+        '--subsample', '0.5',
     )
     yatest.common.execute(cmd)
     return local_canonical_file(output_eval_path)
@@ -1726,7 +1726,7 @@ def test_bootstrap():
     bootstrap_option = {
         'no': ('--bootstrap-type', 'No',),
         'bayes': ('--bootstrap-type', 'Bayesian', '--bagging-temperature', '0.0',),
-        'bernoulli': ('--bootstrap-type', 'Bernoulli', '--sample-rate', '1.0',)
+        'bernoulli': ('--bootstrap-type', 'Bernoulli', '--subsample', '1.0',)
     }
     cmd = (
         CATBOOST_PATH,

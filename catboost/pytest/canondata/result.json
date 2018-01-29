@@ -677,20 +677,20 @@
             "uri": "file://test.test_regularization/test.eval"
         }
     ],
-    "test.test_sample_rate_per_tree": {
-        "checksum": "d6ec977087e2d9d9bd362a4a648e2494",
-        "uri": "file://test.test_sample_rate_per_tree/test.eval"
-    },
-    "test.test_sample_rate_per_tree_level": {
-        "checksum": "20cb438af50b856bcaf7cd26fae375c1",
-        "uri": "file://test.test_sample_rate_per_tree_level/test.eval"
-    },
     "test.test_shrink_model": [
         {
             "checksum": "158d92a42de4c04d837a807dc902d544",
             "uri": "file://test.test_shrink_model/test.eval"
         }
     ],
+    "test.test_subsample_per_tree": {
+        "checksum": "d6ec977087e2d9d9bd362a4a648e2494",
+        "uri": "file://test.test_subsample_per_tree/test.eval"
+    },
+    "test.test_subsample_per_tree_level": {
+        "checksum": "20cb438af50b856bcaf7cd26fae375c1",
+        "uri": "file://test.test_subsample_per_tree_level/test.eval"
+    },
     "test.test_target_border[GreedyLogSum]": [
         {
             "checksum": "102fafbbd14d5b9ad336927fff1faca6",

@@ -828,7 +828,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'        1
 #'
-#'     \item sample_rate
+#'     \item subsample
 #'
 #'       Sample rate for bagging. This parameter can be used if one of the following bootstrap types is defined:
 #'       \itemize{
