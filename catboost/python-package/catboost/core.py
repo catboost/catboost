@@ -1708,9 +1708,52 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True):
+def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True, logging_level=None):
+    """
+    Cross-validate the CatBoost model.
+
+    Parameters
+    ----------
+    params : dict
+        Parameters for CatBoost.
+        CatBoost has many of parameters, all have default values.
+        If  None, all params still defaults.
+        If  dict, overriding some (or all) params.
+
+    pool : Pool
+        Data to cross-validatte.
+
+    fold_count : int, optional (default=3)
+        The number of folds to split the dataset into.
+
+    inverted : bool, optional (default=False)
+        Train on the test fold and evaluate the model on the training folds.
+
+    partition_random_seed : int, optional (default=0)
+        Use this as the seed value for random permutation of the data.
+        Permutation is performed before splitting the data for cross validation.
+        Each seed generates unique data splits.
+
+    shuffle : bool, optional (default=True)
+        Shuffle the dataset objects before splitting into folds.
+
+    logging_level : string, optional (default=None)
+        Possible values:
+            - 'Silent'
+            - 'Verbose'
+            - 'Info'
+            - 'Debug'
+
+    Returns
+    -------
+    cv results : dict with cross-validation results
+    """
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
+    if logging_level:
+        params.update({
+            'logging_level': logging_level
+        })
 
     with log_fixup():
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)
