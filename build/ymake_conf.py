@@ -1055,7 +1055,7 @@ class GnuToolchain(Toolchain):
         else:
             # temporary https://st.yandex-team.ru/DEVTOOLS-4027
             emit('PERL_OS_SDK', self.tc.os_sdk)
-        emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else '$(OS_SDK_ROOT)')
+        emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else '$OS_SDK_ROOT_RESOURCE_GLOBAL')
 
 
 class GnuCompiler(Compiler):

@@ -595,7 +595,7 @@
                 "ar": "$(CLANG)/bin/llvm-ar",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "3.9",
-                "target_opt": ["--target=aarch64-linux-gnu", "--sysroot=$(OS_SDK_ROOT)", "-B$(OS_SDK_ROOT)/usr/bin", "-march=armv8a"],
+                "target_opt": ["--target=aarch64-linux-gnu", "--sysroot=$OS_SDK_ROOT_RESOURCE_GLOBAL", "-B$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/bin", "-march=armv8a"],
                 "platform": {
                     "LINUX": [
                         "contrib/libs/platform/linux"
@@ -605,7 +605,7 @@
             "env": {
                 "LD_LIBRARY_PATH": [
                     "$(CLANG)/lib",
-                    "$(OS_SDK_ROOT)/usr/lib/x86_64-linux-gnu"
+                    "$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/lib/x86_64-linux-gnu"
                 ]
             }
         },
