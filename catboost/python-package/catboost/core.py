@@ -528,6 +528,18 @@ class CatBoost(_CatBoostBase):
                     raise CatboostError("Invalid param `{}`.".format(param))
 
     def _process_synonyms(self, params):
+        if 'eta' in params:
+            if 'learning_rate' in params:
+                raise CatboostError('only one of parameters learning_rate, eta should be initialised.')
+            params['learning_rate'] = params['eta']
+            del params['eta']
+
+        if 'max_bin' in params:
+            if 'border_count' in params:
+                raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
+            params['learning_rate'] = params['max_bin']
+            del params['max_bin']
+
         if 'objective' in params:
             if 'loss_function' in params:
                 raise CatboostError('only one of parameters loss_function, objective should be initialized.')
@@ -1299,6 +1311,10 @@ class CatBoostClassifier(CatBoost):
     reg_lambda : float, synonym for l2_leaf_reg.
 
     objective : string, synonym for loss_function.
+
+    eta : float, synonym for learning_rate.
+
+    max_bin : float, synonym for border_count.
     """
     def __init__(
         self,
@@ -1363,6 +1379,8 @@ class CatBoostClassifier(CatBoost):
         random_state=None,
         reg_lambda=None,
         objective=None,
+        eta = None,
+        max_bin = None
         **kwargs
     ):
         if objective is not None:
@@ -1675,6 +1693,8 @@ class CatBoostRegressor(CatBoost):
         random_state=None,
         reg_lambda=None,
         objective=None,
+        eta = None,
+        max_bin = None
         **kwargs
     ):
         if objective is not None:
