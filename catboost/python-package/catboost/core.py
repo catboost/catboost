@@ -1721,10 +1721,10 @@ def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iter
         If  None, all params are set to their defaults.
         If  dict, overriding parameters present in the dict.
 
-    pool : Pool
+    pool : Pool or tuple (X, y)
         Data to train on.
 
-    dtrain : Pool
+    dtrain : Pool or tuple (X, y)
         Synonym for pool parameter. Only one of these parameters should be set.
 
     logging_level : string, optional (default=None)
@@ -1744,10 +1744,10 @@ def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iter
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
-    evals : Pool
+    evals : Pool or tuple (X, y)
         Dataset for evaluation.
 
-    eval_set : Pool
+    eval_set : Pool or tuple (X, y)
         Synonym for evals. Only one of these parameters should be set.
 
     plot : bool, optional (default=False)
@@ -1763,6 +1763,11 @@ def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iter
             pool = dtrain
         else:
             raise CatboostError("Only one of the parameters pool and dtrain should be set.")
+
+
+    if verbose is not None and logging_level is not None:
+        raise CatboostError("Only one of the parameters verbose and logging_level should be set.")
+
 
     if num_boost_round is not None:
         if iterations is None:
