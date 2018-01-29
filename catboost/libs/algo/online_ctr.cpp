@@ -17,7 +17,7 @@ struct TCtrCalcer {
         if (neededSize > Storage.size()) {
             Storage.yresize(neededSize);
         }
-        memset(Storage.data(), 0, neededSize);
+        Fill(Storage.begin(), Storage.end(), 0);
         return (T*)Storage.data();
     }
     static inline TArrayRef<TCtrMeanHistory> GetCtrMeanHistoryArr(size_t maxCount) {
@@ -86,9 +86,6 @@ static void CalcOnlineCTRClasses(const TTrainData& data,
                                  int ctrBorderCount,
                                  ECtrType ctrType,
                                  TArray2D<TVector<ui8>>* feature) {
-    const int docCount = enumeratedCatFeatures.ysize();
-
-    TBucketsView bv(leafCount, targetClassesCount);
     TVector<float> shift;
     TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
@@ -96,6 +93,8 @@ static void CalcOnlineCTRClasses(const TTrainData& data,
     const int blockSize = (1000 + targetBorderCount - 1) / targetBorderCount + 100; // ensure blocks have reasonable size
     TVector<int> totalCountByDoc(blockSize);
     TVector<TVector<int>> goodCountByBorderByDoc(targetBorderCount, TVector<int>(blockSize));
+    TBucketsView bv(leafCount, targetClassesCount);
+    const int docCount = enumeratedCatFeatures.ysize();
     for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
@@ -138,22 +137,23 @@ static void CalcOnlineCTRSimple(const TTrainData& data,
                                 const TVector<float>& priors,
                                 int ctrBorderCount,
                                 TArray2D<TVector<ui8>>* feature) {
-    const auto docCount = enumeratedCatFeatures.ysize();
-    auto ctrArrSimple = TCtrCalcer::GetCtrHistoryArr(leafCount);
     TVector<float> shift;
     TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
 
     const int blockSize = 1000;
-    TVector<int> totalCount(blockSize);
-    TVector<int> goodCount(blockSize);
+    auto ctrArrSimple = TCtrCalcer::GetCtrHistoryArr(leafCount + blockSize);
+    auto totalCount = reinterpret_cast<int*>(ctrArrSimple.data() + leafCount);
+    auto goodCount = totalCount + blockSize;
+    const auto docCount = enumeratedCatFeatures.ysize();
     for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const int nextBlockStart = Min<int>(docCount, blockStart + blockSize);
+        const int learnSampleCount = data.LearnSampleCount;
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
             TCtrHistory& elem = ctrArrSimple[enumeratedCatFeatures[docId]];
             goodCount[docId - blockStart] = elem.N[1];
             totalCount[docId - blockStart] = elem.N[0] + elem.N[1];
-            if (docId < data.LearnSampleCount) {
+            if (docId < learnSampleCount) {
                 ++elem.N[permutedTargetClass[docId]];
             }
         }
@@ -211,94 +211,41 @@ static void CalcOnlineCTRMean(const TTrainData& data,
     }
 }
 
-static void CalcOnlineCTRCounter(const TTrainData& data,
+static void CalcOnlineCTRCounter(const TVector<int>& counterCTRTotal,
                                  const TVector<ui64>& enumeratedCatFeatures,
-                                 size_t leafCount,
+                                 int denominator,
                                  const TVector<float>& priors,
                                  int ctrBorderCount,
-                                 ECounterCalc counterCalc,
                                  TArray2D<TVector<ui8>>* feature) {
-    const auto docCount = enumeratedCatFeatures.ysize();
-    auto ctrArrTotal = TCtrCalcer::GetCtrArrTotal(leafCount);
     TVector<float> shift;
     TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
-    Y_ASSERT(docCount >= data.LearnSampleCount);
 
-    enum ECalcMode {
-        Skip,
-        Full
-    };
-
-    auto CalcCTRs = [](const TVector<ui64>& enumeratedCatFeatures,
-                       const TVector<float>& priors,
-                       const TVector<float>& shift,
-                       const TVector<float>& norm,
-                       int ctrBorderCount,
-                       int firstId, int lastId, ECalcMode mode,
-                       int* denominator,
-                       int* ctrArrTotal,
-                       TArray2D<TVector<ui8>>* feature) {
-        int currentDenominator = *denominator;
-
-        if (mode == ECalcMode::Full) {
-            for (int docId = firstId; docId < lastId; ++docId) {
-                const auto elemId = enumeratedCatFeatures[docId];
-                ++ctrArrTotal[elemId];
-                currentDenominator = Max(currentDenominator, ctrArrTotal[elemId]);
-            }
+    const int blockSize = 1000;
+    auto ctrTotal = TCtrCalcer::GetCtrArrTotal(blockSize);
+    const int docCount = enumeratedCatFeatures.ysize();
+    for (int blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+        const int blockEnd = Min(docCount, blockStart + blockSize);
+        for (int docId = blockStart; docId < blockEnd; ++docId) {
+            const auto elemId = enumeratedCatFeatures[docId];
+            ctrTotal[docId - blockStart] = counterCTRTotal[elemId];
         }
-
-        const int blockSize = 1000;
-        TVector<int> ctrTotal(blockSize);
-        TVector<int> ctrDenominator(blockSize);
-        for (int blockStart = firstId; blockStart < lastId; blockStart += blockSize) {
-            const int blockEnd = Min(lastId, blockStart + blockSize);
+        for (int prior = 0; prior < priors.ysize(); ++prior) {
+            const float priorX = priors[prior];
+            const float shiftX = shift[prior];
+            const float normX = norm[prior];
+            ui8* featureData = (*feature)[0][prior].data();
             for (int docId = blockStart; docId < blockEnd; ++docId) {
-                const auto elemId = enumeratedCatFeatures[docId];
-                ctrTotal[docId - blockStart] = ctrArrTotal[elemId];
-                ctrDenominator[docId - blockStart] = currentDenominator;
-            }
-
-            for (int prior = 0; prior < priors.ysize(); ++prior) {
-                const float priorX = priors[prior];
-                const float shiftX = shift[prior];
-                const float normX = norm[prior];
-                ui8* featureData = (*feature)[0][prior].data();
-                for (int docId = blockStart; docId < blockEnd; ++docId) {
-                    featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], ctrDenominator[docId - blockStart], priorX, shiftX, normX, ctrBorderCount);
-                }
+                featureData[docId] = CalcCTR(ctrTotal[docId - blockStart], denominator, priorX, shiftX, normX, ctrBorderCount);
             }
         }
+    }
+}
 
-        *denominator = currentDenominator;
-    };
-
-    int denominator = 0;
-    if (counterCalc == ECounterCalc::Full) {
-        CalcCTRs(enumeratedCatFeatures,
-                 priors, shift, norm,
-                 ctrBorderCount,
-                 0, docCount, ECalcMode::Full,
-                 &denominator,
-                 ctrArrTotal,
-                 feature);
-    } else {
-        Y_ASSERT(counterCalc == ECounterCalc::SkipTest);
-        CalcCTRs(enumeratedCatFeatures,
-                 priors, shift, norm,
-                 ctrBorderCount,
-                 0, data.LearnSampleCount, ECalcMode::Full,
-                 &denominator,
-                 ctrArrTotal,
-                 feature);
-        CalcCTRs(enumeratedCatFeatures,
-                 priors, shift, norm,
-                 ctrBorderCount,
-                 data.LearnSampleCount, docCount, ECalcMode::Skip,
-                 &denominator,
-                 ctrArrTotal,
-                 feature);
+static inline void CountOnlineCTRTotal(const TVector<ui64>& hashArr, int sampleCount, TVector<int>* counterCTRTotal) {
+    for (int sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx) {
+        const auto elemId = hashArr[sampleIdx];
+        ++(*counterCTRTotal)[elemId];
     }
 }
 
@@ -329,6 +276,15 @@ void ComputeOnlineCTRs(const TTrainData& data,
         &hashArr,
         rehashHashTlsVal.GetPtr());
     dst->FeatureValueCount = leafCount.second;
+
+    TVector<int> counterCTRTotal;
+    int counterCTRDenominator = 0;
+    if (AnyOf(ctrInfo.begin(), ctrInfo.begin() + dst->Feature.ysize(), [] (const auto& info) { return info.Type == ECtrType::Counter; })) {
+        counterCTRTotal.resize(leafCount.second);
+        const int sampleCount = ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full ? hashArr.ysize() : data.LearnSampleCount;
+        CountOnlineCTRTotal(hashArr, sampleCount, &counterCTRTotal);
+        counterCTRDenominator = *MaxElement(counterCTRTotal.begin(), counterCTRTotal.end());
+    }
 
     for (int ctrIdx = 0; ctrIdx < dst->Feature.ysize(); ++ctrIdx) {
         const ECtrType ctrType = ctrInfo[ctrIdx].Type;
@@ -383,12 +339,11 @@ void ComputeOnlineCTRs(const TTrainData& data,
         } else {
             Y_ASSERT(ctrType == ECtrType::Counter);
             CalcOnlineCTRCounter(
-                data,
+                counterCTRTotal,
                 hashArr,
-                leafCount.second,
+                counterCTRDenominator,
                 priors,
                 ctrBorderCount,
-                ctx->Params.CatFeatureParams->CounterCalcMethod,
                 &dst->Feature[ctrIdx]);
         }
     }
