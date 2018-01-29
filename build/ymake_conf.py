@@ -1264,11 +1264,8 @@ class Clang(GnuCompiler):
             self.c_flags.append('-Wno-inconsistent-missing-override')
 
         if self.tc.version_at_least(5, 0):
-            self.c_flags.append('-Wno-unknown-warning-option')
             self.c_flags.append('-Wno-c++17-extensions')
-            self.c_flags.append('-Wno-instantiation-after-specialization')
             self.c_flags.append('-Wno-exceptions')
-            self.c_flags.append('-Wno-address-of-packed-member')
 
     def print_compiler(self):
         super(Clang, self).print_compiler()
