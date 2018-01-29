@@ -1,4 +1,4 @@
- ./ya make -r -T -o . .\catboost\R-package\src\
+call ya.bat make -r -T -o . .\catboost\R-package\src\
 cd catboost\R-package
 mkdir catboost
 cp DESCRIPTION catboost
