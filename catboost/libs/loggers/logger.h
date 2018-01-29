@@ -87,8 +87,9 @@ public:
 
 class TJsonLoggingBackend : public ILoggingBackend {
 public:
-    explicit TJsonLoggingBackend(const TString& fileName, const NJson::TJsonValue& metaJson)
+    explicit TJsonLoggingBackend(const TString& fileName, const NJson::TJsonValue& metaJson, int writePeriod = 1)
         : File(fileName, CreateAlways)
+        , WritePeriod(writePeriod)
     {
         TString metaString = "{\n\"meta\":" + ToString<NJson::TJsonValue>(metaJson) + ",\n\"iterations\":[\n]}";
         File.Write(metaString.data(), metaString.length());
@@ -109,7 +110,7 @@ public:
     }
 
     void Flush(const int currentIteration) {
-        if (IterationJson.IsDefined()) {
+        if (IterationJson.IsDefined() && currentIteration % WritePeriod == 0) {
             IterationJson.InsertValue("iteration", currentIteration);
 
             TString iterationInfo = ",";
@@ -120,12 +121,13 @@ public:
 
             File.Seek(-3, sCur);
             File.Write(iterationInfo.data(), iterationInfo.length());
-            IterationJson = NJson::JSON_UNDEFINED;
         }
+        IterationJson = NJson::JSON_UNDEFINED;
     }
 
 private:
     TFile File;
+    int WritePeriod;
     NJson::TJsonValue IterationJson;
 };
 
@@ -347,6 +349,7 @@ void AddFileLoggers(
     const TString& jsonLogFile,
     const TString& trainDir,
     const NJson::TJsonValue& metaJson,
+    int metricPeriod,
     TLogger* logger
 );
 

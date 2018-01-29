@@ -35,9 +35,10 @@ void AddFileLoggers(
     const TString& jsonLogFile,
     const TString& trainDir,
     const NJson::TJsonValue& metaJson,
+    int metricPeriod,
     TLogger* logger
 ) {
-    TIntrusivePtr<ILoggingBackend> jsonLoggingBackend = new TJsonLoggingBackend(jsonLogFile, metaJson);
+    TIntrusivePtr<ILoggingBackend> jsonLoggingBackend = new TJsonLoggingBackend(jsonLogFile, metaJson, metricPeriod);
     for (auto& jsonToken : metaJson["learn_sets"].GetArraySafe()) {
         TString token = jsonToken.GetString();
         logger->AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(learnErrorLogFile)));

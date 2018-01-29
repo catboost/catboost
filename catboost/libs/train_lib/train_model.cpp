@@ -180,6 +180,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
                 /*hasTrain=*/true,
                 hasTest
             ),
+            ctx->OutputOptions.GetMetricPeriod(),
             &logger
         );
     }

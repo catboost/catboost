@@ -255,6 +255,7 @@ void CrossValidate(
                 /*hasTrain=*/true,
                 /*hasTest=*/true
             ),
+            ctx->OutputOptions.GetMetricPeriod(),
             &logger
         );
     }
