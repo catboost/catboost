@@ -24,12 +24,12 @@ except ImportError:
         pass
 
 try:
-    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
 except ImportError:
     try:
-        from _catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+        from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
     except ImportError:
-        from ._catboost import _PoolBase, _CatBoostBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+        from ._catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
 
 from contextlib import contextmanager
 
@@ -820,6 +820,29 @@ class CatBoost(_CatBoostBase):
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
         return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
+
+    def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, tmp_dir=None):
+        """
+        Create batch metric calcer. Could be used to aggregate metric on several pools
+        Parameters
+        ----------
+            Same as in eval_metrics except data
+        Returns
+        -------
+            BatchMetricCalcer object
+
+        Usage example
+        -------
+        # Large dataset is partitioned into parts [part1, part2]
+        model.fit(params)
+        batch_calcer = model.create_metric_calcer(['Logloss'])
+        batch_calcer.add_pool(part1)
+        batch_calcer.add_pool(part2)
+        metrics = batch_calcer.eval_metrics()
+        """
+        if not self.is_fitted_:
+            raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
+        return BatchMetricCalcer(self._object, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
     @property
     def feature_importances_(self):
@@ -1687,3 +1710,18 @@ def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuf
 
     with log_fixup():
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)
+
+
+class BatchMetricCalcer(_MetricCalcerBase):
+
+    def __init__(self, catboost, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir):
+        super(_MetricCalcerBase, self).__init__(catboost)
+        if tmp_dir is None:
+            tmp_dir = tempfile.mkdtemp()
+            delete_temp_dir_flag = True
+        else:
+            delete_temp_dir_flag = False
+
+        if isinstance(metrics, str):
+            metrics = [metrics]
+        self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)

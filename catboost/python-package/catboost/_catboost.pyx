@@ -47,6 +47,14 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& tmpDiri
     ) nogil except +ProcessException
 
+    cdef cppclass TMetricsPlotCalcerPythonWrapper:
+        TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
+                                        int eval_period, int thread_count, TString& tmpDir,
+                                        bool_t flag) except +ProcessException
+        TVector[const IMetric*] GetMetricRawPtrs() const
+        TVector[TVector[double]] ComputeScores()
+        void AddPool(const TPool& pool)
+
 cdef extern from "catboost/libs/data/pair.h":
     cdef cppclass TPair:
         int WinnerId
@@ -151,6 +159,14 @@ cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
         double Error
         double Weight
+
+        void Add(TMetricHolder& other) except +ProcessException
+
+cdef extern from "catboost/libs/metrics/metric.h":
+    cdef cppclass IMetric:
+        TString GetDescription() const;
+        bool_t IsMaxOptimal() const;
+        bool_t IsAdditiveMetric() const;
 
 cdef extern from "catboost/libs/metrics/ders_holder.h":
     cdef cppclass TDer1Der2:
@@ -849,7 +865,8 @@ cdef class _CatBoost:
         )
         return [value for value in pred]
 
-    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
+    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
+                              int thread_count, verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
 
@@ -1186,6 +1203,110 @@ cdef class _StagedPredictIterator:
         pred = PrepareEval(predictionType, self.__approx, 1)
         self.ntree_start += self.eval_period
         return [[value for value in vec] for vec in pred]
+
+
+class MetricDescription:
+
+    def __init__(self, metric_name, is_max_optimal):
+        self._metric_description = metric_name
+        self._is_max_optimal = is_max_optimal
+
+    def get_metric_description(self):
+        return self._metric_description
+
+    def is_max_optimal(self):
+        return self._is_max_optimal
+
+    def __str__(self):
+        return self._metric_description
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        return self._metric_description == other._metric_description and self._is_max_optimal == other._is_max_optimal
+
+    def __hash__(self):
+        return hash((self._metric_description, self._is_max_optimal))
+
+
+def _metric_description_or_str_to_str(metric_description):
+    key = None
+    if isinstance(metric_description, MetricDescription):
+        key = metric_description.get_metric_description()
+    else:
+        key = metric_description
+    return key
+
+class EvalMetricsResult:
+
+    def __init__(self, plots, metrics_description):
+        self._plots = dict()
+        self._metric_descriptions = dict()
+
+        for (plot, metric) in zip(plots, metrics_description):
+            key = _metric_description_or_str_to_str(metric)
+            self._metric_descriptions[key] = metrics_description
+            self._plots[key] = plot
+
+
+    def has_metric(self, metric_description):
+        key = _metric_description_or_str_to_str(metric_description)
+        return key in self._metric_descriptions
+
+    def get_metric(self, metric_description):
+        key = _metric_description_or_str_to_str(metric_description)
+        return self._metric_descriptions[metric_description]
+
+    def get_result(self, metric_description):
+        key = _metric_description_or_str_to_str(metric_description)
+        return self._plots[key]
+
+
+cdef class _MetricCalcerBase:
+    cdef TMetricsPlotCalcerPythonWrapper*__calcer
+    cdef _CatBoost __catboost
+
+    cpdef _create_calcer(self, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count,
+                         str tmp_dir, bool_t delete_temp_dir_on_exit):
+        cdef TVector[TString] metricsDescription
+        for metric_description in metrics_description:
+            metricsDescription.push_back(TString(<const char*> metric_description))
+
+        self.__calcer = new TMetricsPlotCalcerPythonWrapper(metricsDescription, dereference(self.__catboost.__model),
+                                                            ntree_start, ntree_end, eval_period, thread_count,
+                                                            TString(<const char*> tmp_dir), delete_temp_dir_on_exit)
+
+        self._metric_descriptions = list()
+
+        cdef TVector[const IMetric*] metrics = self.__calcer.GetMetricRawPtrs()
+
+        for metric_idx in xrange(metrics.size()):
+            metric = metrics[metric_idx]
+            name = to_native_str(metric.GetDescription().c_str())
+            flag = metric.IsMaxOptimal()
+            self._metric_descriptions.append(MetricDescription(name, flag))
+
+    def __cinit__(self, catboost_model, *args, **kwargs):
+        self.__catboost = catboost_model
+        self._metric_descriptions = list()
+
+    def __dealloc__(self):
+        del self.__calcer
+
+    def metric_descriptions(self):
+        return self._metric_descriptions
+
+    def eval_metrics(self):
+        cdef TVector[TVector[double]] plots = self.__calcer.ComputeScores()
+        return EvalMetricsResult([[value for value in plot] for plot in plots],
+                                 self._metric_descriptions)
+
+    cpdef add(self, _PoolBase pool):
+        self.__calcer.AddPool(dereference(pool.__pool))
+
+    def __deepcopy__(self):
+        raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
 
 log_out = None
 
