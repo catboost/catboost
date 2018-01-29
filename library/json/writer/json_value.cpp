@@ -809,10 +809,10 @@ namespace NJson {
                 return true;
 
             case JSON_INTEGER:
-                return ((long long)(double)Value.Integer == Value.Integer);
+                return (1ll << std::numeric_limits<double>::digits) >= Abs(Value.Integer);
 
             case JSON_UINTEGER:
-                return ((unsigned long long)(double)Value.UInteger == Value.UInteger);
+                return (1ull << std::numeric_limits<double>::digits) >= Value.UInteger;
 
             default:
                 return false;
