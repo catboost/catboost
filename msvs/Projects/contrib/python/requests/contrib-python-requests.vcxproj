@@ -75,12 +75,133 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_medwgjywwxq5w244oodkyhgrty.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_pqbtfbrkcljhngl7ez7finefba.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_65ofr72q6ydc6a5ol5wyynwi7i.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\medwgjywwxq5w244oodkyhgrty.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\pqbtfbrkcljhngl7ez7finefba.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_medwgjywwxq5w244oodkyhgrty.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -109,6 +230,62 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_medwgjywwxq5w244oodkyhgrty.obj;</Outputs>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_medwgjywwxq5w244oodkyhgrty.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_pqbtfbrkcljhngl7ez7finefba.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -137,11 +314,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_pqbtfbrkcljhngl7ez7finefba.obj;</Outputs>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_pqbtfbrkcljhngl7ez7finefba.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -152,7 +329,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -160,11 +337,67 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.obj;</Outputs>
+      <Message>$B/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -218,33 +451,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\request.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\fields.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\fields.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\filepost.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\filepost.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\connectionpool.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\connectionpool.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\response.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\response.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\six.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\urllib3\packages\six.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_wlz6w5pqzm4q662yqhjowhyg2i.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_tisrl5hpqlajnvx7ie57ityv4a.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_kq6cgrjzfzxh2xlyx3iuzy4yle.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_4spmkde6tfdxk5tkxnxajwgs5q.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_k24nuuquivf3kf4mwb4oqgbs5u.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_km2itl35a3f32rxgc6gehpnzay.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_o2jonfqr2owa5vgf3wexs6q36m.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_b5k6vmhct577qvrusaro3fpgim.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_4hu7wfxxvotfpu2xer6zhbhj7u.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_w6ckxjzuchr3af2xx72x2qyud4.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_jfmixzrnqsp7p4meqrov4sqkge.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_n7opmfjiozh5ae5ljbjcwppw5q.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_j6mvus47b7lxsq5k7nspj3lada.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_bitopowyshyijdqf5kaqojfbse.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_mrpvam5suuo2i4up624nuovleu.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_wzfjgwbri5qwgjrd44laxodzvm.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_decbuhgyzk2a7bwarhccmfoika.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_5ccguqyjl36kwvwyspo7ahk6ni.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_plq53q2f7c4l34wk3bnbv7m7ia.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_srfvtk6bhpvtqhzcbc4mz37fp4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_sq4fq2fk5dzq3tol7w5isidfym.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_xtnr775nif5fdo4ce745vc7gu4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_lozmg7yszksmfev37h2qr5rjsq.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_apewhlz5g5xufhuyftcs65ejgy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_nildj4bvl2dob5fnbgorpy3bra.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_ckoio3w22bbx2sdyz2goj2yujy.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fll2vywcuznipfynelpaxzw5dm.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/requests/join_cyotw435bm4374ogynkuultz7m.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\requests\_plq53q2f7c4l34wk3bnbv7m7ia.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_srfvtk6bhpvtqhzcbc4mz37fp4.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_sq4fq2fk5dzq3tol7w5isidfym.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_xtnr775nif5fdo4ce745vc7gu4.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_lozmg7yszksmfev37h2qr5rjsq.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_apewhlz5g5xufhuyftcs65ejgy.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_nildj4bvl2dob5fnbgorpy3bra.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_ckoio3w22bbx2sdyz2goj2yujy.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_fll2vywcuznipfynelpaxzw5dm.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\join_cyotw435bm4374ogynkuultz7m.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
