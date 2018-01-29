@@ -15,4 +15,4 @@ int GetClassesCount(const TVector<float>& target, int classesCount);
 
 void ConfigureMalloc();
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* querySize);
+void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* queryInfo);
