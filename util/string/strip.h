@@ -142,15 +142,6 @@ static inline bool StripString(const T& from, T& to, TStripCriterion&& criterion
     return TStripImpl<true, true>::StripString(from, to, std::forward<TStripCriterion>(criterion));
 }
 
-template <class T, class StripCriterion>
-static inline T StripString(const T& from, const StripCriterion& criterion) Y_WARN_UNUSED_RESULT;
-template <class T>
-static inline T StripString(const T& from) Y_WARN_UNUSED_RESULT;
-template <class T>
-static inline T StripStringLeft(const T& from) Y_WARN_UNUSED_RESULT;
-template <class T>
-static inline T StripStringRight(const T& from) Y_WARN_UNUSED_RESULT;
-
 template <class T>
 static inline bool StripString(const T& from, T& to) {
     return StripString(from, to, IsAsciiSpaceAdapter(from.begin()));
