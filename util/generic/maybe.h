@@ -426,6 +426,16 @@ void swap(TMaybe<T>& lhs, TMaybe<T>& rhs) {
     lhs.Swap(rhs);
 }
 
+template<typename T>
+struct THash<TMaybe<T>> {
+    constexpr size_t operator()(const TMaybe<T>& data) const {
+        if (data.Defined()) {
+            return THash<T>()(data.GetRef());
+        }
+        return 42;
+    }
+};
+
 // Comparisons between TMaybe
 template <class T>
 constexpr bool operator==(const ::TMaybe<T>& left, const ::TMaybe<T>& right) {
