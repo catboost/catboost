@@ -1743,10 +1743,10 @@ def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iter
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
-    evals : Pool or tuple (X, y)
+    eval_set : Pool or tuple (X, y)
         Dataset for evaluation.
 
-    eval_set : Pool or tuple (X, y)
+    evals : Pool or tuple (X, y)
         Synonym for evals. Only one of these parameters should be set.
 
     plot : bool, optional (default=False)
