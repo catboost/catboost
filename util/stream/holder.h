@@ -36,8 +36,8 @@ template <class Base, class StreamBase = typename ::NPrivate::TStreamBase<Base>:
 class THoldingStream: private THolder<StreamBase>, public Base {
 public:
     template <class... Args>
-    inline THoldingStream(StreamBase* stream, Args&&... args)
-        : THolder<StreamBase>(stream)
+    inline THoldingStream(THolder<StreamBase> stream, Args&&... args)
+        : THolder<StreamBase>(std::move(stream))
         , Base(this->Get(), std::forward<Args>(args)...)
     {
     }
