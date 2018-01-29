@@ -320,7 +320,9 @@ namespace NCudaLib {
 
             ~TComputationStream() {
                 if (Id != 0) {
-                    Owner->GetState().FreeStreams.push_back(Id);
+                    with_lock(Owner->GetState().Lock) {
+                        Owner->GetState().FreeStreams.push_back(Id);
+                    }
                 }
             }
 
