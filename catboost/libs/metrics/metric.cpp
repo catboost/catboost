@@ -955,8 +955,7 @@ TMetricHolder TCustomMetric::EvalQuerywise(const TVector<TVector<double>>& /*app
                                           const TVector<TQueryInfo>& /*queriesInfo*/,
                                           int /*queryStartIndex*/,
                                           int /*queryEndIndex*/) const {
-    // TODO(annaveronika): change exception.
-    CB_ENSURE(false, "This eval is only for QueryRMSE");
+    CB_ENSURE(false, "This eval is only for querywise metrics");
 }
 
 TString TCustomMetric::GetDescription() const {
