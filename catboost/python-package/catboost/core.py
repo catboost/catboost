@@ -518,6 +518,44 @@ class CatBoost(_CatBoostBase):
                 if param not in self._additional_params:
                     raise CatboostError("Invalid param `{}`.".format(param))
 
+    def _process_synonyms(self, params):
+        if 'max_depth' in params:
+            if 'depth' in params:
+                raise CatboostError('only one of parameters depth, max_depth should be initialised.')
+            params['depth'] = params['max_depth']
+            del params['max_depth']
+
+        if 'colsample_bylevel' in params:
+            if 'rsm' in params:
+                raise CatboostError('only one of parameters colsample_bylevel, rsm should be initialised.')
+            params['rsm'] = params['colsample_bylevel']
+            del params['colsample_bylevel']
+
+        if 'random_state' in params:
+            if 'random_seed' in params:
+                raise CatboostError('only one of parameters random_seed, random_state should be initialised.')
+            params['random_seed'] = params['random_state']
+            del params['random_state']
+
+        if 'reg_lambda' in params:
+            if 'l2_leaf_reg' in params:
+                raise CatboostError('only one of parameters reg_lambda, l2_leaf_reg should be initialised.')
+            params['l2_leaf_reg'] = params['reg_lambda']
+            del params['reg_lambda']
+
+        if 'n_estimators' in params:
+            if 'iterations' in params or 'num_trees' in params:
+                raise CatboostError('only one of parameters iterations, n_estimators, num_trees should be initialised.')
+            params['iterations'] = params['n_estimators']
+            del params['n_estimators']
+
+        if 'num_trees' in params:
+            if 'iterations' in params or 'n_estimators' in params:
+                raise CatboostError('only one of parameters iterations, n_estimators, num_trees should be initialised.')
+            params['iterations'] = params['num_trees']
+            del params['num_trees']
+
+
     def _clear_tsv_files(self, train_dir):
         for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
             path = os.path.join(train_dir, filename)
@@ -1212,6 +1250,18 @@ class CatBoostClassifier(CatBoost):
     device_config : string, [default=None], deprecated, use devices instead
     devices : string, [default=None], GPU devices to use.
         Format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
+
+    max_depth : int, Synonym for depth.
+
+    n_estimators : int, synonym for iterations.
+
+    num_trees : int, synonym for iterations.
+
+    colsample_bylevel : float, synonym for rsm.
+
+    random_state : int, synonym for random_seed.
+
+    reg_lambda : float, synonym for l2_leaf_reg.
     """
     def __init__(
         self,
@@ -1268,6 +1318,12 @@ class CatBoostClassifier(CatBoost):
         task_type=None,
         device_config=None,
         devices=None,
+        max_depth=None,
+        n_estimators=None,
+        num_trees=None,
+        colsample_bylevel=None,
+        random_state=None,
+        reg_lambda=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
@@ -1279,6 +1335,8 @@ class CatBoostClassifier(CatBoost):
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
+
+        self._process_synonyms(params)
 
         if custom_loss is not None and custom_metric is not None:
             raise CatboostError("Custom loss and custom metric can't be set at the same time. Use custom_metric instead of custom_loss (custom_loss is deprecated)")
@@ -1566,6 +1624,12 @@ class CatBoostRegressor(CatBoost):
         task_type=None,
         device_config=None,
         devices=None,
+        max_depth=None,
+        n_estimators=None,
+        num_trees=None,
+        colsample_bylevel=None,
+        random_state=None,
+        reg_lambda=None,
         **kwargs
     ):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
@@ -1576,6 +1640,9 @@ class CatBoostRegressor(CatBoost):
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
+
+        self._process_synonyms(params)
+
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False):
