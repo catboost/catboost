@@ -11,8 +11,10 @@
 CatBoost is a machine learning method based on gradient boosting over decision trees.
 
 Main advantages of CatBoost:
-  - Superior quality when compared with other libraries.
+  - Superior quality when compared with other GBDT libraries.
+  - Best in class inference speed.
   - Support for both numerical and categorical features.
+  - Fast GPU and multi-GPU (on one node) support for training.
   - Data visualization tools included.
 
 The following implementations are available:
@@ -39,7 +41,7 @@ in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTI
 
 News
 --------------
-* News will be published on [twitter](https://twitter.com/catboostml).
+* News are published on [twitter](https://twitter.com/catboostml).
 
 
 Questions and bug reports
@@ -50,4 +52,4 @@ Questions and bug reports
 
 License
 -------
-© YANDEX LLC, 2017. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+© YANDEX LLC, 2017-2018. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
