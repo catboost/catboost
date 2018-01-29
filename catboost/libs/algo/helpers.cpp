@@ -130,3 +130,21 @@ void ConfigureMalloc() {
     }
 #endif
 }
+
+void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* queryInfo) {
+    if (begin == end) {
+        return;
+    }
+    ui32 currentQueryId = queriesId[begin];
+    int currentQuerySize = 0;
+    for (int docId = begin; docId < end; ++docId) {
+        if (currentQueryId == queriesId[docId]) {
+            ++currentQuerySize;
+        } else {
+            queryInfo->push_back({docId - currentQuerySize, docId});
+            currentQuerySize = 1;
+            currentQueryId = queriesId[docId];
+        }
+    }
+    queryInfo->push_back({end - currentQuerySize, end});
+}

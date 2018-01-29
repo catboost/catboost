@@ -95,13 +95,12 @@ public:
     }
 
     void CalcDersForQueries(
-        int /*start*/,
-        int /*count*/,
+        int /*queryStartIndex*/,
+        int /*queryEndIndex*/,
         const TVector<double>& /*approx*/,
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
-        const TVector<ui32>& /*queriesId*/,
-        const THashMap<ui32, ui32>& /*queriesSize*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
         TVector<TDer1Der2>* /*ders*/
     ) const {
         CB_ENSURE(false, "Not implemented");
@@ -483,26 +482,27 @@ public:
     }
 
     void CalcDersForQueries(
-        int start,
-        int count,
+        int queryStartIndex,
+        int queryEndIndex,
         const TVector<double>& approxes,
         const TVector<float>& targets,
         const TVector<float>& weights,
-        const TVector<ui32>& queriesId,
-        const THashMap<ui32, ui32>& queriesSize,
+        const TVector<TQueryInfo>& queriesInfo,
         TVector<TDer1Der2>* ders
     ) const {
-        int offset = 0;
-        while (offset < count) {
-            ui32 querySize = queriesSize.find(queriesId[start + offset])->second;
-            double queryAvrg = CalcQueryAvrg(start + offset, querySize, approxes, targets, weights);
-            for (ui32 docId = start + offset; docId < start + offset + querySize; ++docId) {
+        int start = queriesInfo[queryStartIndex].Begin;
+        for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+            int begin = queriesInfo[queryIndex].Begin;
+            int end = queriesInfo[queryIndex].End;
+            int querySize = end - begin;
+
+            double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
+            for (int docId = begin; docId < end; ++docId) {
                 (*ders)[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
                 if (!weights.empty()) {
                     (*ders)[docId - start].Der1 *= weights[docId];
                 }
             }
-            offset += querySize;
         }
     }
 private:
@@ -639,13 +639,12 @@ public:
     }
 
     void CalcDersForQueries(
-        int /*start*/,
-        int /*count*/,
-        const TVector<double>& /*approxes*/,
-        const TVector<float>& /*targets*/,
-        const TVector<float>& /*weights*/,
-        const TVector<ui32>& /*queriesId*/,
-        const THashMap<ui32, ui32>& /*queriesSize*/,
+        int /*queryStartIndex*/,
+        int /*queryEndIndex*/,
+        const TVector<double>& /*approx*/,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
         TVector<TDer1Der2>* /*ders*/
     ) const {
         CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");

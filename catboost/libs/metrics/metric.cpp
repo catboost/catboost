@@ -24,9 +24,9 @@ TMetricHolder TMetric::EvalPairwise(const TVector<TVector<double>>& /*approx*/,
 TMetricHolder TMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
                                     const TVector<float>& /*target*/,
                                     const TVector<float>& /*weight*/,
-                                    const TVector<ui32>& /*queriesId*/,
-                                    const THashMap<ui32, ui32>& /*queriesSize*/,
-                                    int /*begin*/, int /*end*/) const {
+                                    const TVector<TQueryInfo>& /*queriesInfo*/,
+                                    int /*queryStartIndex*/,
+                                    int /*queryEndIndex*/) const {
     CB_ENSURE(false, "This eval is only for Querywise");
 }
 
@@ -51,9 +51,9 @@ TMetricHolder TPairwiseMetric::Eval(const TVector<TVector<double>>& /*approx*/,
 TMetricHolder TPairwiseMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
                                             const TVector<float>& /*target*/,
                                             const TVector<float>& /*weight*/,
-                                            const TVector<ui32>& /*queriesId*/,
-                                            const THashMap<ui32, ui32>& /*queriesSize*/,
-                                            int /*begin*/, int /*end*/) const {
+                                            const TVector<TQueryInfo>& /*queriesInfo*/,
+                                            int /*queryStartIndex*/,
+                                            int /*queryEndIndex*/) const {
     CB_ENSURE(false, "This eval is not for Pairwise");
 }
 
@@ -433,29 +433,25 @@ bool TPairLogitMetric::IsMaxOptimal() const {
 
 /* QueryRMSE */
 
-// TODO(nikitxskv): queriesSize will result in a lot of cache misses. We loop
-// through queries sequentially, so why use hash map?
 TMetricHolder TQueryRMSEMetric::EvalQuerywise(const TVector<TVector<double>>& approx,
                                          const TVector<float>& target,
                                          const TVector<float>& weight,
-                                         const TVector<ui32>& queriesId,
-                                         const THashMap<ui32, ui32>& queriesSize,
-                                         int begin, int end) const {
+                                         const TVector<TQueryInfo>& queriesInfo,
+                                         int queryStartIndex,
+                                         int queryEndIndex) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryRMSE supports only single-dimensional data");
 
-    int offset = 0;
     TMetricHolder error;
-    while (begin + offset < end) {
-        ui32 querySize = queriesSize.find(queriesId[begin + offset])->second;
-        double queryAvrg = CalcQueryAvrg(begin + offset, querySize, approx[0], target, weight);
-        for (ui32 docId = begin + offset; docId < begin + offset + querySize; ++docId) {
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int begin = queriesInfo[queryIndex].Begin;
+        int end = queriesInfo[queryIndex].End;
+        double queryAvrg = CalcQueryAvrg(begin, end - begin, approx[0], target, weight);
+        for (int docId = begin; docId < end; ++docId) {
             float w = weight.empty() ? 1 : weight[docId];
             error.Error += (Sqr(target[docId] - approx[0][docId] - queryAvrg)) * w;
             error.Weight += w;
         }
-        offset += querySize;
     }
-
     return error;
 }
 
@@ -956,9 +952,9 @@ TMetricHolder TCustomMetric::EvalPairwise(const TVector<TVector<double>>& /*appr
 TMetricHolder TCustomMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
                                           const TVector<float>& /*target*/,
                                           const TVector<float>& /*weight*/,
-                                          const TVector<ui32>& /*queriesId*/,
-                                          const THashMap<ui32, ui32>& /*queriesSize*/,
-                                          int /*begin*/, int /*end*/) const {
+                                          const TVector<TQueryInfo>& /*queriesInfo*/,
+                                          int /*queryStartIndex*/,
+                                          int /*queryEndIndex*/) const {
     // TODO(annaveronika): change exception.
     CB_ENSURE(false, "This eval is only for QueryRMSE");
 }
@@ -1020,9 +1016,9 @@ TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const THashMap<TString,
 TMetricHolder TUserDefinedQuerywiseMetric::EvalQuerywise(const TVector<TVector<double>>& /*approx*/,
                                                          const TVector<float>& /*target*/,
                                                          const TVector<float>& /*weight*/,
-                                                         const TVector<ui32>& /*queriesId*/,
-                                                         const THashMap<ui32, ui32>& /*queriesSize*/,
-                                                         int /*begin*/, int /*end*/) const {
+                                                         const TVector<TQueryInfo>& /*queriesInfo*/,
+                                                         int /*queryStartIndex*/,
+                                                         int /*queryEndIndex*/) const {
     CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
     TMetricHolder metric;
     return metric;
@@ -1042,31 +1038,29 @@ bool TUserDefinedQuerywiseMetric::IsMaxOptimal() const {
 TMetricHolder TQueryAverage::EvalQuerywise(const TVector<TVector<double>>& approx,
                                          const TVector<float>& target,
                                          const TVector<float>& weight,
-                                         const TVector<ui32>& queriesId,
-                                         const THashMap<ui32, ui32>& queriesSize,
-                                         int begin, int end) const {
+                                         const TVector<TQueryInfo>& queriesInfo,
+                                         int queryStartIndex,
+                                         int queryEndIndex) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryAverage supports only single-dimensional data");
     Y_UNUSED(weight);
 
-    int offset = 0;
     TMetricHolder error;
 
     TVector<std::pair<double, int>> approxWithDoc;
-    while (begin + offset < end) {
-        // TODO(nikitxskv): remove map.
-        ui32 querySize = queriesSize.find(queriesId[begin + offset])->second;
-        auto startIdx = begin + offset;
-        auto endIdx = startIdx + querySize;
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        auto startIdx = queriesInfo[queryIndex].Begin;
+        auto endIdx = queriesInfo[queryIndex].End;
+        auto querySize = endIdx - startIdx;
 
         double targetSum = 0;
         if ((int)querySize <= TopSize) {
-            for (ui32 docId = startIdx; docId < endIdx; ++docId) {
+            for (int docId = startIdx; docId < endIdx; ++docId) {
                 targetSum += target[docId];
             }
             error.Error += targetSum / querySize;
         } else {
             approxWithDoc.yresize(querySize);
-            for (ui32 i = 0; i < querySize; ++i) {
+            for (int i = 0; i < querySize; ++i) {
                 int docId = startIdx + i;
                 approxWithDoc[i].first = approx[0][docId];
                 approxWithDoc[i].second = docId;;
@@ -1078,11 +1072,8 @@ TMetricHolder TQueryAverage::EvalQuerywise(const TVector<TVector<double>>& appro
             }
             error.Error += targetSum / TopSize;
         }
-
         error.Weight += 1;
-        offset += querySize;
     }
-
     return error;
 }
 

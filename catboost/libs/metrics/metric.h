@@ -4,6 +4,7 @@
 #include "ders_holder.h"
 
 #include <catboost/libs/data/pair.h>
+#include <catboost/libs/data/query.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/containers/2d_array/2d_array.h>
@@ -47,9 +48,9 @@ struct IMetric {
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const = 0;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const = 0;
 
     virtual TString GetDescription() const = 0;
     virtual bool IsMaxOptimal() const = 0;
@@ -67,9 +68,9 @@ struct TMetric: public IMetric {
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
 };
@@ -123,9 +124,9 @@ struct TPairwiseMetric : public IMetric {
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
 };
@@ -257,9 +258,9 @@ struct TQueryRMSEMetric : public TQuerywiseAdditiveMetric {
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
@@ -399,9 +400,9 @@ public:
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
 
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
@@ -442,9 +443,9 @@ public:
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
 
@@ -463,9 +464,9 @@ public:
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
                                        const TVector<float>& weight,
-                                       const TVector<ui32>& queriesId,
-                                       const THashMap<ui32, ui32>& queriesSize,
-                                       int begin, int end) const override;
+                                       const TVector<TQueryInfo>& queriesInfo,
+                                       int queryStartIndex,
+                                       int queryEndIndex) const override;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
 

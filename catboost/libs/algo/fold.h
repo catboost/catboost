@@ -9,6 +9,7 @@
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/data/pair.h>
+#include <catboost/libs/data/query.h>
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <util/generic/vector.h>
@@ -33,13 +34,14 @@ struct TFold {
         TVector<TVector<double>> WeightedDer;
         TVector<TVector<TCompetitor>> Competitors;
 
+        int BodyQueryFinish = 0;
+        int TailQueryFinish = 0;
         int BodyFinish = 0;
         int TailFinish = 0;
     };
 
     TVector<float> LearnWeights;
-    TVector<ui32> LearnQueryId;
-    THashMap<ui32, ui32> LearnQuerySize;
+    TVector<TQueryInfo> LearnQueryInfo;
     TVector<int> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;

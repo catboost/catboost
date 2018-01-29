@@ -42,16 +42,17 @@ template <typename TError>
 void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
-    const TVector<ui32>& queriesId,
-    const THashMap<ui32, ui32>& queriesSize,
+    const TVector<TQueryInfo>& queriesInfo,
     const TVector<TVector<TCompetitor>>& competitors,
     const TError& error,
     int tailFinish,
+    int tailQueryFinish,
     TLearnContext* ctx,
-    TVector<TVector<double>>* derivatives) {
+    TVector<TVector<double>>* derivatives
+) {
     if (error.GetErrorType() == EErrorType::QuerywiseError) {
         TVector<TDer1Der2> ders((*derivatives)[0].ysize());
-        error.CalcDersForQueries(0, tailFinish, approx[0], target, weight, queriesId, queriesSize, &ders);
+        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*derivatives)[0][docId] = ders[docId].Der1;
         }
@@ -234,11 +235,11 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
                 bt.Approx,
                 takenFold->LearnTarget,
                 takenFold->LearnWeights,
-                takenFold->LearnQueryId,
-                takenFold->LearnQuerySize,
+                takenFold->LearnQueryInfo,
                 bt.Competitors,
                 error,
                 bt.TailFinish,
+                bt.TailQueryFinish,
                 ctx,
                 &bt.Derivatives
             );

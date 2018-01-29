@@ -53,14 +53,6 @@ static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     return checkSum;
 }
 
-static THashMap<ui32, ui32> CalcQueriesSize(const TVector<ui32>& queriesId) {
-    THashMap<ui32, ui32> queriesSize;
-    for (int docId = 0; docId < queriesId.ysize(); ++docId) {
-        ++queriesSize[queriesId[docId]];
-    }
-    return queriesSize;
-}
-
 namespace {
 void ShrinkModel(int itCount, TLearnProgress* progress) {
     progress->LeafValues.resize(itCount);
@@ -71,29 +63,31 @@ static double EvalErrors(
     const TVector<TVector<double>>& avrgApprox,
     const TVector<float>& target,
     const TVector<float>& weight,
-    const TVector<ui32>& queryId,
-    const THashMap<ui32, ui32>& queriesSize,
+    const TVector<TQueryInfo>& queriesInfo,
     const TVector<TPair>& pairs,
     const THolder<IMetric>& error,
-    int learnSampleCount,
-    int sampleCount,
+    int queryStartIndex,
+    int queryEndIndex,
+    int begin,
+    int end,
     NPar::TLocalExecutor* localExecutor
 ) {
     return error->GetFinalError(
         error->GetErrorType() == EErrorType::PerObjectError ?
-            error->Eval(avrgApprox, target, weight, learnSampleCount, sampleCount, *localExecutor) :
+            error->Eval(avrgApprox, target, weight, begin, end, *localExecutor) :
             error->GetErrorType() == EErrorType::PairwiseError ?
-                error->EvalPairwise(avrgApprox, pairs, learnSampleCount, sampleCount):
-                error->EvalQuerywise(avrgApprox, target, weight, queryId, queriesSize, learnSampleCount, sampleCount));
+                error->EvalPairwise(avrgApprox, pairs, begin, end):
+                error->EvalQuerywise(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex));
 }
 
 static void CalcErrors(
     const TVector<float>& target,
     const TVector<float>& weight,
-    const TVector<ui32>& queryId,
-    const THashMap<ui32, ui32>& queriesSize,
+    const TVector<TQueryInfo>& queriesInfo,
     const TVector<TPair>& pairs,
     const TVector<THolder<IMetric>>& errors,
+    int learnQueryCount,
+    int queryCount,
     int learnSampleCount,
     int sampleCount,
     bool hasTest,
@@ -110,11 +104,12 @@ static void CalcErrors(
             learnProgress->AvrgApprox,
             target,
             weight,
-            queryId,
-            queriesSize,
+            queriesInfo,
             pairs,
             errors[i],
-            0,
+            /*queryStartIndex=*/0,
+            learnQueryCount,
+            /*begin=*/0,
             learnSampleCount,
             localExecutor
         );
@@ -125,10 +120,11 @@ static void CalcErrors(
                 learnProgress->AvrgApprox,
                 target,
                 weight,
-                queryId,
-                queriesSize,
+                queriesInfo,
                 pairs,
                 errors[i],
+                learnQueryCount,
+                queryCount,
                 learnSampleCount,
                 sampleCount,
                 localExecutor
@@ -239,10 +235,11 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         CalcErrors(
             data.Target,
             data.Weights,
-            data.QueryId,
-            data.QuerySize,
+            data.QueryInfo,
             data.Pairs,
             metrics,
+            data.LearnQueryCount,
+            data.GetQueryCount(),
             data.LearnSampleCount,
             sampleCount,
             hasTest,
@@ -456,7 +453,9 @@ class TCPUModelTrainer : public IModelTrainer {
             CB_ENSURE(isDataCorrect, "Train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
             //TODO(annaveronika): Allow no grouping by query id. Warning
             //when same query id in train+test - no error.
-            trainData.QuerySize = CalcQueriesSize(trainData.QueryId);
+            UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
+            trainData.LearnQueryCount = trainData.QueryInfo.ysize();
+            UpdateQueriesInfo(trainData.QueryId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
         }
 
         if (lossFunction == ELossFunction::Logloss) {

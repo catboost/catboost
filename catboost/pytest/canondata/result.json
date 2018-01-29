@@ -609,23 +609,23 @@
     ],
     "test.test_queryaverage": [
         {
-            "checksum": "013155689a582e20e0318af808885bd8",
+            "checksum": "7c3029d11f9c284b2909a21bf1d35da6",
             "uri": "file://test.test_queryaverage/learn_error.tsv"
         },
         {
-            "checksum": "6de505fe184e9d073775719f67b96139",
+            "checksum": "7af9c7d162ea852effe86bd10082dd9b",
             "uri": "file://test.test_queryaverage/test_error.tsv"
         }
     ],
     "test.test_queryrmse": [
         {
-            "checksum": "115a2968f93b4c196e89022f8e6ce69e",
+            "checksum": "169838d5d8c2f8cfeec40cce74ed470a",
             "uri": "file://test.test_queryrmse/test.eval"
         }
     ],
     "test.test_queryrmse_approx_on_full_history": [
         {
-            "checksum": "67d1958c2edcd3c4538990339589e657",
+            "checksum": "a4f40216c0e26e25bd11775058b8f3fe",
             "uri": "file://test.test_queryrmse_approx_on_full_history/test.eval"
         }
     ],
