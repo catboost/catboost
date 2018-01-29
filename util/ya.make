@@ -392,6 +392,7 @@ JOIN_SRCS(
     thread/lfqueue.cpp
     thread/lfstack.cpp
     thread/singleton.cpp
+    thread/fwd.cpp
 )
 
 END()

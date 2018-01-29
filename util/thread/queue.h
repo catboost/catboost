@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "pool.h"
 
 #include <util/system/yassert.h>
@@ -47,8 +48,6 @@ public:
 private:
     IThreadPool* Pool_;
 };
-
-using TThreadFunction = std::function<void()>;
 
 /**
  * A queue processed simultaneously by several threads

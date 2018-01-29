@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <util/generic/ptr.h>
 #include <util/system/atomic.h>
 #include <util/system/yassert.h>
@@ -16,7 +18,7 @@ struct TDefaultLFCounter {
     }
 };
 
-template <class T, class TCounter = TDefaultLFCounter>
+template <class T, class TCounter>
 class TLockFreeQueue: public TNonCopyable {
     struct TListNode {
         template <typename U>
@@ -298,7 +300,7 @@ public:
     }
 };
 
-template <class T, class TCounter = TDefaultLFCounter>
+template <class T, class TCounter>
 class TAutoLockFreeQueue {
 public:
     using TRef = TAutoPtr<T>;
