@@ -1,3 +1,4 @@
+#include "modes.h"
 #include "cmd_line.h"
 #include "proceed_pool_in_blocks.h"
 

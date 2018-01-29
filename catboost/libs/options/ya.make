@@ -17,7 +17,6 @@ SRCS(
     metric_options.cpp
     oblivious_tree_options.cpp
     output_file_options.cpp
-    enums.cpp
     enum_helpers.cpp
     json_helper.cpp
 )

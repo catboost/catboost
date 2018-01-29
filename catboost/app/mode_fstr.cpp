@@ -1,3 +1,4 @@
+#include "modes.h"
 #include "cmd_line.h"
 #include "output_fstr.h"
 

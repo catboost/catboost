@@ -1,3 +1,4 @@
+#include "modes.h"
 #include "bind_options.h"
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/options/plain_options_helper.h>
@@ -14,7 +15,7 @@ int mode_fit(const int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     if (!paramsFile.empty()) {
-        CB_ENSURE(NFs::Exists(paramsFile), "Params file does not exists " << paramsFile);
+        CB_ENSURE(NFs::Exists(paramsFile), "Params file does not exist " << paramsFile);
         TIFStream in(paramsFile);
         NJson::TJsonValue fromFileParams;
         CB_ENSURE(NJson::ReadJsonTree(&in, &fromFileParams), "can't parse params file");

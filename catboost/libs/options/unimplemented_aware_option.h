@@ -1,11 +1,9 @@
 #pragma once
 
-#include "enums.h"
-#include "enum_helpers.h"
-
-#include "option.h"
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/option.h>
 #include <util/system/types.h>
-#include <util/ysaveload.h>
 
 namespace NCatboostOptions {
     template <ETaskType Type>

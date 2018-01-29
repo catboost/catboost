@@ -1,7 +1,6 @@
 #pragma once
 
 #include "option.h"
-#include "json_helper.h"
 #include "system_options.h"
 #include "boosting_options.h"
 #include "oblivious_tree_options.h"
@@ -12,7 +11,6 @@
 #include "cat_feature_options.h"
 #include "metric_options.h"
 
-#include <catboost/libs/logging/logging_level.h>
 #include <library/json/json_reader.h>
 #include <util/system/types.h>
 
@@ -35,25 +33,8 @@ namespace NCatboostOptions {
         {
         }
 
-        void Load(const NJson::TJsonValue& options) {
-            ETaskType currentTaskType = TaskType;
-            CheckedLoad(options, &TaskType,
-                        &SystemOptions, &BoostingOptions,
-                        &ObliviousTreeOptions,
-                        &DataProcessingOptions, &LossFunctionDescription,
-                        &RandomSeed, &CatFeatureParams,
-                        &FlatParams, &LoggingLevel,
-                        &IsProfile, &MetricOptions);
-            SetNotSpecifiedOptionsToDefaults();
-            CB_ENSURE(currentTaskType == GetTaskType(), "Task type in json-config is not equal to one specified for options");
-            Validate();
-        }
-
-        void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, TaskType, SystemOptions, BoostingOptions, ObliviousTreeOptions,
-                       DataProcessingOptions, LossFunctionDescription,
-                       RandomSeed, CatFeatureParams, FlatParams, LoggingLevel, IsProfile, MetricOptions);
-        }
+        void Load(const NJson::TJsonValue& options);
+        void Save(NJson::TJsonValue* options) const;
 
         bool operator==(const TCatBoostOptions& rhs) const {
             return std::tie(SystemOptions, BoostingOptions, ObliviousTreeOptions,  DataProcessingOptions,

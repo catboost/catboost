@@ -1,7 +1,6 @@
 #include "cmd_line.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <library/grid_creator/binarization.h>
 
 #include <util/generic/strbuf.h>
 #include <util/string/iterator.h>
