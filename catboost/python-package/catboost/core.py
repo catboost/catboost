@@ -528,6 +528,12 @@ class CatBoost(_CatBoostBase):
                     raise CatboostError("Invalid param `{}`.".format(param))
 
     def _process_synonyms(self, params):
+        if 'objective' in params:
+            if 'loss_function' in params:
+                raise CatboostError('only one of parameters loss_function, objective should be initialized.')
+            params['loss_function'] = params['objective']
+            del params['objective']
+
         if 'max_depth' in params:
             if 'depth' in params:
                 raise CatboostError('only one of parameters depth, max_depth should be initialised.')
@@ -1291,6 +1297,8 @@ class CatBoostClassifier(CatBoost):
     random_state : int, synonym for random_seed.
 
     reg_lambda : float, synonym for l2_leaf_reg.
+
+    objective : string, synonym for loss_function.
     """
     def __init__(
         self,
@@ -1354,8 +1362,13 @@ class CatBoostClassifier(CatBoost):
         colsample_bylevel=None,
         random_state=None,
         reg_lambda=None,
+        objective=None,
         **kwargs
     ):
+        if objective is not None:
+            loss_function = objective
+            objective = None
+
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
@@ -1661,8 +1674,13 @@ class CatBoostRegressor(CatBoost):
         colsample_bylevel=None,
         random_state=None,
         reg_lambda=None,
+        objective=None,
         **kwargs
     ):
+        if objective is not None:
+            loss_function = objective
+            objective = None
+
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
         params = {}
