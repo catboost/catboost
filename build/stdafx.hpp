@@ -194,7 +194,7 @@
 #include <library/deprecated/estimators/estimators.h>
 #include <util/draft/parse_utils.h>
 #include <util/network/netloss.h>
-#include <util/draft/enum_codegen.h>
+#include <library/deprecated/enum_codegen/enum_codegen.h>
 #include <util/generic/avltree.h>
 #include <util/generic/array_size.h>
 #include <util/generic/bitmap.h>
