@@ -1,9 +1,9 @@
 #include "cross_validation.h"
 #include "train_model.h"
 #include <catboost/libs/algo/train.h>
-#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/algo/helpers.h>
-
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
@@ -103,6 +103,15 @@ static TCVIterationResults ComputeIterationResults(
     cvResults.AverageTest = Accumulate(testErrors.begin(), testErrors.end(), 0.0) / foldCount;
     cvResults.StdDevTest = ComputeStdDev(testErrors, cvResults.AverageTest);
     return cvResults;
+}
+
+static TVector<const TLearnContext*> GetRawPointers(const TVector<THolder<TLearnContext>>& contexts) {
+    TVector<const TLearnContext*> pointerContexts;
+    pointerContexts.reserve(contexts.size());
+    for (auto& ctx : contexts) {
+        pointerContexts.push_back(ctx.Get());
+    }
+    return pointerContexts;
 }
 
 void CrossValidate(
@@ -230,10 +239,46 @@ void CrossValidate(
         results->push_back(result);
     }
 
+    TLogger logger;
+    TString learnToken = "learn", testToken = "test";
+    if (ctx->OutputOptions.AllowWriteFiles()) {
+        AddFileLoggers(
+            ctx->Files.LearnErrorLogFile,
+            ctx->Files.TestErrorLogFile,
+            ctx->Files.TimeLeftLogFile,
+            ctx->Files.JsonLogFile,
+            ctx->OutputOptions.GetTrainDir(),
+            GetJsonMeta(
+                GetRawPointers(contexts),
+                learnToken,
+                testToken,
+                /*hasTrain=*/true,
+                /*hasTest=*/true
+            ),
+            &logger
+        );
+    }
+
+    AddConsoleLogger(
+        /*detailedProfile=*/false,
+        learnToken,
+        testToken,
+        /*hasTrain=*/true,
+        /*hasTest=*/true,
+        ctx->OutputOptions.GetMetricPeriod(),
+        &logger
+    );
+
+
+    TProfileInfo& profile = ctx->Profile;
     for (ui32 iteration = 0; iteration < ctx->Params.BoostingOptions->IterationCount; ++iteration) {
+        profile.StartNextIteration();
+
         for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
             TrainOneIteration(folds[foldIdx], contexts[foldIdx].Get());
         }
+
+        TOneInterationLogger oneIterLogger(logger);
 
         for (size_t metricIdx = 0; metricIdx < metrics.size(); ++metricIdx) {
             const auto& metric = metrics[metricIdx];
@@ -244,13 +289,20 @@ void CrossValidate(
             for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
                 trainErrors.push_back(calcFoldError(foldIdx, 0, folds[foldIdx].LearnSampleCount, metric));
                 testErrors.push_back(calcFoldError(foldIdx, folds[foldIdx].LearnSampleCount, folds[foldIdx].GetSampleCount(), metric));
+                oneIterLogger.OutputMetric(
+                    contexts[foldIdx]->Files.NamesPrefix + learnToken,
+                    TMetricEvalResult(metric->GetDescription(), trainErrors.back(), metricIdx == 0)
+                );
+                oneIterLogger.OutputMetric(
+                    contexts[foldIdx]->Files.NamesPrefix + testToken,
+                    TMetricEvalResult(metric->GetDescription(), testErrors.back(), metricIdx == 0)
+                );
             }
 
             TCVIterationResults cvResults = ComputeIterationResults(trainErrors, testErrors, folds.size());
 
-            MATRIXNET_INFO_LOG << "Iteration: " << iteration;
-            MATRIXNET_INFO_LOG << "\ttrain avg\t" << cvResults.AverageTrain << "\ttrain stddev\t" << cvResults.StdDevTrain;
-            MATRIXNET_INFO_LOG << "\ttest avg\t" << cvResults.AverageTest << "\ttest stddev\t" << cvResults.StdDevTest;
+            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
+            oneIterLogger.OutputMetric(testToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTest, metricIdx == 0));
 
             (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
@@ -260,11 +312,12 @@ void CrossValidate(
             }
         }
 
+        profile.FinishIteration();
+        oneIterLogger.OutputProfile(profile.GetProfileResults());
+
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_INFO_LOG << "Stopped by overfitting detector ("
-                << "iteration: " << iteration << ", "
-                << "iterations wait: " << errorTracker.GetOverfittingDetectorIterationsWait()
-                << ")" << Endl;
+            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
     }

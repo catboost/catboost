@@ -762,8 +762,6 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
 void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx) {
     SetLogingLevel(ctx->Params.LoggingLevel);
 
-    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
-
     TTrainOneIterationFunc trainFunc;
     ELossFunction lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
 
