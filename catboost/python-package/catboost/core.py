@@ -1709,19 +1709,19 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def train(params=None, pool=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None):
+def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None):
     """
     Train CatBoost model.
 
     Parameters
     ----------
+    pool : Pool or tuple (X, y)
+        Data to train on.
+
     params : dict
         Parameters for CatBoost.
         If  None, all params are set to their defaults.
         If  dict, overriding parameters present in the dict.
-
-    pool : Pool or tuple (X, y)
-        Data to train on.
 
     dtrain : Pool or tuple (X, y)
         Synonym for pool parameter. Only one of these parameters should be set.
@@ -1785,20 +1785,20 @@ def train(params=None, pool=None, dtrain=None, logging_level=None, verbose=None,
     return model
 
 
-def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True, logging_level=None):
+def cv(pool, params, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True, logging_level=None):
     """
     Cross-validate the CatBoost model.
 
     Parameters
     ----------
+    pool : Pool
+        Data to cross-validatte.
+
     params : dict
         Parameters for CatBoost.
         CatBoost has many of parameters, all have default values.
         If  None, all params still defaults.
         If  dict, overriding some (or all) params.
-
-    pool : Pool
-        Data to cross-validatte.
 
     fold_count : int, optional (default=3)
         The number of folds to split the dataset into.
