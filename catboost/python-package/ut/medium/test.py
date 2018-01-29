@@ -615,7 +615,7 @@ def test_clone():
 
     for param in params:
         assert param in new_params
-        assert new_params[param] is params[param]
+        assert new_params[param] == params[param]
 
 
 def test_different_cat_features_order():
