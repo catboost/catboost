@@ -466,6 +466,7 @@ class CatBoost(_CatBoostBase):
         model_file : string, optional (default=None)
             If string, giving the path to the file with input model.
         """
+        params = deepcopy(params)
         if params is None:
             params = {}
 
@@ -481,7 +482,12 @@ class CatBoost(_CatBoostBase):
         params['kwargs'] = kwargs
 
         if 'verbose' in params:
-            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (posible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning, 2)
+            if 'logging_level' in params:
+                raise CatboostError('only one of parameters logging_level, verbose should be set.')
+            if params['verbose'] is True:
+                params['logging_level'] = 'Verbose'
+            else:
+                params['logging_level'] = 'Silent'
             del params['verbose']
 
         self._check_params(params)
@@ -569,7 +575,17 @@ class CatBoost(_CatBoostBase):
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
         if verbose is not None:
-            warnings.warn("The 'verbose' parameter is deprecated, use 'logging_level' parameter instead (possible values: 'Silent', 'Verbose', 'Info', 'Debug').", FutureWarning)
+            if not isinstance(verbose, bool):
+                raise CatboostError('verbose should be bool.')
+            if logging_level is not None:
+                raise CatboostError('only one of parameters logging_level, verbose should be set.')
+            if logging_level is not None:
+                raise CatboostError('only one of parameters logging_level, verbose should be set.')
+            if verbose:
+                logging_level = 'Verbose'
+            else:
+                logging_level = 'Silent'
+
         if logging_level is not None:
             params['logging_level'] = logging_level
         if use_best_model is not None:
@@ -668,6 +684,9 @@ class CatBoost(_CatBoostBase):
                 - 'Verbose'
                 - 'Info'
                 - 'Debug'
+
+        verbose : bool, if set to True, logging_level is set to Verbose. If set
+            to False, logging_level is set to Silent.
 
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
@@ -1800,7 +1819,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
             - 'Info'
             - 'Debug'
 
-    verbose : boolean
+    verbose : bool
         If set to True, then logging_level is set to Verbose, otherwise
         logging_level is set to Silent.
 
