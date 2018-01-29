@@ -459,9 +459,8 @@ class CatBoost(_CatBoostBase):
         ----------
         params : dict
             Parameters for CatBoost.
-            CatBoost has many of parameters, all have default values.
-            If  None, all params still defaults.
-            If  dict, overriding some (or all) params.
+            If  None, all params are set to their defaults.
+            If  dict, overriding parameters present in dict.
 
         model_file : string, optional (default=None)
             If string, giving the path to the file with input model.
