@@ -38,7 +38,7 @@ void BuildCvPools(
     // TODO(annaveronika): fix learn and test count when query id is fixed.
     const size_t testCount = (docCount - 1 - foldIdx) / foldCount + 1; // number of foldIdx + n*foldCount in [0, docCount)
     const size_t learnCount = docCount - testCount;
-    bool hasQueryId = !learnPool->Docs.QueryId.empty();
+    bool hasQueryId = !allDocs.QueryId.empty();
     learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
     testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
 
