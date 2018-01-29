@@ -258,11 +258,6 @@ TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model, const TVecto
     const ui32* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() +
         model.ObliviousTrees.TreeStartOffsets[treeId];
-
-    if (model.ObliviousTrees.OneHotFeatures.empty()) {
-        CalcIndexes<false>(binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);
-    } else {
-        CalcIndexes<true>(binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);
-    }
+    CalcIndexes(!model.ObliviousTrees.OneHotFeatures.empty(), binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);
     return indexesVec;
 }

@@ -3,6 +3,9 @@
 #include "model.h"
 #include <catboost/libs/helpers/exception.h>
 
+
+constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
+
 inline void OneHotBinsFromTransposedCatFeatures(
     const TVector<TOneHotFeature>& OneHotFeatures,
     const THashMap<int, int> catFeaturePackedIndex,
@@ -100,123 +103,6 @@ inline void BinarizeFeatures(
 
 using TCalcerIndexType = ui32;
 
-template<bool NeedXorMask>
-Y_FORCE_INLINE void CalcIndexes(
-        const ui8* __restrict binFeatures,
-        size_t docCountInBlock,
-        ui32* __restrict indexesVec,
-        const ui32* __restrict treeSplitsCurPtr,
-        int curTreeSize) {
-    for (int depth = 0; depth < curTreeSize; ++depth) {
-        const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth] & 0xff);
-
-        const auto featureId = treeSplitsCurPtr[depth] >> 16;
-        const ui8* __restrict binFeaturePtr = &binFeatures[featureId * docCountInBlock];
-        const ui8 xorMask = (ui8)((treeSplitsCurPtr[depth] & 0xff00) >> 8);
-        if (NeedXorMask) {
-            Y_PREFETCH_READ(binFeaturePtr, 3);
-            Y_PREFETCH_WRITE(indexesVec, 3);
-            #pragma clang loop vectorize_width(16)
-            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                indexesVec[docId] |= ((binFeaturePtr[docId] ^ xorMask) >= borderVal) << depth;
-            }
-        } else {
-            Y_PREFETCH_READ(binFeaturePtr, 3);
-            Y_PREFETCH_WRITE(indexesVec, 3);
-            #pragma clang loop vectorize_width(16)
-            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                indexesVec[docId] |= ((binFeaturePtr[docId]) >= borderVal) << depth;
-            }
-        }
-    }
-}
-
-template<bool IsSingleClassModel, bool IsSingleDocCase, bool NeedXorMask>
-inline void CalcTreesImpl(
-    const TFullModel& model,
-    size_t blockStart,
-    const ui8* __restrict binFeatures,
-    size_t docCountInBlock,
-    TCalcerIndexType* __restrict indexesVec,
-    size_t treeStart,
-    size_t treeEnd,
-    double* __restrict results)
-{
-    const auto docCountInBlock4 = (docCountInBlock | 0x3) ^0x3;
-    const ui32* treeSplitsCurPtr =
-        model.ObliviousTrees.GetRepackedBins().data() +
-            model.ObliviousTrees.TreeStartOffsets[treeStart];
-    if (!IsSingleDocCase) {
-        for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-            auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
-
-            memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
-
-            CalcIndexes<NeedXorMask>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
-            auto treeLeafPtr = model.ObliviousTrees.LeafValues[treeId].data();
-            if (IsSingleClassModel) { // single class model
-                const ui32* __restrict indexesPtr = indexesVec;
-                double* __restrict writePtr = &results[blockStart];
-                Y_PREFETCH_READ(treeLeafPtr, 3);
-                Y_PREFETCH_READ(treeLeafPtr + 128, 3);
-                for (size_t docId = 0; docId < docCountInBlock4; docId += 4) {
-                    writePtr[0] += treeLeafPtr[indexesPtr[0]];
-                    writePtr[1] += treeLeafPtr[indexesPtr[1]];
-                    writePtr[2] += treeLeafPtr[indexesPtr[2]];
-                    writePtr[3] += treeLeafPtr[indexesPtr[3]];
-                    writePtr += 4;
-                    indexesPtr += 4;
-                }
-                for (size_t docId = docCountInBlock4; docId < docCountInBlock; ++docId) {
-                    *writePtr += treeLeafPtr[*indexesPtr];
-                    ++writePtr;
-                    ++indexesPtr;
-                }
-            } else { // mutliclass model
-                auto docResultPtr = &results[blockStart * model.ObliviousTrees.ApproxDimension];
-                for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                    auto leafValuePtr = treeLeafPtr + indexesVec[docId] * model.ObliviousTrees.ApproxDimension;
-                    for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
-                        docResultPtr[classId] += leafValuePtr[classId];
-                    }
-                    docResultPtr += model.ObliviousTrees.ApproxDimension;
-                }
-            }
-            treeSplitsCurPtr += curTreeSize;
-        }
-    } else {
-        double result = 0.0;
-        for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-            auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
-            TCalcerIndexType index = 0;
-            for (int depth = 0; depth < curTreeSize; ++depth) {
-                const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth] & 0xff);
-                const ui32 featureIndex = (treeSplitsCurPtr[depth] >> 16);
-                if (NeedXorMask) {
-                    const ui8 xorMask = (ui8)((treeSplitsCurPtr[depth] & 0xff00) >> 8);
-                    index |= ((binFeatures[featureIndex] ^ xorMask) >= borderVal) << depth;
-                } else {
-                    index |= (binFeatures[featureIndex] >= borderVal) << depth;
-                }
-            }
-            auto treeLeafPtr = model.ObliviousTrees.LeafValues[treeId].data();
-            if (IsSingleClassModel) { // single class model
-                result += treeLeafPtr[index];
-            } else { // mutliclass model
-                auto docResultPtr = &results[model.ObliviousTrees.ApproxDimension];
-                auto leafValuePtr = treeLeafPtr + index * model.ObliviousTrees.ApproxDimension;
-                for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
-                    docResultPtr[classId] += leafValuePtr[classId];
-                }
-            }
-            treeSplitsCurPtr += curTreeSize;
-        }
-        if (IsSingleClassModel) {
-            results[0] = result;
-        }
-    }
-}
-
 using TTreeCalcFunction = std::function<void(const TFullModel& model,
     size_t blockStart,
     const ui8* __restrict binFeatures,
@@ -226,37 +112,15 @@ using TTreeCalcFunction = std::function<void(const TFullModel& model,
     size_t treeEnd,
     double* __restrict results)>;
 
-inline TTreeCalcFunction GetCalcTreesFunction(int approxDimension, size_t docCountInBlock, bool hasOneHots) {
-    if (approxDimension == 1) {
-        if (docCountInBlock == 1) {
-            if (hasOneHots) {
-                return CalcTreesImpl<true, true, true>;
-            } else {
-                return CalcTreesImpl<true, true, false>;
-            }
-        } else {
-            if (hasOneHots) {
-                return CalcTreesImpl<true, false, true>;
-            } else {
-                return CalcTreesImpl<true, false, false>;
-            }
-        }
-    } else {
-        if (docCountInBlock == 1) {
-            if (hasOneHots) {
-                return CalcTreesImpl<false, true, true>;
-            } else {
-                return CalcTreesImpl<false, true, false>;
-            }
-        } else {
-            if (hasOneHots) {
-                return CalcTreesImpl<false, false, true>;
-            } else {
-                return CalcTreesImpl<false, false, false>;
-            }
-        }
-    }
-}
+void CalcIndexes(
+    bool needXorMask,
+    const ui8* __restrict binFeatures,
+    size_t docCountInBlock,
+    ui32* __restrict indexesVec,
+    const ui32* __restrict treeSplitsCurPtr,
+    int curTreeSize);
+
+TTreeCalcFunction GetCalcTreesFunction(int approxDimension, size_t docCountInBlock, bool hasOneHots);
 
 template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
@@ -268,12 +132,7 @@ inline void CalcGeneric(
     size_t treeEnd,
     TArrayRef<double> results)
 {
-    size_t blockSize;
-    if (model.ObliviousTrees.CtrFeatures.empty()) {
-        blockSize = 1024;
-    } else {
-        blockSize = 4096;
-    }
+    size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
     blockSize = Min(blockSize, docCount);
     TVector<ui8> binFeatures(blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount());
     auto calcTrees = GetCalcTreesFunction(model.ObliviousTrees.ApproxDimension, blockSize, !model.ObliviousTrees.OneHotFeatures.empty());
@@ -349,12 +208,7 @@ public:
                                 size_t docCount)
             : Model(model)
             , DocCount(docCount) {
-        size_t blockSize;
-        if (Model.ObliviousTrees.CtrFeatures.empty()) {
-            blockSize = 128;
-        } else {
-            blockSize = 4096;
-        }
+        size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
         BlockSize = Min(blockSize, docCount);
         CalcFunction = GetCalcTreesFunction(
                 Model.ObliviousTrees.ApproxDimension,
@@ -399,12 +253,7 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     size_t docCount,
     size_t incrementStep)
 {
-    size_t blockSize;
-    if (model.ObliviousTrees.CtrFeatures.empty()) {
-        blockSize = 128;
-    } else {
-        blockSize = 4096;
-    }
+    size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
     blockSize = Min(blockSize, docCount);
     auto treeStepCount = (model.ObliviousTrees.TreeSizes.size() + incrementStep - 1) / incrementStep;
     TVector<TVector<double>> results(docCount, TVector<double>(treeStepCount));
