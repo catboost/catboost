@@ -85,6 +85,7 @@ public:
     TString TestErrorLogFile;
     TString SnapshotFile;
     TString MetaFile;
+    TString JsonLogFile;
     static TString AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
 
 private:
@@ -131,3 +132,11 @@ public:
     TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
 };
+
+NJson::TJsonValue GetJsonMeta(
+    const TVector<const TLearnContext*>& learnContexts,
+    const TString& learnToken,
+    const TString& testToken,
+    bool hasTrain,
+    bool hasTest
+);

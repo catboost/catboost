@@ -50,6 +50,10 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
     const TString& metaFileFilename = params.GetMetaFileFilename();
     CB_ENSURE(!metaFileFilename.empty(), "empty meta filename");
     MetaFile = TOutputFiles::AlignFilePath(trainDir, metaFileFilename, NamesPrefix);
+
+    const TString& jsonLogFilename = params.GetJsonLogFilename();
+    CB_ENSURE(!jsonLogFilename.empty(), "empty json_log filename");
+    JsonLogFile = TOutputFiles::AlignFilePath(trainDir, jsonLogFilename, NamesPrefix);
 }
 
 TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
@@ -248,4 +252,50 @@ void TLearnProgress::Load(IInputStream* s) {
                TimeHistory,
                UsedCtrSplits,
                PoolCheckSum);
+}
+
+
+NJson::TJsonValue GetJsonMeta(
+    const TVector<const TLearnContext*>& learnContexts,
+    const TString& learnToken,
+    const TString& testToken,
+    bool hasTrain,
+    bool hasTest
+) {
+    NJson::TJsonValue meta;
+    meta["iteration_count"] = learnContexts[0]->Params.BoostingOptions->IterationCount.Get();
+    meta["name"] = learnContexts[0]->OutputOptions.GetName();
+
+    meta.InsertValue("learn_sets", NJson::JSON_ARRAY);
+    if (hasTrain) {
+        for (auto& ctx : learnContexts) {
+            meta["learn_sets"].AppendValue(ctx->Files.NamesPrefix + learnToken);
+        }
+    }
+
+    meta.InsertValue("test_sets", NJson::JSON_ARRAY);
+    if (hasTest) {
+        for (auto& ctx : learnContexts) {
+            meta["test_sets"].AppendValue(ctx->Files.NamesPrefix + testToken);
+        }
+    }
+
+    auto losses = CreateMetrics(
+        learnContexts[0]->Params.LossFunctionDescription,
+        learnContexts[0]->Params.MetricOptions,
+        learnContexts[0]->EvalMetricDescriptor,
+        learnContexts[0]->LearnProgress.ApproxDimension
+    );
+
+    meta.InsertValue("learn_metrics", NJson::JSON_ARRAY);
+    meta.InsertValue("test_metrics", NJson::JSON_ARRAY);
+    for (const auto& loss : losses) {
+        if (hasTrain) {
+            meta["learn_metrics"].AppendValue(loss->GetDescription() + "\t" + (loss->IsMaxOptimal() ? "max" : "min"));
+        }
+        if (hasTest) {
+            meta["test_metrics"].AppendValue(loss->GetDescription() + "\t" + (loss->IsMaxOptimal() ? "max" : "min"));
+        }
+    }
+    return meta;
 }

@@ -7,6 +7,9 @@
 
 #include <util/stream/format.h>
 #include <util/generic/hash.h>
+#include <util/generic/ymath.h>
+
+#include <library/json/writer/json_value.h>
 
 class IMetricEvalResult {
 public:
@@ -80,6 +83,50 @@ public:
     virtual void OutputMetric(const TString& /*sourceName*/, const IMetricEvalResult& /*evalResult*/) {}
     virtual void OutputProfile(const TProfileResults& /*profileResults*/) {}
     virtual void Flush(const int currentIteration) = 0;
+};
+
+class TJsonLoggingBackend : public ILoggingBackend {
+public:
+    explicit TJsonLoggingBackend(const TString& fileName, const NJson::TJsonValue& metaJson)
+        : File(fileName, CreateAlways)
+    {
+        TString metaString = "{\n\"meta\":" + ToString<NJson::TJsonValue>(metaJson) + ",\n\"iterations\":[\n]}";
+        File.Write(metaString.data(), metaString.length());
+    }
+
+    void OutputMetric(const TString& sourceName, const IMetricEvalResult& evalResult) {
+        double metricValue = evalResult.GetMetricValue();
+        if (IsValidFloat(metricValue)) {
+            IterationJson[sourceName].AppendValue(metricValue);
+        } else {
+            IterationJson[sourceName].AppendValue(ToString<double>(metricValue));
+        }
+    }
+
+    void OutputProfile(const TProfileResults& profileResults) {
+        IterationJson["remaining_time"] = profileResults.RemainingTime;
+        IterationJson["passed_time"] = profileResults.PassedTime;
+    }
+
+    void Flush(const int currentIteration) {
+        if (IterationJson.IsDefined()) {
+            IterationJson.InsertValue("iteration", currentIteration);
+
+            TString iterationInfo = ",";
+            if (currentIteration == 0) {
+                iterationInfo.clear();
+            }
+            iterationInfo += "\n" + ToString<NJson::TJsonValue>(IterationJson) + "\n]}";
+
+            File.Seek(-3, sCur);
+            File.Write(iterationInfo.data(), iterationInfo.length());
+            IterationJson = NJson::JSON_UNDEFINED;
+        }
+    }
+
+private:
+    TFile File;
+    NJson::TJsonValue IterationJson;
 };
 
 class TConsoleLoggingBackend : public ILoggingBackend {
@@ -288,6 +335,8 @@ void WriteHistory(
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
     const TVector<TVector<double>>& timeHistory,
+    const TString& learnToken,
+    const TString& testToken,
     TLogger* logger
 );
 
@@ -295,16 +344,18 @@ void AddFileLoggers(
     const TString& learnErrorLogFile,
     const TString& testErrorLogFile,
     const TString& timeLogFile,
+    const TString& jsonLogFile,
     const TString& trainDir,
-    const bool hasTrain,
-    const bool hasTest,
+    const NJson::TJsonValue& metaJson,
     TLogger* logger
 );
 
 void AddConsoleLogger(
-    const bool detailedProfile,
-    const bool hasTrain,
-    const bool hasTest,
+    bool detailedProfile,
+    const TString& learnToken,
+    const TString& testToken,
+    bool hasTrain,
+    bool hasTest,
     int metricPeriod,
     TLogger* logger
 );
@@ -313,9 +364,11 @@ void Log(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
-    const double bestErrorValue,
-    const int bestIteration,
+    double bestErrorValue,
+    int bestIteration,
     const TProfileResults& profileResults,
+    const TString& learnToken,
+    const TString& testToken,
     TLogger* logger
 );
 

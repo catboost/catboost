@@ -92,6 +92,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "train_dir", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "name", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "meta", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "json_log", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "learn_error_log", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "test_error_log", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "time_left_log", &outputFilesJson, &seenKeys);

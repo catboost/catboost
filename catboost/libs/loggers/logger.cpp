@@ -5,6 +5,8 @@ void WriteHistory(
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
     const TVector<TVector<double>>& timeHistory,
+    const TString& learnToken,
+    const TString& testToken,
     TLogger* logger
 ) {
     for (int iteration = 0; iteration < timeHistory.ysize(); ++iteration) {
@@ -12,14 +14,14 @@ void WriteHistory(
         if (iteration < learnErrorsHistory.ysize()) {
             const TVector<double>& learnErrors = learnErrorsHistory[iteration];
             for (int i = 0; i < learnErrors.ysize(); ++i) {
-                oneIterLogger.OutputMetric("learn", TMetricEvalResult(metricsDescription[i], learnErrors[i], i == 0));
+                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[i], learnErrors[i], i == 0));
             }
 
         }
         if (iteration < testErrorsHistory.ysize()) {
             const TVector<double>& testErrors = testErrorsHistory[iteration];
             for (int i = 0; i < testErrors.ysize(); ++i) {
-                oneIterLogger.OutputMetric("test", TMetricEvalResult(metricsDescription[i], testErrors[i], i == 0));
+                oneIterLogger.OutputMetric(testToken, TMetricEvalResult(metricsDescription[i], testErrors[i], i == 0));
             }
         }
         oneIterLogger.OutputProfile(TProfileResults(timeHistory[iteration][0], timeHistory[iteration][1]));
@@ -30,35 +32,43 @@ void AddFileLoggers(
     const TString& learnErrorLogFile,
     const TString& testErrorLogFile,
     const TString& timeLogFile,
+    const TString& jsonLogFile,
     const TString& trainDir,
-    const bool hasTrain,
-    const bool hasTest,
+    const NJson::TJsonValue& metaJson,
     TLogger* logger
 ) {
-    if (hasTrain) {
-        logger->AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(learnErrorLogFile)));
-        logger->AddBackend("learn", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "train"))));
+    TIntrusivePtr<ILoggingBackend> jsonLoggingBackend = new TJsonLoggingBackend(jsonLogFile, metaJson);
+    for (auto& jsonToken : metaJson["learn_sets"].GetArraySafe()) {
+        TString token = jsonToken.GetString();
+        logger->AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(learnErrorLogFile)));
+        logger->AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, token))));
+        logger->AddBackend(token, jsonLoggingBackend);
     }
-    if (hasTest) {
-        logger->AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(testErrorLogFile)));
-        logger->AddBackend("test", TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, "test"))));
+    for (auto& jsonToken : metaJson["test_sets"].GetArraySafe()) {
+        TString token = jsonToken.GetString();
+        logger->AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(testErrorLogFile)));
+        logger->AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(trainDir, token))));
+        logger->AddBackend(token, jsonLoggingBackend);
     }
     logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
+    logger->AddProfileBackend(jsonLoggingBackend);
 }
 
 void AddConsoleLogger(
-    const bool detailedProfile,
-    const bool hasTrain,
-    const bool hasTest,
+    bool detailedProfile,
+    const TString& learnToken,
+    const TString& testToken,
+    bool hasTrain,
+    bool hasTest,
     int metricPeriod,
     TLogger* logger
 ) {
     TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(detailedProfile, metricPeriod);
     if (hasTrain) {
-        logger->AddBackend("learn", consoleLoggingBackend);
+        logger->AddBackend(learnToken, consoleLoggingBackend);
     }
     if (hasTest) {
-        logger->AddBackend("test", consoleLoggingBackend);
+        logger->AddBackend(testToken, consoleLoggingBackend);
     }
     logger->AddProfileBackend(consoleLoggingBackend);
 }
@@ -67,9 +77,11 @@ void Log(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<double>>& testErrorsHistory,
-    const double bestErrorValue,
-    const int bestIteration,
+    double bestErrorValue,
+    int bestIteration,
     const TProfileResults& profileResults,
+    const TString& learnToken,
+    const TString& testToken,
     TLogger* logger
 ) {
     TOneInterationLogger oneIterLogger(*logger);
@@ -77,14 +89,14 @@ void Log(
     if (iteration < learnErrorsHistory.ysize()) {
         const TVector<double>& learnErrors = learnErrorsHistory[iteration];
         for (int i = 0; i < learnErrors.ysize(); ++i) {
-            oneIterLogger.OutputMetric("learn", TMetricEvalResult(metricsDescription[i], learnErrors[i], i == 0));
+            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[i], learnErrors[i], i == 0));
         }
 
     }
     if (iteration < testErrorsHistory.ysize()) {
         const TVector<double>& testErrors = testErrorsHistory[iteration];
         for (int i = 0; i < testErrors.ysize(); ++i) {
-            oneIterLogger.OutputMetric("test", TMetricEvalResult(metricsDescription[i], testErrors[i], bestErrorValue, bestIteration, i == 0));
+            oneIterLogger.OutputMetric(testToken, TMetricEvalResult(metricsDescription[i], testErrors[i], bestErrorValue, bestIteration, i == 0));
         }
     }
     oneIterLogger.OutputProfile(profileResults);

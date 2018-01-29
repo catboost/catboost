@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/algo/model_build_helper.h>
 #include <catboost/libs/algo/tree_print.h>
+#include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/cv_data_partition.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/eval_helpers.h>
@@ -164,14 +165,21 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     }
 
     TLogger logger;
+    TString learnToken = "learn", testToken = "test";
     if (ctx->OutputOptions.AllowWriteFiles()) {
         AddFileLoggers(
             ctx->Files.LearnErrorLogFile,
             ctx->Files.TestErrorLogFile,
             ctx->Files.TimeLeftLogFile,
+            ctx->Files.JsonLogFile,
             ctx->OutputOptions.GetTrainDir(),
-            true,
-            hasTest,
+            GetJsonMeta(
+                {ctx},
+                learnToken,
+                testToken,
+                /*hasTrain=*/true,
+                hasTest
+            ),
             &logger
         );
     }
@@ -181,12 +189,16 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         ctx->LearnProgress.LearnErrorsHistory,
         ctx->LearnProgress.TestErrorsHistory,
         ctx->LearnProgress.TimeHistory,
+        learnToken,
+        testToken,
         &logger
     );
 
     AddConsoleLogger(
         ctx->Params.IsProfile,
-        true,
+        learnToken,
+        testToken,
+        /*hasTrain=*/true,
         hasTest,
         ctx->OutputOptions.GetMetricPeriod(),
         &logger
@@ -264,6 +276,8 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             errorTracker.GetBestError(),
             errorTracker.GetBestIteration(),
             profileResults,
+            learnToken,
+            testToken,
             &logger
         );
 
