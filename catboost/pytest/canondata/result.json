@@ -123,6 +123,12 @@
             "uri": "file://test.test_baseline/predict_test.eval"
         }
     ],
+    "test.test_bootstrap": [
+        {
+            "checksum": "694e10ffe27a8dd28d69a1470fdc43fb",
+            "uri": "file://test.test_bootstrap/test_no.eval"
+        }
+    ],
     "test.test_calc_prediction_type": {
         "checksum": "f3a41820613f1a205ad958649044f1c2",
         "uri": "file://test.test_calc_prediction_type/test.eval"

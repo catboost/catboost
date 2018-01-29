@@ -1720,3 +1720,32 @@ def test_plain():
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
+
+
+def test_bootstrap():
+    bootstrap_option = {
+        'no': ('--bootstrap-type', 'No',),
+        'bayes': ('--bootstrap-type', 'Bayesian', '--bagging-temperature', '0.0',),
+        'bernoulli': ('--bootstrap-type', 'Bernoulli', '--sample-rate', '1.0',)
+    }
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+    )
+    for bootstrap in bootstrap_option:
+        model_path = yatest.common.test_output_path('model_' + bootstrap + '.bin')
+        eval_path = yatest.common.test_output_path('test_' + bootstrap + '.eval')
+        yatest.common.execute(cmd + ('-m', model_path, '--eval-file', eval_path,) + bootstrap_option[bootstrap])
+
+    ref_eval_path = yatest.common.test_output_path('test_no.eval')
+    assert(filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bayes.eval')))
+    assert(filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bernoulli.eval')))
+
+    return [local_canonical_file(ref_eval_path)]
