@@ -108,4 +108,14 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(s1.size(), 1);
         UNIT_ASSERT_VALUES_EQUAL(s1[0], 3);
     }
+
+    static void Do(const TArrayRef<int> a) {
+        a[0] = 8;
+    }
+
+    SIMPLE_UNIT_TEST(TestConst) {
+        int a[] = {1, 2};
+        Do(a);
+        UNIT_ASSERT_VALUES_EQUAL(a[0], 8);
+    }
 }
