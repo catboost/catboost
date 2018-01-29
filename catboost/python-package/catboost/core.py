@@ -1189,6 +1189,8 @@ class CatBoostClassifier(CatBoost):
     used_ram_limit : int, [default=None]
         Try to limit used memory (limit value in bytes).
         WARNING: Currently this option affects CTR memory usage only.
+    gpu_ram_part : int, [default=0.95]
+        How much of the GPU RAM to use for training.
     allow_writing_files : bool, [default=True]
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not
@@ -1254,6 +1256,7 @@ class CatBoostClassifier(CatBoost):
         snapshot_file=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
+        gpu_ram_part=None,
         allow_writing_files=None,
         approx_on_full_history=None,
         boosting_type=None,
@@ -1551,6 +1554,7 @@ class CatBoostRegressor(CatBoost):
         snapshot_file=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
+        gpu_ram_part=None,
         allow_writing_files=None,
         approx_on_full_history=None,
         boosting_type=None,
