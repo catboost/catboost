@@ -1,3 +1,40 @@
+# Release 0.6
+## Speedups
+- 25% speedup of the model applier
+- 43% speedup for training on large datasets.
+- 15% speedup for `QueryRMSE` and calculation of querywise metrics.
+- Large speedups when using binary categorical features.
+- Significant (x200 on 5k trees and 50k lines dataset) speedup for plot and stage predict calculations in cmdline.
+- Compilation time speedup.
+
+## Major Features And Improvements
+- Industry fastest [applier implementation](https://tech.yandex.com/catboost/doc/dg/concepts/c-plus-plus-api-docpage/#c-plus-plus-api).
+- Introducing new parameter [`boosting-type`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) to switch between standard boosting scheme and dynamic boosting, described in paper ["Dynamic boosting"](https://arxiv.org/abs/1706.09516).
+- Adding new [bootstrap types](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `bootstrap_type`, `sample_rate`, `sampling_frequency`.
+- Better logging for cross-validation, added [parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_cv-docpage/) `logging_level` and `metric_period` (should be set in training parameters) to cv.
+- Added a separate `train` [function](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_train-docpage/) that receives the parameters and returns a trained model.
+- Ranking mode `QueryRMSE` now supports default settings for dynamic boosting.
+- R-package pre-build binaries are included into release. 
+- We added many synonyms to our parameter names, now it is more convenient to try CatBoost if you are used to some other library.
+
+##Breaking Changes
+- Parameter `sample_rate` is renamed to `subsample`.
+
+## Bug Fixes and Other Changes
+- Fix for CPU QueryRMSE with weights.
+- Adding several missing parameters into wrappers.
+- Fix for data split in querywise modes.
+- Better logging.
+- From this release we'll provide pre-build R-binaries
+- More parallelisation.
+- Memory usage improvements.
+* And some other bug fixes.
+
+## Thanks to our Contributors
+This release contains contributions from CatBoost team.
+
+We are grateful to all who filed issues or helped resolve them, asked and answered questions.
+
 # Release 0.5.2
   
 ## Major Features And Improvements
