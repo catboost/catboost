@@ -27,8 +27,6 @@ static void GenerateRandomWeights(int learnSampleCount,
     if (baggingTemperature == 0) {
         return;
     }
-    TVector<float> sampleWeights;
-    sampleWeights.yresize(learnSampleCount);
 
     const ui64 randSeed = ctx->Rand.GenRand();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, learnSampleCount);
@@ -36,15 +34,12 @@ static void GenerateRandomWeights(int learnSampleCount,
     ctx->LocalExecutor.ExecRange([&](int blockIdx) {
         TFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
-        float* sampleWeightsData = sampleWeights.data();
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&rand, sampleWeightsData, baggingTemperature](int i) {
+        float* sampleWeightsData = fold->SampleWeights.data();
+        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=,&rand](int i) {
             const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
             sampleWeightsData[i] = powf(w, baggingTemperature);
         })(blockIdx);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-
-    TFold& ff = *fold;
-    ff.AssignPermuted(sampleWeights, &ff.SampleWeights);
 }
 
 
