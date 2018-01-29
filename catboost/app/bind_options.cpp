@@ -396,7 +396,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<float>([plainJsonPtr](float rate) {
             (*plainJsonPtr)["sample_rate"] = rate;
         })
-        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli. Possible values are from (0, 1]; 1 by default."
+        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli. Possible values are from (0, 1]; 0.66 by default."
         );
 
     parser
