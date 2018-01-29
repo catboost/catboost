@@ -389,7 +389,7 @@ void TPoolReader::ProcessBlock() {
                                       " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
                         }
                     }
-                    features[featureId] = val;
+                    features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
                     ++featureId;
                     break;
                 }

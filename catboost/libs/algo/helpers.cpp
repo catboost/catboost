@@ -68,15 +68,13 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     THashSet<int> ignoredFeatureIndexes(ctx->Params.DataProcessingOptions->IgnoredFeatures->begin(), ctx->Params.DataProcessingOptions->IgnoredFeatures->end());
     auto calcOneFeatureBorder = [&](int idx) {
         auto& floatFeature = floatFeatures->at(idx);
-        const auto floatFeatureIdx = floatFeatures->at(idx).FlatFeatureIndex;
+        const auto floatFeatureIdx = floatFeature.FlatFeatureIndex;
         if (ignoredFeatureIndexes.has(floatFeatureIdx)) {
             return;
         }
 
         TVector<float> vals;
         vals.reserve(samplesToBuildBorders);
-
-        floatFeature.HasNans = AnyOf(docStorage.Factors[floatFeatureIdx], IsNan);
         for (size_t i = 0; i < samplesToBuildBorders; ++i) {
             const size_t randomDocIdx = isShuffleNeeded ? randomShuffle[i] : i;
             const float factor = docStorage.Factors[floatFeatureIdx][randomDocIdx];
@@ -84,11 +82,16 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
                 vals.push_back(factor);
             }
         }
-        Sort(vals.begin(), vals.end());
 
         THashSet<float> borderSet = BestSplit(vals, borderCount, borderType);
+        if (borderSet.has(-0.0f)) { // BestSplit might add negative zeros
+            borderSet.erase(-0.0f);
+            borderSet.insert(0.0f);
+        }
         TVector<float> bordersBlock(borderSet.begin(), borderSet.end());
         Sort(bordersBlock.begin(), bordersBlock.end());
+
+        floatFeature.HasNans = AnyOf(docStorage.Factors[floatFeatureIdx], IsNan);
         if (floatFeature.HasNans) {
             if (nanMode == ENanMode::Min) {
                 bordersBlock.insert(bordersBlock.begin(), std::numeric_limits<float>::lowest());

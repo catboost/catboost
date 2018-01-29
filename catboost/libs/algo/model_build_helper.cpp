@@ -30,34 +30,33 @@ void TObliviousTreeBuilder::AddTree(TVector<TModelSplit>& modelSplits, TVector<T
 }
 
 TObliviousTrees TObliviousTreeBuilder::Build() {
-    TSet<TModelSplit> ModelSplitSet;
+    TSet<TModelSplit> modelSplitSet;
     for (const auto& tree : Trees) {
         for (const auto& split : tree) {
-            ModelSplitSet.insert(split);
+            modelSplitSet.insert(split);
             if (split.Type == ESplitType::OnlineCtr) {
                 auto& proj = split.OnlineCtr.Ctr.Base.Projection;
                 for (const auto& binF : proj.BinFeatures) {
-                    ModelSplitSet.insert(TModelSplit(binF));
+                    modelSplitSet.insert(TModelSplit(binF));
                 }
                 for (const auto& oheFeature : proj.OneHotFeatures) {
-                    ModelSplitSet.insert(TModelSplit(oheFeature));
+                    modelSplitSet.insert(TModelSplit(oheFeature));
                 }
             }
         }
     }
+    // indexing binary tree splits
+    THashMap<TModelSplit, int> binFeatureIndexes;
+    for (const auto& split : modelSplitSet) {
+        const int binFeatureIdx = binFeatureIndexes.ysize();
+        Y_ASSERT(!binFeatureIndexes.has(split));
+        binFeatureIndexes[split] = binFeatureIdx;
+    }
+    Y_ASSERT(modelSplitSet.size() == binFeatureIndexes.size());
+    // filling binary tree splits
     TObliviousTrees result;
     result.ApproxDimension = ApproxDimension;
     result.LeafValues = LeafValues;
-    // indexing binary tree splits
-    THashMap<TModelSplit, int> binFeatureIndexes;
-    TVector<TModelSplit> usedSplits(ModelSplitSet.begin(), ModelSplitSet.end());
-    for (int i = 0; i < usedSplits.ysize(); ++i) {
-        int binFeatureIdx = binFeatureIndexes.ysize();
-        Y_ASSERT(!binFeatureIndexes.has(usedSplits[i]));
-        binFeatureIndexes[usedSplits[i]] = binFeatureIdx;
-    }
-    Y_ASSERT(usedSplits.size() == binFeatureIndexes.size());
-    // filling binary tree splits
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
             result.TreeSplits.push_back(binFeatureIndexes.at(split));
@@ -69,7 +68,7 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
         }
         result.TreeSizes.push_back(treeStruct.ysize());
     }
-    for (const auto& split : usedSplits) {
+    for (const auto& split : modelSplitSet) {
         if (split.Type == ESplitType::FloatFeature) {
             if (result.FloatFeatures.empty() || result.FloatFeatures.back().FeatureIndex != split.FloatFeature.FloatFeature) {
                 auto& ref = result.FloatFeatures.emplace_back();

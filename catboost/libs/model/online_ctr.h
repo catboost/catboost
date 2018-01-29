@@ -27,10 +27,6 @@ struct TFloatSplit {
         return std::tie(FloatFeature, Split) == std::tie(other.FloatFeature, other.Split);
     }
 
-    bool operator!=(const TFloatSplit& other) const {
-        return !(*this == other);
-    }
-
     bool operator<(const TFloatSplit& other) const {
         return std::tie(FloatFeature, Split) < std::tie(other.FloatFeature, other.Split);
     }

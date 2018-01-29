@@ -563,7 +563,6 @@ class CatBoost(_CatBoostBase):
             params['iterations'] = params['num_trees']
             del params['num_trees']
 
-
     def _clear_tsv_files(self, train_dir):
         for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
             path = os.path.join(train_dir, filename)
@@ -1851,10 +1850,8 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         else:
             raise CatboostError("Only one of the parameters pool and dtrain should be set.")
 
-
     if verbose is not None and logging_level is not None:
         raise CatboostError("Only one of the parameters verbose and logging_level should be set.")
-
 
     if num_boost_round is not None:
         if iterations is None:
@@ -1958,7 +1955,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         })
 
     if seed is not None:
-       partition_random_seed = seed
+        partition_random_seed = seed
 
     with log_fixup():
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)

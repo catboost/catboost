@@ -28,17 +28,18 @@ struct TModelSplit {
 
     Y_SAVELOAD_DEFINE(Type, FloatFeature, OnlineCtr, OneHotFeature);
 
-    TModelSplit() {
+    TModelSplit() = default;
+
+    explicit TModelSplit(const TFloatSplit& floatFeature)
+        : Type(ESplitType::FloatFeature)
+        , FloatFeature(floatFeature)
+    {
     }
 
-    explicit TModelSplit(const TFloatSplit& floatFeature) {
-        Type = ESplitType::FloatFeature;
-        FloatFeature = floatFeature;
-    }
-
-    explicit TModelSplit(const TOneHotSplit& oheFeature) {
-        Type = ESplitType::OneHotFeature;
-        OneHotFeature = oheFeature;
+    explicit TModelSplit(const TOneHotSplit& oheFeature)
+        : Type(ESplitType::OneHotFeature)
+        , OneHotFeature(oheFeature)
+    {
     }
 
     explicit TModelSplit(const TModelCtrSplit& onlineCtr)
@@ -49,12 +50,12 @@ struct TModelSplit {
 
     size_t GetHash() const {
         if (Type == ESplitType::FloatFeature) {
-            return MultiHash(FloatFeature.FloatFeature, FloatFeature.Split);
+            return FloatFeature.GetHash();
         } else if (Type == ESplitType::OnlineCtr) {
             return OnlineCtr.GetHash();
         } else {
             Y_ASSERT(Type == ESplitType::OneHotFeature);
-            return MultiHash(OneHotFeature.CatFeatureIdx, OneHotFeature.Value);
+            return OneHotFeature.GetHash();
         }
     }
 
