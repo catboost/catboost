@@ -1709,6 +1709,78 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
+def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
+        num_boost_round=None, evals=None, eval_set=None, plot=None):
+    """
+    Train CatBoost model.
+
+    Parameters
+    ----------
+    params : dict
+        Parameters for CatBoost.
+        If  None, all params are set to their defaults.
+        If  dict, overriding parameters present in the dict.
+
+    pool : Pool
+        Data to train on.
+
+    dtrain : Pool
+        Synonym for pool parameter. Only one of these parameters should be set.
+
+    logging_level : string, optional (default=None)
+        Possible values:
+            - 'Silent'
+            - 'Verbose'
+            - 'Info'
+            - 'Debug'
+
+    verbose : boolean
+        If set to True, then logging_level is set to Verbose, otherwise
+        logging_level is set to Silent.
+
+    iterations : int
+        Number of boosting iterations. Can be set in params dict.
+
+    num_boost_round : int
+        Synonym for iterations. Only one of these parameters should be set.
+
+    evals : Pool
+        Dataset for evaluation.
+
+    eval_set : Pool
+        Synonym for evals. Only one of these parameters should be set.
+
+    plot : bool, optional (default=False)
+        If True, drow train and eval error in Jupyter notebook
+
+    Returns
+    -------
+    model : CatBoost class
+    """
+
+    if dtrain is not None:
+        if pool is None:
+            pool = dtrain
+        else:
+            raise CatboostError("Only one of the parameters pool and dtrain should be set.")
+
+    if num_boost_round is not None:
+        if iterations is None:
+            iterations = num_boost_round
+        else:
+            raise CatboostError("Only one of the parameters iterations and num_boost_round should be set.")
+    if iterations is not None:
+        params = deepcopy(params)
+        params.update({
+            'iterations': iterations
+        })
+
+    model = CatBoost(params)
+
+    model.fit(X=pool, eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot)
+    return model
+
+
 def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True, logging_level=None):
     """
     Cross-validate the CatBoost model.

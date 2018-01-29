@@ -1,4 +1,4 @@
-from .core import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv  # noqa
+from .core import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train  # noqa
 try:
     from .widget import CatboostIpythonWidget  # noqa
 except:
