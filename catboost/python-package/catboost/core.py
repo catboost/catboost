@@ -1709,7 +1709,7 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def train(params, pool=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None):
+def train(params=None, pool=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None):
     """
     Train CatBoost model.
 
