@@ -1785,7 +1785,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     return model
 
 
-def cv(pool, params, fold_count=3, inverted=False, partition_random_seed=0, shuffle=True, logging_level=None):
+def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None, fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None, shuffle=True, logging_level=None):
     """
     Cross-validate the CatBoost model.
 
@@ -1800,8 +1800,20 @@ def cv(pool, params, fold_count=3, inverted=False, partition_random_seed=0, shuf
         If  None, all params still defaults.
         If  dict, overriding some (or all) params.
 
+    dtrain : Pool or tuple (X, y)
+        Synonym for pool parameter. Only one of these parameters should be set.
+
+    iterations : int
+        Number of boosting iterations. Can be set in params dict.
+
+    num_boost_round : int
+        Synonym for iterations. Only one of these parameters should be set.
+
     fold_count : int, optional (default=3)
         The number of folds to split the dataset into.
+
+    nfold : int
+        Synonym for fold_count.
 
     inverted : bool, optional (default=False)
         Train on the test fold and evaluate the model on the training folds.
@@ -1810,6 +1822,12 @@ def cv(pool, params, fold_count=3, inverted=False, partition_random_seed=0, shuf
         Use this as the seed value for random permutation of the data.
         Permutation is performed before splitting the data for cross validation.
         Each seed generates unique data splits.
+
+    seed : int, optional
+        Synonym for partition_random_seed. This parameter is deprecated. Use
+        partition_random_seed instead.
+        If both parameters are initialised partition_random_seed parameter is
+        ignored.
 
     shuffle : bool, optional (default=True)
         Shuffle the dataset objects before splitting into folds.
@@ -1832,6 +1850,27 @@ def cv(pool, params, fold_count=3, inverted=False, partition_random_seed=0, shuf
         params.update({
             'logging_level': logging_level
         })
+
+    if dtrain is not None:
+        if pool is None:
+            pool = dtrain
+        else:
+            raise CatboostError("Only one of the parameters pool and dtrain should be set.")
+
+    if num_boost_round is not None:
+        if iterations is None:
+            iterations = num_boost_round
+        else:
+            raise CatboostError("Only one of the parameters iterations and num_boost_round should be set.")
+
+    if iterations is not None:
+        params = deepcopy(params)
+        params.update({
+            'iterations': iterations
+        })
+
+    if seed is not None:
+       partition_random_seed = seed
 
     with log_fixup():
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)
