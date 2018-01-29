@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 from six import iteritems, string_types, integer_types
 import os
 from collections import Iterable, Sequence, Mapping, MutableMapping
@@ -1751,6 +1752,7 @@ def cv(params, pool, fold_count=3, inverted=False, partition_random_seed=0, shuf
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
     if logging_level:
+        params = deepcopy(params)
         params.update({
             'logging_level': logging_level
         })
