@@ -15,7 +15,7 @@ class CatboostIpythonWidget(DOMWidget):
 
     def __init__(self, train_dir):
         super(self.__class__, self).__init__()
-        self.train_dir = train_dir
+        self._train_dir = train_dir
 
     @default('layout')
     def _default_layout(self):
@@ -23,35 +23,35 @@ class CatboostIpythonWidget(DOMWidget):
 
     def update_widget(self, subdirs=False):
         # wait for start train (meta.tsv)
-        self.init_static()
+        self._init_static()
         time.sleep(1.0)
-        self.update_data(subdirs=subdirs)
+        self._update_data(subdirs=subdirs)
 
         display(self)
 
-        while self.needUpdate:
-            self.update_data(subdirs=subdirs)
+        while self._need_update:
+            self._update_data(subdirs=subdirs)
             time.sleep(2.0)
 
-    def run_update(self):
+    def _run_update(self):
         thread = Thread(target=self.update_widget, args=())
         thread.start()
 
-    def get_subdirectories(self, a_dir):
+    def _get_subdirectories(self, a_dir):
         return [{'name': name, 'path': os.path.join(a_dir, name)}
                     for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
-    def update_data(self, subdirs=False):
+    def _update_data(self, subdirs=False):
         data = {}
-        dirs = [{'name': 'current', 'path': self.train_dir}]
-        needUpdate = False
+        dirs = [{'name': 'current', 'path': self._train_dir}]
+        need_update = False
 
         if subdirs:
-            dirs = self.get_subdirectories(self.train_dir)
+            dirs = self._get_subdirectories(self._train_dir)
 
         for dir_info in dirs:
             path = dir_info.get('path')
-            content = self.update_data_from_dir(path)
+            content = self._update_data_from_dir(path)
 
             if not content:
                 continue
@@ -62,13 +62,13 @@ class CatboostIpythonWidget(DOMWidget):
                 'content': content
             }
 
-            if not needUpdate:
-                needUpdate = data[path]['content']['passed_iterations'] < data[path]['content']['total_iterations']
+            if not need_update:
+                need_update = data[path]['content']['passed_iterations'] < data[path]['content']['total_iterations']
 
         self.data = data
-        self.needUpdate = needUpdate
+        self._need_update = need_update
 
-    def update_data_from_dir(self, path):
+    def _update_data_from_dir(self, path):
         data = {
             'learn_error': [],
             'test_error': [],
@@ -122,23 +122,23 @@ class CatboostIpythonWidget(DOMWidget):
             return None
 
     @staticmethod
-    def get_static_path(file_name):
+    def _get_static_path(file_name):
         return os.path.join(os.path.dirname(__file__), file_name)
 
-    def init_static(self):
-        with open(self.get_static_path('CatboostIpython.css')) as f:
+    def _init_static(self):
+        with open(self._get_static_path('CatboostIpython.css')) as f:
             css = f.read()
         js = ''
 
         # never use require in your projects
         js += 'window.__define = window.define;window.__require = window.require;window.define = undefined;window.require = undefined;'
-        with open(self.get_static_path('plotly-basic.min.js')) as f:
+        with open(self._get_static_path('plotly-basic.min.js')) as f:
             js += f.read()
         js += 'window.define = window.__define;window.require = window.__require;window.__define = undefined; window.__require = undefined;'
 
-        with open(self.get_static_path('CatboostIpythonPlotly.js')) as f:
+        with open(self._get_static_path('CatboostIpythonPlotly.js')) as f:
             js += f.read()
-        with open(self.get_static_path('CatboostIpythonInit.js')) as f:
+        with open(self._get_static_path('CatboostIpythonInit.js')) as f:
             js += f.read()
         html = """
             <style>

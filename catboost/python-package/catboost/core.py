@@ -565,7 +565,7 @@ class CatBoost(_CatBoostBase):
             try:
                 from .widget import CatboostIpythonWidget
                 widget = CatboostIpythonWidget(train_dir)
-                widget.run_update()
+                widget._run_update()
             except ImportError as e:
                 warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
                 raise ImportError(str(e))
