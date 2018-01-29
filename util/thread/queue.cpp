@@ -119,11 +119,16 @@ private:
         MaxQueueSize = maxque;
         ThreadCountExpected = num;
 
-        for (size_t i = 0; i < num; ++i) {
-            Tharr.push_back(Parent_->Pool()->Run(this));
-        }
+        try {
+            for (size_t i = 0; i < num; ++i) {
+                Tharr.push_back(Parent_->Pool()->Run(this));
+                ++ThreadCountReal;
+            }
+        } catch (...) {
+            Stop();
 
-        ThreadCountReal = Tharr.size();
+            throw;
+        }
     }
 
     inline void Stop() {
