@@ -550,7 +550,7 @@ def test_copy_model():
 
 def test_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv({"iterations": 5, "random_seed": 0, "loss_function": "Logloss"}, pool)
+    results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
     assert isinstance(results, dict)
     assert "Logloss_train_avg" in results
 
@@ -642,4 +642,4 @@ def test_full_history():
 def test_bad_params_in_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     with pytest.warns(UserWarning):
-        cv({"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "use_best_model": True}, pool)
+        cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "use_best_model": True})
