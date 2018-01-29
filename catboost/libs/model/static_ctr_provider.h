@@ -26,30 +26,7 @@ public:
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& floatFeatures,
         const TVector<TOneHotFeature>& oheFeatures,
-        const TVector<TCatFeature>& catFeatures) override {
-        int currentIndex = 0;
-        FloatFeatureIndexes.clear();
-        for (const auto& floatFeature : floatFeatures) {
-            for (const auto& border : floatFeature.Borders) {
-                TFloatSplit split{floatFeature.FeatureIndex, border};
-                FloatFeatureIndexes[split] = currentIndex;
-                ++currentIndex;
-            }
-        }
-        OneHotFeatureIndexes.clear();
-        for (const auto& oheFeature : oheFeatures) {
-            for (int valueId = 0; valueId < oheFeature.Values.ysize(); ++valueId) {
-                TOneHotSplit feature{oheFeature.CatFeatureIndex, oheFeature.Values[valueId]};
-                OneHotFeatureIndexes[feature] = currentIndex;
-                ++currentIndex;
-            }
-        }
-        CatFeatureIndex.clear();
-        for (const auto& catFeature : catFeatures) {
-            const int prevSize = CatFeatureIndex.ysize();
-            CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
-        }
-    }
+        const TVector<TCatFeature>& catFeatures) override;
     bool IsSerializable() const override {
         return true;
     }
@@ -73,9 +50,9 @@ public:
     ~TStaticCtrProvider() override {}
     TCtrData CtrData;
 private:
-    THashMap<TFloatSplit, int> FloatFeatureIndexes;
+    THashMap<TFloatSplit, TBinFeatureIndexValue> FloatFeatureIndexes;
     THashMap<int, int> CatFeatureIndex;
-    THashMap<TOneHotSplit, int> OneHotFeatureIndexes;
+    THashMap<TOneHotSplit, TBinFeatureIndexValue> OneHotFeatureIndexes;
 };
 
 struct TStaticCtrOnFlightSerializationProvider: public ICtrProvider {

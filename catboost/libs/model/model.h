@@ -53,6 +53,18 @@ struct TObliviousTrees {
          * List of all binary with indexes corresponding to TreeSplits values
          */
         TVector<TModelSplit> BinFeatures;
+
+        /**
+        * This vector containes ui32 that contains such information:
+        * |     ui16     |   ui8   |   ui8  |
+        * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
+        *
+        * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or one hot feature.
+        * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this will be fixed soon.
+        */
+        TVector<ui32> RepackedBins;
+
+        ui32 EffectiveBinFeaturesBucketCount = 0;
     };
 
     //! Number of classes in model, in most cases equals to 1.
@@ -178,46 +190,15 @@ struct TObliviousTrees {
     void Truncate(size_t begin, size_t end);
     /**
      * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features currently used in model.
-     * Called after trees modications.
+     * Should be called after any modifications.
      */
-    void UpdateMetadata() const {
-        MetaData = TMetaData{}; // reset metadata
-        auto& ref = MetaData.GetRef();
-        for (const auto& ctrFeature : CtrFeatures) {
-            ref.UsedModelCtrs.push_back(ctrFeature.Ctr);
-        }
-
-        for (const auto& feature: FloatFeatures) {
-            for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
-                TFloatSplit fs{feature.FeatureIndex, feature.Borders[borderId]};
-                ref.BinFeatures.emplace_back(fs);
-            }
-        }
-        for (const auto& feature: OneHotFeatures) {
-            for (int valueId = 0; valueId < feature.Values.ysize(); ++valueId) {
-                TOneHotSplit oh{feature.CatFeatureIndex, feature.Values[valueId]};
-                ref.BinFeatures.emplace_back(oh);
-            }
-        }
-        for (const auto& feature: CtrFeatures) {
-            for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
-                TModelCtrSplit ctrSplit;
-                ctrSplit.Ctr = feature.Ctr;
-                ctrSplit.Border = feature.Borders[borderId];
-                ref.BinFeatures.emplace_back(std::move(ctrSplit));
-            }
-        }
-    }
+    void UpdateMetadata() const;
     /**
      * List of all CTRs in model
      * @return
      */
     const TVector<TModelCtr>& GetUsedModelCtrs() const {
-        if (MetaData.Defined()) {
-            return MetaData->UsedModelCtrs;
-        }
-        UpdateMetadata();
-
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->UsedModelCtrs;
     }
     /**
@@ -225,13 +206,15 @@ struct TObliviousTrees {
      * @return
      */
     const TVector<TModelSplit>& GetBinFeatures() const {
-        if (MetaData.Defined()) {
-            return MetaData->BinFeatures;
-        }
-        UpdateMetadata();
-
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->BinFeatures;
     }
+
+    const TVector<ui32>& GetRepackedBins() const {
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->RepackedBins;
+    }
+
     /**
      * List all unique CTR bases (feature combination + ctr type) in model
      * @return
@@ -260,8 +243,13 @@ struct TObliviousTrees {
         }
     }
 
-    size_t GetBinaryFeaturesCount() const {
+    size_t GetBinaryFeaturesFullCount() const {
         return GetBinFeatures().size();
+    }
+
+    ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->EffectiveBinFeaturesBucketCount;
     }
 
     size_t GetFlatFeatureVectorExpectedSize() const {

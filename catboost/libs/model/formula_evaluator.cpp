@@ -8,29 +8,16 @@ void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayR
     int id = 0;
     for (size_t blockStart = 0; blockStart < DocCount; blockStart += BlockSize) {
         const auto docCountInBlock = Min(BlockSize, DocCount - blockStart);
-        if (Model.ObliviousTrees.ApproxDimension == 1) {
-            CalcTrees<true, false>(
-                    Model,
-                    blockStart,
-                    BinFeatures[id],
-                    docCountInBlock,
-                    indexesVec,
-                    treeStart,
-                    treeEnd,
-                    results
-            );
-        } else {
-            CalcTrees<false, false>(
-                    Model,
-                    blockStart,
-                    BinFeatures[id],
-                    docCountInBlock,
-                    indexesVec,
-                    treeStart,
-                    treeEnd,
-                    results
-            );
-        }
+        CalcFunction(
+                Model,
+                blockStart,
+                BinFeatures[id].data(),
+                docCountInBlock,
+                indexesVec.data(),
+                treeStart,
+                treeEnd,
+                results.data()
+        );
         ++id;
     }
 }

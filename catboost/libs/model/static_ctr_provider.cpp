@@ -30,7 +30,7 @@ void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
     size_t resultIdx = 0;
     float* resultPtr = result.data();
     TVector<int> transposedCatFeatureIndexes;
-    TVector<int> binarizedIndexes;
+    TVector<TBinFeatureIndexValue> binarizedIndexes;
     for (size_t i = 0; i < compressedModelCtrs.size(); ++i) {
         auto& proj = *compressedModelCtrs[i].Projection;
         binarizedIndexes.clear();
@@ -138,4 +138,33 @@ bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) con
         }
     }
     return true;
+}
+
+void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature> &floatFeatures,
+                                                const TVector<TOneHotFeature> &oheFeatures,
+                                                const TVector<TCatFeature> &catFeatures) {
+    ui32 currentIndex = 0;
+    FloatFeatureIndexes.clear();
+    for (const auto& floatFeature : floatFeatures) {
+        for (size_t borderIdx = 0; borderIdx < floatFeature.Borders.size(); ++borderIdx) {
+            TBinFeatureIndexValue featureIdx{currentIndex, false, (ui8)(borderIdx + 1)};
+            TFloatSplit split{floatFeature.FeatureIndex, floatFeature.Borders[borderIdx]};
+            FloatFeatureIndexes[split] = featureIdx;
+        }
+        ++currentIndex;
+    }
+    OneHotFeatureIndexes.clear();
+    for (const auto& oheFeature : oheFeatures) {
+        for (int valueId = 0; valueId < oheFeature.Values.ysize(); ++valueId) {
+            TBinFeatureIndexValue featureIdx{currentIndex, true, (ui8)(valueId + 1)};
+            TOneHotSplit feature{oheFeature.CatFeatureIndex, oheFeature.Values[valueId]};
+            OneHotFeatureIndexes[feature] = featureIdx;
+        }
+        ++currentIndex;
+    }
+    CatFeatureIndex.clear();
+    for (const auto& catFeature : catFeatures) {
+        const int prevSize = CatFeatureIndex.ysize();
+        CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+    }
 }

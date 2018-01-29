@@ -230,7 +230,7 @@ int GetDocCount(const TAllFeatures& features) {
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
     auto docCount = pool.Docs.GetDocCount();
-    TVector<ui8> result(model.ObliviousTrees.GetBinaryFeaturesCount() * docCount);
+    TVector<ui8> result(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
     BinarizeFeatures(model,
@@ -249,23 +249,20 @@ TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
 }
 
 TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model, const TVector<ui8>& binarizedFeatures, size_t treeId) {
-    if (model.ObliviousTrees.GetBinaryFeaturesCount() == 0) {
+    if (model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() == 0) {
         return TVector<TIndexType>();
     }
 
-    auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetBinaryFeaturesCount();
+    auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
     TVector<TIndexType> indexesVec(docCount);
-    const int* treeSplitsCurPtr =
-        model.ObliviousTrees.TreeSplits.data() +
+    const ui32* treeSplitsCurPtr =
+        model.ObliviousTrees.GetRepackedBins().data() +
         model.ObliviousTrees.TreeStartOffsets[treeId];
-    auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
-    for (int depth = 0; depth < curTreeSize; ++depth) {
-        auto indexesPtr = indexesVec.data();
-        const auto bin = treeSplitsCurPtr[depth];
-        auto binFeaturePtr = &binarizedFeatures[bin * docCount];
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            indexesPtr[docId] |= binFeaturePtr[docId] << depth;
-        }
+
+    if (model.ObliviousTrees.OneHotFeatures.empty()) {
+        CalcIndexes<false>(binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);
+    } else {
+        CalcIndexes<true>(binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);
     }
     return indexesVec;
 }

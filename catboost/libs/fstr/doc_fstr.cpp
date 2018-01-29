@@ -85,7 +85,7 @@ static TVector<TVector<double>> MapFunctionToTrees(
     } else {
         end = Min(end, model.ObliviousTrees.TreeSizes.ysize());
     }
-    const size_t docCount = binarizedFeatures.size() / model.ObliviousTrees.GetBinaryFeaturesCount();
+    const size_t docCount = binarizedFeatures.size() / model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
 
     TVector<TVector<TVector<double>>> result(CB_THREAD_LIMIT, TVector<TVector<double>>(resultDimension, TVector<double>(docCount)));
 

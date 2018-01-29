@@ -42,7 +42,7 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     auto ensemble = regressor->mutable_treeensemble();
     auto description = outModel.mutable_description();
 
-    NCatboost::NCoreML::ConfigureMetadata(userParameters, description);
+    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
     NCatboost::NCoreML::ConfigureTrees(model, ensemble);
     NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
 
@@ -105,6 +105,7 @@ void TObliviousTrees::Truncate(size_t begin, size_t end) {
         }
     }
     TruncateVector(begin, end, &LeafValues);
+    UpdateMetadata();
 }
 
 flatbuffers::Offset<NCatBoostFbs::TObliviousTrees>
@@ -145,6 +146,66 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         &ctrFeaturesOffsets,
         &flatLeafValues
     );
+}
+
+void TObliviousTrees::UpdateMetadata() const {
+    struct TFeatureSplitId {
+        ui32 FeatureIdx = 0;
+        ui32 SplitIdx = 0;
+    };
+    MetaData = TMetaData{}; // reset metadata
+    TVector<TFeatureSplitId> splitIds;
+    auto& ref = MetaData.GetRef();
+    for (const auto& ctrFeature : CtrFeatures) {
+        ref.UsedModelCtrs.push_back(ctrFeature.Ctr);
+    }
+    ref.EffectiveBinFeaturesBucketCount = 0;
+    for (size_t i = 0; i < FloatFeatures.size(); ++i) {
+        const auto& feature = FloatFeatures[i];
+        for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
+            TFloatSplit fs{feature.FeatureIndex, feature.Borders[borderId]};
+            ref.BinFeatures.emplace_back(fs);
+            auto& bf = splitIds.emplace_back();
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = borderId + 1;
+        }
+        ++ref.EffectiveBinFeaturesBucketCount;
+    }
+    for (size_t i = 0; i < OneHotFeatures.size(); ++i) {
+        const auto& feature = OneHotFeatures[i];
+        for (int valueId = 0; valueId < feature.Values.ysize(); ++valueId) {
+            TOneHotSplit oh{feature.CatFeatureIndex, feature.Values[valueId]};
+            ref.BinFeatures.emplace_back(oh);
+            auto& bf = splitIds.emplace_back();
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = valueId + 1;
+        }
+        ++ref.EffectiveBinFeaturesBucketCount;
+    }
+    for (size_t i = 0; i < CtrFeatures.size(); ++i) {
+        const auto& feature = CtrFeatures[i];
+        for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
+            TModelCtrSplit ctrSplit;
+            ctrSplit.Ctr = feature.Ctr;
+            ctrSplit.Border = feature.Borders[borderId];
+            ref.BinFeatures.emplace_back(std::move(ctrSplit));
+            auto& bf = splitIds.emplace_back();
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = borderId + 1;
+        }
+        ++ref.EffectiveBinFeaturesBucketCount;
+    }
+    for (const auto& binSplit : TreeSplits) {
+        const auto& feature = ref.BinFeatures[binSplit];
+        const auto& featureIndex = splitIds[binSplit];
+        Y_ENSURE(featureIndex.FeatureIdx <= 0xffff, "To many features in model, ask catboost team for support");
+        Y_ENSURE(featureIndex.SplitIdx <= 254, "To many splits in feature, ask catboost team for support");
+        if (feature.Type != ESplitType::OneHotFeature) {
+            ref.RepackedBins.push_back((featureIndex.FeatureIdx << 16) + featureIndex.SplitIdx);
+        } else {
+            ref.RepackedBins.push_back((featureIndex.FeatureIdx << 16) + (((~featureIndex.SplitIdx)&0xff) << 8) + 0xff);
+        }
+    }
 }
 
 void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,

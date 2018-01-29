@@ -71,10 +71,11 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
 void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
         auto feature = description->add_input();
-        if (!floatFeature.FeatureId.empty())
+        if (!floatFeature.FeatureId.empty()) {
             feature->set_name(floatFeature.FeatureId);
-        else
+        } else {
             feature->set_name(("feature_" + std::to_string(floatFeature.FeatureIndex)).c_str());
+        }
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
@@ -110,7 +111,7 @@ void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJson
     }
 }
 
-void NCatboost::NCoreML::ConfigureMetadata(const NJson::TJsonValue& userParameters, ModelDescription* description) {
+void NCatboost::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson::TJsonValue& userParameters, ModelDescription* description) {
     auto meta = description->mutable_metadata();
 
     meta->set_shortdescription(
@@ -124,4 +125,10 @@ void NCatboost::NCoreML::ConfigureMetadata(const NJson::TJsonValue& userParamete
 
     meta->set_license(
         userParameters["coreml_model_license"].GetStringSafe(""));
+    if (model.ModelInfo.empty()) {
+        auto& userDefinedRef = *meta->mutable_userdefined();
+        for (const auto& key_value : model.ModelInfo) {
+            userDefinedRef[key_value.first] = key_value.second;
+        }
+    }
 }

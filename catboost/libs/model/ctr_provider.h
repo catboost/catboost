@@ -59,11 +59,23 @@ inline ui64 CalcHash(
     return result;
 }
 
+struct TBinFeatureIndexValue {
+    ui32 BinIndex = 0;
+    bool CheckValueEqual = 0;
+    ui8 Value = 0;
+    TBinFeatureIndexValue() = default;
+    TBinFeatureIndexValue(ui32 binIndex, bool checkValueEqual, ui8 value)
+        : BinIndex(binIndex)
+        , CheckValueEqual(checkValueEqual)
+        , Value(value)
+    {}
+};
+
 inline void CalcHashes(
     const TConstArrayRef<ui8>& binarizedFeatures,
     const TConstArrayRef<int>& hashedCatFeatures,
     const TConstArrayRef<int>& transposedCatFeatureIndexes,
-    const TConstArrayRef<int>& binarizedFeatureIndexes,
+    const TConstArrayRef<TBinFeatureIndexValue>& binarizedFeatureIndexes,
     size_t docCount,
     TVector<ui64>* result) {
     result->resize(docCount);
@@ -76,10 +88,15 @@ inline void CalcHashes(
         }
     }
     for (const auto& binFeatureIndex : binarizedFeatureIndexes) {
-        const auto idx = binFeatureIndex * docCount;
-        const ui8* binFPtr = &binarizedFeatures[idx];
-        for (size_t i = 0; i < docCount; ++i) {
-            ptr[i] = CalcHash(ptr[i], (ui64)binFPtr[i]);
+        const ui8* binFPtr = &binarizedFeatures[binFeatureIndex.BinIndex * docCount];
+        if (!binFeatureIndex.CheckValueEqual) {
+            for (size_t i = 0; i < docCount; ++i) {
+                ptr[i] = CalcHash(ptr[i], (ui64)(binFPtr[i] >= binFeatureIndex.Value));
+            }
+        } else {
+            for (size_t i = 0; i < docCount; ++i) {
+                ptr[i] = CalcHash(ptr[i], (ui64)(binFPtr[i] == binFeatureIndex.Value));
+            }
         }
     }
 }

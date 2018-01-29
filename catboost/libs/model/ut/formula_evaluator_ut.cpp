@@ -30,6 +30,7 @@ TFullModel SimpleFloatModel() {
             {0., 1., 2., 3., 4., 5., 6., 7.}
         };
     }
+    model.UpdateDynamicData();
     return model;
 }
 
@@ -58,6 +59,7 @@ TFullModel MultiValueFloatModel() {
         };
         model.ObliviousTrees.ApproxDimension = 3;
     }
+    model.UpdateDynamicData();
     return model;
 }
 
