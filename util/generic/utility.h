@@ -113,3 +113,15 @@ struct TNullTmpl {
 };
 
 using TNull = TNullTmpl<0>;
+
+/*
+ * Class for zero-initialize padding bytes in derived classes
+ */
+template <typename TDerived>
+class TZeroInit {
+protected:
+    TZeroInit() {
+        // Actually, safe because this as TDerived is not initialized yet.
+        Zero(*static_cast<TDerived*>(this));
+    }
+};

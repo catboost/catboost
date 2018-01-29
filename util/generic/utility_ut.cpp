@@ -9,6 +9,8 @@ class TUtilityTest: public TTestBase {
     UNIT_TEST(TestSwapClass)
     UNIT_TEST(TestMaxMin)
     UNIT_TEST(TestMean)
+    UNIT_TEST(TestZeroInitWithDefaultZeros)
+    UNIT_TEST(TestZeroInitWithDefaultNonZeros)
     UNIT_TEST_SUITE_END();
 
     class TTest {
@@ -63,6 +65,44 @@ private:
         UNIT_ASSERT_EQUAL(Mean(6, 5, 4), 5);
         UNIT_ASSERT_EQUAL(Mean(1, 2), 1.5);
         UNIT_ASSERT(Abs(Mean(1., 2., 7.5) - 3.5) < std::numeric_limits<double>::epsilon());
+    }
+
+    inline void TestZeroInitWithDefaultZeros() {
+        struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
+            bool Field1_ = static_cast<bool>(0);
+            // here between Field1_ and Field2_ will be padding bytes
+            i64 Field2_ = 0;
+        };
+
+        TStructWithPaddingBytes foo{};
+
+        // all bytes must be zeroes, and MSAN will not complain about reading from padding bytes
+        const char* const fooPtr = (char*)&foo;
+        for (size_t i = 0; i < sizeof(TStructWithPaddingBytes); ++i) {
+            const char byte = fooPtr[i];
+            UNIT_ASSERT_EQUAL(byte, 0);
+        }
+    }
+
+    inline void TestZeroInitWithDefaultNonZeros() {
+        struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
+            bool Field1_ = true;
+            // here between Field1_ and Field2_ will be padding bytes
+            i64 Field2_ = 100500;
+        };
+
+        TStructWithPaddingBytes foo{};
+
+        // check that default values are set correctly
+        UNIT_ASSERT_EQUAL(foo.Field1_, true);
+        UNIT_ASSERT_EQUAL(foo.Field2_, 100500);
+
+        const char* const fooPtr = (char*)&foo;
+        // just reading all bytes, and MSAN must not complain about reading padding bytes
+        for (size_t i = 0; i < sizeof(TStructWithPaddingBytes); ++i) {
+            const char byte = fooPtr[i];
+            UNIT_ASSERT_EQUAL(byte, byte);
+        }
     }
 };
 
