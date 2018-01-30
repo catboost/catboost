@@ -2017,7 +2017,7 @@ class Cuda(object):
         nvcc_flags = []
 
         if use_arcadia_cuda:
-            emit('CUDA_ROOT', '$(CUDA)')
+            emit('CUDA_ROOT', '$CUDA_RESOURCE_GLOBAL')
 
             cuda_compiler = self.get_cuda_compiler()
             if cuda_compiler is not None:
@@ -2048,9 +2048,9 @@ class Cuda(object):
 
         if target.is_linux:
             if target.is_x86_64:
-                return '$(CUDA)/compiler/gcc/bin/g++-4.9'
+                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/g++-4.9'
             elif target.is_aarch64:
-                return '$(CUDA)/compiler/gcc/bin/aarch64-linux-g++'
+                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'
 
         elif target.is_macos:
             if target.is_x86_64:
