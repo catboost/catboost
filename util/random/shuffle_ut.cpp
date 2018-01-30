@@ -9,27 +9,27 @@
 SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
     SIMPLE_UNIT_TEST(TestShuffle) {
         TString s0, s1;
-        Shuffle(s1.begin(), s1.end());
+        ShuffleRange(s1);
         s1 = "0";
-        Shuffle(s1.begin(), s1.end());
+        ShuffleRange(s1);
         s1 = "01";
-        Shuffle(s1.begin(), s1.end());
+        ShuffleRange(s1);
         s1 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         s0 = s1.copy();
-        Shuffle(s1.begin(), s1.end());
+        ShuffleRange(s1);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
     SIMPLE_UNIT_TEST(TestShuffleMersenne64) {
         TMersenne<ui64> prng(42);
         TString s0, s1;
-        Shuffle(s1.begin(), s1.end(), prng);
+        ShuffleRange(s1, prng);
         s1 = "0";
-        Shuffle(s1.begin(), s1.end(), prng);
+        ShuffleRange(s1, prng);
         s1 = "01";
-        Shuffle(s1.begin(), s1.end(), prng);
+        ShuffleRange(s1, prng);
         s1 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         s0 = s1.copy();
-        Shuffle(s1.begin(), s1.end(), prng);
+        ShuffleRange(s1, prng);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
     SIMPLE_UNIT_TEST(TestShuffleMersenne32) {

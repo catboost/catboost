@@ -27,3 +27,13 @@ inline void Shuffle(TRandIter begin, TRandIterEnd end, TRandGen&& gen) {
         DoSwap(*(begin + i), *(begin + gen.Uniform(i + 1)));
     }
 }
+
+template <typename TRange>
+inline void ShuffleRange(TRange& range) {
+    Shuffle(range.begin(), range.end());
+}
+
+template <typename TRange, typename TRandGen>
+inline void ShuffleRange(TRange& range, TRandGen&& gen) {
+    Shuffle(range.begin(), range.end(), gen);
+}
