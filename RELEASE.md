@@ -10,25 +10,22 @@
 ## Major Features And Improvements
 - Industry fastest [applier implementation](https://tech.yandex.com/catboost/doc/dg/concepts/c-plus-plus-api-docpage/#c-plus-plus-api).
 - Introducing new parameter [`boosting-type`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) to switch between standard boosting scheme and dynamic boosting, described in paper ["Dynamic boosting"](https://arxiv.org/abs/1706.09516).
-- Adding new [bootstrap types](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `bootstrap_type`, `sample_rate`, `sampling_frequency`.
+- Adding new [bootstrap types](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `bootstrap_type`, `subsample`. Using `Bernoulli` bootstrap type with `subsample < 1` might increase the training speed.
 - Better logging for cross-validation, added [parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_cv-docpage/) `logging_level` and `metric_period` (should be set in training parameters) to cv.
 - Added a separate `train` [function](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_train-docpage/) that receives the parameters and returns a trained model.
 - Ranking mode `QueryRMSE` now supports default settings for dynamic boosting.
 - R-package pre-build binaries are included into release. 
 - We added many synonyms to our parameter names, now it is more convenient to try CatBoost if you are used to some other library.
 
-##Breaking Changes
-- Parameter `sample_rate` is renamed to `subsample`.
-
 ## Bug Fixes and Other Changes
-- Fix for CPU QueryRMSE with weights.
+- Fix for CPU `QueryRMSE` with weights.
 - Adding several missing parameters into wrappers.
 - Fix for data split in querywise modes.
 - Better logging.
 - From this release we'll provide pre-build R-binaries
 - More parallelisation.
 - Memory usage improvements.
-* And some other bug fixes.
+- And some other bug fixes.
 
 ## Thanks to our Contributors
 This release contains contributions from CatBoost team.
