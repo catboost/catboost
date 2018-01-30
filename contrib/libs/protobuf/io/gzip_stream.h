@@ -45,7 +45,7 @@
 
 #include "stubs/common.h"
 #include "io/zero_copy_stream.h"
-#include "zlib.h"
+#include <contrib/libs/zlib/zlib.h>
 
 namespace google {
 namespace protobuf {

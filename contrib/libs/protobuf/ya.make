@@ -23,7 +23,7 @@ ENDIF()
 
 CFLAGS(-DHAVE_ZLIB)
 
-PEERDIR(ADDINCL contrib/libs/zlib)
+PEERDIR(contrib/libs/zlib)
 
 SRCS(
     any.cc
