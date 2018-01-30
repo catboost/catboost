@@ -712,7 +712,7 @@
                 "ar": "$(CLANG)/bin/llvm-ar",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "4.0",
-                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$(LINUX_PPC64LE_SDK)", "-B$(LINUX_PPC64LE_SDK)/usr/bin", "-maltivec", "-mcpu=power8"],
+                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL", "-B$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL/usr/bin", "-maltivec", "-mcpu=power8"],
                 "platform": {
                     "LINUX": [
                         "contrib/libs/platform/ppc/sdk"
@@ -722,7 +722,7 @@
             "env": {
                 "LD_LIBRARY_PATH": [
                     "$(CLANG)/lib",
-                    "$(LINUX_PPC64LE_SDK)/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
+                    "$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
                 ]
             }
         },
