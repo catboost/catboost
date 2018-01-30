@@ -3,6 +3,8 @@
 
 #include <library/unittest/registar.h>
 
+// DO_NOT_STYLE
+
 class TTest {
 public:
     inline TTest(int val)

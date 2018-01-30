@@ -104,11 +104,11 @@ namespace NPrivate {
     };
 }
 
-#define Y_DECLARE_SINGLETON_FRIEND()                      \
-    template <class T, size_t P, class... TArgs>          \
-    friend T* ::NPrivate::SingletonInt(TArgs&&...);       \
-    template <class T, size_t P, class... TArgs>          \
-    friend T* ::NPrivate::SingletonBase(T*&, TArgs&&...); \
+#define Y_DECLARE_SINGLETON_FRIEND()                \
+    template <class T, size_t P, class... TArgs>    \
+    friend T* ::NPrivate::SingletonInt(TArgs&&...); \
+    template <class T, size_t P, class... TArgs>    \
+    friend T* ::NPrivate::SingletonBase(T*&, TArgs&&...);
 
 template <class T, class... TArgs>
 T* Singleton(TArgs&&... args) {

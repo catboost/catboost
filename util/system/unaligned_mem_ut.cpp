@@ -21,14 +21,13 @@ namespace {
         }
 
         static TUInt128 Max() {
-            return { ~(__uint128_t)0 };
+            return {~(__uint128_t)0};
         }
 
         __uint128_t x;
     };
 }
 #endif
-
 
 SIMPLE_UNIT_TEST_SUITE(UnalignedMem) {
     SIMPLE_UNIT_TEST(TestReadWrite) {
