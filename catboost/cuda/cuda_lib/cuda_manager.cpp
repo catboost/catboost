@@ -90,6 +90,7 @@ void TCudaManager::StartChild(TCudaManager& parent,
     DevicesList = devices;
     OnStopChildEvent = stopEvent;
 
+    IsActiveDevice.clear();
     IsActiveDevice.resize(GetDeviceCount(), false);
     for (auto& dev : devices) {
         IsActiveDevice[dev] = true;
