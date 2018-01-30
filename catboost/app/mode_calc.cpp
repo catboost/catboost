@@ -87,9 +87,9 @@ int mode_calc(int argc, const char* argv[]) {
     iterationsLimit = Min(iterationsLimit, model.GetTreeCount());
 
     if (evalPeriod == 0) {
-        evalPeriod = model.GetTreeCount();
+        evalPeriod = iterationsLimit;
     } else {
-        evalPeriod = Min(evalPeriod, model.GetTreeCount());
+        evalPeriod = Min(evalPeriod, iterationsLimit);
     }
 
     const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
