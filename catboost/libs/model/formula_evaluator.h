@@ -2,7 +2,7 @@
 
 #include "model.h"
 #include <catboost/libs/helpers/exception.h>
-
+#include <emmintrin.h>
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
 
@@ -24,6 +24,7 @@ inline void OneHotBinsFromTransposedCatFeatures(
     }
 }
 
+#ifdef NO_SSE
 template<typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor floatAccessor, const TConstArrayRef<float> borders, size_t start, ui8*& result) {
     const auto docCount8 = (docCount | 0x7) ^ 0x7;
@@ -52,6 +53,59 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
     }
     result += docCount;
 }
+
+#else
+
+template<typename TFloatFeatureAccessor>
+Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor floatAccessor, const TConstArrayRef<float> borders, size_t start, ui8*& result) {
+    const auto docCount16 = (docCount | 0xf) ^ 0xf;
+    for (size_t docId = 0; docId < docCount16; docId += 16) {
+        const float val[16] = {
+            floatAccessor(start + docId + 0),
+            floatAccessor(start + docId + 1),
+            floatAccessor(start + docId + 2),
+            floatAccessor(start + docId + 3),
+            floatAccessor(start + docId + 4),
+            floatAccessor(start + docId + 5),
+            floatAccessor(start + docId + 6),
+            floatAccessor(start + docId + 7),
+            floatAccessor(start + docId + 8),
+            floatAccessor(start + docId + 9),
+            floatAccessor(start + docId + 10),
+            floatAccessor(start + docId + 11),
+            floatAccessor(start + docId + 12),
+            floatAccessor(start + docId + 13),
+            floatAccessor(start + docId + 14),
+            floatAccessor(start + docId + 15)
+        };
+        const __m128i mask = _mm_set1_epi8(1);
+        const __m128 floats0 = _mm_load_ps(val);
+        const __m128 floats1 = _mm_load_ps(val + 4);
+        const __m128 floats2 = _mm_load_ps(val + 8);
+        const __m128 floats3 = _mm_load_ps(val + 12);
+        __m128i resultVec = _mm_setzero_si128();
+
+        for (const auto border : borders) {
+            const __m128 borderVec = _mm_set1_ps(border);
+            const __m128i r0 = _mm_castps_si128(_mm_cmpgt_ps(floats0, borderVec));
+            const __m128i r1 = _mm_castps_si128(_mm_cmpgt_ps(floats1, borderVec));
+            const __m128i r2 = _mm_castps_si128(_mm_cmpgt_ps(floats2, borderVec));
+            const __m128i r3 = _mm_castps_si128(_mm_cmpgt_ps(floats3, borderVec));
+            const __m128i packed = _mm_packs_epi16(_mm_packs_epi32(r0, r1), _mm_packs_epi32(r2, r3));
+            resultVec = _mm_add_epi8(resultVec, _mm_and_si128(packed, mask));
+        }
+        _mm_storeu_si128((__m128i*)(result + docId), resultVec);
+    }
+    for (size_t docId = docCount16; docId < docCount; ++docId) {
+        const auto val = floatAccessor(start + docId);
+        for (const auto border : borders) {
+            result[docId] += (ui8)(val > border);
+        }
+    }
+    result += docCount;
+}
+
+#endif
 
 /**
 * This function binarizes
