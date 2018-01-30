@@ -1379,8 +1379,8 @@ class CatBoostClassifier(CatBoost):
         random_state=None,
         reg_lambda=None,
         objective=None,
-        eta = None,
-        max_bin = None,
+        eta=None,
+        max_bin=None,
         **kwargs
     ):
         if objective is not None:
@@ -1693,8 +1693,8 @@ class CatBoostRegressor(CatBoost):
         random_state=None,
         reg_lambda=None,
         objective=None,
-        eta = None,
-        max_bin = None,
+        eta=None,
+        max_bin=None,
         **kwargs
     ):
         if objective is not None:
