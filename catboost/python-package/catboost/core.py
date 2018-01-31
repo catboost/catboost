@@ -534,7 +534,6 @@ class CatBoost(_CatBoostBase):
             params['loss_function'] = params['objective']
             del params['objective']
 
-
         if 'scale_pos_weight' in params:
             if 'loss_function' in params and params['loss_function'] != 'Logloss':
                     raise CatboostError('scale_pos_weight is only supported for binary classification Logloss loss')
