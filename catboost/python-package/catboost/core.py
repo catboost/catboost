@@ -1240,8 +1240,6 @@ class CatBoostClassifier(CatBoost):
         should be smaller than the given value.
     class_weights : list of floats, [default=None]
         Classes weights. The values are used as multipliers for the object weights.
-        Classes are indexed from 0 to classes count - 1.
-        For example, in case of binary classification the classes are indexed 0 and 1.
         If None, all classes are supposed to have weight one.
         Number of classes indicated by classes_count and class_weights should be the same.
     one_hot_max_size : int, [default=None]
