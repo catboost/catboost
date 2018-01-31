@@ -5,58 +5,44 @@
 #include "gpu_single_worker.h"
 #include "cuda_events_provider.h"
 #include "kernel.h"
+
 #include <catboost/cuda/cuda_lib/tasks_impl/host_tasks.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
-#include <future>
+#include <catboost/cuda/cuda_lib/future/future.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/cpu_func.h>
+#include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
 
-namespace NKernelHost {
-    class TWaitStreamSubmitSingleHostKernel: public TKernelBase<void, true> {
-    private:
-        NThreading::TPromise<ui64> Promise;
-
-    public:
-        TWaitStreamSubmitSingleHostKernel() {
-            Promise = NThreading::NewPromise<ui64>();
-        }
-
-        NCudaLib::TDeviceFuture<ui64> GetResult() {
-            Promise = NThreading::NewPromise<ui64>();
-            return NCudaLib::TDeviceFuture<ui64>(Promise.GetFuture());
-        }
-
-        void Run(const TCudaStream& stream) const {
-            Y_UNUSED(stream);
-        }
-
-        void Postprocess(const TCudaStream& stream) {
-            Y_UNUSED(stream);
-            Promise.SetValue(0ULL);
-        }
-    };
-}
-
-//TODO: (noxoomo)  In future we'll need to split this logic to two parts: 1) transfer kernel to remote host (2 impl, single-host + mpi) 2) all other common logic
 namespace NCudaLib {
-    class TTerminateOnErrorCallback: public IExceptionCallback {
-    public:
-        void Call(const TString& message) override {
-            MATRIXNET_ERROR_LOG << "Application terminated with error: " << message << Endl;
-            std::terminate();
-        }
-    };
+
 
     class TCudaSingleDevice {
     private:
         template <EPtrType PtrType>
         using TPtr = typename TMemoryProviderImplTrait<PtrType>::TRawFreeMemory;
-
         const ui32 OBJECT_HANDLE_REQUEST_SIZE = 1024;
-        TSingleHostTaskQueue& TaskQueue;
-        bool IsStoppedFlag = false;
 
+        using TLocalQueue = TSingleHostTaskQueue;
+        template <class TFunc>
+        using TLocalFunc =  TCpuFunc<TFunc, false>;
+
+        #if defined(USE_MPI)
+        using TRemoteQueue = TRemoteHostTasksForwarder;;
+        template <class TFunc>
+        using TRemoteFunc = TCpuFunc<TFunc, true>;
+        #endif
+
+        TAtomic ExceptionsCount;
+        friend class TSetDeviceExceptionCallback;
+
+        void* TaskQueue;
+
+        TDeviceId DeviceId;
         TCudaDeviceProperties DeviceProperties;
+        bool IsStoppedFlag = true;
+
         TVector<ui64> FreeHandles;
-        TVector<ui64> UserFreeStreams;
+        ui64 TotalHandles = 0;
+        TVector<ui32> UserFreeStreams;
 
         template <class T>
         friend class THandleBasedObject;
@@ -64,10 +50,10 @@ namespace NCudaLib {
     private:
         void RequestHandlesImpl() {
             if (FreeHandles.size() == 0) {
-                auto requestHandlesCmd = MakeHolder<TRequestHandles>(OBJECT_HANDLE_REQUEST_SIZE);
-                auto resultFuture = requestHandlesCmd->GetResult();
-                TaskQueue.AddTask(std::move(requestHandlesCmd));
-                FreeHandles = resultFuture.Get();
+                auto request = LaunchFunc(TRequestHandlesTask(OBJECT_HANDLE_REQUEST_SIZE));
+                request->Wait();
+                FreeHandles = request->Get();
+                TotalHandles += FreeHandles.size();
             }
         }
 
@@ -79,7 +65,7 @@ namespace NCudaLib {
             return handle;
         }
 
-        friend class TSingleHostDevicesProvider;
+        friend class TDevicesProvider;
 
     public:
         template <class T>
@@ -87,8 +73,7 @@ namespace NCudaLib {
         private:
             static const ui64 EMPTY_HANDLE = 0;
             TCudaSingleDevice* Device;
-            ui64 Handle;
-
+            ui64 Handle = EMPTY_HANDLE;
         public:
             THandleBasedObject(TCudaSingleDevice* device,
                                ui64 handle)
@@ -190,37 +175,91 @@ namespace NCudaLib {
             }
         };
 
-        void AddTask(THolder<IGpuCommand>&& cmd) {
-            TaskQueue.AddTask(std::move(cmd));
+        template <class TTask>
+        void AddTask(THolder<TTask>&& cmd) {
+            CB_ENSURE(TaskQueue, "Error: uninitialized device " << DeviceId.HostId << " " << DeviceId.DeviceId);
+
+            if (IsLocalDevice()) {
+                reinterpret_cast<TLocalQueue*>(TaskQueue)->AddTask(std::move(cmd));
+            } else {
+                #if defined(USE_MPI)
+                    reinterpret_cast<TRemoteQueue*>(TaskQueue)->AddTask(std::move(cmd));
+                #else
+                    CB_ENSURE(false, "Remote device support is not enabled");
+                #endif
+
+            }
+        }
+
+
+        template <class TTask,
+                  class... Args>
+        void EmplaceTask(Args... args) const {
+            CB_ENSURE(TaskQueue, "Error: uninitialized device " << DeviceId.HostId << " " << DeviceId.DeviceId);
+
+            const auto isLocalDevice = IsLocalDevice();
+            if (isLocalDevice) {
+                reinterpret_cast<TLocalQueue*>(TaskQueue)->EmplaceTask<TTask>(std::forward<Args>(args)...);
+            } else {
+                #if defined(USE_MPI)
+                   reinterpret_cast<TRemoteQueue*>(TaskQueue)->EmplaceTask<TTask>(std::forward<Args>(args)...);
+                #else
+                    CB_ENSURE(false, "Remote device support is not enabled");
+                #endif
+            }
+        }
+
+        template <bool IsRemote>
+        THolder<IDeviceFuture<ui32>> RequestStreamImpl() {
+            using TStreamIdPromise = typename TPromiseFactory<IsRemote>::template TPromise<ui32>;
+            using TCmd = TRequestStreamCommand<TStreamIdPromise>;
+            auto cmd = MakeHolder<TCmd>(TPromiseFactory<IsRemote>::template CreateDevicePromise<ui32>(DeviceId));
+            auto streamFuture = cmd->GetStreamId();
+            AddTask(std::move(cmd));
+            return streamFuture;
         }
 
     public:
-        TCudaSingleDevice(TSingleHostTaskQueue& taskQueue,
+
+        TCudaSingleDevice(void* taskQueue,
+                          TDeviceId deviceId,
                           const TCudaDeviceProperties& deviceProps)
             : TaskQueue(taskQueue)
+            , DeviceId(deviceId)
             , DeviceProperties(deviceProps)
-        {
-            RequestHandlesImpl();
+            , IsStoppedFlag(true) {
         }
 
-        bool IsStopped() const {
-            return IsStoppedFlag;
+
+        ~TCudaSingleDevice() {
+            if (!IsStoppedFlag) {
+                Stop();
+            }
+            EmplaceTask<TStopWorkerCommand>();
         }
+
+        void Start(double gpuMemoryPart,
+                   ui64 pinnedMemoryToUse) {
+            CB_ENSURE(IsStoppedFlag, "Error: can't start device more than once");
+            EmplaceTask<TResetCommand>(gpuMemoryPart, pinnedMemoryToUse);
+            RequestHandlesImpl();
+            IsStoppedFlag = false;
+        }
+
 
         void Stop() {
-            CB_ENSURE(!IsStoppedFlag, "Can't stop more than once");
-            for (ui32 stream : UserFreeStreams) {
-                AddTask(THolder<IGpuCommand>(new TFreeStreamCommand(stream)));
+            CB_ENSURE(!IsStoppedFlag, "Error: can't stop device more than once");
+            EmplaceTask<TFreeStreamCommand>(UserFreeStreams);
+            UserFreeStreams.clear();
+            CB_ENSURE(TotalHandles == FreeHandles.size());
+            {
+                TVector<ui64> handlesToFree;
+                handlesToFree.swap(FreeHandles);
+                TotalHandles = 0;
+                LaunchFunc(TFreeHandlesTask(std::move(handlesToFree)))->Wait();
             }
-            WaitComplete().Wait();
-            AddTask(MakeHolder<TStopCommand>());
-
-            //TODO(noxoomo): will be done on device side after mpi merge
-            for (auto& handle : FreeHandles) {
-                GetHandleStorage().FreeHandle(handle);
-            }
-            FreeHandles.resize(0);
-
+            EmplaceTask<TResetCommand>(0.0, (ui64)0);
+            WaitComplete()->Wait();
             IsStoppedFlag = true;
         }
 
@@ -234,8 +273,8 @@ namespace NCudaLib {
         template <class T, class... Args>
         THolder<THandleBasedObject<T>> CreateRemoteObject(Args&&... args) {
             auto handle = GetFreeHandle();
-            THolder<IGpuCommand> cmd = TCreateObjectCommandTrait<T>::Create(handle, std::forward<Args>(args)...);
-            TaskQueue.AddTask(std::move(cmd));
+            auto cmd = TCreateObjectCommandTrait<T>::Create(handle, std::forward<Args>(args)...);
+            AddTask(std::move(cmd));
             return MakeHolder<THandleBasedObject<T>>(this, handle);
         }
 
@@ -243,23 +282,63 @@ namespace NCudaLib {
         void LaunchKernel(TKernel&& kernel,
                           ui32 stream) const {
             using TKernelTask = TGpuKernelTask<TKernel>;
-            auto task = MakeHolder<TKernelTask>(std::move(kernel), stream);
-            TaskQueue.AddTask(std::move(task));
+            EmplaceTask<TKernelTask>(std::forward<TKernel>(kernel), stream);
         }
 
         template <class T>
         void ResetPointer(ui64 handle) {
             using TTask = TResetPointerCommand<T>;
-            TaskQueue.AddTask(MakeHolder<TTask>(handle));
+            EmplaceTask<TTask>(handle);
+        }
+
+        bool IsLocalDevice() const {
+            return DeviceId.HostId == 0;
+        }
+
+        bool IsRemoteDevice() const {
+            return !IsLocalDevice();
+        }
+
+        int GetHostId() const {
+            return DeviceId.HostId;
+        }
+
+        bool IsStopped() const {
+            return IsStoppedFlag;
+        }
+
+        int GetDeviceId() const {
+            return DeviceId.DeviceId;
+        }
+
+        TDeviceId GetDevice() const {
+            return DeviceId;
         }
 
         template <class TFunc>
-        auto LaunchFunc(TFunc&& func) -> TDeviceFuture<decltype(func())> {
-            using TTask = THostTask<TFunc>;
-            auto task = MakeHolder<TTask>(std::forward<TFunc>(func));
-            auto futureResult = task->GetResult();
-            TaskQueue.AddTask(std::move(task));
-            return futureResult;
+        auto LaunchFunc(TFunc&& func) -> TDeviceFuturePtr<typename TFuncReturnType<TFunc>::TOutput> {
+            CB_ENSURE(TaskQueue, "Error: uninitialized device " << DeviceId.HostId << " " << DeviceId.DeviceId);
+            using TOutput = typename TFuncReturnType<TFunc>::TOutput;
+            if (IsLocalDevice()) {
+                using TTask = TLocalFunc<TFunc>;
+                auto task = MakeHolder<TTask>(TPromiseFactory<false>::template CreateDevicePromise<TOutput>(DeviceId),
+                                              std::forward<TFunc>(func));
+                auto futureResult = task->GetResult();
+                AddTask(std::move(task));
+                return std::move(futureResult);
+            } else {
+                #if defined(USE_MPI)
+                    using TTask = TRemoteFunc<TFunc>;
+                    auto task = MakeHolder<TTask>(TPromiseFactory<true>::template CreateDevicePromise<TOutput>(DeviceId),
+                                                  std::forward<TFunc>(func));
+                    auto futureResult = task->GetResult();
+                    AddTask(std::move(task));
+                    return std::move(futureResult);
+                #else
+                    CB_ENSURE(false, "Remote device support is not enabled");
+                    return nullptr;
+                #endif
+            }
         }
 
         void FreeStream(ui32 streamId) {
@@ -267,29 +346,22 @@ namespace NCudaLib {
             UserFreeStreams.push_back(streamId);
         }
 
-        ui64 DefaultStream() const {
+        ui32 DefaultStream() const {
             return 0;
         }
 
         void StreamSynchronize(ui32 streamHandle) {
             LaunchKernel(TSyncStreamKernel(), streamHandle);
             //ensure all jobs to stream we submitted to GPU (so streamSync was executed and blocked until all stream jobs are done)
-            TaskQueue.AddTask(MakeHolder<TWaitSubmitCommand>());
+            EmplaceTask<TWaitSubmitCommand>();
         }
 
-        TDeviceFuture<ui64> WaitComplete() {
+        THolder<IDeviceFuture<ui64>> WaitComplete() {
             return LaunchFunc<TBlockingSyncDevice>(TBlockingSyncDevice());
         }
 
-        TDeviceFuture<ui64> WaitStreamSubmit(ui32 stream) {
-            auto kernel = NKernelHost::TWaitStreamSubmitSingleHostKernel();
-            TDeviceFuture<ui64> future = kernel.GetResult();
-            LaunchKernel(std::move(kernel), stream);
-            return future;
-        }
-
-        void NonBlockingSynchronize() {
-            StreamSynchronize(0);
+        void DeviceSynchronize() {
+            StreamSynchronize(0u);
         }
 
         const TCudaDeviceProperties& GetDeviceProperties() const {
@@ -297,30 +369,29 @@ namespace NCudaLib {
         }
 
         TMemoryState GetMemoryState() {
-            auto task = MakeHolder<TMemoryStateTask>();
-            auto result = task->GetResult();
-            TaskQueue.AddTask(std::move(task));
-            return result.Get();
+            using TFunc = TMemoryStateFunc;
+            TFunc func;
+            return LaunchFunc<TFunc>(std::move(func))->Get();
         }
 
-        ui64 GetGpuRamSize() {
-            return GetMemoryState().RequestedGpuRam;
-        }
-
-        ui64 GetFreeMemorySize() {
-            return GetMemoryState().FreeGpuRam;
-        }
-
-        ui64 RequestStream() {
+        ui32 RequestStream() {
             if (UserFreeStreams.size() == 0) {
-                auto cmd = new TRequestStreamCommand();
-                auto resultFuture = cmd->GetStreamId();
-                AddTask(THolder<IGpuCommand>(cmd));
-                resultFuture.wait();
-                UserFreeStreams.push_back(resultFuture.get());
+                THolder<IDeviceFuture<ui32> > streamFuture;
+                if (IsLocalDevice()) {
+                    streamFuture = RequestStreamImpl<false>();
+                } else {
+                    #if defined(USE_MPI)
+                        streamFuture = RequestStreamImpl<true>();
+                    #else
+                        CB_ENSURE(false, "Remote device support is not enabled");
+                    #endif
+                }
+                streamFuture->Wait();
+                UserFreeStreams.push_back(streamFuture->Get());
             }
-            ui64 id = UserFreeStreams.back();
+            ui32 id = UserFreeStreams.back();
             UserFreeStreams.pop_back();
+            CB_ENSURE(id != 0);
             return id;
         }
     };
@@ -328,24 +399,25 @@ namespace NCudaLib {
     template <EPtrType Type>
     using TRawFreeMemory = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;
 
-    template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<CudaDevice>> {
-        static THolder<IAllocateMemoryTask> Create(ui64 handle, ui64 size) {
-            return new TCudaMallocTask<CudaDevice>(handle, size);
+    template <EPtrType Type>
+    struct TAllocateMemoryCommand {
+        using TTask = TCudaMallocTask<Type>;
+        using TTaskPtr = THolder<TTask>;
+
+        static TTaskPtr Create(ui64 handle, ui64 size) {
+            return MakeHolder<TTask>(handle, size);
         }
+    };
+    template <>
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaDevice>> : public TAllocateMemoryCommand<EPtrType::CudaDevice> {
     };
 
     template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<CudaHost>> {
-        static THolder<IAllocateMemoryTask> Create(ui64 handle, ui64 size) {
-            return new TCudaMallocTask<CudaHost>(handle, size);
-        }
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::Host>> : public TAllocateMemoryCommand<EPtrType::Host> {
     };
 
     template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<Host>> {
-        static THolder<IAllocateMemoryTask> Create(ui64 handle, ui64 size) {
-            return new TCudaMallocTask<Host>(handle, size);
-        }
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaHost>> : public TAllocateMemoryCommand<EPtrType::CudaHost> {
     };
+
 }

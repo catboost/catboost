@@ -1,10 +1,12 @@
 #include "transform.cuh"
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+#include <catboost/cuda/cuda_util/kernel/operators.cuh>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
 
 
 namespace NKernel {
+
 
     template<typename T>
     __global__ void AddVectorImpl(T *x, const T *y, ui64 size) {
@@ -59,7 +61,26 @@ namespace NKernel {
     }
 
     template<typename T>
+    __global__ void SubtractVectorImpl(T *x, const T y, ui64 size) {
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i < size) {
+            const T x0 = x[i];
+            const T r0 = x0 - y;
+            x[i] = r0;
+            i += gridDim.x * blockDim.x;
+        }
+    }
+
+    template<typename T>
     void SubtractVector(T *x, const T *y, ui64 size, TCudaStream stream) {
+        const ui32 blockSize = 512;
+        const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
+                                   (ui64)TArchProps::MaxBlockCount());
+        SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+    }
+
+    template<typename T>
+    void SubtractVector(T *x, const T y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
@@ -108,23 +129,42 @@ namespace NKernel {
 
 
     template<typename T>
-    __global__ void DivideVectorImpl(T *x, const T *y, ui64 size) {
+    __global__ void DivideVectorImpl(T *x, const T *y, bool skipZeroes, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             T x0 = x[i];
             T y0 = y[i];
-            T r0 = (y0 < 1e-10f && y0 > -1e-10f) ? 0 : 1.0f * x0 / y0;
+            T r0 = ZeroAwareDivide(x0, y0, skipZeroes);
             x[i] = r0;
             i += gridDim.x * blockDim.x;
         }
     }
 
     template<typename T>
-    void DivideVector(T *x, const T *y, ui64 size, TCudaStream stream) {
+    __global__ void DivideVectorImpl(T *x, const T y, bool skipZeroes, ui64 size) {
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i < size) {
+            T x0 = x[i];
+            T r0 = ZeroAwareDivide(x0, y, skipZeroes);
+            x[i] = r0;
+            i += gridDim.x * blockDim.x;
+        }
+    }
+
+    template<typename T>
+    void DivideVector(T *x, const T *y, ui64 size, bool skipZeroes, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount());
-        DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
+    }
+
+    template<typename T>
+    void DivideVector(T *x, const T y, ui64 size, bool skipZeroes, TCudaStream stream) {
+        const ui32 blockSize = 512;
+        const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
+                                   (ui64)TArchProps::MaxBlockCount());
+        DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
     }
 
     template<typename T>
@@ -246,97 +286,55 @@ namespace NKernel {
     }
 
 
-    template void AddVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
-
-    template void AddVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
-
-    template void AddVector<float>(float *x, const float y, ui64 size, TCudaStream stream);
-
-    template void AddVector<int>(int *x, const int y, ui64 size, TCudaStream stream);
-
-    template void AddVector<ui32>(ui32 *x, const ui32 y, ui64 size, TCudaStream stream);
-
-    template void AddVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
-
-    template void SubtractVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
-
-    template void SubtractVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
-
-    template void SubtractVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<float>(float *x, const float y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<int>(int *x, const int y, ui64 size, TCudaStream stream);
-
-    template void MultiplyVector<ui32>(ui32 *x, const ui32 y, ui64 size, TCudaStream stream);
-
-    template void DivideVector<float>(float *x, const float *y, ui64 size, TCudaStream stream);
-
-    template void DivideVector<int>(int *x, const int *y, ui64 size, TCudaStream stream);
-
-    template void DivideVector<ui32>(ui32 *x, const ui32 *y, ui64 size, TCudaStream stream);
-
-//    template void Reduce<float>(float *data, ui64 size, ui32 partCount, TCudaStream stream);
-
-    template void ExpVector<float>(float *x, ui64 size, TCudaStream stream);
-
-    template void ExpVector<double>(double *x, ui64 size, TCudaStream stream);
-
-    template void Gather<int, ui32>(int *dst, const int *src, const ui32* map, ui64 size, TCudaStream stream);
-    template void Gather<ui8, ui32>(ui8 *dst, const ui8 *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Gather<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Gather<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Gather<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Scatter<int, ui32>(int *dst, const int *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Scatter<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, TCudaStream stream);
-    template void Scatter<ui8, ui32>(ui8 *dst, const ui8 *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Scatter<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void Scatter<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, TCudaStream stream);
-
-    template void GatherWithMask<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
-
-    template void ScatterWithMask<float, ui32>(float *dst, const float *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
+    #define BIN_OP_VECTOR_TEMPL(Type) \
+    template void AddVector<Type>(Type *x, const Type *y, ui64 size, TCudaStream stream);\
+    template void AddVector<Type>(Type *x, Type y, ui64 size, TCudaStream stream);\
+    template void SubtractVector<Type>(Type *x, const Type *y, ui64 size, TCudaStream stream);\
+    template void SubtractVector<Type>(Type *x, Type y, ui64 size, TCudaStream stream); \
+    template void MultiplyVector<Type>(Type *x, const Type* y, ui64 size, TCudaStream stream);\
+    template void MultiplyVector<Type>(Type *x, Type y, ui64 size, TCudaStream stream);\
+    template void DivideVector<Type>(Type *x, const Type* y, ui64 size, bool skipZeroes, TCudaStream stream);\
+    template void DivideVector<Type>(Type *x, Type y, ui64 size, bool skipZeroes, TCudaStream stream);\
 
 
-    template void GatherWithMask<int, ui32>(int *dst, const int *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
-    template void GatherWithMask<ui8, ui32>(ui8 *dst, const ui8 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
+    BIN_OP_VECTOR_TEMPL(int)
+    BIN_OP_VECTOR_TEMPL(float)
+    BIN_OP_VECTOR_TEMPL(ui32)
+    BIN_OP_VECTOR_TEMPL(double)
+    BIN_OP_VECTOR_TEMPL(ui8)
+    BIN_OP_VECTOR_TEMPL(uint2)
+    BIN_OP_VECTOR_TEMPL(ui16)
 
-    template void ScatterWithMask<int, ui32>(int* dst, const int *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
-    template void ScatterWithMask<ui8, ui32>(ui8* dst, const ui8 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
+    #define FUNC_VECTOR_TEMPL(Type) \
+    template void ExpVector<Type>(Type *x, ui64 size, TCudaStream stream);\
 
-    template void GatherWithMask<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
+    FUNC_VECTOR_TEMPL(float)
 
-    template void ScatterWithMask<uint2, ui32>(uint2 *dst, const uint2 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
 
-    template void GatherWithMask<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
 
-    template void ScatterWithMask<ui32, ui32>(ui32 *dst, const ui32 *src, const ui32* map, ui64 size, ui32 mask, TCudaStream stream);
+    #define GATHER_SCATTER_TEMPL(Type, IndexType) \
+    template void Gather<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, TCudaStream stream); \
+    template void Scatter<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, TCudaStream stream); \
+    template void GatherWithMask<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, IndexType mask, TCudaStream stream); \
+    template void ScatterWithMask<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, IndexType mask, TCudaStream stream);
 
-    template void Reverse<char>(char *data, ui64 size, TCudaStream stream);
 
-    template void Reverse<unsigned char>(unsigned char *data, ui64 size, TCudaStream stream);
+    GATHER_SCATTER_TEMPL(int, ui32)
+    GATHER_SCATTER_TEMPL(ui8, ui32)
+    GATHER_SCATTER_TEMPL(uint2, ui32)
+    GATHER_SCATTER_TEMPL(ui32, ui32)
+    GATHER_SCATTER_TEMPL(float, ui32)
 
-    template void Reverse<short>(short *data, ui64 size, TCudaStream stream);
+    #define REVERSE_VECTOR_TEMPL(Type) \
+    template void Reverse<Type>(Type *x, ui64 size, TCudaStream stream);
 
-    template void Reverse<ui16>(ui16 *data, ui64 size, TCudaStream stream);
+    REVERSE_VECTOR_TEMPL(char)
+    REVERSE_VECTOR_TEMPL(float)
+    REVERSE_VECTOR_TEMPL(unsigned char)
+    REVERSE_VECTOR_TEMPL(short)
+    REVERSE_VECTOR_TEMPL(ui16)
+    REVERSE_VECTOR_TEMPL(int)
+    REVERSE_VECTOR_TEMPL(ui32)
 
-    template void Reverse<int>(int *data, ui64 size, TCudaStream stream);
-
-    template void Reverse<ui32>(ui32 *data, ui64 size, TCudaStream stream);
-
-    template void Reverse<float>(float *data, ui64 size, TCudaStream stream);
 
 }

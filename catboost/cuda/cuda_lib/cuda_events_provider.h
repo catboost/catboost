@@ -5,6 +5,7 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
+
     class TCudaEventsProvider {
     private:
         TVector<cudaEvent_t> FreeHandles;
@@ -67,7 +68,7 @@ namespace NCudaLib {
                     return true;
                 }
                 if (errorCode != cudaErrorNotReady) {
-                    ythrow yexception() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode;
+                    ythrow TCatboostException() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode;
                 }
                 return false;
             }
@@ -76,7 +77,7 @@ namespace NCudaLib {
     public:
         using TCudaEventPtr = THolder<TCudaEvent>;
 
-        ~TCudaEventsProvider() throw (yexception) {
+        ~TCudaEventsProvider() throw (TCatboostException) {
             for (auto event : FreeHandles) {
                 CUDA_SAFE_CALL(cudaEventDestroy(event));
             }

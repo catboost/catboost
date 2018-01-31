@@ -335,74 +335,74 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestGpuDatasetBuilder(32, 0);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexWithPermutation) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestGpuDatasetBuilder(32, 1);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexHalfByteWithPermutation) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestGpuDatasetBuilder<THalfByteFeatureGridPolicy>(15, 1);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateDataSetsHolder) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 1);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 1, 8);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_64) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 1, 64);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 15, 64);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex128) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestGpuDatasetBuilder(128, 0);
         }
-        StopCudaManager();
+
     }
 }

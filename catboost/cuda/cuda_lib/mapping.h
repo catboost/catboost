@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cuda_kernel_buffer.h"
 #include "cuda_manager.h"
+#include "cuda_kernel_buffer.h"
 #include "slice.h"
 #include <catboost/libs/helpers/exception.h>
 
@@ -57,16 +57,14 @@ namespace NCudaLib {
         }
 
         TDevicesList NonEmptyDevices() const {
-            ui64 mask = 0;
-            ui64 one = 1;
-            ui64 devCount = GetCudaManager().GetDeviceCount();
-
+            TDevicesListBuilder builder;
+            auto devCount = GetCudaManager().GetDeviceCount();
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 if (MemoryUsageAt(dev)) {
-                    mask |= one << dev;
+                    builder.AddDevice(dev);
                 }
             }
-            return TDevicesList(mask);
+            return builder.Build();
         }
 
         template <class TFunc>

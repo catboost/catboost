@@ -11,6 +11,7 @@
 #include <array>
 
 namespace NCudaLib {
+
     class TObjectByHandleStorage {
     private:
         const static ui64 NULLPTR_HANDLE = 0;
@@ -129,6 +130,9 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(Handle);
     };
 
+
+
+
     //pointers for memory
     template <class T, EPtrType Type>
     class THandleBasedMemoryPointer {
@@ -137,6 +141,7 @@ namespace NCudaLib {
         ui64 Handle;
         ui64 Offset;
 
+        friend struct THandleRawPtr;
     public:
         THandleBasedMemoryPointer()
             : Handle(0)
@@ -162,6 +167,11 @@ namespace NCudaLib {
             return THandleBasedMemoryPointer<const T, Type>(Handle, Offset);
         };
 
+        void* GetRawPtr() {
+            return THandleRawPtr(Type, Handle, sizeof(T) * Offset);
+        }
+
+
         T* Get() const {
             if (Handle == 0) {
                 return nullptr;
@@ -172,4 +182,57 @@ namespace NCudaLib {
 
         Y_SAVELOAD_DEFINE(Handle, Offset);
     };
+
+    struct THandleRawPtr {
+        EPtrType Type;
+        ui64 Handle = 0;
+        ui64 Offset = 0;
+
+        THandleRawPtr(EPtrType type, ui64 handle, ui64 offset)
+                : Type(type)
+                  , Handle(handle)
+                  , Offset(offset) {
+
+        }
+
+        template <class T, EPtrType PtrType>
+        explicit THandleRawPtr(THandleBasedMemoryPointer<T, PtrType>& ptr) {
+            Type = PtrType;
+            Handle = ptr.Handle;
+            Offset = sizeof(T) * ptr.Offset;
+        }
+
+        THandleRawPtr() = default;
+        THandleRawPtr(const THandleRawPtr&) = default;
+        THandleRawPtr(THandleRawPtr&&) = default;
+        THandleRawPtr& operator=(THandleRawPtr&&) = default;
+        THandleRawPtr& operator=(const THandleRawPtr&) = default;
+
+        bool IsNullptr() const {
+            return Handle == 0;
+        }
+
+        inline char* GetRawPtr() const {
+            switch (Type) {
+                case NCudaLib::EPtrType::CudaDevice: {
+                    return NCudaLib::THandleBasedMemoryPointer<char, NCudaLib::EPtrType::CudaDevice>(Handle, Offset).Get();
+                }
+                case NCudaLib::EPtrType::CudaHost: {
+                    return NCudaLib::THandleBasedMemoryPointer<char, NCudaLib::EPtrType::CudaHost>(Handle, Offset).Get();
+                }
+                case NCudaLib::EPtrType::Host: {
+                    return NCudaLib::THandleBasedMemoryPointer<char, NCudaLib::EPtrType::Host>(Handle, Offset).Get();
+                }
+                default: {
+                    CB_ENSURE(false, "Error: unknown ptr type");
+                }
+            }
+            Y_UNREACHABLE();
+        }
+
+        Y_SAVELOAD_DEFINE(Type, Handle, Offset);
+    };
+
+
+
 }

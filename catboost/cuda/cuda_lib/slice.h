@@ -4,7 +4,7 @@
 
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
-#include <util/system/yassert.h>
+#include <util/ysaveload.h>
 
 struct TSlice {
     ui64 Left;  //inclusive
@@ -92,6 +92,8 @@ struct TSlice {
     bool operator<(const TSlice& other) const {
         return std::tie(Left, Right) < std::tie(other.Left, other.Right);
     }
+
+    Y_SAVELOAD_DEFINE(Left, Right);
 };
 
 inline TSlice operator==(const TSlice& lhs, ui64 offset) {

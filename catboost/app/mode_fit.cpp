@@ -4,9 +4,23 @@
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
+#if defined(USE_MPI)
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
+#endif
 
-int mode_fit(const int argc, const char* argv[]) {
+int mode_fit(int argc, const char* argv[]) {
     ConfigureMalloc();
+
+    #if defined(USE_MPI)
+    char** args = const_cast<char**>(argv);
+    auto& mpiManager = NCudaLib::GetMpiManager();
+    mpiManager.Start(&argc, &args);
+    if (!mpiManager.IsMaster()) {
+        RunSlave();
+        return 0;
+    }
+    #endif
 
     NCatboostOptions::TPoolLoadParams poolLoadOptions;
     TString paramsFile;
@@ -38,6 +52,12 @@ int mode_fit(const int argc, const char* argv[]) {
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
     modelTrainerHolder->TrainModel(poolLoadOptions, outputOptions, catBoostJsonOptions);
+
+    #if defined(USE_MPI)
+    if (mpiManager.IsMaster()) {
+        mpiManager.Stop();
+    }
+    #endif
     return 0;
 }
 

@@ -80,10 +80,10 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
     }
 
     SIMPLE_UNIT_TEST(TestReorder) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             RunReorderTest();
         }
-        StopCudaManager();
+
     }
 }

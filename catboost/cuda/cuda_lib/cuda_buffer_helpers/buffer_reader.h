@@ -5,10 +5,9 @@
 #include <catboost/cuda/cuda_lib/single_device.h>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_tasks.h>
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cpu_reducers.h>
-#include <util/ysafeptr.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
@@ -17,7 +16,7 @@ namespace NCudaLib {
     private:
         const TCudaBuffer* Buffer;
         ui32 Stream = 0;
-        TVector<TDeviceEvent> ReadDone;
+        TVector<THolder<IDeviceRequest>> ReadDone;
 
         TSlice FactorSlice;
         //slice to read: ReadSlice read all slices, that equal mod ReduceSlice to read slice
@@ -85,7 +84,7 @@ namespace NCudaLib {
 
         void WaitComplete() {
             for (auto& task : ReadDone) {
-                task.WaitComplete();
+                task->WaitComplete();
             }
         }
 
@@ -155,7 +154,9 @@ namespace NCudaLib {
                                 const ui64 writeOffset = mapping.MemoryOffset(deviceSlicePart) - skipOffset;
 
                                 ReadDone.push_back(
-                                    TDataCopier::AsyncRead(Buffer->GetBuffer(dev), Stream, localDataOffset,
+                                    TDataCopier::AsyncRead(Buffer->GetBuffer(dev),
+                                                           Stream,
+                                                           localDataOffset,
                                                            to + writeOffset,
                                                            mapping.MemorySize(deviceSlicePart)));
                             } else {

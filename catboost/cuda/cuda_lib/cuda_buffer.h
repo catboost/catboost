@@ -9,16 +9,14 @@
 #include "mapping.h"
 #include "cpu_reducers.h"
 #include "cache.h"
-#include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_writer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_reader.h>
-#include <util/ysafeptr.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
     template <class T,
               class TMapping,
-              EPtrType Type = CudaDevice>
+              EPtrType Type = EPtrType::CudaDevice>
     class TCudaBuffer: public TMoveOnly {
     private:
         using TRawPtr = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;
@@ -26,10 +24,11 @@ namespace NCudaLib {
         using TDeviceMeta = typename TMapping::TMeta;
         using TDeviceBuffer = typename NKernelHost::TDeviceBuffer<T, TDeviceMeta, Type>;
         using TConstDeviceBuffer = typename NKernelHost::TDeviceBuffer<const T, TDeviceMeta, Type>;
+
         TMapping Mapping;
         TVector<TBuffer> Buffers;
         ui64 ColumnCount = 1;
-        mutable bool CreatetedFromScratchFlag = false;
+        mutable bool CreatedFromScratchFlag = false;
         mutable bool IsSliceView = false;
         bool ReadOnly = false;
 
@@ -52,7 +51,7 @@ namespace NCudaLib {
             if (ReadOnly || IsSliceView) {
                 return false;
             }
-            if (CreatetedFromScratchFlag) {
+            if (CreatedFromScratchFlag) {
                 return true;
             }
             bool allNullptr = true;
@@ -63,7 +62,7 @@ namespace NCudaLib {
                 }
             }
             if (allNullptr) {
-                CreatetedFromScratchFlag = true;
+                CreatedFromScratchFlag = true;
                 return true;
             }
             return false;
@@ -79,7 +78,7 @@ namespace NCudaLib {
         friend class TCudaBufferResharding;
 
         template <EPtrType, EPtrType>
-        friend class TLatencyAndBandwidthStats;
+        friend class TMemoryCopyPerformance;
 
         TBuffer& BufferAt(ui32 devId) {
             return Buffers.at(devId);
@@ -243,7 +242,7 @@ namespace NCudaLib {
             buffer.ColumnCount = ColumnCount;
             buffer.IsSliceView = IsSliceView;
             buffer.ReadOnly = ReadOnly;
-            buffer.CreatetedFromScratchFlag = CreatetedFromScratchFlag;
+            buffer.CreatedFromScratchFlag = CreatedFromScratchFlag;
 
             return buffer;
         };
@@ -262,12 +261,18 @@ namespace NCudaLib {
         TDeviceBuffer At(ui64 devId) {
             Y_ASSERT(devId < Buffers.size());
 
-            return TDeviceBuffer(BufferAt(devId).GetPointer(), Mapping.At(devId), ColumnCount);
+            return TDeviceBuffer(BufferAt(devId).GetPointer(),
+                                 Mapping.At(devId),
+                                 ColumnCount,
+                                 GetCudaManager().GetDeviceId(devId));
         };
 
         TConstDeviceBuffer At(ui64 devId) const {
             Y_ASSERT(devId < Buffers.size());
-            return TConstDeviceBuffer(BufferAt(devId).GetPointer(), Mapping.At(devId), ColumnCount);
+            return TConstDeviceBuffer(BufferAt(devId).GetPointer(),
+                                      Mapping.At(devId),
+                                      ColumnCount,
+                                      GetCudaManager().GetDeviceId(devId));
         };
 
         TSlice GetColumnSlice() const {
@@ -300,7 +305,7 @@ namespace NCudaLib {
         static TCudaBuffer Create(const TMapping& mapping, ui64 columnCount = 1) {
             TCudaBuffer buffer(columnCount);
             SetMapping(mapping, buffer);
-            buffer.CreatetedFromScratchFlag = true;
+            buffer.CreatedFromScratchFlag = true;
             return buffer;
         }
 
@@ -309,7 +314,7 @@ namespace NCudaLib {
             swap(lhs.Buffers, rhs.Buffers);
             swap(lhs.ColumnCount, rhs.ColumnCount);
             swap(lhs.Mapping, rhs.Mapping);
-            swap(lhs.CreatetedFromScratchFlag, rhs.CreatetedFromScratchFlag);
+            swap(lhs.CreatedFromScratchFlag, rhs.CreatedFromScratchFlag);
             swap(lhs.IsSliceView, rhs.IsSliceView);
         }
 

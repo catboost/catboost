@@ -13,8 +13,8 @@ SRCS(
     gpu_grid_creator.cpp
     kernel/split.cu
     kernel/binarize.cu
-    remote_binarize.cpp
-    splitter.cpp
+    GLOBAL remote_binarize.cpp
+    GLOBAL splitter.cpp
     oblivious_tree_bin_builder.cpp
     pinned_memory_estimation.cpp
     samples_grouping.cpp
@@ -34,7 +34,7 @@ PEERDIR(
 CUDA_NVCC_FLAGS(
     --expt-relaxed-constexpr
     -std=c++11
-    -gencode arch=compute_30,code=compute_30
+     -gencode arch=compute_30,code=compute_30
     -gencode arch=compute_35,code=sm_35
     -gencode arch=compute_50,code=compute_50
     -gencode arch=compute_52,code=sm_52

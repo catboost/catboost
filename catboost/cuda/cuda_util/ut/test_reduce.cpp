@@ -12,7 +12,7 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
     SIMPLE_UNIT_TEST(TestReduce) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -38,11 +38,11 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result[0] / vec.size(), sum / vec.size(), 1e-5);
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedReduce) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -100,11 +100,11 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedReducePerformance) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -149,6 +149,6 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 }

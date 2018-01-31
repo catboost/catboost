@@ -47,12 +47,13 @@ namespace NKernelHost {
             const ui64 size = X.Size();
             auto context = MakeHolder<TKernelContext>();
             const ui64 blockSize = NKernel::GetDotProductBlockSize();
+
             context->NumBlocks = (size + blockSize * 2 - 1) / (blockSize * 2);
             context->Size = size;
             context->PartResultSize = ((size + 1023) / 1024);
-            //we don't need gpu-side buffer for this
-            //TODO(noxoomo): make temp memory more robust
-            context->PartResults = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize).Get();
+            auto partResultPtr = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize);
+
+            context->PartResults = partResultPtr.Get();
             return context;
         }
 

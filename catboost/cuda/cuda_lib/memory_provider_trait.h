@@ -8,8 +8,7 @@ namespace NCudaLib {
     template <EPtrType Type>
     class TMemoryProviderImplTrait {
     public:
-//TODO: maybe make it template abd cmd-line arg
-#if defined(CB_USE_CUDA_MALLOC)
+#if defined(USE_CUDA_MALLOC)
         using TMemoryProvider = TCudaMallocWrapper<Type>;
 #else
         using TMemoryProvider = TStackLikeMemoryPool<Type>;
@@ -18,10 +17,10 @@ namespace NCudaLib {
     };
 
     template <>
-    class TMemoryProviderImplTrait<Host> {
+    class TMemoryProviderImplTrait<EPtrType::Host> {
     public:
         using TMemoryProvider = void;
 
-        using TRawFreeMemory = char*;
+        using TRawFreeMemory = THolder<char>;
     };
 }

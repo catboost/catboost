@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cuda_base.h"
+#include "device_id.h"
 #include "slice.h"
 #include "memory_provider_trait.h"
 #include "remote_objects.h"
@@ -8,6 +9,7 @@
 #include <util/ysaveload.h>
 
 namespace NKernelHost {
+
     class TFixedSizesObjectsMeta {
     private:
         ui64 ObjectCount;
@@ -23,6 +25,9 @@ namespace NKernelHost {
         TFixedSizesObjectsMeta(const TFixedSizesObjectsMeta&) = default;
 
         TFixedSizesObjectsMeta(TFixedSizesObjectsMeta&&) = default;
+
+        TFixedSizesObjectsMeta& operator=(TFixedSizesObjectsMeta&&) = default;
+        TFixedSizesObjectsMeta& operator=(const TFixedSizesObjectsMeta&) = default;
 
         TFixedSizesObjectsMeta(ui64 count, ui64 objectSize)
             : ObjectCount(count)
@@ -57,14 +62,17 @@ namespace NKernelHost {
         NCudaLib::THandleBasedMemoryPointer<T, Type> Data;
         TObjectsMeta Meta;
         ui64 ColumnCount;
-
+        TDeviceId DeviceId;
     public:
         TDeviceBuffer(NCudaLib::THandleBasedMemoryPointer<T, Type> ptr,
                       TObjectsMeta&& meta,
-                      ui64 columnCount)
+                      ui64 columnCount,
+                      TDeviceId deviceId
+        )
             : Data(ptr)
             , Meta(meta)
             , ColumnCount(columnCount)
+            , DeviceId(deviceId)
         {
         }
 
@@ -75,9 +83,15 @@ namespace NKernelHost {
         {
         }
 
+        TDeviceBuffer& operator=(const TDeviceBuffer& other) = default;
+        TDeviceBuffer& operator=(TDeviceBuffer&& other) = default;
+        TDeviceBuffer(TDeviceBuffer&& other) = default;
+        TDeviceBuffer(const TDeviceBuffer& other) = default;
+
         T* Get() const {
             return Data.Get();
         }
+
 
         T operator[](ui64 idx) const {
             T value;
@@ -152,7 +166,11 @@ namespace NKernelHost {
             return TDeviceBuffer();
         }
 
-        Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount);
+        const TDeviceId& GetDeviceId() const {
+            return DeviceId;
+        }
+
+        Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount, DeviceId);
     };
 
     template <class T, class TObjectsMeta = TFixedSizesObjectsMeta>

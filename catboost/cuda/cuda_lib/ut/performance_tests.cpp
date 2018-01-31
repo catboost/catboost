@@ -4,14 +4,15 @@
 #include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>
+#include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
+#include <catboost/cuda/cuda_util/bootstrap.h>
 
 using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
     SIMPLE_UNIT_TEST(TestRunKernelPerformance) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         {
             TRandom rand(0);
@@ -30,11 +31,11 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestRunKernelAndReadResultPerformance) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         {
             TRandom rand(0);
@@ -58,20 +59,20 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyDeviceDevice) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
 
         {
-            auto& latencyAndBandwidth = GetLatencyAndBandwidthStats<EPtrType::CudaDevice, EPtrType::CudaDevice>();
+            auto& stats = GetMemoryCopyPerformance<EPtrType::CudaDevice, EPtrType::CudaDevice>();
 
             ui64 devCount = GetCudaManager().GetDeviceCount();
             MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.BandwidthMbPerSec(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(stats.Bandwidth(dev, secondDev)) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
@@ -79,34 +80,35 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             MATRIXNET_INFO_LOG << "Bandwitdh " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << stats.Bandwidth(dev, secondDev) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
             MATRIXNET_INFO_LOG << "Latency " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
+                MATRIXNET_INFO_LOG << "Dev #" << dev << "\t";
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << stats.Latency(dev, secondDev) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(PureCudaLatencyTest) {
         SetDevice(0);
-        auto src = TCudaMemoryAllocation<CudaDevice>::Allocate<float>((ui64)2);
+        auto src = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
         SetDevice(1);
-        auto dst = TCudaMemoryAllocation<CudaDevice>::Allocate<float>((ui64)2);
+        auto dst = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
 
-        TCudaStream stream;
+        TCudaStream stream = GetStreamsProvider().RequestStream();
         auto event = CreateCudaEvent();
         double val = 0;
         for (ui64 iter = 0; iter < 10000; ++iter) {
             stream.Synchronize();
             auto start = std::chrono::high_resolution_clock::now();
-            TMemoryCopier<CudaDevice, CudaDevice>::CopyMemoryAsync(src, dst, (ui64)2, stream);
+            TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::CopyMemoryAsync(src, dst, (ui64)2, stream);
             event->Record(stream);
             event->WaitComplete();
             auto elapsed = std::chrono::high_resolution_clock::now() - start;
@@ -117,14 +119,14 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyDeviceHost) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            auto& latencyAndBandwidth = GetLatencyAndBandwidthStats<EPtrType::CudaDevice, EPtrType::CudaHost>();
+            auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaDevice, EPtrType::CudaHost>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
             MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.BandwidthMbPerSec(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
@@ -144,18 +146,18 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyHostHost) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            auto& latencyAndBandwidth = GetLatencyAndBandwidthStats<EPtrType::CudaHost, EPtrType::CudaHost>();
+            auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaHost>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
             MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.BandwidthMbPerSec(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
@@ -175,18 +177,18 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyHostDevice) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            auto& latencyAndBandwidth = GetLatencyAndBandwidthStats<EPtrType::CudaHost, EPtrType::CudaDevice>();
+            auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaDevice>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
             MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.BandwidthMbPerSec(dev, secondDev) << "\t";
+                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
                 MATRIXNET_INFO_LOG << Endl;
             }
@@ -206,12 +208,12 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(LatencyProfile) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
 
         if (manager.GetDeviceCount() > 1) {
             auto leftMapping = TSingleMapping(0, 1);
@@ -229,18 +231,22 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             }
             MATRIXNET_INFO_LOG << "Latency 0-1 " << val / 100000 << Endl;
         }
-        manager.Stop();
+
     }
 
     SIMPLE_UNIT_TEST(BroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
 
         if (manager.GetDeviceCount() > 1) {
             bool initialized = false;
 
+            auto seeds = TSingleBuffer<ui64>::Create(TSingleMapping(1, 16384));
+            MakeSequence(seeds);
+
             for (ui64 i = 1; i < 28; ++i) {
                 TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
+                profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
                 const ui64 tries = 10;
                 const ui64 innerTries = 10;
@@ -249,6 +255,9 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 auto mirrorMapping = TMirrorMapping(1 << i);
 
                 auto bufferSingle = TSingleBuffer<float>::Create(singleMapping);
+                BayesianBootstrap(seeds, bufferSingle, 1.0f);
+
+
                 //                auto bufferSingleCpu = TCudaBuffer<float, TStripeMapping, EPtrType::CudaHost>::Create(TStripeMapping::SplitBetweenDevices(1 << i));
                 //                auto bufferSingle = TCudaBuffer<float, TSingleMapping, EPtrType::CudaHost>::Create(singleMapping);
                 auto bufferMirror = TMirrorBuffer<float>::Create(mirrorMapping);
@@ -265,37 +274,31 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                         Reshard(bufferSingle, bufferMirror);
                     }
                 }
-            }
 
-            {
-                TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
-
-                const ui64 tries = 10;
-                //
-                auto singleMapping = TSingleMapping(1, (ui64)(5500 * 1024 * 1024ULL));
-                auto mirrorMapping = TMirrorMapping((ui64)(5500 * 1024 * 1024ULL));
-
-                auto bufferSingle = TSingleBuffer<char>::Create(singleMapping);
-                auto bufferMirror = TMirrorBuffer<char>::Create(mirrorMapping);
-
+                #if defined(USE_MPI)
                 for (ui32 iter = 0; iter < tries; ++iter) {
-                    auto guard = profiler.Profile("Broadcast  5500MB");
-                    Reshard(bufferSingle, bufferMirror);
+                    auto guard = profiler.Profile("Broadcast compressed " + ToString(1.0 * sizeof(float) * (1 << i) / 1024 / 1024) + "MBx" + ToString(innerTries));
+                    for (ui32 innerIter = 0; innerIter < innerTries; ++innerIter) {
+                        //                        Reshard(bufferSingleCpu, bufferSingle);
+                        Reshard(bufferSingle, bufferMirror, 0u, true);
+                    }
                 }
+                #endif
             }
+
         }
-        manager.Stop();
     }
 
     SIMPLE_UNIT_TEST(StripeToSingleBroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
 
         if (manager.GetDeviceCount() > 1) {
             bool initialized = false;
 
             for (ui64 i = 4; i < 28; ++i) {
                 TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
+                profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
                 const ui64 tries = 10;
                 const ui64 innerTries = 10;
@@ -322,17 +325,18 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-        manager.Stop();
+
     }
     SIMPLE_UNIT_TEST(StripeToMirrorBroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
 
         if (manager.GetDeviceCount() > 1) {
             bool initialized = false;
 
             for (ui64 i = 4; i < 28; ++i) {
                 TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
+                profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
                 const ui64 tries = 10;
                 const ui64 innerTries = 10;
@@ -359,12 +363,12 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-        manager.Stop();
+
     }
 
     SIMPLE_UNIT_TEST(TestReadAndWrite) {
         auto& manager = NCudaLib::GetCudaManager();
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TCudaProfiler& profiler = manager.GetProfiler();
             profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
@@ -391,6 +395,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 }

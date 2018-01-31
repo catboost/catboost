@@ -17,13 +17,17 @@ namespace NCudaLib {
             }
         }
         manager.WaitComplete();
+
         NCudaLib::TChildCudaManagerInitializer consistentChildrenGuard;
         TCountDownLatch latch(manager.GetDeviceCount());
         NPar::AsyncParallelFor(0, manager.GetDeviceCount(), [&](ui32 device) {
-            auto deviceLock = consistentChildrenGuard.Initialize(device);
-            task(device);
+            {
+                auto freeGuard = consistentChildrenGuard.Initialize(device);
+                task(device);
+            }
             latch.Countdown();
         });
         latch.Wait();
+
     }
 }

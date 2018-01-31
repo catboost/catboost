@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/task.h>
 
 namespace NCudaLib {
+
     template <EPtrType PtrType>
     class TCudaMallocTask: public IAllocateMemoryTask {
     private:
@@ -17,22 +18,27 @@ namespace NCudaLib {
         {
         }
 
-        ui64 GetHandle() const override {
+        TCudaMallocTask() {
+
+        }
+
+        ui64 GetHandle() const final {
             return Handle;
         }
 
-        ui64 GetSize() const override {
+        ui64 GetSize() const final {
             return Size;
         }
 
-        EPtrType GetPtrType() const override {
+        EPtrType GetPtrType() const final {
             return PtrType;
         }
 
-        Y_SAVELOAD_DEFINE(Handle, Size);
+        Y_SAVELOAD_TASK(Handle, Size);
     };
 
-    template <class T, bool FreeHandle = false>
+    template <class T,
+              bool FreeHandle = false>
     class TResetPointerCommand : public IFreeMemoryTask {
     private:
         ui64 Handle;
@@ -42,36 +48,46 @@ namespace NCudaLib {
         {
         }
 
-        void Exec() override final {
+        TResetPointerCommand() {
+
+        }
+
+        void Exec()  final {
             THandleBasedPointer<T>(Handle).Reset();
             if (FreeHandle) {
                 GetHandleStorage().FreeHandle(Handle);
             }
         }
+
+        Y_SAVELOAD_TASK(Handle);
     };
 
     template <class T>
     struct TCreateObjectCommandTrait {
+
         class TWithoutConstructCommand: public IHostTask {
         private:
             ui64 Handle;
 
         public:
             explicit TWithoutConstructCommand(ui64 handle)
-                : Handle(handle)
-            {
+                : Handle(handle) {
             }
 
-            void Exec() override {
+            void Exec(const IWorkerStateProvider&) final {
                 THandleBasedPointer<T> ptr(Handle);
                 ptr.Reset(new T);
             }
 
-            Y_SAVELOAD_DEFINE(Handle);
+            virtual ECpuFuncType GetHostTaskType() {
+                return ECpuFuncType::DeviceNonblocking;
+            }
+
+            Y_SAVELOAD_TASK(Handle);
         };
 
-        static THolder<IHostTask> Create(ui64 handle) {
-            return new TWithoutConstructCommand(handle);
+        static THolder<TWithoutConstructCommand> Create(ui64 handle) {
+            return MakeHolder<TWithoutConstructCommand>(handle);
         }
     };
 

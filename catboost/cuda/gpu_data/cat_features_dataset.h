@@ -18,7 +18,7 @@ namespace NCatboostCuda {
             featuresManager.GetCatFeatureIds().size() / NCudaLib::GetCudaManager().GetDeviceCount());
     }
 
-    template <NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType StorageType = NCudaLib::EPtrType::CudaDevice>
     class TCompressedCatFeatureDataSet: public TMoveOnly,
                                          public TGuidHolder {
     public:
@@ -65,7 +65,7 @@ namespace NCatboostCuda {
         friend class TCompressedCatFeatureDataSetBuilder;
     };
 
-    template <NCudaLib::EPtrType StorageType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType StorageType = NCudaLib::EPtrType::CudaDevice>
     class TCompressedCatFeatureDataSetBuilder {
     public:
         TCompressedCatFeatureDataSetBuilder(const TDataProvider& dataProvider,
@@ -168,7 +168,7 @@ namespace NCatboostCuda {
         TValue Value;
     };
 
-    template <NCudaLib::EPtrType CatFeatureStorageType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType CatFeatureStorageType = NCudaLib::EPtrType::CudaDevice>
     class TMirrorCatFeatureProvider: public TNonCopyable {
     public:
         TMirrorCatFeatureProvider(const TCompressedCatFeatureDataSet<CatFeatureStorageType>& dataSet,

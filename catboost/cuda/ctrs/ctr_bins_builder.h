@@ -110,7 +110,7 @@ namespace NCatboostCuda {
                                                               const TCudaBuffer<TUi64, TMapping, PtrType>& compressedLearn,
                                                               ui32 uniqueValues) {
             CB_ENSURE(TestSlice.Size() == 0);
-            if (PtrType == NCudaLib::CudaDevice) {
+            if (PtrType == NCudaLib::EPtrType::CudaDevice) {
                 ProceedCompressedBins(uniqueValues, compressedLearn, currentBins);
             } else {
                 AddLearnBins(compressedLearn, uniqueValues);

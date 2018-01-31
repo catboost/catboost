@@ -365,26 +365,26 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
     }
 
     SIMPLE_UNIT_TEST(TreeBuilderTest4) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestTreeBuilder(32, 4);
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCompressedSplitFloat) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             RunCompressedSplitFloatTest();
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TreeBuilderTest32) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestTreeBuilder(32, 32);
         }
-        StopCudaManager();
+
     }
 }

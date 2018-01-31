@@ -38,10 +38,10 @@ namespace NCatboostCuda {
         }
 
         ui32 GetStreamCountForCtrCalculation() const {
-            if (DocCount > 1e6 && CatFeaturesStoragePtrType == NCudaLib::CudaDevice) {
+            if (DocCount > 1e6 && CatFeaturesStoragePtrType == NCudaLib::EPtrType::CudaDevice) {
                 return 1;
             }
-            if (CatFeaturesStoragePtrType == NCudaLib::CudaHost) {
+            if (CatFeaturesStoragePtrType == NCudaLib::EPtrType::CudaHost) {
                 return (DocCount > 15e6 ? 1 : 2);
             }
             if (FreeMemory < 512) {

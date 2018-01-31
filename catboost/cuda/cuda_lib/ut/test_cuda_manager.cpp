@@ -1,5 +1,5 @@
-#include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <library/unittest/registar.h>
+#include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <iostream>
 #include <thread>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -10,15 +10,44 @@
 #include <catboost/cuda/utils/countdown_latch.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 #include <library/threading/local_executor/local_executor.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TChildManagerTest) {
-    SIMPLE_UNIT_TEST(TestFill) {
-        auto& manager = NCudaLib::GetCudaManager();
-        StartCudaManager();
+SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
+
+    SIMPLE_UNIT_TEST(TestKernelDDOS) {
         {
-            NPar::LocalExecutor().RunAdditionalThreads(manager.GetDeviceCount());
+            ui32 count = 100000;
+            auto stopCudaManagerGuard = StartCudaManager();
+            auto cudaVec1 = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(GetDeviceCount()));
+            auto cudaVec2 = TCudaBuffer<float, TStripeMapping>::Create(TStripeMapping::SplitBetweenDevices(GetDeviceCount()));
+
+            for (ui32 id = 0; id < count; ++id) {
+                FillBuffer(cudaVec2, 1.0f);
+                Reshard(cudaVec2, cudaVec1);
+            }
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TestCreateStreams) {
+        for (ui32 i = 0; i < 3; ++i)
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            auto cudaVec = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(2));
+
+            TVector<TComputationStream> streams;
+            for (ui32 id = 0; id < 100; ++id) {
+                streams.push_back(RequestStream());
+                FillBuffer(cudaVec, 1.0f, streams.back().GetId());
+            }
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TestFillChild) {
+        auto& manager = NCudaLib::GetCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
+        {
 
             TCudaProfiler& profiler = manager.GetProfiler();
             profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
@@ -61,12 +90,32 @@ SIMPLE_UNIT_TEST_SUITE(TChildManagerTest) {
                 }
             });
         }
-        StopCudaManager();
+
     }
 
-    SIMPLE_UNIT_TEST(TestMakeSeqStripe) {
+
+    SIMPLE_UNIT_TEST(TestRequestStreamChild) {
+        ui64 tries = 3;
+
+        for (ui32 i = 0; i < tries; ++i)
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+
+            for (int i = 0; i < 10; ++i) {
+                RunPerDeviceSubtasks([&](ui32) {
+                    TVector<TComputationStream> streams;
+                    const ui32 streamCount = 8;
+                    for (ui32 i = 0; i < streamCount; ++i) {
+                        streams.push_back(GetCudaManager().RequestStream());
+                    }
+                });
+            }
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TestMakeSeqStripeChild) {
         auto& manager = NCudaLib::GetCudaManager();
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(manager.GetDeviceCount());
 
@@ -113,6 +162,6 @@ SIMPLE_UNIT_TEST_SUITE(TChildManagerTest) {
                 }
             });
         }
-        StopCudaManager();
+
     }
 }

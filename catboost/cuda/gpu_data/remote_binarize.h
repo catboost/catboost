@@ -9,6 +9,7 @@
 
 
 namespace NKernelHost {
+
     class TFindBordersKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Feature;

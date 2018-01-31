@@ -97,7 +97,7 @@ namespace NCatboostCuda {
         TVector<float> LeafWeights;
         TVector<double> TaskTotalWeights;
         TMirrorBuffer<float> LeafValues;
-        TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::CudaHost> PartStats;
+        TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> PartStats;
 
         TObliviousTreeStructure Structure;
         const TBinarizedFeaturesManager& FeaturesManager;
@@ -153,7 +153,7 @@ namespace NCatboostCuda {
                 const ui32 derOffset = taskCount + taskId * leavesCount;
                 auto derView = NCudaLib::ParallelStripeView(PartStats, TSlice(derOffset, derOffset + leavesCount));
 
-                TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::CudaHost> der2View;
+                TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> der2View;
                 if (UseNewton) {
                     const ui32 der2Offset = taskCount * (leavesCount + 1) + taskId * leavesCount;
                     der2View = NCudaLib::ParallelStripeView(PartStats, TSlice(der2Offset, der2Offset + leavesCount));

@@ -95,6 +95,8 @@ namespace NKernel
     template void MakeSequence<int>(int* buffer, ui64  size, TCudaStream stream);
 
     template void MakeSequence<ui32>(ui32* buffer, ui64  size, TCudaStream stream);
+    template void MakeSequence<ui64>(ui64* buffer, ui64  size, TCudaStream stream);
 
     template void InversePermutation<ui32>(const ui32* order, ui32* inverseOrder, ui64 size, TCudaStream stream);
+    template void InversePermutation<int>(const int* order, int* inverseOrder, ui64 size, TCudaStream stream);
 }

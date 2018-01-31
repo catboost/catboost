@@ -5,35 +5,35 @@ namespace NCudaLib {
 
     void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size)  {
         switch (ptrType) {
-            case CudaHost: {
-                using TRawPtr = typename TMemoryProviderImplTrait<CudaHost>::TRawFreeMemory;
+            case EPtrType::CudaHost: {
+                using TRawPtr = typename TMemoryProviderImplTrait<EPtrType::CudaHost>::TRawFreeMemory;
                 using TCmd = TResetPointerCommand<TRawPtr, true>;
                 Y_ASSERT(HostMemoryProvider);
-                TCudaMallocTask<CudaHost> task(handle, size);
-                AllocateMemory(task);
+                TCudaMallocTask<EPtrType::CudaHost> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
                 ObjectsToFree.push_back(std::move(cmd));
+                AllocateMemory(task);
                 return;
             }
-            case CudaDevice: {
-                using TRawPtr = typename TMemoryProviderImplTrait<CudaDevice>::TRawFreeMemory;
+            case EPtrType::CudaDevice: {
+                using TRawPtr = typename TMemoryProviderImplTrait<EPtrType::CudaDevice>::TRawFreeMemory;
                 using TCmd = TResetPointerCommand<TRawPtr, true>;
 
                 Y_ASSERT(HostMemoryProvider);
-                TCudaMallocTask<CudaDevice> task(handle, size);
-                AllocateMemory(task);
+                TCudaMallocTask<EPtrType::CudaDevice> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
                 ObjectsToFree.push_back(std::move(cmd));
+                AllocateMemory(task);
                 return;
             }
-            case Host: {
-                using TRawPtr = typename TMemoryProviderImplTrait<Host>::TRawFreeMemory;
+            case EPtrType::Host: {
+                using TRawPtr = typename TMemoryProviderImplTrait<EPtrType::Host>::TRawFreeMemory;
                 using TCmd = TResetPointerCommand<TRawPtr, true>;
 
-                TCudaMallocTask<Host> task(handle, size);
-                AllocateMemory(task);
+                TCudaMallocTask<EPtrType::Host> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
                 ObjectsToFree.push_back(std::move(cmd));
+                AllocateMemory(task);
                 return;
             }
             default: {
@@ -47,80 +47,98 @@ namespace NCudaLib {
         try {
             const bool hasRunning = CheckRunningTasks();
             const bool isEmpty = InputTaskQueue.IsEmpty();
+
             if (!hasRunning && isEmpty) {
                 InputTaskQueue.Wait(TInstant::Seconds(1));
             } else if (!isEmpty) {
-                THolder<IGpuCommand> task = InputTaskQueue.Dequeue();
+                THolder<ICommand> task = InputTaskQueue.Dequeue();
+
+                if (task->GetCommandType() == EComandType::SerializedCommand) {
+                    task = reinterpret_cast<TSerializedCommand*>(task.Get())->Deserialize();
+                }
 
                 switch (task->GetCommandType()) {
+                    case EComandType::Reset: {
+                        TResetCommand* init = dynamic_cast<TResetCommand*>(task.Get());
+                        WaitSubmitAndSync();
+                        Reset(*init);
+                        break;
+                    }
                     //could be run async
-                    case EGpuHostCommandType::StreamKernel: {
-                        IGpuKernelTask* kernelTask = dynamic_cast<IGpuKernelTask*>(task.Get());
+                    case EComandType::StreamKernel: {
+                        IGpuKernelTask* kernelTask = reinterpret_cast<IGpuKernelTask*>(task.Get());
                         const ui32 streamId = kernelTask->GetStreamId();
                         if (streamId == 0) {
                             WaitAllTaskToSubmit();
                             SyncActiveStreams(true);
                         }
                         auto& stream = *Streams[streamId];
-                        auto data = kernelTask->PrepareExec(TempMemoryManager);
+                        THolder<NKernel::IKernelContext> data;
+                        try {
+                            data = kernelTask->PrepareExec(TempMemoryManager);
+                        } catch (TOutOfMemoryError& err) {
+                            WaitSubmitAndSync();
+                            DeleteObjects();
+                            data = kernelTask->PrepareExec(TempMemoryManager);
+                        }
                         task.Release();
+
                         stream.AddTask(THolder<IGpuKernelTask>(kernelTask), std::move(data));
                         break;
                     }
                         //synchronized on memory defragmentation
-                    case EGpuHostCommandType::MemoryAllocation: {
-                        IAllocateMemoryTask* memoryTask = dynamic_cast<IAllocateMemoryTask*>(task.Get());
+                    case EComandType::MemoryAllocation: {
+                        IAllocateMemoryTask* memoryTask = reinterpret_cast<IAllocateMemoryTask*>(task.Get());
                         AllocateMemory(*memoryTask);
                         break;
                     }
-                    case EGpuHostCommandType::MemoryDeallocation: {
+                    case EComandType::MemoryDeallocation: {
                         WaitSubmitAndSync();
-                        IFreeMemoryTask* freeMemoryTask = dynamic_cast<IFreeMemoryTask*>(task.Get());
+                        IFreeMemoryTask* freeMemoryTask = reinterpret_cast<IFreeMemoryTask*>(task.Get());
                         task.Release();
                         ObjectsToFree.push_back(THolder<IFreeMemoryTask>(freeMemoryTask));
                         DeleteObjects();
                         break;
                     }
-                    case EGpuHostCommandType::MemoryState: {
-                        WaitAllTaskToSubmit();
-                        TMemoryStateTask* memoryStateTask = dynamic_cast<TMemoryStateTask*>(task.Get());
-                        task.Release();
-                        memoryStateTask->Set(GetMemoryState());
-                        break;
-                    }
-                    case EGpuHostCommandType::WaitSubmit: {
+                    case EComandType::WaitSubmit: {
                         WaitAllTaskToSubmit();
                         break;
                     }
                         //synchronized always
-                    case EGpuHostCommandType::HostTask: {
-                        auto taskPtr = dynamic_cast<IHostTask*>(task.Get());
-                        if (!taskPtr->IsSystemTask()) {
+                    case EComandType::HostTask: {
+                        auto taskPtr = reinterpret_cast<IHostTask*>(task.Get());
+                        auto type = taskPtr->GetHostTaskType();
+                        if (IsBlockingHostTask(type)) {
                             WaitSubmitAndSync();
                             DeleteObjects();
                         }
-                        taskPtr->Exec();
+                        taskPtr->Exec(*this);
                         break;
                     }
-                    case EGpuHostCommandType::RequestStream: {
+                    case EComandType::RequestStream: {
                         const ui32 streamId = RequestStreamImpl();
-                        dynamic_cast<TRequestStreamCommand*>(task.Get())->SetStreamId(streamId);
+                        reinterpret_cast<IRequestStreamCommand*>(task.Get())->SetStreamId(streamId);
                         break;
                     }
-                    case EGpuHostCommandType::FreeStream: {
-                        auto stream = dynamic_cast<TFreeStreamCommand*>(task.Get())->GetStream();
+                    case EComandType::FreeStream: {
+                        const auto& streams = reinterpret_cast<TFreeStreamCommand*>(task.Get())->GetStreams();
                         WaitAllTaskToSubmit();
-                        SyncStream(stream);
-                        FreeStreams.push_back(stream);
+                        for (const auto& stream : streams) {
+                            SyncStream(stream);
+                            FreeStreams.push_back(stream);
+                        }
                         break;
                     }
-                    case EGpuHostCommandType::StopWorker: {
+                    case EComandType::StopWorker: {
                         WaitSubmitAndSync();
                         shouldStop = true;
                         break;
                     }
+                    case EComandType::SerializedCommand: {
+                        Y_UNREACHABLE();
+                    }
                     default: {
-                        ythrow yexception() << "Unknown command type";
+                        ythrow TCatboostException() << "Unknown command type";
                     }
                 }
             }
@@ -131,11 +149,9 @@ namespace NCudaLib {
         return shouldStop;
     }
 
-    void TGpuOneDeviceWorker::Run(ui64 gpuMemoryLimit, ui64 pinnedMemoryLimit) {
+    void TGpuOneDeviceWorker::Run() {
         Stopped = false;
         SetDevice(LocalDeviceId);
-        DeviceMemoryProvider = MakeHolder<TDeviceMemoryProvider>(gpuMemoryLimit);
-        HostMemoryProvider = MakeHolder<THostMemoryProvider>(pinnedMemoryLimit);
         CreateNewComputationStream();
         SetDefaultStream(Streams[0]->GetStream());
 
@@ -148,6 +164,13 @@ namespace NCudaLib {
             }
         }
         CB_ENSURE(InputTaskQueue.IsEmpty(), "Error: found tasks after stop command");
+
+        CB_ENSURE((1 + FreeStreams.size()) == Streams.size());
+        CB_ENSURE(ObjectsToFree.size() == 0);
+        Streams.clear();
+        FreeStreams.clear();
+        ObjectsToFree.clear();
+
         Stopped = true;
     }
 

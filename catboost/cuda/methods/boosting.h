@@ -30,7 +30,7 @@ namespace NCatboostCuda {
 
     template <template <class TMapping, class> class TTargetTemplate,
               class TWeakLearner,
-              NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+              NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TDynamicBoosting {
     public:
         using TTarget = TTargetTemplate<NCudaLib::TMirrorMapping, TDataSet<CatFeaturesStoragePtrType>>;

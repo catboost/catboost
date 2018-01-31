@@ -1,51 +1,123 @@
 #pragma once
 
 #include "cuda_base.h"
-#include "memory_provider_trait.h"
 #include "remote_objects.h"
-#include "cuda_events_provider.h"
 #include "kernel.h"
+#include "worker_state.h"
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/threading/future/future.h>
-#include <util/ysafeptr.h>
-#include <util/system/event.h>
+#include <util/generic/buffer.h>
 
 namespace NCudaLib {
-    enum class EGpuHostCommandType {
+
+    enum class EComandType {
         StreamKernel,       //async tasks, will be launch in stream
         HostTask,           //sync task, ensure every task in stream was completed
         MemoryAllocation,   // usually async, but could sync or memory defragmentation
         MemoryDeallocation, // sync everything and free memory
-        MemoryState,
         RequestStream,
         FreeStream,
         WaitSubmit,
+        Reset,
         StopWorker,
+        SerializedCommand
     };
 
-    class IGpuCommand {
+    class ICommand {
     private:
-        EGpuHostCommandType Type;
+        EComandType Type;
 
     public:
-        explicit IGpuCommand(EGpuHostCommandType type)
+        explicit ICommand(EComandType type)
             : Type(type)
         {
         }
 
-        virtual ~IGpuCommand() {
+        virtual ~ICommand() {
         }
 
-        EGpuHostCommandType GetCommandType() const {
+        EComandType GetCommandType() const {
             return Type;
         }
+
+        virtual void Load(IInputStream*) = 0;
+        virtual void Save(IOutputStream*) const = 0;
     };
 
-    class IAllocateMemoryTask: public IGpuCommand {
+
+
+    #define Y_STATELESS_TASK()                 \
+    void Save(IOutputStream*) const final {    \
+    }                                          \
+                                               \
+    void Load(IInputStream*) final {           \
+    }
+
+    #define Y_SAVELOAD_EMPTY()                   \
+    inline void Save(IOutputStream*) const {     \
+    }                                            \
+                                                 \
+    inline void Load(IInputStream*) {            \
+    }
+
+    //for local shared memory tasks
+    #define Y_NON_SERIALIZABLE_TASK()                       \
+    void Save(IOutputStream*) const final {                 \
+        Y_VERIFY(false, "Error: can't save this command");  \
+    }                                                       \
+                                                            \
+    void Load(IInputStream*) override {                     \
+        Y_VERIFY(false, "Error: can't load this command");  \
+    }
+
+
+    #define Y_SAVELOAD_TASK(...)                       \
+    void Save(IOutputStream* s) const final {          \
+        ::SaveMany(s, __VA_ARGS__);                    \
+    }                                                  \
+                                                       \
+    void Load(IInputStream* s)  final {                \
+        ::LoadMany(s, __VA_ARGS__);                    \
+    }
+
+    #define Y_SAVELOAD_IMPL(...)                  \
+    void SaveImpl(IOutputStream* s) const {            \
+        ::SaveMany(s, __VA_ARGS__);                    \
+    }                                                  \
+                                                       \
+    void LoadImpl(IInputStream* s)  {                  \
+        ::LoadMany(s, __VA_ARGS__);                    \
+    }
+
+
+    struct TResetCommand : public ICommand {
+    public:
+        TResetCommand(double gpuMemoryPart,
+                      ui64 pinnedMemorySize)
+                : ICommand(EComandType::Reset)
+                , GpuMemoryPart(gpuMemoryPart)
+                , PinnedMemorySize(pinnedMemorySize) {
+
+        }
+
+
+        TResetCommand()
+                : ICommand(EComandType::Reset){
+
+        }
+
+        double GpuMemoryPart = 0;
+        ui64 PinnedMemorySize = 0;
+
+        Y_SAVELOAD_TASK(GpuMemoryPart, PinnedMemorySize)
+
+    };
+
+
+    class IAllocateMemoryTask: public ICommand {
     public:
         IAllocateMemoryTask()
-            : IGpuCommand(EGpuHostCommandType::MemoryAllocation)
+            : ICommand(EComandType::MemoryAllocation)
         {
         }
 
@@ -56,37 +128,58 @@ namespace NCudaLib {
         virtual EPtrType GetPtrType() const = 0;
     };
 
-    class IFreeMemoryTask: public IGpuCommand {
+    class IFreeMemoryTask: public ICommand {
     public:
         IFreeMemoryTask()
-            : IGpuCommand(EGpuHostCommandType::MemoryDeallocation)
+            : ICommand(EComandType::MemoryDeallocation)
         {
         }
 
         virtual void Exec() = 0;
     };
 
-    class IHostTask: public IGpuCommand {
+    enum class ECpuFuncType {
+        DeviceBlocking, //wait all previous tasks done
+        DeviceNonblocking, //system async
+    };
+
+    inline bool constexpr IsBlockingHostTask(ECpuFuncType type) {
+        return type == ECpuFuncType::DeviceBlocking;
+    }
+
+    class IHostTask: public ICommand {
     public:
         IHostTask()
-            : IGpuCommand(EGpuHostCommandType::HostTask)
-        {
+            : ICommand(EComandType::HostTask) {
         }
 
         //system tasks skip stream semantic
-        virtual bool IsSystemTask() {
-            return false;
-        }
+        virtual ECpuFuncType GetHostTaskType() = 0;
 
-        virtual void Exec() = 0;
+        virtual void Exec(const IWorkerStateProvider& workerState) = 0;
     };
 
-    class TStopCommand: public IGpuCommand {
+
+    class TStopWorkerCommand: public ICommand {
     public:
-        explicit TStopCommand()
-            : IGpuCommand(EGpuHostCommandType::StopWorker)
+        explicit TStopWorkerCommand()
+            : ICommand(EComandType::StopWorker)
         {
         }
+
+        Y_STATELESS_TASK();
+    };
+
+    class TSerializedCommand : public ICommand {
+    public:
+
+        TSerializedCommand(TBuffer&& data);
+
+        THolder<ICommand> Deserialize();
+
+        Y_NON_SERIALIZABLE_TASK();
+    private:
+        TBuffer Data;
     };
 
 }

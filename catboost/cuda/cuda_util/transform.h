@@ -32,7 +32,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const T> Y;
         T ConstY;
         EBinOpType OperationType;
-
+        const bool SkipZeroesOnDivide = true;
     public:
         TBinOpKernel() = default;
 
@@ -74,7 +74,7 @@ namespace NKernelHost {
                         MultiplyVector<T>(X.Get(), ConstY, size, stream.GetStream());
                         break;
                     case EBinOpType::DivVec:
-                        DivideVector<T>(X.Get(), Y.Get(), size, stream.GetStream());
+                        DivideVector<T>(X.Get(), Y.Get(), size, SkipZeroesOnDivide, stream.GetStream());
                         break;
                 }
             }
@@ -102,15 +102,18 @@ namespace NKernelHost {
             using namespace NKernel;
             switch (Type) {
                 case EFuncType::Exp:
-                    ExpVector<T>(X, X.Size(), stream.GetStream());
+                    ExpVector<T>(X.Get(), X.Size(), stream.GetStream());
                     break;
+                case EFuncType::Identity: {
+                    CB_ENSURE(false, "Unimplemented");
+                }
             }
         }
 
         Y_SAVELOAD_DEFINE(X, Type);
     };
 
-    template <typename T, typename Index = int>
+    template <typename T, typename Index = ui32>
     class TMapCopyKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<T> Dest;
@@ -185,50 +188,50 @@ namespace NKernelHost {
 }
 
 template <typename T, class TMapping>
-inline void AddVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui64 stream = 0) {
+inline void AddVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, NKernelHost::EBinOpType::AddVec);
 }
 
 template <typename T, class TMapping>
-inline void AddVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, T value, ui64 stream = 0) {
+inline void AddVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, T value, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, value, NKernelHost::EBinOpType::AddConst);
 }
 
 template <typename T, class TMapping>
-inline void SubtractVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui64 stream = 0) {
+inline void SubtractVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, NKernelHost::EBinOpType::SubVec);
 }
 
 template <typename T, class TMapping>
-inline void MultiplyVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui64 stream = 0) {
+inline void MultiplyVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, NKernelHost::EBinOpType::MulVec);
 }
 
 template <typename T, class TMapping>
-inline void MultiplyVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, T y, ui64 stream = 0) {
+inline void MultiplyVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, T y, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, NKernelHost::EBinOpType::MulConst);
 }
 
 template <typename T, class TMapping>
-inline void DivideVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui64 stream = 0) {
+inline void DivideVector(TCudaBuffer<std::remove_const_t<T>, TMapping>& x, const TCudaBuffer<T, TMapping>& y, ui32 stream = 0) {
     using TKernel = NKernelHost::TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, NKernelHost::EBinOpType::DivVec);
 }
 
 template <typename T, class TMapping>
-inline void ExpVector(TCudaBuffer<T, TMapping>& x, ui64 stream = 0) {
+inline void ExpVector(TCudaBuffer<T, TMapping>& x, ui32 stream = 0) {
     using TKernel = NKernelHost::TApplyFuncKernel<T>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, NKernelHost::EFuncType::Exp);
 }
 
 template <typename T, class TMapping, class U = const ui32>
 inline void Gather(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map,
-                   ui64 stream = 0) {
+                   ui32 stream = 0) {
     using TKernel = NKernelHost::TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, NKernelHost::EMapCopyType::Gather);
 }
@@ -237,33 +240,33 @@ template <typename T, class U = const ui32>
 inline void Gather(TCudaBuffer<std::remove_const_t<T>, NCudaLib::TStripeMapping>& dst,
                    const TCudaBuffer<T, NCudaLib::TMirrorMapping>& src,
                    const TCudaBuffer<U, NCudaLib::TStripeMapping>& map,
-                   ui64 stream = 0) {
+                   ui32 stream = 0) {
     using TKernel = NKernelHost::TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, NKernelHost::EMapCopyType::Gather);
 }
 
 template <typename T, class TMapping, class U = const ui32>
 inline void GatherWithMask(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map,
-                           ui32 mask, ui64 stream = 0) {
+                           ui32 mask, ui32 stream = 0) {
     using TKernel = NKernelHost::TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, NKernelHost::EMapCopyType::Gather, mask);
 }
 
 template <typename T, class TMapping, class U = const ui32>
-inline void Scatter(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map, ui64 stream = 0) {
+inline void Scatter(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map, ui32 stream = 0) {
     using TKernel = NKernelHost::TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, NKernelHost::EMapCopyType::Scatter);
 }
 
 template <typename T, class TMapping, class U = const ui32>
-inline void ScatterWithMask(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map, ui32 mask, ui64 stream = 0) {
+inline void ScatterWithMask(TCudaBuffer<std::remove_const_t<T>, TMapping>& dst, const TCudaBuffer<T, TMapping>& src, const TCudaBuffer<U, TMapping>& map, ui32 mask, ui32 stream = 0) {
     using TKernel = NKernelHost::TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, NKernelHost::EMapCopyType::Scatter, mask);
 }
 
 //
 template <typename T, class TMapping>
-inline void Reverse(TCudaBuffer<T, TMapping>& data, ui64 stream = 0) {
+inline void Reverse(TCudaBuffer<T, TMapping>& data, ui32 stream = 0) {
     using TKernel = NKernelHost::TReverseKernel<T>;
     LaunchKernels<TKernel>(data.NonEmptyDevices(), stream, data);
 }

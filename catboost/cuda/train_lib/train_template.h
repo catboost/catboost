@@ -129,9 +129,9 @@ namespace NCatboostCuda {
                                                        TRandom& random,
                                                        bool storeCatFeaturesInPinnedMemory) {
         if (storeCatFeaturesInPinnedMemory) {
-            return Train<TTargetTemplate, NCudaLib::CudaHost>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+            return Train<TTargetTemplate, NCudaLib::EPtrType::CudaHost>(featureManager, catBoostOptions, outputOptions, learn, test, random);
         } else {
-            return Train<TTargetTemplate, NCudaLib::CudaDevice>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+            return Train<TTargetTemplate, NCudaLib::EPtrType::CudaDevice>(featureManager, catBoostOptions, outputOptions, learn, test, random);
         }
     };
 

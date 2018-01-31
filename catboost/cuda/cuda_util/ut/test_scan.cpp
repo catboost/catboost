@@ -9,7 +9,7 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TScanTest) {
     SIMPLE_UNIT_TEST(TestScanStripe) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
             TRandom rand(0);
@@ -55,7 +55,7 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     template <class T>
@@ -88,26 +88,26 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
     }
 
     SIMPLE_UNIT_TEST(TestScanPerformanceFloat) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<float>();
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestScanPerformanceInt) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<int>();
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestScanPerformanceUnsignedInt) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<ui32>();
         }
-        StopCudaManager();
+
     }
 }

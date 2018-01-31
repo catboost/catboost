@@ -10,6 +10,7 @@
 #include <catboost/cuda/utils/cpu_random.h>
 
 namespace NCatboostCuda {
+
     class TCpuPoolBasedDataProviderBuilder {
     public:
         TCpuPoolBasedDataProviderBuilder(TBinarizedFeaturesManager& featureManager,

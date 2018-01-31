@@ -62,7 +62,10 @@ namespace NKernelHost {
             CB_ENSURE(binFeatureCount == bFeatures.Size(), TStringBuilder() << binFeatureCount << " ≠ " << bFeatures.Size());
         }
 
-        Y_SAVELOAD_DEFINE(BFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartsCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(BFeatures, Cindex,
+                          Target, Weight, DsSize, Indices,
+                          Partition, PartsCount, FoldCount,
+                          BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2Binary(BFeatures.Get(), static_cast<int>(BFeatures.Size()),
@@ -113,7 +116,11 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(NbFeatures, Cindex,
+                          Target, Weight,
+                          DsSize, Indices,
+                          Partition, PartCount, FoldCount,
+                          BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2NonBinary(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),

@@ -427,7 +427,7 @@ namespace NCatboostCuda {
     };
 
     //Test dataset will be linked on first permutation (direct indexing)
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TDataSetHoldersBuilder {
     public:
         TDataSetHoldersBuilder(TBinarizedFeaturesManager& featuresManager,

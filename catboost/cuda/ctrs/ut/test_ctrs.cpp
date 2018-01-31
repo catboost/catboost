@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
     }
 
     SIMPLE_UNIT_TEST(TestSimpleCatTargetCtr) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
             ui64 tries = 5;
@@ -120,11 +120,11 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSimpleCatTargetCtrBenchmark) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
             ui64 tries = 20;
@@ -210,11 +210,11 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSimpleFreqCtr) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
             ui64 maxBits = 25;
@@ -315,6 +315,6 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 }

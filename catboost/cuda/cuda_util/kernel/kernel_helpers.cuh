@@ -11,11 +11,22 @@ namespace NKernel {
         return (*reinterpret_cast<ui32*>(&val)) >> 31;
     }
 
+    template <>
+    __device__ __forceinline__ bool ExtractSignBit(double val)  {
+        return (*reinterpret_cast<ui64*>(&val)) >> 63;
+    }
+
     template <class T>
     __device__ __forceinline__ T OrSignBit(T val, bool flag)  {
         static_assert(sizeof(T) == sizeof(ui32), "Error: this works only for 4byte types");
         ui32 raw = (*reinterpret_cast<ui32*>(&val) | (flag << 31));
         return *reinterpret_cast<T*>(&raw);
+    }
+
+    template <>
+    __device__ __forceinline__ double OrSignBit(double val, bool flag)  {
+        ui32 raw = (*reinterpret_cast<ui64*>(&val) | (static_cast<ui64>(flag) << 63));
+        return *reinterpret_cast<ui64*>(&raw);
     }
 
     __device__ __forceinline__  float PositiveInfty()

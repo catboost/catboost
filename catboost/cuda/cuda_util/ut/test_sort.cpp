@@ -9,7 +9,7 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TSortTest) {
     SIMPLE_UNIT_TEST(TestSort) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -38,11 +38,11 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSortWithLinked) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -76,11 +76,11 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSortWithExternalBuffer) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -119,11 +119,11 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSortPerformance) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
@@ -150,6 +150,6 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 }

@@ -1,6 +1,7 @@
 #include "reduce.cuh"
 #include "kernel_helpers.cuh"
 #include <contrib/libs/cub/cub/device/device_reduce.cuh>
+#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <contrib/libs/cub/cub/device/device_segmented_reduce.cuh>
 
 
@@ -17,49 +18,57 @@ namespace NKernel {
                                                           const int* segmentStarts,
                                                           const int* segmentEnds,
                                                           ui32 segmentsCount,
-                                                          T* reducedSegments) {
+                                                          T* reducedSegments,
+                                                          int blockCount
+    ) {
         __shared__  T localBufferStorage[BLOCK_SIZE];
         const int tid = threadIdx.x;
-        localBufferStorage[tid] = 0;
+        int blockId = blockIdx.x;
 
-        const int mask = LINE_SIZE - 1;
+        while (blockId < blockCount) {
+            __syncthreads();
 
-        const int segmentsPerBlock = BLOCK_SIZE / LINE_SIZE;
-        const int warpId = tid / LINE_SIZE;
-        const int segmentId = blockIdx.x * segmentsPerBlock + warpId;
+            localBufferStorage[tid] = 0;
 
-        T* localBuffer = &localBufferStorage[warpId * LINE_SIZE];
+            const int mask = LINE_SIZE - 1;
 
-        int segmentStart = segmentId < segmentsCount ? segmentStarts[segmentId] : 0;
-        int segmentEnd = segmentId < segmentsCount ? segmentEnds[segmentId] : 0;
-        int segmentSize = segmentEnd - segmentStart;
+            const int segmentsPerBlock = BLOCK_SIZE / LINE_SIZE;
+            const int warpId = tid / LINE_SIZE;
+            const int segmentId = blockId * segmentsPerBlock + warpId;
 
-        src += segmentStart;
-        
-        const int localId = tid & mask;
-        const auto loopSize = LINE_SIZE * CeilDivide(segmentSize, LINE_SIZE);
+            T* localBuffer = &localBufferStorage[warpId * LINE_SIZE];
 
-        {
-            float tmp = 0;
-            for (int i = localId; i < loopSize; i += LINE_SIZE)
+            int segmentStart = segmentId < segmentsCount ? segmentStarts[segmentId] : 0;
+            int segmentEnd = segmentId < segmentsCount ? segmentEnds[segmentId] : 0;
+            int segmentSize = segmentEnd - segmentStart;
+
+            src += segmentStart;
+
+            const int localId = tid & mask;
+            const auto loopSize = LINE_SIZE * CeilDivide(segmentSize, LINE_SIZE);
+
             {
-                tmp += i < segmentSize ? StreamLoad(src + i) : 0;
+                float tmp = 0;
+                for (int i = localId; i < loopSize; i += LINE_SIZE) {
+                    tmp += i < segmentSize ? StreamLoad(src + i) : 0;
+                }
+                localBuffer[localId] = tmp;
             }
-            localBuffer[localId] = tmp;
-        }
 
-        const T warpResult = WarpReduce(localId, localBuffer, LINE_SIZE);
+            const T warpResult = WarpReduce(localId, localBuffer, LINE_SIZE);
 
-        __syncthreads();
+            __syncthreads();
 
-        if (localId == 0) {
-            localBufferStorage[warpId] = warpResult;
-        }
-        __syncthreads();
+            if (localId == 0) {
+                localBufferStorage[warpId] = warpResult;
+            }
+            __syncthreads();
 
 
-        if (tid < segmentsPerBlock && (blockIdx.x * segmentsPerBlock + tid < segmentsCount)) {
-            reducedSegments[blockIdx.x * segmentsPerBlock + tid] = localBufferStorage[tid];
+            if (tid < segmentsPerBlock && (blockId * segmentsPerBlock + tid < segmentsCount)) {
+                reducedSegments[blockId * segmentsPerBlock + tid] = localBufferStorage[tid];
+            }
+            blockId += gridDim.x;
         }
     }
 
@@ -69,29 +78,37 @@ namespace NKernel {
                                                        const int* segmentStarts,
                                                        const int* segmentEnds,
                                                        ui32 segmentsCount,
-                                                       T* reducedSegments) {
+                                                       T* reducedSegments,
+                                                       int numBlocks
+    ) {
         __shared__  T localBuffer[BLOCK_SIZE];
-        const int tid = threadIdx.x;
-        localBuffer[tid] = 0;
+        int blockId = blockIdx.x;
+        while (blockId < numBlocks) {
+            __syncthreads();
 
-        const int segmentId = blockIdx.x;
-        int segmentStart = segmentStarts[segmentId];
-        int segmentEnd = segmentEnds[segmentId];
-        int segmentSize = segmentEnd - segmentStart;
+            const int tid = threadIdx.x;
+            localBuffer[tid] = 0;
 
-        src += segmentStart;
+            const int segmentId = blockId;
+            int segmentStart = segmentStarts[segmentId];
+            int segmentEnd = segmentEnds[segmentId];
+            int segmentSize = segmentEnd - segmentStart;
 
-        const auto loopSize = BLOCK_SIZE * CeilDivide(segmentSize, BLOCK_SIZE);
+            src += segmentStart;
 
-        for (int i = tid; i < loopSize; i += BLOCK_SIZE) {
-            localBuffer[tid] += i < segmentSize ? StreamLoad(src + i) : 0;
-        }
-        __syncthreads();
+            const auto loopSize = BLOCK_SIZE * CeilDivide(segmentSize, BLOCK_SIZE);
 
-        T result = FastInBlockReduce(tid, localBuffer, BLOCK_SIZE);
+            for (int i = tid; i < loopSize; i += BLOCK_SIZE) {
+                localBuffer[tid] += i < segmentSize ? StreamLoad(src + i) : 0;
+            }
+            __syncthreads();
 
-        if (tid == 0) {
-            reducedSegments[blockIdx.x] = result;
+            T result = FastInBlockReduce(tid, localBuffer, BLOCK_SIZE);
+
+            if (tid == 0) {
+                reducedSegments[blockId] = result;
+            }
+            blockId += gridDim.x;
         }
     }
 
@@ -197,42 +214,43 @@ namespace NKernel {
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >
-                                                                                                                    (input, beginOffsets, endOffsets, numSegments, output);
+
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                                                                                                                    (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 4) {
                         const ui32 lineSize = 4;
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >
-                                (input, beginOffsets, endOffsets, numSegments, output);
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 8) {
                         const ui32 lineSize = 8;
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >
-                                                                                                                (input, beginOffsets, endOffsets, numSegments, output);
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                                                                                                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 16) {
                         const ui32 lineSize = 16;
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >
-                                                                                                                (input, beginOffsets, endOffsets, numSegments, output);
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                                                                                                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     } else if (meanSize <= 256) {
                         const ui32 lineSize = 32;
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < numBlocks, blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output);
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     } else {
                         const ui32 blockSize = 512;
                         const ui32 numBlocks = numSegments;
-                        SegmentedReduceBlockPerSegmentImpl<T, blockSize> << < numBlocks, blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output);
+                        SegmentedReduceBlockPerSegmentImpl<T, blockSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     }
                     return cudaSuccess;
                 }

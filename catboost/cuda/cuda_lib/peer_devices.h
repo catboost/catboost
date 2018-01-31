@@ -6,39 +6,43 @@
 #include <util/generic/set.h>
 
 namespace NCudaLib {
+
     class TPeerDevicesHelper {
     public:
-        bool HasPeerAccess(ui32 from, ui32 to) const {
-            if (PeerDevices.size() && PeerDevices.size() > from) {
+        bool HasPeerAccess(int from, int to) const {
+            if (PeerDevices.size() && PeerDevices.size() > static_cast<ui64>(from)) {
                 return PeerDevices[from].has(to);
             }
             return false;
         }
 
-        void EnablePeerAccess() {
-            if (PeerDevices.size() == 0) {
-                ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-                PeerDevices.resize(devCount);
-                int devId = GetDevice();
-                for (ui32 i = 0; i < devCount; ++i) {
-                    for (ui32 j = i + 1; j < devCount; ++j) {
-                        int can = 0;
-                        SetDevice(i);
-                        cudaDeviceCanAccessPeer(&can, i, j);
-                        if (can) {
-                            cudaDeviceEnablePeerAccess(j, 0);
-                            SetDevice(j);
-                            cudaDeviceEnablePeerAccess(i, 0);
-                            PeerDevices[i].insert(j);
-                            PeerDevices[j].insert(i);
-                        }
-                    }
-                }
-                SetDevice(devId);
-            } else {
-                CB_ENSURE((int)PeerDevices.size() == NCudaHelpers::GetDeviceCount());
+        void EnablePeerAccess(int currentDevice, int targetDevice) {
+            if (PeerDevices[currentDevice].has(targetDevice)) {
+                return;
+            }
+            Y_ASSERT(GetDevice() == currentDevice);
+            int can = 0;
+            CUDA_SAFE_CALL(cudaDeviceCanAccessPeer(&can, currentDevice, targetDevice));
+            if (can) {
+                CUDA_SAFE_CALL(cudaDeviceEnablePeerAccess(targetDevice, 0));
+                PeerDevices[currentDevice].insert(targetDevice);
             }
         }
+
+        void DisablePeerAccess(int currentDevice, int targetDevice) {
+            if (!PeerDevices[currentDevice].has(targetDevice)) {
+                return;
+            }
+            CUDA_SAFE_CALL(cudaDeviceDisablePeerAccess(targetDevice));
+            TSet<ui32>& currentDevicePeersSet = PeerDevices[currentDevice];
+            currentDevicePeersSet.erase(targetDevice);
+        }
+
+
+        TPeerDevicesHelper() {
+            PeerDevices.resize(NCudaHelpers::GetDeviceCount());
+        }
+
 
     private:
         TVector<TSet<ui32>> PeerDevices;

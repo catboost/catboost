@@ -1,12 +1,14 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/slice.h>
-#include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>
+#include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <util/generic/set.h>
 #include <cmath>
 
 namespace NCudaLib {
-    template <class TFromBuffer, class TToBuffer>
+
+    template <class TFromBuffer,
+              class TToBuffer>
     class TCudaBufferResharding {
     private:
         const TFromBuffer& Src;
@@ -15,6 +17,7 @@ namespace NCudaLib {
         TSlice ColumnSlice;
         bool ShiftColumnsToZeroInDst = false;
         using T = typename TFromBuffer::TValueType;
+        bool CompressFlag = false;
 
         inline ui64 GetDstColumn(ui64 column) {
             if (ShiftColumnsToZeroInDst) {
@@ -33,35 +36,33 @@ namespace NCudaLib {
                 return 1;
             }
 
-            const auto& stats = GetLatencyAndBandwidthStats<TFromBuffer::PtrType(), TToBuffer::PtrType()>();
+            const auto& stats = GetMemoryCopyPerformance<TFromBuffer::PtrType(), TToBuffer::PtrType()>();
 
             double bandwidth = 0;
             double latency = 0;
             {
-                ui64 count = 0;
                 for (ui64 i = 0; i < devices.size(); ++i) {
                     for (ui64 j = 0; j < i; ++j) {
                         auto from = devices[i];
                         auto to = devices[j];
 
-                        bandwidth += stats.Bandwidth(from, to);
+                        bandwidth = std::max(bandwidth, stats.Bandwidth(from, to));
                         latency = std::max(stats.Latency(from, to), latency);
-                        ++count;
                     }
                 }
-                bandwidth /= count;
             }
             //magic const. works better then theoretical result
             latency *= 4;
+            #if defined(USE_MPI)
 
-            ui64 blockSize = floor(sqrt(bandwidth * dataSize * (devices.size() + 1) / latency));
-            return blockSize < 1 ? 1 : blockSize;
+            #endif
+
+            ui64 blockCount = floor(sqrt(bandwidth * dataSize * (devices.size() + 1) / latency));
+            return blockCount < 1 ? 1 : blockCount;
         }
 
         void BroadcastSlice(const TSlice& slice, ui32 device,
                             const TVector<ui32>& devices) {
-            auto& cudaManager = GetCudaManager();
-            cudaManager.SyncStream(Stream);
             const auto& srcMapping = Src.GetMapping();
             const auto& dstMapping = Dst.GetMapping();
 
@@ -94,7 +95,6 @@ namespace NCudaLib {
                     }
                 }
                 copier.SubmitCopy();
-                cudaManager.SyncStream(Stream);
                 return;
             }
             //ring algorithm for broadcasting data
@@ -106,6 +106,8 @@ namespace NCudaLib {
             // on iter copy from i'th device (i - iter) block to i'th + 1 device.
             for (ui64 iter = 0; iter < iterCount; ++iter) {
                 TDataCopier copier(Stream);
+                copier.SetCompressFlag(CompressFlag);
+
 
                 for (ui64 i = 0; i < devices.size(); ++i) {
                     ui32 dstDev = devices[i];
@@ -147,7 +149,6 @@ namespace NCudaLib {
                     }
                 }
                 copier.SubmitCopy();
-                cudaManager.SyncStream(Stream);
             }
         }
 
@@ -206,12 +207,18 @@ namespace NCudaLib {
             return *this;
         }
 
+        TCudaBufferResharding& SetCompressFlag(bool flag) {
+            CompressFlag = flag;
+            return *this;
+        }
+
         TCudaBufferResharding& SetColumnSlice(const TSlice& columnSlice) {
             ColumnSlice = columnSlice;
             return *this;
         }
 
         void Run() {
+            //TODO(noxoomo): tune for efficient resharding for several hosts
             const auto& srcMapping = Src.GetMapping();
             const auto& dstMapping = Dst.GetMapping();
 
@@ -224,6 +231,7 @@ namespace NCudaLib {
 
             {
                 TDataCopier copier(Stream);
+                copier.SetCompressFlag(CompressFlag);
 
                 for (ui64 i = 0; i < writeDevices.size(); ++i) {
                     ui32 dev = writeDevices[i];
@@ -245,8 +253,8 @@ namespace NCudaLib {
                             const ui64 writeOffset = dstMapping.DeviceMemoryOffset(dev, fastCopySlice) +
                                                      GetDstColumn(column) * dstMapping.MemorySize(deviceSlice);
 
-                            copier.AddAsyncMemoryCopyTask(Src.GetBuffer(dev), readOffset, Dst.GetBuffer(dev),
-                                                          writeOffset,
+                            copier.AddAsyncMemoryCopyTask(Src.GetBuffer(dev), readOffset,
+                                                          Dst.GetBuffer(dev), writeOffset,
                                                           sliceMemorySize);
                         }
                     }
@@ -278,6 +286,7 @@ namespace NCudaLib {
                     if (taskSlice.Contains(broadcastSlice)) {
                         devicesToBroadcast.push_back(tasks[i].Device);
                     }
+
                     const TSlice intersection = TSlice::Intersection(taskSlice, broadcastSlice);
                     for (auto restSlice : TSlice::Remove(taskSlice, intersection)) {
                         nextTasks.push_back({tasks[i].Device, restSlice});
@@ -298,8 +307,9 @@ namespace NCudaLib {
     };
 
     template <class TSrcBuffer, class TDstBuffer>
-    inline void Reshard(const TSrcBuffer& src, TDstBuffer& dst, ui32 stream = 0) {
+    inline void Reshard(const TSrcBuffer& src, TDstBuffer& dst, ui32 stream = 0, bool compress = false) {
         TCudaBufferResharding<TSrcBuffer, TDstBuffer> worker(src, dst, stream);
-        worker.Run();
+        worker.SetCompressFlag(compress)
+               .Run();
     };
 }

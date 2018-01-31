@@ -3,13 +3,29 @@
 #include "cuda_base.h"
 #include "single_device.h"
 #include "helpers.h"
-#include "peer_devices.h"
-#include <thread>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-    inline TSet<ui32> GetEnabledDevices(const TString& deviceConfig) {
-        const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
+
+    class TTerminateOnErrorCallback: public IExceptionCallback {
+    public:
+        void Call(const TString& message) override {
+            MATRIXNET_ERROR_LOG << "Application terminated with error: " << message << Endl;
+            std::terminate();
+        }
+    };
+
+    class TSetDeviceExceptionCallback: public IExceptionCallback {
+    public:
+        void Call(const TString& message) override {
+            MATRIXNET_ERROR_LOG << "Exception on device #" << Device->GetDeviceId() << " Error: " << message << Endl;
+            AtomicIncrement(Device->ExceptionsCount);
+        }
+    private:
+        TCudaSingleDevice* Device;
+    };
+
+    inline TSet<ui32> GetEnabledDevices(const TString& deviceConfig, ui32 devCount) {
         TSet<ui32> enabledDevices;
         if (deviceConfig == "-1") {
             for (ui32 i = 0; i < devCount; ++i) {
@@ -21,193 +37,247 @@ namespace NCudaLib {
         return enabledDevices;
     }
 
-    struct TCudaApplicationConfig {
+
+    struct TDeviceRequestConfig {
+
         constexpr static ui64 MB = 1024 * 1024;
 
-        enum class EDevicesUsageType {
-            Single, //one thread use one device. Thread-local cuda-managers
-            All,    //one thread uses all devices
-        } UsageType = EDevicesUsageType::All;
-
-        ui32 WorkersPerDevice = 1;
         ui64 PinnedMemorySize = 1024 * MB;
         double GpuMemoryPartByWorker = 0.95;
-
+        bool EnablePeers = false;
         TString DeviceConfig = "-1";
 
-        TCudaApplicationConfig(const TCudaApplicationConfig& other) = default;
-        TCudaApplicationConfig() = default;
+        TDeviceRequestConfig(const TDeviceRequestConfig& other) = default;
+        TDeviceRequestConfig() = default;
 
         ui64 GetGpuMemoryToUse(ui64 freeMemoryToUse) const {
-            return (ui64)(freeMemoryToUse * GpuMemoryPartByWorker / WorkersPerDevice);
+            return (ui64)(freeMemoryToUse * GpuMemoryPartByWorker);
         }
 
         ui64 GetPinnedMemoryToUse(ui64 deviceMemorySize) const {
             Y_UNUSED(deviceMemorySize);
             return PinnedMemorySize;
         }
-
-        ui32 GetDeviceCount() const {
-            return GetEnabledDevices(DeviceConfig).size() * WorkersPerDevice;
-        }
     };
 
-    class TSingleHostDevicesProvider {
+
+    //for mpi test purpose
+    inline NCudaLib::TDeviceRequestConfig& GetDefaultDeviceRequestConfig() {
+        return *Singleton<NCudaLib::TDeviceRequestConfig>();
+    }
+
+
+    class THostDevices : public TNonCopyable {
+    public:
+
+        explicit THostDevices(int hostId)
+        : HostId(hostId) {
+            Workers.resize(NCudaHelpers::GetDeviceCount());
+            for (int device = 0; device < static_cast<int>(Workers.size()); ++device) {
+                Workers[device] = MakeHolder<TGpuOneDeviceWorker>(device, new TTerminateOnErrorCallback);
+            }
+            DeviceProps = NCudaHelpers::GetDevicesProps();
+        }
+
+        ~THostDevices() {
+            Join();
+        }
+
+        void Join() {
+            for (auto& worker : Workers) {
+                if (worker) {
+                    worker->Join();
+                }
+            }
+        }
+
+        ui32 GetDeviceCount() const {
+            return Workers.size();
+        }
+
+        TDeviceId GetDeviceId(ui32 devId) const {
+            return TDeviceId(HostId, devId);
+        }
+
+        const TCudaDeviceProperties& GetDeviceProps(ui32 devId) const {
+            return DeviceProps.at(devId);
+        }
+
+        TSingleHostTaskQueue& GetWorkerQueue(ui32 devId) {
+            return Workers[devId]->GetTaskQueue();
+        }
+
+
+        bool IsRunning() const {
+            for (const auto& worker : Workers) {
+                if (worker && worker->IsRunning()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     private:
-        TVector<THolder<TSingleHostTaskQueue>> TaskQueue;
+        int HostId = 0;
         TVector<THolder<TGpuOneDeviceWorker>> Workers;
-        TVector<ui32> Devices;
-        TVector<THolder<TCudaSingleDevice>> SingleDevices;
+        TVector<TCudaDeviceProperties> DeviceProps;
+    };
+
+
+
+    class TDevicesProvider {
+    private:
+        THolder<THostDevices> MasterWorkers;
+        #if defined(USE_MPI)
+        TVector<THolder<TRemoteHostTasksForwarder>> SlaveForwarders;
+        #endif
+
+
+        TVector<THolder<TCudaSingleDevice>> Devices;
         bool IsInitialized = false;
-        TCudaApplicationConfig Config;
         TSpinLock Lock;
 
-        friend void SetApplicationConfig(const TCudaApplicationConfig& config);
 
-    private:
-        void EnablePeerAccess() {
-            if (Config.UsageType == TCudaApplicationConfig::EDevicesUsageType::All) {
-                GetPeerDevicesHelper().EnablePeerAccess();
+        inline void InitLocalDevices() {
+            CB_ENSURE(MasterWorkers == nullptr, "Can't init more than once");
+
+            MasterWorkers.Reset(new THostDevices(0));
+
+            for (ui32 dev = 0; dev < MasterWorkers->GetDeviceCount(); ++dev) {
+                TDeviceId deviceId = MasterWorkers->GetDeviceId(dev);
+                TCudaDeviceProperties props = MasterWorkers->GetDeviceProps(dev);
+                void* queue = &MasterWorkers->GetWorkerQueue(dev);
+                Devices.push_back(MakeHolder<TCudaSingleDevice>(queue, deviceId, props));
             }
         }
 
-        THolder<TGpuOneDeviceWorker> CreateWorker(TSingleHostTaskQueue& taskQueue, int dev) {
-            auto props = NCudaHelpers::GetDeviceProps(dev);
-            ui64 free = 0;
-            ui64 total = 0;
-            NCudaLib::SetDevice(dev);
-            CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
-            if (free * 1.0 / props.GetDeviceMemory() < 0.75) {
-                MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
-            }
-            ui64 gpuMemoryToUse = Config.GetGpuMemoryToUse(free);
+        #if defined(USE_MPI)
+        inline void InitSlaveForwarders() {
+            CB_ENSURE(MasterWorkers, "Create local workers first");
+            CB_ENSURE(SlaveForwarders.size() == 0, "Can't init more than once");
 
-            ui64 pinnedMemoryToUse = Config.GetPinnedMemoryToUse(props.GetDeviceMemory());
-            return MakeHolder<TGpuOneDeviceWorker>(taskQueue, dev, gpuMemoryToUse, pinnedMemoryToUse);
+            const auto& devices = GetMpiManager().GetDevices();
+            const auto& deviceProps = GetMpiManager().GetDeviceProperties();
+
+            const ui32 masterDevice = MasterWorkers->GetDeviceCount();
+
+            for (ui32 dev = masterDevice; dev < devices.size(); ++dev) {
+                TDeviceId deviceId = devices[dev];
+                CB_ENSURE(deviceId.HostId != 0, "Error: host should be remote");
+                SlaveForwarders.push_back(MakeHolder<TRemoteHostTasksForwarder>(deviceId));
+                const TCudaDeviceProperties& props = deviceProps[dev];
+                void* queue = SlaveForwarders.back().Get();
+                Devices.push_back(MakeHolder<TCudaSingleDevice>(queue, deviceId, props));
+            }
         }
+
+        #endif
 
         void Initilize() {
             CB_ENSURE(!IsInitialized, "Error: Initialization could be done only once");
-            const ui32 devCount = (ui32)NCudaHelpers::GetDeviceCount();
-            TSet<ui32> enabledDevices = GetEnabledDevices(Config.DeviceConfig);
-            const ui32 workersPerDevice = Config.WorkersPerDevice;
-            const ui32 freeCount = enabledDevices.size() * workersPerDevice;
+            CB_ENSURE(GetHostId() == 0, "Error: could use devices provider only on master host");
 
-            Workers.resize(enabledDevices.size() * workersPerDevice);
-            TaskQueue.resize(enabledDevices.size() * workersPerDevice);
-            SingleDevices.resize(enabledDevices.size() * workersPerDevice);
-            Devices.resize(freeCount);
+            InitLocalDevices();
+            #if defined(USE_MPI)
+            InitSlaveForwarders();
+            #endif
 
-            {
-                ui32 offset = 0;
-                for (ui32 i = 0; i < workersPerDevice; ++i) {
-                    for (ui32 dev = 0; dev < devCount; ++dev) {
-                        if (enabledDevices.count(dev)) {
-                            Devices[offset++] = dev;
-                        }
-                    }
-                }
-            }
-            MATRIXNET_INFO_LOG << "Available devices:" << Endl;
-
-            EnablePeerAccess();
-
-            for (ui32 i = 0; i < devCount; i++) {
-                if (enabledDevices.count(i)) {
-                    const auto props = NCudaHelpers::GetDeviceProps(i);
-                    MATRIXNET_INFO_LOG << "  " << i << ". " << props.GetName() << " (compute capability "
-                                       << props.GetMajor() << "." << props.GetMinor() << ")" << Endl;
-                }
-            }
             IsInitialized = true;
         }
 
-        void StopAndClearDevice(ui32 dev) {
-            if (SingleDevices[dev]) {
-                SingleDevices[dev]->Stop();
-                CB_ENSURE(Workers[dev], "Error: worker is already deleted");
-                Workers[dev]->Join();
-                Workers[dev].Reset(nullptr);
-                TaskQueue[dev].Reset(nullptr);
-                CB_ENSURE(SingleDevices[dev]->IsStopped());
-                SingleDevices[dev].Reset(nullptr);
-            } else {
-                CB_ENSURE(Workers[dev] == nullptr);
-                CB_ENSURE(TaskQueue[dev] == nullptr);
+
+        void FreeDevices(ui32 dev) {
+            CB_ENSURE(!Devices[dev]->IsStopped(), "Error: device already stopped");
+            Devices[dev]->Stop();
+        }
+
+        TCudaSingleDevice* RequestDevice(ui32 dev, double gpuRamPart, double pinnedMemorySize) {
+            CB_ENSURE(Devices[dev]->IsStopped(), "Error: device already requested");
+            Devices[dev]->Start(gpuRamPart, pinnedMemorySize);
+            return Devices[dev].Get();
+        }
+
+
+    private:
+        void FreeDevices() {
+            for (const auto& device : Devices) {
+                CB_ENSURE(device->IsStopped());
             }
+            Devices.clear();
         }
 
-        void ResetDevice(ui32 dev) {
-            StopAndClearDevice(dev);
-            TaskQueue[dev] = MakeHolder<TSingleHostTaskQueue>();
-            Workers[dev] = CreateWorker(*TaskQueue[dev], Devices[dev]);
-            Workers[dev]->RegisterErrorCallback(new TTerminateOnErrorCallback);
-            SingleDevices[dev].Reset(new TCudaSingleDevice(*TaskQueue[dev], NCudaHelpers::GetDeviceProps(Devices[dev])));
-        }
-
+        friend class TMpiManager;
     public:
+
+        ~TDevicesProvider() {
+            #if defined(USE_MPI)
+            Y_VERIFY(Devices.size() == 0);
+            #else
+            Devices.resize(0);
+            #endif
+        }
+
+
+
         void Free(TCudaSingleDevice* device) {
             TGuard<TSpinLock> guard(Lock);
 
-            for (ui64 i = 0; i < Workers.size(); ++i) {
-                if (SingleDevices[i] == device) {
-                    StopAndClearDevice(i);
+            for (ui64 i = 0; i < Devices.size(); ++i) {
+                if (Devices[i] == device) {
+                    FreeDevices(i);
                     break;
                 }
-                CB_ENSURE(i != (Workers.size() - 1), "Error: unknown worker");
+                CB_ENSURE(i != (Devices.size() - 1), "Error: unknown worker");
             }
         }
 
-        TVector<TCudaSingleDevice*> GetDevices() {
+        ui32 GetDeviceCount() {
             TGuard<TSpinLock> guard(Lock);
             if (!IsInitialized) {
                 Initilize();
             }
+            return Devices.size();
+        }
+
+        TVector<TCudaSingleDevice*> RequestDevices(const TDeviceRequestConfig& config) {
+            TGuard<TSpinLock> guard(Lock);
+            if (!IsInitialized) {
+                Initilize();
+            }
+            const ui32 devCount = Devices.size();
+
+            TSet<ui32> requestedDevices = GetEnabledDevices(config.DeviceConfig,
+                                                            Devices.size());
+
             TVector<TCudaSingleDevice*> devices;
 
-            switch (Config.UsageType) {
-                case TCudaApplicationConfig::EDevicesUsageType::Single: {
-                    for (ui32 i = 0; i < Workers.size(); ++i) {
-                        if (Workers[i] == nullptr) {
-                            ResetDevice(i);
-                            devices.push_back(SingleDevices[i].Get());
-                            break;
-                        }
-                        CB_ENSURE((i + 1) < Workers.size(), "Error: requested too many devices");
+
+            for (auto dev : requestedDevices) {
+                devices.push_back(RequestDevice(dev, config.GpuMemoryPartByWorker, config.PinnedMemorySize));
+            }
+
+            CB_ENSURE(requestedDevices.size(), "Error: no devices found");
+            MATRIXNET_INFO_LOG << "Requested devices:" << Endl;
+            for (ui32 i = 0; i < devCount; i++) {
+                if (requestedDevices.count(i)) {
+                    const auto& props = Devices[i]->GetDeviceProperties();
+                    TDeviceId id = Devices[i]->GetDevice();
+
+                    MATRIXNET_INFO_LOG << "  " << i << ". " << props.GetName() << " (compute capability "
+                                       << props.GetMajor() << "." << props.GetMinor();
+                    if (id.HostId != 0) {
+                        MATRIXNET_INFO_LOG << ", host " << id.HostId << ")" << Endl;
+                    } else {
+                        MATRIXNET_INFO_LOG << ")" << Endl;
                     }
-                    break;
-                }
-                case TCudaApplicationConfig::EDevicesUsageType::All: {
-                    for (ui32 i = 0; i < Workers.size(); ++i) {
-                        CB_ENSURE(Workers[i] == nullptr, "Error: device already used, can't return device");
-                        ResetDevice(i);
-                        devices.push_back(SingleDevices[i].Get());
-                    }
-                    break;
                 }
             }
             return devices;
         }
-
-        void Reset() {
-            IsInitialized = false;
-            Workers.clear();
-            SingleDevices.clear();
-            Devices.clear();
-        }
-
-        ui64 TotalWorkerCount() {
-            return Workers.size();
-        }
     };
 
-    inline TSingleHostDevicesProvider& GetDevicesProvider() {
-        return *Singleton<TSingleHostDevicesProvider>();
+    inline TDevicesProvider& GetDevicesProvider() {
+        return *Singleton<TDevicesProvider>();
     }
 
-    inline void SetApplicationConfig(const TCudaApplicationConfig& config) {
-        TSingleHostDevicesProvider& provider = GetDevicesProvider();
-        CB_ENSURE(!provider.IsInitialized, "Error: can't update config after initialization");
-        provider.Config = config;
-    }
 }

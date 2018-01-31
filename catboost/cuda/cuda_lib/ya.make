@@ -6,24 +6,44 @@ NO_WERROR()
 
 SRCS(
     cuda_base.cpp
+    cache.cpp
     cuda_events_provider.cpp
     cuda_kernel_buffer.cpp
-    memory_pool/stack_like_memory_pool.cpp
-    gpu_single_worker.cpp
-    single_device.cpp
-    device_provider.cpp
     cuda_manager.cpp
+    cuda_profiler.cpp
     cuda_buffer.cpp
+    device_id.cpp
     device_provider.cpp
-    tasks_impl/single_host_memory_copy_tasks.cpp
+    devices_list.cpp
+    gpu_single_worker.cpp
+    inter_device_stream_section.cpp
+    mapping.cpp
+    memory_copy_performance.cpp
+    single_device.cpp
+    stream_section_tasks_launcher.cpp
+    GLOBAL task.cpp
+    worker_state.cpp
+    cuda_buffer_helpers/buffer_resharding.cpp
+    GLOBAL cuda_buffer_helpers/reduce_scatter.cpp
+    future/local_promise_future.cpp
+    future/mpi_promise_future.cpp
+    future/promise_factory.cpp
     kernel/arch.cu
     kernel/kernel.cu
     kernel/reduce.cu
-    bandwidth_latency_calcer.cpp
-    cuda_buffer_helpers/buffer_resharding.cpp
-    mapping.cpp
-    cuda_buffer_helpers/reduce_scatter.cpp
-    cache.cpp
+    memory_pool/stack_like_memory_pool.cpp
+    mpi/mpi_manager.cpp
+    serialization/task_factory.cpp
+    tasks_impl/cpu_func.cpp
+    GLOBAL tasks_impl/enable_peers.cpp
+    GLOBAL tasks_impl/host_tasks.cpp
+    GLOBAL tasks_impl/kernel_task.cpp
+    GLOBAL tasks_impl/memory_allocation.cpp
+    GLOBAL tasks_impl/memory_state_func.cpp
+    GLOBAL tasks_impl/request_stream_task.cpp
+    GLOBAL tasks_impl/memory_copy_tasks.cpp
+    tasks_impl/stream_section_task.cpp
+    tasks_queue/mpi_task_queue.cpp
     tasks_queue/single_host_task_queue.cpp
 )
 
@@ -32,11 +52,13 @@ PEERDIR(
     library/threading/future
     catboost/libs/logging
     catboost/libs/helpers
+    library/blockcodecs
 )
 
 
 CUDA_NVCC_FLAGS(
     -std=c++11
+
     -gencode arch=compute_30,code=compute_30
     -gencode arch=compute_35,code=sm_35
     -gencode arch=compute_50,code=compute_50
@@ -47,8 +69,20 @@ CUDA_NVCC_FLAGS(
 )
 
 
-IF(CB_USE_CUDA_MALLOC)
-   CFLAGS(GLOBAL -DCB_USE_CUDA_MALLOC)
+IF(USE_CUDA_MALLOC)
+   CFLAGS(GLOBAL -DUSE_CUDA_MALLOC)
 ENDIF()
+
+IF(USE_MPI)
+    CFLAGS(GLOBAL -DUSE_MPI)
+    EXTRALIBS(-lmpi)
+
+    IF(WITHOUT_CUDA_AWARE_MPI)
+        CFLAGS(GLOBAL -DWITHOUT_CUDA_AWARE_MPI)
+    ENDIF()
+
+ENDIF()
+
+
 
 END()

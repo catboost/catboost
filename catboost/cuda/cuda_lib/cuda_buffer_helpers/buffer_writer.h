@@ -6,12 +6,12 @@
 #include <catboost/cuda/cuda_lib/single_device.h>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/single_host_memory_copy_tasks.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_tasks.h>
 #include <catboost/cuda/cuda_lib/mapping.h>
-#include <util/ysafeptr.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
+
     template <class TCudaBuffer>
     class TCudaBufferWriter: public TMoveOnly {
     private:
@@ -22,7 +22,7 @@ namespace NCudaLib {
         TSlice WriteSlice;
         ui32 Stream = 0;
         bool Async = false;
-        TVector<TDeviceEvent> WriteDone;
+        TVector<THolder<IDeviceRequest>> WriteDone;
         ui64 SrcOffset = 0;
         TSlice ColumnWriteSlice;
 
@@ -33,15 +33,14 @@ namespace NCudaLib {
             , Dst(&dst)
             , SrcMaxSize(src.size())
             , WriteSlice(dst.GetMapping().GetObjectsSlice())
-            , ColumnWriteSlice(dst.GetColumnSlice())
-        {
+            , ColumnWriteSlice(dst.GetColumnSlice()) {
         }
 
         TCudaBufferWriter(TCudaBufferWriter&& other) = default;
 
         ~TCudaBufferWriter() throw (yexception) {
             for (auto& event : WriteDone) {
-                CB_ENSURE(event.IsComplete());
+                CB_ENSURE(event->IsComplete());
             }
         }
 
@@ -67,7 +66,6 @@ namespace NCudaLib {
 
         void Write() {
             const auto& mapping = Dst->GetMapping();
-
             for (auto dev : Dst->NonEmptyDevices()) {
                 ui64 columnOffset = 0;
 
@@ -84,7 +82,9 @@ namespace NCudaLib {
                         readOffset -= SrcOffset;
                         CB_ENSURE(writeSize <= SrcMaxSize);
 
-                        WriteDone.push_back(TDataCopier::AsyncWrite(Src + readOffset + columnOffset, Dst->GetBuffer(dev), Stream,
+                        WriteDone.push_back(TDataCopier::AsyncWrite(Src + readOffset + columnOffset,
+                                                                    Dst->GetBuffer(dev),
+                                                                    Stream,
                                                                     localWriteOffset,
                                                                     writeSize));
                     }
@@ -99,7 +99,7 @@ namespace NCudaLib {
 
         void WaitComplete() {
             for (auto& task : WriteDone) {
-                task.WaitComplete();
+                task->WaitComplete();
             }
         }
     };

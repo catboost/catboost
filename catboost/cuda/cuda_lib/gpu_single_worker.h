@@ -6,16 +6,16 @@
 #include "task.h"
 #include "helpers.h"
 
-#include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/kernel_task.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/request_stream_tasks.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/memory_state.h>
-#include <util/ysafeptr.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/request_stream_task.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_state_func.h>
 #include <util/generic/map.h>
 #include <util/generic/queue.h>
 #include <util/system/yield.h>
 #include <util/generic/set.h>
 #include <util/system/event.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
+#include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
 
 namespace NCudaLib {
     class IExceptionCallback: public TThrRefBase {
@@ -25,7 +25,8 @@ namespace NCudaLib {
 
     using TExceptionCallbackPtr = TIntrusivePtr<IExceptionCallback>;
 
-    class TGpuOneDeviceWorker {
+
+    class TGpuOneDeviceWorker : public IWorkerStateProvider {
     private:
         class TComputationStream {
         private:
@@ -70,10 +71,16 @@ namespace NCudaLib {
             mutable bool IsActiveFlag;
 
         public:
+            TComputationStream()
+            : Stream(GetStreamsProvider().RequestStream())
+            , IsActiveFlag(false) {
+            }
+
             ~TComputationStream() {
                 CB_ENSURE(RunningTask.IsEmpty());
                 CB_ENSURE(WaitingTasks.size() == 0);
             }
+
             void AddTask(THolder<IGpuKernelTask>&& task,
                          THolder<NKernel::IKernelContext>&& taskData) {
                 IsActiveFlag = true;
@@ -136,11 +143,11 @@ namespace NCudaLib {
 
     private:
         //kernel tasks are requests from master
-        using TGpuTaskPtr = THolder<IGpuCommand>;
+        using TGpuTaskPtr = THolder<ICommand>;
         using TTaskQueue = TSingleHostTaskQueue;
         using TComputationStreamPtr = THolder<TComputationStream>;
 
-        TTaskQueue& InputTaskQueue;
+        TTaskQueue InputTaskQueue;
         int LocalDeviceId;
         TCudaDeviceProperties DeviceProperties;
         TTempMemoryManager TempMemoryManager;
@@ -150,12 +157,12 @@ namespace NCudaLib {
 
         //Streams
         TVector<TComputationStreamPtr> Streams;
-        TVector<ui64> FreeStreams;
+        TVector<ui32> FreeStreams;
 
-        using THostMemoryProvider = TMemoryProviderImplTrait<CudaHost>::TMemoryProvider;
+        using THostMemoryProvider = TMemoryProviderImplTrait<EPtrType::CudaHost>::TMemoryProvider;
         using THostMemoryProviderPtr = THolder<THostMemoryProvider>;
 
-        using TDeviceMemoryProvider = TMemoryProviderImplTrait<CudaDevice>::TMemoryProvider;
+        using TDeviceMemoryProvider = TMemoryProviderImplTrait<EPtrType::CudaDevice>::TMemoryProvider;
         using TDeviceMemoryProviderPtr = THolder<TDeviceMemoryProvider>;
 
         THostMemoryProviderPtr HostMemoryProvider;
@@ -165,22 +172,9 @@ namespace NCudaLib {
         TAdaptiveLock CallbackLock;
 
         std::unique_ptr<std::thread> WorkingThread;
-        bool Stopped = true;
+        volatile bool Stopped = true;
 
     private:
-        TMemoryState GetMemoryState() {
-            CB_ENSURE(!Stopped);
-            CB_ENSURE(HostMemoryProvider);
-            CB_ENSURE(DeviceMemoryProvider);
-            TMemoryState result;
-            result.RequestedPinnedRam = HostMemoryProvider->GetRequestedRamSize();
-            result.FreePinnedRam = HostMemoryProvider->GetFreeMemorySize();
-
-            result.RequestedGpuRam = DeviceMemoryProvider->GetRequestedRamSize();
-            result.FreeGpuRam = DeviceMemoryProvider->GetFreeMemorySize();
-            return result;
-        }
-
         void WaitAllTaskToSubmit() {
             while (CheckRunningTasks()) {
                 SchedYield();
@@ -188,7 +182,7 @@ namespace NCudaLib {
         }
 
         void SyncActiveStreams(bool skipDefault = false) {
-            for (ui64 i = (ui64)skipDefault; i < Streams.size(); ++i) {
+            for (ui32 i = (ui64)skipDefault; i < Streams.size(); ++i) {
                 if (Streams[i]->IsActive()) {
                     SyncStream(i);
                 }
@@ -197,7 +191,7 @@ namespace NCudaLib {
 
         bool CheckRunningTasks() const {
             bool hasRunning = false;
-            for (ui64 i = 0; i < Streams.size(); ++i) {
+            for (ui32 i = 0; i < Streams.size(); ++i) {
                 if (Streams[i]->IsActive()) {
                     if (Streams[i]->HasTasks()) {
                         hasRunning = true;
@@ -215,7 +209,12 @@ namespace NCudaLib {
             ObjectsToFree.resize(0);
         }
 
-        void SyncStream(ui64 id) {
+        void DefragmentMemory() {
+            DeviceMemoryProvider->TryDefragment();
+            HostMemoryProvider->TryDefragment();
+        }
+
+        void SyncStream(ui32 id) {
             Streams[id]->Synchronize();
         }
 
@@ -231,13 +230,13 @@ namespace NCudaLib {
     public:
         bool NeedSyncForMalloc(const EPtrType ptrType, ui64 size) {
             switch (ptrType) {
-                case CudaHost: {
+                case EPtrType::CudaHost: {
                     return HostMemoryProvider->NeedSyncForAllocation<char>(size);
                 }
-                case CudaDevice: {
+                case EPtrType::CudaDevice: {
                     return DeviceMemoryProvider->NeedSyncForAllocation<char>(size);
                 }
-                case Host: {
+                case EPtrType::Host: {
                     return false;
                 }
                 default: {
@@ -256,17 +255,16 @@ namespace NCudaLib {
             }
 
             auto& storage = GetHandleStorage();
-
             switch (mallocTask.GetPtrType()) {
-                case CudaHost: {
+                case EPtrType::CudaHost: {
                     storage.SetObjectPtrByHandle(handle, HostMemoryProvider->Create(mallocTask.GetSize()));
                     break;
                 }
-                case CudaDevice: {
+                case EPtrType::CudaDevice: {
                     storage.SetObjectPtrByHandle(handle, DeviceMemoryProvider->Create(mallocTask.GetSize()));
                     break;
                 }
-                case Host: {
+                case EPtrType::Host: {
                     storage.SetObjectPtrByHandle(handle, new char[mallocTask.GetSize()]);
                 }
             }
@@ -282,38 +280,80 @@ namespace NCudaLib {
             Streams.push_back(new TComputationStream());
         }
 
-        inline ui64 RequestStreamImpl() {
+        inline ui32 RequestStreamImpl() {
             if (FreeStreams.size() == 0) {
                 FreeStreams.push_back(Streams.size());
                 CreateNewComputationStream();
             }
-            ui64 id = FreeStreams.back();
+            ui32 id = FreeStreams.back();
             FreeStreams.pop_back();
             return id;
+        }
+
+        void Reset(const TResetCommand& initTask) {
+            ui64 gpuMemorySize = 0;
+
+            DeviceMemoryProvider.Reset();
+            HostMemoryProvider.Reset();
+
+            if (initTask.GpuMemoryPart) {
+                ui64 free = 0;
+                ui64 total = 0;
+                CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
+                if (free * 1.0 / DeviceProperties.GetDeviceMemory() < 0.75) {
+                    MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
+                }
+                gpuMemorySize = (ui64)(free *  initTask.GpuMemoryPart);
+            }
+
+            DeviceMemoryProvider = gpuMemorySize ? MakeHolder<TDeviceMemoryProvider>(gpuMemorySize) : nullptr;
+            HostMemoryProvider = initTask.PinnedMemorySize ? MakeHolder<THostMemoryProvider>(initTask.PinnedMemorySize) : nullptr;
         }
 
         bool RunIteration();
 
     public:
-        TGpuOneDeviceWorker(TTaskQueue& taskQueue,
-                            int gpuDevId,
-                            ui64 gpuMemoryLimit,
-                            ui64 pinnedMemoryLimit)
-            : InputTaskQueue(taskQueue)
-            , LocalDeviceId(gpuDevId)
+        TGpuOneDeviceWorker(int gpuDevId,
+                            TExceptionCallbackPtr callback = nullptr)
+            : LocalDeviceId(gpuDevId)
             , DeviceProperties(NCudaHelpers::GetDeviceProps(gpuDevId))
             , TempMemoryManager(this)
         {
+            if (callback) {
+                RegisterErrorCallback(callback);
+            }
             WorkingThread.reset(new std::thread([=]() -> void {
-                this->Run(gpuMemoryLimit, pinnedMemoryLimit);
+                this->Run();
             }));
+
         }
 
         ~TGpuOneDeviceWorker() throw (yexception) {
             CB_ENSURE(Stopped);
         }
 
-        void Run(ui64 gpuMemoryLimit, ui64 pinnedMemoryLimit);
+        TTaskQueue& GetTaskQueue() {
+            return InputTaskQueue;
+        }
+
+        void Run();
+
+        bool IsRunning() const {
+            return !Stopped;
+        }
+
+        TMemoryState GetMemoryState() const final {
+            CB_ENSURE(!Stopped);
+            CB_ENSURE(HostMemoryProvider);
+            CB_ENSURE(DeviceMemoryProvider);
+            TMemoryState result;
+            result.RequestedPinnedRam = HostMemoryProvider->GetRequestedRamSize();
+            result.FreePinnedRam = HostMemoryProvider->GetFreeMemorySize();
+
+            result.RequestedGpuRam = DeviceMemoryProvider->GetRequestedRamSize();
+            result.FreeGpuRam = DeviceMemoryProvider->GetFreeMemorySize();
+            return result;
+        }
 
         void RegisterErrorCallback(TExceptionCallbackPtr callback) {
             TGuard<TAdaptiveLock> guard(CallbackLock);
@@ -321,7 +361,7 @@ namespace NCudaLib {
         }
 
         void Join() {
-            if (WorkingThread) {
+            if (WorkingThread && WorkingThread->joinable()) {
                 WorkingThread->join();
             }
         }

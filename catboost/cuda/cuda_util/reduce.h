@@ -169,7 +169,7 @@ inline void ReduceByKeyVector(const TCudaBuffer<T, TMapping>& input,
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, keys, outputKeys, output, outputSizes, type);
 }
 
-template <typename T, class TMapping, NCudaLib::EPtrType OutputPtrType = NCudaLib::CudaDevice>
+template <typename T, class TMapping, NCudaLib::EPtrType OutputPtrType = NCudaLib::EPtrType::CudaDevice>
 inline void SegmentedReduceVector(const TCudaBuffer<T, TMapping>& input,
                                   const TCudaBuffer<ui32, TMapping>& offsets,
                                   TCudaBuffer<typename std::remove_const<T>::type, TMapping, OutputPtrType>& output,

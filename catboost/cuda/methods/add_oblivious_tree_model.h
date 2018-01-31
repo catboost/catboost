@@ -24,7 +24,7 @@ namespace NCatboostCuda {
             , FeaturesManager(featuresManager)
             , ModelStructure(modelStructure)
         {
-            const ui32 streamCount = 4;
+            const ui32 streamCount = 2;
             for (ui32 i = 0; i < streamCount; ++i) {
                 Streams.push_back(NCudaLib::GetCudaManager().RequestStream());
             }

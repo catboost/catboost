@@ -11,7 +11,7 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
     SIMPLE_UNIT_TEST(TestMultiply) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
             TRandom rand(0);
@@ -63,11 +63,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestSubtract) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
             TRandom rand(0);
@@ -97,11 +97,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestAdd) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
             TRandom rand(0);
@@ -130,11 +130,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestScatterAndGather) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10000;
             TRandom rand(0);
@@ -191,11 +191,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestDotProductMirror) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 1;
             TRandom rand(0);
@@ -224,11 +224,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestDotProductSingle) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
             TRandom rand(0);
@@ -257,11 +257,11 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestDotProductStripe) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 100;
             TRandom rand(0);
@@ -295,7 +295,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-        StopCudaManager();
+
     }
     //
 }

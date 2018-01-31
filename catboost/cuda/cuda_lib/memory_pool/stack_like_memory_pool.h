@@ -12,6 +12,7 @@
  */
 
 namespace NCudaLib {
+
     template <EPtrType PtrType>
     class TStackLikeMemoryPool: private TNonCopyable {
     private:
@@ -123,7 +124,7 @@ namespace NCudaLib {
 
         char* Memory = nullptr;
         ui64 TotalMemory;
-        TAtomic FreeMemory;
+        ui64 FreeMemory;
         TIntrusivePtr<TAllocatedBlock> LastBlock;
 
         ui64 CalculateFragmentedMemorySize() const {
@@ -140,7 +141,7 @@ namespace NCudaLib {
         }
 
         void MemoryDefragmentation() {
-            DeviceSynchronize();
+            GetDefaultStream().Synchronize();
             auto startTime = Now();
 
             auto cursor = FirstFreeBlock;
@@ -155,6 +156,8 @@ namespace NCudaLib {
             char* const temp = last->Ptr;
             const ui64 tempBufferSize = (last->Size / 4096) * 4096;
             ui64 tempBufferUsed = 0;
+
+
             while (cursor != last) {
                 if (!cursor->IsFree) {
                     ui64 movedSize = 0;
@@ -172,7 +175,7 @@ namespace NCudaLib {
 
                         if (tempBufferUsed == tempBufferSize) {
                             TMemoryCopier<PtrType, PtrType>::CopyMemorySync(temp, startPtr + writeOffset, tempBufferUsed);
-                            DeviceSynchronize();
+                            GetDefaultStream().Synchronize();
                             CheckLastError();
                             writeOffset += tempBufferUsed;
                             tempBufferUsed = 0;
@@ -196,7 +199,7 @@ namespace NCudaLib {
             }
 
             const ui64 defragmentedMemory = (temp - (startPtr + writeOffset));
-            DeviceSynchronize();
+            GetDefaultStream().Synchronize();
             MATRIXNET_INFO_LOG << "Defragment " << defragmentedMemory * 1.0 / 1024 / 1024 << " memory"
                                << " in " << (Now() - startTime).SecondsFloat() << " seconds " << Endl;
             LastBlock->Size += defragmentedMemory;
@@ -288,8 +291,8 @@ namespace NCudaLib {
                     TryDefragment();
                 }
                 if (LastBlock->Size < requestedBlockSize) {
-                    ythrow yexception() << "Error: Out of memory. Requested " << requestedBlockSize / MB << "; Free "
-                                        << (LastBlock->Size) / MB;
+                    ythrow TOutOfMemoryError() << "Error: Out of memory. Requested " << requestedBlockSize / MB << "; Free "
+                                               << (LastBlock->Size) / MB;
                 }
                 block = SplitFreeBlock(LastBlock, requestedBlockSize);
                 Y_ASSERT(FirstFreeBlock->Ptr <= LastBlock->Ptr);
@@ -312,7 +315,7 @@ namespace NCudaLib {
             MATRIXNET_INFO_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
 
             if ((memoryToDefragment > LastBlock->Size) && (LastBlock->Size < MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) {
-                ythrow TCatboostException() << "Error: We don't have enough memory to defragmentation";
+                ythrow TOutOfMemoryError() << "Error: We don't have enough memory to defragmentation";
             } else {
                 //this algorithm copies everything in last block and then copies back.
                 MemoryDefragmentation();

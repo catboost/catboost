@@ -15,7 +15,7 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
     SIMPLE_UNIT_TEST(TestCompressAndDecompress) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui32 tries = 5;
             ui64 bits = 25;
@@ -50,11 +50,11 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndGatherDecompress) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui32 tries = 5;
             ui64 bits = 25;
@@ -99,12 +99,12 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
-    template <class TStorageType, NCudaLib::EPtrType Type = NCudaLib::CudaDevice>
+    template <class TStorageType, NCudaLib::EPtrType Type = NCudaLib::EPtrType::CudaDevice>
     void BenchmarkCompress(ui32 tries = 10) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 bits = 25;
             TRandom rand(0);
@@ -144,7 +144,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui64) {
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui64FromHost) {
-        BenchmarkCompress<ui64, NCudaLib::CudaHost>();
+        BenchmarkCompress<ui64, NCudaLib::EPtrType::CudaHost>();
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui32) {

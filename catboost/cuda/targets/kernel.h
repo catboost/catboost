@@ -137,7 +137,10 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TQueryRmseContext;
-        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2);
+        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions,
+                          QueryOffsets, QuerySizes, QueryOffsetsBias,
+                          Indices, FunctionValue,
+                          Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
@@ -225,7 +228,10 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TYetiRankContext;
-        Y_SAVELOAD_DEFINE(Relevs, Predictions, QueryOffsets, QuerySizes, FunctionValue, Der, Der2, Seed, PermutationCount);
+        Y_SAVELOAD_DEFINE(QueryOffsets, QuerySizes, QueryOffsetsBias,
+                          Relevs, Predictions,
+                          Seed, PermutationCount,
+                          Indices, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             //TODO(noxoomo): make temp memory more robust
@@ -235,8 +241,8 @@ namespace NKernelHost {
             auto lastProceededQid = memoryManager.Allocate<ui32>(1);
             auto approxesTemp = memoryManager.Allocate<float>(Relevs.Size());
 
-            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::CudaDevice> tempDers;
-            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::CudaDevice> tempWeights;
+            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::EPtrType::CudaDevice> tempDers;
+            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::EPtrType::CudaDevice> tempWeights;
             if (Indices.Size()) {
                 tempDers = memoryManager.Allocate<float>(Relevs.Size());
                 tempWeights = memoryManager.Allocate<float>(Relevs.Size());

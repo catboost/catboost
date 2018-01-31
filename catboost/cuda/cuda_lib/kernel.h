@@ -4,6 +4,7 @@
 #include "remote_objects.h"
 
 namespace NKernelHost {
+
     using EPtrType = NCudaLib::EPtrType;
     using TCudaStream = NCudaLib::TCudaStream;
     using uchar = unsigned char;
@@ -43,16 +44,23 @@ namespace NKernelHost {
         };
     }
 
-    template <class TContext = void, bool NeedPostProcessFlag = false>
-    class TKernelBase {
+    template <class TContext = void>
+    class TKernelWithContext {
+    public:
+        inline static TContext* EmptyContext() {
+            return NHelpers::TContextCreator<TContext>::Create();
+        }
+    };
+
+
+    template <class TContext = void,
+            bool NeedPostProcessFlag = false>
+    class TKernelBase : public TKernelWithContext<TContext> {
     public:
         static constexpr bool NeedPostProcess() {
             return NeedPostProcessFlag;
         }
 
-        inline static TContext* EmptyContext() {
-            return NHelpers::TContextCreator<TContext>::Create();
-        }
     };
 
     using TStatelessKernel = TKernelBase<void, false>;
@@ -62,8 +70,5 @@ namespace NKernelHost {
         CB_ENSURE(buffer.Size() < (1ULL << 32));
     }
 
-    template <class T>
-    inline void CopyMemoryAsync(const T* from, T* to, ui64 size, const TCudaStream& stream) {
-        CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, cudaMemcpyDefault, stream.GetStream()));
-    }
+
 }

@@ -1,63 +1,17 @@
 #pragma once
 
-#include <catboost/cuda/cuda_lib/kernel/reduce.cuh>
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/kernel/reduce.cuh>
+#include <catboost/cuda/cuda_lib/stream_section_tasks_launcher.h>
+#include <catboost/cuda/cuda_lib/peer_devices.h>
+#include <cmath>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_staged_operation.h>
 
 namespace NKernelHost {
-    template <typename T>
-    class TSingleHostReduceBinaryKernel: public TKernelBase<NKernel::TKernelWithTempBufferContext<T>, false> {
-    private:
-        TCudaBufferPtr<const T> Src;
-        TCudaBufferPtr<T> Dst;
 
-        mutable bool HasPeerAccess = false;
-
-    public:
-        using TKernelContext = typename NKernel::TKernelWithTempBufferContext<T>;
-
-        TSingleHostReduceBinaryKernel() = default;
-
-        TSingleHostReduceBinaryKernel(TCudaBufferPtr<const T> src,
-                                      TCudaBufferPtr<T> dst)
-            : Src(src)
-            , Dst(dst)
-        {
-        }
-
-        TSingleHostReduceBinaryKernel(TSingleHostReduceBinaryKernel&& other) = default;
-
-        Y_SAVELOAD_DEFINE(Dst, Src);
-
-        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
-            auto context = MakeHolder<TKernelContext>();
-            CB_ENSURE(Src.Size() == Dst.Size());
-
-            ui32 sourceDevId = NCudaLib::GetDeviceForPointer(Src.Get());
-            ui32 dstDevId = NCudaLib::GetDeviceForPointer(Dst.Get());
-
-            HasPeerAccess = NCudaLib::GetPeerDevicesHelper().HasPeerAccess(sourceDevId, dstDevId);
-
-            if (!HasPeerAccess) {
-                //TODO(noxoomo): make temp memory more robust
-                context->TempBuffer = memoryManager.Allocate<T>(Src.Size()).Get();
-            }
-            return context;
-        }
-
-        void Run(const TCudaStream& stream,
-                 TKernelContext& context) const {
-            if (context.TempBuffer == nullptr) {
-                CB_ENSURE(HasPeerAccess);
-                NKernel::ReduceBinary(Dst.Get(), Dst.Get(), Src.Get(), (ui32)Dst.Size(), stream.GetStream());
-            } else {
-                NCudaLib::TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::template CopyMemoryAsync<T>(Src.Get(), context.TempBuffer, Src.Size(), stream);
-                NKernel::ReduceBinary(Dst.Get(), Dst.Get(), context.TempBuffer, Dst.Size(), stream.GetStream());
-            }
-        }
-    };
 
     template <typename T>
     class TShiftMemoryKernel: public TKernelBase<NKernel::TKernelWithTempBufferContext<T>, false> {
@@ -72,8 +26,8 @@ namespace NKernelHost {
 
         TShiftMemoryKernel(TCudaBufferPtr<T> data,
                            TSlice slice)
-            : Data(data)
-            , Slice(slice)
+                : Data(data)
+                , Slice(slice)
         {
         }
 
@@ -92,19 +46,225 @@ namespace NKernelHost {
                  TKernelContext& context) const {
             if (context.TempBuffer != nullptr) {
                 NCudaLib::TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::template CopyMemoryAsync<T>(Data.Get() + Data.SliceMemoryOffset(Slice), context.TempBuffer,
-                                                                                                                 Data.SliceMemorySize(
-                                                                                                                     Slice),
+                                                                                                                 Data.SliceMemorySize(Slice),
                                                                                                                  stream);
+
                 NCudaLib::TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::template CopyMemoryAsync<T>(context.TempBuffer, Data.Get(),
-                                                                                                                 Data.SliceMemorySize(
-                                                                                                                     Slice),
+                                                                                                                 Data.SliceMemorySize(Slice),
                                                                                                                  stream);
             }
         }
     };
+
 }
 
+
 namespace NCudaLib {
+
+    #if defined(USE_MPI)
+
+    template <class T>
+    struct TReduceOperator {
+        ui64 BlockSize = 0;
+
+        inline void operator()(T* dst, const T* data, ui64 size, const TCudaStream& stream) {
+            NKernel::ReduceBinary(dst, dst, data, size, stream.GetStream());
+        }
+
+        ui64 GetBlockSize(ui64) {
+            return BlockSize;
+        }
+    };
+
+    template <class T>
+    using TRemoteReadAndReduceTask = TThroughHostStagedRecvTask<T, TReduceOperator<T>>;
+
+
+
+    #endif
+
+    template <class T>
+    struct TReduceBinaryContext {
+        NCudaLib::THandleRawPtr LocalTempBuffer;
+        TVector<bool> IsPeerLocalTask;
+        bool AreLocalTaskSend = false;
+
+        #if defined(USE_MPI)
+        TVector<THolder<IStagedTask>> RunningStagedTasks;
+        #endif
+    };
+
+    template <typename T>
+    class TReduceBinaryStreamTask: public NKernelHost::TKernelWithContext<TReduceBinaryContext<T>> {
+    private:
+        const ui64 LocalBufferSize = 16 * 1024 * 1024 / sizeof(T);
+    public:
+        using TKernelContext = TReduceBinaryContext<T>;
+
+        struct TLocalHostReduce {
+            NKernelHost::TCudaBufferPtr<T> Source;
+            NKernelHost::TCudaBufferPtr<T> Dest;
+
+            Y_SAVELOAD_DEFINE(Source, Dest);
+        };
+
+        #if defined(USE_MPI)
+        struct TRemoteHostReduce {
+            NKernelHost::TCudaBufferPtr<T> Source;
+            NKernelHost::TCudaBufferPtr<T> Dest;
+            int Tag = 0;
+            bool IsSendTask = false;
+            bool Compress = false;
+
+            Y_SAVELOAD_DEFINE(Source, Dest, Tag, IsSendTask, Compress);
+        };
+
+        #endif
+
+
+
+        TReduceBinaryStreamTask() = default;
+
+        TReduceBinaryStreamTask(TReduceBinaryStreamTask&& other) = default;
+        TReduceBinaryStreamTask(const TReduceBinaryStreamTask& other) = default;
+
+        TReduceBinaryStreamTask& operator=(TReduceBinaryStreamTask&& other) = default;
+        TReduceBinaryStreamTask& operator=(const TReduceBinaryStreamTask& other) = default;
+
+
+        THolder<TKernelContext> PrepareContext(NKernelHost::IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+
+            for (ui32 localTask = 0; localTask < LocalReduces.size(); ++localTask) {
+                auto& src = LocalReduces[localTask].Source;
+                auto& dst = LocalReduces[localTask].Dest;
+                CB_ENSURE(src.Size() == dst.Size());
+                auto sourceDevice = src.GetDeviceId();
+                auto destDevice = dst.GetDeviceId();
+                CB_ENSURE(sourceDevice.HostId == destDevice.HostId);
+                const bool hasPeerAccess = (NCudaLib::GetPeerDevicesHelper().HasPeerAccess(sourceDevice.DeviceId, destDevice.DeviceId));
+                context->IsPeerLocalTask.push_back(hasPeerAccess);
+
+                if (!hasPeerAccess && context->LocalTempBuffer.IsNullptr()) {
+                    auto ptr = memoryManager.Allocate<T, EPtrType::CudaDevice>(LocalBufferSize);
+                    context->LocalTempBuffer = NCudaLib::THandleRawPtr(ptr);
+                }
+            }
+
+            #if defined(USE_MPI)
+
+            TReduceOperator<T> op;
+            op.BlockSize = 1024 * 1024 / sizeof(T);
+
+            for (ui32 remoteTask = 0; remoteTask < RemoteReduces.size(); ++remoteTask) {
+                const TRemoteHostReduce& task = RemoteReduces[remoteTask];
+                auto& source = task.Source;
+                auto& dest = task.Dest;
+
+                if (task.IsSendTask) {
+                    const ui64 size = task.Source.Size();
+                    context->RunningStagedTasks.push_back(BlockedSendTask(task.Source.Get(), size,
+                                                                          op.GetBlockSize(size),
+                                                                          dest.GetDeviceId().HostId, task.Tag,
+                                                                          memoryManager,
+                                                                          task.Compress));
+                } else {
+                    using TTask =  TRemoteReadAndReduceTask<T>;
+                    const ui64 size = task.Source.Size();
+                    context->RunningStagedTasks.push_back(MakeHolder<TTask>(task.Dest.Get(), size,
+                                                                            op,
+                                                                            source.GetDeviceId().HostId, task.Tag,
+                                                                            memoryManager,
+                                                                            task.Compress));
+                }
+            }
+            #endif
+            return context;
+        }
+
+        bool Exec(const TCudaStream& stream,
+                  TKernelContext* contextPtr) const {
+            CB_ENSURE(contextPtr);
+            TKernelContext& context = *contextPtr;
+
+
+            if (!context.AreLocalTaskSend) {
+                auto* tempBuffer = (T*) context.LocalTempBuffer.GetRawPtr();
+
+                //different PCI root complex devices
+                if (tempBuffer != nullptr) {
+                    TCudaStream helperStream = NCudaLib::GetStreamsProvider().RequestStream();
+                    const ui64 blockSize = LocalBufferSize / 2;
+                    bool needSync = false;
+
+                    for (ui32 localTask = 0; localTask < LocalReduces.size(); ++localTask) {
+                        auto& src = LocalReduces[localTask].Source;
+                        auto& dst = LocalReduces[localTask].Dest;
+
+                        if (!context.IsPeerLocalTask[localTask]) {
+
+                            for (ui64 iter = 0; iter * blockSize < dst.Size(); ++iter) {
+                                const ui64 offset = iter * blockSize;
+                                const TCudaStream* currentStream = (iter % 2 == 0) ? &stream : &helperStream;
+                                const ui64 tempBufferOffset = (iter % 2 == 0) ? 0 : blockSize;
+                                const ui64 size = Min<ui64>(blockSize, dst.Size() - offset);
+
+                                CopyMemoryAsync(src.Get() + offset, tempBuffer + tempBufferOffset, size, *currentStream);
+                                NKernel::ReduceBinary(dst.Get() + offset, dst.Get() + offset, tempBuffer + tempBufferOffset,
+                                                      size,
+                                                      currentStream->GetStream());
+                            }
+                            needSync |= dst.Size() > blockSize;
+                        }
+                    }
+
+                    if (needSync) {
+                        auto event = NCudaLib::CudaEventProvider().Create();
+                        event->Record(helperStream);
+                        event->StreamWait(stream);
+                    }
+                }
+
+                //easy with peer access
+                for (ui32 localTask = 0; localTask < LocalReduces.size(); ++localTask) {
+                    if (context.IsPeerLocalTask[localTask]) {
+                        auto& src = LocalReduces[localTask].Source;
+                        auto& dst = LocalReduces[localTask].Dest;
+
+                        NKernel::ReduceBinary(dst.Get(), dst.Get(), src.Get(), dst.Size(), stream.GetStream());
+                    }
+                }
+                context.AreLocalTaskSend = true;
+            }
+
+            #if defined(USE_MPI)
+
+            if (context.RunningStagedTasks.size()) {
+                ExecStagedTasks(stream, &context.RunningStagedTasks);
+            }
+            return context.RunningStagedTasks.size() == 0;
+            #else
+            return true;
+            #endif
+        }
+
+        #if defined(USE_MPI)
+        Y_SAVELOAD_DEFINE(LocalReduces, RemoteReduces);
+        #else
+        Y_SAVELOAD_DEFINE(LocalReduces);
+        #endif
+    private:
+
+        template <class TBuffer>
+        friend class TReducer;
+
+        TVector<TLocalHostReduce> LocalReduces;
+        #if defined(USE_MPI)
+        TVector<TRemoteHostReduce> RemoteReduces;
+        #endif
+
+    };
+
     template <class TBuffer>
     class TReducer {
     private:
@@ -129,7 +289,8 @@ namespace NCudaLib {
     class TReducer<TCudaBuffer<T, TStripeMapping>> {
     private:
         ui32 Stream = 0;
-        using TKernel = typename NKernelHost::TSingleHostReduceBinaryKernel<T>;
+
+        using TKernel =  TReduceBinaryStreamTask<T>;
 
         struct TReduceTask {
             ui32 ReadDevice;
@@ -178,7 +339,7 @@ namespace NCudaLib {
 
                         bool flowRight = (bool)(partId & mask);
                         reduceTask.ReadDevice = flowRight ? dev : (dev | mask);
-                        reduceTask.WriteDevice = flowRight ? dev | mask : dev;
+                        reduceTask.WriteDevice = flowRight ? (dev | mask) : dev;
 
                         TSlice slice = ResultMapping.DeviceSlice(partId);
                         if (slice.IsEmpty()) {
@@ -210,20 +371,21 @@ namespace NCudaLib {
         {
         }
 
-        TReducer& operator()(TBuffer& data,
-                             const TStripeMapping& resultMapping) {
-            TSingleHostStreamSync streamSync(Stream);
-            auto& manager = GetCudaManager();
-            streamSync();
 
+        TReducer& operator()(TBuffer& data,
+                             const TStripeMapping& resultMapping,
+                             const bool compressFlag = false
+        ) {
+            #ifndef USE_MPI
+                Y_UNUSED(compressFlag);
+            #endif
+
+            auto& manager = GetCudaManager();
             const auto& beforeMapping = data.GetMapping();
             const ui64 devCount = GetDeviceCount();
 
             if (devCount == 1) {
                 return *this;
-            }
-            for (ui32 dev = 0; dev < devCount; ++dev) {
-                streamSync.AddDevice(dev);
             }
 
             {
@@ -239,6 +401,10 @@ namespace NCudaLib {
             TPassTasksGenerator tasksGenerator(resultMapping, devCount);
             for (ui32 pass = 0; pass < tasksGenerator.GetPassCount(); ++pass) {
                 auto tasks = tasksGenerator.PassTasks(pass);
+                TStreamSectionTaskLauncher streamSectionLauncher;
+
+                TVector<TKernel> kernels(devCount);
+                TDevicesListBuilder workingDevs;
 
                 for (const TReduceTask& task : tasks) {
                     auto fromView = data.SliceView(task.FromSlice);
@@ -246,10 +412,44 @@ namespace NCudaLib {
                     auto fromBuffer = fromView.At(task.ReadDevice);
                     auto toBuffer = toView.At(task.WriteDevice);
 
-                    auto kernel = TKernel(fromBuffer, toBuffer);
-                    LaunchKernel<TKernel>(task.WriteDevice, Stream, std::move(kernel));
+                    workingDevs.AddDevice(task.ReadDevice);
+                    workingDevs.AddDevice(task.WriteDevice);
+                    streamSectionLauncher.Group(task.ReadDevice, task.WriteDevice);
+
+                    const bool isInterHostReduce = manager.GetDeviceId(task.ReadDevice).HostId != manager.GetDeviceId(task.WriteDevice).HostId;
+                    if (isInterHostReduce) {
+                        #if defined(USE_MPI)
+                        const int tag = GetMpiManager().NextCommunicationTag();
+                        typename TKernel::TRemoteHostReduce sendTask;
+                        sendTask.Tag = tag;
+                        sendTask.IsSendTask = true;
+                        sendTask.Source = fromBuffer;
+                        sendTask.Dest = toBuffer;
+                        sendTask.Compress = compressFlag;
+
+                        kernels[task.ReadDevice].RemoteReduces.push_back(std::move(sendTask));
+
+                        typename TKernel::TRemoteHostReduce receiveTask;
+                        receiveTask.Tag = tag;
+                        receiveTask.IsSendTask = false;
+                        receiveTask.Source = fromBuffer;
+                        receiveTask.Dest = toBuffer;
+                        receiveTask.Compress = compressFlag;
+                        kernels[task.WriteDevice].RemoteReduces.push_back(std::move(receiveTask));
+                        #else
+                        CB_ENSURE(false, "MPI support is not enabled");
+                        #endif
+                    } else {
+                        typename TKernel::TLocalHostReduce receiveTask;
+                        receiveTask.Source = fromBuffer;
+                        receiveTask.Dest = toBuffer;
+                        kernels[task.WriteDevice].LocalReduces.push_back(std::move(receiveTask));
+                    }
                 }
-                streamSync();
+
+                streamSectionLauncher.LaunchTask(workingDevs.Build(), [&](ui32 dev) {
+                    return std::move(kernels[dev]);
+                }, Stream);
             }
 
             auto localShifts = manager.CreateDistributedObject<TSlice>();
@@ -257,7 +457,6 @@ namespace NCudaLib {
                 auto slice = resultMapping.DeviceSlice(dev);
                 localShifts.Set(dev, slice);
             }
-            manager.WaitComplete();
 
             using TMemShiftKernel = ::NKernelHost::TShiftMemoryKernel<T>;
             LaunchKernels<TMemShiftKernel>(resultMapping.NonEmptyDevices(), Stream, data, localShifts);
@@ -265,10 +464,10 @@ namespace NCudaLib {
             return *this;
         }
 
-        TReducer& operator()(TBuffer& data) {
+        TReducer& operator()(TBuffer& data, bool compressFlag = false) {
             TStripeMapping mapping = data.GetMapping();
             TStripeMapping afterMapping = TStripeMapping::SplitBetweenDevices(mapping.DeviceSlice(0).Size(), mapping.SingleObjectSize());
-            return (*this)(data, afterMapping);
+            return (*this)(data, afterMapping, compressFlag);
         }
     };
 }

@@ -1,47 +1,95 @@
 #pragma once
 
 #include <cuda_runtime.h>
-#include <util/system/types.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
+#include <util/system/types.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/yexception.h>
 #include <util/thread/singleton.h>
-#include <catboost/libs/helpers/exception.h>
 #include <util/ysaveload.h>
+#include <util/system/spinlock.h>
+
+
 
 static_assert(std::is_pod<cudaDeviceProp>::value, "cudaDeviceProp is not pod type");
 Y_DECLARE_PODTYPE(cudaDeviceProp);
+
+//cuda-types
+Y_DECLARE_PODTYPE(uint2);
+Y_DECLARE_PODTYPE(uint4);
 
 #define CUDA_SAFE_CALL(statement)                                                                            \
     {                                                                                                        \
         cudaError_t errorCode = statement;                                                                   \
         if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                             \
-            ythrow yexception() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode; \
+            ythrow TCatboostException() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode; \
         }                                                                                                    \
     }
 
 namespace NCudaLib {
-    class TCudaStream: private TNonCopyable {
+
+    class TCudaStreamsProvider : public TNonCopyable {
     private:
-        cudaStream_t Stream;
-
+        TVector<cudaStream_t> Streams;
+    private:
+        cudaStream_t NewStream() {
+            cudaStream_t stream;
+            CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+            return stream;
+        }
     public:
-        TCudaStream() {
-            CUDA_SAFE_CALL(cudaStreamCreate(&Stream));
+        class TCudaStream: private TMoveOnly {
+        private:
+            cudaStream_t Stream = 0;
+            TCudaStreamsProvider* Owner = nullptr;
+        public:
+            TCudaStream(cudaStream_t stream,
+                        TCudaStreamsProvider* owner)
+            : Stream(stream)
+            , Owner(owner) {
+            }
+
+            TCudaStream(TCudaStream&& other) = default;
+
+            ~TCudaStream() {
+                if (Stream && Owner) {
+                    Owner->Streams.push_back(Stream);
+                }
+            }
+
+            void Synchronize() const {
+                CUDA_SAFE_CALL(cudaStreamSynchronize(Stream));
+            }
+
+            cudaStream_t GetStream() const {
+                return Stream;
+            }
+        };
+
+        ~TCudaStreamsProvider() {
+            for (auto& stream : Streams) {
+                CUDA_SAFE_CALL(cudaStreamDestroy(stream));
+            }
         }
 
-        void Synchronize() const {
-            CUDA_SAFE_CALL(cudaStreamSynchronize(Stream));
-        }
-
-        ~TCudaStream() throw (yexception) {
-            CUDA_SAFE_CALL(cudaStreamDestroy(Stream));
-        }
-
-        cudaStream_t GetStream() const {
-            return Stream;
+        TCudaStream RequestStream() {
+            if (Streams.size()) {
+                cudaStream_t stream = Streams.back();
+                Streams.pop_back();
+                return TCudaStream(stream, this);
+            } else {
+                return TCudaStream(NewStream(), this);
+            }
         }
     };
+
+    using TCudaStream = TCudaStreamsProvider::TCudaStream;
+
+    inline TCudaStreamsProvider& GetStreamsProvider() {
+        return *FastTlsSingleton<TCudaStreamsProvider>();
+    }
+
 
     class TDefaultStreamRef {
     private:
@@ -66,14 +114,23 @@ namespace NCudaLib {
         FastTlsSingleton<TDefaultStreamRef>()->SetDefaultStream(stream);
     }
 
-    enum EPtrType {
+    enum class EPtrType {
         CudaDevice,
         CudaHost, //pinned cuda memory
         Host      //CPU, non-pinned
     };
 
     inline constexpr bool IsHostPtr(EPtrType type) {
-        return type != CudaDevice;
+        return type != EPtrType::CudaDevice;
+    }
+
+
+    template <class T>
+    EPtrType GetPointerType(const T* ptr) {
+        cudaPointerAttributes attributes;
+        CUDA_SAFE_CALL(cudaPointerGetAttributes(&attributes, (void*)(ptr)));
+        //TODO(noxoomo): currently don't distinguish pinned/non-pinned memory
+        return attributes.memoryType == cudaMemoryTypeHost ? EPtrType::CudaHost : EPtrType::CudaDevice;
     }
 
     template <EPtrType From, EPtrType To>
@@ -84,28 +141,28 @@ namespace NCudaLib {
     };
 
     template <>
-    struct TMemoryCopyKind<CudaDevice, CudaDevice> {
+    struct TMemoryCopyKind<EPtrType::CudaDevice, EPtrType::CudaDevice> {
         static constexpr cudaMemcpyKind Kind() {
             return cudaMemcpyDeviceToDevice;
         }
     };
 
     template <>
-    struct TMemoryCopyKind<CudaDevice, CudaHost> {
+    struct TMemoryCopyKind<EPtrType::CudaDevice, EPtrType::CudaHost> {
         static constexpr cudaMemcpyKind Kind() {
             return cudaMemcpyDeviceToHost;
         }
     };
 
     template <>
-    struct TMemoryCopyKind<CudaHost, CudaDevice> {
+    struct TMemoryCopyKind<EPtrType::CudaHost, EPtrType::CudaDevice> {
         static constexpr cudaMemcpyKind Kind() {
             return cudaMemcpyHostToDevice;
         }
     };
 
     template <>
-    struct TMemoryCopyKind<CudaHost, CudaHost> {
+    struct TMemoryCopyKind<EPtrType::CudaHost, EPtrType::CudaHost> {
         static constexpr cudaMemcpyKind Kind() {
             return cudaMemcpyHostToHost;
         }
@@ -115,7 +172,7 @@ namespace NCudaLib {
     class TCudaMemoryAllocation;
 
     template <>
-    class TCudaMemoryAllocation<CudaDevice> {
+    class TCudaMemoryAllocation<EPtrType::CudaDevice> {
     public:
         template <class T>
         static T* Allocate(ui64 size) {
@@ -131,7 +188,7 @@ namespace NCudaLib {
     };
 
     template <>
-    class TCudaMemoryAllocation<CudaHost> {
+    class TCudaMemoryAllocation<EPtrType::CudaHost> {
     public:
         template <class T>
         static T* Allocate(ui64 size) {
@@ -147,7 +204,7 @@ namespace NCudaLib {
     };
 
     template <>
-    class TCudaMemoryAllocation<Host> {
+    class TCudaMemoryAllocation<EPtrType::Host> {
     public:
         template <class T>
         static T* Allocate(ui64 size) {
@@ -175,6 +232,11 @@ namespace NCudaLib {
             stream.Synchronize();
         }
     };
+
+    template <class T>
+    static void CopyMemoryAsync(const T* from, T* to, ui64 size, const TCudaStream& stream) {
+        CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, cudaMemcpyDefault, stream.GetStream()));
+    }
 
     inline void DeviceSynchronize() {
         CUDA_SAFE_CALL(cudaDeviceSynchronize());
@@ -250,93 +312,27 @@ namespace NCudaLib {
             return TCudaDeviceProperties(deviceProp);
         }
 
+        inline TVector<TCudaDeviceProperties> GetDevicesProps() {
+            TVector<TCudaDeviceProperties> result;
+            for (int dev = 0; dev < GetDeviceCount(); ++dev) {
+                result.push_back(NCudaHelpers::GetDeviceProps(dev));
+            }
+            return result;
+        }
+
+
+
         inline ui64 GetDeviceMemory(int dev) {
             auto props = GetDeviceProps(dev);
             return props.GetDeviceMemory();
         }
     }
 
-    class TDevicesList {
-    public:
-        class TDeviceListIterator {
-        private:
-            ui64 Mask;
-            ui32 Dev;
+    class TOutOfMemoryError : public TCatboostException {
 
-        public:
-            inline TDeviceListIterator()
-                : Mask(0)
-                , Dev(0)
-            {
-            }
-
-            inline TDeviceListIterator(const ui64 devMask,
-                                       const ui32 dev)
-                : Mask(devMask)
-                , Dev(dev)
-            {
-            }
-
-            inline bool operator!=(const TDeviceListIterator& other) {
-                Y_ASSERT(Mask == other.Mask);
-                return Dev != other.Dev;
-            }
-
-            inline const TDeviceListIterator& operator++() {
-                ui64 bit = ((ui64)1) << Dev;
-                const ui32 maxDevices = sizeof(decltype(bit)) * 8;
-                Y_ASSERT(Dev < maxDevices);
-
-                do {
-                    ++Dev;
-                    bit *= 2;
-                } while ((Dev < maxDevices) && !(Mask & bit));
-                return *this;
-            }
-
-            inline const ui32& operator*() const {
-                return Dev;
-            }
-        };
-
-    public:
-        explicit TDevicesList(ui64 mask = 0)
-            : Mask(mask)
-        {
-            if (mask) {
-                LastDev = MostSignificantBit(mask);
-                Offset = LeastSignificantBit(mask);
-                ui64 endFlag = (1ULL << (LastDev + 1));
-                CB_ENSURE(!(endFlag & Mask));
-                Mask |= endFlag;
-            }
-        }
-
-        static TDevicesList SingleDevice(ui64 devId) {
-            return TDevicesList(1ULL << (devId));
-        }
-
-        TDevicesList(TDevicesList&& other) = default;
-        TDevicesList(const TDevicesList& other) = default;
-        TDevicesList& operator=(TDevicesList&& other) = default;
-        TDevicesList& operator=(const TDevicesList& other) = default;
-
-        inline TDeviceListIterator begin() const {
-            return TDeviceListIterator(Mask, Offset);
-        }
-
-        inline TDeviceListIterator end() const {
-            const ui64 end = Mask ? LastDev + 1 : 0;
-            return TDeviceListIterator(Mask, end);
-        }
-
-        inline bool HasDevice(int devId) const {
-            return Mask & (((ui64)1) << devId);
-        }
-
-    private:
-        ui64 Mask = 0;
-        ui32 Offset = 0;
-        ui32 LastDev = 0;
     };
+
 }
+
+using EPtrType = NCudaLib::EPtrType;
+

@@ -1,75 +1,82 @@
 #pragma once
 
-#include "remote_device_future.h"
 #include <catboost/cuda/cuda_lib/task.h>
 
 namespace NCudaLib {
-    template <class TTask, bool IsSystem = false>
-    class THostTask: public IHostTask {
+
+
+
+    class TWaitSubmitCommand: public ICommand {
     public:
-        using TOutput = typename TTask::TOutput;
-
-        TDeviceFuture<TOutput> GetResult() {
-            Promise = NThreading::NewPromise<TOutput>();
-            return TDeviceFuture<TOutput>(Promise.GetFuture());
+        TWaitSubmitCommand()
+            : ICommand(EComandType::WaitSubmit) {
         }
 
-        virtual void Exec() override {
-            Promise.SetValue(std::move<TOutput>(Task()));
-        }
+        Y_STATELESS_TASK();
 
-        virtual bool IsSystemTask() override {
-            return IsSystem;
-        }
-
-        THostTask(TTask&& task)
-            : Task(std::move(task))
-        {
-        }
-
-        template <class... TArgs>
-        THostTask(TArgs... args)
-            : Task(std::forward<TArgs>(args)...)
-        {
-        }
-
-    private:
-        TTask Task;
-        NThreading::TPromise<TOutput> Promise;
     };
 
-    struct TBlockingSyncDevice {
+    struct TNonBlockingFunc {
+        static constexpr ECpuFuncType FuncType() {
+            return ECpuFuncType::DeviceNonblocking;
+        }
+    };
+
+    struct TBlockingFunc {
+        static constexpr ECpuFuncType FuncType() {
+            return ECpuFuncType::DeviceBlocking;
+        }
+    };
+
+    struct TBlockingSyncDevice : public TBlockingFunc {
         using TOutput = ui64;
 
         ui64 operator()() {
             return 0;
         }
+
+        Y_SAVELOAD_EMPTY();
     };
 
-    using TBlockingDeviceSynchronize = THostTask<TBlockingSyncDevice>;
-
-    class TWaitSubmitCommand: public IGpuCommand {
-    public:
-        TWaitSubmitCommand()
-            : IGpuCommand(EGpuHostCommandType::WaitSubmit)
-        {
-        }
-    };
-
-    struct TRequestHandlesTask {
+    struct TRequestHandlesTask : public TNonBlockingFunc {
         using TOutput = TVector<ui64>;
-        ui32 Count;
+        ui32 Count = 0;
 
         explicit TRequestHandlesTask(ui32 count)
-            : Count(count)
-        {
+            : Count(count) {
         }
+
+        TRequestHandlesTask() = default;
 
         TOutput operator()() {
             return GetHandleStorage().GetHandle(Count);
         }
+
+        Y_SAVELOAD_DEFINE(Count);
     };
 
-    using TRequestHandles = THostTask<TRequestHandlesTask, true>;
+
+    struct TFreeHandlesTask : public TBlockingFunc {
+        using TOutput = int;
+        TVector<ui64> Handles;
+
+        explicit TFreeHandlesTask(TVector<ui64>&& handles)
+                : Handles(std::move(handles)) {
+        }
+
+        TFreeHandlesTask() = default;
+
+        TOutput operator()() {
+            auto& storage = GetHandleStorage();
+
+            for (const auto& handle : Handles) {
+                storage.FreeHandle(handle);
+            }
+            return 0;
+        }
+
+        Y_SAVELOAD_DEFINE(Handles);
+    };
+
 
 }

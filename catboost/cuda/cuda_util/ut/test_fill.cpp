@@ -11,9 +11,9 @@ using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TFillTest) {
     SIMPLE_UNIT_TEST(TestMakeSequence) {
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            ui64 tries = 100;
+            ui64 tries = 5;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
                 ui64 size = 2 + rand.NextUniformL() % 1000000;
@@ -48,14 +48,12 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
                 }
             }
         }
-        StopCudaManager();
     }
 
     SIMPLE_UNIT_TEST(TestFill) {
-        auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            ui64 tries = 100;
+            ui64 tries = 5;
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
                 const ui64 size = 2 + rand.NextUniformL() % 1000000;
@@ -77,6 +75,6 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
                 }
             }
         }
-        manager.Stop();
+
     }
 }

@@ -1,19 +1,20 @@
 #pragma once
 
 #include "cuda_base.h"
+#include "devices_list.h"
 #include "memory_provider_trait.h"
 #include "remote_objects.h"
 #include "single_device.h"
 #include "devices_provider.h"
 
-#include <util/ysafeptr.h>
 #include <util/generic/vector.h>
 
 /*
- * Master-slave control and communication routines
+ * Master-slave control and mpi routines
  * CudaManager will be thread-local "singleton"
 */
 namespace NCudaLib {
+
     template <class T>
     class TDeviceObjectExtractor {
     public:
@@ -60,6 +61,10 @@ namespace NCudaLib {
             return Data.size();
         }
 
+        void Fill(const T& value) {
+            std::fill(Data.begin(), Data.end(), value);
+        }
+
     private:
         TVector<T> Data;
 
@@ -83,27 +88,47 @@ namespace NCudaLib {
 
     class TCudaManager {
     private:
+
         struct TCudaManagerState {
             TVector<TCudaSingleDevice*> Devices;
-            TVector<ui64> Streams;
-            TVector<ui64> FreeStreams;
+            TMap<TCudaSingleDevice*, ui32> DevPtrToDevId;
+
+            bool PeersSupportEnabled = false;
             TAdaptiveLock Lock;
+
+            void BuildDevPtrToDevId() {
+                DevPtrToDevId.clear();
+                for (ui32 dev = 0; dev < Devices.size(); ++dev) {
+                    DevPtrToDevId[Devices[dev]] = dev;
+                }
+            }
         };
 
+        TVector<TDistributedObject<ui32>> Streams;
+        TVector<ui32> FreeStreams;
+
         TAtomicSharedPtr<TCudaManagerState> State;
-        TCudaProfiler* Profiler = nullptr; //TODO(kirillovs): replace with holder or another smart pointer
+
+        TCudaProfiler* Profiler;
         TCudaProfiler* ParentProfiler = nullptr;
 
         bool IsChildManager = false;
         TDevicesList DevicesList;
-        TAutoEvent OnStopChildEvent;
+        TManualEvent OnStopChildEvent;
 
         TVector<bool> IsActiveDevice;
         bool Locked = false;
 
-        void FreeStream(const ui32 stream) {
+        void FreeStream(const ui32 streamId) {
+            TDistributedObject<ui32>& stream = Streams[streamId];
+
             for (ui64 dev = 0; dev < State->Devices.size(); ++dev) {
-                State->Devices[dev]->FreeStream(stream);
+                const auto devStreamId = stream.At(dev);
+                if (devStreamId != State->Devices[dev]->DefaultStream()) {
+                    State->Devices[dev]->FreeStream(devStreamId);
+                } else {
+                    CB_ENSURE(!IsActiveDevice[dev]);
+                }
             }
         }
 
@@ -117,22 +142,31 @@ namespace NCudaLib {
             return *State;
         }
 
+        inline void InitDefaultStream() {
+            CB_ENSURE(Streams.size() == 0);
+
+            ui32 defaultStream = 0;
+            for (auto& dev : DevicesList) {
+                CB_ENSURE(defaultStream == State->Devices[dev]->DefaultStream());
+            }
+            {
+                TDistributedObject<ui32> stream(GetDeviceCount());
+                stream.Fill(defaultStream);
+                Streams.push_back(std::move(stream));
+            }
+        }
+
         void SetDevices(TVector<TCudaSingleDevice*>&& devices) {
             CB_ENSURE(!HasDevices(), "Error: CudaManager already has devices");
             GetState().Devices = std::move(devices);
-            GetState().Streams.clear();
-            GetState().FreeStreams.clear();
-            ui32 stream = GetState().Devices[0]->DefaultStream();
-
-            for (ui64 i = 0; i < GetState().Devices.size(); ++i) {
-                CB_ENSURE(stream == GetState().Devices[i]->DefaultStream());
-            }
-
-            GetState().Streams.push_back(stream);
-
-            ui64 one = 1;
-            DevicesList = TDevicesList((one << (GetDeviceCount())) - 1);
+            CB_ENSURE(Streams.size() == 0);
+            CB_ENSURE(FreeStreams.size() == 0);
+            const auto deviceCount = GetState().Devices.size();
+            DevicesList = TDevicesListBuilder::Range(0, deviceCount);
+            IsActiveDevice.clear();
             IsActiveDevice.resize(GetDeviceCount(), true);
+            State->BuildDevPtrToDevId();
+            InitDefaultStream();
         }
 
         void FreeDevices() {
@@ -141,62 +175,82 @@ namespace NCudaLib {
                 provider.Free(dev);
             }
             GetState().Devices.resize(0);
+            GetState().DevPtrToDevId.clear();
         }
+
 
         void CreateProfiler();
         void ResetProfiler(bool printInfo);
 
         template <typename TDistributedObject>
-        inline static auto GetDeviceObject(ui32 devId,
+        inline static auto GetDeviceObject(ui64 devId,
                                            TDistributedObject& object) -> decltype(TDeviceObjectExtractor<std::remove_reference_t<TDistributedObject>>::At(devId, object)) {
             return TDeviceObjectExtractor<std::remove_reference_t<TDistributedObject>>::At(devId, object);
         }
 
         template <class TKernel, class... Args>
-        inline static TKernel GetDeviceKernel(ui32 devId,
+        inline static TKernel GetDeviceKernel(ui64 devId,
                                               Args&... args) {
             return {GetDeviceObject<Args>(devId, args)...};
         };
 
-        friend class TDataCopier;
-        friend class TSingleHostStreamSync;
-        friend class TChildCudaManagerInitializer;
+        TCudaSingleDevice* GetDevice(ui32 devId) {
+            CB_ENSURE(IsActiveDevice[devId]);
+            return GetState().Devices[devId];
+        }
 
+
+        ui32 StreamAt(ui32 streamId, TCudaSingleDevice* singleDev) const {
+            return StreamAt(streamId, GetState().DevPtrToDevId.at(singleDev));
+        }
+
+        inline void FreeComputationStreams() {
+            CB_ENSURE((1 + FreeStreams.size()) == Streams.size(), "Error: not all streams are free");
+            for (int i = Streams.size() - 1; i > 0; --i) {
+                FreeStream(i);
+            }
+            Streams.clear();
+            FreeStreams.resize(0);
+        }
+
+        friend class TDataCopier;
+        friend class TChildCudaManagerInitializer;
+        friend class TStreamSectionTaskLauncher;
+
+    private:
+        void EnablePeers();
+        void DisablePeers();
     public:
         ~TCudaManager();
 
         template <class TKernel>
         inline void LaunchKernel(TKernel&& kernel,
-                                 ui32 dev,
-                                 ui64 devStream) const {
+                                 ui64 dev,
+                                 ui32 stream) const {
             Y_ASSERT(dev < GetState().Devices.size());
             CB_ENSURE(IsActiveDevice[dev]);
-            GetState().Devices[dev]->LaunchKernel(std::move(kernel), devStream);
+            const ui32 devStreamId = StreamAt(stream, dev);
+            GetState().Devices[dev]->LaunchKernel(std::move(kernel), devStreamId);
         }
 
-        template <class TKernel, class... Args>
+        template <class TKernel,
+                  class... Args>
         inline void LaunchKernels(TDevicesList&& devices,
                                   ui32 streamId,
                                   Args&&... args) {
-            auto stream = GetState().Streams[streamId];
-
-            for (ui32 devId : devices) {
+            for (ui64 devId : devices) {
                 auto kernel = GetDeviceKernel<TKernel, Args...>(devId, args...);
-                LaunchKernel<TKernel>(std::move(kernel), devId, stream);
+                LaunchKernel<TKernel>(std::move(kernel), devId, streamId);
             }
         }
 
-        ui32 GetDeviceCount() const {
-            return (ui32)GetState().Devices.size();
+        ui64 GetDeviceCount() const {
+            return GetState().Devices.size();
         }
 
         TDevicesList GetActiveDevices() const {
             return DevicesList;
         }
-
-        void DumpFreeMemory(TString message) const;
-
-        double MinFreeMemoryFraction() const;
 
         double FreeMemoryMb(ui32 devId, bool waitComplete = true) const;
 
@@ -204,7 +258,8 @@ namespace NCudaLib {
 
         //waits for finish all work submitted to selected devices
         void WaitComplete(TDevicesList&& devices) {
-            TVector<TDeviceFuture<ui64>> waitComplete;
+            using TEventPtr = THolder<IDeviceFuture<ui64>>;
+            TVector<TEventPtr> waitComplete;
 
             for (auto dev : devices) {
                 CB_ENSURE(dev < GetState().Devices.size());
@@ -213,7 +268,8 @@ namespace NCudaLib {
             }
 
             for (auto& event : waitComplete) {
-                event.Wait();
+                event->Wait();
+                Y_VERIFY(event->Has());
             }
         }
 
@@ -221,55 +277,43 @@ namespace NCudaLib {
             return Locked;
         }
 
-        void WaitStreamSubmit(TDevicesList&& devices, ui32 stream = 0) {
-            TVector<TDeviceFuture<ui64>> waitComplete;
-            for (auto dev : devices) {
-                CB_ENSURE(dev < GetState().Devices.size());
-                CB_ENSURE(IsActiveDevice[dev], "Device should be active");
-                waitComplete.push_back(GetState().Devices[dev]->WaitStreamSubmit(stream));
-            }
-            for (auto& event : waitComplete) {
-                event.Wait();
-            }
-        }
-
-        void WaitStreamSubmit(ui32 stream = 0) {
-            WaitStreamSubmit(GetActiveDevices(), stream);
-        }
-
         void WaitComplete() {
             WaitComplete(GetActiveDevices());
         }
 
-        void SyncStream(ui32 stream);
-
-        inline void Start() {
+        inline void Start(const NCudaLib::TDeviceRequestConfig& config) {
+            CB_ENSURE(State == nullptr);
             State.Reset(new TCudaManagerState());
             CB_ENSURE(!HasDevices());
-            CB_ENSURE(State, "Error: can't start, state already exists");
-            SetDevices(GetDevicesProvider().GetDevices());
+            SetDevices(GetDevicesProvider().RequestDevices(config));
+            if (config.EnablePeers) {
+                EnablePeers();
+                State->PeersSupportEnabled = true;
+            }
             CreateProfiler();
         }
 
+
         inline void Stop() {
             CB_ENSURE(!IsChildManager);
-            WaitComplete();
-            for (ui32 i = 1; i < GetState().Streams.size(); ++i) {
-                FreeStream(GetState().Streams[i]);
+            CB_ENSURE(State);
+
+            if (State->PeersSupportEnabled) {
+                DisablePeers();
             }
-            GetState().Streams.resize(0);
-            GetState().FreeStreams.resize(0);
+
+            FreeComputationStreams();
+            WaitComplete();
             FreeDevices();
             ResetProfiler(true);
             State = nullptr;
-            GetDevicesProvider().Reset();
         }
 
         void StopChild();
 
         void StartChild(TCudaManager& parent,
                         const TDevicesList& devices,
-                        TAutoEvent& stopEvent);
+                        TManualEvent& stopEvent);
 
         TCudaProfiler& GetProfiler() {
             CB_ENSURE(Profiler, "Error: nullptr profiler");
@@ -293,12 +337,12 @@ namespace NCudaLib {
         class TComputationStream: public TMoveOnly {
         private:
             TCudaManager* Owner;
-            ui64 Id;
+            ui32 Id;
 
-            TComputationStream(ui64 id, TCudaManager* owner)
+            TComputationStream(ui32 id,
+                               TCudaManager* owner)
                 : Owner(owner)
-                , Id(id)
-            {
+                , Id(id) {
             }
 
             friend class TCudaManager;
@@ -306,8 +350,7 @@ namespace NCudaLib {
         public:
             TComputationStream(TComputationStream&& other)
                 : Owner(other.Owner)
-                , Id(other.Id)
-            {
+                , Id(other.Id) {
                 other.Id = 0;
             }
 
@@ -319,19 +362,18 @@ namespace NCudaLib {
             }
 
             ~TComputationStream() {
-                if (Id != 0) {
-                    with_lock(Owner->GetState().Lock) {
-                        Owner->GetState().FreeStreams.push_back(Id);
-                    }
+                if (Id) {
+                    Owner->FreeStreams.push_back(Id);
                 }
             }
 
             //sync on remote. ensures that job done in this stream will be seen for all other jobs submitted to other stream.
             //device-scope, don't guarantee any sync between devices
             void Synchronize(TDevicesList&& devices) {
-                auto& stream = Owner->GetState().Streams[Id];
+//                auto& stream = Owner->GetState().Streams[Id];
                 for (auto dev : devices) {
-                    Owner->GetState().Devices[dev]->StreamSynchronize(stream);
+                    CB_ENSURE(Owner->IsActiveDevice[dev]);
+                    Owner->GetState().Devices[dev]->StreamSynchronize(At(dev));
                 }
             }
 
@@ -340,12 +382,11 @@ namespace NCudaLib {
             }
 
             operator ui32() const {
-                return static_cast<ui32>(Id);
+                return Id;
             }
 
-            ui64 At(ui32 dev) const {
-                Y_UNUSED(dev);
-                return Owner->GetState().Streams[Id];
+            ui32 At(ui32 dev) const {
+                return Owner->StreamAt(Id, dev);
             }
 
             void Synchronize() {
@@ -353,34 +394,42 @@ namespace NCudaLib {
             }
         };
 
+        ui32 StreamAt(ui32 streamId, ui32 dev) const {
+            CB_ENSURE(IsActiveDevice[dev]);
+            return Streams[streamId].At(dev);
+        }
+
+
         TComputationStream RequestStream() {
-            //for child manager stream support we need lock
-            TGuard<TAdaptiveLock> guard(GetState().Lock);
-
-            if (GetState().FreeStreams.size() == 0) {
-                TDistributedObject<ui64> stream = CreateDistributedObject<ui64>();
+            if (FreeStreams.size() == 0) {
+                TDistributedObject<ui32> stream = CreateDistributedObject<ui32>();
                 for (ui64 dev = 0; dev < stream.DeviceCount(); ++dev) {
-                    stream.Set(dev, GetState().Devices[dev]->RequestStream());
+                    if (IsActiveDevice[dev]) {
+                        stream.Set(dev, GetState().Devices[dev]->RequestStream());
+                    } else {
+                        stream.Set(dev, 0);
+                    }
                 }
-
-                for (ui64 dev = 0; dev < stream.DeviceCount(); ++dev) {
-                    CB_ENSURE(stream.At(dev) == stream.At(0), "Error: we expect stream identifier to be equal for all devices");
-                }
-                GetState().FreeStreams.push_back(GetState().Streams.size());
-                GetState().Streams.push_back(stream.At(0));
+                FreeStreams.push_back(Streams.size());
+                Streams.push_back(stream);
             }
 
-            ui64 id = GetState().FreeStreams.back();
-            GetState().FreeStreams.pop_back();
+            ui32 id = FreeStreams.back();
+            FreeStreams.pop_back();
             return TComputationStream(id, this);
         }
+
+        TDeviceId GetDeviceId(ui32 dev) const {
+            return GetState().Devices[dev]->GetDevice();
+        }
+
 
         TComputationStream DefaultStream() {
             return TComputationStream(0, this);
         }
     };
 
-    static inline TCudaManager& GetCudaManager() {
+    inline TCudaManager& GetCudaManager() {
         auto& manager = *FastTlsSingleton<TCudaManager>();
         Y_ASSERT(!manager.IsLocked());
         CB_ENSURE(!manager.IsLocked());
@@ -392,20 +441,39 @@ namespace NCudaLib {
     public:
         using TRemoteObject = T;
 
-        static TRemoteObject At(int devId, const TDistributedObject<T>& object) {
+        static TRemoteObject At(ui64 devId, const TDistributedObject<T>& object) {
             return object.At(devId);
         }
     };
 
+
+    struct TStopChildCudaManagerCallback {
+        TCudaManager* Owner = nullptr;
+
+        TStopChildCudaManagerCallback(TCudaManager* owner)
+                : Owner(owner) {
+
+        }
+
+        TStopChildCudaManagerCallback(TStopChildCudaManagerCallback&&) = default;
+
+        void operator()() {
+            auto& manager = NCudaLib::GetCudaManager();
+            CB_ENSURE(&manager == Owner);
+            manager.StopChild();
+        }
+    };
+
+
     class TChildCudaManagerInitializer: public TNonCopyable {
     public:
         TChildCudaManagerInitializer()
-            : Parent(GetCudaManager())
-        {
+            : Parent(GetCudaManager()) {
             IsRequested.resize(Parent.GetDeviceCount(), true);
             for (auto dev : Parent.GetActiveDevices()) {
                 IsRequested[dev] = false;
             }
+
             Parent.Locked = true;
         }
 
@@ -413,41 +481,30 @@ namespace NCudaLib {
             for (auto& event : Events) {
                 event.WaitI();
             }
+
             Parent.Locked = false;
         }
 
-        struct TStopChildLock {
-        public:
-            void Acquire() {
-            }
 
-            void Release() {
-                auto& childManager = GetCudaManager();
-                childManager.StopChild();
-            }
-        };
-
-        TGuard<TStopChildLock> Initialize(const TDevicesList& devices) {
+        TFinallyGuard<TStopChildCudaManagerCallback> Initialize(const TDevicesList& devices) {
             TGuard<TAdaptiveLock> guard(Lock);
 
             for (auto& dev : devices) {
-                CB_ENSURE(IsRequested[dev] == false);
+                CB_ENSURE(!IsRequested[dev]);
                 IsRequested[dev] = true;
             }
 
             auto& childManager = GetCudaManager();
             CB_ENSURE(&childManager != &Parent);
 
-            Events.push_back(TAutoEvent());
-            StopChildGuards.push_back(TStopChildLock());
-
+            Events.push_back(TManualEvent());
+            Events.back().Reset();
             childManager.StartChild(Parent, devices, Events.back());
-
-            return Guard(StopChildGuards.back());
+            return TFinallyGuard<TStopChildCudaManagerCallback>(TStopChildCudaManagerCallback(&childManager));
         }
 
-        TGuard<TStopChildLock> Initialize(ui32 dev) {
-            return Initialize(TDevicesList(1ULL << dev));
+        TFinallyGuard<TStopChildCudaManagerCallback> Initialize(ui64 dev) {
+            return Initialize(TDevicesListBuilder::SingleDevice(dev));
         }
 
         explicit TChildCudaManagerInitializer(TCudaManager& parent)
@@ -459,8 +516,7 @@ namespace NCudaLib {
         TAdaptiveLock Lock;
         TCudaManager& Parent;
         TVector<bool> IsRequested;
-        TVector<TAutoEvent> Events;
-        TVector<TStopChildLock> StopChildGuards;
+        TVector<TManualEvent> Events;
     };
 }
 
@@ -487,26 +543,25 @@ inline void LaunchKernel(ui32 device,
                          ui32 streamId,
                          TKernel&& kernel) {
     auto& manager = NCudaLib::GetCudaManager();
-    manager.LaunchKernel<TKernel>(std::move(kernel), device, streamId);
+    manager.LaunchKernel<TKernel>(std::forward(kernel), device, streamId);
 }
 
-inline void StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Info) {
-    SetLogingLevel(loggingLevel);
-    auto& manager = NCudaLib::GetCudaManager();
-    manager.Start();
-    manager.WaitComplete();
-
-    ui32 devCount = manager.GetDeviceCount();
-    for (ui32 dev = 0; dev < devCount; ++dev) {
-        MATRIXNET_INFO_LOG << "Free memory for device #" << dev << " " << manager.FreeMemoryMb(dev) << "MB" << Endl;
+struct TStopCudaManagerCallback {
+    void operator()() {
+        auto& manager = NCudaLib::GetCudaManager();
+        manager.Stop();
     }
-}
+};
 
-inline ui32 GetDeviceCount() {
+
+
+TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
+                                                         const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
+
+TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
+
+void RunSlave();
+
+inline ui64 GetDeviceCount() {
     return NCudaLib::GetCudaManager().GetDeviceCount();
-}
-
-inline void StopCudaManager() {
-    auto& manager = NCudaLib::GetCudaManager();
-    manager.Stop();
 }

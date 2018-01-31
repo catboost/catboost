@@ -75,7 +75,7 @@ namespace NCatboostCuda {
         TGpuBinarizedDataSet<TByteFeatureGridPolicy, TLayoutPolicy> Features;
     };
 
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TDataSet: public TGuidHolder {
     public:
         using TDocsMapping = NCudaLib::TMirrorMapping;
@@ -201,7 +201,7 @@ namespace NCatboostCuda {
         friend class TDataSetHoldersBuilder;
     };
 
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::CudaDevice>
+    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TDataSetsHolder: public TGuidHolder {
     public:
         bool HasFeature(ui32 featureId) const {

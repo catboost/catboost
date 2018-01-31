@@ -13,7 +13,7 @@
 #include <catboost/cuda/data/cat_feature_perfect_hash.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
-#include <catboost/cuda/cuda_lib/bandwidth_latency_calcer.h>
+#include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
 #include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                                              NCatboostOptions::TCatBoostOptions& catBoostOptions) {
         const bool storeCatFeaturesInPinnedMemory = catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
         if (storeCatFeaturesInPinnedMemory) {
-            ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices).size();
+            ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices, NCudaLib::GetDevicesProvider().GetDeviceCount()).size();
             ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test, featuresManager, devCount);
             ui64 currentSize = catBoostOptions.SystemOptions->PinnedMemorySize;
             if (currentSize < cpuFeaturesSize) {
@@ -88,13 +88,13 @@ namespace NCatboostCuda {
         }
     }
 
-    inline void CreateAndSetCudaConfig(const NCatboostOptions::TCatBoostOptions& options) {
-        NCudaLib::TCudaApplicationConfig config;
+    inline NCudaLib::TDeviceRequestConfig CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options) {
+        NCudaLib::TDeviceRequestConfig config;
         const auto& systemOptions = options.SystemOptions.Get();
         config.DeviceConfig = systemOptions.Devices;
         config.PinnedMemorySize = systemOptions.PinnedMemorySize;
         config.GpuMemoryPartByWorker = systemOptions.GpuRamPart;
-        NCudaLib::SetApplicationConfig(config);
+        return config;
     }
 
     inline void CheckForSnapshotAndReloadOptions(const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -229,19 +229,15 @@ namespace NCatboostCuda {
         std::thread thread([&]() {
             try {
                 SetLogingLevel(trainCatBoostOptions.LoggingLevel);
-                CreateAndSetCudaConfig(trainCatBoostOptions);
+                auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
 
-                StartCudaManager(trainCatBoostOptions.LoggingLevel);
-                if (NCudaLib::GetCudaManager().GetDeviceCount() > 1) {
-                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaHost>();
-                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaDevice, NCudaLib::CudaDevice>();
-                    NCudaLib::GetLatencyAndBandwidthStats<NCudaLib::CudaHost, NCudaLib::CudaDevice>();
-                }
+                auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
+                                 trainCatBoostOptions.LoggingLevel);
                 resultPromise.set_value(TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager));
             } catch (...) {
                 resultPromise.set_exception(std::current_exception());
             }
-            StopCudaManager();
+
         });
         thread.join();
         resultFuture.wait();

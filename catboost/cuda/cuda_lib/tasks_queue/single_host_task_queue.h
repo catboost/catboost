@@ -7,9 +7,10 @@
 #include <util/system/yield.h>
 
 namespace NCudaLib {
+
     class TSingleHostTaskQueue {
     public:
-        using TGpuTaskPtr = THolder<IGpuCommand>;
+        using TGpuTaskPtr = THolder<ICommand>;
         using TQueue = typename NThreading::TManyOneQueue<TGpuTaskPtr>;
 
         bool IsEmpty() {
@@ -17,7 +18,7 @@ namespace NCudaLib {
         }
 
         TGpuTaskPtr Dequeue() {
-            THolder<IGpuCommand> task;
+            THolder<ICommand> task;
             bool done = InputTaskQueue.Dequeue(task);
             CB_ENSURE(done, "Error: dequeue failed");
             return task;
@@ -38,9 +39,16 @@ namespace NCudaLib {
             }
         }
 
-        void AddTask(THolder<IGpuCommand>&& task) {
+        template <class TTask>
+        void AddTask(THolder<TTask>&& task) {
             InputTaskQueue.Enqueue(std::move(task));
             JobsEvent.Signal();
+        }
+
+        template <class TTask,
+                  class... Args>
+        void EmplaceTask(Args&&... args) {
+            AddTask(MakeHolder<TTask>(std::forward<Args>(args)...));
         }
 
     private:

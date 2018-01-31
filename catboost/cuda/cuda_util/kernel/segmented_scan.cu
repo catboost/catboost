@@ -58,16 +58,17 @@ namespace NKernel
         return sizeInBytes;
     }
 
-    template  cudaError_t SegmentedScanCub<float>(const float* input, const ui32* flags, ui32 mask, float* output, ui32 size, bool inclusive,
-                                                  TScanKernelContext<float>& context, TCudaStream stream);
+    #define SEGMENTED_SCAN_CUB(Type)\
+    template  cudaError_t SegmentedScanCub<Type>(const Type* input, const ui32* flags, ui32 mask, Type* output, ui32 size, bool inclusive,\
+                                                  TScanKernelContext<Type>& context, TCudaStream stream);
 
-    template  cudaError_t SegmentedScanCub<int>(const int* input, const ui32* flags, ui32 mask, int* output, ui32 size, bool inclusive,
-                                                TScanKernelContext<int>& context, TCudaStream stream);
-
-    template  cudaError_t SegmentedScanCub<ui32>(const ui32* input, const ui32* flags, ui32 mask, ui32* output, ui32 size, bool inclusive,
-                                                 TScanKernelContext<ui32>& context, TCudaStream stream);
+    SEGMENTED_SCAN_CUB(float)
+    SEGMENTED_SCAN_CUB(double)
+    SEGMENTED_SCAN_CUB(int)
+    SEGMENTED_SCAN_CUB(ui32)
 
     template ui64 SegmentedScanVectorTempSize<int>(ui32, bool);
     template ui64 SegmentedScanVectorTempSize<ui32>(ui32, bool);
     template ui64 SegmentedScanVectorTempSize<float>(ui32, bool);
+    template ui64 SegmentedScanVectorTempSize<double>(ui32, bool);
 }

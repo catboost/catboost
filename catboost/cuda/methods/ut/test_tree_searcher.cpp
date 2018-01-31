@@ -511,7 +511,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         TRandom random(seed);
         TBinarizedPool pool;
 
-        StartCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             for (ui32 bin : {4, 16, 32, 64, 128, 255}) {
                 {
@@ -526,7 +526,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                 }
             }
         }
-        StopCudaManager();
+
     }
 
     SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherWithoutOneHot) {

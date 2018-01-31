@@ -71,28 +71,17 @@ namespace NKernel {
 
 
 
-    template ui64 ScanVectorTempSize<int>(ui32, bool);
-    template ui64 ScanVectorTempSize<ui32>(ui32, bool);
-    template ui64 ScanVectorTempSize<float>(ui32, bool);
-    template ui64 ScanVectorTempSize<double>(ui32, bool);
+    #define SCAN_VECTOR(Type) \
+    template  cudaError_t ScanVector<Type>(const Type *input, Type *output, ui32 size, bool inclusive, TScanKernelContext<Type>& context, TCudaStream stream); \
+    template  cudaError_t SegmentedScanNonNegativeVector<Type>(const Type *input, Type *output, ui32 size, bool inclusive, TScanKernelContext<Type>& context, TCudaStream stream); \
+    template  cudaError_t SegmentedScanAndScatterNonNegativeVector<Type>(const Type *input, const ui32* indices, Type *output, ui32 size, bool inclusive, TScanKernelContext<Type>& context, TCudaStream stream); \
+    template ui64 ScanVectorTempSize<Type>(ui32, bool);
 
 
-    template  cudaError_t ScanVector<int>(const int *input, int *output, ui32 size, bool inclusive, TScanKernelContext<int>& context, TCudaStream stream);
-
-    template  cudaError_t ScanVector<ui32>(const ui32 *input, ui32 *output, ui32 size, bool inclusive, TScanKernelContext<ui32>& context, TCudaStream stream);
-
-    template  cudaError_t ScanVector<float>(const float *input, float *output, ui32 size, bool inclusive, TScanKernelContext<float>& context, TCudaStream stream);
-
-    template  cudaError_t SegmentedScanNonNegativeVector<float>(const float *input, float *output, ui32 size, bool inclusive, TScanKernelContext<float>& context, TCudaStream stream);
-    template  cudaError_t SegmentedScanNonNegativeVector<int>(const int *input, int *output, ui32 size, bool inclusive, TScanKernelContext<int>& context, TCudaStream stream);
-    template  cudaError_t SegmentedScanNonNegativeVector<ui32>(const ui32 *input, ui32 *output, ui32 size, bool inclusive, TScanKernelContext<ui32>& context, TCudaStream stream);
-
-    template  cudaError_t ScanVector<double>(const double *input, double *output, ui32 size, bool inclusive, TScanKernelContext<double>& context, TCudaStream stream);
-
-
-    template  cudaError_t SegmentedScanAndScatterNonNegativeVector<float>(const float *input, const ui32* indices, float *output, ui32 size, bool inclusive, TScanKernelContext<float>& context, TCudaStream stream);
-    template  cudaError_t SegmentedScanAndScatterNonNegativeVector<int>(const int *input, const ui32* indices, int *output, ui32 size, bool inclusive, TScanKernelContext<int>& context, TCudaStream stream);
-    template  cudaError_t SegmentedScanAndScatterNonNegativeVector<ui32>(const ui32 *input, const ui32* indices, ui32 *output, ui32 size, bool inclusive, TScanKernelContext<ui32>& context, TCudaStream stream);
+    SCAN_VECTOR(int)
+    SCAN_VECTOR(ui32)
+    SCAN_VECTOR(float)
+    SCAN_VECTOR(double)
 
 
 }

@@ -5,14 +5,14 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/utils/cpu_random.h>
+#include <catboost/cuda/cuda_util/helpers.h>
 
 using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
     SIMPLE_UNIT_TEST(TestEmptyMappingIterator) {
         {
-            auto& manager = GetCudaManager();
-            manager.Start();
+            auto stopCudaManagerGuard = StartCudaManager();
             {
                 NCudaLib::TMirrorMapping mirrorMapping(0);
                 for (auto dev : mirrorMapping.NonEmptyDevices()) {
@@ -31,33 +31,34 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     }
                 }
             }
-            manager.Stop();
+
         }
     }
 
     SIMPLE_UNIT_TEST(TestDeviceIterator) {
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             auto& manager = GetCudaManager();
-            manager.Start();
-            ui32 devCount = manager.GetDeviceCount();
+
+            ui64 devCount = manager.GetDeviceCount();
             {
-                int offset = 0;
-                for (ui32 dev : TDevicesList((1ULL << devCount) - 1)) {
+                ui64 offset = 0;
+                for (ui64 dev : TDevicesListBuilder::Range(0, devCount)) {
                     UNIT_ASSERT_VALUES_EQUAL(dev, offset++);
                     UNIT_ASSERT_EQUAL(dev < devCount, true);
                 }
             }
             {
-                int offset = 1;
-                for (ui32 dev : TDevicesList(((1ULL << devCount) - 1) & (~1))) {
+                ui64 offset = 1;
+                for (ui64 dev : TDevicesListBuilder::Range(1, devCount)) {
                     UNIT_ASSERT_VALUES_EQUAL(dev, offset++);
                     UNIT_ASSERT_EQUAL(dev < devCount, true);
                     UNIT_ASSERT_EQUAL(dev > 0, true);
                 }
             }
             {
-                TVector<ui32> devs;
-                for (ui32 dev : TMirrorMapping(10, 1).NonEmptyDevices()) {
+                TVector<ui64> devs;
+                for (ui64 dev : TMirrorMapping(10, 1).NonEmptyDevices()) {
                     devs.push_back(dev);
                 }
                 UNIT_ASSERT_EQUAL(devs.size(), devCount);
@@ -81,15 +82,15 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_EQUAL(devs[0], 1);
                 }
             }
-            manager.Stop();
+
         }
     }
 
     SIMPLE_UNIT_TEST(SingleBufferTests) {
         {
             {
+                auto stopCudaManagerGuard = StartCudaManager();
                 auto& manager = NCudaLib::GetCudaManager();
-                manager.Start();
                 {
                     TCudaBuffer<float, TSingleMapping> buffer = TCudaBuffer<float, TSingleMapping>::Create(
                         TSingleMapping(0, 10, 4));
@@ -101,15 +102,14 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_VALUES_EQUAL(buffer.GetMapping().MemorySize(TSlice(0, 4)), 16);
                     manager.WaitComplete();
                 }
-                manager.Stop();
+
             }
         }
     }
 
     SIMPLE_UNIT_TEST(MirrorBufferTests) {
         {
-            auto& manager = NCudaLib::GetCudaManager();
-            manager.Start();
+            auto stopCudaManagerGuard = StartCudaManager();
             {
                 const ui32 objectSize = 4;
                 const ui32 objectCount = 10;
@@ -134,14 +134,14 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
                 }
             }
-            manager.Stop();
+
         }
     }
 
     SIMPLE_UNIT_TEST(SliceBufferTests) {
         {
-            auto& manager = NCudaLib::GetCudaManager();
-            manager.Start();
+            auto stopCudaManagerGuard = StartCudaManager();
+
             {
                 const ui32 objectSize = 4;
                 const ui32 objectCount = 1024;
@@ -186,14 +186,13 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_DOUBLES_EQUAL(tmp[i], tmp3[i], 1e-20);
                 }
             }
-            manager.Stop();
+
         }
     }
 
     SIMPLE_UNIT_TEST(SeveralSliceBufferTests) {
         {
-            auto& manager = NCudaLib::GetCudaManager();
-            manager.Start();
+            auto stopCudaManagerGuard = StartCudaManager();
             {
                 const ui32 objectCount = 4096;
                 auto buffer = TStripeBuffer<float>::Create(TStripeMapping::SplitBetweenDevices(objectCount));
@@ -233,13 +232,12 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     }
                 }
             }
-            manager.Stop();
         }
     }
 
     SIMPLE_UNIT_TEST(StripeBufferTests) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             auto devCount = manager.GetDeviceCount();
             const ui32 count = 256;
@@ -287,12 +285,11 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 }
             }
         }
-        manager.Stop();
+
     }
 
     SIMPLE_UNIT_TEST(MultiColumnBufferTests) {
-        auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
             const ui32 count = 123495;
 
@@ -326,39 +323,43 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 UNIT_ASSERT_VALUES_EQUAL(weight[i], weights2[i]);
             }
         }
-        manager.Stop();
+
     }
 
     SIMPLE_UNIT_TEST(CopyTest) {
-        auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
         {
-            const ui64 count = 1 << 14;
-            const ui64 objectSize = 7;
-            TStripeMapping mapping = TStripeMapping::SplitBetweenDevices(count, objectSize);
+            int tries = 10;
+            TRandom random(0);
+            for (int tryId = 0; tryId < tries; ++tryId) {
+                const ui64 count = (1 << 12) + (random.NextUniformL() % (1 << 14));
+                const ui64 objectSize = 7;
+                TStripeMapping mapping = TStripeMapping::SplitBetweenDevices(count, objectSize);
 
-            auto buffer = TCudaBuffer<ui64, TStripeMapping>::Create(mapping);
+                auto buffer = TCudaBuffer<ui64, TStripeMapping>::Create(mapping);
 
-            TVector<ui64> tmp;
-            for (ui64 i = 0; i < count * objectSize; ++i) {
-                tmp.push_back(i % 10050);
-            }
+                TVector<ui64> tmp;
+                for (ui64 i = 0; i < count * objectSize; ++i) {
+                    tmp.push_back(i % 10050);
+                }
 
-            buffer.CreateWriter(tmp).Write();
+                buffer.CreateWriter(tmp).Write();
 
-            auto copyBuffer = TCudaBuffer<ui64, TStripeMapping>::CopyMapping(buffer);
-            FillBuffer(copyBuffer, static_cast<ui64>(1));
-            copyBuffer.Copy(buffer);
+                auto copyBuffer = TCudaBuffer<ui64, TStripeMapping>::CopyMapping(buffer);
+                FillBuffer(copyBuffer, static_cast<ui64>(1));
+                copyBuffer.Copy(buffer);
 
-            TVector<ui64> tmp2;
-            copyBuffer.CreateReader().Read(tmp2);
+                TVector<ui64> tmp2;
+                copyBuffer.CreateReader().Read(tmp2);
 
-            UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize);
-            for (ui64 i = 0; i < objectSize * count; ++i) {
-                UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
+                UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize);
+                for (ui64 i = 0; i < objectSize * count; ++i) {
+                    UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
+                }
             }
         }
-        manager.Stop();
+
+
     }
 
     template <class T, class TBuffer>
@@ -389,7 +390,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         return TStripeMapping(std::move(slices), objectSize);
     }
 
-    inline void RunReshardTest(NCudaLib::TCudaManager & manager) {
+    inline void RunReshardTest(NCudaLib::TCudaManager & manager, bool useCompress = false) {
         TRandom rng(0);
         if (manager.GetDeviceCount() > 1) {
             const ui64 count = 1 << 25;
@@ -422,32 +423,32 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 for (ui32 i = 0; i < NCudaLib::GetCudaManager().GetDeviceCount(); ++i) {
                     Validate(reference, bufferMirror.DeviceView(i));
                 }
-
-                FillBuffer(bufferStripe, 1.0f);
-                Reshard(bufferMirror, bufferStripe);
+                FillBuffer(bufferStripe, 10.0f);
+                Reshard(bufferMirror, bufferStripe, 0u, useCompress);
                 Validate(reference, bufferStripe);
                 //
-                FillBuffer(bufferStripeRandom, 1.0f);
-                Reshard(bufferStripe, bufferStripeRandom);
+                FillBuffer(bufferStripeRandom, 100.0f);
+                Reshard(bufferStripe, bufferStripeRandom, 0u, useCompress);
                 Validate(reference, bufferStripeRandom);
                 //
-                FillBuffer(bufferSingleOtherDev, 1.0f);
-                Reshard(bufferStripeRandom, bufferSingleOtherDev);
+                FillBuffer(bufferSingleOtherDev, 1000.0f);
+                Reshard(bufferStripeRandom, bufferSingleOtherDev, 0u, useCompress);
                 Validate(reference, bufferSingleOtherDev);
+
             }
 
             //single -> single -> stripe -> mirror
             {
                 FillBuffer(bufferSingleOtherDev, 1.0f);
-                Reshard(bufferSingle, bufferSingleOtherDev);
+                Reshard(bufferSingle, bufferSingleOtherDev, 0u, useCompress);
                 Validate(reference, bufferSingleOtherDev);
 
                 FillBuffer(bufferStripe, 1.0f);
-                Reshard(bufferSingleOtherDev, bufferStripe);
+                Reshard(bufferSingleOtherDev, bufferStripe, 0u, useCompress);
                 Validate(reference, bufferStripe);
 
                 FillBuffer(bufferMirror, 1.0f);
-                Reshard(bufferStripe, bufferMirror);
+                Reshard(bufferStripe, bufferMirror, 0u, useCompress);
                 for (i32 i = NCudaLib::GetCudaManager().GetDeviceCount() - 1; i >= 0; --i) {
                     Validate(reference, bufferMirror.DeviceView(i));
                 }
@@ -458,10 +459,18 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
 
     SIMPLE_UNIT_TEST(ReshardingTest) {
         auto& manager = NCudaLib::GetCudaManager();
-        manager.Start();
+        auto stopCudaManagerGuard = StartCudaManager();
         RunReshardTest(manager);
-        manager.Stop();
     }
+
+
+    #if defined(USE_MPI)
+    SIMPLE_UNIT_TEST(CompressReshardingTest) {
+        auto& manager = NCudaLib::GetCudaManager();
+        auto stopCudaManagerGuard = StartCudaManager();
+        RunReshardTest(manager, true);
+    }
+    #endif
 
     //
 }
