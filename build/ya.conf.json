@@ -51,6 +51,7 @@
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
         "pyndexer": {"description": "Run Python Yndexer"},
+        "ymakeyndexer": {"description": "Run ymake ydx converter"},
         "transfer-manager": { "description": "Run Transfer Manager client" },
         "rem-tool": { "description": "Run REM cli client" },
         "afl-fuzz": { "description": "Run afl-fuzz" }
@@ -1462,6 +1463,14 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "ymakeyndexer": {
+            "tools": {
+                "ymakeyndexer": { "bottle": "ymakeyndexer", "executable": "ymakeyndexer" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
         "transfer-manager": {
             "tools": {
                 "transfer-manager": { "bottle": "transfer-manager", "executable": "transfer-manager" }
@@ -2322,6 +2331,15 @@
             },
             "executable": {
                 "pyndexer": ["pyxref"]
+            }
+        },
+        "ymakeyndexer": {
+            "formula": {
+                "sandbox_id": 207569247,
+                "match": "YMAKEYNDEXER"
+            },
+            "executable": {
+                "ymakeyndexer": ["ymakeyndexer"]
             }
         },
         "transfer-manager": {
