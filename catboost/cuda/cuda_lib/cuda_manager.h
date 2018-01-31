@@ -14,7 +14,6 @@
  * CudaManager will be thread-local "singleton"
 */
 namespace NCudaLib {
-
     template <class T>
     class TDeviceObjectExtractor {
     public:
@@ -88,7 +87,6 @@ namespace NCudaLib {
 
     class TCudaManager {
     private:
-
         struct TCudaManagerState {
             TVector<TCudaSingleDevice*> Devices;
             TMap<TCudaSingleDevice*, ui32> DevPtrToDevId;
@@ -178,7 +176,6 @@ namespace NCudaLib {
             GetState().DevPtrToDevId.clear();
         }
 
-
         void CreateProfiler();
         void ResetProfiler(bool printInfo);
 
@@ -198,7 +195,6 @@ namespace NCudaLib {
             CB_ENSURE(IsActiveDevice[devId]);
             return GetState().Devices[devId];
         }
-
 
         ui32 StreamAt(ui32 streamId, TCudaSingleDevice* singleDev) const {
             return StreamAt(streamId, GetState().DevPtrToDevId.at(singleDev));
@@ -220,6 +216,7 @@ namespace NCudaLib {
     private:
         void EnablePeers();
         void DisablePeers();
+
     public:
         ~TCudaManager();
 
@@ -293,7 +290,6 @@ namespace NCudaLib {
             CreateProfiler();
         }
 
-
         inline void Stop() {
             CB_ENSURE(!IsChildManager);
             CB_ENSURE(State);
@@ -342,7 +338,8 @@ namespace NCudaLib {
             TComputationStream(ui32 id,
                                TCudaManager* owner)
                 : Owner(owner)
-                , Id(id) {
+                , Id(id)
+            {
             }
 
             friend class TCudaManager;
@@ -350,7 +347,8 @@ namespace NCudaLib {
         public:
             TComputationStream(TComputationStream&& other)
                 : Owner(other.Owner)
-                , Id(other.Id) {
+                , Id(other.Id)
+            {
                 other.Id = 0;
             }
 
@@ -370,7 +368,7 @@ namespace NCudaLib {
             //sync on remote. ensures that job done in this stream will be seen for all other jobs submitted to other stream.
             //device-scope, don't guarantee any sync between devices
             void Synchronize(TDevicesList&& devices) {
-//                auto& stream = Owner->GetState().Streams[Id];
+                //                auto& stream = Owner->GetState().Streams[Id];
                 for (auto dev : devices) {
                     CB_ENSURE(Owner->IsActiveDevice[dev]);
                     Owner->GetState().Devices[dev]->StreamSynchronize(At(dev));
@@ -399,7 +397,6 @@ namespace NCudaLib {
             return Streams[streamId].At(dev);
         }
 
-
         TComputationStream RequestStream() {
             if (FreeStreams.size() == 0) {
                 TDistributedObject<ui32> stream = CreateDistributedObject<ui32>();
@@ -423,7 +420,6 @@ namespace NCudaLib {
             return GetState().Devices[dev]->GetDevice();
         }
 
-
         TComputationStream DefaultStream() {
             return TComputationStream(0, this);
         }
@@ -446,13 +442,12 @@ namespace NCudaLib {
         }
     };
 
-
     struct TStopChildCudaManagerCallback {
         TCudaManager* Owner = nullptr;
 
         TStopChildCudaManagerCallback(TCudaManager* owner)
-                : Owner(owner) {
-
+            : Owner(owner)
+        {
         }
 
         TStopChildCudaManagerCallback(TStopChildCudaManagerCallback&&) = default;
@@ -464,11 +459,11 @@ namespace NCudaLib {
         }
     };
 
-
     class TChildCudaManagerInitializer: public TNonCopyable {
     public:
         TChildCudaManagerInitializer()
-            : Parent(GetCudaManager()) {
+            : Parent(GetCudaManager())
+        {
             IsRequested.resize(Parent.GetDeviceCount(), true);
             for (auto dev : Parent.GetActiveDevices()) {
                 IsRequested[dev] = false;
@@ -484,7 +479,6 @@ namespace NCudaLib {
 
             Parent.Locked = false;
         }
-
 
         TFinallyGuard<TStopChildCudaManagerCallback> Initialize(const TDevicesList& devices) {
             TGuard<TAdaptiveLock> guard(Lock);
@@ -552,8 +546,6 @@ struct TStopCudaManagerCallback {
         manager.Stop();
     }
 };
-
-
 
 TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
                                                          const ELoggingLevel loggingLevel = ELoggingLevel::Debug);

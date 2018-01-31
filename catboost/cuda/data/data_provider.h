@@ -4,7 +4,6 @@
 #include <util/generic/yexception.h>
 
 namespace NCatboostCuda {
-
     class TDataProvider: public TMoveOnly {
     public:
         explicit TDataProvider()

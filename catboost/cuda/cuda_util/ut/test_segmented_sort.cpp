@@ -66,7 +66,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedSortPerformance) {
@@ -117,6 +116,5 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
                 }
             }
         }
-
     }
 }

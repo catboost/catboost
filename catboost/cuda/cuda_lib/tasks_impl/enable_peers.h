@@ -7,23 +7,21 @@
 #include <catboost/cuda/cuda_lib/peer_devices.h>
 
 namespace NKernelHost {
-
-    struct TEnablePeersKernel : public TStatelessKernel {
+    struct TEnablePeersKernel: public TStatelessKernel {
         TVector<TDeviceId> Devices;
 
         TEnablePeersKernel(TVector<TDeviceId>&& devices)
-                : Devices(devices) {
-
+            : Devices(devices)
+        {
         }
 
         TEnablePeersKernel() {
-
         }
 
         void Run(const TCudaStream&) const {
             int myHostId = NCudaLib::GetHostId();
-            int myDevice =  NCudaLib::GetDevice();
-            auto& peerHelper =  NCudaLib::GetPeerDevicesHelper();
+            int myDevice = NCudaLib::GetDevice();
+            auto& peerHelper = NCudaLib::GetPeerDevicesHelper();
 
             for (auto& deviceId : Devices) {
                 if (deviceId.HostId == myHostId) {
@@ -35,22 +33,21 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Devices);
     };
 
-    struct TDisablePeersKernel : public TStatelessKernel  {
+    struct TDisablePeersKernel: public TStatelessKernel {
         TVector<TDeviceId> Devices;
 
         TDisablePeersKernel(TVector<TDeviceId>&& devices)
-                : Devices(devices) {
-
+            : Devices(devices)
+        {
         }
 
         TDisablePeersKernel() {
-
         }
 
         void Run(const TCudaStream&) const {
-            int myHostId =  NCudaLib::GetHostId();
-            int myDevice =  NCudaLib::GetDevice();
-            auto& peerHelper =  NCudaLib::GetPeerDevicesHelper();
+            int myHostId = NCudaLib::GetHostId();
+            int myDevice = NCudaLib::GetDevice();
+            auto& peerHelper = NCudaLib::GetPeerDevicesHelper();
 
             for (auto& deviceId : Devices) {
                 if (deviceId.HostId == myHostId) {

@@ -69,7 +69,6 @@ namespace NCatboostCuda {
                 Shuffle(Seed, 1, DataProvider.Targets.size(), &DataProvider.Order);
             }
             DataProvider.SetShuffleSeed(Seed);
-
         }
 
         if (ShuffleFlag || !DataProvider.Timestamp.empty()) {

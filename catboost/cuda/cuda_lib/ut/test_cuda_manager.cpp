@@ -15,7 +15,6 @@
 using namespace NCudaLib;
 
 SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
-
     SIMPLE_UNIT_TEST(TestKernelDDOS) {
         {
             ui32 count = 100000;
@@ -31,8 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
     }
 
     SIMPLE_UNIT_TEST(TestCreateStreams) {
-        for (ui32 i = 0; i < 3; ++i)
-        {
+        for (ui32 i = 0; i < 3; ++i) {
             auto stopCudaManagerGuard = StartCudaManager();
             auto cudaVec = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(2));
 
@@ -48,7 +46,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         {
-
             TCudaProfiler& profiler = manager.GetProfiler();
             profiler.SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
             auto profileGuard = profiler.Profile(TStringBuilder() << "Total time");
@@ -90,15 +87,12 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
                 }
             });
         }
-
     }
-
 
     SIMPLE_UNIT_TEST(TestRequestStreamChild) {
         ui64 tries = 3;
 
-        for (ui32 i = 0; i < tries; ++i)
-        {
+        for (ui32 i = 0; i < tries; ++i) {
             auto stopCudaManagerGuard = StartCudaManager();
 
             for (int i = 0; i < 10; ++i) {
@@ -162,6 +156,5 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
                 }
             });
         }
-
     }
 }

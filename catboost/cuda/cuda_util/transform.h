@@ -33,6 +33,7 @@ namespace NKernelHost {
         T ConstY;
         EBinOpType OperationType;
         const bool SkipZeroesOnDivide = true;
+
     public:
         TBinOpKernel() = default;
 

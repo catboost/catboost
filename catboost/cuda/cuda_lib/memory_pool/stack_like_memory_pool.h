@@ -12,7 +12,6 @@
  */
 
 namespace NCudaLib {
-
     template <EPtrType PtrType>
     class TStackLikeMemoryPool: private TNonCopyable {
     private:
@@ -156,7 +155,6 @@ namespace NCudaLib {
             char* const temp = last->Ptr;
             const ui64 tempBufferSize = (last->Size / 4096) * 4096;
             ui64 tempBufferUsed = 0;
-
 
             while (cursor != last) {
                 if (!cursor->IsFree) {

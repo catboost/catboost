@@ -7,8 +7,7 @@
 
 //WARNING: Not thread-safe
 namespace NCudaLib {
-
-    inline double BandwidthMbPerSec(double bandwidth)  {
+    inline double BandwidthMbPerSec(double bandwidth) {
         return (1000 * 1000 / bandwidth) / 1024 / 1024;
     }
 
@@ -65,7 +64,6 @@ namespace NCudaLib {
         static double ComputeTime(ui32 sourceDevice,
                                   ui32 destDevice,
                                   const ui32 messageSize) {
-
             auto from = TCudaBuffer<char, TSingleMapping, From>::Create(TSingleMapping(sourceDevice, messageSize));
             auto to = TCudaBuffer<char, TSingleMapping, To>::Create(TSingleMapping(destDevice, messageSize));
             auto& manager = GetCudaManager();
@@ -85,7 +83,7 @@ namespace NCudaLib {
             return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() * 1.0 / 1000;
         }
 
-//        microseconds
+        //        microseconds
         double Latency(ui32 fromDevice, ui32 toDevice) const {
             auto& manager = GetCudaManager();
             TDeviceId leftDevice = manager.GetDeviceId(fromDevice);
@@ -123,8 +121,7 @@ namespace NCudaLib {
     };
 
     template <>
-    class TMemoryCopyPerformance<EPtrType::Host, EPtrType::Host>;//useless
-
+    class TMemoryCopyPerformance<EPtrType::Host, EPtrType::Host>; //useless
 
     template <class TImpl>
     class TMasterToDeviceStats {
@@ -160,13 +157,14 @@ namespace NCudaLib {
             }
             return BandwidthTable[deviceId];
         }
+
     private:
         mutable TMap<TDeviceId, double> LatencyTable;
         mutable TMap<TDeviceId, double> BandwidthTable;
     };
 
     template <EPtrType To>
-    class TMemoryCopyPerformance<EPtrType::Host, To> : public TMasterToDeviceStats<TMemoryCopyPerformance<EPtrType::Host, To>> {
+    class TMemoryCopyPerformance<EPtrType::Host, To>: public TMasterToDeviceStats<TMemoryCopyPerformance<EPtrType::Host, To>> {
     public:
         static double ComputeTime(ui32 destDevice,
                                   ui32 messageSize) {
@@ -174,7 +172,7 @@ namespace NCudaLib {
             manager.WaitComplete();
 
             TVector<char> source(messageSize);
-            auto start= std::chrono::high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
             auto to = TCudaBuffer<char, TSingleMapping, To>::Create(TSingleMapping(destDevice, messageSize));
             to.Write(source);
             TDevicesListBuilder builder;
@@ -186,7 +184,7 @@ namespace NCudaLib {
     };
 
     template <EPtrType From>
-    class TMemoryCopyPerformance<From, EPtrType::Host> : public TMasterToDeviceStats<TMemoryCopyPerformance<From, EPtrType::Host>> {
+    class TMemoryCopyPerformance<From, EPtrType::Host>: public TMasterToDeviceStats<TMemoryCopyPerformance<From, EPtrType::Host>> {
     public:
         static double ComputeTime(ui32 destDevice,
                                   ui32 messageSize) {
@@ -205,7 +203,7 @@ namespace NCudaLib {
     };
 
     template <EPtrType From,
-            EPtrType To>
+              EPtrType To>
     inline TMemoryCopyPerformance<From, To>& GetMemoryCopyPerformance() {
         using TTableType = TMemoryCopyPerformance<From, To>;
         return *Singleton<TTableType>();

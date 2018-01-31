@@ -9,7 +9,6 @@
 #include <util/ysaveload.h>
 
 namespace NKernelHost {
-
     class TFixedSizesObjectsMeta {
     private:
         ui64 ObjectCount;
@@ -63,12 +62,12 @@ namespace NKernelHost {
         TObjectsMeta Meta;
         ui64 ColumnCount;
         TDeviceId DeviceId;
+
     public:
         TDeviceBuffer(NCudaLib::THandleBasedMemoryPointer<T, Type> ptr,
                       TObjectsMeta&& meta,
                       ui64 columnCount,
-                      TDeviceId deviceId
-        )
+                      TDeviceId deviceId)
             : Data(ptr)
             , Meta(meta)
             , ColumnCount(columnCount)
@@ -91,7 +90,6 @@ namespace NKernelHost {
         T* Get() const {
             return Data.Get();
         }
-
 
         T operator[](ui64 idx) const {
             T value;

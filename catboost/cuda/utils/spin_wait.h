@@ -8,7 +8,6 @@ public:
     template <class TFunc>
     static void Wait(const TDuration& duration,
                      TFunc&& isComplete) {
-
         const ui32 fastIters = 1000;
         ui32 iter = 0;
         ui64 sleepTime = Min<ui64>(50, duration.NanoSeconds());

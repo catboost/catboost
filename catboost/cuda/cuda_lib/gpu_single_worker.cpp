@@ -2,8 +2,7 @@
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 
 namespace NCudaLib {
-
-    void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size)  {
+    void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size) {
         switch (ptrType) {
             case EPtrType::CudaHost: {
                 using TRawPtr = typename TMemoryProviderImplTrait<EPtrType::CudaHost>::TRawFreeMemory;

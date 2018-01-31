@@ -20,7 +20,4 @@ namespace NCudaLib {
     REGISTER_TASK_TEMPLATE_2(0x000019, TResetPointerCommand, THostRawPtr, true);
 
 #endif
-
-
-
 }

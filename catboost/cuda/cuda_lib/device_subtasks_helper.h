@@ -28,6 +28,5 @@ namespace NCudaLib {
             latch.Countdown();
         });
         latch.Wait();
-
     }
 }

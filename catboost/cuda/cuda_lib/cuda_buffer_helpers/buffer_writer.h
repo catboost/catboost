@@ -11,7 +11,6 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-
     template <class TCudaBuffer>
     class TCudaBufferWriter: public TMoveOnly {
     private:
@@ -33,7 +32,8 @@ namespace NCudaLib {
             , Dst(&dst)
             , SrcMaxSize(src.size())
             , WriteSlice(dst.GetMapping().GetObjectsSlice())
-            , ColumnWriteSlice(dst.GetColumnSlice()) {
+            , ColumnWriteSlice(dst.GetColumnSlice())
+        {
         }
 
         TCudaBufferWriter(TCudaBufferWriter&& other) = default;

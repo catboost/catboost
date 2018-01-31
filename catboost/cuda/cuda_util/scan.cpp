@@ -2,7 +2,6 @@
 
 using namespace NKernelHost;
 
-
 namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0xAD0001, TScanVectorKernel, float);
     REGISTER_KERNEL_TEMPLATE(0xAD0002, TScanVectorKernel, double);

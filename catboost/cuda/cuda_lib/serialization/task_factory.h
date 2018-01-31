@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <catboost/cuda/cuda_lib/task.h>
 #include <library/object_factory/object_factory.h>
 #include <util/generic/buffer.h>
@@ -15,16 +14,11 @@ struct THash<std::type_index> {
     }
 };
 
-
-
 namespace NCudaLib {
-
-
     using TTaskFactory = NObjectFactory::TParametrizedObjectFactory<ICommand, ui64>;
 
     class TTaskUniqueIdsProvider {
     public:
-
         template <class TTask>
         void RegisterUniqueId(ui64 taskId) {
             std::type_index index(typeid(TTask));
@@ -76,21 +70,19 @@ namespace NCudaLib {
         }
     };
 
-    #define REGISTER_TASK(id, className) \
-        static TTaskRegistrator<className> taskRegistrator##id(id);
+#define REGISTER_TASK(id, className) \
+    static TTaskRegistrator<className> taskRegistrator##id(id);
 
-    #define REGISTER_TASK_TEMPLATE(id, className, T) \
-        static TTaskRegistrator<className<T> > taskRegistrator##id(id);
+#define REGISTER_TASK_TEMPLATE(id, className, T) \
+    static TTaskRegistrator<className<T>> taskRegistrator##id(id);
 
-    #define REGISTER_TASK_TEMPLATE_2(id, className, T1, T2) \
-        static TTaskRegistrator<className<T1, T2> > taskRegistrator##id(id);
-
+#define REGISTER_TASK_TEMPLATE_2(id, className, T1, T2) \
+    static TTaskRegistrator<className<T1, T2>> taskRegistrator##id(id);
 
     using TSerializedTask = TBuffer;
 
     class TTaskSerializer {
     public:
-
         static inline THolder<ICommand> LoadCommand(IInputStream* input) {
             ui32 id = 0;
             ::Load(input, id);
@@ -105,19 +97,19 @@ namespace NCudaLib {
             return LoadCommand(&in);
         }
 
-        template<class TCommand,
-                 class TOut>
+        template <class TCommand,
+                  class TOut>
         static inline void SaveCommand(const TCommand& command, TOut* out) {
             auto& uidsProvider = GetTaskUniqueIdsProvider();
             ui32 key = uidsProvider.GetUniqueId(command);
-            #if defined(NDEBUG)
+#if defined(NDEBUG)
             CB_ENSURE(TTaskFactory::Has(key), "Error: no ptr found for class " << typeid(TCommand).name());
-            #endif
+#endif
             ::Save(out, key);
             ::Save(out, command);
         };
 
-        template<class TCommand>
+        template <class TCommand>
         static inline TSerializedTask Serialize(const TCommand& command) {
             TSerializedTask task;
             TBufferOutput out(task);

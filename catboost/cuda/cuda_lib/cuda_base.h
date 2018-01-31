@@ -10,8 +10,6 @@
 #include <util/ysaveload.h>
 #include <util/system/spinlock.h>
 
-
-
 static_assert(std::is_pod<cudaDeviceProp>::value, "cudaDeviceProp is not pod type");
 Y_DECLARE_PODTYPE(cudaDeviceProp);
 
@@ -19,35 +17,38 @@ Y_DECLARE_PODTYPE(cudaDeviceProp);
 Y_DECLARE_PODTYPE(uint2);
 Y_DECLARE_PODTYPE(uint4);
 
-#define CUDA_SAFE_CALL(statement)                                                                            \
-    {                                                                                                        \
-        cudaError_t errorCode = statement;                                                                   \
-        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                             \
+#define CUDA_SAFE_CALL(statement)                                                                                    \
+    {                                                                                                                \
+        cudaError_t errorCode = statement;                                                                           \
+        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
             ythrow TCatboostException() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode; \
-        }                                                                                                    \
+        }                                                                                                            \
     }
 
 namespace NCudaLib {
-
-    class TCudaStreamsProvider : public TNonCopyable {
+    class TCudaStreamsProvider: public TNonCopyable {
     private:
         TVector<cudaStream_t> Streams;
+
     private:
         cudaStream_t NewStream() {
             cudaStream_t stream;
             CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
             return stream;
         }
+
     public:
         class TCudaStream: private TMoveOnly {
         private:
             cudaStream_t Stream = 0;
             TCudaStreamsProvider* Owner = nullptr;
+
         public:
             TCudaStream(cudaStream_t stream,
                         TCudaStreamsProvider* owner)
-            : Stream(stream)
-            , Owner(owner) {
+                : Stream(stream)
+                , Owner(owner)
+            {
             }
 
             TCudaStream(TCudaStream&& other) = default;
@@ -90,7 +91,6 @@ namespace NCudaLib {
         return *FastTlsSingleton<TCudaStreamsProvider>();
     }
 
-
     class TDefaultStreamRef {
     private:
         TCudaStream* Stream = nullptr;
@@ -123,7 +123,6 @@ namespace NCudaLib {
     inline constexpr bool IsHostPtr(EPtrType type) {
         return type != EPtrType::CudaDevice;
     }
-
 
     template <class T>
     EPtrType GetPointerType(const T* ptr) {
@@ -320,19 +319,15 @@ namespace NCudaLib {
             return result;
         }
 
-
-
         inline ui64 GetDeviceMemory(int dev) {
             auto props = GetDeviceProps(dev);
             return props.GetDeviceMemory();
         }
     }
 
-    class TOutOfMemoryError : public TCatboostException {
-
+    class TOutOfMemoryError: public TCatboostException {
     };
 
 }
 
 using EPtrType = NCudaLib::EPtrType;
-

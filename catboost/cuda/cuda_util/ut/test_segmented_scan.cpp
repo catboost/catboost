@@ -72,7 +72,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedScanWithMask) {
@@ -137,7 +136,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestNonNegativeSegmentedScan) {
@@ -191,7 +189,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestNonNegativeSegmentedScanAndScatter) {
@@ -272,7 +269,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 }
             }
         }
-
     }
 
     inline void RunSegmentedScanNonNegativePerformanceTest() {
@@ -367,7 +363,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         {
             TestSegmentedScanPerformance<float>();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedScanPerformanceInt) {
@@ -375,7 +370,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         {
             TestSegmentedScanPerformance<int>();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedScanPerformanceUnsignedInt) {
@@ -383,7 +377,6 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         {
             TestSegmentedScanPerformance<ui32>();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedScanNonNegativePerformance) {
@@ -391,6 +384,5 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         {
             RunSegmentedScanNonNegativePerformanceTest();
         }
-
     }
 }

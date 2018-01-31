@@ -38,7 +38,6 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result[0] / vec.size(), sum / vec.size(), 1e-5);
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedReduce) {
@@ -100,7 +99,6 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSegmentedReducePerformance) {
@@ -149,6 +147,5 @@ SIMPLE_UNIT_TEST_SUITE(TReduceTest) {
                 }
             }
         }
-
     }
 }

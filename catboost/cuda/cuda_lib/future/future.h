@@ -5,11 +5,9 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCudaLib {
-
     template <class T>
     class IDeviceFuture {
     public:
-
         virtual ~IDeviceFuture() {
         }
 
@@ -20,7 +18,6 @@ namespace NCudaLib {
         virtual void Wait() = 0;
     };
 
-
     class IDeviceRequest {
     public:
         virtual ~IDeviceRequest() {
@@ -28,14 +25,13 @@ namespace NCudaLib {
 
         virtual bool IsComplete() = 0;
 
-        virtual void WaitComplete()  {
+        virtual void WaitComplete() {
             TSpinWaitHelper::Wait(TDuration::Max(), [&]() -> bool {
                 return IsComplete();
             });
             CB_ENSURE(IsComplete());
         }
     };
-
 
     template <class T>
     using TDeviceFuturePtr = THolder<IDeviceFuture<T>>;

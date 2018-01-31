@@ -37,12 +37,10 @@ double TCudaManager::FreeMemoryMb(ui32 devId, bool waitComplete) const {
     return devPtr->GetMemoryState().FreeGpuRam * 1.0 / 1024 / 1024;
 }
 
-
 double TCudaManager::TotalMemoryMb(ui32 devId) const {
     auto devPtr = GetState().Devices[devId];
     return devPtr->GetMemoryState().RequestedGpuRam * 1.0 / 1024 / 1024;
 }
-
 
 void TCudaManager::StopChild() {
     CB_ENSURE(IsChildManager);
@@ -108,22 +106,21 @@ void TCudaManager::DisablePeers() {
 }
 
 void RunSlave() {
-    #if defined(USE_MPI)
-        THostDevices hostWorkers(GetMpiManager().GetHostId());
-        TVector<TSingleHostTaskQueue*> workerQueues;
-        for (ui32 i = 0; i < hostWorkers.GetDeviceCount(); ++i) {
-            workerQueues.push_back(&hostWorkers.GetWorkerQueue(i));
-        }
-        TMpiTaskSlaveForwarder taskForwarder(std::move(workerQueues));
-        auto areWorkersStopped = [&]() ->  bool {
-            return !hostWorkers.IsRunning();
-        };
-        taskForwarder.Run(areWorkersStopped);
-        hostWorkers.Join();
-        GetMpiManager().Stop();
-    #endif
+#if defined(USE_MPI)
+    THostDevices hostWorkers(GetMpiManager().GetHostId());
+    TVector<TSingleHostTaskQueue*> workerQueues;
+    for (ui32 i = 0; i < hostWorkers.GetDeviceCount(); ++i) {
+        workerQueues.push_back(&hostWorkers.GetWorkerQueue(i));
+    }
+    TMpiTaskSlaveForwarder taskForwarder(std::move(workerQueues));
+    auto areWorkersStopped = [&]() -> bool {
+        return !hostWorkers.IsRunning();
+    };
+    taskForwarder.Run(areWorkersStopped);
+    hostWorkers.Join();
+    GetMpiManager().Stop();
+#endif
 }
-
 
 inline void InitMemPerformanceTables(TCudaManager& manager) {
     manager.WaitComplete();
@@ -140,9 +137,9 @@ TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDevice
                                                          const ELoggingLevel loggingLevel) {
     SetLogingLevel(loggingLevel);
 
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     CB_ENSURE(GetMpiManager().IsMaster(), "Error: can't run cudaManager on slave");
-    #endif
+#endif
 
     auto& manager = NCudaLib::GetCudaManager();
     manager.Start(requestConfig);
@@ -157,6 +154,6 @@ TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDevice
     return TFinallyGuard<TStopCudaManagerCallback>(TStopCudaManagerCallback());
 }
 
-TFinallyGuard<TStopCudaManagerCallback>  StartCudaManager(const ELoggingLevel loggingLevel) {
+TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel) {
     return StartCudaManager(NCudaLib::GetDefaultDeviceRequestConfig(), loggingLevel);
 }

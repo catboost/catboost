@@ -7,9 +7,7 @@
 #include <catboost/cuda/data/grid_creator.h>
 #include <catboost/libs/options/binarization_options.h>
 
-
 namespace NKernelHost {
-
     class TFindBordersKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Feature;
@@ -49,7 +47,6 @@ namespace NKernelHost {
             }
         }
     };
-
 
     class TBinarizeFloatFeatureKernel: public TStatelessKernel {
     private:

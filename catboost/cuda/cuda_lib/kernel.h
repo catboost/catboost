@@ -4,7 +4,6 @@
 #include "remote_objects.h"
 
 namespace NKernelHost {
-
     using EPtrType = NCudaLib::EPtrType;
     using TCudaStream = NCudaLib::TCudaStream;
     using uchar = unsigned char;
@@ -52,15 +51,13 @@ namespace NKernelHost {
         }
     };
 
-
     template <class TContext = void,
-            bool NeedPostProcessFlag = false>
-    class TKernelBase : public TKernelWithContext<TContext> {
+              bool NeedPostProcessFlag = false>
+    class TKernelBase: public TKernelWithContext<TContext> {
     public:
         static constexpr bool NeedPostProcess() {
             return NeedPostProcessFlag;
         }
-
     };
 
     using TStatelessKernel = TKernelBase<void, false>;
@@ -69,6 +66,5 @@ namespace NKernelHost {
     inline void EnsureUnsignedInteger(const TBuffer& buffer) {
         CB_ENSURE(buffer.Size() < (1ULL << 32));
     }
-
 
 }

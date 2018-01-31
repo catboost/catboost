@@ -9,7 +9,6 @@
 #include <util/generic/buffer.h>
 
 namespace NCudaLib {
-
     enum class EComandType {
         StreamKernel,       //async tasks, will be launch in stream
         HostTask,           //sync task, ensure every task in stream was completed
@@ -44,75 +43,68 @@ namespace NCudaLib {
         virtual void Save(IOutputStream*) const = 0;
     };
 
-
-
-    #define Y_STATELESS_TASK()                 \
-    void Save(IOutputStream*) const final {    \
-    }                                          \
-                                               \
-    void Load(IInputStream*) final {           \
+#define Y_STATELESS_TASK()                  \
+    void Save(IOutputStream*) const final { \
+    }                                       \
+                                            \
+    void Load(IInputStream*) final {        \
     }
 
-    #define Y_SAVELOAD_EMPTY()                   \
-    inline void Save(IOutputStream*) const {     \
-    }                                            \
-                                                 \
-    inline void Load(IInputStream*) {            \
+#define Y_SAVELOAD_EMPTY()                   \
+    inline void Save(IOutputStream*) const { \
+    }                                        \
+                                             \
+    inline void Load(IInputStream*) {        \
     }
 
-    //for local shared memory tasks
-    #define Y_NON_SERIALIZABLE_TASK()                       \
-    void Save(IOutputStream*) const final {                 \
-        Y_VERIFY(false, "Error: can't save this command");  \
-    }                                                       \
-                                                            \
-    void Load(IInputStream*) override {                     \
-        Y_VERIFY(false, "Error: can't load this command");  \
+//for local shared memory tasks
+#define Y_NON_SERIALIZABLE_TASK()                          \
+    void Save(IOutputStream*) const final {                \
+        Y_VERIFY(false, "Error: can't save this command"); \
+    }                                                      \
+                                                           \
+    void Load(IInputStream*) override {                    \
+        Y_VERIFY(false, "Error: can't load this command"); \
     }
 
-
-    #define Y_SAVELOAD_TASK(...)                       \
-    void Save(IOutputStream* s) const final {          \
-        ::SaveMany(s, __VA_ARGS__);                    \
-    }                                                  \
-                                                       \
-    void Load(IInputStream* s)  final {                \
-        ::LoadMany(s, __VA_ARGS__);                    \
+#define Y_SAVELOAD_TASK(...)                  \
+    void Save(IOutputStream* s) const final { \
+        ::SaveMany(s, __VA_ARGS__);           \
+    }                                         \
+                                              \
+    void Load(IInputStream* s) final {        \
+        ::LoadMany(s, __VA_ARGS__);           \
     }
 
-    #define Y_SAVELOAD_IMPL(...)                  \
-    void SaveImpl(IOutputStream* s) const {            \
-        ::SaveMany(s, __VA_ARGS__);                    \
-    }                                                  \
-                                                       \
-    void LoadImpl(IInputStream* s)  {                  \
-        ::LoadMany(s, __VA_ARGS__);                    \
+#define Y_SAVELOAD_IMPL(...)                \
+    void SaveImpl(IOutputStream* s) const { \
+        ::SaveMany(s, __VA_ARGS__);         \
+    }                                       \
+                                            \
+    void LoadImpl(IInputStream* s) {        \
+        ::LoadMany(s, __VA_ARGS__);         \
     }
 
-
-    struct TResetCommand : public ICommand {
+    struct TResetCommand: public ICommand {
     public:
         TResetCommand(double gpuMemoryPart,
                       ui64 pinnedMemorySize)
-                : ICommand(EComandType::Reset)
-                , GpuMemoryPart(gpuMemoryPart)
-                , PinnedMemorySize(pinnedMemorySize) {
-
+            : ICommand(EComandType::Reset)
+            , GpuMemoryPart(gpuMemoryPart)
+            , PinnedMemorySize(pinnedMemorySize)
+        {
         }
 
-
         TResetCommand()
-                : ICommand(EComandType::Reset){
-
+            : ICommand(EComandType::Reset)
+        {
         }
 
         double GpuMemoryPart = 0;
         ui64 PinnedMemorySize = 0;
 
         Y_SAVELOAD_TASK(GpuMemoryPart, PinnedMemorySize)
-
     };
-
 
     class IAllocateMemoryTask: public ICommand {
     public:
@@ -139,7 +131,7 @@ namespace NCudaLib {
     };
 
     enum class ECpuFuncType {
-        DeviceBlocking, //wait all previous tasks done
+        DeviceBlocking,    //wait all previous tasks done
         DeviceNonblocking, //system async
     };
 
@@ -150,7 +142,8 @@ namespace NCudaLib {
     class IHostTask: public ICommand {
     public:
         IHostTask()
-            : ICommand(EComandType::HostTask) {
+            : ICommand(EComandType::HostTask)
+        {
         }
 
         //system tasks skip stream semantic
@@ -158,7 +151,6 @@ namespace NCudaLib {
 
         virtual void Exec(const IWorkerStateProvider& workerState) = 0;
     };
-
 
     class TStopWorkerCommand: public ICommand {
     public:
@@ -170,14 +162,14 @@ namespace NCudaLib {
         Y_STATELESS_TASK();
     };
 
-    class TSerializedCommand : public ICommand {
+    class TSerializedCommand: public ICommand {
     public:
-
         TSerializedCommand(TBuffer&& data);
 
         THolder<ICommand> Deserialize();
 
         Y_NON_SERIALIZABLE_TASK();
+
     private:
         TBuffer Data;
     };

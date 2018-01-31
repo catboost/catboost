@@ -25,8 +25,7 @@ namespace NCudaLib {
 
     using TExceptionCallbackPtr = TIntrusivePtr<IExceptionCallback>;
 
-
-    class TGpuOneDeviceWorker : public IWorkerStateProvider {
+    class TGpuOneDeviceWorker: public IWorkerStateProvider {
     private:
         class TComputationStream {
         private:
@@ -72,8 +71,9 @@ namespace NCudaLib {
 
         public:
             TComputationStream()
-            : Stream(GetStreamsProvider().RequestStream())
-            , IsActiveFlag(false) {
+                : Stream(GetStreamsProvider().RequestStream())
+                , IsActiveFlag(false)
+            {
             }
 
             ~TComputationStream() {
@@ -125,10 +125,10 @@ namespace NCudaLib {
         private:
             TGpuOneDeviceWorker* Owner;
 
-
         protected:
             TTempMemoryManager(TGpuOneDeviceWorker* owner)
-                : Owner(owner) {
+                : Owner(owner)
+            {
             }
 
             ui64 AllocateImpl(EPtrType ptrType, ui64 size) final {
@@ -303,7 +303,7 @@ namespace NCudaLib {
                 if (free * 1.0 / DeviceProperties.GetDeviceMemory() < 0.75) {
                     MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
                 }
-                gpuMemorySize = (ui64)(free *  initTask.GpuMemoryPart);
+                gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }
 
             DeviceMemoryProvider = gpuMemorySize ? MakeHolder<TDeviceMemoryProvider>(gpuMemorySize) : nullptr;
@@ -325,7 +325,6 @@ namespace NCudaLib {
             WorkingThread.reset(new std::thread([=]() -> void {
                 this->Run();
             }));
-
         }
 
         ~TGpuOneDeviceWorker() throw (yexception) {

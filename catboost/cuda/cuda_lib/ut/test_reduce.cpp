@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         TVector<float> dataCpu;
         TVector<float> reducedDataCpu;
         for (ui32 i = 0; i < dataCpu.size(); ++i) {
-            dataCpu[i] = (float) rand.NextUniform();
+            dataCpu[i] = (float)rand.NextUniform();
         }
 
         for (int tr = 0; tr < tries; ++tr) {
@@ -37,14 +37,13 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
 
             auto data = TStripeBuffer<float>::Create(beforeReduceMapping);
 
-
             dataCpu.resize(beforeReduceMapping.MemorySize());
             reducedDataCpu.clear();
             reducedDataCpu.resize(partCount * partSize);
 
             if (!performanceOnly) {
                 for (ui32 i = 0; i < dataCpu.size(); ++i) {
-                    dataCpu[i] = (float) rand.NextUniform();
+                    dataCpu[i] = (float)rand.NextUniform();
                     reducedDataCpu[i % reducedDataCpu.size()] += dataCpu[i];
                 }
                 data.Write(dataCpu);
@@ -65,27 +64,23 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
                     UNIT_ASSERT_DOUBLES_EQUAL(reducedDataCpu[i], reducedGpu[i], 1e-5);
                 }
             }
-
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4x4) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(4, 4, performanceOnly);
-
         }
     }
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     SIMPLE_UNIT_TEST(TestReduceOnAll4x4Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(4, 4, performanceOnly);
-
         }
     }
-    #endif
+#endif
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4x20000) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -94,15 +89,14 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         }
     }
 
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     SIMPLE_UNIT_TEST(TestReduceOnAll4x20000Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(4, 20000, performanceOnly);
-
         }
     }
-    #endif
+#endif
 
     SIMPLE_UNIT_TEST(TestReduceOnAll8) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -130,7 +124,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         {
             TestReduce(512, 20000, performanceOnly);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4096) {
@@ -140,15 +133,13 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         }
     }
 
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     SIMPLE_UNIT_TEST(TestReduceOnAll8Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(8, 20000, performanceOnly, true);
-
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestReduceOnAll128Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -169,7 +160,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         {
             TestReduce(512, 20000, performanceOnly, true);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4096Compressed) {
@@ -178,7 +168,5 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             TestReduce(64 * 64, 20000, performanceOnly, true);
         }
     }
-    #endif
-
-
+#endif
 }

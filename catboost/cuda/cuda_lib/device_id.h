@@ -5,7 +5,6 @@
 #include <tuple>
 
 namespace NCudaLib {
-
     struct TDeviceId {
         int HostId = -1;
         int DeviceId = -1;
@@ -14,11 +13,12 @@ namespace NCudaLib {
 
         TDeviceId(int hostId,
                   int deviceId)
-                : HostId(hostId)
-                  , DeviceId(deviceId) {
-            #ifndef USE_MPI
-                Y_VERIFY(hostId == 0, "Remote device support is not enabled");
-            #endif
+            : HostId(hostId)
+            , DeviceId(deviceId)
+        {
+#ifndef USE_MPI
+            Y_VERIFY(hostId == 0, "Remote device support is not enabled");
+#endif
         }
 
         bool operator==(const TDeviceId& rhs) const {
@@ -29,8 +29,7 @@ namespace NCudaLib {
             return !(rhs == *this);
         }
 
-
-        inline bool operator<(const NCudaLib::TDeviceId& right)  const {
+        inline bool operator<(const NCudaLib::TDeviceId& right) const {
             const auto& left = *this;
             return left.HostId < right.HostId || (left.HostId == right.HostId && left.DeviceId < right.DeviceId);
         }
@@ -57,8 +56,6 @@ namespace NCudaLib {
 using TDeviceId = NCudaLib::TDeviceId;
 
 Y_DECLARE_PODTYPE(NCudaLib::TDeviceId);
-
-
 
 template <>
 struct THash<NCudaLib::TDeviceId> {

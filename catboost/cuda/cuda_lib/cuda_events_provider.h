@@ -5,7 +5,6 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-
     class TCudaEventsProvider {
     private:
         TVector<cudaEvent_t> FreeHandles;

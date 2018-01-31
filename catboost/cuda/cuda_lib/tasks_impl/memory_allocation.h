@@ -3,7 +3,6 @@
 #include <catboost/cuda/cuda_lib/task.h>
 
 namespace NCudaLib {
-
     template <EPtrType PtrType>
     class TCudaMallocTask: public IAllocateMemoryTask {
     private:
@@ -19,7 +18,6 @@ namespace NCudaLib {
         }
 
         TCudaMallocTask() {
-
         }
 
         ui64 GetHandle() const final {
@@ -39,9 +37,10 @@ namespace NCudaLib {
 
     template <class T,
               bool FreeHandle = false>
-    class TResetPointerCommand : public IFreeMemoryTask {
+    class TResetPointerCommand: public IFreeMemoryTask {
     private:
         ui64 Handle;
+
     public:
         explicit TResetPointerCommand(ui64 handle)
             : Handle(handle)
@@ -49,10 +48,9 @@ namespace NCudaLib {
         }
 
         TResetPointerCommand() {
-
         }
 
-        void Exec()  final {
+        void Exec() final {
             THandleBasedPointer<T>(Handle).Reset();
             if (FreeHandle) {
                 GetHandleStorage().FreeHandle(Handle);
@@ -64,14 +62,14 @@ namespace NCudaLib {
 
     template <class T>
     struct TCreateObjectCommandTrait {
-
         class TWithoutConstructCommand: public IHostTask {
         private:
             ui64 Handle;
 
         public:
             explicit TWithoutConstructCommand(ui64 handle)
-                : Handle(handle) {
+                : Handle(handle)
+            {
             }
 
             void Exec(const IWorkerStateProvider&) final {

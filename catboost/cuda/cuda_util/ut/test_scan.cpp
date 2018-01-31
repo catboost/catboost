@@ -55,7 +55,6 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
                 }
             }
         }
-
     }
 
     template <class T>
@@ -92,7 +91,6 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
         {
             TestScanPerformance<float>();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestScanPerformanceInt) {
@@ -100,7 +98,6 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
         {
             TestScanPerformance<int>();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestScanPerformanceUnsignedInt) {
@@ -108,6 +105,5 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
         {
             TestScanPerformance<ui32>();
         }
-
     }
 }

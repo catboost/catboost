@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "single_host_task_queue.h"
 #include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
 #include <catboost/cuda/cuda_lib/device_id.h>
@@ -12,7 +11,6 @@
 #include <util/digest/city.h>
 
 namespace NCudaLib {
-
 #if defined(USE_MPI)
 
     class TMpiTaskSlaveForwarder {
@@ -20,9 +18,9 @@ namespace NCudaLib {
         using TGpuTaskPtr = THolder<ICommand>;
 
         explicit TMpiTaskSlaveForwarder(TVector<TSingleHostTaskQueue*>&& taskQueues)
-        : Manager(GetMpiManager())
-        , TaskQueues(std::move(taskQueues)) {
-
+            : Manager(GetMpiManager())
+            , TaskQueues(std::move(taskQueues))
+        {
             const ui64 maxTaskSize = 1024 * 1024;
             CB_ENSURE(TaskQueues.size() == static_cast<size_t>(NCudaLib::NCudaHelpers::GetDeviceCount()));
             TaskBuffer.resize(TaskQueues.size());
@@ -42,11 +40,9 @@ namespace NCudaLib {
 
         template <class TNeedStop>
         void Run(TNeedStop&& needStop) {
-
             for (ui32 i = 0; i < TaskQueues.size(); ++i) {
-               ReceiveNextTaskAsync(i);
+                ReceiveNextTaskAsync(i);
             }
-
 
             ui32 iter = 0;
             const ui32 checkStopIters = 10000;
@@ -54,7 +50,6 @@ namespace NCudaLib {
             while (true) {
                 for (ui32 i = 0; i < TaskQueues.size(); ++i) {
                     if (Requests[i].IsComplete()) {
-
                         const TBuffer& taskData = TaskBuffer[i];
                         const ui32 dataSize = Requests[i].ReceivedBytes();
 
@@ -70,7 +65,6 @@ namespace NCudaLib {
                 if (timeToCheckForStop && needStop()) {
                     break;
                 }
-
             }
 
             for (TMpiRequest& request : Requests) {
@@ -80,6 +74,7 @@ namespace NCudaLib {
                 }
             }
         }
+
     private:
         void ReceiveNextTaskAsync(ui32 i) {
             TSerializedTask& buffer = TaskBuffer[i];
@@ -89,6 +84,7 @@ namespace NCudaLib {
                                             Manager.GetMasterId(),
                                             Manager.GetTaskTag(DeviceIds[i]));
         }
+
     private:
         TMpiManager& Manager;
         TVector<TSerializedTask> TaskBuffer;
@@ -98,16 +94,15 @@ namespace NCudaLib {
         TVector<ui64> TaskCount;
     };
 
-
     class TRemoteHostTasksForwarder {
     public:
         TRemoteHostTasksForwarder(TDeviceId deviceId)
-        : Manager(GetMpiManager())
-        , DeviceId(deviceId) {
-
+            : Manager(GetMpiManager())
+            , DeviceId(deviceId)
+        {
         }
 
-        template<class TTask>
+        template <class TTask>
         void AddTask(THolder<TTask>&& task) {
             ForwardTask(*task);
         }
@@ -122,8 +117,8 @@ namespace NCudaLib {
     private:
         TMpiManager& Manager;
         TDeviceId DeviceId;
-    private:
 
+    private:
         template <class TTask>
         void ForwardTask(const TTask& task) {
             TSerializedTask serializedTask;
@@ -134,5 +129,4 @@ namespace NCudaLib {
     };
 
 #endif
-
 }

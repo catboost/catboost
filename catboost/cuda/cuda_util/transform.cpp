@@ -3,7 +3,6 @@
 using namespace NKernelHost;
 
 namespace NCudaLib {
-
     REGISTER_KERNEL_TEMPLATE(0x110001, TBinOpKernel, float);
     REGISTER_KERNEL_TEMPLATE(0x110002, TBinOpKernel, int);
     REGISTER_KERNEL_TEMPLATE(0x110003, TBinOpKernel, ui32);
@@ -12,9 +11,7 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x110006, TBinOpKernel, uint2);
     REGISTER_KERNEL_TEMPLATE(0x110007, TBinOpKernel, ui16);
 
-
     REGISTER_KERNEL_TEMPLATE(0x110008, TApplyFuncKernel, float);
-
 
     REGISTER_KERNEL_TEMPLATE_2(0x110009, TMapCopyKernel, float, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110010, TMapCopyKernel, int, ui32);

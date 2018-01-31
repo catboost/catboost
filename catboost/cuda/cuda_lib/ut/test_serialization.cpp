@@ -4,7 +4,7 @@
 
 using namespace NCudaLib;
 
-struct TSampleKernel : public NKernelHost::TStatelessKernel {
+struct TSampleKernel: public NKernelHost::TStatelessKernel {
     TVector<ui32> Data1;
     ui32 Data2 = 0;
 
@@ -16,12 +16,12 @@ struct TSampleKernel : public NKernelHost::TStatelessKernel {
 };
 
 template <class T>
-struct TSampleKernel2 : public NKernelHost::TStatelessKernel {
+struct TSampleKernel2: public NKernelHost::TStatelessKernel {
     int Data1 = 0;
     T Data2 = 100500;
 
     void Run(const TCudaStream& stream) {
-            Y_UNUSED(stream);
+        Y_UNUSED(stream);
     }
 
     Y_SAVELOAD_DEFINE(Data1, Data2);
@@ -32,13 +32,12 @@ REGISTER_KERNEL_TEMPLATE(10050042, TSampleKernel2, float);
 REGISTER_KERNEL_TEMPLATE(10050043, TSampleKernel2, int);
 
 SIMPLE_UNIT_TEST_SUITE(TSerializationTest) {
-
     template <class T>
     void TestTemplateKernel(T val2) {
         using TKernel = TSampleKernel2<T>;
         TKernel kernel;
         kernel.Data1 = 11;
-        kernel.Data2  = val2;
+        kernel.Data2 = val2;
 
         using TCmd = TGpuKernelTask<TKernel>;
         TCmd cmd(TKernel(kernel), 1);
@@ -77,9 +76,4 @@ SIMPLE_UNIT_TEST_SUITE(TSerializationTest) {
         TestTemplateKernel<float>(10.5);
         TestTemplateKernel<int>(-100);
     }
-
-
-
-
-
 }

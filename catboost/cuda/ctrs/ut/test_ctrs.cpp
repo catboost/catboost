@@ -120,7 +120,6 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSimpleCatTargetCtrBenchmark) {
@@ -210,7 +209,6 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSimpleFreqCtr) {
@@ -315,6 +313,5 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
-
     }
 }

@@ -526,7 +526,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherWithoutOneHot) {

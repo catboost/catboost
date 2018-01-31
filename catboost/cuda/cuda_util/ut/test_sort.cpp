@@ -38,7 +38,6 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSortWithLinked) {
@@ -76,7 +75,6 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSortWithExternalBuffer) {
@@ -119,7 +117,6 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSortPerformance) {
@@ -150,6 +147,5 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
                 }
             }
         }
-
     }
 }

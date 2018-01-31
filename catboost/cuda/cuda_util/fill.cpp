@@ -17,4 +17,3 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x001009, TInversePermutationKernel, int);
 
 }
-

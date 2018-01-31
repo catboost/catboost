@@ -3,7 +3,6 @@
 using namespace NKernelHost;
 
 namespace NCudaLib {
-
     REGISTER_KERNEL_TEMPLATE(0x420000, TComputeHistKernel, NCatboostCuda::TBinaryFeatureGridPolicy);
     REGISTER_KERNEL_TEMPLATE(0x420001, TComputeHistKernel, NCatboostCuda::THalfByteFeatureGridPolicy);
     REGISTER_KERNEL_TEMPLATE(0x420002, TComputeHistKernel, NCatboostCuda::TByteFeatureGridPolicy);

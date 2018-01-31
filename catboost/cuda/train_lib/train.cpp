@@ -232,7 +232,7 @@ namespace NCatboostCuda {
                 auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
 
                 auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                 trainCatBoostOptions.LoggingLevel);
+                                                             trainCatBoostOptions.LoggingLevel);
                 resultPromise.set_value(TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager));
             } catch (...) {
                 resultPromise.set_exception(std::current_exception());

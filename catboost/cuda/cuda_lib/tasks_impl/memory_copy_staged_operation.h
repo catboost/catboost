@@ -6,13 +6,11 @@
 #include <catboost/cuda/cuda_lib/cuda_events_provider.h>
 
 namespace NCudaLib {
-
 #if defined(USE_MPI)
 
-    class IStagedTask  {
+    class IStagedTask {
     public:
         virtual ~IStagedTask() {
-
         }
 
         virtual bool Exec(const TCudaStream& stream) = 0;
@@ -23,9 +21,9 @@ namespace NCudaLib {
     }
 
     using IStagedTaskPtr = THolder<IStagedTask>;
-    template<class T,
-             class TOperator>
-    class TThroughHostStagedRecvTask : public IStagedTask {
+    template <class T,
+              class TOperator>
+    class TThroughHostStagedRecvTask: public IStagedTask {
     private:
         T* Dst = nullptr;
         ui64 Size = 0;
@@ -34,7 +32,6 @@ namespace NCudaLib {
         int Tag = -1;
         TOperator Operator;
         bool UseCompression = false;
-
 
         struct {
             NCudaLib::THandleBasedMemoryPointer<T, EPtrType::CudaHost> ReadBuffer;
@@ -58,7 +55,6 @@ namespace NCudaLib {
         } State;
 
     public:
-
         TThroughHostStagedRecvTask(T* dst,
                                    ui64 size,
                                    TOperator op,
@@ -66,25 +62,24 @@ namespace NCudaLib {
                                    int tag,
                                    NKernelHost::IMemoryManager& memoryManager,
                                    bool useCompression)
-        : Dst(dst)
-        , Size(size)
-        , RemoteHost(remoteHost)
-        , Tag(tag)
-        , Operator(op)
-        , UseCompression(useCompression) {
+            : Dst(dst)
+            , Size(size)
+            , RemoteHost(remoteHost)
+            , Tag(tag)
+            , Operator(op)
+            , UseCompression(useCompression)
+        {
             State.OperatorDoneEvent = NCudaLib::CudaEventProvider().Create();
             State.Manager = &GetMpiManager();
             const ui64 blockSize = op.GetBlockSize(size);
             Y_ASSERT(blockSize);
             State.BlockSize = blockSize;
 
-            const bool needCompression = UseCompression
-                                         && (sizeof(T) * Size > State.Manager->GetMinCompressSize())
-                                         && (sizeof(T) * blockSize > State.Manager->GetMinCompressSize());
+            const bool needCompression = UseCompression && (sizeof(T) * Size > State.Manager->GetMinCompressSize()) && (sizeof(T) * blockSize > State.Manager->GetMinCompressSize());
 
-            State.ReservedSize = (ui64) (needCompression
-                                             ? blockSize * GetCompressBlockReserveFactor()
-                                             : blockSize);
+            State.ReservedSize = (ui64)(needCompression
+                                            ? blockSize * GetCompressBlockReserveFactor()
+                                            : blockSize);
             State.ReadBuffer = memoryManager.Allocate<T, EPtrType::CudaHost>(State.ReservedSize);
             State.OperatorBuffer = memoryManager.Allocate<T, EPtrType::CudaHost>(State.ReservedSize);
             if (needCompression) {
@@ -109,7 +104,7 @@ namespace NCudaLib {
             }
 
             if (!State.IsRemoteCopyComplete) {
-                State.IsRemoteCopyComplete =  State.ReadDoneEvent.IsComplete();
+                State.IsRemoteCopyComplete = State.ReadDoneEvent.IsComplete();
             }
             if (!State.IsOperatorComplete) {
                 State.IsOperatorComplete = State.OperatorDoneEvent->IsComplete();
@@ -129,17 +124,14 @@ namespace NCudaLib {
                     swap(State.ReadBuffer, State.OperatorBuffer);
                 }
 
-
                 const ui64 readOffset = State.Offset + State.BlockSize;
-
 
                 if (readOffset < Size) {
                     const ui64 size = Min<ui64>(Size - readOffset, State.BlockSize);
                     State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
-                                                                    sizeof(T) * State.ReservedSize, RemoteHost, Tag);
+                                                                   sizeof(T) * State.ReservedSize, RemoteHost, Tag);
                     State.WorkingBufferSize = size;
                 }
-
 
                 {
                     const ui64 size = Min<ui64>(Size - State.Offset, State.BlockSize);
@@ -166,10 +158,9 @@ namespace NCudaLib {
         }
     };
 
-
-    template<class T,
-             class TOperator>
-    class TThroughHostStagedSendTask : public  IStagedTask {
+    template <class T,
+              class TOperator>
+    class TThroughHostStagedSendTask: public IStagedTask {
     private:
         const T* Src = nullptr;
         ui64 Size = 0;
@@ -183,9 +174,7 @@ namespace NCudaLib {
             NCudaLib::THandleBasedMemoryPointer<T, EPtrType::CudaHost> OperatorBuffer;
             NCudaLib::THandleBasedMemoryPointer<T, EPtrType::CudaHost> CompressBuffer;
 
-
             NCudaLib::TMpiManager* Manager = nullptr;
-
 
             NCudaLib::TCudaEventPtr OperatorDoneEvent;
             ui64 OperatorWorkingBufferSize = 0;
@@ -200,18 +189,18 @@ namespace NCudaLib {
         } State;
 
     public:
-
         TThroughHostStagedSendTask(const T* src, ui64 size,
                                    TOperator op,
                                    int remoteHost, int tag,
                                    NKernelHost::IMemoryManager& memoryManager,
                                    bool useCompression)
-        : Src(src)
-        , Size(size)
-        , RemoteHost(remoteHost)
-        , Tag(tag)
-        , Operator(op)
-        , UseCompression(useCompression) {
+            : Src(src)
+            , Size(size)
+            , RemoteHost(remoteHost)
+            , Tag(tag)
+            , Operator(op)
+            , UseCompression(useCompression)
+        {
             State.OperatorDoneEvent = NCudaLib::CudaEventProvider().Create();
             State.Manager = &GetMpiManager();
 
@@ -219,13 +208,11 @@ namespace NCudaLib {
             State.BlockSize = blockSize;
             Y_ASSERT(blockSize);
             Y_ASSERT(size);
-            const bool needCompression = UseCompression
-                                         && (sizeof(T) * Size > State.Manager->GetMinCompressSize())
-                                         && (sizeof(T) * blockSize > State.Manager->GetMinCompressSize());
+            const bool needCompression = UseCompression && (sizeof(T) * Size > State.Manager->GetMinCompressSize()) && (sizeof(T) * blockSize > State.Manager->GetMinCompressSize());
 
-            const ui64 reserveSize = (ui64) (needCompression
-                                             ? blockSize * GetCompressBlockReserveFactor()
-                                              : blockSize);
+            const ui64 reserveSize = (ui64)(needCompression
+                                                ? blockSize * GetCompressBlockReserveFactor()
+                                                : blockSize);
             State.BufferToSend = memoryManager.Allocate<T, EPtrType::CudaHost>(reserveSize);
             State.OperatorBuffer = memoryManager.Allocate<T, EPtrType::CudaHost>(reserveSize);
             if (needCompression) {
@@ -282,7 +269,7 @@ namespace NCudaLib {
                 }
 
                 {
-                    State.WriteDoneEvent = State.Manager->WriteAsync((const char*)State.BufferToSend.Get(),  writeSize, RemoteHost, Tag);
+                    State.WriteDoneEvent = State.Manager->WriteAsync((const char*)State.BufferToSend.Get(), writeSize, RemoteHost, Tag);
                     State.IsRemoteCopyComplete = false;
                 }
                 State.Offset += State.BlockSize;
@@ -293,9 +280,7 @@ namespace NCudaLib {
                 return false;
             }
         }
-
     };
-
 
     template <class T>
     struct TMemcpyOperator {
@@ -314,10 +299,9 @@ namespace NCudaLib {
         }
     };
 
-
     //if we have cuda-aware support, than we will delegate everything
-    template<class T, bool IsRecv>
-    class TMpiDelegatingStageTask : public IStagedTask {
+    template <class T, bool IsRecv>
+    class TMpiDelegatingStageTask: public IStagedTask {
     private:
         using TOp = TMemcpyOperator<T>;
         T* Buffer = nullptr;
@@ -330,17 +314,18 @@ namespace NCudaLib {
             ui64 BlockSize = 0;
             bool AreRequestsCreated = false;
         } State;
+
     public:
         TMpiDelegatingStageTask(T* data, ui64 size,
                                 TMemcpyOperator<std::remove_const_t<T>> op,
                                 int remoteHost, int tag,
                                 NKernelHost::IMemoryManager&)
-                :  Buffer(data)
-                   , Size(size)
-                   , RemoteHost(remoteHost)
-                   , Tag(tag) {
+            : Buffer(data)
+            , Size(size)
+            , RemoteHost(remoteHost)
+            , Tag(tag)
+        {
             State.BlockSize = op.GetBlockSize(Size);
-
         }
 
         //assumes stream already synchronized
@@ -352,16 +337,16 @@ namespace NCudaLib {
 
                 for (ui64 offset = 0; offset < Size; offset += State.BlockSize) {
                     const ui64 size = Min<ui64>(Size - offset, State.BlockSize);
-                    #if defined(WITHOUT_CUDA_AWARE_MPI)
+#if defined(WITHOUT_CUDA_AWARE_MPI)
                     CB_ENSURE(NCudaLib::GetPointerType(Buffer) == EPtrType::CudaHost);
-                    #endif
+#endif
 
                     if (IsRecv) {
                         State.Requests.push_back(
-                                manager.ReadAsync((char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
+                            manager.ReadAsync((char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
                     } else {
                         State.Requests.push_back(
-                                manager.WriteAsync((const char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
+                            manager.WriteAsync((const char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
                     }
                 }
                 State.AreRequestsCreated = true;
@@ -371,31 +356,29 @@ namespace NCudaLib {
         }
     };
 
-
     template <class T>
     inline bool DelegatePtrToMpi(const T* ptr) {
-        #if defined(WITHOUT_CUDA_AWARE_MPI)
+#if defined(WITHOUT_CUDA_AWARE_MPI)
         return IsHostPtr(NCudaLib::GetPointerType(ptr));
-        #else
+#else
         Y_UNUSED(ptr);
         return true;
-        #endif
+#endif
     }
-
 
     template <class T>
     THolder<IStagedTask> BlockedSendTask(const T* source, ui64 size, ui64 blockSize,
-                                         int host, int tag,  NKernelHost::IMemoryManager& memoryManager,
+                                         int host, int tag, NKernelHost::IMemoryManager& memoryManager,
                                          bool compress) {
         TMemcpyOperator<T> op;
         op.BlockSize = blockSize;
 
         if (DelegatePtrToMpi(source) && !compress) {
             using TTask = TMpiDelegatingStageTask<const T, false>;
-            return MakeHolder<TTask>(source, size, op,  host, tag, memoryManager);
+            return MakeHolder<TTask>(source, size, op, host, tag, memoryManager);
         } else {
             using TTask = TThroughHostStagedSendTask<T, TMemcpyOperator<T>>;
-            return MakeHolder<TTask>(source, size, op, host, tag,  memoryManager, compress);
+            return MakeHolder<TTask>(source, size, op, host, tag, memoryManager, compress);
         }
     }
 
@@ -408,13 +391,12 @@ namespace NCudaLib {
 
         if (DelegatePtrToMpi(dest) && !compress) {
             using TTask = TMpiDelegatingStageTask<T, true>;
-            return MakeHolder<TTask>(dest, size, op, host, tag,  memoryManager);
+            return MakeHolder<TTask>(dest, size, op, host, tag, memoryManager);
         } else {
             using TTask = TThroughHostStagedRecvTask<T, TMemcpyOperator<T>>;
-            return MakeHolder<TTask>(dest, size, op,  host, tag, memoryManager, compress);
+            return MakeHolder<TTask>(dest, size, op, host, tag, memoryManager, compress);
         }
     }
-
 
     inline void ExecStagedTasks(const TCudaStream& stream, TVector<IStagedTaskPtr>* tasks) {
         TVector<THolder<IStagedTask>> stillRunning;
@@ -428,5 +410,4 @@ namespace NCudaLib {
     }
 
 #endif
-
 }

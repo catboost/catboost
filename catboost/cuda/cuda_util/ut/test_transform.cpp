@@ -63,7 +63,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestSubtract) {
@@ -97,7 +96,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestAdd) {
@@ -130,7 +128,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestScatterAndGather) {
@@ -191,7 +188,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestDotProductMirror) {
@@ -224,7 +220,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestDotProductSingle) {
@@ -257,7 +252,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestDotProductStripe) {
@@ -295,7 +289,6 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 UNIT_ASSERT_DOUBLES_EQUAL(result, dotProd, 1e-4 * vec.size());
             }
         }
-
     }
     //
 }

@@ -7,7 +7,6 @@
 #include <util/system/yield.h>
 
 namespace NCudaLib {
-
     class TSingleHostTaskQueue {
     public:
         using TGpuTaskPtr = THolder<ICommand>;

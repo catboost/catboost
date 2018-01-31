@@ -2,7 +2,6 @@
 using namespace NKernelHost;
 
 namespace NCudaLib {
-
     REGISTER_KERNEL_TEMPLATE(0xAE0001, TReduceKernel, float)
     REGISTER_KERNEL_TEMPLATE_2(0xAE0002, TSegmentedReduceKernel, float, EPtrType::CudaDevice)
     REGISTER_KERNEL_TEMPLATE_2(0xAE0003, TSegmentedReduceKernel, float, EPtrType::CudaHost)

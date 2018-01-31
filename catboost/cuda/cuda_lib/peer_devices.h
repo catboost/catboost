@@ -6,7 +6,6 @@
 #include <util/generic/set.h>
 
 namespace NCudaLib {
-
     class TPeerDevicesHelper {
     public:
         bool HasPeerAccess(int from, int to) const {
@@ -38,11 +37,9 @@ namespace NCudaLib {
             currentDevicePeersSet.erase(targetDevice);
         }
 
-
         TPeerDevicesHelper() {
             PeerDevices.resize(NCudaHelpers::GetDeviceCount());
         }
-
 
     private:
         TVector<TSet<ui32>> PeerDevices;

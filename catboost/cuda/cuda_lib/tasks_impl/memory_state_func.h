@@ -5,8 +5,7 @@
 #include <catboost/cuda/cuda_lib/worker_state.h>
 
 namespace NCudaLib {
-
-    struct TMemoryStateFunc : public TBlockingFunc {
+    struct TMemoryStateFunc: public TBlockingFunc {
         TMemoryState operator()(const IWorkerStateProvider& stateProvider) const {
             return stateProvider.GetMemoryState();
         }
@@ -19,9 +18,6 @@ namespace NCudaLib {
         static constexpr bool NeedWorkerState() {
             return true;
         }
-
     };
-
-
 
 }

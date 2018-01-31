@@ -3,7 +3,6 @@
 #include <util/ysaveload.h>
 
 namespace NCudaLib {
-
     struct TMemoryState {
         ui64 FreeGpuRam = 0;
         ui64 RequestedGpuRam = 0;
@@ -13,12 +12,9 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(FreeGpuRam, RequestedGpuRam, FreePinnedRam, RequestedPinnedRam);
     };
 
-
     class IWorkerStateProvider {
     public:
-
         virtual ~IWorkerStateProvider() throw (yexception) {
-
         }
 
         virtual TMemoryState GetMemoryState() const = 0;

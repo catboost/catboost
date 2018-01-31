@@ -369,7 +369,6 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         {
             TestTreeBuilder(32, 4);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCompressedSplitFloat) {
@@ -377,7 +376,6 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         {
             RunCompressedSplitFloatTest();
         }
-
     }
 
     SIMPLE_UNIT_TEST(TreeBuilderTest32) {
@@ -385,6 +383,5 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         {
             TestTreeBuilder(32, 32);
         }
-
     }
 }

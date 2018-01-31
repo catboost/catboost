@@ -50,7 +50,6 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndGatherDecompress) {
@@ -99,7 +98,6 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-
     }
 
     template <class TStorageType, NCudaLib::EPtrType Type = NCudaLib::EPtrType::CudaDevice>
@@ -144,7 +142,6 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui64) {

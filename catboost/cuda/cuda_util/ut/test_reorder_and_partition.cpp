@@ -84,6 +84,5 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
         {
             RunReorderTest();
         }
-
     }
 }

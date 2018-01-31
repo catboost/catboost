@@ -6,7 +6,6 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-
     class TTerminateOnErrorCallback: public IExceptionCallback {
     public:
         void Call(const TString& message) override {
@@ -21,6 +20,7 @@ namespace NCudaLib {
             MATRIXNET_ERROR_LOG << "Exception on device #" << Device->GetDeviceId() << " Error: " << message << Endl;
             AtomicIncrement(Device->ExceptionsCount);
         }
+
     private:
         TCudaSingleDevice* Device;
     };
@@ -37,9 +37,7 @@ namespace NCudaLib {
         return enabledDevices;
     }
 
-
     struct TDeviceRequestConfig {
-
         constexpr static ui64 MB = 1024 * 1024;
 
         ui64 PinnedMemorySize = 1024 * MB;
@@ -60,18 +58,16 @@ namespace NCudaLib {
         }
     };
 
-
     //for mpi test purpose
     inline NCudaLib::TDeviceRequestConfig& GetDefaultDeviceRequestConfig() {
         return *Singleton<NCudaLib::TDeviceRequestConfig>();
     }
 
-
-    class THostDevices : public TNonCopyable {
+    class THostDevices: public TNonCopyable {
     public:
-
         explicit THostDevices(int hostId)
-        : HostId(hostId) {
+            : HostId(hostId)
+        {
             Workers.resize(NCudaHelpers::GetDeviceCount());
             for (int device = 0; device < static_cast<int>(Workers.size()); ++device) {
                 Workers[device] = MakeHolder<TGpuOneDeviceWorker>(device, new TTerminateOnErrorCallback);
@@ -107,7 +103,6 @@ namespace NCudaLib {
             return Workers[devId]->GetTaskQueue();
         }
 
-
         bool IsRunning() const {
             for (const auto& worker : Workers) {
                 if (worker && worker->IsRunning()) {
@@ -123,20 +118,16 @@ namespace NCudaLib {
         TVector<TCudaDeviceProperties> DeviceProps;
     };
 
-
-
     class TDevicesProvider {
     private:
         THolder<THostDevices> MasterWorkers;
-        #if defined(USE_MPI)
+#if defined(USE_MPI)
         TVector<THolder<TRemoteHostTasksForwarder>> SlaveForwarders;
-        #endif
-
+#endif
 
         TVector<THolder<TCudaSingleDevice>> Devices;
         bool IsInitialized = false;
         TSpinLock Lock;
-
 
         inline void InitLocalDevices() {
             CB_ENSURE(MasterWorkers == nullptr, "Can't init more than once");
@@ -151,7 +142,7 @@ namespace NCudaLib {
             }
         }
 
-        #if defined(USE_MPI)
+#if defined(USE_MPI)
         inline void InitSlaveForwarders() {
             CB_ENSURE(MasterWorkers, "Create local workers first");
             CB_ENSURE(SlaveForwarders.size() == 0, "Can't init more than once");
@@ -171,20 +162,19 @@ namespace NCudaLib {
             }
         }
 
-        #endif
+#endif
 
         void Initilize() {
             CB_ENSURE(!IsInitialized, "Error: Initialization could be done only once");
             CB_ENSURE(GetHostId() == 0, "Error: could use devices provider only on master host");
 
             InitLocalDevices();
-            #if defined(USE_MPI)
+#if defined(USE_MPI)
             InitSlaveForwarders();
-            #endif
+#endif
 
             IsInitialized = true;
         }
-
 
         void FreeDevices(ui32 dev) {
             CB_ENSURE(!Devices[dev]->IsStopped(), "Error: device already stopped");
@@ -197,7 +187,6 @@ namespace NCudaLib {
             return Devices[dev].Get();
         }
 
-
     private:
         void FreeDevices() {
             for (const auto& device : Devices) {
@@ -207,17 +196,15 @@ namespace NCudaLib {
         }
 
         friend class TMpiManager;
+
     public:
-
         ~TDevicesProvider() {
-            #if defined(USE_MPI)
+#if defined(USE_MPI)
             Y_VERIFY(Devices.size() == 0);
-            #else
+#else
             Devices.resize(0);
-            #endif
+#endif
         }
-
-
 
         void Free(TCudaSingleDevice* device) {
             TGuard<TSpinLock> guard(Lock);
@@ -250,7 +237,6 @@ namespace NCudaLib {
                                                             Devices.size());
 
             TVector<TCudaSingleDevice*> devices;
-
 
             for (auto dev : requestedDevices) {
                 devices.push_back(RequestDevice(dev, config.GpuMemoryPartByWorker, config.PinnedMemorySize));

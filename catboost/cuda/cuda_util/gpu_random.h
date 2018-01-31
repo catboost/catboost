@@ -32,7 +32,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Seeds, Alphas, Result)
     };
 
-    class TGaussianRandKernel : public TStatelessKernel {
+    class TGaussianRandKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<float> Result;
@@ -56,7 +56,7 @@ namespace NKernelHost {
         }
     };
 
-    class TUniformRandKernel : public TStatelessKernel {
+    class TUniformRandKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<float> Result;

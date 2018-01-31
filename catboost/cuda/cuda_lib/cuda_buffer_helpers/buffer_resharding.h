@@ -6,7 +6,6 @@
 #include <cmath>
 
 namespace NCudaLib {
-
     template <class TFromBuffer,
               class TToBuffer>
     class TCudaBufferResharding {
@@ -53,9 +52,9 @@ namespace NCudaLib {
             }
             //magic const. works better then theoretical result
             latency *= 4;
-            #if defined(USE_MPI)
+#if defined(USE_MPI)
 
-            #endif
+#endif
 
             ui64 blockCount = floor(sqrt(bandwidth * dataSize * (devices.size() + 1) / latency));
             return blockCount < 1 ? 1 : blockCount;
@@ -107,7 +106,6 @@ namespace NCudaLib {
             for (ui64 iter = 0; iter < iterCount; ++iter) {
                 TDataCopier copier(Stream);
                 copier.SetCompressFlag(CompressFlag);
-
 
                 for (ui64 i = 0; i < devices.size(); ++i) {
                     ui32 dstDev = devices[i];
@@ -310,6 +308,6 @@ namespace NCudaLib {
     inline void Reshard(const TSrcBuffer& src, TDstBuffer& dst, ui32 stream = 0, bool compress = false) {
         TCudaBufferResharding<TSrcBuffer, TDstBuffer> worker(src, dst, stream);
         worker.SetCompressFlag(compress)
-               .Run();
+            .Run();
     };
 }

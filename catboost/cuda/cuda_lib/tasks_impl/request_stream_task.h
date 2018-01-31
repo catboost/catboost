@@ -4,18 +4,17 @@
 #include <catboost/cuda/cuda_lib/task.h>
 
 namespace NCudaLib {
-
     class IRequestStreamCommand: public ICommand {
     public:
         IRequestStreamCommand()
-                : ICommand(EComandType::RequestStream)
+            : ICommand(EComandType::RequestStream)
         {
         }
 
         using TFuture = IDeviceFuture<ui32>;
         using TFuturePtr = THolder<TFuture>;
 
-        virtual TFuturePtr GetStreamId()  = 0;
+        virtual TFuturePtr GetStreamId() = 0;
 
         virtual void SetStreamId(ui32 id) = 0;
     };
@@ -24,6 +23,7 @@ namespace NCudaLib {
     class TRequestStreamCommand: public IRequestStreamCommand {
     private:
         TStreamIdPromise StreamId;
+
     public:
         TRequestStreamCommand(TStreamIdPromise&& streamId)
             : IRequestStreamCommand()
@@ -32,7 +32,6 @@ namespace NCudaLib {
         }
 
         TRequestStreamCommand() {
-
         }
 
         TFuturePtr GetStreamId() final {
@@ -49,15 +48,17 @@ namespace NCudaLib {
     class TFreeStreamCommand: public ICommand {
     private:
         TVector<ui32> Streams;
+
     public:
         explicit TFreeStreamCommand(TVector<ui32>&& streams)
             : ICommand(EComandType::FreeStream)
-            , Streams(std::move(streams)) {
+            , Streams(std::move(streams))
+        {
         }
 
         TFreeStreamCommand()
-        : ICommand(EComandType::FreeStream){
-
+            : ICommand(EComandType::FreeStream)
+        {
         }
 
         const TVector<ui32>& GetStreams() const {

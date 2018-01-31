@@ -2,11 +2,10 @@
 #include "task.h"
 
 namespace NCudaLib {
-
     TSerializedCommand::TSerializedCommand(TBuffer&& data)
-           : ICommand(EComandType::SerializedCommand) {
+        : ICommand(EComandType::SerializedCommand)
+    {
         Data.Swap(data);
-
     }
 
     THolder<ICommand> TSerializedCommand::Deserialize() {

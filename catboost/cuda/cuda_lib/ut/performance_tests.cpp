@@ -31,7 +31,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestRunKernelAndReadResultPerformance) {
@@ -59,7 +58,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyDeviceDevice) {
@@ -93,7 +91,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(PureCudaLatencyTest) {
@@ -146,7 +143,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyHostHost) {
@@ -177,7 +173,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(BandwidthAndLatencyHostDevice) {
@@ -208,7 +203,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 MATRIXNET_INFO_LOG << Endl;
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(LatencyProfile) {
@@ -231,7 +225,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             }
             MATRIXNET_INFO_LOG << "Latency 0-1 " << val / 100000 << Endl;
         }
-
     }
 
     SIMPLE_UNIT_TEST(BroadcastTest) {
@@ -257,7 +250,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 auto bufferSingle = TSingleBuffer<float>::Create(singleMapping);
                 BayesianBootstrap(seeds, bufferSingle, 1.0f);
 
-
                 //                auto bufferSingleCpu = TCudaBuffer<float, TStripeMapping, EPtrType::CudaHost>::Create(TStripeMapping::SplitBetweenDevices(1 << i));
                 //                auto bufferSingle = TCudaBuffer<float, TSingleMapping, EPtrType::CudaHost>::Create(singleMapping);
                 auto bufferMirror = TMirrorBuffer<float>::Create(mirrorMapping);
@@ -275,7 +267,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                     }
                 }
 
-                #if defined(USE_MPI)
+#if defined(USE_MPI)
                 for (ui32 iter = 0; iter < tries; ++iter) {
                     auto guard = profiler.Profile("Broadcast compressed " + ToString(1.0 * sizeof(float) * (1 << i) / 1024 / 1024) + "MBx" + ToString(innerTries));
                     for (ui32 innerIter = 0; innerIter < innerTries; ++innerIter) {
@@ -283,9 +275,8 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                         Reshard(bufferSingle, bufferMirror, 0u, true);
                     }
                 }
-                #endif
+#endif
             }
-
         }
     }
 
@@ -325,7 +316,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-
     }
     SIMPLE_UNIT_TEST(StripeToMirrorBroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
@@ -363,7 +353,6 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestReadAndWrite) {
@@ -395,6 +384,5 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
                 }
             }
         }
-
     }
 }

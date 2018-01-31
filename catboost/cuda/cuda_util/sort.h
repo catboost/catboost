@@ -98,7 +98,6 @@ namespace NKernelHost {
             auto tmpStorage = manager.Allocate<char>(context.TempStorageSize);
 
             if (!NeedOnlyTempStorage) {
-
                 auto tempKeys = manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
                     context.TempValues = manager.Allocate<char>(size * context.ValueSize).Get();
@@ -176,7 +175,6 @@ inline void RadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& 
                       ui32 offset = 0,
                       ui32 bits = sizeof(K) * 8,
                       ui64 stream = 0) {
-
     using TKernel = NKernelHost::TRadixSortKernel<K, V>;
     CB_ENSURE((offset + bits) <= (sizeof(K) * 8));
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);

@@ -1,20 +1,19 @@
 #pragma once
+
 #include "kernel_task.h"
 #include <catboost/cuda/cuda_lib/inter_device_stream_section.h>
 
 namespace NCudaLib {
-
-
     /*
      * This tasks guarantees handle consistency for kernel and ensures all previous tasks are completed
      *  so we could access peered devices as well as send/read dat
      */
     template <class TKernel>
-    class TStreamSectionKernelTask : public IGpuKernelTask {
+    class TStreamSectionKernelTask: public IGpuKernelTask {
     public:
         using TKernelContext = typename NHelpers::TKernelContextTrait<TKernel>::TKernelContext;
-    private:
 
+    private:
         enum ESectionState {
             Entering,
             Entered,
@@ -22,27 +21,26 @@ namespace NCudaLib {
             Left
         };
 
-        struct TGpuKernelTaskContext : public NKernel::IKernelContext {
+        struct TGpuKernelTaskContext: public NKernel::IKernelContext {
             THolder<TKernelContext> KernelContext;
             THolder<TStreamSection> Section;
             ESectionState SectionState = ESectionState::Entering;
         };
 
         friend class TTaskSerializer;
-    public:
 
+    public:
         TStreamSectionKernelTask() {
         }
-
 
         explicit TStreamSectionKernelTask(TKernel&& kernel,
                                           const TStreamSectionConfig& section,
                                           ui32 stream = 0)
-                : IGpuKernelTask(stream)
-                , Kernel(std::move(kernel))
-                , Section(section) {
+            : IGpuKernelTask(stream)
+            , Kernel(std::move(kernel))
+            , Section(section)
+        {
         }
-
 
         THolder<NKernel::IKernelContext> PrepareExec(NKernelHost::IMemoryManager& memoryManager) const final {
             THolder<TGpuKernelTaskContext> context = MakeHolder<TGpuKernelTaskContext>();
@@ -103,7 +101,6 @@ namespace NCudaLib {
         }
 
     protected:
-
         void LoadImpl(IInputStream* input) final {
             ::Load(input, Kernel);
             ::Load(input, Section);
@@ -113,6 +110,7 @@ namespace NCudaLib {
             ::Save(output, Kernel);
             ::Save(output, Section);
         }
+
     private:
         TKernel Kernel;
         TStreamSectionConfig Section;
@@ -127,11 +125,10 @@ namespace NCudaLib {
         }
     };
 
+#define REGISTER_STREAM_SECTION_TASK(id, className) \
+    static TStreamSectionTaskRegistrator<className> kernelRegistrator##className_##id(id);
 
-    #define REGISTER_STREAM_SECTION_TASK(id, className) \
-        static TStreamSectionTaskRegistrator<className> kernelRegistrator##className_##id(id);
-
-    #define REGISTER_STREAM_SECTION_TASK_TEMPLATE(id, className, T) \
-        static TStreamSectionTaskRegistrator<className<T> > kernelRegistrator_##className_##T_##id(id);
+#define REGISTER_STREAM_SECTION_TASK_TEMPLATE(id, className, T) \
+    static TStreamSectionTaskRegistrator<className<T>> kernelRegistrator_##className_##T_##id(id);
 
 }

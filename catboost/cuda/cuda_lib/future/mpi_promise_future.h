@@ -7,18 +7,15 @@
 #include <util/stream/buffer.h>
 #include <util/ysaveload.h>
 
-
 namespace NCudaLib {
-
 #ifdef USE_MPI
 
     //this primitives for small messages only.
     //Heavy memp-cpy tasks will be done separatly
     //could be used only on host
     template <class T>
-    class TMpiFuture : public IDeviceFuture<T>, public TMoveOnly {
+    class TMpiFuture: public IDeviceFuture<T>, public TMoveOnly {
     public:
-
         bool Has() final {
             return Request.IsComplete();
         }
@@ -42,7 +39,6 @@ namespace NCudaLib {
         }
 
         TMpiFuture() {
-
         }
 
         TMpiFuture(TMpiFuture&& other) = default;
@@ -50,7 +46,6 @@ namespace NCudaLib {
     private:
         TMpiFuture(int sourceRank,
                    int tag) {
-
             auto& manager = GetMpiManager();
 
             if (std::is_pod<T>::value) {
@@ -63,7 +58,7 @@ namespace NCudaLib {
             }
         }
 
-        template<class TC>
+        template <class TC>
         friend class TMpiPromise;
 
     private:
@@ -72,8 +67,6 @@ namespace NCudaLib {
         bool NeedDeserialization = true;
         T Result;
     };
-
-
 
     template <class T>
     class TMpiPromise {
@@ -90,13 +83,10 @@ namespace NCudaLib {
             IsSet = true;
         }
 
-
         TMpiPromise() {
-
         }
 
         TMpiPromise(TMpiPromise&& other) = default;
-
 
         TFuturePtr GetFuture() {
             CB_ENSURE(!IsFutureCreated, "Can't create future more, than once");
@@ -106,11 +96,11 @@ namespace NCudaLib {
             return new TMpiFuture<T>(SourceRank, Tag);
         }
 
-
         TMpiPromise(int sourceRank,
                     int destRank)
-                : SourceRank(sourceRank)
-                , DestRank(destRank) {
+            : SourceRank(sourceRank)
+            , DestRank(destRank)
+        {
             CB_ENSURE(sourceRank != destRank, "Error: sourceRank and destRank should be different");
             auto& manager = GetMpiManager();
             CB_ENSURE(manager.IsMaster(), "Error: promise could be done only on master");
@@ -127,22 +117,20 @@ namespace NCudaLib {
         bool IsFutureCreated = false;
     };
 
-
     template <class T>
     inline TMpiPromise<T> CreateDevicePromise(int deviceId) {
         return TMpiPromise<T>(deviceId, GetMpiManager().GetMasterId());
     }
 
-    class TRemoteDeviceRequest : public IDeviceRequest {
+    class TRemoteDeviceRequest: public IDeviceRequest {
     public:
-
         TRemoteDeviceRequest(TMpiRequest&& request) {
             Requests.push_back(std::move(request));
         }
 
         TRemoteDeviceRequest(TVector<TMpiRequest>&& requests)
-                : Requests(std::move(requests)) {
-
+            : Requests(std::move(requests))
+        {
         }
 
         bool IsComplete() final {
@@ -154,5 +142,4 @@ namespace NCudaLib {
     };
 
 #endif
-
 }

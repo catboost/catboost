@@ -6,16 +6,17 @@
 #include <library/threading/future/future.h>
 
 namespace NCudaLib {
-
     template <class T>
-    class TLocalHostFuture : public IDeviceFuture<T> {
+    class TLocalHostFuture: public IDeviceFuture<T> {
     private:
         NThreading::TFuture<T> Future;
         T Result;
         bool IsSet = false;
+
     public:
         explicit TLocalHostFuture(NThreading::TFuture<T>&& future)
-            : Future(std::move(future)) {
+            : Future(std::move(future))
+        {
         }
 
         bool Has() final {
@@ -36,9 +37,8 @@ namespace NCudaLib {
         }
     };
 
-
     template <class T>
-    class TLocalHostPromise : public TMoveOnly {
+    class TLocalHostPromise: public TMoveOnly {
     public:
         using TFuturePtr = THolder<TLocalHostFuture<T>>;
 
@@ -60,24 +60,23 @@ namespace NCudaLib {
         }
 
     private:
-
         TLocalHostPromise()
-        : Promise(NThreading::NewPromise<T>()) {
-
+            : Promise(NThreading::NewPromise<T>())
+        {
         }
 
         template <bool>
         friend class TPromiseFactory;
+
     private:
         NThreading::TPromise<T> Promise;
     };
 
-
-
-    class TLocalDeviceRequest : public IDeviceRequest {
+    class TLocalDeviceRequest: public IDeviceRequest {
     private:
         NThreading::TFuture<TCudaEventPtr> Event;
         bool IsCompleteFlag = false;
+
     public:
         explicit TLocalDeviceRequest(NThreading::TFuture<TCudaEventPtr>&& event)
             : Event(std::move(event))

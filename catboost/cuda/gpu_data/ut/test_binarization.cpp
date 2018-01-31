@@ -339,7 +339,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestGpuDatasetBuilder(32, 0);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexWithPermutation) {
@@ -347,7 +346,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestGpuDatasetBuilder(32, 1);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexHalfByteWithPermutation) {
@@ -355,7 +353,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestGpuDatasetBuilder<THalfByteFeatureGridPolicy>(15, 1);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateDataSetsHolder) {
@@ -363,7 +360,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestDatasetHolderBuilder(32, 1);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4) {
@@ -371,7 +367,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestDatasetHolderBuilder(32, 4);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
@@ -379,7 +374,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestDatasetHolderBuilder(32, 4, 1, 8);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_64) {
@@ -387,7 +381,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestDatasetHolderBuilder(32, 4, 1, 64);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
@@ -395,7 +388,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestDatasetHolderBuilder(32, 4, 15, 64);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex128) {
@@ -403,6 +395,5 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         {
             TestGpuDatasetBuilder(128, 0);
         }
-
     }
 }

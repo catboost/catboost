@@ -31,7 +31,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     }
                 }
             }
-
         }
     }
 
@@ -82,7 +81,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_EQUAL(devs[0], 1);
                 }
             }
-
         }
     }
 
@@ -102,7 +100,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_VALUES_EQUAL(buffer.GetMapping().MemorySize(TSlice(0, 4)), 16);
                     manager.WaitComplete();
                 }
-
             }
         }
     }
@@ -134,7 +131,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
                 }
             }
-
         }
     }
 
@@ -186,7 +182,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                     UNIT_ASSERT_DOUBLES_EQUAL(tmp[i], tmp3[i], 1e-20);
                 }
             }
-
         }
     }
 
@@ -285,7 +280,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 }
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(MultiColumnBufferTests) {
@@ -323,7 +317,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 UNIT_ASSERT_VALUES_EQUAL(weight[i], weights2[i]);
             }
         }
-
     }
 
     SIMPLE_UNIT_TEST(CopyTest) {
@@ -358,8 +351,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 }
             }
         }
-
-
     }
 
     template <class T, class TBuffer>
@@ -434,7 +425,6 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
                 FillBuffer(bufferSingleOtherDev, 1000.0f);
                 Reshard(bufferStripeRandom, bufferSingleOtherDev, 0u, useCompress);
                 Validate(reference, bufferSingleOtherDev);
-
             }
 
             //single -> single -> stripe -> mirror
@@ -463,14 +453,13 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         RunReshardTest(manager);
     }
 
-
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     SIMPLE_UNIT_TEST(CompressReshardingTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         RunReshardTest(manager, true);
     }
-    #endif
+#endif
 
     //
 }

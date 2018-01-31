@@ -64,5 +64,5 @@ struct TPartitionStatistics {
 };
 
 #ifndef __NVCC__
-    Y_DECLARE_PODTYPE(TCFeature);
+Y_DECLARE_PODTYPE(TCFeature);
 #endif

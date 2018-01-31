@@ -104,6 +104,7 @@ namespace NCudaLib {
         ui64 MinProfileLevel;
         TLabeledInterval EmptyLabel;
         bool PrintOnDelete = true;
+
     public:
         TCudaProfiler(EProfileMode profileMode = EProfileMode::LabelAsync,
                       ui64 level = 0,
@@ -111,7 +112,8 @@ namespace NCudaLib {
             : DefaultProfileMode(profileMode)
             , MinProfileLevel(level)
             , EmptyLabel("fake", EProfileMode::NoProfile)
-            , PrintOnDelete(printOnDelete) {
+            , PrintOnDelete(printOnDelete)
+        {
         }
 
         ~TCudaProfiler() {

@@ -8,39 +8,32 @@
 #include <catboost/cuda/cuda_lib/future/promise_factory.h>
 
 namespace NCudaLib {
-
     template <class TTask>
     struct THostFuncTrait {
         static constexpr bool NeedWorkerState() {
             return false;
         }
-
-
     };
 
     template <class TFunc,
-             bool NeedWorkerState = THostFuncTrait<TFunc>::NeedWorkerState()>
+              bool NeedWorkerState = THostFuncTrait<TFunc>::NeedWorkerState()>
     struct TFuncRunner;
 
     template <class TFunc>
     struct TFuncRunner<TFunc, false> {
-
         static auto Run(TFunc* func,
-                        const IWorkerStateProvider* workerState)-> decltype((*func)()) {
+                        const IWorkerStateProvider* workerState) -> decltype((*func)()) {
             Y_UNUSED(workerState);
             return (*func)();
         }
-
     };
 
     template <class TFunc>
     struct TFuncRunner<TFunc, true> {
-
         static auto Run(TFunc* func,
                         const IWorkerStateProvider* workerState) -> decltype((*func)(*workerState)) {
             return (*func)(*workerState);
         }
-
     };
 
     template <class TFunc>
@@ -48,10 +41,9 @@ namespace NCudaLib {
         using TOutput = decltype(TFuncRunner<std::remove_reference_t<TFunc>>::Run(nullptr, nullptr));
     };
 
-
     template <class TTask,
               bool IsRemote = false>
-    class TCpuFunc : public IHostTask {
+    class TCpuFunc: public IHostTask {
     public:
         using TOutput = typename TFuncReturnType<TTask>::TOutput;
         using TPromise = typename TPromiseFactory<IsRemote>::template TPromise<TOutput>;
@@ -71,20 +63,21 @@ namespace NCudaLib {
         }
 
         TCpuFunc() {
-
         }
 
         TCpuFunc(TPromise&& promise,
-                  TTask&& task)
+                 TTask&& task)
             : Task(std::forward<TTask>(task))
-            , Promise(std::move(promise)) {
+            , Promise(std::move(promise))
+        {
         }
 
         template <class... TArgs>
         TCpuFunc(TPromise&& promise,
-                  TArgs... args)
+                 TArgs... args)
             : Promise(std::move(promise))
-            , Task(std::forward<TArgs>(args)...) {
+            , Task(std::forward<TArgs>(args)...)
+        {
         }
 
         void Load(IInputStream* input) final {
@@ -96,11 +89,11 @@ namespace NCudaLib {
             ::Save(output, Promise);
             ::Save(output, Task);
         }
+
     private:
         TTask Task;
         TPromise Promise;
     };
-
 
     template <class TFunc>
     class TFuncRegistrator {
@@ -112,7 +105,7 @@ namespace NCudaLib {
         }
     };
 
-    #define REGISTER_CPU_FUNC(id, className) \
-        static TFuncRegistrator<className> taskRegistrator##id(id);
+#define REGISTER_CPU_FUNC(id, className) \
+    static TFuncRegistrator<className> taskRegistrator##id(id);
 
 }

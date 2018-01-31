@@ -6,14 +6,13 @@
 #include <util/generic/utility.h>
 
 namespace NCudaLib {
-
     class TDevicesList {
     private:
-        #ifdef USE_MPI
+#ifdef USE_MPI
         static const ui64 MaxDeviceCount = 256;
-        #else
+#else
         static const ui64 MaxDeviceCount = 64;
-        #endif
+#endif
         using TDevicesSet = std::bitset<MaxDeviceCount>;
 
         TDevicesSet DevicesSet;
@@ -21,8 +20,8 @@ namespace NCudaLib {
         ui64 End = 0;   //exclusive
 
         friend class TDevicesListBuilder;
-    public:
 
+    public:
         TDevicesList(TDevicesList&& other) = default;
         TDevicesList(const TDevicesList& other) = default;
         TDevicesList& operator=(TDevicesList&& other) = default;
@@ -34,24 +33,25 @@ namespace NCudaLib {
 
     public:
         TDevicesList() {
-
         }
 
         class TDeviceListIterator {
         private:
             const TDevicesList* Owner;
             ui64 Dev;
+
         public:
             inline TDeviceListIterator()
-                    : Owner(nullptr)
-                    , Dev(0)
+                : Owner(nullptr)
+                , Dev(0)
             {
             }
 
             inline TDeviceListIterator(const TDevicesList* owner,
                                        const ui64 dev)
-                    : Owner(owner)
-                    , Dev(dev) {
+                : Owner(owner)
+                , Dev(dev)
+            {
             }
 
             inline bool operator!=(const TDeviceListIterator& other) {
@@ -72,8 +72,6 @@ namespace NCudaLib {
             }
         };
 
-
-
         inline TDeviceListIterator begin() const {
             return {this, Begin};
         }
@@ -85,7 +83,6 @@ namespace NCudaLib {
 
     class TDevicesListBuilder {
     public:
-
         TDevicesListBuilder() {
             Result.Begin = TDevicesList::MaxDeviceCount;
             Result.End = 0;
@@ -117,6 +114,7 @@ namespace NCudaLib {
         static TDevicesList SingleDevice(ui64 devId) {
             return TDevicesListBuilder().AddDevice(devId).Build();
         }
+
     private:
         TDevicesList Result;
     };

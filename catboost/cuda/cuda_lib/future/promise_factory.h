@@ -5,12 +5,10 @@
 #include <catboost/cuda/cuda_lib/device_id.h>
 
 namespace NCudaLib {
-
-
     template <bool IsRemote>
     class TPromiseFactory;
 
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     template <>
     class TPromiseFactory<true> {
     public:
@@ -23,7 +21,7 @@ namespace NCudaLib {
             return TPromise<T>(deviceId.HostId, TMpiManager::GetMasterId());
         }
     };
-    #endif
+#endif
 
     template <>
     class TPromiseFactory<false> {
@@ -37,8 +35,5 @@ namespace NCudaLib {
             return TPromise<T>();
         }
     };
-
-
-
 
 }

@@ -13,8 +13,6 @@
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
 
 namespace NCudaLib {
-
-
     class TCudaSingleDevice {
     private:
         template <EPtrType PtrType>
@@ -23,13 +21,14 @@ namespace NCudaLib {
 
         using TLocalQueue = TSingleHostTaskQueue;
         template <class TFunc>
-        using TLocalFunc =  TCpuFunc<TFunc, false>;
+        using TLocalFunc = TCpuFunc<TFunc, false>;
 
-        #if defined(USE_MPI)
-        using TRemoteQueue = TRemoteHostTasksForwarder;;
+#if defined(USE_MPI)
+        using TRemoteQueue = TRemoteHostTasksForwarder;
+        ;
         template <class TFunc>
         using TRemoteFunc = TCpuFunc<TFunc, true>;
-        #endif
+#endif
 
         TAtomic ExceptionsCount;
         friend class TSetDeviceExceptionCallback;
@@ -74,6 +73,7 @@ namespace NCudaLib {
             static const ui64 EMPTY_HANDLE = 0;
             TCudaSingleDevice* Device;
             ui64 Handle = EMPTY_HANDLE;
+
         public:
             THandleBasedObject(TCudaSingleDevice* device,
                                ui64 handle)
@@ -182,15 +182,13 @@ namespace NCudaLib {
             if (IsLocalDevice()) {
                 reinterpret_cast<TLocalQueue*>(TaskQueue)->AddTask(std::move(cmd));
             } else {
-                #if defined(USE_MPI)
-                    reinterpret_cast<TRemoteQueue*>(TaskQueue)->AddTask(std::move(cmd));
-                #else
-                    CB_ENSURE(false, "Remote device support is not enabled");
-                #endif
-
+#if defined(USE_MPI)
+                reinterpret_cast<TRemoteQueue*>(TaskQueue)->AddTask(std::move(cmd));
+#else
+                CB_ENSURE(false, "Remote device support is not enabled");
+#endif
             }
         }
-
 
         template <class TTask,
                   class... Args>
@@ -201,11 +199,11 @@ namespace NCudaLib {
             if (isLocalDevice) {
                 reinterpret_cast<TLocalQueue*>(TaskQueue)->EmplaceTask<TTask>(std::forward<Args>(args)...);
             } else {
-                #if defined(USE_MPI)
-                   reinterpret_cast<TRemoteQueue*>(TaskQueue)->EmplaceTask<TTask>(std::forward<Args>(args)...);
-                #else
-                    CB_ENSURE(false, "Remote device support is not enabled");
-                #endif
+#if defined(USE_MPI)
+                reinterpret_cast<TRemoteQueue*>(TaskQueue)->EmplaceTask<TTask>(std::forward<Args>(args)...);
+#else
+                CB_ENSURE(false, "Remote device support is not enabled");
+#endif
             }
         }
 
@@ -220,16 +218,15 @@ namespace NCudaLib {
         }
 
     public:
-
         TCudaSingleDevice(void* taskQueue,
                           TDeviceId deviceId,
                           const TCudaDeviceProperties& deviceProps)
             : TaskQueue(taskQueue)
             , DeviceId(deviceId)
             , DeviceProperties(deviceProps)
-            , IsStoppedFlag(true) {
+            , IsStoppedFlag(true)
+        {
         }
-
 
         ~TCudaSingleDevice() {
             if (!IsStoppedFlag) {
@@ -245,7 +242,6 @@ namespace NCudaLib {
             RequestHandlesImpl();
             IsStoppedFlag = false;
         }
-
 
         void Stop() {
             CB_ENSURE(!IsStoppedFlag, "Error: can't stop device more than once");
@@ -327,17 +323,17 @@ namespace NCudaLib {
                 AddTask(std::move(task));
                 return std::move(futureResult);
             } else {
-                #if defined(USE_MPI)
-                    using TTask = TRemoteFunc<TFunc>;
-                    auto task = MakeHolder<TTask>(TPromiseFactory<true>::template CreateDevicePromise<TOutput>(DeviceId),
-                                                  std::forward<TFunc>(func));
-                    auto futureResult = task->GetResult();
-                    AddTask(std::move(task));
-                    return std::move(futureResult);
-                #else
-                    CB_ENSURE(false, "Remote device support is not enabled");
-                    return nullptr;
-                #endif
+#if defined(USE_MPI)
+                using TTask = TRemoteFunc<TFunc>;
+                auto task = MakeHolder<TTask>(TPromiseFactory<true>::template CreateDevicePromise<TOutput>(DeviceId),
+                                              std::forward<TFunc>(func));
+                auto futureResult = task->GetResult();
+                AddTask(std::move(task));
+                return std::move(futureResult);
+#else
+                CB_ENSURE(false, "Remote device support is not enabled");
+                return nullptr;
+#endif
             }
         }
 
@@ -376,15 +372,15 @@ namespace NCudaLib {
 
         ui32 RequestStream() {
             if (UserFreeStreams.size() == 0) {
-                THolder<IDeviceFuture<ui32> > streamFuture;
+                THolder<IDeviceFuture<ui32>> streamFuture;
                 if (IsLocalDevice()) {
                     streamFuture = RequestStreamImpl<false>();
                 } else {
-                    #if defined(USE_MPI)
-                        streamFuture = RequestStreamImpl<true>();
-                    #else
-                        CB_ENSURE(false, "Remote device support is not enabled");
-                    #endif
+#if defined(USE_MPI)
+                    streamFuture = RequestStreamImpl<true>();
+#else
+                    CB_ENSURE(false, "Remote device support is not enabled");
+#endif
                 }
                 streamFuture->Wait();
                 UserFreeStreams.push_back(streamFuture->Get());
@@ -409,15 +405,15 @@ namespace NCudaLib {
         }
     };
     template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaDevice>> : public TAllocateMemoryCommand<EPtrType::CudaDevice> {
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaDevice>>: public TAllocateMemoryCommand<EPtrType::CudaDevice> {
     };
 
     template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::Host>> : public TAllocateMemoryCommand<EPtrType::Host> {
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::Host>>: public TAllocateMemoryCommand<EPtrType::Host> {
     };
 
     template <>
-    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaHost>> : public TAllocateMemoryCommand<EPtrType::CudaHost> {
+    struct TCreateObjectCommandTrait<TRawFreeMemory<EPtrType::CudaHost>>: public TAllocateMemoryCommand<EPtrType::CudaHost> {
     };
 
 }

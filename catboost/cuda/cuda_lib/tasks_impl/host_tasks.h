@@ -3,17 +3,14 @@
 #include <catboost/cuda/cuda_lib/task.h>
 
 namespace NCudaLib {
-
-
-
     class TWaitSubmitCommand: public ICommand {
     public:
         TWaitSubmitCommand()
-            : ICommand(EComandType::WaitSubmit) {
+            : ICommand(EComandType::WaitSubmit)
+        {
         }
 
         Y_STATELESS_TASK();
-
     };
 
     struct TNonBlockingFunc {
@@ -28,7 +25,7 @@ namespace NCudaLib {
         }
     };
 
-    struct TBlockingSyncDevice : public TBlockingFunc {
+    struct TBlockingSyncDevice: public TBlockingFunc {
         using TOutput = ui64;
 
         ui64 operator()() {
@@ -38,12 +35,13 @@ namespace NCudaLib {
         Y_SAVELOAD_EMPTY();
     };
 
-    struct TRequestHandlesTask : public TNonBlockingFunc {
+    struct TRequestHandlesTask: public TNonBlockingFunc {
         using TOutput = TVector<ui64>;
         ui32 Count = 0;
 
         explicit TRequestHandlesTask(ui32 count)
-            : Count(count) {
+            : Count(count)
+        {
         }
 
         TRequestHandlesTask() = default;
@@ -55,13 +53,13 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(Count);
     };
 
-
-    struct TFreeHandlesTask : public TBlockingFunc {
+    struct TFreeHandlesTask: public TBlockingFunc {
         using TOutput = int;
         TVector<ui64> Handles;
 
         explicit TFreeHandlesTask(TVector<ui64>&& handles)
-                : Handles(std::move(handles)) {
+            : Handles(std::move(handles))
+        {
         }
 
         TFreeHandlesTask() = default;
@@ -77,6 +75,5 @@ namespace NCudaLib {
 
         Y_SAVELOAD_DEFINE(Handles);
     };
-
 
 }

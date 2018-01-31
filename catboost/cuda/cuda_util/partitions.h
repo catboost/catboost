@@ -8,7 +8,6 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NKernelHost {
-
     class TUpdatePartitionDimensionsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> SortedBins;

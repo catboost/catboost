@@ -6,10 +6,8 @@
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
 #include <library/blockcodecs/codecs.h>
 
-namespace NCudaLib  {
-
+namespace NCudaLib {
     void TMpiManager::Start(int* argc, char*** argv) {
-
         int providedLevel;
 
         int threadLevel = MPI_THREAD_MULTIPLE;
@@ -34,12 +32,10 @@ namespace NCudaLib  {
             UseBSendForTasks = true;
         }
 
-
         int deviceCount = NCudaHelpers::GetDeviceCount();
         int deviceCountTypeBytes = sizeof(decltype(deviceCount));
 
         if (IsMaster()) {
-
             TVector<int> devicesOnHost(HostCount);
             devicesOnHost[0] = deviceCount;
 
@@ -65,14 +61,11 @@ namespace NCudaLib  {
         }
 
         CB_ENSURE(HostCount >= 1, "Error: need at least one worker");
-
     }
-
 
     void TMpiManager::Stop() {
         if (IsMaster()) {
             NCudaLib::GetDevicesProvider().FreeDevices();
-
         }
         MPI_SAFE_CALL(MPI_Finalize());
     }

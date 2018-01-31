@@ -53,6 +53,7 @@ namespace NCudaLib {
             ::Save(output, Stream);
             SaveImpl(output);
         }
+
     protected:
         virtual void LoadImpl(IInputStream*) {
             CB_ENSURE(false, "Unimplemented");
@@ -61,10 +62,10 @@ namespace NCudaLib {
         virtual void SaveImpl(IOutputStream*) const {
             CB_ENSURE(false, "Unimplemented");
         }
+
     private:
         ui32 Stream;
     };
-
 
     template <class TImpl>
     class IGpuStatelessKernelTask: public IGpuKernelTask {
@@ -93,11 +94,9 @@ namespace NCudaLib {
             Y_UNUSED(context);
             return static_cast<TImpl*>(this)->ReadyToSubmitNextImpl(stream);
         }
-
     };
 
     namespace NHelpers {
-
         template <class TKernel,
                   class TKernelContext>
         struct TKernelPrepareHelper {
@@ -111,7 +110,6 @@ namespace NCudaLib {
             THolder<TKernelContext> PrepareContext(NKernelHost::IMemoryManager& memoryManager) const {
                 return Kernel.PrepareContext(memoryManager);
             }
-
         };
 
         template <class TKernel>
@@ -128,7 +126,6 @@ namespace NCudaLib {
                 return nullptr;
             }
         };
-
 
         template <class TKernel,
                   class TKernelContext>
@@ -190,7 +187,7 @@ namespace NCudaLib {
         };
 
         template <class TKernel,
-                class TKernelContext>
+                  class TKernelContext>
         struct TKernelPostprocessHelper<TKernel, TKernelContext, true> {
             TKernel& Kernel;
 
@@ -206,7 +203,7 @@ namespace NCudaLib {
         };
 
         template <class TKernel,
-                class TKernelContext>
+                  class TKernelContext>
         struct TKernelPostprocessHelper<TKernel, TKernelContext, false> {
             TKernel& Kernel;
 
@@ -238,28 +235,29 @@ namespace NCudaLib {
     public:
         static constexpr bool NeedPostProcess = NHelpers::TKernelPostprocessTrait<TKernel>::Value;
         using TKernelContext = typename NHelpers::TKernelContextTrait<TKernel>::TKernelContext;
+
     private:
         TKernel Kernel;
+
     private:
-        struct TGpuKernelTaskContext : public NKernel::IKernelContext {
+        struct TGpuKernelTaskContext: public NKernel::IKernelContext {
             THolder<TKernelContext> KernelContext;
             TCudaEventPtr CudaEvent;
             bool PostProcessDone = false;
         };
 
         friend class TTaskSerializer;
-    public:
 
+    public:
         TGpuKernelTask() {
         }
-
 
         explicit TGpuKernelTask(TKernel&& kernel,
                                 ui32 stream = 0)
             : IGpuKernelTask(stream)
-            , Kernel(std::move(kernel)) {
+            , Kernel(std::move(kernel))
+        {
         }
-
 
         THolder<NKernel::IKernelContext> PrepareExec(NKernelHost::IMemoryManager& memoryManager) const final {
             THolder<TGpuKernelTaskContext> context = MakeHolder<TGpuKernelTaskContext>();
@@ -301,8 +299,8 @@ namespace NCudaLib {
         const TKernel& GetKernel() const {
             return Kernel;
         }
-    protected:
 
+    protected:
         void LoadImpl(IInputStream* input) final {
             ::Load(input, Kernel);
         }
@@ -312,9 +310,7 @@ namespace NCudaLib {
         }
     };
 
-
     struct TSyncStreamKernel: public NKernelHost::TStatelessKernel {
-
         void Run(const TCudaStream& stream) {
             stream.Synchronize();
         }
@@ -323,7 +319,6 @@ namespace NCudaLib {
     };
 
     using TSyncTask = TGpuKernelTask<TSyncStreamKernel>;
-
 
     template <class TKernel>
     class TKernelRegistrator {
@@ -334,17 +329,13 @@ namespace NCudaLib {
         }
     };
 
+#define REGISTER_KERNEL(id, className) \
+    static TKernelRegistrator<className> taskRegistrator##id(id);
 
-    #define REGISTER_KERNEL(id, className) \
-        static TKernelRegistrator<className> taskRegistrator##id(id);
+#define REGISTER_KERNEL_TEMPLATE(id, className, T) \
+    static TKernelRegistrator<className<T>> taskRegistrator##id(id);
 
-    #define REGISTER_KERNEL_TEMPLATE(id, className, T) \
-        static TKernelRegistrator<className<T> > taskRegistrator##id(id);
-
-    #define REGISTER_KERNEL_TEMPLATE_2(id, className, T1, T2) \
-        static TKernelRegistrator<className<T1, T2> > taskRegistrator##id(id);
-
-
-
+#define REGISTER_KERNEL_TEMPLATE_2(id, className, T1, T2) \
+    static TKernelRegistrator<className<T1, T2>> taskRegistrator##id(id);
 
 }

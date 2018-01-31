@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #if defined(USE_MPI)
 
 #include <mpi.h>
@@ -17,22 +15,18 @@
 #include <util/system/mutex.h>
 #include <library/blockcodecs/codecs.h>
 
-
 namespace NCudaLib {
-
-
-
-#define MPI_SAFE_CALL(cmd)                                                              \
-    {                                                                                   \
-        int mpiErrNo = (cmd);                                                           \
-        if (MPI_SUCCESS != mpiErrNo) {                                                  \
-            char msg[MPI_MAX_ERROR_STRING];                                             \
-            int len;                                                                    \
-            MPI_Error_string(mpiErrNo, msg, &len);                                      \
-            MATRIXNET_ERROR_LOG << "MPI failed with error code :" << mpiErrNo           \
-            << " " << msg << Endl;                                                      \
-            MPI_Abort(MPI_COMM_WORLD, mpiErrNo);                                        \
-        }                                                                               \
+#define MPI_SAFE_CALL(cmd)                                                    \
+    {                                                                         \
+        int mpiErrNo = (cmd);                                                 \
+        if (MPI_SUCCESS != mpiErrNo) {                                        \
+            char msg[MPI_MAX_ERROR_STRING];                                   \
+            int len;                                                          \
+            MPI_Error_string(mpiErrNo, msg, &len);                            \
+            MATRIXNET_ERROR_LOG << "MPI failed with error code :" << mpiErrNo \
+                                << " " << msg << Endl;                        \
+            MPI_Abort(MPI_COMM_WORLD, mpiErrNo);                              \
+        }                                                                     \
     }
 
     /*
@@ -41,10 +35,8 @@ namespace NCudaLib {
      */
     class TMpiManager {
     public:
-
-        class TMpiRequest  : public TMoveOnly {
+        class TMpiRequest: public TMoveOnly {
         public:
-
             bool IsComplete() const {
                 Y_ASSERT(Flag != -1);
                 CB_ENSURE(Flag != -1);
@@ -107,7 +99,6 @@ namespace NCudaLib {
             }
 
             TMpiRequest() {
-
             }
 
             ~TMpiRequest() {
@@ -118,9 +109,9 @@ namespace NCudaLib {
 
         private:
             TMpiRequest(MPI_Request request)
-                    : Flag(0)
-                    , Request(request) {
-
+                : Flag(0)
+                , Request(request)
+            {
             }
 
             void Clear() {
@@ -128,12 +119,12 @@ namespace NCudaLib {
             }
 
             friend TMpiManager;
+
         private:
             mutable int Flag = -1;
             mutable MPI_Request Request;
             mutable MPI_Status Status;
         };
-
 
         void Start(int* argc, char*** argv);
 
@@ -159,7 +150,6 @@ namespace NCudaLib {
             return {request};
         }
 
-
         void Write(const char* data, int dataSize, int destRank, int tag) {
             MPI_SAFE_CALL(MPI_Send(data, dataSize, MPI_CHAR, destRank, tag, Communicator));
         }
@@ -167,7 +157,7 @@ namespace NCudaLib {
         void ReadAsync(char* data, ui64 dataSize,
                        int sourceRank, int tag,
                        TVector<TMpiRequest>* requests) {
-            const ui64 blockSize = (int) Min<ui64>(dataSize, 1 << 30);
+            const ui64 blockSize = (int)Min<ui64>(dataSize, 1 << 30);
             ReadAsync(data, dataSize, blockSize, sourceRank, tag, requests);
         }
 
@@ -175,7 +165,6 @@ namespace NCudaLib {
         void ReadAsync(char* data, ui64 dataSize, ui64 blockSize,
                        int sourceRank, int tag,
                        TVector<TMpiRequest>* requests) {
-
             for (ui64 offset = 0; offset < dataSize; offset += blockSize) {
                 const auto size = static_cast<const int>(Min<ui64>(blockSize, dataSize - offset));
                 requests->push_back(ReadAsync(data + offset, size, sourceRank, tag));
@@ -183,7 +172,7 @@ namespace NCudaLib {
         }
 
         void WriteAsync(const char* data, ui64 dataSize, int destRank, int tag, TVector<TMpiRequest>* requests) {
-            const ui64 blockSize = (int) Min<ui64>(dataSize, 1 << 30);
+            const ui64 blockSize = (int)Min<ui64>(dataSize, 1 << 30);
             WriteAsync(data, dataSize, blockSize, destRank, tag, requests);
         }
 
@@ -240,7 +229,7 @@ namespace NCudaLib {
         }
 
         TMpiRequest ReceiveBufferAsync(int rank, int tag, TBuffer* dst) {
-           return ReadAsync(dst->Data(), static_cast<int>(dst->Size()), rank, tag);
+            return ReadAsync(dst->Data(), static_cast<int>(dst->Size()), rank, tag);
         }
 
         template <class T>
@@ -286,7 +275,7 @@ namespace NCudaLib {
             return HostId;
         }
 
-        static constexpr int GetMasterId()  {
+        static constexpr int GetMasterId() {
             return 0;
         }
 
@@ -320,7 +309,6 @@ namespace NCudaLib {
         }
 
     private:
-
         MPI_Comm Communicator;
         int HostCount;
         int HostId;
@@ -336,9 +324,7 @@ namespace NCudaLib {
         ui64 MinCompressSize = 10000;
 
         TVector<char> CommandsBuffer;
-
     };
-
 
     static inline TMpiManager& GetMpiManager() {
         auto& manager = *Singleton<TMpiManager>();
@@ -351,16 +337,15 @@ namespace NCudaLib {
 #endif
 
 namespace NCudaLib {
-
     inline int GetHostId() {
-        #if defined(USE_MPI)
-            return GetMpiManager().GetHostId();
-        #else
-            return 0;
-        #endif
+#if defined(USE_MPI)
+        return GetMpiManager().GetHostId();
+#else
+        return 0;
+#endif
     }
 
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     inline bool AreRequestsComplete(const TVector<TMpiRequest>& MpiRequests) {
         for (const auto& request : MpiRequests) {
             if (!request.IsComplete()) {
@@ -369,7 +354,6 @@ namespace NCudaLib {
         }
         return true;
     }
-    #endif
-
+#endif
 
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/cuda_events_provider.h>
 #include <util/system/spinlock.h>
@@ -11,7 +10,6 @@
  * CudaStreams are only device-local, but we need also host-local streams
  */
 namespace NCudaLib {
-
     struct TStreamSectionConfig {
         ui64 StreamSectionUid = -1;
         ui64 StreamSectionSize = 0;
@@ -20,10 +18,9 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(StreamSectionUid, StreamSectionSize, LocalOnly);
     };
 
-
     class TStreamSectionProvider {
     private:
-        struct TStreamSectionState : public TNonCopyable {
+        struct TStreamSectionState: public TNonCopyable {
             ui32 Created = 0;
             ui32 Destroyed = 0;
             ui32 Size = 0;
@@ -31,10 +28,10 @@ namespace NCudaLib {
             TAtomic NotReadyToLeave = 0;
 
             explicit TStreamSectionState(ui64 size)
-                    : Size(size)
-                    , NotReadyToEnter(size)
-                    , NotReadyToLeave(size) {
-
+                : Size(size)
+                , NotReadyToEnter(size)
+                , NotReadyToLeave(size)
+            {
             }
         };
 
@@ -43,7 +40,7 @@ namespace NCudaLib {
         TAtomic Counter = 0;
 
         void Leave(ui64 handle) {
-            with_lock(Lock) {
+            with_lock (Lock) {
                 Y_ASSERT(Current.has(handle));
 
                 auto& state = Current[handle];
@@ -57,10 +54,8 @@ namespace NCudaLib {
         }
 
     public:
-
-        class TStreamSection : public TNonCopyable {
+        class TStreamSection: public TNonCopyable {
         public:
-
             bool TryEnter() {
                 if (State == EState::Entered) {
                     return NotReadyToEnter == 0;
@@ -106,7 +101,6 @@ namespace NCudaLib {
 
             ~TStreamSection() {
                 Provider.Leave(Handle);
-
             }
 
         private:
@@ -117,12 +111,12 @@ namespace NCudaLib {
                            TAtomic& leaved,
                            const TCudaStream& owner,
                            TStreamSectionProvider& provider)
-                    : Handle(handle)
-                    , NotReadyToEnter(entered)
-                    , NotReadyToLeave(leaved)
-                    , Owner(owner)
-                    , Provider(provider) {
-
+                : Handle(handle)
+                , NotReadyToEnter(entered)
+                , NotReadyToLeave(leaved)
+                , Owner(owner)
+                , Provider(provider)
+            {
             }
 
         private:
@@ -133,7 +127,6 @@ namespace NCudaLib {
                 Leaving,
                 Left
             } State = EState::Uninitialized;
-
 
             ui64 Handle;
             TAtomic& NotReadyToEnter;
@@ -152,7 +145,7 @@ namespace NCudaLib {
                                        ui64 size,
                                        const TCudaStream& stream) {
             TStreamSectionState* state;
-            with_lock(Lock) {
+            with_lock (Lock) {
                 if (!Current.has(handle)) {
                     Current[handle] = MakeHolder<TStreamSectionState>(size);
                     Current[handle]->Created = 1;
@@ -168,7 +161,6 @@ namespace NCudaLib {
                                       stream,
                                       *this);
         }
-
 
         ui64 NextUid() {
             return static_cast<ui64>(AtomicIncrement(Counter));
