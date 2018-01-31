@@ -757,9 +757,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Classes weights. The values are used as multipliers for the object weights.
 #'
-#'       Classes are indexed from 0 to classes count – 1. For example, in case of binary classification the classes are indexed 0 and 1.
-#'
-#'       For examples:
+#'       For example, for 3 class classification you could use:
 #'
 #'       \code{c(0.85, 1.2, 1)}
 #'
