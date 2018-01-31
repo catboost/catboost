@@ -157,8 +157,8 @@ inline void BinarizeFeatures(
 
 using TCalcerIndexType = ui32;
 
-using TTreeCalcFunction = std::function<void(const TFullModel& model,
-    size_t blockStart,
+using TTreeCalcFunction = std::function<void(
+    const TFullModel& model,
     const ui8* __restrict binFeatures,
     size_t docCountInBlock,
     TCalcerIndexType* __restrict indexesVec,
@@ -174,7 +174,7 @@ void CalcIndexes(
     const ui32* __restrict treeSplitsCurPtr,
     int curTreeSize);
 
-TTreeCalcFunction GetCalcTreesFunction(int approxDimension, size_t docCountInBlock, bool hasOneHots);
+TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock);
 
 template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
@@ -189,7 +189,7 @@ inline void CalcGeneric(
     size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
     blockSize = Min(blockSize, docCount);
     TVector<ui8> binFeatures(blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount());
-    auto calcTrees = GetCalcTreesFunction(model.ObliviousTrees.ApproxDimension, blockSize, !model.ObliviousTrees.OneHotFeatures.empty());
+    auto calcTrees = GetCalcTreesFunction(model, blockSize);
     if (docCount == 1) {
         CB_ENSURE((int)results.size() == model.ObliviousTrees.ApproxDimension);
         std::fill(results.begin(), results.end(), 0.0);
@@ -207,7 +207,6 @@ inline void CalcGeneric(
         );
         calcTrees(
                 model,
-                0,
                 binFeatures.data(),
                 1,
                 nullptr,
@@ -237,13 +236,12 @@ inline void CalcGeneric(
         );
         calcTrees(
             model,
-            blockStart,
             binFeatures.data(),
             docCountInBlock,
             indexesVec.data(),
             treeStart,
             treeEnd,
-            results.data()
+            results.data() + blockStart * model.ObliviousTrees.ApproxDimension
         );
     }
 }
@@ -264,11 +262,7 @@ public:
             , DocCount(docCount) {
         size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
         BlockSize = Min(blockSize, docCount);
-        CalcFunction = GetCalcTreesFunction(
-                Model.ObliviousTrees.ApproxDimension,
-                BlockSize,
-                !Model.ObliviousTrees.OneHotFeatures.empty()
-        );
+        CalcFunction = GetCalcTreesFunction(Model, BlockSize);
         TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
         TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
         {
@@ -318,7 +312,7 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
     TVector<double> tmpResult(docCount);
     TArrayRef<double> tmpResultRef(tmpResult);
-    auto calcTrees = GetCalcTreesFunction(model.ObliviousTrees.ApproxDimension, blockSize, !model.ObliviousTrees.OneHotFeatures.empty());
+    auto calcTrees = GetCalcTreesFunction(model, blockSize);
     for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const auto docCountInBlock = Min(blockSize, docCount - blockStart);
         BinarizeFeatures(
@@ -334,13 +328,12 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
         for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
             calcTrees(
                 model,
-                blockStart,
                 binFeatures.data(),
                 docCountInBlock,
                 indexesVec.data(),
                 stepIdx * incrementStep,
                 Min((stepIdx + 1) * incrementStep, model.ObliviousTrees.TreeSizes.size()),
-                tmpResultRef.data()
+                tmpResultRef.data() + blockStart * model.ObliviousTrees.ApproxDimension
             );
             for (size_t i = 0; i < docCountInBlock; ++i) {
                 results[blockStart + i][stepIdx] = tmpResult[i];
