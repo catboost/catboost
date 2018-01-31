@@ -224,25 +224,12 @@ namespace NCatboostCuda {
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager) {
-        std::promise<TFullModel> resultPromise;
-        std::future<TFullModel> resultFuture = resultPromise.get_future();
-        std::thread thread([&]() {
-            try {
-                SetLogingLevel(trainCatBoostOptions.LoggingLevel);
-                auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
+        SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+        auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
+        auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
+                                                     trainCatBoostOptions.LoggingLevel);
 
-                auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                             trainCatBoostOptions.LoggingLevel);
-                resultPromise.set_value(TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager));
-            } catch (...) {
-                resultPromise.set_exception(std::current_exception());
-            }
-
-        });
-        thread.join();
-        resultFuture.wait();
-
-        return resultFuture.get();
+        return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager);
     }
 
     void TrainModel(const NJson::TJsonValue& params,
