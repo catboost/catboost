@@ -102,12 +102,12 @@ class TestSize(Enum):
             # TestRequirements.Ram: 2,
         },
         Medium: {
-            TestRequirements.Cpu: 2,
+            TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 4,
         },
         Large: {
-            TestRequirements.Cpu: 2,
+            TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 8,
         },
