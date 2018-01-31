@@ -17,6 +17,7 @@ RECURSE(
     train_lib
     ut_helpers
     utils
+    mpi_ut
 )
 
 
