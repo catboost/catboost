@@ -76,13 +76,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\bootstrap.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\compression_helpers_gpu.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\dot_product.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\fill.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\filter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\gpu_random.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\partitions.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\reduce.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\reorder_bins.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\scan.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\segmented_scan.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\segmented_sort.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\sort.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\transform.cpp"/>
@@ -107,6 +111,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-std=c++11" "-gencode" "arch=compute_30,code=compute_30" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_61,code=compute_61" "--ptxas-options=-v" "-c" "$(SolutionDir)../catboost/cuda/cuda_util/kernel/filter.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_util/kernel/filter.cu.o" "-I$(SolutionDir).." "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHsc" "/errorReport:prompt" "/Zc:inline" "/DFAKEID=r3312318" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/D_WIN64" "/DWIN64" "/FD" "/MP" "/Ob0" "/Od" "/D_DEBUG" "/MTd" "/Zi" "/FS" "/DWIN32" "/D_WIN32" "/D_WINDOWS" "/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_NONSTDC_NO_WARNINGS" "/D_USE_MATH_DEFINES" "/D__STDC_CONSTANT_MACROS" "/D__STDC_FORMAT_MACROS" "/D_USING_V110_SDK71_" "/DSSE_ENABLED=1" "/DSSE2_ENABLED=1" "/DSSE3_ENABLED=1" "/D_WIN32_WINNT=0x0601" "/D_MBCS" "-I$(CUDA_PATH)/include" "-D_LIBCPP_VASPRINTF_DEFINED" "-D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_" "/DSTRICT" "/DNOMINMAX" "/DWIN32_LEAN_AND_MEAN"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-std=c++11" "-gencode" "arch=compute_30,code=compute_30" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_61,code=compute_61" "--ptxas-options=-v" "-c" "$(SolutionDir)../catboost/cuda/cuda_util/kernel/operators.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_util/kernel/operators.cu.o" "-I$(SolutionDir).." "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHsc" "/errorReport:prompt" "/Zc:inline" "/DFAKEID=r3312318" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/D_WIN64" "/DWIN64" "/FD" "/MP" "/Ob0" "/Od" "/D_DEBUG" "/MTd" "/Zi" "/FS" "/DWIN32" "/D_WIN32" "/D_WINDOWS" "/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_NONSTDC_NO_WARNINGS" "/D_USE_MATH_DEFINES" "/D__STDC_CONSTANT_MACROS" "/D__STDC_FORMAT_MACROS" "/D_USING_V110_SDK71_" "/DSSE_ENABLED=1" "/DSSE2_ENABLED=1" "/DSSE3_ENABLED=1" "/D_WIN32_WINNT=0x0601" "/D_MBCS" "-I$(CUDA_PATH)/include" "-D_LIBCPP_VASPRINTF_DEFINED" "-D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_" "/DSTRICT" "/DNOMINMAX" "/DWIN32_LEAN_AND_MEAN"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
 if %errorlevel% neq 0 goto :cmEnd
@@ -189,6 +197,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-std=c++11" "-gencode" "arch=compute_30,code=compute_30" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_61,code=compute_61" "--ptxas-options=-v" "-c" "$(SolutionDir)../catboost/cuda/cuda_util/kernel/operators.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_util/kernel/operators.cu.o" "-I$(SolutionDir).." "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHsc" "/errorReport:prompt" "/Zc:inline" "/DFAKEID=r3312318" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/D_WIN64" "/DWIN64" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" "/DNDEBUG" "/MT" "/Zi" "/FS" "/DWIN32" "/D_WIN32" "/D_WINDOWS" "/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_NONSTDC_NO_WARNINGS" "/D_USE_MATH_DEFINES" "/D__STDC_CONSTANT_MACROS" "/D__STDC_FORMAT_MACROS" "/D_USING_V110_SDK71_" "/DSSE_ENABLED=1" "/DSSE2_ENABLED=1" "/DSSE3_ENABLED=1" "/D_WIN32_WINNT=0x0601" "/D_MBCS" "-I$(CUDA_PATH)/include" "-D_LIBCPP_VASPRINTF_DEFINED" "-D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_" "/DSTRICT" "/DNOMINMAX" "/DWIN32_LEAN_AND_MEAN"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-std=c++11" "-gencode" "arch=compute_30,code=compute_30" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_60,code=sm_60" "-gencode" "arch=compute_61,code=compute_61" "--ptxas-options=-v" "-c" "$(SolutionDir)../catboost/cuda/cuda_util/kernel/partitions.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_util/kernel/partitions.cu.o" "-I$(SolutionDir).." "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHsc" "/errorReport:prompt" "/Zc:inline" "/DFAKEID=r3312318" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/D_WIN64" "/DWIN64" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" "/DNDEBUG" "/MT" "/Zi" "/FS" "/DWIN32" "/D_WIN32" "/D_WINDOWS" "/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_NONSTDC_NO_WARNINGS" "/D_USE_MATH_DEFINES" "/D__STDC_CONSTANT_MACROS" "/D__STDC_FORMAT_MACROS" "/D_USING_V110_SDK71_" "/DSSE_ENABLED=1" "/DSSE2_ENABLED=1" "/DSSE3_ENABLED=1" "/D_WIN32_WINNT=0x0601" "/D_MBCS" "-I$(CUDA_PATH)/include" "-D_LIBCPP_VASPRINTF_DEFINED" "-D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_" "/DSTRICT" "/DNOMINMAX" "/DWIN32_LEAN_AND_MEAN"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_util
@@ -245,15 +257,16 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/cuda/cuda_util/kernel/bootstrap.cu.o	$B/catboost/cuda/cuda_util/kernel/compression.cu.o	$B/catboost/cuda/cuda_util/kernel/dot_product.cu.o	$B/catboost/cuda/cuda_util/kernel/fill.cu.o	$B/catboost/cuda/cuda_util/kernel/filter.cu.o	$B/catboost/cuda/cuda_util/kernel/partitions.cu.o	$B/catboost/cuda/cuda_util/kernel/random.cu.o	$B/catboost/cuda/cuda_util/kernel/reduce.cu.o	$B/catboost/cuda/cuda_util/kernel/scan.cu.o	$B/catboost/cuda/cuda_util/kernel/segmented_scan.cu.o	$B/catboost/cuda/cuda_util/kernel/segmented_sort.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_uchar.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_ui16.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_ui32.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_uchar.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_ui16.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_ui32.cu.o	$B/catboost/cuda/cuda_util/kernel/transform.cu.o	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\bootstrap.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\compression.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\dot_product.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\fill.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\filter.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\partitions.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\random.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\reduce.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\scan.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\segmented_scan.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\segmented_sort.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_uchar.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_ui16.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_ui32.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_uchar.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_ui16.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_ui32.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\transform.cu;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\bootstrap.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\compression.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\dot_product.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\fill.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\filter.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\partitions.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\random.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\reduce.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\scan.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\segmented_scan.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\segmented_sort.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_uchar.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_ui16.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_ui32.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_uchar.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_ui16.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_ui32.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\transform.cu.o;</Outputs>
+      <Message>$B/catboost/cuda/cuda_util/kernel/bootstrap.cu.o	$B/catboost/cuda/cuda_util/kernel/compression.cu.o	$B/catboost/cuda/cuda_util/kernel/dot_product.cu.o	$B/catboost/cuda/cuda_util/kernel/fill.cu.o	$B/catboost/cuda/cuda_util/kernel/filter.cu.o	$B/catboost/cuda/cuda_util/kernel/operators.cu.o	$B/catboost/cuda/cuda_util/kernel/partitions.cu.o	$B/catboost/cuda/cuda_util/kernel/random.cu.o	$B/catboost/cuda/cuda_util/kernel/reduce.cu.o	$B/catboost/cuda/cuda_util/kernel/scan.cu.o	$B/catboost/cuda/cuda_util/kernel/segmented_scan.cu.o	$B/catboost/cuda/cuda_util/kernel/segmented_sort.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_uchar.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_ui16.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/float_ui32.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_uchar.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_ui16.cu.o	$B/catboost/cuda/cuda_util/kernel/sort/ui32_ui32.cu.o	$B/catboost/cuda/cuda_util/kernel/transform.cu.o	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\bootstrap.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\compression.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\dot_product.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\fill.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\filter.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\operators.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\partitions.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\random.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\reduce.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\scan.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\segmented_scan.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\segmented_sort.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_uchar.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_ui16.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\float_ui32.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_uchar.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_ui16.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\sort\ui32_ui32.cu;$(SolutionDir)..\catboost\cuda\cuda_util\kernel\transform.cu;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\bootstrap.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\compression.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\dot_product.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\fill.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\filter.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\operators.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\partitions.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\random.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\reduce.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\scan.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\segmented_scan.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\segmented_sort.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_uchar.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_ui16.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\float_ui32.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_uchar.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_ui16.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\sort\ui32_ui32.cu.o;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\transform.cu.o;</Outputs>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\bootstrap.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\compression.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\dot_product.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\fill.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\filter.cu.o"/>
+    <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\operators.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\partitions.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\random.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\cuda_util\kernel\reduce.cu.o"/>
@@ -341,6 +354,21 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
     </ProjectReference>
@@ -350,14 +378,26 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>9CDB08FB-219D-3356-E006-1AC8AECC636E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
       <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
       <Project>57275066-CBBF-3FD5-137B-685E648981E5</Project>
