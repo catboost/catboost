@@ -204,8 +204,8 @@ namespace NCudaLib {
         }
 
         void DeleteObjects() {
-            for (ui32 i = ObjectsToFree.size(); i > 0; --i) {
-                ObjectsToFree[i - 1]->Exec();
+            for (auto& freeTask : ObjectsToFree) {
+                freeTask->Exec();
             }
             ObjectsToFree.resize(0);
         }
@@ -273,9 +273,9 @@ namespace NCudaLib {
         }
 
     private:
-        inline void WaitSubmitAndSync() {
+        inline void WaitSubmitAndSync(bool skipDefault = false) {
             WaitAllTaskToSubmit();
-            SyncActiveStreams();
+            SyncActiveStreams(skipDefault);
             DeleteObjects();
         }
 
@@ -308,9 +308,6 @@ namespace NCudaLib {
                 }
                 gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }
-
-            CB_ENSURE(gpuMemorySize);
-            CB_ENSURE(initTask.PinnedMemorySize);
 
             DeviceMemoryProvider = gpuMemorySize ? MakeHolder<TDeviceMemoryProvider>(gpuMemorySize) : nullptr;
             HostMemoryProvider = initTask.PinnedMemorySize ? MakeHolder<THostMemoryProvider>(initTask.PinnedMemorySize) : nullptr;

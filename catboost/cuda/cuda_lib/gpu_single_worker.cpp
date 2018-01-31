@@ -47,13 +47,10 @@ namespace NCudaLib {
             const bool hasRunning = CheckRunningTasks();
             const bool isEmpty = InputTaskQueue.IsEmpty();
 
-            if (TempMemoryAllocatedObjects.size()) {
-                for (auto& freeTask : TempMemoryAllocatedObjects) {
-                    ObjectsToFree.push_back(std::move(freeTask));
-                }
-                TempMemoryAllocatedObjects.clear();
+            while (TempMemoryAllocatedObjects.size()) {
+                ObjectsToFree.push_back(std::move(TempMemoryAllocatedObjects.back()));
+                TempMemoryAllocatedObjects.pop_back();
             }
-
 
             if (!hasRunning && isEmpty) {
                 InputTaskQueue.Wait(TInstant::Seconds(1));
@@ -78,6 +75,10 @@ namespace NCudaLib {
                         if (streamId == 0) {
                             WaitAllTaskToSubmit();
                             SyncActiveStreams(true);
+                            if (ObjectsToFree.size()) {
+                                DeleteObjects();
+                                SyncStream(0);
+                            }
                         }
                         auto& stream = *Streams[streamId];
                         THolder<NKernel::IKernelContext> data;
@@ -87,7 +88,7 @@ namespace NCudaLib {
                         stream.AddTask(THolder<IGpuKernelTask>(kernelTask), std::move(data));
                         break;
                     }
-                        //synchronized on memory defragmentation
+                    //synchronized on memory defragmentation
                     case EComandType::MemoryAllocation: {
                         IAllocateMemoryTask* memoryTask = reinterpret_cast<IAllocateMemoryTask*>(task.Get());
                         AllocateMemory(*memoryTask);
@@ -104,7 +105,6 @@ namespace NCudaLib {
                         WaitAllTaskToSubmit();
                         break;
                     }
-                        //synchronized always
                     case EComandType::HostTask: {
                         auto taskPtr = reinterpret_cast<IHostTask*>(task.Get());
                         auto type = taskPtr->GetHostTaskType();
