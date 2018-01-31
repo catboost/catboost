@@ -1083,7 +1083,11 @@ class CatBoost(_CatBoostBase):
         result : dict
             Dictionary of {param_key: param_value}.
         """
-        return self._get_init_params()
+        params = self._get_init_params()
+        if deep:
+            return deepcopy(params)
+        else:
+            return params
 
     def set_params(self, **params):
         """
