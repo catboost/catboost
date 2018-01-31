@@ -345,7 +345,10 @@ namespace NKernel
 
        if (USE_64_BIT_LOAD)
        {
-           #if __CUDA_ARCH__ <= 350
+           #if __CUDA_ARCH__ < 300
+           const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 4 : 2;
+           const int OUTER_UNROLL = 2;
+           #elif __CUDA_ARCH__ <= 350
            const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 8 : 4;
            const int OUTER_UNROLL = 2;
            #else
@@ -361,7 +364,10 @@ namespace NKernel
                                                                                                        smem);
        }
        else {
-           #if __CUDA_ARCH__ <= 350
+           #if __CUDA_ARCH__ < 300
+           const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 4 : 2;
+           const int OUTER_UNROLL = 2;
+           #elif __CUDA_ARCH__ <= 350
            const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 8 : 4;
            const int OUTER_UNROLL = 2;
            #else
@@ -592,11 +598,14 @@ namespace NKernel
                 const int OUTER_UNROLL = 1;
                 #else
                 const int INNER_UNROLL = 1;
-                const int OUTER_UNROLL = 2;
+                const int OUTER_UNROLL = 1;
                 #endif
                 ComputeHistogram2 < BLOCK_SIZE, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
             } else {
-                #if __CUDA_ARCH__ <= 350
+                #if __CUDA_ARCH__ <= 300
+                const int INNER_UNROLL = 2;
+                const int OUTER_UNROLL = 1;
+                #elif __CUDA_ARCH__ <= 350
                 const int INNER_UNROLL = 4;
                 const int OUTER_UNROLL = 1;
                 #else
@@ -876,12 +885,14 @@ namespace NKernel
             const int OUTER_UNROLL = 2;
             #else
             const int INNER_UNROLL = 1;
-            const int OUTER_UNROLL = 2;
+            const int OUTER_UNROLL = 1;
             #endif
             ComputeHistogram2 < BLOCK_SIZE, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, smem);
         } else {
-
-            #if __CUDA_ARCH__ <= 350
+            #if __CUDA_ARCH__ <= 300
+            const int INNER_UNROLL = 2;
+            const int OUTER_UNROLL = 2;
+            #elif __CUDA_ARCH__ <= 350
             const int INNER_UNROLL = 4;
             const int OUTER_UNROLL = 2;
             #else
