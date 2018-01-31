@@ -84,6 +84,21 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\ctrs\ctrs.vcxproj">
+      <Project>D284925A-99A9-4C7A-1D49-C64B9206F6C7</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\cuda_lib\cuda_lib.vcxproj">
+      <Project>706CA58F-ED29-2373-CCBC-9463F671F456</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\cuda_util\cuda_util.vcxproj">
+      <Project>A25CF97D-B55F-57EB-2BC3-FDA1EC3ADADF</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\gpu_data\gpu_data.vcxproj">
+      <Project>D94E9327-1667-6D4A-232F-CEF362262A2B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\methods\methods.vcxproj">
+      <Project>2335A927-8D1F-0395-59E1-489790E4193B</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\targets.vcxproj">
       <Project>59D63632-46B4-5714-3BC2-5664B8ADDC73</Project>
     </ProjectReference>
