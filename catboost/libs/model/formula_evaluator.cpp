@@ -255,7 +255,7 @@ Y_FORCE_INLINE void CalculateLeafValues4(
         indexesPtr3 += 4;
     }
     for (size_t docId = docCountInBlock4; docId < docCountInBlock; ++docId) {
-        *writePtr += (treeLeafPtr0[*indexesPtr0] + treeLeafPtr1[*indexesPtr1] + treeLeafPtr2[*indexesPtr2] + treeLeafPtr3[*indexesPtr3]);
+        *writePtr = *writePtr + treeLeafPtr0[*indexesPtr0] + treeLeafPtr1[*indexesPtr1] + treeLeafPtr2[*indexesPtr2] + treeLeafPtr3[*indexesPtr3];
         ++writePtr;
         ++indexesPtr0;
         ++indexesPtr1;

@@ -123,6 +123,7 @@ inline void BinarizeFeatures(
 ) {
     const auto docCount = end - start;
     ui8* resultPtr = result.data();
+    std::fill(result.begin(), result.end(), 0);
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
         BinarizeFloats(docCount, [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); }, floatFeature.Borders, start, resultPtr);
     }
