@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{C53C760B-C776-E621-0BA2-EEDD8942A0E6}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>ragel6</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>ragel6</TargetName>
+    <TargetExtention>.exe</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\tools\ragel6\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C53C760B-C776-E621-0BA2-EEDD8942A0E6\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3312318 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3312318 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/tools/ragel5/aapl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src2.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src4.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src5.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\ragel6\rlscan.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/tools/ragel6/all_src1.cpp	$B/contrib/tools/ragel6/all_src2.cpp	$B/contrib/tools/ragel6/all_src3.cpp	$B/contrib/tools/ragel6/all_src4.cpp	$B/contrib/tools/ragel6/all_src5.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\contrib\tools\ragel6\rubycodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\rubytable.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdfflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\common.cpp;$(SolutionDir)..\contrib\tools\ragel6\csflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\cssplit.cpp;$(SolutionDir)..\contrib\tools\ragel6\parsedata.cpp;$(SolutionDir)..\contrib\tools\ragel6\rlparse.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdsplit.cpp;$(SolutionDir)..\contrib\tools\ragel6\csgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmstate.cpp;$(SolutionDir)..\contrib\tools\ragel6\main.cpp;$(SolutionDir)..\contrib\tools\ragel6\xmlcodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdcodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdftable.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdtable.cpp;$(SolutionDir)..\contrib\tools\ragel6\csfgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\csipgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmap.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmmin.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmattach.cpp;$(SolutionDir)..\contrib\tools\ragel6\csfflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\rubyflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\rubyfflat.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdfgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\cdipgoto.cpp;$(SolutionDir)..\contrib\tools\ragel6\cscodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\csftable.cpp;$(SolutionDir)..\contrib\tools\ragel6\cstable.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmbase.cpp;$(SolutionDir)..\contrib\tools\ragel6\gendata.cpp;$(SolutionDir)..\contrib\tools\ragel6\rubyftable.cpp;$(SolutionDir)..\contrib\tools\ragel6\dotcodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\fsmgraph.cpp;$(SolutionDir)..\contrib\tools\ragel6\inputdata.cpp;$(SolutionDir)..\contrib\tools\ragel6\parsetree.cpp;$(SolutionDir)..\contrib\tools\ragel6\redfsm.cpp;$(SolutionDir)..\contrib\tools\ragel6\javacodegen.cpp;$(SolutionDir)..\contrib\tools\ragel6\rbxgoto.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src1.cpp;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src2.cpp;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src3.cpp;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src4.cpp;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\all_src5.cpp;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdcodegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdfflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdfgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdftable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdipgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdsplit.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cdtable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cscodegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csfflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csfgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csftable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\csipgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cssplit.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\cstable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\dotcodegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\fsmgraph.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\gendata.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\inputdata.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\javacodegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\parsedata.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\parsetree.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\pcheck.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\ragel.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rbxgoto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\redfsm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rlparse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rlscan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rubycodegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rubyfflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rubyflat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rubyftable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\rubytable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\version.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel6\xmlcodegen.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel5\aapl\tools-ragel5-aapl.vcxproj">
+      <Project>1305930F-BAF5-B7CA-F748-A1A62BE68A67</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
+      <Project>32459880-AE0E-8CCD-4A48-44F805C4FC9B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
+      <Project>B5163097-6C21-9F9C-985E-1E21018EDE5E</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
