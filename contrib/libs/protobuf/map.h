@@ -527,13 +527,13 @@ class Map {
   typedef size_t size_type;
   typedef hash<Key> hasher;
 
-  explicit Map(bool old_style = true)
+  explicit Map(bool old_style = false)
       : arena_(NULL),
         default_enum_value_(0),
         old_style_(old_style) {
     Init();
   }
-  explicit Map(Arena* arena, bool old_style = true)
+  explicit Map(Arena* arena, bool old_style = false)
       : arena_(arena),
         default_enum_value_(0),
         old_style_(old_style) {
@@ -547,7 +547,7 @@ class Map {
     insert(other.begin(), other.end());
   }
   template <class InputIt>
-  Map(const InputIt& first, const InputIt& last, bool old_style = true)
+  Map(const InputIt& first, const InputIt& last, bool old_style = false)
       : arena_(NULL),
         default_enum_value_(0),
         old_style_(old_style) {
