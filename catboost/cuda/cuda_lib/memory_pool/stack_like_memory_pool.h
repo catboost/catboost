@@ -18,6 +18,7 @@ namespace NCudaLib {
         static constexpr ui32 MEMORY_ALIGMENT_BYTES = 256;
         static constexpr double MB = 1024.0 * 1024.0;
         static constexpr ui64 MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION = (const ui64)(16 * MB);
+        static constexpr ui64 MEMORY_REQUEST_ADJUSTMENT = MEMORY_ALIGMENT_BYTES * 32;
 
         struct TAllocatedBlock: public TSimpleRefCount<TAllocatedBlock>, public TNonCopyable {
             char* Ptr;
@@ -280,15 +281,16 @@ namespace NCudaLib {
 
             TIntrusivePtr<TAllocatedBlock> block = nullptr;
 
-            if (FirstFreeBlock->Size >= requestedBlockSize) {
+            if (FirstFreeBlock->Size >= requestedBlockSize && (FirstFreeBlock != LastBlock)) {
                 Y_ASSERT(FirstFreeBlock->IsFree);
                 block = SplitFreeBlock(FirstFreeBlock, requestedBlockSize);
             } else {
-                const bool needDefragment = (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION));
+                const ui64 adjustedMemoryRequestSize = (requestedBlockSize + MEMORY_REQUEST_ADJUSTMENT);
+                const bool needDefragment = (LastBlock->Size < adjustedMemoryRequestSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION));
                 if (needDefragment) {
                     TryDefragment();
                 }
-                if (LastBlock->Size < requestedBlockSize) {
+                if (LastBlock->Size  < adjustedMemoryRequestSize) {
                     ythrow TOutOfMemoryError() << "Error: Out of memory. Requested " << requestedBlockSize / MB << "; Free "
                                                << (LastBlock->Size) / MB;
                 }
@@ -330,8 +332,9 @@ namespace NCudaLib {
 
         template <class T>
         bool NeedSyncForAllocation(ui64 size) const {
-            const ui64 requestedBlockSize = GetBlockSize<T>(size);
-            return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && (FirstFreeBlock->Size < requestedBlockSize);
+            const ui64 requestedBlockSize = GetBlockSize<T>(size) + MEMORY_REQUEST_ADJUSTMENT;
+            const bool canUseFirstFreeBlock = FirstFreeBlock != LastBlock && (FirstFreeBlock->Size < requestedBlockSize);
+            return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && !canUseFirstFreeBlock;
         }
     };
 }

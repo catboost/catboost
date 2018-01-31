@@ -154,6 +154,7 @@ namespace NCudaLib {
 
         //objects will be deleted lazily.
         TVector<THolder<IFreeMemoryTask>> ObjectsToFree;
+        TVector<THolder<IFreeMemoryTask>> TempMemoryAllocatedObjects;
 
         //Streams
         TVector<TComputationStreamPtr> Streams;
@@ -203,8 +204,8 @@ namespace NCudaLib {
         }
 
         void DeleteObjects() {
-            for (auto& task : ObjectsToFree) {
-                task->Exec();
+            for (ui32 i = ObjectsToFree.size(); i > 0; --i) {
+                ObjectsToFree[i - 1]->Exec();
             }
             ObjectsToFree.resize(0);
         }
@@ -266,6 +267,7 @@ namespace NCudaLib {
                 }
                 case EPtrType::Host: {
                     storage.SetObjectPtrByHandle(handle, new char[mallocTask.GetSize()]);
+                    break;
                 }
             }
         }
@@ -274,6 +276,7 @@ namespace NCudaLib {
         inline void WaitSubmitAndSync() {
             WaitAllTaskToSubmit();
             SyncActiveStreams();
+            DeleteObjects();
         }
 
         void CreateNewComputationStream() {
@@ -305,6 +308,9 @@ namespace NCudaLib {
                 }
                 gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }
+
+            CB_ENSURE(gpuMemorySize);
+            CB_ENSURE(initTask.PinnedMemorySize);
 
             DeviceMemoryProvider = gpuMemorySize ? MakeHolder<TDeviceMemoryProvider>(gpuMemorySize) : nullptr;
             HostMemoryProvider = initTask.PinnedMemorySize ? MakeHolder<THostMemoryProvider>(initTask.PinnedMemorySize) : nullptr;

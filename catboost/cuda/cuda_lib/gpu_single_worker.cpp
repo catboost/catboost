@@ -10,7 +10,7 @@ namespace NCudaLib {
                 Y_ASSERT(HostMemoryProvider);
                 TCudaMallocTask<EPtrType::CudaHost> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
-                ObjectsToFree.push_back(std::move(cmd));
+                TempMemoryAllocatedObjects.push_back(std::move(cmd));
                 AllocateMemory(task);
                 return;
             }
@@ -18,10 +18,10 @@ namespace NCudaLib {
                 using TRawPtr = typename TMemoryProviderImplTrait<EPtrType::CudaDevice>::TRawFreeMemory;
                 using TCmd = TResetPointerCommand<TRawPtr, true>;
 
-                Y_ASSERT(HostMemoryProvider);
+                Y_ASSERT(DeviceMemoryProvider);
                 TCudaMallocTask<EPtrType::CudaDevice> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
-                ObjectsToFree.push_back(std::move(cmd));
+                TempMemoryAllocatedObjects.push_back(std::move(cmd));
                 AllocateMemory(task);
                 return;
             }
@@ -31,7 +31,7 @@ namespace NCudaLib {
 
                 TCudaMallocTask<EPtrType::Host> task(handle, size);
                 auto cmd = MakeHolder<TCmd>(handle);
-                ObjectsToFree.push_back(std::move(cmd));
+                TempMemoryAllocatedObjects.push_back(std::move(cmd));
                 AllocateMemory(task);
                 return;
             }
@@ -46,6 +46,14 @@ namespace NCudaLib {
         try {
             const bool hasRunning = CheckRunningTasks();
             const bool isEmpty = InputTaskQueue.IsEmpty();
+
+            if (TempMemoryAllocatedObjects.size()) {
+                for (auto& freeTask : TempMemoryAllocatedObjects) {
+                    ObjectsToFree.push_back(std::move(freeTask));
+                }
+                TempMemoryAllocatedObjects.clear();
+            }
+
 
             if (!hasRunning && isEmpty) {
                 InputTaskQueue.Wait(TInstant::Seconds(1));
@@ -73,13 +81,7 @@ namespace NCudaLib {
                         }
                         auto& stream = *Streams[streamId];
                         THolder<NKernel::IKernelContext> data;
-                        try {
-                            data = kernelTask->PrepareExec(TempMemoryManager);
-                        } catch (TOutOfMemoryError& err) {
-                            WaitSubmitAndSync();
-                            DeleteObjects();
-                            data = kernelTask->PrepareExec(TempMemoryManager);
-                        }
+                        data = kernelTask->PrepareExec(TempMemoryManager);
                         task.Release();
 
                         stream.AddTask(THolder<IGpuKernelTask>(kernelTask), std::move(data));
@@ -92,11 +94,10 @@ namespace NCudaLib {
                         break;
                     }
                     case EComandType::MemoryDeallocation: {
-                        WaitSubmitAndSync();
                         IFreeMemoryTask* freeMemoryTask = reinterpret_cast<IFreeMemoryTask*>(task.Get());
                         task.Release();
                         ObjectsToFree.push_back(THolder<IFreeMemoryTask>(freeMemoryTask));
-                        DeleteObjects();
+                        WaitSubmitAndSync();
                         break;
                     }
                     case EComandType::WaitSubmit: {
@@ -109,7 +110,6 @@ namespace NCudaLib {
                         auto type = taskPtr->GetHostTaskType();
                         if (IsBlockingHostTask(type)) {
                             WaitSubmitAndSync();
-                            DeleteObjects();
                         }
                         taskPtr->Exec(*this);
                         break;

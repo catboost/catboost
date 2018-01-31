@@ -97,8 +97,10 @@ namespace NCudaLib {
                 State.IsRemoteCopyComplete = false;
                 const ui64 size = Min<ui64>(Size, State.BlockSize);
 
-                State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(), sizeof(T) * State.ReservedSize,
-                                                               RemoteHost, Tag);
+                State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
+                                                               sizeof(T) * State.ReservedSize,
+                                                               RemoteHost,
+                                                               Tag);
                 State.WorkingBufferSize = size;
                 State.IsFirst = false;
             }
@@ -129,7 +131,9 @@ namespace NCudaLib {
                 if (readOffset < Size) {
                     const ui64 size = Min<ui64>(Size - readOffset, State.BlockSize);
                     State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
-                                                                   sizeof(T) * State.ReservedSize, RemoteHost, Tag);
+                                                                    sizeof(T) * State.ReservedSize,
+                                                                    RemoteHost,
+                                                                    Tag);
                     State.WorkingBufferSize = size;
                 }
 
