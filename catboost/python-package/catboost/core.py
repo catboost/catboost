@@ -528,6 +528,21 @@ class CatBoost(_CatBoostBase):
                     raise CatboostError("Invalid param `{}`.".format(param))
 
     def _process_synonyms(self, params):
+        if 'objective' in params:
+            if 'loss_function' in params:
+                raise CatboostError('only one of parameters loss_function, objective should be initialized.')
+            params['loss_function'] = params['objective']
+            del params['objective']
+
+
+        if 'scale_pos_weight' in params:
+            if 'loss_function' in params and params['loss_function'] != 'Logloss':
+                    raise CatboostError('scale_pos_weight is only supported for binary classification Logloss loss')
+            if 'class_weights' in params:
+                raise CatboostError('only one of parameters scale_pos_weight, class_weights should be initialized.')
+            params['class_weights'] = [1.0, params['scale_pos_weight']]
+            del params['scale_pos_weight']
+
         if 'eta' in params:
             if 'learning_rate' in params:
                 raise CatboostError('only one of parameters learning_rate, eta should be initialised.')
@@ -539,12 +554,6 @@ class CatBoost(_CatBoostBase):
                 raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
             params['learning_rate'] = params['max_bin']
             del params['max_bin']
-
-        if 'objective' in params:
-            if 'loss_function' in params:
-                raise CatboostError('only one of parameters loss_function, objective should be initialized.')
-            params['loss_function'] = params['objective']
-            del params['objective']
 
         if 'max_depth' in params:
             if 'depth' in params:
@@ -1315,6 +1324,10 @@ class CatBoostClassifier(CatBoost):
     eta : float, synonym for learning_rate.
 
     max_bin : float, synonym for border_count.
+
+    scale_pos_weight : float, synonym for class_weights.
+        Can be used only for binary classification. Sets weight multiplier for
+        class 1 to scale_pos_weight value.
     """
     def __init__(
         self,
@@ -1381,6 +1394,7 @@ class CatBoostClassifier(CatBoost):
         objective=None,
         eta=None,
         max_bin=None,
+        scale_pos_weight=None,
         **kwargs
     ):
         if objective is not None:
