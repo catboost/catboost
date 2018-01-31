@@ -202,7 +202,8 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "devices", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "used_ram_limit", &systemOptions, &seenKeys);
         CopyOption(plainOptions, "gpu_ram_part", &systemOptions, &seenKeys);
-        CopyOption(plainOptions, "pinned_memory_size", &systemOptions, &seenKeys);
+        CopyOptionWithNewKey(plainOptions, "pinned_memory_size",
+                             "pinned_memory_bytes", &systemOptions, &seenKeys);
 
 
         //rest
