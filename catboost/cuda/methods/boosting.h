@@ -15,6 +15,7 @@
 #include <util/stream/format.h>
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/helpers/interrupt.h>
 
 namespace NCatboostCuda {
     inline TString GpuProgressLabel() {
@@ -246,6 +247,7 @@ namespace NCatboostCuda {
             }
 
             while (!Stop(iteration)) {
+                CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
                 {
                     {

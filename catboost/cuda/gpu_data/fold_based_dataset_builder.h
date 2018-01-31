@@ -7,6 +7,7 @@
 
 #include <catboost/cuda/ctrs/ctr_calcers.h>
 #include <catboost/cuda/ctrs/ctr.h>
+#include <catboost/libs/helpers/interrupt.h>
 
 namespace NCatboostCuda {
     inline TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
@@ -216,6 +217,7 @@ namespace NCatboostCuda {
                         WriteCatFeature(feature, *LinkedTest, *testBuilderPtr);
                     }
                 }
+                CheckInterrupted(); // check after long-lasting operation
             }
 
             std::sort(ctrs.begin(), ctrs.end(), [&](ui32 left, ui32 right) -> bool {
@@ -227,6 +229,7 @@ namespace NCatboostCuda {
                 for (auto& ctrId : ctrs) {
                     AddCtr(ctrId, learnBuilder, test ? testBuilderPtr.Get() : nullptr);
                 }
+                CheckInterrupted(); // check after long-lasting operation
             }
 
             learn = std::move(learnBuilder.Finish());
