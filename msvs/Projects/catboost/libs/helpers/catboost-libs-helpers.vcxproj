@@ -117,6 +117,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
