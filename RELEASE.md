@@ -1,6 +1,7 @@
 # Release 0.6.1
 ## Bug Fixes and Other Changes
 - Fixed critical bugs in formula evaluation code (issue #236)
+- Added scale_pos_weight parameter
 
 # Release 0.6
 ## Speedups
