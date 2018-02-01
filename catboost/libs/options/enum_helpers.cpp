@@ -1,4 +1,6 @@
 #include "enum_helpers.h"
+#include "loss_description.h"
+
 #include <util/string/cast.h>
 
 bool IsSupportedOnGpu(ELossFunction lossFunction) {
@@ -27,7 +29,8 @@ bool IsClassificationLoss(ELossFunction lossFunction) {
 }
 
 bool IsClassificationLoss(const TString& lossFunction) {
-    return IsClassificationLoss(FromString<ELossFunction>(lossFunction));
+    ELossFunction lossType = ParseLossType(lossFunction);
+    return IsClassificationLoss(lossType);
 }
 
 bool IsMultiClassError(ELossFunction lossFunction) {
