@@ -429,10 +429,7 @@ void swap(TMaybe<T>& lhs, TMaybe<T>& rhs) {
 template <typename T>
 struct THash<TMaybe<T>> {
     constexpr size_t operator()(const TMaybe<T>& data) const {
-        if (data.Defined()) {
-            return THash<T>()(data.GetRef());
-        }
-        return 42;
+        return (data.Defined()) ? THash<T>()(data.GetRef()) : 42;
     }
 };
 
