@@ -50,7 +50,7 @@ namespace NCatboostOptions {
         CB_ENSURE(lossFunctionConfig.GetLossFunction() == ELossFunction::Logloss);
         auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("border")) {
-            return FromString<double>(lossParams.at("border"));
+            return FromString<float>(lossParams.at("border"));
         }
         return 0.5;
     }
@@ -58,7 +58,7 @@ namespace NCatboostOptions {
     inline double GetAlpha(const TLossDescription& lossFunctionConfig) {
         auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("alpha")) {
-            return FromString<double>(lossParams.at("alpha"));
+            return FromString<float>(lossParams.at("alpha"));
         }
         return 0.5;
     }
@@ -69,7 +69,7 @@ inline TString ToString<NCatboostOptions::TLossDescription>(const NCatboostOptio
     TVector<TString> entries;
     entries.push_back(ToString(description.GetLossFunction()));
     for (const auto& param : description.GetLossParams()) {
-        entries.push_back(param.first + "=" + param.second);
+        entries.push_back(param.first + "=" + ToString(param.second));
     }
     return JoinStrings(entries, ",");
 }
@@ -82,7 +82,7 @@ inline ELossFunction ParseLossType(const TString& lossDescription) {
     return customLoss;
 }
 
-inline THashMap<TString, TString> ParseLossParams(const TString& lossDescription) {
+inline TMap<TString, TString> ParseLossParams(const TString& lossDescription) {
     const char* errorMessage = "Invalid metric description, it should be in the form "
                                "\"metric_name:param1=value1;...;paramN=valueN\"";
 
@@ -90,7 +90,7 @@ inline THashMap<TString, TString> ParseLossParams(const TString& lossDescription
     CB_ENSURE(!tokens.empty(), "Metric description should not be empty");
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
-    THashMap<TString, TString> params;
+    TMap<TString, TString> params;
     if (tokens.size() == 2) {
         TVector<TString> paramsTokens = StringSplitter(tokens[1]).Split(';').ToList<TString>();
 
@@ -107,7 +107,7 @@ inline NJson::TJsonValue LossDescriptionToJson(const TString& lossDescription) {
     NJson::TJsonValue descriptionJson(NJson::JSON_MAP);
 
     ELossFunction lossFunction = ParseLossType(lossDescription);
-    THashMap<TString, TString> lossParams = ParseLossParams(lossDescription);
+    TMap<TString, TString> lossParams = ParseLossParams(lossDescription);
     descriptionJson["type"] = ToString<ELossFunction>(lossFunction);
     for (const auto& lossParam : lossParams) {
         descriptionJson["params"][lossParam.first] = lossParam.second;

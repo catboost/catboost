@@ -419,7 +419,7 @@ private:
 class TUserDefinedPerObjectMetric : public TMetric {
 public:
 
-    explicit TUserDefinedPerObjectMetric(const THashMap<TString, float>& params);
+    explicit TUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
 
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
@@ -438,7 +438,7 @@ private:
 
 class TUserDefinedQuerywiseMetric : public TQuerywiseAdditiveMetric {
 public:
-    explicit TUserDefinedQuerywiseMetric(const THashMap<TString, float>& params);
+    explicit TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params);
 
     virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
                                        const TVector<float>& target,
@@ -485,10 +485,6 @@ TVector<THolder<IMetric>> CreateMetrics(
 );
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension);
-
-ELossFunction GetLossType(const TString& lossDescription);
-
-THashMap<TString, float> GetLossParams(const TString& lossDescription);
 
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
 
