@@ -67,7 +67,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
 
     parser->AddLongOption("delimiter", "Learning and training sets delimiter")
         .RequiredArgument("SYMBOL")
-        .Handler1T<TString>([&loadParamsPtr](const TString& oneChar) {
+        .Handler1T<TString>([loadParamsPtr](const TString& oneChar) {
             CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
             loadParamsPtr->Delimiter = oneChar[0];
         });
