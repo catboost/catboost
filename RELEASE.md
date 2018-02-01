@@ -1,3 +1,7 @@
+# Release 0.6.1
+## Bug Fixes and Other Changes
+- Fixed critical bugs in formula evaluation code (issue #236)
+
 # Release 0.6
 ## Speedups
 - 25% speedup of the model applier
