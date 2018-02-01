@@ -1934,7 +1934,9 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     return model
 
 
-def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None, fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None, shuffle=True, logging_level=None, stratified=False):
+def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
+       fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
+       shuffle=True, logging_level=None, stratified=False):
     """
     Cross-validate the CatBoost model.
 
