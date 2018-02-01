@@ -6,6 +6,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/element_range.h>
 #include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
@@ -15,6 +16,105 @@
 #include <limits>
 #include <cmath>
 
+static TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int foldCount) {
+    TVector<std::pair<float, int>> targetWithDoc(target.ysize());
+    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
+        targetWithDoc[i].first = target[i];
+        targetWithDoc[i].second = i;
+    }
+    Sort(targetWithDoc.begin(), targetWithDoc.end());
+
+    TVector<TVector<int>> splittedByTarget;
+    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
+        if (i == 0 || targetWithDoc[i].first != targetWithDoc[i - 1].first) {
+            splittedByTarget.emplace_back();
+        }
+        splittedByTarget.back().push_back(targetWithDoc[i].second);
+    }
+
+    int minLen = target.ysize();
+    for (const auto& part : splittedByTarget) {
+        if (part.ysize() < minLen) {
+            minLen = part.ysize();
+        }
+    }
+    if (minLen < foldCount) {
+        MATRIXNET_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than foldCount=" << foldCount << Endl;
+    }
+    TVector<TVector<size_t>> result(foldCount);
+    for (const auto& part : splittedByTarget) {
+        for (int fold = 0; fold < foldCount; ++fold) {
+            int foldStartIndex, foldEndIndex;
+            InitElementRange(fold, foldCount, part.ysize(), &foldStartIndex, &foldEndIndex);
+            for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
+                result[fold].push_back(part[idx]);
+            }
+        }
+    }
+
+    for (auto& part : result) {
+        CB_ENSURE(!part.empty(), "Not enough documents for cross validataion");
+        Sort(part.begin(), part.end());
+    }
+    return result;
+}
+
+static TVector<TVector<size_t>> Split(size_t docCount, int foldCount) {
+    TVector<TVector<size_t>> result(foldCount);
+    for (int fold = 0; fold < foldCount; ++fold) {
+        int foldStartIndex, foldEndIndex;
+        InitElementRange(fold, foldCount, docCount, &foldStartIndex, &foldEndIndex);
+        CB_ENSURE(foldEndIndex - foldStartIndex > 0, "Not enough documents for cross validataion");
+        result[fold].reserve(foldEndIndex - foldStartIndex);
+        for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
+            result[fold].push_back(idx);
+        }
+    }
+    return result;
+}
+
+static TVector<TVector<size_t>> Split(size_t docCount, const TVector<ui32>& queryId, int foldCount) {
+    TVector<TQueryInfo> queryInfo;
+    UpdateQueriesInfo(queryId, /*begin=*/0, docCount, &queryInfo);
+    TVector<TQueryEndInfo> queryEndInfo = GetQueryEndInfo(queryInfo, docCount);
+
+    TVector<TVector<size_t>> result(foldCount);
+    const size_t foldSize = docCount / foldCount;
+    size_t currentFoldEnd = 0;
+    for (int fold = 0; fold < foldCount; ++fold) {
+        size_t foldStartIndex = currentFoldEnd;
+        size_t foldEndIndex = Min(foldStartIndex + foldSize, docCount);
+        foldEndIndex = queryEndInfo[foldEndIndex - 1].QueryEnd;
+
+        currentFoldEnd = foldEndIndex;
+        if (fold + 1 == foldCount) {
+            foldEndIndex = docCount;
+        }
+        CB_ENSURE(foldEndIndex - foldStartIndex > 0, "Not enough documents for cross validataion");
+        result[fold].reserve(foldEndIndex - foldStartIndex);
+        for (size_t idx = foldStartIndex; idx < foldEndIndex; ++idx) {
+            result[fold].push_back(idx);
+        }
+    }
+    return result;
+}
+
+TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& testDocs, int docCount) {
+    TVector<TVector<size_t>> result(testDocs.size());
+    for (int fold = 0; fold < result.ysize(); ++fold) {
+        result[fold].reserve(docCount - testDocs[fold].ysize());
+        for (int testFold = 0; testFold < testDocs.ysize(); ++testFold) {
+            if (testFold == fold) {
+                continue;
+            }
+            for (auto doc : testDocs[testFold]) {
+                result[fold].push_back(doc);
+            }
+        }
+    }
+    return result;
+}
+
 static void PrepareFolds(
     const NCatboostOptions::TLossDescription& lossDescription,
     const TPool& pool,
@@ -22,62 +122,41 @@ static void PrepareFolds(
     const TCrossValidationParams& cvParams,
     TVector<TTrainData>* folds
 ) {
-    folds->reserve(cvParams.FoldCount);
-    const size_t docCount = pool.Docs.GetDocCount();
-
     bool hasQuery = !pool.Docs.QueryId.empty();
-    TVector<TQueryEndInfo> queryEndInfo;
     if (hasQuery) {
-        TVector<TQueryInfo> queryInfo;
-        UpdateQueriesInfo(pool.Docs.QueryId, /*begin=*/0, docCount, &queryInfo);
-        queryEndInfo = GetQueryEndInfo(queryInfo, docCount);
+        CB_ENSURE(!cvParams.Stratified, "Stratified cross validation is not supported for datasets with query id.");
     }
 
-    size_t currentFoldEnd = 0;
-    const size_t foldSize = docCount / cvParams.FoldCount;
-    for (size_t testFoldIdx = 0; testFoldIdx < cvParams.FoldCount; ++testFoldIdx) {
-        size_t foldStartIndex = currentFoldEnd;
-        size_t foldEndIndex = Min(foldStartIndex + foldSize, pool.Docs.GetDocCount());
-        if (hasQuery) {
-            foldEndIndex = queryEndInfo[foldEndIndex - 1].QueryEnd;
-        }
-        currentFoldEnd = foldEndIndex;
-        CB_ENSURE(foldEndIndex - foldStartIndex > 0, "Not enough documents for cross validataion");
+    TVector<TVector<size_t>> docsInTest;
+    if (cvParams.Stratified) {
+        docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
+    } else if (hasQuery) {
+        docsInTest = Split(pool.Docs.GetDocCount(), pool.Docs.QueryId, cvParams.FoldCount);
+    } else {
+        docsInTest = Split(pool.Docs.GetDocCount(), cvParams.FoldCount);
+    }
 
-        TVector<size_t> docIndices;
+    const int docCount = pool.Docs.GetDocCount();
+    TVector<TVector<size_t>> docsInTrain = CalcTrainDocs(docsInTest, docCount);
 
-        auto appendTestIndices = [foldStartIndex, foldEndIndex, &docIndices] {
-            for (size_t idx = foldStartIndex; idx < foldEndIndex; ++idx) {
-                docIndices.push_back(idx);
-            }
-        };
+    if (cvParams.Inverted) {
+        docsInTest.swap(docsInTrain);
+    }
 
-        auto appendTrainIndices = [foldStartIndex, foldEndIndex, &pool, &docIndices] {
-            for (size_t idx = 0; idx < pool.Docs.GetDocCount(); ++idx) {
-                if (idx < foldStartIndex || idx >= foldEndIndex) {
-                    docIndices.push_back(idx);
-                }
-            }
-        };
-
+    TVector<size_t> docIndices;
+    docIndices.reserve(docCount);
+    for (size_t foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
         TTrainData fold;
+        fold.LearnSampleCount = docsInTrain[foldIdx].ysize();
+        fold.Target.reserve(docCount);
+        fold.Weights.reserve(docCount);
 
-        if (!cvParams.Inverted) {
-            appendTrainIndices();
-            appendTestIndices();
-            fold.LearnSampleCount = pool.Docs.GetDocCount() - foldEndIndex + foldStartIndex;
-        } else {
-            appendTestIndices();
-            appendTrainIndices();
-            fold.LearnSampleCount = foldEndIndex - foldStartIndex;
-        }
-
-        fold.Target.reserve(pool.Docs.GetDocCount());
-        fold.Weights.reserve(pool.Docs.GetDocCount());
-
-        for (size_t idx = 0; idx < docIndices.size(); ++idx) {
-            fold.Target.push_back(pool.Docs.Target[docIndices[idx]]);
-            fold.Weights.push_back(pool.Docs.Weight[docIndices[idx]]);
+        docIndices.clear();
+        docIndices.insert(docIndices.end(), docsInTrain[foldIdx].begin(), docsInTrain[foldIdx].end());
+        docIndices.insert(docIndices.end(), docsInTest[foldIdx].begin(), docsInTest[foldIdx].end());
+        for (auto idx : docIndices) {
+            fold.Target.push_back(pool.Docs.Target[idx]);
+            fold.Weights.push_back(pool.Docs.Weight[idx]);
         }
 
         if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
@@ -90,8 +169,8 @@ static void PrepareFolds(
 
         for (int dim = 0; dim < pool.Docs.GetBaselineDimension(); ++dim) {
             fold.Baseline[dim].reserve(pool.Docs.GetDocCount());
-            for (size_t idx = 0; idx < docIndices.size(); ++idx) {
-                fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][docIndices[idx]]);
+            for (auto idx : docIndices) {
+                fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][idx]);
             }
         }
         if (hasQuery) {
@@ -106,14 +185,14 @@ static void PrepareFolds(
 
         PrepareAllFeaturesFromPermutedDocs(
             docIndices,
-            contexts[testFoldIdx]->CatFeatures,
-            contexts[testFoldIdx]->LearnProgress.FloatFeatures,
-            contexts[testFoldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
+            contexts[foldIdx]->CatFeatures,
+            contexts[foldIdx]->LearnProgress.FloatFeatures,
+            contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
             fold.LearnSampleCount,
-            (size_t)contexts[testFoldIdx]->Params.CatFeatureParams->OneHotMaxSize,
-            contexts[testFoldIdx]->Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
+            (size_t)contexts[foldIdx]->Params.CatFeatureParams->OneHotMaxSize,
+            contexts[foldIdx]->Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
             /*allowClearPool*/ false,
-            contexts[testFoldIdx]->LocalExecutor,
+            contexts[foldIdx]->LocalExecutor,
             &pool.Docs,
             &fold.AllFeatures
         );

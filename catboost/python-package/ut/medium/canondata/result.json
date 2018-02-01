@@ -12,7 +12,7 @@
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_cv_logging": {
-        "checksum": "dea1e775010521f3012fd833539e89e8",
+        "checksum": "8c5f548ba681a4895dce51d20347b7e1",
         "uri": "file://test.test_cv_logging/catboost_training.json"
     },
     "test.test_doc_feature_importance": {
@@ -28,7 +28,7 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "54ae3ff0f0c14ca2836728f09cffacd4",
+        "checksum": "444bda974fdaa98d8a53ccaa42ae150f",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
@@ -52,7 +52,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "29d4d6e3d8859f78d77833986de7d4f2",
+        "checksum": "67354f7e8deedc26b72cf3f434d18409",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {

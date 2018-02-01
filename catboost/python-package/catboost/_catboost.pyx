@@ -226,6 +226,7 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         bool_t Inverted
         int PartitionRandSeed
         bool_t Shuffle
+        bool_t Stratified
         int EvalPeriod
 
 cdef extern from "catboost/libs/train_lib/train_model.h":
@@ -625,6 +626,9 @@ cdef class _PoolBase:
             self.__pool.Docs.Weight[i] = float(weight[i])
 
     cpdef _set_query_id(self, query_id):
+        if query_id is None:
+            self.__pool.Docs.QueryId.clear();
+
         rows = self.num_row()
         if rows == 0:
             return
@@ -1120,7 +1124,7 @@ class _CatBoostBase(object):
         return getattr(self, '_random_seed', 0)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle):
+          bool_t shuffle, bool_t stratified):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -1128,6 +1132,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.FoldCount = fold_count
     cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
+    cvParams.Stratified = stratified
     cvParams.Inverted = inverted
 
     with nogil:

@@ -39,7 +39,7 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
 
     float min = *MinElement(target.begin(), target.begin() + learnSampleCount);
     float max = *MaxElement(target.begin(), target.begin() + learnSampleCount);
-    CB_ENSURE(min != max, "target should not be constant");
+    CB_ENSURE(min != max, "target in train should not be constant");
 
     switch (loss) {
         case ELossFunction::RMSE:
