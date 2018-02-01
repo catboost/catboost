@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.cpp"/>
@@ -112,6 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
