@@ -12,6 +12,7 @@ SRCS(
     eval_helpers.cpp
     permutation.cpp
     restorable_rng.cpp
+    binarize_target.cpp
 )
 
 PEERDIR(
