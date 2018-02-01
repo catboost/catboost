@@ -6,6 +6,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
@@ -15,6 +16,7 @@
 #include <cmath>
 
 static void PrepareFolds(
+    const NCatboostOptions::TLossDescription& lossDescription,
     const TPool& pool,
     const TVector<THolder<TLearnContext>>& contexts,
     const TCrossValidationParams& cvParams,
@@ -77,6 +79,15 @@ static void PrepareFolds(
             fold.Target.push_back(pool.Docs.Target[docIndices[idx]]);
             fold.Weights.push_back(pool.Docs.Weight[docIndices[idx]]);
         }
+
+        if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
+            PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &fold.Target);
+            float minTarget = *MinElement(fold.Target.begin(), fold.Target.begin() + fold.LearnSampleCount);
+            float maxTarget = *MaxElement(fold.Target.begin(), fold.Target.begin() + fold.LearnSampleCount);
+            CB_ENSURE(minTarget == 0, "All targets are greater than border");
+            CB_ENSURE(maxTarget == 1, "All targets are smaller than border");
+        }
+
         for (int dim = 0; dim < pool.Docs.GetBaselineDimension(); ++dim) {
             fold.Baseline[dim].reserve(pool.Docs.GetDocCount());
             for (size_t idx = 0; idx < docIndices.size(); ++idx) {
@@ -236,7 +247,7 @@ void CrossValidate(
     }
 
     TVector<TTrainData> folds;
-    PrepareFolds(pool, contexts, cvParams, &folds);
+    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &folds);
 
     for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
         contexts[foldIdx]->InitData(folds[foldIdx]);

@@ -5,6 +5,7 @@
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/algo/model_build_helper.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/algo/learn_context.h>
@@ -21,12 +22,6 @@
 #include <util/generic/vector.h>
 #include <catboost/app/output_fstr.h>
 #include <util/system/info.h>
-
-static void PrepareTargetBinary(float border, TVector<float>* target) {
-    for (int i = 0; i < (*target).ysize(); ++i) {
-        (*target)[i] = ((*target)[i] > border);
-    }
-}
 
 // TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
 static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
