@@ -1934,7 +1934,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     return model
 
 
-def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None, fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None, shuffle=True, logging_level=None):
+def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None, fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None, shuffle=True, logging_level=None, stratified=False):
     """
     Cross-validate the CatBoost model.
 
@@ -1988,6 +1988,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
             - 'Info'
             - 'Debug'
 
+    stratified : bool, optional (default=False)
+        Perform stratified sampling.
+
     Returns
     -------
     cv results : dict with cross-validation results
@@ -2022,7 +2025,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         partition_random_seed = seed
 
     with log_fixup():
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

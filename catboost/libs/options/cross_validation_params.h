@@ -14,4 +14,5 @@ struct TCrossValidationParams {
     bool Inverted = false;
     int PartitionRandSeed = 0;
     bool Shuffle = true;
+    bool Stratified = false;
 };
