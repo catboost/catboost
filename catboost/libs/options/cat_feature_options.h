@@ -131,8 +131,7 @@ namespace NCatboostOptions {
             , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
             , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
             , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
-            , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType)
-            , TaskType(taskType) {
+            , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType) {
             TargetBorders.GetUnchecked().DisableNanModeOption();
         }
 
@@ -161,10 +160,8 @@ namespace NCatboostOptions {
         }
 
         void Validate() const {
-            if (TaskType == ETaskType::GPU) {
-                CB_ENSURE(OneHotMaxSize.Get() < GetMaxBinCount(),
-                          "Error in one_hot_max_size: maximum value of one-hot-encoding is 255 for GPU training");
-            }
+            CB_ENSURE(OneHotMaxSize.Get() < GetMaxBinCount(),
+                      "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
             const ui32 ctrComplexityLimit = GetMaxTreeDepth();
             CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
                       "Error: max ctr complexity should be less then " << ctrComplexityLimit);
@@ -190,8 +187,6 @@ namespace NCatboostOptions {
         TCpuOnlyOption<ui64> CtrLeafCountLimit;
 
         TGpuOnlyOption<TBinarizationOptions> TargetBorders;
-
-        ETaskType TaskType;
     };
 
 }
