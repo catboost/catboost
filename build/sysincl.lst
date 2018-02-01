@@ -824,6 +824,7 @@ arpa/nameser_compat.h
 arpa/telnet.h
 arpa/tftp.h
 asm/sigcontext.h
+asm/byteorder.h
 assert.h
 autosprintf.h
 byteswap.h
