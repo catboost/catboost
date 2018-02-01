@@ -18,17 +18,18 @@ TSystemOptions::TSystemOptions(ETaskType taskType)
 }
 
 void TSystemOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &NumThreads, &CpuUsedRamLimit, &Devices, &GpuRamPart);
+    CheckedLoad(options, &NumThreads, &CpuUsedRamLimit, &Devices, &GpuRamPart, &PinnedMemorySize);
 }
 
 void TSystemOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, NumThreads, CpuUsedRamLimit, Devices, GpuRamPart);
+    SaveFields(options, NumThreads, CpuUsedRamLimit, Devices, GpuRamPart, PinnedMemorySize);
 }
 
 bool TSystemOptions::operator==(const TSystemOptions& rhs) const {
-    return std::tie(NumThreads, CpuUsedRamLimit, Devices, GpuRamPart) ==
+    return std::tie(NumThreads, CpuUsedRamLimit, Devices,
+                    GpuRamPart, PinnedMemorySize) ==
            std::tie(rhs.NumThreads, rhs.CpuUsedRamLimit, rhs.Devices,
-                    rhs.GpuRamPart);
+                    rhs.GpuRamPart, rhs.PinnedMemorySize);
 }
 
 bool TSystemOptions::operator!=(const TSystemOptions& rhs) const {
