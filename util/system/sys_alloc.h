@@ -1,8 +1,10 @@
 #pragma once
 
+#include <util/system/compiler.h>
+
 #include <cstdlib>
 
-extern void ThrowBadAlloc();
+extern Y_NO_RETURN void ThrowBadAlloc();
 
 inline void* y_allocate(size_t n) {
     void* r = malloc(n);

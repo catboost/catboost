@@ -6,11 +6,12 @@
 #include "va_args.h"
 #include <utility>
 
+#include <util/stream/tempbuf.h>
+#include <util/system/compat.h>
+#include <util/system/compiler.h>
 #include <util/system/defaults.h>
 #include <util/system/error.h>
-#include <util/system/compat.h>
 #include <util/system/src_location.h>
-#include <util/stream/tempbuf.h>
 
 #include <exception>
 
@@ -115,9 +116,9 @@ void fputs(const std::exception& e, FILE* f = stderr);
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
 
-void ThrowBadAlloc();
-void ThrowLengthError(const char* descr);
-void ThrowRangeError(const char* descr);
+Y_NO_RETURN void ThrowBadAlloc();
+Y_NO_RETURN void ThrowLengthError(const char* descr);
+Y_NO_RETURN void ThrowRangeError(const char* descr);
 
 #define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
     do {                                         \
