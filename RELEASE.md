@@ -1,3 +1,9 @@
+# Release 0.6.1.1
+## Bug Fixes and Other Changes
+- Hotfix for critical bug in Python and R wrappers (issue #238)
+- Added stratified data split in CV
+- Fix `is_classification` check and CV for Logloss
+
 # Release 0.6.1
 ## Bug Fixes and Other Changes
 - Fixed critical bugs in formula evaluation code (issue #236)
