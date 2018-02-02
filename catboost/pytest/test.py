@@ -449,6 +449,27 @@ def test_weights_gradient():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_logloss_with_not_binarized_target():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult_not_binarized', 'train_small'),
+        '-t', data_file('adult_not_binarized', 'test_small'),
+        '--column-description', data_file('adult_not_binarized', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
 def test_all_targets(loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')

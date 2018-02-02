@@ -423,6 +423,12 @@
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
+    "test.test_logloss_with_not_binarized_target": [
+        {
+            "checksum": "201f3633d514d6f85ca7f3323eb2b850",
+            "uri": "file://test.test_logloss_with_not_binarized_target/test.eval"
+        }
+    ],
     "test.test_lost_class": [
         {
             "checksum": "665e2defc34fe875dcd0187ee3282789",
