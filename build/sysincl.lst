@@ -19,6 +19,7 @@ tr1/memory
 android/log.h
 ompt.h
 hwloc.h
+hwloc/cudart.h
 jni.h
 bfd.h
 Aclapi.h
