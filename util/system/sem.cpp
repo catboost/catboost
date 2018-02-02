@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 
-#if defined(_bionic_)
+#if defined(_bionic_) || defined(_darwin_) && defined(_arm_)
 #include <fcntl.h>
 #else
 #define USE_SYSV_SEMAPHORES //unixoids declared the standard but not implemented it...
@@ -229,7 +229,7 @@ bool TSemaphore::TryAcquire() noexcept {
     return Impl_->TryAcquire();
 }
 
-#if defined(_unix_)
+#if defined(_unix_) and !defined(_darwin_)
 class TFastSemaphore::TImpl: public TPosixSemaphore {
 public:
     inline TImpl(ui32 n)
