@@ -478,11 +478,12 @@ class TCPUModelTrainer : public IModelTrainer {
             obliviousTrees = builder.Build();
         }
 
-        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
-            for (const auto& value : oheFeature.Values) {
-                oheFeature.StringValues.push_back(learnPool.CatFeaturesHashToString.at(value));
-            }
-        }
+//        TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
+//        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
+//            for (const auto& value : oheFeature.Values) {
+//                oheFeature.StringValues.push_back(learnPool.CatFeaturesHashToString.at(value));
+//            }
+//        }
         auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
             TCtrValueTable resTable;
             CalcFinalCtrs(
