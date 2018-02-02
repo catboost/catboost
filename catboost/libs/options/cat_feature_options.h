@@ -160,7 +160,7 @@ namespace NCatboostOptions {
         }
 
         void Validate() const {
-            CB_ENSURE(OneHotMaxSize.Get() < GetMaxBinCount(),
+            CB_ENSURE(OneHotMaxSize.Get() <= GetMaxBinCount(),
                       "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
             const ui32 ctrComplexityLimit = GetMaxTreeDepth();
             CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
