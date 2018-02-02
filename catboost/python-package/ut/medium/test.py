@@ -149,7 +149,7 @@ def test_predict_sklearn_regress():
 
 def test_predict_sklearn_class():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function='Logloss:border=0.5')
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -660,5 +660,13 @@ def test_bad_params_in_cv():
 
 def test_cv_logging():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_cv_with_not_binarized_target():
+    train_file = data_file('adult_not_binarized', 'train_small')
+    cd = data_file('adult_not_binarized', 'train.cd')
+    pool = Pool(train_file, column_description=cd)
     cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
