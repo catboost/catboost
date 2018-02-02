@@ -83,11 +83,11 @@ template <class TPeersKernel>
 inline void TogglePeersKernel(TCudaManager& manager) {
     const ui64 deviceCount = manager.GetDeviceCount();
     for (ui64 dev = 0; dev < deviceCount; ++dev) {
-        TDeviceId myDevice = manager.GetDeviceId(dev);
+        NCudaLib::TDeviceId myDevice = manager.GetDeviceId(dev);
         TPeersKernel peersKernel;
         for (ui32 peerDev = 0; peerDev < deviceCount; ++peerDev) {
             if (dev != peerDev) {
-                TDeviceId peerDevice = manager.GetDeviceId(peerDev);
+                NCudaLib::TDeviceId peerDevice = manager.GetDeviceId(peerDev);
                 if (myDevice.HostId == peerDevice.HostId) {
                     peersKernel.Devices.push_back(peerDevice);
                 }
@@ -140,6 +140,7 @@ TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDevice
 #if defined(USE_MPI)
     CB_ENSURE(GetMpiManager().IsMaster(), "Error: can't run cudaManager on slave");
 #endif
+
 
     auto& manager = NCudaLib::GetCudaManager();
     manager.Start(requestConfig);

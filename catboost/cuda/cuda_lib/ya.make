@@ -23,6 +23,7 @@ SRCS(
     stream_section_tasks_launcher.cpp
     GLOBAL task.cpp
     worker_state.cpp
+    hwloc_wrapper.cpp
     cuda_buffer_helpers/buffer_resharding.cpp
     GLOBAL cuda_buffer_helpers/reduce_scatter.cpp
     future/local_promise_future.cpp
@@ -81,5 +82,9 @@ IF(USE_MPI)
     ENDIF()
 ENDIF()
 
+IF(WITH_HWLOC)
+    CFLAGS(GLOBAL -DWITH_HWLOC)
+    EXTRALIBS(-lhwloc)
+ENDIF()
 
 END()

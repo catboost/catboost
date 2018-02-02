@@ -1,6 +1,10 @@
 #include "gpu_single_worker.h"
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 
+#if defined(WITH_HWLOC)
+#include "hwloc_wrapper.h"
+#endif
+
 namespace NCudaLib {
     void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size) {
         switch (ptrType) {
@@ -151,6 +155,11 @@ namespace NCudaLib {
     void TGpuOneDeviceWorker::Run() {
         Stopped = false;
         SetDevice(LocalDeviceId);
+        #if defined(WITH_HWLOC)
+        auto& localityHelper = HardwareLocalityHelper();
+        localityHelper.BindThreadForDevice(LocalDeviceId);
+        #endif
+
         CreateNewComputationStream();
         SetDefaultStream(Streams[0]->GetStream());
 

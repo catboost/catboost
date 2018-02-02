@@ -186,19 +186,21 @@ namespace NCudaLib {
         }
     };
 
+    char* CudaHostAllocate(ui64 size);
+    void CudaHostFree(char* ptr);
+
     template <>
     class TCudaMemoryAllocation<EPtrType::CudaHost> {
     public:
         template <class T>
         static T* Allocate(ui64 size) {
-            T* ptr = nullptr;
-            CUDA_SAFE_CALL(cudaHostAlloc((void**)&ptr, size * sizeof(T), cudaHostAllocPortable));
+            T* ptr = CudaHostAllocate(size * sizeof(T));
             return ptr;
         }
 
         template <class T>
         static void FreeMemory(T* ptr) {
-            CUDA_SAFE_CALL(cudaFreeHost((void*)ptr));
+            CudaHostFree(ptr);
         }
     };
 
