@@ -23,18 +23,19 @@ namespace NCudaLib {
             return task;
         }
 
-        void Wait(TInstant time) {
+        void Wait(TDuration time) {
             JobsEvent.Reset();
 
-            const ui32 waitIters = 100000;
-            for (ui32 iter = 0; iter < waitIters; ++iter) {
+            auto fastWaitInterval = TDuration::Seconds(1);
+            auto startTime = TInstant::Now();
+            while ((TInstant::Now() - startTime) <  fastWaitInterval) {
                 SchedYield();
                 if (!InputTaskQueue.IsEmpty()) {
                     return;
                 }
             }
             if (InputTaskQueue.IsEmpty()) {
-                JobsEvent.WaitD(time);
+                JobsEvent.WaitT(time);
             }
         }
 

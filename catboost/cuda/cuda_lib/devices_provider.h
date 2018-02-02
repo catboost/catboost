@@ -182,7 +182,7 @@ namespace NCudaLib {
         }
 
         TCudaSingleDevice* RequestDevice(ui32 dev, double gpuRamPart, double pinnedMemorySize) {
-            CB_ENSURE(Devices[dev]->IsStopped(), "Error: device already requested");
+            CB_ENSURE(Devices[dev]->IsStopped(), "Error: device already requested " << dev);
             Devices[dev]->Start(gpuRamPart, pinnedMemorySize);
             return Devices[dev].Get();
         }
