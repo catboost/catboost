@@ -13,7 +13,7 @@
     containers
 -->
 
-<Type Name="ystd::pair&lt;*&gt;">
+<Type Name="std::__y1::pair&lt;*&gt;">
   <AlternativeType Name="TPair&lt;*&gt;" />
   <DisplayString>({first}, {second})</DisplayString>
   <Expand>
@@ -22,7 +22,7 @@
   </Expand>
 </Type>
 
-<Type Name="ystd::vector&lt;*&gt;">
+<Type Name="std::__y1::vector&lt;*&gt;">
   <AlternativeType Name="TVector&lt;*&gt;" />
   <DisplayString>{{ size={__end_ - __begin_} }}</DisplayString>
   <Expand>
@@ -46,7 +46,7 @@
   </Expand>
 </Type>
 
-<Type Name="ystd::array&lt;*,*&gt;">
+<Type Name="std::__y1::array&lt;*,*&gt;">
   <DisplayString>{{ size={$T2} }}</DisplayString>
   <Expand>
     <ArrayItems>
@@ -56,22 +56,22 @@
   </Expand>
 </Type>
 
-<Type Name="ystd::deque&lt;*&gt;">
+<Type Name="std::__y1::deque&lt;*&gt;">
   <AlternativeType Name="TDeque&lt;*&gt;" />
-  <DisplayString>{{ size={__size_.__first_} }}</DisplayString>
+  <DisplayString>{{ size={__size_.__value_} }}</DisplayString>
   <Expand>
-    <Item Name="[size]" ExcludeView="simple">__size_.__first_</Item>
+    <Item Name="[size]" ExcludeView="simple">__size_.__value_</Item>
     <Item Name="[capacity]" ExcludeView="simple">__map_.__begin_ == __map_.__end_ ? 0 : (__map_.__end_ - __map_.__begin_) * (32 * sizeof(void*) / sizeof(value_type) > 2 ? 32 * sizeof(void*) / sizeof(value_type) : 2) - 1</Item>
     <IndexListItems>
-      <Size>__size_.__first_</Size>
+      <Size>__size_.__value_</Size>
       <ValueNode>__map_.__begin_[(__start_ + $i) / (32 * sizeof(void*) / sizeof(value_type) > 2 ? 32 * sizeof(void*) / sizeof(value_type) : 2)][(__start_ + $i) % (32 * sizeof(void*) / sizeof(value_type) > 2 ? 32 * sizeof(void*) / sizeof(value_type) : 2)]</ValueNode>
     </IndexListItems>
   </Expand>
 </Type>
 
-<Type Name="ystd::queue&lt;*&gt;">
+<Type Name="std::__y1::queue&lt;*&gt;">
   <AlternativeType Name="TQueue&lt;*&gt;" />
-  <AlternativeType Name="ystd::stack&lt;*&gt;" />
+  <AlternativeType Name="std::__y1::stack&lt;*&gt;" />
   <AlternativeType Name="TStack&lt;*&gt;" />
   <DisplayString>{c}</DisplayString>
   <Expand>
@@ -113,14 +113,14 @@
   </Expand>
 </Type>
 
-<Type Name="ystd::__value_type&lt;*&gt;">
+<Type Name="std::__y1::__value_type&lt;*&gt;">
   <DisplayString>{__cc}</DisplayString>
   <Expand>
     <ExpandedItem>__cc</ExpandedItem>
   </Expand>
 </Type>
 
-<Type Name="ystd::__tree&lt;*&gt;">
+<Type Name="std::__y1::__tree&lt;*&gt;">
   <DisplayString>{{ size={__pair3_.__value_} }}</DisplayString>
   <Expand>
     <TreeItems>
@@ -133,13 +133,13 @@
   </Expand>
 </Type>
 
-<Type Name="ystd::map&lt;*&gt;">
+<Type Name="std::__y1::map&lt;*&gt;">
   <AlternativeType Name="TMap&lt;*&gt;" />
-  <AlternativeType Name="ystd::multimap&lt;*&gt;" />
+  <AlternativeType Name="std::__y1::multimap&lt;*&gt;" />
   <AlternativeType Name="TMultiMap&lt;*&gt;" />
-  <AlternativeType Name="ystd::set&lt;*&gt;" />
+  <AlternativeType Name="std::__y1::set&lt;*&gt;" />
   <AlternativeType Name="TSet&lt;*&gt;" />
-  <AlternativeType Name="ystd::multiset&lt;*&gt;" />
+  <AlternativeType Name="std::__y1::multiset&lt;*&gt;" />
   <AlternativeType Name="TMultiSet&lt;*&gt;" />
   <DisplayString>{__tree_}</DisplayString>
   <Expand>
