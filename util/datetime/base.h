@@ -266,16 +266,16 @@ class TInstant: public TTimeBase<TInstant> {
     using TBase = TTimeBase<TInstant>;
 
 public:
-    constexpr TInstant() {
+    constexpr TInstant() noexcept {
     }
 
     //better use static constructors
-    constexpr explicit TInstant(TValue value)
+    constexpr explicit TInstant(TValue value) noexcept
         : TBase(value)
     {
     }
 
-    constexpr TInstant(const struct timeval& tv)
+    constexpr TInstant(const struct timeval& tv) noexcept
         : TBase(tv)
     {
     }
