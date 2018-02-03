@@ -78,9 +78,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_data.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pair.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pool.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\query.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
