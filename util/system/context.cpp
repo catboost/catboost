@@ -131,9 +131,9 @@ TContMachineContext::TSan::TSan(const TContClosure& c) noexcept
 {
 }
 
-void TContMachineContext::TSan::DoRun() {
+void TContMachineContext::TSan::DoRunNaked() {
     AfterSwitch();
-    TL->DoRun();
+    TL->DoRunNaked();
     BeforeFinish();
 }
 

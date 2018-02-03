@@ -142,7 +142,7 @@ private:
         TSan() noexcept;
         TSan(const TContClosure& c) noexcept;
 
-        void DoRun() override;
+        void DoRunNaked() override;
 
         ITrampoLine* TL;
     };
