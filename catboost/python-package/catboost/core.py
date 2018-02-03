@@ -1908,6 +1908,9 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     model : CatBoost class
     """
 
+    if params is None:
+        raise CatboostError("params should be set.")
+
     if dtrain is not None:
         if pool is None:
             pool = dtrain
@@ -1997,6 +2000,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     -------
     cv results : dict with cross-validation results
     """
+    if params is None:
+        raise CatboostError("params should be set.")
+
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
     if logging_level:
