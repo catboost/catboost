@@ -3,7 +3,7 @@
 #include "approx_calcer_helpers.h"
 #include "approx_util.h"
 
-#include <catboost/libs/data/query.h>
+#include <catboost/libs/data_types/query.h>
 
 template <typename TError>
 void CalcShiftedApproxDersQueries(const TVector<double>& approx,

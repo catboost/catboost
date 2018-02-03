@@ -3,16 +3,15 @@
 #include "metric_holder.h"
 #include "ders_holder.h"
 
-#include <catboost/libs/data/pair.h>
-#include <catboost/libs/data/query.h>
+#include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/data_types/query.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/metric_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/metric_options.h>
-
 
 struct TCustomMetricDescriptor {
     void* CustomData;

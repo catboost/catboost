@@ -2,8 +2,8 @@
 
 #include "full_features.h"
 
-#include <catboost/libs/data/pair.h>
-#include <catboost/libs/data/query.h>
+#include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/data_types/query.h>
 
 class TTrainData {
 public:

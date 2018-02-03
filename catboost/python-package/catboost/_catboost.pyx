@@ -55,7 +55,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TPool& pool)
 
-cdef extern from "catboost/libs/data/pair.h":
+cdef extern from "catboost/libs/data_types/pair.h":
     cdef cppclass TPair:
         int WinnerId
         int LoserId

@@ -3,9 +3,9 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
-#include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/data_types/query.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/data/query.h>
 
 #include <util/random/fast.h>
 
@@ -20,6 +20,7 @@ void BuildCvPools(
     TPool* learnPool,
     TPool* testPool)
 {
+    // TODO(annaveronika): one split for all cv.
     CB_ENSURE(foldIdx >= 0 && foldIdx < foldCount);
     CB_ENSURE(learnPool->Docs.GetDocCount() > 1, "Not enough documents for cross validataion");
 

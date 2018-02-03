@@ -1,11 +1,11 @@
 #pragma once
 
 #include "pool.h"
-#include "pair.h"
 
 #include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_types/pair.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

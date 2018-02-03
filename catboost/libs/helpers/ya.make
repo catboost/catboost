@@ -13,6 +13,8 @@ SRCS(
     permutation.cpp
     restorable_rng.cpp
     binarize_target.cpp
+    query_info_helper.cpp
+    data_split.cpp
 )
 
 PEERDIR(

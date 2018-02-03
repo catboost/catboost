@@ -12,6 +12,7 @@ RECURSE(
     algo/ut
     algo
     data
+    data_types
     data/ut
     options
     options/ut

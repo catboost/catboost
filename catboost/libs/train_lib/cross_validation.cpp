@@ -5,9 +5,12 @@
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/data_split.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/element_range.h>
 #include <catboost/libs/helpers/binarize_target.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
@@ -16,55 +19,11 @@
 #include <limits>
 #include <cmath>
 
-static TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int foldCount) {
-    TVector<std::pair<float, int>> targetWithDoc(target.ysize());
-    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
-        targetWithDoc[i].first = target[i];
-        targetWithDoc[i].second = i;
-    }
-    Sort(targetWithDoc.begin(), targetWithDoc.end());
-
-    TVector<TVector<int>> splittedByTarget;
-    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
-        if (i == 0 || targetWithDoc[i].first != targetWithDoc[i - 1].first) {
-            splittedByTarget.emplace_back();
-        }
-        splittedByTarget.back().push_back(targetWithDoc[i].second);
-    }
-
-    int minLen = target.ysize();
-    for (const auto& part : splittedByTarget) {
-        if (part.ysize() < minLen) {
-            minLen = part.ysize();
-        }
-    }
-    if (minLen < foldCount) {
-        MATRIXNET_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than foldCount=" << foldCount << Endl;
-    }
-    TVector<TVector<size_t>> result(foldCount);
-    for (const auto& part : splittedByTarget) {
-        for (int fold = 0; fold < foldCount; ++fold) {
-            int foldStartIndex, foldEndIndex;
-            InitElementRange(fold, foldCount, part.ysize(), &foldStartIndex, &foldEndIndex);
-            for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
-                result[fold].push_back(part[idx]);
-            }
-        }
-    }
-
-    for (auto& part : result) {
-        CB_ENSURE(!part.empty(), "Not enough documents for cross validataion");
-        Sort(part.begin(), part.end());
-    }
-    return result;
-}
-
-static TVector<TVector<size_t>> Split(size_t docCount, int foldCount) {
-    TVector<TVector<size_t>> result(foldCount);
-    for (int fold = 0; fold < foldCount; ++fold) {
-        int foldStartIndex, foldEndIndex;
-        InitElementRange(fold, foldCount, docCount, &foldStartIndex, &foldEndIndex);
-        CB_ENSURE(foldEndIndex - foldStartIndex > 0, "Not enough documents for cross validataion");
+static TVector<TVector<size_t>> GetSplittedDocs(const TVector<std::pair<size_t, size_t>>& startEnd) {
+    TVector<TVector<size_t>> result(startEnd.ysize());
+    for (int fold = 0; fold < result.ysize(); ++fold) {
+        int foldStartIndex = startEnd[fold].first;
+        int foldEndIndex = startEnd[fold].second;
         result[fold].reserve(foldEndIndex - foldStartIndex);
         for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
             result[fold].push_back(idx);
@@ -73,33 +32,7 @@ static TVector<TVector<size_t>> Split(size_t docCount, int foldCount) {
     return result;
 }
 
-static TVector<TVector<size_t>> Split(size_t docCount, const TVector<ui32>& queryId, int foldCount) {
-    TVector<TQueryInfo> queryInfo;
-    UpdateQueriesInfo(queryId, /*begin=*/0, docCount, &queryInfo);
-    TVector<TQueryEndInfo> queryEndInfo = GetQueryEndInfo(queryInfo, docCount);
-
-    TVector<TVector<size_t>> result(foldCount);
-    const size_t foldSize = docCount / foldCount;
-    size_t currentFoldEnd = 0;
-    for (int fold = 0; fold < foldCount; ++fold) {
-        size_t foldStartIndex = currentFoldEnd;
-        size_t foldEndIndex = Min(foldStartIndex + foldSize, docCount);
-        foldEndIndex = queryEndInfo[foldEndIndex - 1].QueryEnd;
-
-        currentFoldEnd = foldEndIndex;
-        if (fold + 1 == foldCount) {
-            foldEndIndex = docCount;
-        }
-        CB_ENSURE(foldEndIndex - foldStartIndex > 0, "Not enough documents for cross validataion");
-        result[fold].reserve(foldEndIndex - foldStartIndex);
-        for (size_t idx = foldStartIndex; idx < foldEndIndex; ++idx) {
-            result[fold].push_back(idx);
-        }
-    }
-    return result;
-}
-
-TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& testDocs, int docCount) {
+static TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& testDocs, int docCount) {
     TVector<TVector<size_t>> result(testDocs.size());
     for (int fold = 0; fold < result.ysize(); ++fold) {
         result[fold].reserve(docCount - testDocs[fold].ysize());
@@ -130,10 +63,11 @@ static void PrepareFolds(
     TVector<TVector<size_t>> docsInTest;
     if (cvParams.Stratified) {
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
-    } else if (hasQuery) {
-        docsInTest = Split(pool.Docs.GetDocCount(), pool.Docs.QueryId, cvParams.FoldCount);
     } else {
-        docsInTest = Split(pool.Docs.GetDocCount(), cvParams.FoldCount);
+        auto startEnd = hasQuery
+            ? Split(pool.Docs.GetDocCount(), pool.Docs.QueryId, cvParams.FoldCount)
+            : Split(pool.Docs.GetDocCount(), cvParams.FoldCount);
+        docsInTest = GetSplittedDocs(startEnd);
     }
 
     const int docCount = pool.Docs.GetDocCount();

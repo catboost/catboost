@@ -8,7 +8,7 @@
 
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/data/pair.h>
+#include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/cuda/utils/cpu_random.h>

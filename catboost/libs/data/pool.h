@@ -1,8 +1,7 @@
 #pragma once
 
-#include "pair.h"
-
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/data_types/pair.h>
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>

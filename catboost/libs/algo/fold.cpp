@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 
 TVector<int> InvertPermutation(const TVector<int>& permutation) {
     TVector<int> result(permutation.size());

@@ -5,6 +5,7 @@
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/algo/model_build_helper.h>
 #include <catboost/libs/algo/tree_print.h>

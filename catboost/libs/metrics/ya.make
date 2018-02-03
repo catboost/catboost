@@ -10,7 +10,6 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/data
     catboost/libs/helpers
     library/containers/2d_array
     library/threading/local_executor

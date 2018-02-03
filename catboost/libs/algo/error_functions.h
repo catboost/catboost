@@ -6,7 +6,7 @@
 #include <catboost/libs/metrics/ders_holder.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/auc.h>
-#include <catboost/libs/data/pair.h>
+#include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/eval_helpers.h>
 
 #include <library/containers/2d_array/2d_array.h>
