@@ -18,6 +18,8 @@
 
 #include "crc32c_sse4.h"
 
+#include <util/system/compiler.h>
+
 #if HAVE_I386 || HAVE_AMD64
 
 namespace crcutil {
@@ -155,6 +157,7 @@ namespace crcutil {
  no_more_##block_size##_##num_stripes:; \
 } while (0)
 
+Y_NO_SANITIZE("undefined")
 size_t Crc32cSSE4::Crc32c(const void *data, size_t bytes, Crc crc0) const {
   const uint8 *src = static_cast<const uint8 *>(data);
   const uint8 *end = src + bytes;
