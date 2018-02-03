@@ -87,6 +87,7 @@ namespace NCatboostCuda {
                     catFeature.FeatureIndex = catFeatureIdx;
                     catFeature.FlatFeatureIndex = i;
                     catFeature.FeatureId = featureNames[catFeature.FlatFeatureIndex];
+                    Y_ASSERT((ui32)catFeature.FeatureIndex == CatFeaturesRemap.at(i));
                 } else {
                     auto floatFeatureIdx = floatFeatures.size();
                     auto& floatFeature = floatFeatures.emplace_back();
@@ -96,10 +97,12 @@ namespace NCatboostCuda {
                     floatFeature.Borders = Borders[floatFeatureIdx];
                     floatFeature.FeatureId = featureNames[i];
                     floatFeature.HasNans = hasNans;
+                    Y_ASSERT((ui32)floatFeature.FeatureIndex == FloatFeaturesRemap.at(i));
                 }
             }
 
-            TObliviousTreeBuilder obliviousTreeBuilder(floatFeatures, catFeatures);
+            TObliviousTreeBuilder obliviousTreeBuilder(floatFeatures,
+                                                       catFeatures);
 
             for (ui32 i = 0; i < src.Size(); ++i) {
                 TVector<TVector<double>> leafValues(1);
@@ -130,7 +133,7 @@ namespace NCatboostCuda {
             auto remapId = FloatFeaturesRemap.at(dataProviderId);
 
             //TODO(kirillovs): fix NaNs in model
-            float border;
+            float border = 0;
             const auto nanMode = FloatFeaturesNanMode.at(remapId);
             switch (nanMode) {
                 case ENanMode::Forbidden: {
@@ -196,6 +199,10 @@ namespace NCatboostCuda {
             for (auto catFeature : ctr.FeatureTensor.GetCatFeatures()) {
                 projection.CatFeatures.push_back(GetRemappedIndex(catFeature));
             }
+            //just for more more safety
+            Sort(projection.BinFeatures.begin(), projection.BinFeatures.end());
+            Sort(projection.CatFeatures.begin(), projection.CatFeatures.end());
+            Sort(projection.OneHotFeatures.begin(), projection.OneHotFeatures.end());
             return projection;
         }
 

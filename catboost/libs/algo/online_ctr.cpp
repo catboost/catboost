@@ -463,14 +463,24 @@ void CalcFinalCtrs(const ECtrType ctrType, const TProjection& projection, const 
 void CalcFinalCtrs(const ECtrType ctrType, const TFeatureCombination& projection, const TPool& pool, ui64 sampleCount,
                    const TVector<int>& permutedTargetClass, const TVector<float>& permutedTargets,
                    int targetClassesCount, ui64 ctrLeafCountLimit, bool storeAllSimpleCtr, TCtrValueTable* result) {
+    TMap<int, int> floatFeatureIdxToFlatIdx;
+    TMap<int, int> catFeatureIdxToFlatIdx;
+    TSet<int> catFeatureSet(pool.CatFeatures.begin(), pool.CatFeatures.end());
+    for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
+        if (catFeatureSet.has(i)) {
+            catFeatureIdxToFlatIdx[catFeatureIdxToFlatIdx.size()] = i;
+        } else {
+            floatFeatureIdxToFlatIdx[floatFeatureIdxToFlatIdx.size()] = i;
+        }
+    }
     TVector<ui64> hashArr;
     CalcHashes(
         projection,
-        [&pool] (int floatFeatureIdx, size_t docId) -> float {
-            return pool.Docs.Factors[floatFeatureIdx][docId];
+        [&] (int floatFeatureIdx, size_t docId) -> float {
+            return pool.Docs.Factors[floatFeatureIdxToFlatIdx[floatFeatureIdx]][docId];
         },
-        [&pool] (int floatFeatureIdx, size_t docId) -> int {
-            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[floatFeatureIdx][docId]);
+        [&] (int catFeatureIdx, size_t docId) -> int {
+            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[catFeatureIdxToFlatIdx[catFeatureIdx]][docId]);
         },
         sampleCount,
         &hashArr);
