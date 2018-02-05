@@ -574,7 +574,7 @@ static void GetPositiveStats(const TVector<TVector<double>>& approx,
     *truePositive = 0;
     *targetPositive = 0;
     *approxPositive = 0;
-    const bool isMulticlass = approx.size();
+    const bool isMulticlass = approx.size() > 1;
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         const float targetVal = isMulticlass ? target[i] : target[i] > border;
