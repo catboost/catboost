@@ -544,7 +544,7 @@ class TCPUModelTrainer : public IModelTrainer {
         bool verbose = false;
         TVector<TString> classNames;
 
-        TProfileInfo profile(true);
+        TProfileInfo profile;
 
         TPool learnPool;
         if (!loadOptions.LearnFile.empty()) {
