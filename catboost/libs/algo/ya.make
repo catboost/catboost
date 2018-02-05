@@ -13,7 +13,6 @@ SRCS(
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
-    model_build_helper.cpp
     online_ctr.cpp
     online_predictor.cpp
     ctr_helper.cpp

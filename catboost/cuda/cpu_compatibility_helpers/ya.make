@@ -11,14 +11,14 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/cuda/data
     catboost/cuda/ctrs
+    catboost/cuda/data
     catboost/cuda/models
-    catboost/libs/logging
     catboost/libs/data
-    catboost/libs/algo
-    library/json
+    catboost/libs/logging
+    catboost/libs/model
     library/grid_creator
+    library/json
 )
 
 END()

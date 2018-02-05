@@ -7,7 +7,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
-#include <catboost/libs/algo/model_build_helper.h>
+#include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/cv_data_partition.h>

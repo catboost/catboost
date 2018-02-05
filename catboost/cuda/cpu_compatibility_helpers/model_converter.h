@@ -9,7 +9,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/algo/projection.h>
 #include <catboost/libs/algo/split.h>
-#include <catboost/libs/algo/model_build_helper.h>
+#include <catboost/libs/model/model_build_helper.h>
 #include <limits>
 
 namespace NCatboostCuda {
