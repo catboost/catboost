@@ -44,6 +44,18 @@ def onrun_java_program(unit, *args):
     unit.set(['RUN_JAVA_PROGRAM_VALUE', new_val])
 
 
+def ongenerate_script(unit, *args):
+    flat, kv = common.sort_by_keywords(
+        {'OUT': 1, 'TEMPLATE': -1, 'CUSTOM_PROPERTY': -1},
+        args
+    )
+    if len(kv.get('TEMPLATE', [])) > 1:
+        ymake.report_configure_error('To mane arguments for TEMPLATE parameter')
+    prev = unit.get(['GENERATE_SCRIPT_VALUE']) or ''
+    new_val = (prev + ' ' + base64.b64encode(json.dumps(list(args), encoding='utf-8'))).strip()
+    unit.set(['GENERATE_SCRIPT_VALUE', new_val])
+
+
 def onjava_module(unit, *args):
     unit.oninternal_recurse('contrib/java/org/sonarsource/scanner/cli/sonar-scanner-cli/2.8')  # TODO if <needs_sonar>
 
@@ -79,6 +91,7 @@ def onjava_module(unit, *args):
         'SIZE': extract_macro_calls(unit, 'TEST_SIZE_NAME', args_delim),
         'DEPENDS': extract_macro_calls(unit, 'TEST_DEPENDS_VALUE', args_delim),
         'IDEA_EXCLUDE': extract_macro_calls(unit, 'IDEA_EXCLUDE_DIRS_VALUE', args_delim),
+        'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
     }
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
         data['ADD_DLLS_FROM_DEPENDS'] = extract_macro_calls(unit, 'JAVA_ADD_DLLS_VALUE', args_delim)

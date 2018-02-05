@@ -1897,6 +1897,16 @@
                   {"host": {"os": "LINUX"}, "default": true}
             ]
         },
+        "scriptgen": {
+            "tools": {
+                "scriptgen": { "bottle": "scriptgen" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "kiwi_protos": {
             "tools": {
                 "kiwi_protos": { "bottle": "kiwi_protos" }
@@ -2277,6 +2287,12 @@
             "formula": {
                 "sandbox_id": [199184765],
                 "match": "KYTHETOPROTO"
+            }
+        },
+        "scriptgen": {
+            "formula": {
+                "sandbox_id": [209233014],
+                "match": "SCRIPTGEN"
             }
         },
         "wine": {
