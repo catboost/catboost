@@ -110,9 +110,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
       <Project>E73DCA9C-B071-4A48-F573-C852583220CE</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
-      <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
     </ProjectReference>
@@ -128,14 +125,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
-      <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\catboost-libs-metrics.vcxproj">
-      <Project>3E05C3A9-D91C-174C-F5A0-5D363362CFDC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
@@ -145,9 +136,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>D350B71A-438C-3D20-8D8E-292B20D81461</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
-      <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
@@ -191,9 +179,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
       <Project>B88207AE-800B-A7B1-AE0B-F609E8684A5A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
-      <Project>90F91270-0728-ADD6-69B3-0B2735FE25FB</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
     </ProjectReference>
@@ -223,9 +208,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
       <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
-      <Project>85643E70-B3E5-4747-7C6D-59B9CF26EE48</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
@@ -266,15 +248,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
       <Project>ECB75138-E9C8-5662-6E1E-06BCA3ED01E6</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dot_product\library-dot_product.vcxproj">
-      <Project>C9E27228-EB15-9076-28B8-5DEE405DB9A4</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
-      <Project>E0EC7772-5C0F-6407-290B-3900C3FF324B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
-      <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
       <Project>779D8853-F643-71C6-90BD-D7B34A2441E9</Project>
     </ProjectReference>
@@ -298,12 +271,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
       <Project>32459880-AE0E-8CCD-4A48-44F805C4FC9B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
-      <Project>898C3811-AD77-869C-24DC-EF6A89FA8399</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>137212F6-D2FE-719F-EBE2-99060434BC72</Project>

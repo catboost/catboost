@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\model_build_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
@@ -130,7 +129,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\model_build_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
