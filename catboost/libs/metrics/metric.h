@@ -12,6 +12,12 @@
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/metric_options.h>
+
+inline constexpr double GetDefaultClassificationBorder() {
+    return 0.5;
+}
 
 struct TCustomMetricDescriptor {
     void* CustomData;
@@ -156,7 +162,7 @@ struct TQuerywiseAdditiveMetric : public TQuerywiseMetric {
 };
 
 struct TCrossEntropyMetric: public TAdditiveMetric<TCrossEntropyMetric> {
-    explicit TCrossEntropyMetric(ELossFunction lossFunction);
+    explicit TCrossEntropyMetric(ELossFunction lossFunction, double border = GetDefaultClassificationBorder());
     TMetricHolder EvalSingleThread(const TVector<TVector<double>>& approx,
                                    const TVector<float>& target,
                                    const TVector<float>& weight,
@@ -166,6 +172,7 @@ struct TCrossEntropyMetric: public TAdditiveMetric<TCrossEntropyMetric> {
 
 private:
     ELossFunction LossFunction;
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
@@ -282,7 +289,10 @@ struct TR2Metric: public TNonAdditiveMetric {
 };
 
 struct TAUCMetric: public TNonAdditiveMetric {
-    TAUCMetric() = default;
+    explicit TAUCMetric(double border = GetDefaultClassificationBorder())
+            : Border(border) {
+
+    }
     explicit TAUCMetric(int positiveClass);
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
@@ -295,19 +305,30 @@ struct TAUCMetric: public TNonAdditiveMetric {
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TAccuracyMetric : public TAdditiveMetric<TAccuracyMetric> {
+    explicit TAccuracyMetric(double border = GetDefaultClassificationBorder())
+            : Border(border) {
+
+    }
+
     TMetricHolder EvalSingleThread(const TVector<TVector<double>>& approx,
                                    const TVector<float>& target,
                                    const TVector<float>& weight,
                                    int begin, int end) const;
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
+private:
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TPrecisionMetric : public TNonAdditiveMetric {
-    TPrecisionMetric() = default;
+    explicit TPrecisionMetric(double border = GetDefaultClassificationBorder())
+    : Border(border) {
+
+    }
     explicit TPrecisionMetric(int positiveClass);
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
@@ -320,10 +341,14 @@ struct TPrecisionMetric : public TNonAdditiveMetric {
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TRecallMetric: public TNonAdditiveMetric {
-    TRecallMetric() = default;
+    explicit TRecallMetric(double border = GetDefaultClassificationBorder())
+            : Border(border) {
+
+    }
     explicit TRecallMetric(int positiveClass);
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
@@ -336,10 +361,14 @@ struct TRecallMetric: public TNonAdditiveMetric {
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TF1Metric: public TNonAdditiveMetric {
-    TF1Metric() = default;
+    explicit TF1Metric(double border = GetDefaultClassificationBorder())
+    : Border(border)  {
+
+    }
     explicit TF1Metric(int positiveClass);
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
@@ -352,6 +381,7 @@ struct TF1Metric: public TNonAdditiveMetric {
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
 };
 
 struct TTotalF1Metric : public TNonAdditiveMetric {

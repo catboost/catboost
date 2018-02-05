@@ -16,6 +16,14 @@
 
 /* TMetric */
 
+static inline TString AddBorderIfNotDefault(const TString& description, double border) {
+    if (border != GetDefaultClassificationBorder()) {
+        return TStringBuilder() << description <<  ":border=" << border;
+    } else {
+        return description;
+    }
+}
+
 TMetricHolder TMetric::EvalPairwise(const TVector<TVector<double>>& /*approx*/,
                                    const TVector<TPair>& /*pairs*/,
                                    int /*begin*/, int /*end*/) const {
@@ -92,10 +100,14 @@ double TQuerywiseMetric::GetFinalError(const TMetricHolder& error) const {
 
 /* CrossEntropy */
 
-TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction)
+TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double border)
     : LossFunction(lossFunction)
+    , Border(border)
 {
     Y_ASSERT(lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy);
+    if (lossFunction == ELossFunction::CrossEntropy) {
+        CB_ENSURE(border == GetDefaultClassificationBorder(), "Border is meaningless for crossEntropy metric");
+    }
 }
 
 TMetricHolder TCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
@@ -120,7 +132,8 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double
     for (int i = begin; i < end; ++i) {
         float w = weight.empty() ? 1 : weight[i];
         const double approxExp = exp(approxPtr[i]);
-        const float prob = targetPtr[i];
+        //this check should not be bottleneck
+        const float prob = LossFunction == ELossFunction::Logloss ? targetPtr[i] > Border : targetPtr[i];
         holder.Error += w * (log(1 + approxExp) - prob * approxPtr[i]);
         holder.Weight += w;
     }
@@ -128,7 +141,7 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double
 }
 
 TString TCrossEntropyMetric::GetDescription() const {
-    return ToString(LossFunction);
+    return AddBorderIfNotDefault(ToString(LossFunction), Border);
 }
 
 bool TCrossEntropyMetric::IsMaxOptimal() const {
@@ -554,15 +567,18 @@ static void GetPositiveStats(const TVector<TVector<double>>& approx,
                              const TVector<float>& weight,
                              int begin, int end,
                              int positiveClass,
+                             double border,
                              double* truePositive,
                              double* targetPositive,
                              double* approxPositive) {
     *truePositive = 0;
     *targetPositive = 0;
     *approxPositive = 0;
+    const bool isMulticlass = approx.size();
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
-        int targetClass = static_cast<int>(target[i]);
+        const float targetVal = isMulticlass ? target[i] : target[i] > border;
+        int targetClass = static_cast<int>(targetVal);
         float w = weight.empty() ? 1 : weight[i];
 
         if (targetClass == positiveClass) {
@@ -611,16 +627,22 @@ TAUCMetric::TAUCMetric(int positiveClass)
 }
 
 TMetricHolder TAUCMetric::Eval(const TVector<TVector<double>>& approx,
-                                 const TVector<float>& target,
-                                 const TVector<float>& weight,
-                                 int begin, int end,
-                                 NPar::TLocalExecutor& /* executor */) const {
+                               const TVector<float>& target,
+                               const TVector<float>& weight,
+                               int begin, int end,
+                               NPar::TLocalExecutor& /* executor */) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
     Y_ASSERT(approxVec.size() == target.size());
 
     TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
     TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
+
+    if (!IsMultiClass) {
+        for (ui32 i = 0; i < targetCopy.size(); ++i) {
+            targetCopy[i] = targetCopy[i] > Border;
+        }
+    }
 
     if (approx.ysize() > 1) {
         int positiveClass = PositiveClass;
@@ -647,7 +669,7 @@ TString TAUCMetric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::AUC).c_str(), PositiveClass);
     } else {
-        return ToString(ELossFunction::AUC);
+        return AddBorderIfNotDefault(ToString(ELossFunction::AUC), Border);
     }
 }
 
@@ -662,11 +684,13 @@ TMetricHolder TAccuracyMetric::EvalSingleThread(const TVector<TVector<double>>& 
                                                 const TVector<float>& weight,
                                                 int begin, int end) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
+    const bool isMulticlass = approx.size() > 1;
 
     TMetricHolder error;
     for (int k = begin; k < end; ++k) {
         int approxClass = GetApproxClass(approx, k);
-        int targetClass = static_cast<int>(target[k]);
+        const float targetVal = isMulticlass ? target[k] : target[k] > Border;
+        int targetClass = static_cast<int>(targetVal);
 
         float w = weight.empty() ? 1 : weight[k];
         error.Error += approxClass == targetClass ? w : 0.0;
@@ -702,7 +726,8 @@ TMetricHolder TPrecisionMetric::Eval(const TVector<TVector<double>>& approx,
     double truePositive;
     double targetPositive;
     double approxPositive;
-    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
         &truePositive, &targetPositive, &approxPositive);
 
     TMetricHolder error;
@@ -714,7 +739,7 @@ TString TPrecisionMetric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::Precision).c_str(), PositiveClass);
     } else {
-        return ToString(ELossFunction::Precision);
+        return AddBorderIfNotDefault(ToString(ELossFunction::Precision), Border);
     }
 }
 bool TPrecisionMetric::IsMaxOptimal() const {
@@ -741,6 +766,7 @@ TMetricHolder TRecallMetric::Eval(const TVector<TVector<double>>& approx,
     double targetPositive;
     double approxPositive;
     GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+                     Border,
                      &truePositive, &targetPositive, &approxPositive);
 
     TMetricHolder error;
@@ -752,7 +778,7 @@ TString TRecallMetric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::Recall).c_str(), PositiveClass);
     } else {
-        return ToString(ELossFunction::Recall);
+        return AddBorderIfNotDefault(ToString(ELossFunction::Recall), Border);
     }
 }
 bool TRecallMetric::IsMaxOptimal() const {
@@ -778,7 +804,7 @@ TMetricHolder TF1Metric::Eval(const TVector<TVector<double>>& approx,
     double truePositive;
     double targetPositive;
     double approxPositive;
-    GetPositiveStats(approx, target, weight, begin, end, PositiveClass,
+    GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
                      &truePositive, &targetPositive, &approxPositive);
 
     TMetricHolder error;
@@ -791,7 +817,7 @@ TString TF1Metric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::F1).c_str(), PositiveClass);
     } else {
-        return ToString(ELossFunction::F1);
+        return AddBorderIfNotDefault(ToString(ELossFunction::F1), Border);
     }
 }
 
@@ -1089,14 +1115,22 @@ bool TQueryAverage::IsMaxOptimal() const {
 /* Create */
 
 inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
-    TSet<ELossFunction> metricsWithParams = {ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::Logloss, ELossFunction::QueryAverage};
+    TSet<ELossFunction> metricsWithParams = {ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::QueryAverage,
+                                             ELossFunction::Logloss, ELossFunction::AUC, ELossFunction::Precision, ELossFunction::Accuracy,
+                                             ELossFunction::F1, ELossFunction::TotalF1};
     if (!metricsWithParams.has(metric)) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
     }
+
+    double border = GetDefaultClassificationBorder();
+    if (params.has("border")) {
+        border = FromString<float>(params.at("border"));
+    }
+
     TVector<THolder<IMetric>> result;
     switch (metric) {
         case ELossFunction::Logloss:
-            result.emplace_back(new TCrossEntropyMetric(ELossFunction::Logloss));
+            result.emplace_back(new TCrossEntropyMetric(ELossFunction::Logloss, border));
             return result;
 
         case ELossFunction::CrossEntropy:
@@ -1168,7 +1202,7 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
-                result.emplace_back(new TAUCMetric());
+                result.emplace_back(new TAUCMetric(border));
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TAUCMetric(i));
@@ -1178,12 +1212,12 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         }
 
         case ELossFunction::Accuracy:
-            result.emplace_back(new TAccuracyMetric());
+            result.emplace_back(new TAccuracyMetric(border));
             return result;
 
         case ELossFunction::Precision: {
             if (approxDimension == 1) {
-                result.emplace_back(new TPrecisionMetric());
+                result.emplace_back(new TPrecisionMetric(border));
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TPrecisionMetric(i));
@@ -1194,7 +1228,7 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::Recall: {
             if (approxDimension == 1) {
-                result.emplace_back(new TRecallMetric());
+                result.emplace_back(new TRecallMetric(border));
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TRecallMetric(i));
@@ -1205,7 +1239,7 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::F1: {
             if (approxDimension == 1) {
-                result.emplace_back(new TF1Metric());
+                result.emplace_back(new TF1Metric(border));
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TF1Metric(i));
