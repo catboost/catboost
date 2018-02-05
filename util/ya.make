@@ -35,6 +35,7 @@ JOIN_SRCS(
     digest/iterator.cpp
     digest/numeric.cpp
     digest/multi.cpp
+    digest/sequence.cpp
 )
 
 SRCS(
