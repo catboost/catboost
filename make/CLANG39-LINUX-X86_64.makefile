@@ -2418,9 +2418,10 @@ $(BUILD_ROOT)/util/all_digest.cpp\
         $(SOURCE_ROOT)/util/digest/iterator.cpp\
         $(SOURCE_ROOT)/util/digest/numeric.cpp\
         $(SOURCE_ROOT)/util/digest/multi.cpp\
+        $(SOURCE_ROOT)/util/digest/sequence.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_digest.cpp' util/digest/murmur.cpp util/digest/fnv.cpp util/digest/iterator.cpp util/digest/numeric.cpp util/digest/multi.cpp
+	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_digest.cpp' util/digest/murmur.cpp util/digest/fnv.cpp util/digest/iterator.cpp util/digest/numeric.cpp util/digest/multi.cpp util/digest/sequence.cpp
 
 $(BUILD_ROOT)/util/all_datetime.cpp.o\
         ::\
