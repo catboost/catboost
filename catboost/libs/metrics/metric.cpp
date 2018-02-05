@@ -786,13 +786,21 @@ bool TRecallMetric::IsMaxOptimal() const {
 }
 
 /* F1 */
-
-TF1Metric::TF1Metric(int positiveClass)
-    : PositiveClass(positiveClass)
-    , IsMultiClass(true)
-{
-    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+THolder<TF1Metric> TF1Metric::CreateF1Multiclass(int positiveClass) {
+    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
+    THolder<TF1Metric> result = new TF1Metric;
+    result->PositiveClass = positiveClass;
+    result->IsMultiClass = true;
+    return result;
 }
+
+THolder<TF1Metric> TF1Metric::CreateF1BinClass(double border) {
+    THolder<TF1Metric> result = new TF1Metric;
+    result->Border = border;
+    result->IsMultiClass = false;
+    return result;
+}
+
 
 TMetricHolder TF1Metric::Eval(const TVector<TVector<double>>& approx,
                              const TVector<float>& target,
@@ -1239,10 +1247,10 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::F1: {
             if (approxDimension == 1) {
-                result.emplace_back(new TF1Metric(border));
+                result.emplace_back(TF1Metric::CreateF1BinClass(border));
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TF1Metric(i));
+                    result.emplace_back(TF1Metric::CreateF1Multiclass(i));
                 }
             }
             return result;

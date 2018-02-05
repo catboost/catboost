@@ -365,11 +365,6 @@ private:
 };
 
 struct TF1Metric: public TNonAdditiveMetric {
-    explicit TF1Metric(double border = GetDefaultClassificationBorder())
-    : Border(border)  {
-
-    }
-    explicit TF1Metric(int positiveClass);
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,
                               const TVector<float>& weight,
@@ -378,6 +373,13 @@ struct TF1Metric: public TNonAdditiveMetric {
     virtual TString GetDescription() const override;
     virtual bool IsMaxOptimal() const override;
 
+
+    static THolder<TF1Metric> CreateF1Multiclass(int positiveClass);
+
+    static THolder<TF1Metric> CreateF1BinClass(double border = GetDefaultClassificationBorder());
+private:
+    TF1Metric()  {
+    }
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
