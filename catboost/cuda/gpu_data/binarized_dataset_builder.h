@@ -105,7 +105,6 @@ namespace NCatboostCuda {
                                                      shift,
                                                      0,
                                                      maxFolds,
-                                                     i,
                                                      feature,
                                                      false};
                 }
@@ -304,7 +303,7 @@ namespace NCatboostCuda {
         }
 
         struct TTempIndex {
-            TCFeature Feature = {(ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1, false};
+            TCFeature Feature = {(ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1, (ui32)-1,  (ui32)-1, false};
             TVector<ui32> Data;
             TSlice Slice;
             bool Synced = true;

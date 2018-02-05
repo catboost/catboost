@@ -22,8 +22,6 @@ struct TCFeature {
     ui32 FirstFoldIndex;
     //fold count
     ui32 Folds;
-    //index on device
-    ui32 LocalIndex;
     //global index (not feature-id, index in grid only)
     ui32 Index;
     bool OneHotFeature;
