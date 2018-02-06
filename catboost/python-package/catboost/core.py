@@ -551,7 +551,7 @@ class CatBoost(_CatBoostBase):
         if 'max_bin' in params:
             if 'border_count' in params:
                 raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
-            params['learning_rate'] = params['max_bin']
+            params['border_count'] = params['max_bin']
             del params['max_bin']
 
         if 'max_depth' in params:
