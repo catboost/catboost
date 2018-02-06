@@ -1,5 +1,8 @@
 #include "coreml_helpers.h"
+#include "model_build_helper.h"
 #include <catboost/libs/helpers/exception.h>
+#include <util/generic/set.h>
+
 
 using namespace CoreML::Specification;
 
@@ -38,6 +41,7 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
         auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];
         for (int layer = treeDepth - 1; layer >= 0; --layer) {
             const auto& binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
+            ++currentSplitIndex;
             auto featureId = binFeature.FloatFeature.FloatFeature;
             auto branchValue = binFeature.FloatFeature.Split;
 
@@ -131,4 +135,109 @@ void NCatboost::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson:
             userDefinedRef[key_value.first] = key_value.second;
         }
     }
+}
+
+namespace {
+
+void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree, size_t approxDimension, TVector<TFloatSplit>* splits, TVector<TVector<double>>* leafValues) {
+    TVector<int> nodeLayerIds(tree.size(), -1);
+    leafValues->resize(approxDimension);
+    for (size_t nodeId = 0; nodeId < tree.size(); ++nodeId) {
+        const auto node = tree[nodeId];
+        CB_ENSURE(node->nodeid() == nodeId, "incorrect nodeid order in tree");
+        if (node->nodebehavior() == TreeEnsembleParameters::TreeNode::LeafNode) {
+            CB_ENSURE(node->evaluationinfo_size() == (int)approxDimension, "incorrect coreml model");
+
+            for (size_t dim = 0; dim < approxDimension; ++dim) {
+                auto& lvdim = leafValues->at(dim);
+                auto& evalInfo = node->evaluationinfo(dim);
+                CB_ENSURE(evalInfo.evaluationindex() == dim, "missing evaluation index or incrorrect order");
+                if (lvdim.size() <= node->nodeid()) {
+                    lvdim.resize(node->nodeid() + 1);
+                }
+                lvdim[node->nodeid()] = evalInfo.evaluationvalue();
+            }
+        } else {
+            CB_ENSURE(node->falsechildnodeid() < nodeId);
+            CB_ENSURE(node->truechildnodeid() < nodeId);
+            CB_ENSURE(nodeLayerIds[node->falsechildnodeid()] == nodeLayerIds[node->truechildnodeid()]);
+            nodeLayerIds[nodeId] = nodeLayerIds[node->falsechildnodeid()] + 1;
+            if (splits->ysize() <= nodeLayerIds[nodeId]) {
+                splits->resize(nodeLayerIds[nodeId] + 1);
+                auto& floatSplit = splits->at(nodeLayerIds[nodeId]);
+                floatSplit.FloatFeature = node->branchfeatureindex();
+                floatSplit.Split = node->branchfeaturevalue();
+            } else {
+                auto& floatSplit = splits->at(nodeLayerIds[nodeId]);
+                CB_ENSURE(floatSplit.FloatFeature == (int)node->branchfeatureindex());
+                CB_ENSURE(floatSplit.Split == node->branchfeaturevalue());
+            }
+        }
+    }
+    CB_ENSURE(splits->size() <= 16);
+    CB_ENSURE(IsPowerOf2(leafValues->at(0).size()), "There should be 2^depth leafs in model");
+}
+
+}
+
+void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
+    CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
+    CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+    auto& regressor = coreMLModel.treeensembleregressor();
+    CB_ENSURE(regressor.has_treeensemble(), "no treeensemble in tree regressor");
+    auto& ensemble = regressor.treeensemble();
+    CB_ENSURE(coreMLModel.has_description(), "expected description in model");
+    auto& description = coreMLModel.description();
+
+    int approxDimension = ensemble.numpredictiondimensions();
+
+    TVector<TVector<const TreeEnsembleParameters::TreeNode*>> treeNodes;
+    TVector<TVector<TFloatSplit>> trees;
+    TVector<TVector<TVector<double>>> leafValues;
+    for (const auto& node : ensemble.nodes()) {
+        if (node.treeid() >= treeNodes.size()) {
+            treeNodes.resize(node.treeid() + 1);
+        }
+        treeNodes[node.treeid()].push_back(&node);
+    }
+    for (const auto& tree : treeNodes) {
+        CB_ENSURE(!tree.empty(), "incorrect coreml model: empty tree");
+        auto& treeSplits = trees.emplace_back();
+        auto& leafs = leafValues.emplace_back();
+        ProcessOneTree(tree, approxDimension, &treeSplits, &leafs);
+    }
+    TVector<TFloatFeature> floatFeatures;
+    {
+        TSet<TFloatSplit> floatSplitsSet;
+        for (auto& tree : trees) {
+            floatSplitsSet.insert(tree.begin(), tree.end());
+        }
+        int maxFeatureIndex = -1;
+        for (auto& split : floatSplitsSet) {
+            maxFeatureIndex = Max(maxFeatureIndex, split.FloatFeature);
+        }
+        floatFeatures.resize(maxFeatureIndex + 1);
+        for (int i = 0; i < maxFeatureIndex + 1; ++i) {
+            floatFeatures[i].FlatFeatureIndex = i;
+            floatFeatures[i].FeatureIndex = i;
+        }
+        for (auto& split : floatSplitsSet) {
+            auto& floatFeature = floatFeatures[split.FloatFeature];
+            floatFeature.Borders.push_back(split.Split);
+        }
+    }
+    TObliviousTreeBuilder treeBuilder(floatFeatures, TVector<TCatFeature>());
+    for (size_t i = 0; i < trees.size(); ++i) {
+        TVector<TModelSplit> splits(trees[i].begin(), trees[i].end());
+        treeBuilder.AddTree(splits, leafValues[i]);
+    }
+    fullModel->ObliviousTrees = treeBuilder.Build();
+    fullModel->ModelInfo.clear();
+    if (description.has_metadata()) {
+        auto& metadata = description.metadata();
+        for (const auto& key_value : metadata.userdefined()) {
+            fullModel->ModelInfo[key_value.first] = key_value.second;
+        }
+    }
+    fullModel->UpdateDynamicData();
 }

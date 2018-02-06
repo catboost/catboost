@@ -8,8 +8,8 @@
 
 class TObliviousTreeBuilder {
 public:
-    TObliviousTreeBuilder(TVector<TFloatFeature>& allFloatFeatures, TVector<TCatFeature>& allCategoricalFeatures);
-    void AddTree(TVector<TModelSplit>& modelSplits, TVector<TVector<double>>& treeLeafValues);
+    TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures);
+    void AddTree(const TVector<TModelSplit>& modelSplits, const TVector<TVector<double>>& treeLeafValues);
 
     TObliviousTrees Build();
 private:

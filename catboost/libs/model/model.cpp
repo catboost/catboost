@@ -27,10 +27,16 @@ void OutputModel(const TFullModel& model, const TString& modelFile) {
     Save(&f, model);
 }
 
-TFullModel ReadModel(const TString& modelFile) {
+TFullModel ReadModel(const TString& modelFile, EModelType format) {
     TIFStream f(modelFile);
     TFullModel model;
-    Load(&f, model);
+    if (format == EModelType::CatboostBinary) {
+        Load(&f, model);
+    } else {
+        CoreML::Specification::Model coreMLModel;
+        CB_ENSURE(coreMLModel.ParseFromString(f.ReadAll()), "coreml model deserialization failed");
+        NCatboost::NCoreML::ConvertCoreMLToCatboostModel(coreMLModel, &model);
+    }
     return model;
 }
 
@@ -53,13 +59,13 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
-void ExportModel(const TFullModel& model, const TString& modelFile, const EModelExportType format, const TString& userParametersJSON) {
+void ExportModel(const TFullModel& model, const TString& modelFile, const EModelType format, const TString& userParametersJSON) {
     switch (format) {
-        case EModelExportType::CatboostBinary:
+        case EModelType::CatboostBinary:
             CB_ENSURE(userParametersJSON.empty(), "user params for mode not supported");
             OutputModel(model, modelFile);
             break;
-        case EModelExportType::AppleCoreML:
+        case EModelType::AppleCoreML:
             TStringInput is(userParametersJSON);
             NJson::TJsonValue params;
             NJson::ReadJsonTree(&is, &params);

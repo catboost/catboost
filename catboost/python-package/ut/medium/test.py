@@ -28,6 +28,7 @@ QUERY_TEST_FILE = data_file('querywise_pool', 'test3')
 QUERY_CD_FILE = data_file('querywise_pool', 'train_full3.cd')
 
 OUTPUT_MODEL_PATH = 'model.bin'
+OUTPUT_COREML_MODEL_PATH = 'model.coreml'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
 JSON_LOG_PATH = 'catboost_training.json'
@@ -163,6 +164,28 @@ def test_predict_class_raw():
     pred = model.predict(test_pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
+
+
+def test_raw_predict_equals_to_model_predict():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10, random_seed=0)
+    model.fit(train_pool, eval_set=test_pool)
+    pred = model.predict(test_pool, prediction_type='RawFormulaVal')
+    assert all(model.get_test_eval() == pred)
+
+
+def test_coreml_import_export():
+    train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
+    test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
+    model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8})
+    model.fit(train_pool)
+
+    model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    canon_pred = model.predict(test_pool)
+    coreml_loaded_model = CatBoostRegressor()
+    coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    assert all(canon_pred == coreml_loaded_model.predict(test_pool))
 
 
 def test_predict_class():

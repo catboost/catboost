@@ -129,21 +129,21 @@ cdef extern from "catboost/libs/model/model.h":
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
 
-    cdef cppclass EModelExportType:
+    cdef cppclass EModelType:
         pass
 
-    cdef EModelExportType EModelExportType_Catboost "EModelExportType::CatboostBinary"
-    cdef EModelExportType EModelExportType_CoreML "EModelExportType::AppleCoreML"
+    cdef EModelType EModelType_Catboost "EModelType::CatboostBinary"
+    cdef EModelType EModelType_CoreML "EModelType::AppleCoreML"
 
     cdef void ExportModel(
         const TFullModel& model,
         const TString& modelFile,
-        const EModelExportType format,
+        const EModelType format,
         const TString& userParametersJSON
     ) except +ProcessException
 
     cdef void OutputModel(const TFullModel& model, const TString& modelFile) except +ProcessException
-    cdef TFullModel ReadModel(const TString& modelFile) nogil except +ProcessException
+    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
 
@@ -467,13 +467,13 @@ cdef class PyPredictionType:
         else:
             self.predictionType = EPredictionType_RawFormulaVal
 
-cdef class PyExportType:
-    cdef EModelExportType exportType
-    def __init__(self, prediction_type):
-        if prediction_type == 'coreml':
-            self.exportType = EModelExportType_CoreML
+cdef class PyModelType:
+    cdef EModelType modelType
+    def __init__(self, model_type):
+        if model_type == 'coreml':
+            self.modelType = EModelType_CoreML
         else:
-            self.exportType = EModelExportType_Catboost
+            self.modelType = EModelType_Catboost
 
 cdef class _PreprocessParams:
     cdef TJsonValue tree
@@ -921,17 +921,18 @@ cdef class _CatBoost:
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
 
-    cpdef _load_model(self, model_file):
+    cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         model_file = to_binary_str(model_file)
-        tmp_model = ReadModel(TString(<const char*>model_file))
+        cdef EModelType modelType = PyModelType(format).modelType
+        tmp_model = ReadModel(TString(<const char*>model_file), modelType)
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters):
-        cdef EModelExportType exportType = PyExportType(format).exportType
+        cdef EModelType modelType = PyModelType(format).modelType
         export_parameters = to_binary_str(export_parameters)
         output_file = to_binary_str(output_file)
-        ExportModel(dereference(self.__model), output_file, exportType, export_parameters)
+        ExportModel(dereference(self.__model), output_file, modelType, export_parameters)
 
     cpdef _serialize_model(self):
         cdef TString tstr = SerializeModel(dereference(self.__model))
@@ -1071,8 +1072,8 @@ class _CatBoostBase(object):
 
             self._object._save_model(output_file, format, params_string)
 
-    def _load_model(self, model_file):
-        self._object._load_model(model_file)
+    def _load_model(self, model_file, format):
+        self._object._load_model(model_file, format)
         setattr(self, '_is_fitted', True)
         setattr(self, '_random_seed', self._object._get_random_seed())
         for key, value in iteritems(self._get_params()):

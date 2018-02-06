@@ -493,13 +493,14 @@ struct TFullModel {
     }
 };
 
-void OutputModel(const TFullModel& model, const TString& modelFile);
-TFullModel ReadModel(const TString& modelFile);
-
-enum class EModelExportType {
+enum class EModelType {
     CatboostBinary,
     AppleCoreML
 };
+
+void OutputModel(const TFullModel& model, const TString& modelFile);
+TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
+
 /**
  * Export model in our binary or protobuf CoreML format
  * @param model
@@ -507,7 +508,7 @@ enum class EModelExportType {
  * @param format
  * @param userParametersJSON
  */
-void ExportModel(const TFullModel& model, const TString& modelFile, const EModelExportType format = EModelExportType::CatboostBinary, const TString& userParametersJSON = "");
+void ExportModel(const TFullModel& model, const TString& modelFile, EModelType format = EModelType::CatboostBinary, const TString& userParametersJSON = "");
 
 /**
  * Serialize model to string

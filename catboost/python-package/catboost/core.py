@@ -1041,7 +1041,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
         self._save_model(fname, format, export_parameters)
 
-    def load_model(self, fname):
+    def load_model(self, fname, format='catboost'):
         """
         Load model from a file.
 
@@ -1052,7 +1052,7 @@ class CatBoost(_CatBoostBase):
         """
         if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
-        self._load_model(fname)
+        self._load_model(fname, format)
         return self
 
     def get_param(self, key):

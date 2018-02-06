@@ -12,5 +12,7 @@ namespace NCatboost {
         void ConfigureTrees(const TFullModel& model, CoreML::Specification::TreeEnsembleParameters* ensemble);
         void ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, CoreML::Specification::TreeEnsembleRegressor* regressor, CoreML::Specification::ModelDescription* description);
         void ConfigureMetadata(const TFullModel& model, const NJson::TJsonValue& userParameters, CoreML::Specification::ModelDescription* description);
+
+        void ConvertCoreMLToCatboostModel(const CoreML::Specification::Model& coreMLModel, TFullModel* fullModel);
     }
 }

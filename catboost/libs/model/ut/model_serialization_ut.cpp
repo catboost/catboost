@@ -13,4 +13,14 @@ SIMPLE_UNIT_TEST_SUITE(TModelSerialization) {
         deserializedModel.Load(&strStream);
         UNIT_ASSERT_EQUAL(trainedModel, deserializedModel);
     }
+
+    SIMPLE_UNIT_TEST(TestSerializeDeserializeCoreML) {
+        TFullModel trainedModel = TrainFloatCatboostModel();
+        TStringStream strStream;
+        trainedModel.Save(&strStream);
+        ExportModel(trainedModel, "model.coreml", EModelType::AppleCoreML);
+        TFullModel deserializedModel = ReadModel("model.coreml", EModelType::AppleCoreML);
+        UNIT_ASSERT_EQUAL(trainedModel.ObliviousTrees.LeafValues, deserializedModel.ObliviousTrees.LeafValues);
+        UNIT_ASSERT_EQUAL(trainedModel.ObliviousTrees.TreeSplits, deserializedModel.ObliviousTrees.TreeSplits);
+    }
 }
