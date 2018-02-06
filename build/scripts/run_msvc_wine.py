@@ -85,15 +85,12 @@ def call_wine_cmd_once(wine, cmd, env, mode):
     prefixes = [
         'Microsoft (R)',
         'Copyright (C)',
-        'err:menubuilder:',
-        'err:wincodecs:',
-        'err:winediag:',
-        'err:ole:',
         'Application tried to create a window',
         'The graphics driver is missing',
         'Could not load wine-gecko',
         'wine: configuration in',
         'wine: created the configuration directory',
+        'libpng warning:'
     ]
 
     suffixes = [
@@ -105,7 +102,13 @@ def call_wine_cmd_once(wine, cmd, env, mode):
     ]
 
     substrs = [
-        'Creating library Z:'
+        'Creating library Z:',
+        'err:heap',
+        'err:menubuilder:',
+        'err:msvcrt',
+        'err:ole:',
+        'err:wincodecs:',
+        'err:winediag:',
     ]
 
     def good_line(l):
@@ -348,6 +351,7 @@ def run_main():
     incl_paths = args.incl_paths
     free_args = args.free_args
 
+    wine_dir = os.path.dirname(os.path.dirname(wine))
     bin_dir = os.path.dirname(binary)
     tc_dir = os.path.dirname(os.path.dirname(os.path.dirname(bin_dir)))
     if not incl_paths:
@@ -367,6 +371,7 @@ def run_main():
     env['WindowsSdkDir'] = fix_path(tc_dir)
     env['LIBPATH'] = fix_path(tc_dir + '/VC/lib/amd64')
     env['LIB'] = fix_path(tc_dir + '/VC/lib/amd64')
+    env['LD_LIBRARY_PATH'] = ':'.join(wine_dir + d for d in ['/lib', '/lib64', '/lib64/wine'])
     cmd = [binary] + [fix_path(x) for x in free_args]
 
     for x in ('/NOLOGO', '/nologo', '/FD'):

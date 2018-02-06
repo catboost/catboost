@@ -895,6 +895,8 @@ class ToolchainOptions(object):
         logger.debug('c_compiler=%s', self.c_compiler)
         logger.debug('cxx_compiler=%s', self.cxx_compiler)
 
+        self.compiler_platform_projects = self.target.find_in_dict(self.params.get('platform'), [])
+
     def version_at_least(self, *args):
         return args <= tuple(self.compiler_version_list)
 
@@ -935,8 +937,6 @@ class GnuToolchainOptions(ToolchainOptions):
         self.sys_lib = self.params.get('sys_lib', {})
         if isinstance(self.sys_lib, dict):
             self.sys_lib = self.target.find_in_dict(self.sys_lib, [])
-
-        self.compiler_platform_projects = self.target.find_in_dict(self.params.get('platform'), [])
 
         self.os_sdk = preset('OS_SDK') or self._default_os_sdk()
         self.os_sdk_local = self.os_sdk == 'local'
@@ -1028,11 +1028,14 @@ class Compiler(object):
     def __init__(self, tc, compiler_variable):
         self.compiler_variable = compiler_variable
         self.tc = tc
+        self.platform_projects = self.tc.compiler_platform_projects
 
     def print_compiler(self):
         # CLANG and CLANG_VER variables
         emit(self.compiler_variable, 'yes')
         emit('{}_VER'.format(self.compiler_variable), self.tc.compiler_version)
+        if self.platform_projects:
+            emit('COMPILER_PLATFORM', self.platform_projects)
 
 
 class GnuToolchain(Toolchain):
@@ -1178,10 +1181,6 @@ class GnuCompiler(Compiler):
         # TODO(somov): Убрать чтение настройки из os.environ
         emit('USE_ARC_PROFILE', 'yes' if preset('USE_ARC_PROFILE') or os.environ.get('USE_ARC_PROFILE') else 'no')
         emit('DEBUG_INFO_FLAGS', '-g')
-
-        platform_projects = self.tc.compiler_platform_projects
-        if platform_projects:
-            emit('COMPILER_PLATFORM', platform_projects)
 
         emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
@@ -1529,6 +1528,8 @@ class MSVCCompiler(Compiler, MSVC):
     def __init__(self, tc, build):
         Compiler.__init__(self, tc, 'MSVC')
         MSVC.__init__(self, tc, build)
+        if tc.under_wine:
+            self.platform_projects.append('contrib/libs/platform/tools/wine')
 
     def print_compiler(self):
         super(MSVCCompiler, self).print_compiler()
