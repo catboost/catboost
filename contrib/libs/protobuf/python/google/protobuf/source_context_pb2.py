@@ -21,7 +21,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_pb=_b('\n$google/protobuf/source_context.proto\x12\x0fgoogle.protobuf\"\"\n\rSourceContext\x12\x11\n\tfile_name\x18\x01 \x01(\tB\x95\x01\n\x13\x63om.google.protobufB\x12SourceContextProtoP\x01ZAgoogle.golang.org/genproto/protobuf/source_context;source_context\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -57,6 +56,7 @@ _SOURCECONTEXT = _descriptor.Descriptor(
 )
 
 DESCRIPTOR.message_types_by_name['SourceContext'] = _SOURCECONTEXT
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 SourceContext = _reflection.GeneratedProtocolMessageType('SourceContext', (_message.Message,), dict(
   DESCRIPTOR = _SOURCECONTEXT,

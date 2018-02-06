@@ -109,6 +109,15 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
     use_lower_camel_for_enums_ = value;
   }
 
+  // Sets whether to always output enums as ints, by default this is off, and
+  // enums are rendered as strings.
+  void set_use_ints_for_enums(bool value) { use_ints_for_enums_ = value; }
+
+  // Sets whether to use original proto field names
+  void set_preserve_proto_field_names(bool value) {
+    preserve_proto_field_names_ = value;
+  }
+
   // Sets the max recursion depth of proto message to be deserialized. Proto
   // messages over this depth will fail to be deserialized.
   // Default value is 64.
@@ -283,6 +292,12 @@ class LIBPROTOBUF_EXPORT ProtoStreamObjectSource : public ObjectSource {
 
   // Whether to render enums using lowerCamelCase. Defaults to false.
   bool use_lower_camel_for_enums_;
+
+  // Whether to render enums as ints always. Defaults to false.
+  bool use_ints_for_enums_;
+
+  // Whether to preserve proto field names
+  bool preserve_proto_field_names_;
 
   // Tracks current recursion depth.
   mutable int recursion_depth_;

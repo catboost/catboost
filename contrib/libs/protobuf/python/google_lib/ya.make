@@ -34,6 +34,7 @@ PY_SRCS(
     protobuf/api_pb2.py
     protobuf/compiler/__init__.py
     protobuf/compiler/plugin_pb2.py
+    protobuf/compiler/profile_pb2.py
     protobuf/descriptor.py
     protobuf/descriptor_database.py
     protobuf/descriptor_pb2.py
@@ -75,6 +76,7 @@ PY_SRCS(
 
 SRCS(
     protobuf/internal/api_implementation.cc
+    protobuf/internal/python_protobuf.cc
     protobuf/pyext/descriptor.cc
     protobuf/pyext/descriptor_containers.cc
     protobuf/pyext/descriptor_database.cc

@@ -130,7 +130,9 @@
     #define PROTOBUF_LITTLE_ENDIAN 1
   #endif
 #endif
+#include "stubs/atomicops.h"
 #include "stubs/common.h"
+#include "stubs/port.h"
 
 namespace google {
 
@@ -370,11 +372,10 @@ class LIBPROTOBUF_EXPORT CodedInputStream {
   // maximum message length should be limited to the shortest length that
   // will not harm usability.  The theoretical shortest message that could
   // cause integer overflows is 512MB.  The default limit is 64MB.  Apps
-  // should set shorter limits if possible.  If warning_threshold is not -1,
-  // a warning will be printed to stderr after warning_threshold bytes are
-  // read.  For backwards compatibility all negative values get squashed to -1,
-  // as other negative values might have special internal meanings.
-  // An error will always be printed to stderr if the limit is reached.
+  // should set shorter limits if possible.  For backwards compatibility all
+  // negative values get squashed to -1, as other negative values might have
+  // special internal meanings.  An error will always be printed to stderr if
+  // the limit is reached.
   //
   // This is unrelated to PushLimit()/PopLimit().
   //
@@ -567,18 +568,14 @@ class LIBPROTOBUF_EXPORT CodedInputStream {
   // current_limit_.  Set using SetTotalBytesLimit().
   int total_bytes_limit_;
 
-  // If positive/0: Limit for bytes read after which a warning due to size
-  // should be logged.
-  // If -1: Printing of warning disabled. Can be set by client.
-  // If -2: Internal: Limit has been reached, print full size when destructing.
-  int total_bytes_warning_threshold_;
-
   // Current recursion budget, controlled by IncrementRecursionDepth() and
   // similar.  Starts at recursion_limit_ and goes down: if this reaches
   // -1 we are over budget.
   int recursion_budget_;
   // Recursion depth limit, set by SetRecursionLimit().
   int recursion_limit_;
+
+  bool disable_strict_correctness_enforcement_;
 
   // See SetExtensionRegistry().
   const DescriptorPool* extension_pool_;
@@ -640,8 +637,6 @@ class LIBPROTOBUF_EXPORT CodedInputStream {
   int BufferSize() const;
 
   static const int kDefaultTotalBytesLimit = INT_MAX;
-
-  static const int kDefaultTotalBytesWarningThreshold = 32 << 20;  // 32MB
 
   static int default_recursion_limit_;  // 100 by default.
 };
@@ -869,7 +864,7 @@ class LIBPROTOBUF_EXPORT CodedOutputStream {
   }
 
   static bool IsDefaultSerializationDeterministic() {
-    return default_serialization_deterministic_;
+    return google::protobuf::internal::Acquire_Load(&default_serialization_deterministic_);
   }
 
  private:
@@ -884,7 +879,8 @@ class LIBPROTOBUF_EXPORT CodedOutputStream {
   // See SetSerializationDeterministic() regarding these three fields.
   bool serialization_deterministic_is_overridden_;
   bool serialization_deterministic_override_;
-  static bool default_serialization_deterministic_;
+  // Conceptually, default_serialization_deterministic_ is an atomic bool.
+  static google::protobuf::internal::AtomicWord default_serialization_deterministic_;
 
   // Advance the buffer by a given number of bytes.
   void Advance(int amount);
@@ -902,13 +898,16 @@ class LIBPROTOBUF_EXPORT CodedOutputStream {
   void WriteVarint32SlowPath(uint32 value);
   void WriteVarint64SlowPath(uint64 value);
 
-  static size_t VarintSize32Fallback(uint32 value);
-
   // See above.  Other projects may use "friend" to allow them to call this.
-  // Requires: no protocol buffer serialization in progress.
+  // After SetDefaultSerializationDeterministic() completes, all protocol
+  // buffer serializations will be deterministic by default.  Thread safe.
+  // However, the meaning of "after" is subtle here: to be safe, each thread
+  // that wants deterministic serialization by default needs to call
+  // SetDefaultSerializationDeterministic() or ensure on its own that another
+  // thread has done so.
   friend void ::google::protobuf::internal::MapTestForceDeterministic();
   static void SetDefaultSerializationDeterministic() {
-    default_serialization_deterministic_ = true;
+    google::protobuf::internal::Release_Store(&default_serialization_deterministic_, 1);
   }
 };
 
@@ -995,8 +994,7 @@ inline const uint8* CodedInputStream::ReadLittleEndian64FromArray(
 inline bool CodedInputStream::ReadLittleEndian32(uint32* value) {
 #if defined(PROTOBUF_LITTLE_ENDIAN)
   if (GOOGLE_PREDICT_TRUE(BufferSize() >= static_cast<int>(sizeof(*value)))) {
-    memcpy(value, buffer_, sizeof(*value));
-    Advance(sizeof(*value));
+    buffer_ = ReadLittleEndian32FromArray(buffer_, value);
     return true;
   } else {
     return ReadLittleEndian32Fallback(value);
@@ -1009,8 +1007,7 @@ inline bool CodedInputStream::ReadLittleEndian32(uint32* value) {
 inline bool CodedInputStream::ReadLittleEndian64(uint64* value) {
 #if defined(PROTOBUF_LITTLE_ENDIAN)
   if (GOOGLE_PREDICT_TRUE(BufferSize() >= static_cast<int>(sizeof(*value)))) {
-    memcpy(value, buffer_, sizeof(*value));
-    Advance(sizeof(*value));
+    buffer_ = ReadLittleEndian64FromArray(buffer_, value);
     return true;
   } else {
     return ReadLittleEndian64Fallback(value);
@@ -1291,11 +1288,23 @@ inline uint8* CodedOutputStream::WriteTagToArray(
 }
 
 inline size_t CodedOutputStream::VarintSize32(uint32 value) {
-  if (value < (1 << 7)) {
-    return 1;
-  } else  {
-    return VarintSize32Fallback(value);
-  }
+  // This computes value == 0 ? 1 : floor(log2(value)) / 7 + 1
+  // Use an explicit multiplication to implement the divide of
+  // a number in the 1..31 range.
+  // Explicit OR 0x1 to avoid calling Bits::Log2FloorNonZero(0), which is
+  // undefined.
+  uint32 log2value = Bits::Log2FloorNonZero(value | 0x1);
+  return static_cast<size_t>((log2value * 9 + 73) / 64);
+}
+
+inline size_t CodedOutputStream::VarintSize64(uint64 value) {
+  // This computes value == 0 ? 1 : floor(log2(value)) / 7 + 1
+  // Use an explicit multiplication to implement the divide of
+  // a number in the 1..63 range.
+  // Explicit OR 0x1 to avoid calling Bits::Log2FloorNonZero(0), which is
+  // undefined.
+  uint32 log2value = Bits::Log2FloorNonZero64(value | 0x1);
+  return static_cast<size_t>((log2value * 9 + 73) / 64);
 }
 
 inline size_t CodedOutputStream::VarintSize32SignExtended(int32 value) {
@@ -1386,9 +1395,9 @@ inline CodedInputStream::CodedInputStream(ZeroCopyInputStream* input)
     current_limit_(kint32max),
     buffer_size_after_limit_(0),
     total_bytes_limit_(kDefaultTotalBytesLimit),
-    total_bytes_warning_threshold_(kDefaultTotalBytesWarningThreshold),
     recursion_budget_(default_recursion_limit_),
     recursion_limit_(default_recursion_limit_),
+    disable_strict_correctness_enforcement_(true),
     extension_pool_(NULL),
     extension_factory_(NULL) {
   // Eagerly Refresh() so buffer space is immediately available.
@@ -1407,9 +1416,9 @@ inline CodedInputStream::CodedInputStream(const uint8* buffer, int size)
     current_limit_(size),
     buffer_size_after_limit_(0),
     total_bytes_limit_(kDefaultTotalBytesLimit),
-    total_bytes_warning_threshold_(kDefaultTotalBytesWarningThreshold),
     recursion_budget_(default_recursion_limit_),
     recursion_limit_(default_recursion_limit_),
+    disable_strict_correctness_enforcement_(true),
     extension_pool_(NULL),
     extension_factory_(NULL) {
   // Note that setting current_limit_ == size is important to prevent some

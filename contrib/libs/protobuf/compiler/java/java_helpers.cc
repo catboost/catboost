@@ -43,6 +43,7 @@
 #include "wire_format.h"
 #include "stubs/strutil.h"
 #include "stubs/substitute.h"
+#include "stubs/hash.h"  // for hash<T *>
 
 namespace google {
 namespace protobuf {
@@ -244,6 +245,7 @@ string ClassName(const FileDescriptor* descriptor) {
   ClassNameResolver name_resolver;
   return name_resolver.GetClassName(descriptor, true);
 }
+
 
 string ExtraMessageInterfaces(const Descriptor* descriptor) {
   string interfaces = "// @@protoc_insertion_point(message_implements:"

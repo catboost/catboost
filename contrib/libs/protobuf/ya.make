@@ -43,6 +43,7 @@ SRCS(
     extension_set_heavy.cc
     field_mask.pb.cc
     generated_message_reflection.cc
+    generated_message_table_driven.cc
     generated_message_util.cc
     io/coded_stream.cc
     io/gzip_stream.cc
@@ -82,6 +83,7 @@ SRCS(
     timestamp.pb.cc
     type.pb.cc
     unknown_field_set.cc
+    util/delimited_message_util.cc
     util/field_comparator.cc
     util/field_mask_util.cc
     util/internal/datapiece.cc

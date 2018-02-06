@@ -43,6 +43,8 @@
 #include <stdint.h>
 #endif
 
+#include "stubs/platform_macros.h"
+
 #undef PROTOBUF_LITTLE_ENDIAN
 #ifdef _WIN32
   // Assuming windows is always little-endian.
@@ -286,7 +288,9 @@ inline void GOOGLE_UNALIGNED_STORE64(void *p, uint64 v) {
 #if defined(GOOGLE_PROTOBUF_OS_NACL) \
     || (defined(__ANDROID__) && defined(__clang__) \
         && (__clang_major__ == 3 && __clang_minor__ == 8) \
-        && (__clang_patchlevel__ < 275480))
+        && (__clang_patchlevel__ < 275480)) \
+    || (defined(__IOS__) && defined(__clang__) \
+        && (__clang_major__ == 3 && __clang_minor__ == 7))
 # define GOOGLE_PROTOBUF_USE_PORTABLE_LOG2
 #endif
 

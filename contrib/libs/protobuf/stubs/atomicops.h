@@ -202,14 +202,6 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 #elif defined(GOOGLE_PROTOBUF_OS_AIX)
 // #include "stubs/atomicops_internals_power.h"
 
-// Apple.
-#elif defined(GOOGLE_PROTOBUF_OS_APPLE)
-#if __has_feature(cxx_atomic) || _GNUC_VER >= 407
-#include "stubs/atomicops_internals_generic_c11_atomic.h"
-#else  // __has_feature(cxx_atomic) || _GNUC_VER >= 407
-#include "stubs/atomicops_internals_macosx.h"
-#endif  // __has_feature(cxx_atomic) || _GNUC_VER >= 407
-
 // GCC.
 #elif defined(__GNUC__)
 #if defined(GOOGLE_PROTOBUF_ARCH_IA32) || defined(GOOGLE_PROTOBUF_ARCH_X64)
@@ -229,6 +221,9 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 #elif defined(GOOGLE_PROTOBUF_ARCH_POWER)
 #include "stubs/atomicops_internals_power.h"
 #elif defined(__native_client__)
+// The static_asserts in the C++11 atomics implementation cause it to fail
+// with certain compilers, e.g. nvcc on macOS. Don't use elsewhere unless
+// the TODO in that file is addressed.
 #include "stubs/atomicops_internals_generic_c11_atomic.h"
 #elif defined(GOOGLE_PROTOBUF_ARCH_PPC)
 // #include "stubs/atomicops_internals_ppc_gcc.h"

@@ -333,10 +333,7 @@ inline void WireFormat::VerifyUTF8StringNamedField(
       data, size, static_cast<WireFormatLite::Operation>(op), field_name);
 #else
   // Avoid the compiler warning about unused variables.
-  Y_UNUSED(data);
-  Y_UNUSED(size);
-  Y_UNUSED(op);
-  Y_UNUSED(field_name);
+  (void)data; (void)size; (void)op; (void)field_name;
 #endif
 }
 

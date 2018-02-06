@@ -450,6 +450,7 @@ GenerateMembers(io::Printer* printer) const {
     "}\n");
 }
 
+
 void ImmutableMessageOneofFieldLiteGenerator::
 GenerateBuilderMembers(io::Printer* printer) const {
   // The comments above the methods below are based on a hypothetical
@@ -854,6 +855,7 @@ GenerateFieldBuilderInitializationCode(io::Printer* printer)  const {
   printer->Print(variables_,
     "get$capitalized_name$FieldBuilder();\n");
 }
+
 
 void RepeatedImmutableMessageFieldLiteGenerator::
 GenerateInitializationCode(io::Printer* printer) const {

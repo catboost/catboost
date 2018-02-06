@@ -47,6 +47,7 @@
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
 #include "descriptor.pb.h"
+
 #include "stubs/strutil.h"
 
 namespace google {

@@ -120,6 +120,8 @@ ProtoStreamObjectSource::ProtoStreamObjectSource(
       own_typeinfo_(true),
       type_(type),
       use_lower_camel_for_enums_(false),
+      use_ints_for_enums_(false),
+      preserve_proto_field_names_(false),
       recursion_depth_(0),
       max_recursion_depth_(kDefaultMaxRecursionDepth),
       render_unknown_fields_(false),
@@ -135,6 +137,8 @@ ProtoStreamObjectSource::ProtoStreamObjectSource(
       own_typeinfo_(false),
       type_(type),
       use_lower_camel_for_enums_(false),
+      use_ints_for_enums_(false),
+      preserve_proto_field_names_(false),
       recursion_depth_(0),
       max_recursion_depth_(kDefaultMaxRecursionDepth),
       render_unknown_fields_(false),
@@ -198,7 +202,11 @@ Status ProtoStreamObjectSource::WriteMessage(const google::protobuf::Type& type,
       last_tag = tag;
       field = FindAndVerifyField(type, tag);
       if (field != NULL) {
-        field_name = field->json_name();
+        if (preserve_proto_field_names_) {
+          field_name = field->name();
+        } else {
+          field_name = field->json_name();
+        }
       }
     }
     if (field == NULL) {
@@ -232,7 +240,7 @@ Status ProtoStreamObjectSource::WriteMessage(const google::protobuf::Type& type,
   if (include_start_and_end) {
     ow->EndObject();
   }
-  return Status::OK;
+  return util::Status();
 }
 
 StatusOr<uint32> ProtoStreamObjectSource::RenderList(
@@ -314,7 +322,7 @@ Status ProtoStreamObjectSource::RenderPacked(
     RETURN_IF_ERROR(RenderField(field, StringPiece(), ow));
   }
   stream_->PopLimit(old_limit);
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderTimestamp(
@@ -338,7 +346,7 @@ Status ProtoStreamObjectSource::RenderTimestamp(
   ow->RenderString(field_name,
                    ::google::protobuf::internal::FormatTime(seconds, nanos));
 
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderDuration(
@@ -379,7 +387,7 @@ Status ProtoStreamObjectSource::RenderDuration(
       FormatNanos(nanos, os->add_trailing_zeros_for_timestamp_and_duration_)
           .c_str());
   ow->RenderString(field_name, formatted_duration);
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderDouble(const ProtoStreamObjectSource* os,
@@ -393,7 +401,7 @@ Status ProtoStreamObjectSource::RenderDouble(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderDouble(field_name, bit_cast<double>(buffer64));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderFloat(const ProtoStreamObjectSource* os,
@@ -407,7 +415,7 @@ Status ProtoStreamObjectSource::RenderFloat(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderFloat(field_name, bit_cast<float>(buffer32));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderInt64(const ProtoStreamObjectSource* os,
@@ -421,7 +429,7 @@ Status ProtoStreamObjectSource::RenderInt64(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderInt64(field_name, bit_cast<int64>(buffer64));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderUInt64(const ProtoStreamObjectSource* os,
@@ -435,7 +443,7 @@ Status ProtoStreamObjectSource::RenderUInt64(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderUint64(field_name, bit_cast<uint64>(buffer64));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderInt32(const ProtoStreamObjectSource* os,
@@ -449,7 +457,7 @@ Status ProtoStreamObjectSource::RenderInt32(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderInt32(field_name, bit_cast<int32>(buffer32));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderUInt32(const ProtoStreamObjectSource* os,
@@ -463,7 +471,7 @@ Status ProtoStreamObjectSource::RenderUInt32(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderUint32(field_name, bit_cast<uint32>(buffer32));
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderBool(const ProtoStreamObjectSource* os,
@@ -478,7 +486,7 @@ Status ProtoStreamObjectSource::RenderBool(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderBool(field_name, buffer64 != 0);
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderString(const ProtoStreamObjectSource* os,
@@ -494,7 +502,7 @@ Status ProtoStreamObjectSource::RenderString(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderString(field_name, str);
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderBytes(const ProtoStreamObjectSource* os,
@@ -510,7 +518,7 @@ Status ProtoStreamObjectSource::RenderBytes(const ProtoStreamObjectSource* os,
     os->stream_->ReadTag();
   }
   ow->RenderBytes(field_name, str);
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderStruct(const ProtoStreamObjectSource* os,
@@ -529,7 +537,7 @@ Status ProtoStreamObjectSource::RenderStruct(const ProtoStreamObjectSource* os,
     }
   }
   ow->EndObject();
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderStructValue(
@@ -545,7 +553,7 @@ Status ProtoStreamObjectSource::RenderStructValue(
     }
     RETURN_IF_ERROR(os->RenderField(field, field_name, ow));
   }
-  return Status::OK;
+  return util::Status();
 }
 
 // TODO(skarvaje): Avoid code duplication of for loops and SkipField logic.
@@ -558,7 +566,7 @@ Status ProtoStreamObjectSource::RenderStructListValue(
   if (tag == 0) {
     ow->StartList(field_name);
     ow->EndList();
-    return Status::OK;
+    return util::Status();
   }
 
   while (tag != 0) {
@@ -570,7 +578,7 @@ Status ProtoStreamObjectSource::RenderStructListValue(
     }
     ASSIGN_OR_RETURN(tag, os->RenderList(field, field_name, tag, ow));
   }
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderAny(const ProtoStreamObjectSource* os,
@@ -612,7 +620,7 @@ Status ProtoStreamObjectSource::RenderAny(const ProtoStreamObjectSource* os,
       ow->RenderString("@type", type_url);
     }
     ow->EndObject();
-    return util::Status::OK;
+    return util::Status();
   }
 
   // If there is a value but no type, we cannot render it, so report an error.
@@ -677,7 +685,7 @@ Status ProtoStreamObjectSource::RenderFieldMask(
     combined.append(ConvertFieldMaskPath(str, &ToCamelCase));
   }
   ow->RenderString(field_name, combined);
-  return Status::OK;
+  return util::Status();
 }
 
 
@@ -773,7 +781,7 @@ Status ProtoStreamObjectSource::RenderField(
     // Render all other non-message types.
     return RenderNonMessageField(field, field_name, ow);
   }
-  return Status::OK;
+  return util::Status();
 }
 
 Status ProtoStreamObjectSource::RenderNonMessageField(
@@ -858,6 +866,12 @@ Status ProtoStreamObjectSource::RenderNonMessageField(
         break;
       }
 
+      // No need to lookup enum type if we need to render int.
+      if (use_ints_for_enums_) {
+        ow->RenderInt32(field_name, buffer32);
+        break;
+      }
+
       // Get the nested enum type for this field.
       // TODO(skarvaje): Avoid string manipulation. Find ways to speed this
       // up.
@@ -896,7 +910,7 @@ Status ProtoStreamObjectSource::RenderNonMessageField(
     default:
       break;
   }
-  return Status::OK;
+  return util::Status();
 }
 
 // TODO(skarvaje): Fix this to avoid code duplication.
@@ -1065,7 +1079,7 @@ Status ProtoStreamObjectSource::IncrementRecursionDepth(
         StrCat("Message too deep. Max recursion depth reached for type '",
                type_name, "', field '", field_name, "'"));
   }
-  return Status::OK;
+  return util::Status();
 }
 
 namespace {

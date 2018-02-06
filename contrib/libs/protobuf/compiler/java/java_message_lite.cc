@@ -124,19 +124,23 @@ void ImmutableMessageLiteGenerator::GenerateInterface(io::Printer* printer) {
                                 /* immutable = */ true, "OrBuilder");
   if (descriptor_->extension_range_count() > 0) {
     printer->Print(
-        "public interface $classname$OrBuilder$idend$ extends \n"
+        "$deprecation$public interface $classname$OrBuilder$idend$ extends \n"
         "    $extra_interfaces$\n"
         "     com.google.protobuf.GeneratedMessageLite.\n"
         "          ExtendableMessageOrBuilder<\n"
         "              $classname$, $classname$.Builder> {\n",
+        "deprecation", descriptor_->options().deprecated() ?
+            "@java.lang.Deprecated " : "",
         "extra_interfaces", ExtraMessageOrBuilderInterfaces(descriptor_),
         "classname", descriptor_->name(),
         "idend", "");
   } else {
     printer->Print(
-        "public interface $classname$OrBuilder$idend$ extends\n"
+        "$deprecation$public interface $classname$OrBuilder$idend$ extends\n"
         "    $extra_interfaces$\n"
         "    com.google.protobuf.MessageLiteOrBuilder {\n",
+        "deprecation", descriptor_->options().deprecated() ?
+            "@java.lang.Deprecated " : "",
         "extra_interfaces", ExtraMessageOrBuilderInterfaces(descriptor_),
         "classname", descriptor_->name(),
         "idend", "");
@@ -174,6 +178,8 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
   variables["static"] = is_own_file ? " " : " static ";
   variables["classname"] = descriptor_->name();
   variables["extra_interfaces"] = ExtraMessageInterfaces(descriptor_);
+  variables["deprecation"] = descriptor_->options().deprecated()
+      ? "@java.lang.Deprecated " : "";
 
   WriteMessageDocComment(printer, descriptor_);
   MaybePrintGeneratedAnnotation(context_, printer, descriptor_,
@@ -184,7 +190,7 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
   string builder_type;
   if (descriptor_->extension_range_count() > 0) {
     printer->Print(variables,
-      "public $static$final class $classname$ extends\n"
+      "$deprecation$public $static$final class $classname$ extends\n"
       "    com.google.protobuf.GeneratedMessageLite.ExtendableMessage<\n"
       "      $classname$, $classname$.Builder> implements\n"
       "    $extra_interfaces$\n"
@@ -194,7 +200,7 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
         name_resolver_->GetImmutableClassName(descriptor_));
   } else {
     printer->Print(variables,
-        "public $static$final class $classname$ extends\n"
+        "$deprecation$public $static$final class $classname$ extends\n"
         "    com.google.protobuf.GeneratedMessageLite<\n"
         "        $classname$, $classname$.Builder> implements\n"
         "    $extra_interfaces$\n"
@@ -339,6 +345,7 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
   }
 
   printer->Print(
+    "@java.lang.SuppressWarnings({\"unchecked\", \"fallthrough\"})\n"
     "protected final Object dynamicMethod(\n"
     "    com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,\n"
     "    Object arg0, Object arg1) {\n"
@@ -391,6 +398,7 @@ void ImmutableMessageLiteGenerator::Generate(io::Printer* printer) {
 
   printer->Print(
     "}\n"
+    "// fall through\n"
     "case GET_DEFAULT_INSTANCE: {\n"
     "  return DEFAULT_INSTANCE;\n"
     "}\n"
@@ -581,6 +589,19 @@ GenerateParseFromMethods(io::Printer* printer) {
   //   because they need to be generated even for messages that are optimized
   //   for code size.
   printer->Print(
+    "public static $classname$ parseFrom(\n"
+    "    java.nio.ByteBuffer data)\n"
+    "    throws com.google.protobuf.InvalidProtocolBufferException {\n"
+    "  return com.google.protobuf.GeneratedMessageLite.parseFrom(\n"
+    "      DEFAULT_INSTANCE, data);\n"
+    "}\n"
+    "public static $classname$ parseFrom(\n"
+    "    java.nio.ByteBuffer data,\n"
+    "    com.google.protobuf.ExtensionRegistryLite extensionRegistry)\n"
+    "    throws com.google.protobuf.InvalidProtocolBufferException {\n"
+    "  return com.google.protobuf.GeneratedMessageLite.parseFrom(\n"
+    "      DEFAULT_INSTANCE, data, extensionRegistry);\n"
+    "}\n"
     "public static $classname$ parseFrom(\n"
     "    com.google.protobuf.ByteString data)\n"
     "    throws com.google.protobuf.InvalidProtocolBufferException {\n"
@@ -1047,21 +1068,6 @@ void ImmutableMessageLiteGenerator::GenerateDynamicMethodMergeFromStream(
   printer->Print(
       "}\n");     // finally
 }
-
-// ===================================================================
-
-namespace {
-bool CheckHasBitsForEqualsAndHashCode(const FieldDescriptor* field) {
-  if (field->is_repeated()) {
-    return false;
-  }
-  if (SupportFieldPresence(field->file())) {
-    return true;
-  }
-  return GetJavaType(field) == JAVATYPE_MESSAGE &&
-      field->containing_oneof() == NULL;
-}
-}  // namespace
 
 // ===================================================================
 

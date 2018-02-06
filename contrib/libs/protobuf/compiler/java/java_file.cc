@@ -65,7 +65,7 @@ namespace java {
 namespace {
 
 struct FieldDescriptorCompare {
-  bool operator ()(const FieldDescriptor* f1, const FieldDescriptor* f2) {
+  bool operator ()(const FieldDescriptor* f1, const FieldDescriptor* f2) const {
     if(f1 == NULL) {
       return false;
     }
@@ -152,12 +152,6 @@ void CollectExtensions(const FileDescriptorProto& file_proto,
            "those options cannot be recognized in the builder pool. "
            "This normally should not happen. Please report a bug.";
   }
-}
-
-// Compare two field descriptors, returning true if the first should come
-// before the second.
-bool CompareFieldsByName(const FieldDescriptor *a, const FieldDescriptor *b) {
-  return a->full_name() < b->full_name();
 }
 
 // Our static initialization methods can become very, very large.

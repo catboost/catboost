@@ -296,6 +296,7 @@ GenerateFieldBuilderInitializationCode(io::Printer* printer)  const {
   // noop for primitives
 }
 
+
 void ImmutablePrimitiveFieldLiteGenerator::
 GenerateInitializationCode(io::Printer* printer) const {
   if (IsByteStringWithCustomDefaultValue(descriptor_)) {
@@ -745,6 +746,7 @@ void RepeatedImmutablePrimitiveFieldLiteGenerator::
 GenerateFieldBuilderInitializationCode(io::Printer* printer)  const {
   // noop for primitives
 }
+
 
 void RepeatedImmutablePrimitiveFieldLiteGenerator::
 GenerateInitializationCode(io::Printer* printer) const {

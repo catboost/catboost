@@ -59,6 +59,7 @@ SRCS(
     core/MutabilityOracle.java
     core/NioByteString.java
     core/Parser.java
+    core/PrimitiveNonBoxingCollection.java
     core/ProtobufArrayList.java
     core/ProtocolMessageEnum.java
     core/ProtocolStringList.java

@@ -21,7 +21,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_pb=_b('\n\x1egoogle/protobuf/wrappers.proto\x12\x0fgoogle.protobuf\"\x1c\n\x0b\x44oubleValue\x12\r\n\x05value\x18\x01 \x01(\x01\"\x1b\n\nFloatValue\x12\r\n\x05value\x18\x01 \x01(\x02\"\x1b\n\nInt64Value\x12\r\n\x05value\x18\x01 \x01(\x03\"\x1c\n\x0bUInt64Value\x12\r\n\x05value\x18\x01 \x01(\x04\"\x1b\n\nInt32Value\x12\r\n\x05value\x18\x01 \x01(\x05\"\x1c\n\x0bUInt32Value\x12\r\n\x05value\x18\x01 \x01(\r\"\x1a\n\tBoolValue\x12\r\n\x05value\x18\x01 \x01(\x08\"\x1c\n\x0bStringValue\x12\r\n\x05value\x18\x01 \x01(\t\"\x1b\n\nBytesValue\x12\r\n\x05value\x18\x01 \x01(\x0c\x42|\n\x13\x63om.google.protobufB\rWrappersProtoP\x01Z*github.com/golang/protobuf/ptypes/wrappers\xf8\x01\x01\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -313,6 +312,7 @@ DESCRIPTOR.message_types_by_name['UInt32Value'] = _UINT32VALUE
 DESCRIPTOR.message_types_by_name['BoolValue'] = _BOOLVALUE
 DESCRIPTOR.message_types_by_name['StringValue'] = _STRINGVALUE
 DESCRIPTOR.message_types_by_name['BytesValue'] = _BYTESVALUE
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 DoubleValue = _reflection.GeneratedProtocolMessageType('DoubleValue', (_message.Message,), dict(
   DESCRIPTOR = _DOUBLEVALUE,

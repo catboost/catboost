@@ -309,5 +309,21 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
 
 
 
+namespace protobuf {
+namespace internal {
+
+inline void ArenaStringPtr::AssignWithDefault(const TProtoStringType* default_value,
+                                       ArenaStringPtr value) {
+  const TProtoStringType* me = *UnsafeRawStringPointer();
+  const TProtoStringType* other = *value.UnsafeRawStringPointer();
+  // If the pointers are the same then do nothing.
+  if (me != other) {
+    SetNoArena(default_value, value.GetNoArena());
+  }
+}
+
+}  // namespace internal
+}  // namespace protobuf
+
 }  // namespace google
 #endif  // GOOGLE_PROTOBUF_ARENASTRING_H__

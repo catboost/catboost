@@ -74,18 +74,6 @@ inline bool IsOctNumber(const string& str) {
           (str[1] >= '0' && str[1] < '8'));
 }
 
-inline bool GetAnyFieldDescriptors(const Message& message,
-                                   const FieldDescriptor** type_url_field,
-                                   const FieldDescriptor** value_field) {
-    const Descriptor* descriptor = message.GetDescriptor();
-    *type_url_field = descriptor->FindFieldByNumber(1);
-    *value_field = descriptor->FindFieldByNumber(2);
-    return (*type_url_field != NULL &&
-            (*type_url_field)->type() == FieldDescriptor::TYPE_STRING &&
-            *value_field != NULL &&
-            (*value_field)->type() == FieldDescriptor::TYPE_BYTES);
-}
-
 }  // namespace
 
 string Message::DebugString() const {
@@ -1324,6 +1312,7 @@ bool TextFormat::Parser::ParseFromString(const string& input,
   return Parse(&input_stream, output);
 }
 
+
 bool TextFormat::Parser::Merge(io::ZeroCopyInputStream* input,
                                Message* output) {
   ParserImpl parser(output->GetDescriptor(), input, error_collector_,
@@ -1340,6 +1329,7 @@ bool TextFormat::Parser::MergeFromString(const string& input,
   io::ArrayInputStream input_stream(input.data(), input.size());
   return Merge(&input_stream, output);
 }
+
 
 bool TextFormat::Parser::MergeUsingImpl(io::ZeroCopyInputStream* /* input */,
                                         Message* output,
@@ -1388,6 +1378,7 @@ bool TextFormat::Parser::ParseFieldValueFromString(
                                               Message* output) {
   return Parser().MergeFromString(input, output);
 }
+
 
 // ===========================================================================
 

@@ -38,16 +38,6 @@ namespace protobuf {
 namespace internal {
 
 
-void ArenaStringPtr::AssignWithDefault(const TProtoStringType* default_value,
-                                       ArenaStringPtr value) {
-  const TProtoStringType* me = *UnsafeRawStringPointer();
-  const TProtoStringType* other = *value.UnsafeRawStringPointer();
-  // If the pointers are the same then do nothing.
-  if (me != other) {
-    SetNoArena(default_value, value.GetNoArena());
-  }
-}
-
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

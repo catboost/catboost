@@ -21,7 +21,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_pb=_b('\n google/protobuf/field_mask.proto\x12\x0fgoogle.protobuf\"\x1a\n\tFieldMask\x12\r\n\x05paths\x18\x01 \x03(\tB\x89\x01\n\x13\x63om.google.protobufB\x0e\x46ieldMaskProtoP\x01Z9google.golang.org/genproto/protobuf/field_mask;field_mask\xa2\x02\x03GPB\xaa\x02\x1eGoogle.Protobuf.WellKnownTypesb\x06proto3')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -57,6 +56,7 @@ _FIELDMASK = _descriptor.Descriptor(
 )
 
 DESCRIPTOR.message_types_by_name['FieldMask'] = _FIELDMASK
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 FieldMask = _reflection.GeneratedProtocolMessageType('FieldMask', (_message.Message,), dict(
   DESCRIPTOR = _FIELDMASK,
