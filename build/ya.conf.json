@@ -2044,7 +2044,7 @@
         },
         "maven_import_sandbox_uploader": {
             "formula": {
-                "sandbox_id": 85560945,
+                "sandbox_id": 210952169,
                 "match": "uploader"
             },
             "executable": {
