@@ -154,3 +154,9 @@ enum class EPriorEstimation {
     No,
     BetaPrior
 };
+
+enum class ELaunchMode {
+    Train,
+    Eval,
+    CV
+};

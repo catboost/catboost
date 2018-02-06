@@ -95,6 +95,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
                 {ctx},
+                ELaunchMode::Train,
                 learnToken,
                 testToken,
                 /*hasTrain=*/true,

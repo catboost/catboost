@@ -2,6 +2,7 @@
 #include "error_functions.h"
 
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/options/defaults_helper.h>
 
 #include <library/digest/md5/md5.h>
 
@@ -9,7 +10,6 @@
 #include <util/folder/path.h>
 #include <util/system/fs.h>
 #include <util/stream/file.h>
-#include <catboost/libs/options/defaults_helper.h>
 
 TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
     TFsPath filePath(fileName);
@@ -261,6 +261,7 @@ void TLearnProgress::Load(IInputStream* s) {
 
 NJson::TJsonValue GetJsonMeta(
     const TVector<const TLearnContext*>& learnContexts,
+    ELaunchMode launchMode,
     const TString& learnToken,
     const TString& testToken,
     bool hasTrain,
@@ -301,5 +302,7 @@ NJson::TJsonValue GetJsonMeta(
             meta["test_metrics"].AppendValue(loss->GetDescription() + "\t" + (loss->IsMaxOptimal() ? "max" : "min"));
         }
     }
+
+    meta.InsertValue("launch_mode", ToString<ELaunchMode>(launchMode));
     return meta;
 }

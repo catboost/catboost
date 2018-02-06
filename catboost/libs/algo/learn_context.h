@@ -136,6 +136,7 @@ public:
 
 NJson::TJsonValue GetJsonMeta(
     const TVector<const TLearnContext*>& learnContexts,
+    ELaunchMode lanchMode,
     const TString& learnToken,
     const TString& testToken,
     bool hasTrain,

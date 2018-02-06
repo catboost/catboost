@@ -311,6 +311,7 @@ void CrossValidate(
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
                 GetRawPointers(contexts),
+                ELaunchMode::CV,
                 learnToken,
                 testToken,
                 /*hasTrain=*/true,
