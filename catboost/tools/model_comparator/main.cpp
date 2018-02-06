@@ -4,7 +4,19 @@
 #include <cmath>
 
 template <typename TBorders>
-static void BordersDiff(const TBorders& borders1, const TBorders& borders2);
+static void FeatureBordersDiff(size_t featureId, const TBorders& borders1, const TBorders& borders2) {
+    if (borders1.size() != borders2.size()) {
+        Clog << "Feature " << featureId << " borders sizes differ: " << borders1.size() << " != " << borders2.size() << Endl;
+        return;
+    }
+    Clog << "Diff for borders in feature " << featureId << Endl;
+
+    for (size_t valueIdx = 0; valueIdx < borders1.size(); ++valueIdx) {
+        if (borders1[valueIdx] != borders2[valueIdx]) {
+            Clog << valueIdx << " " << borders1[valueIdx] << " != " << borders2[valueIdx] << Endl;
+        }
+    }
+}
 
 template <typename TLeaves>
 static void LeavesDiff(const TLeaves& leaves1, const TLeaves& leaves2);
@@ -17,14 +29,24 @@ int main(int argc, char** argv) {
     auto model1 = ReadModel(argv[1]);
     auto model2 = ReadModel(argv[2]);
     if (model1 == model2) {
-        Clog << "Models equal" << Endl;
+        Clog << "Models are equal" << Endl;
         return 0;
     }
     Clog << "Core model differ" << Endl;
     if (model1.ObliviousTrees.FloatFeatures != model2.ObliviousTrees.FloatFeatures) {
         Clog << "FloatFeatures differ" << Endl;
-        // TODO(kirillovs): fix later
-        // BordersDiff(model1.FloatFeatures, model2.FloatFeatures);
+        if (model1.ObliviousTrees.FloatFeatures.size() != model2.ObliviousTrees.FloatFeatures.size()) {
+            Clog << "FloatFeatures size differ" << Endl;
+        } else {
+            for (size_t i = 0; i < model1.ObliviousTrees.FloatFeatures.size(); ++i) {
+                auto& floatFeature1 = model1.ObliviousTrees.FloatFeatures[i];
+                auto& floatFeature2 = model2.ObliviousTrees.FloatFeatures[i];
+                FeatureBordersDiff(i, floatFeature1.Borders, floatFeature2.Borders);
+                if (floatFeature1.FeatureId != floatFeature2.FeatureId) {
+                    Clog << "FloatFeature FeatureId differ" << Endl;
+                }
+            }
+        }
     }
     if (model1.ObliviousTrees.CatFeatures != model2.ObliviousTrees.CatFeatures) {
         Clog << "CatFeatures differ" << Endl;
@@ -40,33 +62,7 @@ int main(int argc, char** argv) {
             return 0;
         }
     }
-
-//   if (model1.CtrCalcerData != model2.CtrCalcerData) {
-//       Clog << "CtrCalcerData differ" << Endl;
-//   }
     return 1;
-}
-
-template <typename TBorders>
-static void BordersDiff(const TBorders& borders1, const TBorders& borders2) {
-    if (borders1.size() != borders2.size()) {
-        Clog << "Sizes differ: " << borders1.size() << " != " << borders2.size() << Endl;
-        return;
-    }
-    for (size_t borderIdx = 0; borderIdx < borders1.size(); ++borderIdx) {
-        if (borders1[borderIdx] != borders2[borderIdx]) {
-            Clog << "Diff for borders in feature " << borderIdx << Endl;
-            if (borders1[borderIdx].size() != borders2[borderIdx].size()) {
-                Clog << "Sizes differ: " << borders1[borderIdx].size() << " != " << borders2[borderIdx].size() << Endl;
-            } else {
-                for (size_t valueIdx = 0; valueIdx < borders1[borderIdx].size(); ++valueIdx) {
-                    if (borders1[borderIdx][valueIdx] != borders2[borderIdx][valueIdx]) {
-                        Clog << valueIdx << " " << borders1[borderIdx][valueIdx] << " != " << borders2[borderIdx][valueIdx] << Endl;
-                    }
-                }
-            }
-        }
-    }
 }
 
 template <typename TLeaves>
