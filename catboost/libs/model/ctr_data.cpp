@@ -1,12 +1,19 @@
 #include <catboost/libs/helpers/exception.h>
 #include "ctr_data.h"
+#include <util/generic/set.h>
 
 
 void TCtrData::Save(IOutputStream* s) const {
     TCtrDataStreamWriter ctrStreamSerializer(s, LearnCtrs.size());
+    TSet<TModelCtrBase> sortedCtrBases;
     for (const auto& iter : LearnCtrs) {
-        CB_ENSURE(iter.first == iter.second.ModelCtrBase);
-        ctrStreamSerializer.SaveOneCtr(iter.second);
+        sortedCtrBases.insert(iter.first);
+    }
+    Y_ASSERT(sortedCtrBases.size() == LearnCtrs.size());
+    for (const auto& ctrBase: sortedCtrBases) {
+        const auto& tableRef = LearnCtrs.at(ctrBase);
+        CB_ENSURE(ctrBase == tableRef.ModelCtrBase);
+        ctrStreamSerializer.SaveOneCtr(tableRef);
     }
 }
 
