@@ -30,6 +30,26 @@ def test_queryrmse():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_rmse_on_qwise_pool():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '-t', data_file('querywise_pool', 'test3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_queryaverage():
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')

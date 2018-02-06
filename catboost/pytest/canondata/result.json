@@ -701,6 +701,12 @@
             "uri": "file://test.test_regularization/test.eval"
         }
     ],
+    "test.test_rmse_on_qwise_pool": [
+        {
+            "checksum": "5576debdb7795d6f8d892151d72d66b5",
+            "uri": "file://test.test_rmse_on_qwise_pool/test.eval"
+        }
+    ],
     "test.test_shrink_model": [
         {
             "checksum": "158d92a42de4c04d837a807dc902d544",

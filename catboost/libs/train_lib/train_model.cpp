@@ -287,9 +287,7 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
-
         auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
-
         TTrainData trainData;
         trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
 
@@ -353,11 +351,13 @@ class TCPUModelTrainer : public IModelTrainer {
         }
         if (hasQuerywiseMetric) {
             CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
+        }
+        if (!trainData.QueryId.empty()) {
             bool isDataCorrect = IsCorrectQueryIdsFormat(trainData.QueryId);
             if (testPool.Docs.GetDocCount() != 0) {
                 isDataCorrect &= learnPool.Docs.QueryId.back() != testPool.Docs.QueryId.front();
             }
-            CB_ENSURE(isDataCorrect, "Train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
+            CB_ENSURE(isDataCorrect, "If query id is provided then train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
             //TODO(annaveronika): Allow no grouping by query id. Warning
             //when same query id in train+test - no error.
             UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
@@ -420,6 +420,7 @@ class TCPUModelTrainer : public IModelTrainer {
         });
 
         const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
+
         PrepareAllFeatures(
             ctx.CatFeatures,
             ctx.LearnProgress.FloatFeatures,
