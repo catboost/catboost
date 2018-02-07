@@ -31,6 +31,10 @@ def extract_macro_calls2(unit, macro_value_name):
 
 
 def onrun_java_program(unit, *args):
+    """
+    Custom code generation
+    @link: https://wiki.yandex-team.ru/yatool/java/#kodogeneracijarunjavaprogram
+    """
     flat, kv = common.sort_by_keywords(
         {'IN': -1, 'IN_DIR': -1, 'OUT': -1, 'OUT_DIR': -1, 'CWD': 1, 'CLASSPATH': -1, 'ADD_SRCS_TO_CLASSPATH': 0},
         args
@@ -45,6 +49,11 @@ def onrun_java_program(unit, *args):
 
 
 def ongenerate_script(unit, *args):
+    """
+    heretic@ promised to make tutorial here
+    Don't forget
+    Feel free to remind
+    """
     flat, kv = common.sort_by_keywords(
         {'OUT': 1, 'TEMPLATE': -1, 'CUSTOM_PROPERTY': -1},
         args

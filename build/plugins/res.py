@@ -51,6 +51,26 @@ def gen_ro_flags(unit):
 
 
 def onresource(unit, *args):
+    """
+    @usage: RESOURCE(file name file name...)
+        Add data (resources, random files) to the program)
+
+        This is a simpler but less flexible option than ARCHIVE(), because in the case of ARCHIVE(), you have to use the data explicitly, and in the case of RESOURCE(), the data falls through SRCS(GLOBAL).
+        Therefore, there is no static data library from RESOURCE(), they are added only at the program linking stage.
+
+    @example: https://wiki.yandex-team.ru/yatool/howtowriteyamakefiles/#a2ispolzujjtekomanduresource
+    @example:
+        LIBRARY()
+
+        OWNER(user1)
+
+        RESOURCE(
+        path/to/file1 /key/in/program/1
+        path/to/file2 /key2
+        )
+
+        END()
+    """
     unit.onpeerdir(['library/resource'])
 
     outs = []
@@ -119,6 +139,14 @@ def onresource(unit, *args):
 
 
 def onfrom_sandbox(unit, *args):
+    """
+    @usage: FROM_SANDBOX([FILE] resource_id OUT_[NOAUTO] <files from resource>)
+    Downloads the archive from sandbox by resource number, unpack (if the FILE keyword is not specified), and add the files with the specified names to the assembly.
+    If the files do not compile, then you need to use the parameter OUT_NOAUTO.
+
+    What is Sandbox?
+    - General-purpose distributed task execution system (internal service).
+    """
     unit.onsetup_from_sandbox(filter_out_by_keyword(list(args), 'AUTOUPDATED'))
     res_id = args[0]
     if res_id == "FILE":

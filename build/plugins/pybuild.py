@@ -46,11 +46,30 @@ def add_python_lint_checks(unit, files):
 
 
 def py_program(unit):
+    """
+    Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/#modulpyprogramimakrospymain
+    """
     unit.onpeerdir(['library/python/runtime/main'])
     unit.onadd_check_py_imports()
 
 
 def onpy_srcs(unit, *args):
+    """
+        PY_SRCS() - is rule to build extended versions of Python interpreters and containing all application code in its executable file. It can be used to collect only the executables but not shared libraries, and, in particular, not to collect the modules that are imported using import directive.
+        The main disadvantage is the lack of IDE support; There is also no readline yet.
+        The application can be collect from any of the sources from which the C library, and with the help of PY_SRCS .py , .pyx,.proto and .swg files.
+        At the same time extensions for Python on C language generating from .pyx and .swg, will be registered in Python's as built-in modules, and sources on .py are stored as static data: when the interpreter starts, the initialization code will add a custom loader of these modules to sys.meta_path.
+        By default .pyx files are collected as C++-extensions. To collect them as C (similar to BUILDWITH_CYTHON_C, but with the ability to specify namespace), you must specify the Directive CYTHON_C.
+        Building with pyx automatically registers modules, you do not need to call PY_REGISTER for them
+        __init__.py never required, but if present (and specified in PY_SRCS), it will be imported when you import package modules with __init__.py Oh.
+
+        Example of library declaration with PY_SRCS():
+        PY_LIBRARY(mymodule)
+        PY_SRCS({| CYTHON_C} { | TOP_LEVEL | NAMESPACE ns} a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
+        END()
+
+        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+    """
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
@@ -187,6 +206,12 @@ def ontest_srcs(unit, *args):
 
 
 def onpy_register(unit, *args):
+    """
+    Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
+
+    All modules from the sources listed in PY_SRCS() are registered automatically.
+    To register the modules from the sources in the SRCS(), you need to use PY_REGISTER().
+    """
     for name in args:
         if '=' in name:
             fullname, shortname = name.split('=', 1)
@@ -199,6 +224,13 @@ def onpy_register(unit, *args):
 
 
 def onpy_main(unit, arg):
+    """
+        @usage: PY_MAIN(pkg.mod[:func])
+
+        Specifies the function from which to start executing a python program
+
+        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+    """
     if ':' not in arg:
         arg += ':main'
 
