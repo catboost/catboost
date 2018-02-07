@@ -11,6 +11,10 @@
         "checksum": "ef8206894bd8f5a3bed800f0713871be",
         "uri": "file://test.test_copy_model/model.bin"
     },
+    "test.test_coreml_import_export": {
+        "checksum": "83f9f31efc94791ef975f91fae6deb7a",
+        "uri": "file://test.test_coreml_import_export/model.coreml"
+    },
     "test.test_cv_logging": {
         "checksum": "9b7e24a2f1a1a1a17940fbdc42e6fe3b",
         "uri": "file://test.test_cv_logging/catboost_training.json"

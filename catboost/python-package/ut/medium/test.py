@@ -180,12 +180,12 @@ def test_coreml_import_export():
     test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
     model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8})
     model.fit(train_pool)
-
     model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
     canon_pred = model.predict(test_pool)
     coreml_loaded_model = CatBoostRegressor()
     coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
     assert all(canon_pred == coreml_loaded_model.predict(test_pool))
+    return local_canonical_file(OUTPUT_COREML_MODEL_PATH)
 
 
 def test_predict_class():
