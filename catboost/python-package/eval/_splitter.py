@@ -97,6 +97,8 @@ class _Splitter(object):
             if rest_size > 0:
                 rest_fold_file.close()
                 rest_folds.append(rest_fold_file)
+            elif rest_fold_file.is_opened():
+                rest_fold_file.close()
         finally:
             for fold_storage in fold_storages:
                 fold_storage.close()

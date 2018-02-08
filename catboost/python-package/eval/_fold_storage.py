@@ -116,6 +116,9 @@ class _FoldFile(FoldStorage):
         else:
             raise CatboostError("File already opened {}".format(self._file_path))
 
+    def is_opened(self):
+        return self._file is not None
+
     def close(self):
         if self._file is None:
             raise CatboostError("Trying to close None {}".format(self._file_path))
