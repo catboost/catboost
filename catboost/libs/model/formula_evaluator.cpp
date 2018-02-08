@@ -420,10 +420,9 @@ inline void CalcTreesSingleDocImpl(
         if (IsSingleClassModel) { // single class model
             result += treeLeafPtr[index];
         } else { // mutliclass model
-            auto docResultPtr = &results[model.ObliviousTrees.ApproxDimension];
             auto leafValuePtr = treeLeafPtr + index * model.ObliviousTrees.ApproxDimension;
             for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
-                docResultPtr[classId] += leafValuePtr[classId];
+                results[classId] += leafValuePtr[classId];
             }
         }
         treeSplitsCurPtr += curTreeSize;
