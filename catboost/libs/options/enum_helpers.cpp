@@ -43,8 +43,7 @@ bool IsPairwiseError(ELossFunction lossFunction) {
 }
 
 bool IsQuerywiseError(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::QueryRMSE ||
-            lossFunction == ELossFunction::QuerySoftMax);
+    return (lossFunction == ELossFunction::QueryRMSE);
 }
 
 bool IsPlainMode(EBoostingType boostingType) {

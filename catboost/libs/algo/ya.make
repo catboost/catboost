@@ -31,7 +31,6 @@ SRCS(
     train_one_iter_poisson.cpp
     train_one_iter_quantile.cpp
     train_one_iter_query_rmse.cpp
-    train_one_iter_query_soft_max.cpp
     train_one_iter_rmse.cpp
     train_one_iter_user_per_object.cpp
     train_one_iter_user_querywise.cpp

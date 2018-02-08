@@ -7,12 +7,10 @@ NO_WERROR()
 SRCS(
     kernel/pointwise_targets.cu
     kernel/query_rmse.cu
-    kernel/query_softmax.cu
     kernel/pair_logit.cu
     kernel/yeti_rank_pointwise.cu
     mse.cpp
     qrmse.cpp
-    qsoftmax.cpp
     cross_entropy.cpp
     target_base.cpp
     yeti_rank.cpp

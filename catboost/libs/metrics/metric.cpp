@@ -501,90 +501,6 @@ bool TQueryRMSEMetric::IsMaxOptimal() const {
     return false;
 }
 
-/* QuerySoftMax */
-
-TMetricHolder TQuerySoftMaxMetric::EvalQuerywise(const TVector<TVector<double>>& approx,
-                                                 const TVector<float>& target,
-                                                 const TVector<float>& weight,
-                                                 const TVector<TQueryInfo>& queriesInfo,
-                                                 int queryStartIndex,
-                                                 int queryEndIndex) const {
-    CB_ENSURE(approx.size() == 1, "Metric QuerySoftMax supports only single-dimensional data");
-
-    TMetricHolder error;
-    TVector<double> softmax;
-    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
-        int begin = queriesInfo[queryIndex].Begin;
-        int end = queriesInfo[queryIndex].End;
-        error.Add(EvalSingleQuery(begin, end - begin, approx[0], target, weight, &softmax));
-    }
-    return error;
-}
-
-TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(int start, int count,
-                                                   const TVector<double>& approxes,
-                                                   const TVector<float>& targets,
-                                                   const TVector<float>& weights,
-                                                   TVector<double>* softmax) const {
-    double maxApprox = -std::numeric_limits<double>::max();
-    double sumExpApprox = 0;
-    double sumWeightedTargets = 0;
-    for (int dim = 0; dim < count; ++dim) {
-        if (weights.empty() || weights[start + dim] > 0) {
-            maxApprox = std::max(maxApprox, approxes[start + dim]);
-            if (targets[start + dim] > 0) {
-                if (!weights.empty()) {
-                    sumWeightedTargets += weights[start + dim] * targets[start + dim];
-                } else {
-                    sumWeightedTargets += targets[start + dim];
-                }
-            }
-        }
-    }
-
-    TMetricHolder error;
-    if (sumWeightedTargets > 0) {
-        if (softmax->size() < static_cast<size_t>(count)) {
-            softmax->resize(static_cast<size_t>(count));
-        }
-        for (int dim = 0; dim < count; ++dim) {
-            if (weights.empty() || weights[start + dim] > 0) {
-                double expApprox = exp(approxes[start + dim] - maxApprox);
-                if (!weights.empty()) {
-                    expApprox *= weights[start + dim];
-                }
-                (*softmax)[dim] = expApprox;
-                sumExpApprox += expApprox;
-            } else {
-                (*softmax)[dim] = 0.0;
-            }
-        }
-        if (!weights.empty()) {
-            for (int dim = 0; dim < count; ++dim) {
-                if (weights[start + dim] > 0 && targets[start + dim] > 0) {
-                    error.Error -= weights[start + dim] * targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
-                }
-            }
-        } else {
-            for (int dim = 0; dim < count; ++dim) {
-                if (targets[start + dim] > 0) {
-                    error.Error -= targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
-                }
-            }
-        }
-        error.Weight = sumWeightedTargets;
-    }
-    return error;
-}
-
-TString TQuerySoftMaxMetric::GetDescription() const {
-    return ToString(ELossFunction::QuerySoftMax);
-}
-
-bool TQuerySoftMaxMetric::IsMaxOptimal() const {
-    return false;
-}
-
 /* R2 */
 
 TMetricHolder TR2Metric::Eval(const TVector<TVector<double>>& approx,
@@ -1286,10 +1202,6 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::QueryRMSE:
             result.emplace_back(new TQueryRMSEMetric());
-            return result;
-
-        case ELossFunction::QuerySoftMax:
-            result.emplace_back(new TQuerySoftMaxMetric());
             return result;
 
         case ELossFunction::R2:

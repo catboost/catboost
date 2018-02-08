@@ -40,35 +40,13 @@ namespace NKernel {
     }
 
     template <class T>
-    struct TCudaAdd {
-        __forceinline__ __device__ T operator()(const T &left, const T &right) {
-            return left + right;
-        }
-
-        __forceinline__ __device__ T operator()(volatile T &left, volatile T &right) {
-            return left + right;
-        }
-    };
-
-    template <class T>
-    struct TCudaMax {
-        __forceinline__ __device__ T operator()(const T &left, const T &right) {
-            return max(left, right);
-        }
-
-        __forceinline__ __device__ T operator()(volatile T &left, volatile T &right) {
-            return max(left, right);
-        }
-    };
-
-    template <class T, class TOp = TCudaAdd<T>>
-    __forceinline__ __device__ T WarpReduce(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
+    __forceinline__ __device__ T WarpReduce(int x, volatile T* data, int reduceSize) {
         #if __CUDA_ARCH__ >= 350
         T val = data[x];
         #pragma unroll
         for (int s = reduceSize >> 1; s > 0; s >>= 1)
         {
-            val = op(val, __shfl_down(val, s));
+            val +=  __shfl_down(val, s);
         }
         if (x == 0) {
             data[x] = val;
@@ -81,7 +59,7 @@ namespace NKernel {
         {
             if (x < s)
             {
-                data[x] = op(data[x], data[x + s]);
+                data[x] += data[x + s];
             }
         }
         return data[x];

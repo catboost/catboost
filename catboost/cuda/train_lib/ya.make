@@ -11,7 +11,6 @@ SRCS(
     GLOBAL yeti_rank.cpp
     GLOBAL pointwise.cpp
     GLOBAL qrmse.cpp
-    GLOBAL qsoftmax.cpp
     GLOBAL rmse.cpp
 )
 

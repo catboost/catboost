@@ -277,23 +277,6 @@ private:
                          const TVector<float>& weights) const;
 };
 
-struct TQuerySoftMaxMetric : public TQuerywiseAdditiveMetric {
-    virtual TMetricHolder EvalQuerywise(const TVector<TVector<double>>& approx,
-                                       const TVector<float>& target,
-                                       const TVector<float>& weight,
-                                       const TVector<TQueryInfo>& queriesInfo,
-                                       int queryStartIndex,
-                                       int queryEndIndex) const override;
-    virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
-private:
-    TMetricHolder EvalSingleQuery(int start, int count,
-                                  const TVector<double>& approxes,
-                                  const TVector<float>& targets,
-                                  const TVector<float>& weights,
-                                  TVector<double>* softmax) const;
-};
-
 struct TR2Metric: public TNonAdditiveMetric {
     virtual TMetricHolder Eval(const TVector<TVector<double>>& approx,
                               const TVector<float>& target,

@@ -50,7 +50,6 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
         case ELossFunction::MAPE:
         case ELossFunction::PairLogit:
         case ELossFunction::QueryRMSE:
-        case ELossFunction::QuerySoftMax:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
         case ELossFunction::UserPerObjErr:

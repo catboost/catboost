@@ -11,7 +11,6 @@ class TMultiClassError;
 class TMultiClassOneVsAllError;
 class TPairLogitError;
 class TQueryRmseError;
-class TQuerySoftMaxError;
 class TCustomError;
 class TUserDefinedPerObjectError;
 class TUserDefinedQuerywiseError;
@@ -64,9 +63,6 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
             break;
         case ELossFunction::QueryRMSE:
             return TrainOneIter<TQueryRmseError>;
-            break;
-        case ELossFunction::QuerySoftMax:
-            return TrainOneIter<TQuerySoftMaxError>;
             break;
         case ELossFunction::Custom:
             return TrainOneIter<TCustomError>;

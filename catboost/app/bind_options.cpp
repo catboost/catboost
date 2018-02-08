@@ -108,14 +108,14 @@ void ParseCommandLine(int argc, const char* argv[],
     BindPoolLoadParams(&parser, params);
 
     parser.AddLongOption("loss-function",
-                         "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, QuerySoftMax. A loss might have params, then params should be written in format Loss:paramName=value.")
+                         "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE. A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
             (*plainJsonPtr)["loss_function"] = lossDescription;
         });
 
     parser.AddLongOption("custom-metric",
-                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, QuerySoftMax, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
+                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, QueryRMSE, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy")
             .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
         .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {
