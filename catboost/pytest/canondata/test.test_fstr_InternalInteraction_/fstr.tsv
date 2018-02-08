@@ -1,55 +1,50 @@
-1.911253705	c8	f14
-1.176456383	f13	f14
-1.065547336	f15	c10
-1.035008226	c8	f13
-0.7918909888	f13	f7
-0.7645024495	c10	f14
-0.6530441455	f15	f13
-0.6279973968	c8	c16
-0.6223014281	c8	c10
-0.5719729179	f7	f14
-0.5551392794	f15	f14
-0.518267125	c8	c4
-0.4800646548	f15	f7
-0.4490322985	c8	f7
-0.4391596108	f14	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.4133384995	f13	c11
-0.4064074713	c4	c10
-0.3988531433	f13	c16
-0.3593622346	c4	f13
-0.3561969754	c10	f3
-0.3445109409	f14	f3
-0.3444154857	f13	c10
+1.811482609	c8	f14
+1.252119724	c8	c16
+1.157760172	c8	c4
+0.9061186687	c8	f5
+0.7666059789	c8	c10
+0.7591350745	c4	c16
+0.7123071436	c4	c10
+0.6582992623	c8	f13
+0.6023320313	f5	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.595843573	c8	f7
+0.5665232202	f15	c10
+0.4919111129	c10	f14
+0.4664655962	f13	c16
+0.4385899635	c8	c11
+0.4220751455	f14	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.3814051018	f15	f14
+0.365180208	f15	f7
+0.3355640532	c8	f15
+0.3317221383	c4	f7
 0.3269999169	f15	c16
-0.3253613744	c8	f15
-0.2959874675	f13	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.2734994478	c8	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.2631525045	f7	c11
-0.2219129258	c12	c11
-0.2170772646	c4	f15
-0.2134911423	f7	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1980308151	c4	f14
-0.1889649516	c4	c16
-0.1888387542	c12	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1834230995	c8	f5
-0.1749693932	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	c12
-0.136997686	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1253950328	c8	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1246024708	c8	f3
-0.1243179467	c10	f7
-0.1159302585	c10	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.1142161912	f7	c12
-0.08395124019	f13	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.07248091155	f14	{c9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.072178923	f13	f3
-0.07168760501	f13	c12
-0.07167724228	f15	f3
-0.07007660646	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	c11
-0.05885264896	c4	f7
-0.04893208464	f7	f3
-0.04801251397	f7	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.04408310376	f7	f5
-0.03480274476	f3	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.01222784638	f13	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.01168736775	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Borders	c11
-0.01008252056	c16	c10
+0.3187245754	f13	f14
+0.318469509	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	f5
+0.2945598412	f15	f13
+0.2917497817	c4	f13
+0.2741575762	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.2653388155	c4	f15
+0.2607984466	c8	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.2413214801	c11	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.2393045672	f14	f3
+0.2342599741	f7	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.2304828312	c8	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.2187276881	c4	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.2022827561	f7	f14
+0.2005220376	c10	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.1927702489	f3	{c9} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.1860216188	c8	f3
+0.1571867029	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	c11
+0.1512958806	c4	f14
+0.1459187718	f13	c10
+0.1448110306	c4	f5
+0.1379091033	c10	f7
+0.1087785954	f3	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1075337861	c4	f3
+0.08329979653	f7	f3
+0.0816560354	c10	f5
+0.07193758112	c10	f3
+0.05051050189	f5	c11
+0.03401297083	c16	c10
+0.01022700217	c16	f5
+0.00238238643	f7	f5

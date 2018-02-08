@@ -11,7 +11,7 @@ namespace NCatboostOptions {
         explicit TDataProcessingOptions(ETaskType type)
             : IgnoredFeatures("ignored_features", TVector<int>())
             , HasTimeFlag("has_time", false)
-            , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(EBorderSelectionType::MinEntropy, 128, ENanMode::Min))
+            , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 128, ENanMode::Min))
             , ClassesCount("classes_count", 0)
             , ClassWeights("class_weights", TVector<float>())
             , ClassNames("class_names", TVector<TString>())
