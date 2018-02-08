@@ -124,11 +124,11 @@ public:
             }
 
             THolder<TSocketType> sock = new TSocketType();
-            SetReuseAddressAndPort(*sock);
 
             TSockAddrInet6 addr("::", port);
             if (sock->Bind(&addr) < 0)
                 continue;
+            SetReuseAddressAndPort(*sock);
 
             if (IsSyncDirSet() && !LockPort(port))
                 continue;
