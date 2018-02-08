@@ -50,4 +50,4 @@ off-project repository. And avoid false dependencies between projects.
 
 We understand that there will always be a fine line between the platform and
 applied libraries, and disputable points will be decided on the basis of
-common sense.
+common sense of pg@ and elric@.
