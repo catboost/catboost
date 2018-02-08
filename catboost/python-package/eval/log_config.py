@@ -3,6 +3,7 @@ import logging
 eval_logger = None
 console_handler = None
 
+
 def init():
     global eval_logger
     eval_logger_name = "eval_feature"
