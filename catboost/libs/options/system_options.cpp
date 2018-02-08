@@ -2,10 +2,12 @@
 
 #include <catboost/libs/options/json_helper.h>
 
+#include <util/system/info.h>
+
 using namespace NCatboostOptions;
 
 TSystemOptions::TSystemOptions(ETaskType taskType)
-    : NumThreads("thread_count", 8)
+    : NumThreads("thread_count", NSystemInfo::CachedNumberOfCpus())
     , CpuUsedRamLimit("used_ram_limit", Max<ui64>(), taskType)
     , Devices("devices", "-1", taskType)
     , GpuRamPart("gpu_ram_part", 0.95, taskType)

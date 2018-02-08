@@ -23,9 +23,8 @@ void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     parser.AddLongOption('o', "output-path", "output result path")
         .StoreResult(&OutputPath)
         .DefaultValue("output.tsv");
-    parser.AddLongOption('T', "thread-count")
-        .StoreResult(&ThreadCount)
-        .DefaultValue("1");
+    parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
+        .StoreResult(&ThreadCount);
     parser.AddLongOption("delimiter", "delimiter")
             .DefaultValue("\t")
             .Handler1T<TString>([&](const TString& oneChar) {

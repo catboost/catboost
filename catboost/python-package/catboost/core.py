@@ -81,7 +81,7 @@ class Pool(_PoolBase):
 
     def __init__(self, data, label=None, cat_features=None, column_description=None, pairs=None, delimiter='\t',
                  has_header=False, weight=None, query_id=None, pairs_weight=None, baseline=None,
-                 feature_names=None, thread_count=1):
+                 feature_names=None, thread_count=-1):
         """
         Pool is a internal data structure that used by CatBoost.
         You can construct Pool from list, numpy.array, pandas.DataFrame, pandas.Series.
@@ -142,9 +142,10 @@ class Pool(_PoolBase):
         feature_names : list, optional (default=None)
             Names for each given data_feature.
 
-        thread_count : int
+        thread_count : int, optional (default=-1)
             Thread count to read data from file.
             Use only with reading data from file.
+            If -1, then the number of threads is set to the number of cores.
         """
         if data is not None:
             self._check_data_type(data)
@@ -330,8 +331,6 @@ class Pool(_PoolBase):
     def _check_thread_count(self, thread_count):
         if not isinstance(thread_count, INTEGER_TYPES):
             raise CatboostError("Invalid thread_count type={} : must be int".format(type(thread_count)))
-        if thread_count < 1:
-            raise CatboostError("Invalid thread_count value={} : must be > 0".format(thread_count))
 
     def set_pairs(self, pairs):
         self._check_pairs_type(pairs)
@@ -756,7 +755,7 @@ class CatBoost(_CatBoostBase):
             predictions = np.transpose([1 - predictions, predictions])
         return predictions
 
-    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict with data.
 
@@ -778,9 +777,10 @@ class CatBoost(_CatBoostBase):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
@@ -821,7 +821,7 @@ class CatBoost(_CatBoostBase):
                     predictions = np.transpose([1 - predictions, predictions])
             yield predictions
 
-    def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -846,9 +846,10 @@ class CatBoost(_CatBoostBase):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -877,7 +878,7 @@ class CatBoost(_CatBoostBase):
         metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
         return dict(zip(metrics, metrics_score))
 
-    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, tmp_dir=None):
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
         Calculate metrics.
 
@@ -899,9 +900,10 @@ class CatBoost(_CatBoostBase):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         tmp_dir : string (default=None)
             The name of the temporary directory for intermediate results.
@@ -913,7 +915,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
-    def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, tmp_dir=None):
+    def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
         Create batch metric calcer. Could be used to aggregate metric on several pools
         Parameters
@@ -945,7 +947,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
         return feature_importances_
 
-    def get_feature_importance(self, X, y=None, cat_features=None, thread_count=1, fstr_type='FeatureImportance'):
+    def get_feature_importance(self, X, y=None, cat_features=None, thread_count=-1, fstr_type='FeatureImportance'):
         """
         Parameters
         ----------
@@ -960,8 +962,9 @@ class CatBoost(_CatBoostBase):
             If not None, giving the list of Categ columns indices.
             Use only if X is not Pool.
 
-        thread_count : int, optional (default=1)
+        thread_count : int, optional (default=-1)
             Number of threads.
+            If -1, then the number of threads is set to the number of cores.
 
         fstr_type : string, optional (default='FeatureImportance')
             Possible values:
@@ -1187,7 +1190,7 @@ class CatBoostClassifier(CatBoost):
             - 'Gradient'
     thread_count : int, [default=None]
         Number of parallel threads used to run CatBoost.
-        If None, then used maximum of the possible threads.
+        If None, then the number of thread is set to the number of cores.
         range: [1,+inf]
     random_seed : int, [default=None]
         Random number seed.
@@ -1475,7 +1478,7 @@ class CatBoostClassifier(CatBoost):
             setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
-    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict with data.
 
@@ -1497,9 +1500,10 @@ class CatBoostClassifier(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool, optional (default=False)
             If True, writes the evaluation metric measured set to stderr.
@@ -1510,7 +1514,7 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
-    def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict class probability with data.
 
@@ -1526,9 +1530,10 @@ class CatBoostClassifier(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1539,7 +1544,7 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1564,9 +1569,10 @@ class CatBoostClassifier(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1577,7 +1583,7 @@ class CatBoostClassifier(CatBoost):
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def staged_predict_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict classification target at each stage for data.
 
@@ -1596,9 +1602,10 @@ class CatBoostClassifier(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1776,7 +1783,7 @@ class CatBoostRegressor(CatBoost):
         """
         return self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot)
 
-    def predict(self, data, ntree_start=0, ntree_end=0, thread_count=1, verbose=None):
+    def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict with data.
 
@@ -1792,9 +1799,10 @@ class CatBoostRegressor(CatBoost):
             Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
@@ -1805,7 +1813,7 @@ class CatBoostRegressor(CatBoost):
         """
         return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
 
-    def staged_predict(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=1, verbose=None):
+    def staged_predict(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -1824,9 +1832,10 @@ class CatBoostRegressor(CatBoost):
         eval_period: int, optional (default=1)
             Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
-        thread_count : int (default=1)
+        thread_count : int (default=-1)
             The number of threads to use when applying the model.
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
 
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.

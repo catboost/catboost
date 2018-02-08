@@ -553,7 +553,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 nanMode;
         });
 
-    parser.AddCharOption('T', "worker thread count, default - min(core count, 8)")
+    parser.AddCharOption('T', "worker thread count (default: core count)")
         .AddLongName("thread-count")
         .RequiredArgument("count")
         .Handler1T<int>([plainJsonPtr](int count) {

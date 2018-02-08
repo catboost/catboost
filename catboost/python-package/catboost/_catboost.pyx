@@ -155,6 +155,9 @@ cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
 
+cdef extern from "util/system/info.h" namespace "NSystemInfo":
+    cdef size_t CachedNumberOfCpus() except +ProcessException
+
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
         double Error
@@ -525,6 +528,13 @@ cdef to_native_str(binary):
         return binary.decode()
     return binary
 
+cdef UpdateThreadCount(thread_count):
+    if thread_count == -1:
+        thread_count = CachedNumberOfCpus()
+    if thread_count < 1:
+        raise CatboostError("Invalid thread_count value={} : must be > 0".format(thread_count))
+    return thread_count
+
 cdef class _PoolBase:
     cdef TPool* __pool
     cdef bool_t has_label_
@@ -543,6 +553,7 @@ cdef class _PoolBase:
         pool_file = to_binary_str(pool_file)
         cd_file = to_binary_str(cd_file)
         pairs_file = to_binary_str(pairs_file)
+        thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] emptyVec
         ReadPool(
             TString(<char*>cd_file),
@@ -858,6 +869,8 @@ cdef class _CatBoost:
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
+        thread_count = UpdateThreadCount(thread_count);
+
         pred = ApplyModel(
             dereference(self.__model),
             dereference(pool.__pool),
@@ -873,6 +886,7 @@ cdef class _CatBoost:
                               int thread_count, verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
+        thread_count = UpdateThreadCount(thread_count);
 
         pred = ApplyModelMulti(
             dereference(self.__model),
@@ -886,11 +900,13 @@ cdef class _CatBoost:
         return [[value for value in vec] for vec in pred]
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        thread_count = UpdateThreadCount(thread_count);
         stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
     cpdef _base_eval_metrics(self, _PoolBase pool, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count, str tmp_dir):
+        thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] metricsDescription
         for metric_description in metrics_description:
             metricsDescription.push_back(TString(<const char*>metric_description))
@@ -910,6 +926,7 @@ cdef class _CatBoost:
 
     cpdef _calc_fstr(self, _PoolBase pool, fstr_type, int thread_count):
         fstr_type = to_binary_str(fstr_type)
+        thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TVector[double]] fstr = GetFeatureImportances(
             dereference(self.__model),
             dereference(pool.__pool),

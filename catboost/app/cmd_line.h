@@ -1,9 +1,11 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
+
 #include <library/getopt/small/last_getopt.h>
 #include <library/json/json_reader.h>
 
+#include <util/system/info.h>
 
 struct TAnalyticalModeCommonParams {
     TString ModelFileName;
@@ -13,7 +15,7 @@ struct TAnalyticalModeCommonParams {
     TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
     EFstrType FstrType = EFstrType::FeatureImportance;
     TVector<TString> ClassNames;
-    int ThreadCount = 1;
+    int ThreadCount = NSystemInfo::CachedNumberOfCpus();
     char Delimiter = '\t';
     bool HasHeader = false;
     TString PairsFile = "";
