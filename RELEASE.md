@@ -1,13 +1,13 @@
 # Release 0.6.2
 ## Major Features And Improvements
-- **BETA** version of distributed GPU via MPI training
+- **BETA** version of distributed mulit-host GPU via MPI training
 - Added possibility to import coreml model with oblivious trees. Makes possible to migrate pre-flatbuffers model (with float features only) to current format (issue #235)
 - Added QuerySoftMax loss function
 
 ## Bug Fixes and Other Changes
 - Fixed GPU models bug on pools with both categorical and float features
 - Fixed not querywise loss for pool with `QueryId`
-- Default float features binarization method set to GreedyLogSum
+- Default float features binarization method set to `GreedyLogSum`
 
 
 # Release 0.6.1.1
