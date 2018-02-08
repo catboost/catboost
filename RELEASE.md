@@ -1,3 +1,22 @@
+# Release 0.6.2
+## Major Features And Improvements
+- **BETA** version of distributed GPU via MPI training
+- Added possibility to import coreml model with oblivious trees. Makes possible to migrate pre-flatbuffers model (with float features only) to current format (issue #235)
+- Added QuerySoftMax loss function
+
+## Bug Fixes and Other Changes
+- Fixed GPU models bug on pools with both categorical and float features
+- Fixed not querywise loss for pool with `QueryId`
+- Default float features binarization method set to GreedyLogSum
+
+
+# Release 0.6.1.1
+## Bug Fixes and Other Changes
+- Hotfix for critical bug in Python and R wrappers (issue #238)
+- Added stratified data split in CV
+- Fix `is_classification` check and CV for Logloss
+
+
 # Release 0.6.1
 ## Bug Fixes and Other Changes
 - Fixed critical bugs in formula evaluation code (issue #236)
