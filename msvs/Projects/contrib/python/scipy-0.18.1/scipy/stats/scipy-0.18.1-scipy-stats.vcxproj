@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{C529568C-1FAF-E572-B383-2B2BDCD9B8C4}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>scipy-0.18.1-scipy-stats</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>scipy-0.18.1-scipy-stats</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C529568C-1FAF-E572-B383-2B2BDCD9B8C4\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3367582 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3367582 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_stats.pyx.cpp"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\join_4z4acajumkjso5hhok6ufr4jim.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\scipy.stats._stats.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\scipy.stats.statlib.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\statlibmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats_extras.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_utyk7sigax6q7b6fa4fmavhw5q.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_obvkwsjd4ktn4wqaiyz4vds62a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "_hc3rsdjtmjdfxuo5flc3ie6jrm.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/morestats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_kz6uzgbb4tinsquytr4t4h7c2m.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ph66nkm5lwhzxpfhyoty3udrcq.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "_vs2u3qom7ralnxiqgaunfrpuzq.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_olhxn4mvylqh4yxstnsvrcn2sa.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_o6cmetqtxtxsxtseialccjsw2m.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "_pup3xnkkowwm36sk6o3nhhjvjy.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_fohwj3vqqeomvmfnu27fcydw5i.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_4gcuijv6lpisfivkge4qbnelqa.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "_latmqgem2qhv2rolgp5jzkkaum.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_225q4azqugy7itxqzdvuroiikm.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_s42hfvh4fjwlxbltyaw35z4qhy.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "_3meerlwzrarjcdopesyemtijma.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_constants.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_n57k4nz7tx3lqvqbkc24acr2s4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_4tvvfz7afbzsmju2mgx543irku.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/stats.py" "_fwm7d6r4ibnodxtk6jjvbywqdu.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/stats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_oo3lndl2dg4jddsiyikdxttjra.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_x5l7mwrmmk3yz5lsne4hyysbum.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "_ycg5k55xlqblsj4glop4vqovza.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_lczg7yebsibepur2hl3g2nhm2y.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ht2mzpvlguzyhnx5ipywptu2he.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "_nhvdbegrts247dqxhesjygae6y.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_45fnnivek7jfjgm72oegorzt34.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_utyk7sigax6q7b6fa4fmavhw5q.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_obvkwsjd4ktn4wqaiyz4vds62a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "_hc3rsdjtmjdfxuo5flc3ie6jrm.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/morestats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_kz6uzgbb4tinsquytr4t4h7c2m.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ph66nkm5lwhzxpfhyoty3udrcq.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "_vs2u3qom7ralnxiqgaunfrpuzq.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_olhxn4mvylqh4yxstnsvrcn2sa.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_o6cmetqtxtxsxtseialccjsw2m.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "_pup3xnkkowwm36sk6o3nhhjvjy.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_fohwj3vqqeomvmfnu27fcydw5i.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_4gcuijv6lpisfivkge4qbnelqa.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "_latmqgem2qhv2rolgp5jzkkaum.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_225q4azqugy7itxqzdvuroiikm.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_s42hfvh4fjwlxbltyaw35z4qhy.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "_3meerlwzrarjcdopesyemtijma.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_constants.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_n57k4nz7tx3lqvqbkc24acr2s4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_4tvvfz7afbzsmju2mgx543irku.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/stats.py" "_fwm7d6r4ibnodxtk6jjvbywqdu.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/stats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_oo3lndl2dg4jddsiyikdxttjra.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_x5l7mwrmmk3yz5lsne4hyysbum.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "_ycg5k55xlqblsj4glop4vqovza.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_lczg7yebsibepur2hl3g2nhm2y.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ht2mzpvlguzyhnx5ipywptu2he.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "_nhvdbegrts247dqxhesjygae6y.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_45fnnivek7jfjgm72oegorzt34.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/_xqcjctyddfjxulr4nkfoeqo5r4.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats_extras.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\morestats.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\morestats.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_tukeylambda_stats.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_tukeylambda_stats.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_distn_infrastructure.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_distn_infrastructure.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats_basic.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats_basic.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_constants.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_constants.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\stats.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\stats.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_binned_statistic.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_binned_statistic.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_discrete_distns.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_discrete_distns.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_xqcjctyddfjxulr4nkfoeqo5r4.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_utyk7sigax6q7b6fa4fmavhw5q.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_obvkwsjd4ktn4wqaiyz4vds62a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_kz6uzgbb4tinsquytr4t4h7c2m.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_ph66nkm5lwhzxpfhyoty3udrcq.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_olhxn4mvylqh4yxstnsvrcn2sa.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_o6cmetqtxtxsxtseialccjsw2m.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_fohwj3vqqeomvmfnu27fcydw5i.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_4gcuijv6lpisfivkge4qbnelqa.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_225q4azqugy7itxqzdvuroiikm.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_s42hfvh4fjwlxbltyaw35z4qhy.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_n57k4nz7tx3lqvqbkc24acr2s4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_4tvvfz7afbzsmju2mgx543irku.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_oo3lndl2dg4jddsiyikdxttjra.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_x5l7mwrmmk3yz5lsne4hyysbum.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_lczg7yebsibepur2hl3g2nhm2y.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_ht2mzpvlguzyhnx5ipywptu2he.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_45fnnivek7jfjgm72oegorzt34.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/join_4z4acajumkjso5hhok6ufr4jim.cpp" "contrib/python/scipy-0.18.1/scipy/stats/3wu73glcwgxitjncvp6ywbco5m.cpp" "contrib/python/scipy-0.18.1/scipy/stats/xqcjctyddfjxulr4nkfoeqo5r4.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/join_4z4acajumkjso5hhok6ufr4jim.cpp" "contrib/python/scipy-0.18.1/scipy/stats/3wu73glcwgxitjncvp6ywbco5m.cpp" "contrib/python/scipy-0.18.1/scipy/stats/xqcjctyddfjxulr4nkfoeqo5r4.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/join_4z4acajumkjso5hhok6ufr4jim.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\3wu73glcwgxitjncvp6ywbco5m.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\xqcjctyddfjxulr4nkfoeqo5r4.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\join_4z4acajumkjso5hhok6ufr4jim.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats._stats.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats.statlib.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats._stats.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats.statlib.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats._stats.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/stats/scipy.stats.statlib.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\scipy.stats._stats.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\scipy.stats.statlib.reg.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_constants.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_constants.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/contingency.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/contingency.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/distributions.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/distributions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/morestats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/morestats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/stats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/stats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/vonmises.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/vonmises.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_constants.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_constants.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/contingency.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/contingency.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/distributions.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/distributions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/morestats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/morestats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/morestats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/stats.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/stats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/stats.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/stats/vonmises.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/vonmises.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/__init__.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_binned_statistic.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_constants.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_discrete_distns.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_distn_infrastructure.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/_tukeylambda_stats.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/contingency.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/distributions.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/morestats.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/mstats.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/mstats_basic.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/stats.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/stats/vonmises.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\__init__.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_binned_statistic.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_constants.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_continuous_distns.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_discrete_distns.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_distn_infrastructure.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_distr_params.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_multivariate.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_stats_mstats_common.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_tukeylambda_stats.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\contingency.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\distributions.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\morestats.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats_basic.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats_extras.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\stats.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\vonmises.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_binned_statistic.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_constants.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_continuous_distns.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_discrete_distns.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_distn_infrastructure.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_distr_params.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_multivariate.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_stats_mstats_common.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_tukeylambda_stats.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\contingency.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\distributions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\morestats.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats_basic.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats_extras.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\stats.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\vonmises.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_qk6ujkjenb7wftcmb5kgy5aj4i.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "_cs5wbuikijkneua4x5dak6fxqm.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_dxs3oeph5gu3tn5we4augf7hea.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_6nxuy46hsdb5nezoeur7nygeay.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "_45zhuoq5ezj7gwuww4uxal4bsi.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ujwiggwxogxkfxod3j7qrw2fia.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_zlawhga5zgzsmq7ualbeks53qi.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "_3rlhe3qdx5foqrqto35tthzyfy.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_nf5zdgcsr7b75ehl7wwr453ex4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_gcravjre5sxke3cvv5lwohzbae.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "_6gol3n7nrvbift3bfadu6mpnwq.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/distributions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ycgset277pp262ziutkbubgpdu.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_vsdkavqhmrg4sqsylkdwcehivm.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "_mcrrkhrfl2towdqo6ou7446pom.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/vonmises.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_5m427tzmszeubzfxcc64cof5mi.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_efxqahzbt6nrkshvrby24dpk6u.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "_wihqgh5xkdxxi3nfqzyg5aqhfi.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_js4nlsedd2sylzgmkbzcl2v47y.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_7x76ygfso4sjhov4jwuy7rruvi.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "_sgxsk7x4zfojvjlttvxc2bxslu.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/contingency.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ppwjo6xx4cxsnc4ckgtl7svzia.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_dn5yt4nr5msx546n2coolsnqde.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "_myxtb22acjiqvmplmtc4y3ul34.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_j2vzsdnhkgfejxrr3434p2bmma.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_u3jcvun7nbe4e3tgima2a7gq6m.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "_knxvl52hdxcdsrcslemcu3cnly.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_524nbkpsu4jiyaupzylczqsdra.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_aiguiy4arr5tufza3nfl2imolu.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "_vqqepdik35qy3o2cemfofnx4nq.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_qk6ujkjenb7wftcmb5kgy5aj4i.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/__init__.py" "_cs5wbuikijkneua4x5dak6fxqm.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_dxs3oeph5gu3tn5we4augf7hea.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_6nxuy46hsdb5nezoeur7nygeay.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py" "_45zhuoq5ezj7gwuww4uxal4bsi.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_distr_params.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ujwiggwxogxkfxod3j7qrw2fia.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_zlawhga5zgzsmq7ualbeks53qi.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats.py" "_3rlhe3qdx5foqrqto35tthzyfy.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/mstats.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_nf5zdgcsr7b75ehl7wwr453ex4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_gcravjre5sxke3cvv5lwohzbae.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/distributions.py" "_6gol3n7nrvbift3bfadu6mpnwq.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/distributions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ycgset277pp262ziutkbubgpdu.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_vsdkavqhmrg4sqsylkdwcehivm.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/vonmises.py" "_mcrrkhrfl2towdqo6ou7446pom.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/vonmises.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_5m427tzmszeubzfxcc64cof5mi.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_efxqahzbt6nrkshvrby24dpk6u.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py" "_wihqgh5xkdxxi3nfqzyg5aqhfi.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_continuous_distns.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_js4nlsedd2sylzgmkbzcl2v47y.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_7x76ygfso4sjhov4jwuy7rruvi.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/contingency.py" "_sgxsk7x4zfojvjlttvxc2bxslu.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/contingency.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_ppwjo6xx4cxsnc4ckgtl7svzia.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_dn5yt4nr5msx546n2coolsnqde.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py" "_myxtb22acjiqvmplmtc4y3ul34.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats_mstats_common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_j2vzsdnhkgfejxrr3434p2bmma.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_u3jcvun7nbe4e3tgima2a7gq6m.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py" "_knxvl52hdxcdsrcslemcu3cnly.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_multivariate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_524nbkpsu4jiyaupzylczqsdra.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_aiguiy4arr5tufza3nfl2imolu.rodata" "-" "contrib/python/scipy-0.18.1/scipy/stats/mstats_extras.py" "_vqqepdik35qy3o2cemfofnx4nq.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/_3wu73glcwgxitjncvp6ywbco5m.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_distr_params.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_distr_params.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\mstats.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\distributions.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\distributions.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\vonmises.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\vonmises.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_continuous_distns.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_continuous_distns.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\contingency.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\contingency.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_stats_mstats_common.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_stats_mstats_common.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_multivariate.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_multivariate.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\mstats_extras.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_3wu73glcwgxitjncvp6ywbco5m.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_qk6ujkjenb7wftcmb5kgy5aj4i.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_dxs3oeph5gu3tn5we4augf7hea.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_6nxuy46hsdb5nezoeur7nygeay.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_ujwiggwxogxkfxod3j7qrw2fia.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_zlawhga5zgzsmq7ualbeks53qi.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_nf5zdgcsr7b75ehl7wwr453ex4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_gcravjre5sxke3cvv5lwohzbae.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_ycgset277pp262ziutkbubgpdu.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_vsdkavqhmrg4sqsylkdwcehivm.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_5m427tzmszeubzfxcc64cof5mi.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_efxqahzbt6nrkshvrby24dpk6u.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_js4nlsedd2sylzgmkbzcl2v47y.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_7x76ygfso4sjhov4jwuy7rruvi.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_ppwjo6xx4cxsnc4ckgtl7svzia.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_dn5yt4nr5msx546n2coolsnqde.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_j2vzsdnhkgfejxrr3434p2bmma.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_u3jcvun7nbe4e3tgima2a7gq6m.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_524nbkpsu4jiyaupzylczqsdra.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_aiguiy4arr5tufza3nfl2imolu.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.stats._stats" "--init-name" "init5scipy5stats6_stats" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.stats._stats" "--init-name" "init5scipy5stats6_stats" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/stats/_stats.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/_stats.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/_stats.pyx.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\stats\_stats.pyx;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\_stats.pyx.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="[_no_inputs_]">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/3wu73glcwgxitjncvp6ywbco5m.cpp" "_qk6ujkjenb7wftcmb5kgy5aj4i=/py_modules/scipy.stats.__init__" "_cs5wbuikijkneua4x5dak6fxqm=resfs/src//py_modules/scipy.stats.__init__" "_dxs3oeph5gu3tn5we4augf7hea=/py_code/scipy.stats.__init__" "_6nxuy46hsdb5nezoeur7nygeay=/py_modules/scipy.stats._distr_params" "_45zhuoq5ezj7gwuww4uxal4bsi=resfs/src//py_modules/scipy.stats._distr_params" "_ujwiggwxogxkfxod3j7qrw2fia=/py_code/scipy.stats._distr_params" "_zlawhga5zgzsmq7ualbeks53qi=/py_modules/scipy.stats.mstats" "_3rlhe3qdx5foqrqto35tthzyfy=resfs/src//py_modules/scipy.stats.mstats" "_nf5zdgcsr7b75ehl7wwr453ex4=/py_code/scipy.stats.mstats" "_gcravjre5sxke3cvv5lwohzbae=/py_modules/scipy.stats.distributions" "_6gol3n7nrvbift3bfadu6mpnwq=resfs/src//py_modules/scipy.stats.distributions" "_ycgset277pp262ziutkbubgpdu=/py_code/scipy.stats.distributions" "_vsdkavqhmrg4sqsylkdwcehivm=/py_modules/scipy.stats.vonmises" "_mcrrkhrfl2towdqo6ou7446pom=resfs/src//py_modules/scipy.stats.vonmises" "_5m427tzmszeubzfxcc64cof5mi=/py_code/scipy.stats.vonmises" "_efxqahzbt6nrkshvrby24dpk6u=/py_modules/scipy.stats._continuous_distns" "_wihqgh5xkdxxi3nfqzyg5aqhfi=resfs/src//py_modules/scipy.stats._continuous_distns" "_js4nlsedd2sylzgmkbzcl2v47y=/py_code/scipy.stats._continuous_distns" "_7x76ygfso4sjhov4jwuy7rruvi=/py_modules/scipy.stats.contingency" "_sgxsk7x4zfojvjlttvxc2bxslu=resfs/src//py_modules/scipy.stats.contingency" "_ppwjo6xx4cxsnc4ckgtl7svzia=/py_code/scipy.stats.contingency" "_dn5yt4nr5msx546n2coolsnqde=/py_modules/scipy.stats._stats_mstats_common" "_myxtb22acjiqvmplmtc4y3ul34=resfs/src//py_modules/scipy.stats._stats_mstats_common" "_j2vzsdnhkgfejxrr3434p2bmma=/py_code/scipy.stats._stats_mstats_common" "_u3jcvun7nbe4e3tgima2a7gq6m=/py_modules/scipy.stats._multivariate" "_knxvl52hdxcdsrcslemcu3cnly=resfs/src//py_modules/scipy.stats._multivariate" "_524nbkpsu4jiyaupzylczqsdra=/py_code/scipy.stats._multivariate" "_aiguiy4arr5tufza3nfl2imolu=/py_modules/scipy.stats.mstats_extras" "_vqqepdik35qy3o2cemfofnx4nq=resfs/src//py_modules/scipy.stats.mstats_extras"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/xqcjctyddfjxulr4nkfoeqo5r4.cpp" "_utyk7sigax6q7b6fa4fmavhw5q=/py_code/scipy.stats.mstats_extras" "_obvkwsjd4ktn4wqaiyz4vds62a=/py_modules/scipy.stats.morestats" "_hc3rsdjtmjdfxuo5flc3ie6jrm=resfs/src//py_modules/scipy.stats.morestats" "_kz6uzgbb4tinsquytr4t4h7c2m=/py_code/scipy.stats.morestats" "_ph66nkm5lwhzxpfhyoty3udrcq=/py_modules/scipy.stats._tukeylambda_stats" "_vs2u3qom7ralnxiqgaunfrpuzq=resfs/src//py_modules/scipy.stats._tukeylambda_stats" "_olhxn4mvylqh4yxstnsvrcn2sa=/py_code/scipy.stats._tukeylambda_stats" "_o6cmetqtxtxsxtseialccjsw2m=/py_modules/scipy.stats._distn_infrastructure" "_pup3xnkkowwm36sk6o3nhhjvjy=resfs/src//py_modules/scipy.stats._distn_infrastructure" "_fohwj3vqqeomvmfnu27fcydw5i=/py_code/scipy.stats._distn_infrastructure" "_4gcuijv6lpisfivkge4qbnelqa=/py_modules/scipy.stats.mstats_basic" "_latmqgem2qhv2rolgp5jzkkaum=resfs/src//py_modules/scipy.stats.mstats_basic" "_225q4azqugy7itxqzdvuroiikm=/py_code/scipy.stats.mstats_basic" "_s42hfvh4fjwlxbltyaw35z4qhy=/py_modules/scipy.stats._constants" "_3meerlwzrarjcdopesyemtijma=resfs/src//py_modules/scipy.stats._constants" "_n57k4nz7tx3lqvqbkc24acr2s4=/py_code/scipy.stats._constants" "_4tvvfz7afbzsmju2mgx543irku=/py_modules/scipy.stats.stats" "_fwm7d6r4ibnodxtk6jjvbywqdu=resfs/src//py_modules/scipy.stats.stats" "_oo3lndl2dg4jddsiyikdxttjra=/py_code/scipy.stats.stats" "_x5l7mwrmmk3yz5lsne4hyysbum=/py_modules/scipy.stats._binned_statistic" "_ycg5k55xlqblsj4glop4vqovza=resfs/src//py_modules/scipy.stats._binned_statistic" "_lczg7yebsibepur2hl3g2nhm2y=/py_code/scipy.stats._binned_statistic" "_ht2mzpvlguzyhnx5ipywptu2he=/py_modules/scipy.stats._discrete_distns" "_nhvdbegrts247dqxhesjygae6y=resfs/src//py_modules/scipy.stats._discrete_distns" "_45fnnivek7jfjgm72oegorzt34=/py_code/scipy.stats._discrete_distns"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/3wu73glcwgxitjncvp6ywbco5m.cpp" "_qk6ujkjenb7wftcmb5kgy5aj4i=/py_modules/scipy.stats.__init__" "_cs5wbuikijkneua4x5dak6fxqm=resfs/src//py_modules/scipy.stats.__init__" "_dxs3oeph5gu3tn5we4augf7hea=/py_code/scipy.stats.__init__" "_6nxuy46hsdb5nezoeur7nygeay=/py_modules/scipy.stats._distr_params" "_45zhuoq5ezj7gwuww4uxal4bsi=resfs/src//py_modules/scipy.stats._distr_params" "_ujwiggwxogxkfxod3j7qrw2fia=/py_code/scipy.stats._distr_params" "_zlawhga5zgzsmq7ualbeks53qi=/py_modules/scipy.stats.mstats" "_3rlhe3qdx5foqrqto35tthzyfy=resfs/src//py_modules/scipy.stats.mstats" "_nf5zdgcsr7b75ehl7wwr453ex4=/py_code/scipy.stats.mstats" "_gcravjre5sxke3cvv5lwohzbae=/py_modules/scipy.stats.distributions" "_6gol3n7nrvbift3bfadu6mpnwq=resfs/src//py_modules/scipy.stats.distributions" "_ycgset277pp262ziutkbubgpdu=/py_code/scipy.stats.distributions" "_vsdkavqhmrg4sqsylkdwcehivm=/py_modules/scipy.stats.vonmises" "_mcrrkhrfl2towdqo6ou7446pom=resfs/src//py_modules/scipy.stats.vonmises" "_5m427tzmszeubzfxcc64cof5mi=/py_code/scipy.stats.vonmises" "_efxqahzbt6nrkshvrby24dpk6u=/py_modules/scipy.stats._continuous_distns" "_wihqgh5xkdxxi3nfqzyg5aqhfi=resfs/src//py_modules/scipy.stats._continuous_distns" "_js4nlsedd2sylzgmkbzcl2v47y=/py_code/scipy.stats._continuous_distns" "_7x76ygfso4sjhov4jwuy7rruvi=/py_modules/scipy.stats.contingency" "_sgxsk7x4zfojvjlttvxc2bxslu=resfs/src//py_modules/scipy.stats.contingency" "_ppwjo6xx4cxsnc4ckgtl7svzia=/py_code/scipy.stats.contingency" "_dn5yt4nr5msx546n2coolsnqde=/py_modules/scipy.stats._stats_mstats_common" "_myxtb22acjiqvmplmtc4y3ul34=resfs/src//py_modules/scipy.stats._stats_mstats_common" "_j2vzsdnhkgfejxrr3434p2bmma=/py_code/scipy.stats._stats_mstats_common" "_u3jcvun7nbe4e3tgima2a7gq6m=/py_modules/scipy.stats._multivariate" "_knxvl52hdxcdsrcslemcu3cnly=resfs/src//py_modules/scipy.stats._multivariate" "_524nbkpsu4jiyaupzylczqsdra=/py_code/scipy.stats._multivariate" "_aiguiy4arr5tufza3nfl2imolu=/py_modules/scipy.stats.mstats_extras" "_vqqepdik35qy3o2cemfofnx4nq=resfs/src//py_modules/scipy.stats.mstats_extras"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/stats/xqcjctyddfjxulr4nkfoeqo5r4.cpp" "_utyk7sigax6q7b6fa4fmavhw5q=/py_code/scipy.stats.mstats_extras" "_obvkwsjd4ktn4wqaiyz4vds62a=/py_modules/scipy.stats.morestats" "_hc3rsdjtmjdfxuo5flc3ie6jrm=resfs/src//py_modules/scipy.stats.morestats" "_kz6uzgbb4tinsquytr4t4h7c2m=/py_code/scipy.stats.morestats" "_ph66nkm5lwhzxpfhyoty3udrcq=/py_modules/scipy.stats._tukeylambda_stats" "_vs2u3qom7ralnxiqgaunfrpuzq=resfs/src//py_modules/scipy.stats._tukeylambda_stats" "_olhxn4mvylqh4yxstnsvrcn2sa=/py_code/scipy.stats._tukeylambda_stats" "_o6cmetqtxtxsxtseialccjsw2m=/py_modules/scipy.stats._distn_infrastructure" "_pup3xnkkowwm36sk6o3nhhjvjy=resfs/src//py_modules/scipy.stats._distn_infrastructure" "_fohwj3vqqeomvmfnu27fcydw5i=/py_code/scipy.stats._distn_infrastructure" "_4gcuijv6lpisfivkge4qbnelqa=/py_modules/scipy.stats.mstats_basic" "_latmqgem2qhv2rolgp5jzkkaum=resfs/src//py_modules/scipy.stats.mstats_basic" "_225q4azqugy7itxqzdvuroiikm=/py_code/scipy.stats.mstats_basic" "_s42hfvh4fjwlxbltyaw35z4qhy=/py_modules/scipy.stats._constants" "_3meerlwzrarjcdopesyemtijma=resfs/src//py_modules/scipy.stats._constants" "_n57k4nz7tx3lqvqbkc24acr2s4=/py_code/scipy.stats._constants" "_4tvvfz7afbzsmju2mgx543irku=/py_modules/scipy.stats.stats" "_fwm7d6r4ibnodxtk6jjvbywqdu=resfs/src//py_modules/scipy.stats.stats" "_oo3lndl2dg4jddsiyikdxttjra=/py_code/scipy.stats.stats" "_x5l7mwrmmk3yz5lsne4hyysbum=/py_modules/scipy.stats._binned_statistic" "_ycg5k55xlqblsj4glop4vqovza=resfs/src//py_modules/scipy.stats._binned_statistic" "_lczg7yebsibepur2hl3g2nhm2y=/py_code/scipy.stats._binned_statistic" "_ht2mzpvlguzyhnx5ipywptu2he=/py_modules/scipy.stats._discrete_distns" "_nhvdbegrts247dqxhesjygae6y=resfs/src//py_modules/scipy.stats._discrete_distns" "_45fnnivek7jfjgm72oegorzt34=/py_code/scipy.stats._discrete_distns"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/stats/3wu73glcwgxitjncvp6ywbco5m.cpp	$B/contrib/python/scipy-0.18.1/scipy/stats/xqcjctyddfjxulr4nkfoeqo5r4.cpp	</Message>
+      <AdditionalInputs/>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\3wu73glcwgxitjncvp6ywbco5m.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\stats\xqcjctyddfjxulr4nkfoeqo5r4.cpp;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>F42B3303-A85B-C579-9BF8-27924B30359B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>04A8455B-4404-6B67-F3CD-6366DEF170FE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>6C58A7BD-61C5-1C8D-6C74-836658D88AE1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>95B1672E-65CB-6C0E-8AEB-4971392AB876</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
+      <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
+      <Project>83EDB3BB-30AF-677F-74C1-971A8947E4E5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
+      <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\f2py\src\numpy-f2py-src.vcxproj">
+      <Project>B9A5C55B-26C1-1BEF-8F7E-03AF86DA1BE3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
+      <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
+      <Project>2C53A7F8-146C-2E01-A4DD-B0D7D23E4518</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
+      <Project>794E1CFC-77F3-9455-DA27-A631729E33E2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\stats\statlib\scipy-stats-statlib.vcxproj">
+      <Project>5E8FF43F-57BE-A640-5A5F-7ADABCD080A9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
+      <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
+      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
+      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
+      <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

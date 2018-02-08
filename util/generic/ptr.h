@@ -21,10 +21,7 @@ inline void AssertTypeComplete() {
     // 'delete' called on pointer to incomplete type is
     // undefined behavior (missing destructor call/corrupted memory manager).
     // 'sizeof' is used to trigger compile-time error.
-    // Fake array type is used to create "readable" compiler error message.
-    // Search "checked delete C++ idiom" for more info
-    using type_must_be_complete = char[sizeof(T) ? 1 : -1];
-    (void)sizeof(type_must_be_complete);
+    static_assert(sizeof(T) != 0, "Type must be complete");
 }
 
 template <class T>

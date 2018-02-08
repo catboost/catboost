@@ -10,7 +10,7 @@ namespace NCudaLib {
     class TSingleHostTaskQueue {
     public:
         using TGpuTaskPtr = THolder<ICommand>;
-        using TQueue = typename NThreading::TManyOneQueue<TGpuTaskPtr>;
+        using TQueue = typename NThreading::TOneOneQueue<TGpuTaskPtr>;
 
         bool IsEmpty() {
             return InputTaskQueue.IsEmpty();
