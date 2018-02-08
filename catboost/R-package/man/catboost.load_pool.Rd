@@ -8,7 +8,7 @@ catboost.load_pool(data, label = NULL, cat_features = NULL,
   column_description = NULL, pairs = NULL, delimiter = "\\t",
   has_header = FALSE, weight = NULL, query_id = NULL,
   pairs_weight = NULL, baseline = NULL, feature_names = NULL,
-  thread_count = 1)
+  thread_count = -1)
 }
 \arguments{
 \item{data}{A file path, matrix or data.frame with features.
@@ -51,7 +51,8 @@ Used in the calculation of final values of trees.}
 
 \item{feature_names}{A list of names for each feature in the dataset.}
 
-\item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.}
+\item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
+If -1, then the number of threads is set to the number of cores.}
 }
 \value{
 catboost.Pool

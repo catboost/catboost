@@ -656,7 +656,7 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value:
 
-Min(number of processor cores, 8)
+The number of cores.
   }
   \item Output settings
   \itemize{

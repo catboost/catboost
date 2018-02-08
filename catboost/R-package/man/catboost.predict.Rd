@@ -6,7 +6,7 @@
 \usage{
 catboost.predict(model, pool, verbose = FALSE,
   prediction_type = "RawFormulaVal", ntree_start = 0, ntree_end = 0,
-  thread_count = 1)
+  thread_count = -1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -41,7 +41,7 @@ Default value: 0}
 
 Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)}
 
-\item{thread_count}{The number of threads to use when applying the model.
+\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 

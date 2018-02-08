@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/eval_helpers.h>
 
 #include <util/generic/singleton.h>
+#include <util/system/info.h>
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
@@ -83,6 +84,13 @@ static NJson::TJsonValue LoadFitParams(SEXP fitParamsAsJson) {
     return result;
 }
 
+static int UpdateThreadCount(int threadCount) {
+    if (threadCount == -1) {
+        threadCount = NSystemInfo::CachedNumberOfCpus();
+    }
+    return threadCount;
+}
+
 extern "C" {
 
 SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
@@ -98,7 +106,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     ReadPool(CHAR(asChar(cdFileParam)),
              CHAR(asChar(poolFileParam)),
              CHAR(asChar(pairsFileParam)),
-             asInteger(threadCountParam),
+             UpdateThreadCount(asInteger(threadCountParam)),
              asLogical(verboseParam),
              CHAR(asChar(delimiterParam))[0],
              asLogical(hasHeaderParam),
@@ -301,7 +309,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
                                                           predictionType,
                                                           asInteger(treeCountStartParam),
                                                           asInteger(treeCountEndParam),
-                                                          asInteger(threadCountParam));
+                                                          UpdateThreadCount(asInteger(threadCountParam)));
     size_t predictionSize = prediction.size() * pool->Docs.GetDocCount();
     result = PROTECT(allocVector(REALSXP, predictionSize));
     for (size_t i = 0, k = 0; i < pool->Docs.GetDocCount(); ++i) {
@@ -327,7 +335,7 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountPar
     }
 
     NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(asInteger(threadCountParam) - 1);
+    executor.RunAdditionalThreads(UpdateThreadCount(asInteger(threadCountParam)) - 1);
     EPredictionType predictionType;
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
@@ -369,7 +377,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     TString fstrType = CHAR(asChar(fstrTypeParam));
-    TVector<TVector<double>> effect = GetFeatureImportances(*model, *pool, fstrType, asInteger(threadCountParam));
+    TVector<TVector<double>> effect = GetFeatureImportances(*model, *pool, fstrType, UpdateThreadCount(asInteger(threadCountParam)));
     size_t resultSize = 0;
     if (!effect.empty()) {
         resultSize = effect.size() * effect[0].size();

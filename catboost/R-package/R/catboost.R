@@ -39,6 +39,7 @@ NULL
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
+#' If -1, then the number of threads is set to the number of cores.
 #'
 #' @return catboost.Pool
 #'
@@ -73,7 +74,7 @@ NULL
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
-                               query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, thread_count = 1) {
+                               query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, thread_count = -1) {
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
@@ -94,7 +95,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 }
 
 
-catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE, thread_count = 1, verbose = FALSE) {
+catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE, thread_count = -1, verbose = FALSE) {
     if (missing(pool_path))
         stop("Need to specify pool path.")
     if (is.null(pairs_path))
@@ -990,7 +991,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       Min(number of processor cores, 8)
+#'       The number of cores.
 #'   }
 #'   \item Output settings
 #'   \itemize{
@@ -1204,7 +1205,7 @@ catboost.save_model <- function(model, model_path) {
 #' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param thread_count The number of threads to use when applying the model.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1213,7 +1214,7 @@ catboost.save_model <- function(model, model_path) {
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = 'RawFormulaVal',
-                             ntree_start = 0, ntree_end = 0, thread_count = 1) {
+                             ntree_start = 0, ntree_end = 0, thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
@@ -1264,7 +1265,7 @@ catboost.predict <- function(model, pool,
 #' @param eval_period Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 1
-#' @param thread_count The number of threads to use when applying the model.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1272,7 +1273,7 @@ catboost.predict <- function(model, pool,
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
 catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = 'RawFormulaVal',
-                                    ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = 1) {
+                                    ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
@@ -1339,14 +1340,14 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' }
 #'
 #' Default value: 'FeatureImportance'
-#' @param thread_count The number of threads to use when applying the model.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: 1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
-catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = 1) {
+catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
