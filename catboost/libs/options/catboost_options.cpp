@@ -23,6 +23,13 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::QuerySoftMax: {
+            //TODO(annaveronika;noxoomo): Change it to Newton when it is supported by CPU querywise loss
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultNewtonIterations = 10;
+            defaultGradientIterations = 100;
+            break;
+        }
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
