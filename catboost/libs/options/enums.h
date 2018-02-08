@@ -88,6 +88,7 @@ enum class ELossFunction {
     /* ranking errors */
     YetiRank,
     QueryRMSE,
+    QuerySoftMax,
     QueryAverage,
 
     /* regression metrics */

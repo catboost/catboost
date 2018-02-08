@@ -7,6 +7,7 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/cuda/targets/kernel/pointwise_targets.cuh>
 #include <catboost/cuda/targets/kernel/query_rmse.cuh>
+#include <catboost/cuda/targets/kernel/query_softmax.cuh>
 #include <catboost/cuda/targets/kernel/pair_logit.cuh>
 #include <catboost/cuda/targets/kernel/yeti_rank_pointwise.cuh>
 
@@ -206,6 +207,119 @@ namespace NKernelHost {
                                           Der.Get(),
                                           Der2.Get(),
                                           stream.GetStream());
+        }
+    };
+
+    class TQuerySoftMaxKernel: public TKernelBase<NKernel::TQuerySoftMaxContext, false> {
+    private:
+        TCudaBufferPtr<const ui32> QuerySizes;
+        TCudaBufferPtr<const ui32> QueryOffsets;
+        ui32 QueryOffsetsBias;
+
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        using TKernelContext = NKernel::TQuerySoftMaxContext;
+        Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions,
+                          QueryOffsets, QuerySizes, QueryOffsetsBias,
+                          Indices, FunctionValue,
+                          Der, Der2);
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            auto approxExpPtr = memoryManager.Allocate<float>(Relevs.Size());
+            auto queryApproxPtr = memoryManager.Allocate<float>(QuerySizes.Size());
+            auto querySumWeightedTargetsPtr = memoryManager.Allocate<float>(QuerySizes.Size());
+            auto qidsPtr = memoryManager.Allocate<ui32>(Relevs.Size());
+
+            context->ApproxExp = approxExpPtr.Get();
+            context->QueryApprox = queryApproxPtr.Get();
+            context->QuerySumWeightedTargets = querySumWeightedTargetsPtr.Get();
+            context->Qids = qidsPtr.Get();
+            return context;
+        }
+
+        TQuerySoftMaxKernel() = default;
+
+        TQuerySoftMaxKernel(TCudaBufferPtr<const ui32> querySizes,
+                            TCudaBufferPtr<const ui32> queryOffsets,
+                            ui32 queryOffsetsBias,
+                            TCudaBufferPtr<const float> relevs,
+                            TCudaBufferPtr<const float> weights,
+                            TCudaBufferPtr<const float> predictions,
+                            TCudaBufferPtr<const ui32> indices,
+                            TCudaBufferPtr<float> functionValue,
+                            TCudaBufferPtr<float> der,
+                            TCudaBufferPtr<float> der2)
+            : QuerySizes(querySizes)
+            , QueryOffsets(queryOffsets)
+            , QueryOffsetsBias(queryOffsetsBias)
+            , Relevs(relevs)
+            , Weights(weights)
+            , Predictions(predictions)
+            , Indices(indices)
+            , FunctionValue(functionValue)
+            , Der(der)
+            , Der2(der2)
+        {
+        }
+
+        void Run(const TCudaStream& stream, TKernelContext& context) {
+            if (Der.Size()) {
+                CB_ENSURE(Der.Size() == Predictions.Size());
+            }
+            CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
+            if (Indices.Size()) {
+                CB_ENSURE(Indices.Size() == Predictions.Size());
+                NKernel::Gather(context.ApproxExp, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+            } else {
+                CopyMemoryAsync(Predictions.Get(), context.ApproxExp, Predictions.Size(), stream);
+            }
+
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
+            NKernel::ComputeGroupMaximals(Relevs.Get(),
+                                          Weights.Get(),
+                                          context.ApproxExp,
+                                          QueryOffsets.Get(),
+                                          QueryOffsetsBias,
+                                          QuerySizes.Get(),
+                                          QueryOffsets.Size(),
+                                          context.QueryApprox,
+                                          context.QuerySumWeightedTargets,
+                                          stream.GetStream());
+            NKernel::ComputeQueryExponents(Weights.Get(),
+                                           context.Qids,
+                                           static_cast<ui32>(Predictions.Size()),
+                                           context.QueryApprox,
+                                           Indices.Get(),
+                                           context.ApproxExp,
+                                           stream.GetStream());
+            NKernel::ComputeGroupSums(context.ApproxExp,
+                                      QueryOffsets.Get(),
+                                      QueryOffsetsBias,
+                                      QuerySizes.Get(),
+                                      QueryOffsets.Size(),
+                                      context.QueryApprox,
+                                      stream.GetStream());
+            NKernel::ApproximateQuerySoftMax(Relevs.Get(),
+                                             Weights.Get(),
+                                             context.ApproxExp,
+                                             context.Qids,
+                                             static_cast<ui32>(Predictions.Size()),
+                                             context.QueryApprox,
+                                             context.QuerySumWeightedTargets,
+                                             Indices.Get(),
+                                             FunctionValue.Get(),
+                                             Der.Get(),
+                                             Der2.Get(),
+                                             stream.GetStream());
         }
     };
 
@@ -495,6 +609,26 @@ inline void ApproximateQueryRmse(const TCudaBuffer<const ui32, TMapping>& queryS
                                  TCudaBuffer<float, TMapping>* weightedDer2,
                                  ui32 stream = 0) {
     using TKernel = NKernelHost::TQueryRmseKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
+                           querySizes, queryOffsets, offsetsBias,
+                           target, weights, point,
+                           indices,
+                           score, weightedDer, weightedDer2);
+}
+
+template <class TMapping>
+inline void ApproximateQuerySoftMax(const TCudaBuffer<const ui32, TMapping>& querySizes,
+                                    const TCudaBuffer<const ui32, TMapping>& queryOffsets,
+                                    NCudaLib::TDistributedObject<ui32> offsetsBias,
+                                    const TCudaBuffer<const float, TMapping>& target,
+                                    const TCudaBuffer<const float, TMapping>& weights,
+                                    const TCudaBuffer<const float, TMapping>& point,
+                                    const TCudaBuffer<ui32, TMapping>* indices,
+                                    TCudaBuffer<float, TMapping>* score,
+                                    TCudaBuffer<float, TMapping>* weightedDer,
+                                    TCudaBuffer<float, TMapping>* weightedDer2,
+                                    ui32 stream = 0) {
+    using TKernel = NKernelHost::TQuerySoftMaxKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
                            querySizes, queryOffsets, offsetsBias,
                            target, weights, point,
