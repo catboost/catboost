@@ -52,7 +52,7 @@ namespace NJsonWriter {
         TValueContext WriteDouble(double f, EFloatToStringMode mode = PREC_NDIGITS, int ndigits = 10);
         TValueContext WriteBool(bool b);
         TValueContext WriteNull();
-        TValueContext WriteJsonValue(const NJson::TJsonValue* value, bool sortKeys = false);
+        TValueContext WriteJsonValue(const NJson::TJsonValue* value, bool sortKeys = false, EFloatToStringMode mode = PREC_NDIGITS, int ndigits = 10);
 
         TValueContext BeginList();
         TBuf& EndList();

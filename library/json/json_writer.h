@@ -13,6 +13,10 @@
 
 namespace NJson {
     struct TJsonWriterConfig {
+        constexpr static ui32 DefaultDoubleNDigits = 10;
+        constexpr static ui32 DefaultFloatNDigits = 6;
+        constexpr static EFloatToStringMode DefaultFloatToStringMode = PREC_NDIGITS;
+
         inline TJsonWriterConfig& SetUnbuffered(bool v) noexcept {
             Unbuffered = v;
 
@@ -31,6 +35,9 @@ namespace NJson {
             return *this;
         }
 
+        ui32 DoubleNDigits = DefaultDoubleNDigits;
+        ui32 FloatNDigits = DefaultFloatNDigits;
+        EFloatToStringMode FloatToStringMode = DefaultFloatToStringMode;
         bool FormatOutput = false;
         bool SortKeys = false;
         bool ValidateUtf8 = true;
@@ -42,6 +49,9 @@ namespace NJson {
     class TJsonWriter {
         IOutputStream* Out;
         NJsonWriter::TBuf Buf;
+        const ui32 DoubleNDigits;
+        const ui32 FloatNDigits;
+        const EFloatToStringMode FloatToStringMode;
         const bool SortKeys;
         const bool ValidateUtf8;
         const bool DontEscapeStrings;

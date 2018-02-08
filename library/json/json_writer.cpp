@@ -9,6 +9,9 @@ namespace NJson {
     TJsonWriter::TJsonWriter(IOutputStream* out, bool formatOutput, bool sortkeys, bool validateUtf8)
         : Out(out)
         , Buf(NJsonWriter::HEM_UNSAFE)
+        , DoubleNDigits(TJsonWriterConfig::DefaultDoubleNDigits)
+        , FloatNDigits(TJsonWriterConfig::DefaultFloatNDigits)
+        , FloatToStringMode(TJsonWriterConfig::DefaultFloatToStringMode)
         , SortKeys(sortkeys)
         , ValidateUtf8(validateUtf8)
         , DontEscapeStrings(false)
@@ -20,6 +23,9 @@ namespace NJson {
     TJsonWriter::TJsonWriter(IOutputStream* out, const TJsonWriterConfig& config, bool DFID)
         : Out(config.Unbuffered ? nullptr : out)
         , Buf(NJsonWriter::HEM_UNSAFE, config.Unbuffered ? out : nullptr)
+        , DoubleNDigits(config.DoubleNDigits)
+        , FloatNDigits(config.FloatNDigits)
+        , FloatToStringMode(config.FloatToStringMode)
         , SortKeys(config.SortKeys)
         , ValidateUtf8(config.ValidateUtf8)
         , DontEscapeStrings(config.DontEscapeStrings)
@@ -81,11 +87,11 @@ namespace NJson {
     }
 
     void TJsonWriter::Write(float value) {
-        Buf.WriteFloat(value);
+        Buf.WriteFloat(value, FloatToStringMode, FloatNDigits);
     }
 
     void TJsonWriter::Write(double value) {
-        Buf.WriteDouble(value);
+        Buf.WriteDouble(value, FloatToStringMode, DoubleNDigits);
     }
 
     void TJsonWriter::Write(long long value) {
@@ -109,7 +115,7 @@ namespace NJson {
     }
 
     void TJsonWriter::Write(const TJsonValue* v) {
-        Buf.WriteJsonValue(v, SortKeys);
+        Buf.WriteJsonValue(v, SortKeys, FloatToStringMode, DoubleNDigits);
     }
 
     TString WriteJson(const TJsonValue* value, bool formatOutput, bool sortkeys, bool validateUtf8) {

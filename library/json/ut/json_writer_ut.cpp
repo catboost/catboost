@@ -186,4 +186,42 @@ SIMPLE_UNIT_TEST_SUITE(TJsonWriterTest) {
         UNIT_ASSERT_VALUES_EQUAL(WrapJsonToCallback(json, ""), "\"A\"");
         UNIT_ASSERT_VALUES_EQUAL(WrapJsonToCallback(json, "Foo"), "Foo(\"A\")");
     }
+
+    SIMPLE_UNIT_TEST(FloatPrecision) {
+        const double value = 1517933989.4242;
+        const NJson::TJsonValue json(value);
+        NJson::TJsonWriterConfig config;
+        {
+            TString expected = "1517933989";
+            TString actual = NJson::WriteJson(json);
+            UNIT_ASSERT_VALUES_EQUAL(actual, expected);
+        }
+        {
+            TString expected = "1517933989";
+
+            TStringStream ss;
+            NJson::WriteJson(&ss, &json, config);
+            TString actual = ss.Str();
+            UNIT_ASSERT_VALUES_EQUAL(actual, expected);
+        }
+        {
+            config.DoubleNDigits = 13;
+            TString expected = "1517933989.424";
+
+            TStringStream ss;
+            NJson::WriteJson(&ss, &json, config);
+            TString actual = ss.Str();
+            UNIT_ASSERT_VALUES_EQUAL(actual, expected);
+        }
+        {
+            config.DoubleNDigits = 6;
+            config.FloatToStringMode = PREC_POINT_DIGITS;
+            TString expected = "1517933989.424200";
+
+            TStringStream ss;
+            NJson::WriteJson(&ss, &json, config);
+            TString actual = ss.Str();
+            UNIT_ASSERT_VALUES_EQUAL(actual, expected);
+        }
+    }
 }
