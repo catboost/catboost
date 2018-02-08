@@ -532,10 +532,6 @@ public:
         str.back() = 'r';
         UNIT_ASSERT_VALUES_EQUAL(constStr.back(), 'o');
         UNIT_ASSERT_VALUES_EQUAL(str.back(), 'r');
-
-        /* Accessing null terminator is OK. Note that writing into it is UB. */
-        TStringType emptyStr;
-        UNIT_ASSERT_VALUES_EQUAL(emptyStr.back(), '\0');
     }
 
     void TestFront() {

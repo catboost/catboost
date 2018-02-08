@@ -190,6 +190,8 @@ public:
     }
 
     inline TCharType back() const noexcept {
+        Y_ASSERT(!this->empty());
+
         if (empty()) {
             return 0;
         }
@@ -752,6 +754,8 @@ public:
     using TBase::back;
 
     inline TCharRef back() noexcept {
+        Y_ASSERT(!this->empty());
+
         if (Y_UNLIKELY(this->empty())) {
             return TCharRef(*This(), 0);
         }
