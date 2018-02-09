@@ -343,7 +343,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite_inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\ya_nulls.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
