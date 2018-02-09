@@ -29,6 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stubs/status.h"
 
+#include <ostream>
 #include <stdio.h>
 #include <utility>
 

@@ -351,7 +351,7 @@ bool Generator::Generate(const FileDescriptor* file,
     }
   }
   // End of Yandex-specific
- 
+
   FileDescriptorProto fdp;
   file_->CopyTo(&fdp);
   fdp.SerializeToString(&file_descriptor_serialized_);

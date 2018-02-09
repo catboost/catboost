@@ -30,7 +30,8 @@
 
 #include "stubs/int128.h"
 
-#include <iomanip>  // NOLINT(readability/streams)
+#include <iomanip>
+#include <ostream>  // NOLINT(readability/streams)
 #include <sstream>
 
 namespace google {

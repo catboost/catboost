@@ -146,7 +146,6 @@
 #include <string.h>
 #include <iosfwd>
 #include <limits>
-#include <ostream>
 
 #include "stubs/common.h"
 #include "stubs/hash.h"

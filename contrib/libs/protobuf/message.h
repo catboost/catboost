@@ -111,16 +111,17 @@
 #define GOOGLE_PROTOBUF_MESSAGE_H__
 
 #include <iosfwd>
+#include "stubs/type_traits.h"
 #include <vector>
 
 #include "arena.h"
-#include "descriptor.h"
-#include "json_util.h"
 #include "message_lite.h"
-#include "messagext_lite.h"
-#include "stubs/common.h"
-#include "stubs/type_traits.h"
 
+#include "stubs/common.h"
+#include "descriptor.h"
+
+#include "json_util.h"
+#include "messagext_lite.h"
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 #define GOOGLE_PROTOBUF_HAS_ARENAS
@@ -282,7 +283,7 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
   // Like ParseFromFileDescriptor(), but accepts messages that are missing
   // required fields.
   bool ParsePartialFromFileDescriptor(int file_descriptor);
-  // Parse a protocol buffer from a C++ std::istream.  If successful, the entire
+  // Parse a protocol buffer from a C++ istream.  If successful, the entire
   // input will be consumed.
   bool ParseFromIstream(std::istream* input);
   // Like ParseFromIstream(), but accepts messages that are missing

@@ -311,10 +311,8 @@ inline void WireFormat::VerifyUTF8String(const char* data, int size,
       data, size, static_cast<WireFormatLite::Operation>(op), NULL);
 #else
   // Avoid the compiler warning about unused variables.
-  Y_UNUSED(data);
-  Y_UNUSED(size);
-  Y_UNUSED(op);
-  #endif
+  (void)data; (void)size; (void)op;
+#endif
 }
 
 inline void WireFormat::VerifyUTF8StringNamedField(

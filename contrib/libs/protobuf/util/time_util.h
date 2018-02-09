@@ -34,6 +34,7 @@
 #define GOOGLE_PROTOBUF_UTIL_TIME_UTIL_H__
 
 #include <ctime>
+#include <ostream>
 #ifdef _MSC_VER
 #include <winsock2.h>
 #else

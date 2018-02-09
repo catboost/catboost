@@ -180,8 +180,8 @@ def EnumByteSize(field_number, enum):
   return UInt32ByteSize(field_number, enum)
 
 
-#def StringByteSize(field_number, string):
-#  return BytesByteSize(field_number, string.encode('utf-8'))
+def StringByteSize(field_number, string):
+  return BytesByteSize(field_number, string.encode('utf-8'))
 
 
 def BytesByteSize(field_number, b):

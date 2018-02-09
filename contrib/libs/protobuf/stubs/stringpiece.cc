@@ -32,6 +32,7 @@
 #include <string.h>
 #include <algorithm>
 #include <climits>
+#include <ostream>
 
 namespace google {
 namespace protobuf {
