@@ -82,6 +82,7 @@ namespace NJson {
         TJsonValue& AppendValue(const TJsonValue& value);
         TJsonValue& AppendValue(TJsonValue&& value);
         TJsonValue& Back();
+        const TJsonValue& Back() const;
 
         bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.') const;
         bool SetValueByPath(TStringBuf path, const TJsonValue& value, char delimiter = '.');
@@ -200,6 +201,11 @@ namespace NJson {
         TValueUnion Value;
         void DoScan(const TString& path, TJsonValue* parent, IScanCallback& callback);
         void SwapWithUndefined(TJsonValue& output) noexcept;
+
+        /**
+            @throw yexception if Back shouldn't be called on the object.
+         */
+        void BackChecks() const;
     };
 
     inline bool GetBoolean(const TJsonValue& jv, size_t index, bool* value) noexcept {
@@ -247,5 +253,4 @@ namespace NJson {
 
     bool GetMapPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TMapType** value);
     bool GetArrayPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TArray** value);
-
 }
