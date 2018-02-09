@@ -342,8 +342,8 @@ IF (OS_WINDOWS)
         system/fs_win.cpp
         system/winint.cpp
     )
-ELSEIF (OS_CYGWIN)
-    # no asm context switching on cygwin
+ELSEIF (OS_CYGWIN OR OS_IOS)
+    # no asm context switching on cygwin or iOS
 ELSE()
     IF (ARCH_X86_64 OR ARCH_I386)
         SRCS(
