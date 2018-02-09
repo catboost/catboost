@@ -13,7 +13,7 @@ def mkdir_p(path):
         pass
 
 
-def main(source, output, java, prefix_filter, exclude_filter, jars_list):
+def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format):
     reports_dir = 'jacoco_reports_dir'
     mkdir_p(reports_dir)
     with tarfile.open(source) as tf:
@@ -54,7 +54,7 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list):
     mkdir_p(report_dir)
 
     if agent_disposition:
-        agent_cmd = [java, '-jar', agent_disposition, src_dir, cls_dir, prefix_filter or '.', exclude_filter or '__no_exclude__', report_dir]
+        agent_cmd = [java, '-jar', agent_disposition, src_dir, cls_dir, prefix_filter or '.', exclude_filter or '__no_exclude__', report_dir, output_format]
         agent_cmd += reports
         subprocess.check_call(agent_cmd)
 
@@ -71,5 +71,6 @@ if __name__ == '__main__':
     parser.add_argument('--prefix-filter', action='store')
     parser.add_argument('--exclude-filter', action='store')
     parser.add_argument('--jars-list', action='store')
+    parser.add_argument('--output-format', action='store', default="html")
     args = parser.parse_args()
     main(**vars(args))
