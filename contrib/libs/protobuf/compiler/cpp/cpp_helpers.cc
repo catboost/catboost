@@ -37,10 +37,10 @@
 #include <vector>
 #include "stubs/hash.h"
 
-#include "compiler/cpp/cpp_helpers.h"
-#include "io/printer.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"
+#include "compiler/cpp/cpp_helpers.h"
+#include "io/printer.h"
 #include "stubs/strutil.h"
 #include "stubs/substitute.h"
 
@@ -48,6 +48,8 @@
 #ifdef STRICT
 #undef STRICT
 #endif
+
+
 
 
 namespace google {
@@ -172,6 +174,11 @@ string ClassName(const EnumDescriptor* enum_descriptor, bool qualified) {
   }
 }
 
+string DefaultInstanceName(const Descriptor* descriptor) {
+  string prefix = descriptor->file()->package().empty() ? "" : "::";
+  return prefix + DotsToColons(descriptor->file()->package()) + "::_" +
+      ClassName(descriptor, false) + "_default_instance_";
+}
 
 string DependentBaseClassTemplateName(const Descriptor* descriptor) {
   return ClassName(descriptor, false) + "_InternalBase";
@@ -657,6 +664,26 @@ void GenerateUtf8CheckCodeForCord(const FieldDescriptor* field,
                                   io::Printer* printer) {
   GenerateUtf8CheckCode(field, options, for_parse, variables, parameters,
                         "VerifyUtf8Cord", "VerifyUTF8CordNamedField", printer);
+}
+
+namespace {
+
+void Flatten(const Descriptor* descriptor,
+             std::vector<const Descriptor*>* flatten) {
+  for (int i = 0; i < descriptor->nested_type_count(); i++)
+    Flatten(descriptor->nested_type(i), flatten);
+  flatten->push_back(descriptor);
+}
+
+}  // namespace
+
+std::vector<const Descriptor*> FlattenMessagesInFile(
+    const FileDescriptor* file) {
+  std::vector<const Descriptor*> result;
+  for (int i = 0; i < file->message_type_count(); i++) {
+    Flatten(file->message_type(i), &result);
+  }
+  return result;
 }
 
 bool HasWeakFields(const Descriptor* descriptor) {

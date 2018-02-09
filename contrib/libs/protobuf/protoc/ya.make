@@ -78,7 +78,6 @@ SRCS(
     perlxs_helpers.cc
     plugin.cc
     plugin.pb.cc
-    profile.pb.cc
     python_generator.cc
     subprocess.cc
     zip_writer.cc

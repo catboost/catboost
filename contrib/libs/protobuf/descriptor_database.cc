@@ -39,8 +39,9 @@
 #include "descriptor.pb.h"
 #include "wire_format_lite_inl.h"
 #include "stubs/strutil.h"
-#include "stubs/stl_util.h"
+
 #include "stubs/map_util.h"
+#include "stubs/stl_util.h"
 
 namespace google {
 namespace protobuf {
@@ -230,7 +231,7 @@ bool SimpleDescriptorDatabase::DescriptorIndex<Value>::IsSubSymbol(
     const string& sub_symbol, const string& super_symbol) {
   return sub_symbol == super_symbol ||
          (HasPrefixString(super_symbol, sub_symbol) &&
-             super_symbol[sub_symbol.size()] == '.');
+          super_symbol[sub_symbol.size()] == '.');
 }
 
 template <typename Value>

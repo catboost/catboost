@@ -33,6 +33,7 @@
 #include "compiler/subprocess.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 
 #ifndef _WIN32
@@ -47,10 +48,19 @@
 #include "message.h"
 #include "stubs/substitute.h"
 
-
 namespace google {
 namespace protobuf {
 namespace compiler {
+
+namespace {
+char* portable_strdup(const char* s) {
+  char* ns = (char*) malloc(strlen(s) + 1);
+  if (ns != NULL) {
+    strcpy(ns, s);
+  }
+  return ns;
+}
+}  // namespace
 
 #ifdef _WIN32
 
@@ -115,7 +125,7 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
   }
 
   // CreateProcess() mutates its second parameter.  WTF?
-  char* name_copy = strdup(program.c_str());
+  char* name_copy = portable_strdup(program.c_str());
 
   // Create the process.
   PROCESS_INFORMATION process_info;
@@ -346,7 +356,6 @@ void Subprocess::Start(const string& program, SearchMode search_mode) {
 
 bool Subprocess::Communicate(const Message& input, Message* output,
                              string* error) {
-
   GOOGLE_CHECK_NE(child_stdin_, -1) << "Must call Start() first.";
 
   // The "sighandler_t" typedef is GNU-specific, so define our own.

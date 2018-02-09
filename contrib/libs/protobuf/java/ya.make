@@ -25,6 +25,7 @@ SRCS(
     core/CodedInputStream.java
     core/CodedOutputStream.java
     core/Descriptors.java
+    core/DiscardUnknownFieldsParser.java
     core/DoubleArrayList.java
     core/DynamicMessage.java
     core/ExperimentalApi.java

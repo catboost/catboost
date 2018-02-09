@@ -30,6 +30,7 @@
 
 // Author: kenton@google.com (Kenton Varda)
 
+#include "message_lite.h"  // TODO(gerbens) ideally remove this.
 #include "stubs/common.h"
 #include "stubs/once.h"
 #include "stubs/status.h"
@@ -40,7 +41,6 @@
 #include <sstream>
 #include <stdio.h>
 #include <vector>
-#include <util/system/atexit.h>
 
 #ifdef _WIN32
 #define snprintf _snprintf    // see comment in strutil.cc
@@ -441,14 +441,78 @@ uint32 ghtonl(uint32 x) {
 
 namespace internal {
 
+typedef void OnShutdownFunc();
+struct ShutdownData {
+  ~ShutdownData() {
+    for (int i = 0; i < functions.size(); i++) {
+      functions[i]();
+    }
+    for (int i = 0; i < strings.size(); i++) {
+      strings[i]->~string();
+    }
+    for (int i = 0; i < messages.size(); i++) {
+      messages[i]->~MessageLite();
+    }
+  }
+
+  std::vector<void (*)()> functions;
+  std::vector<const TProtoStringType*> strings;
+  std::vector<const MessageLite*> messages;
+  Mutex mutex;
+};
+
+ShutdownData* shutdown_data = NULL;
+GOOGLE_PROTOBUF_DECLARE_ONCE(shutdown_functions_init);
+
+void InitShutdownFunctions() {
+  shutdown_data = new ShutdownData;
+}
+
+inline void InitShutdownFunctionsOnce() {
+  GoogleOnceInit(&shutdown_functions_init, &InitShutdownFunctions);
+}
+
 void OnShutdown(void (*func)()) {
-  AtExit(func, 65536);
+  InitShutdownFunctionsOnce();
+  MutexLock lock(&shutdown_data->mutex);
+  shutdown_data->functions.push_back(func);
+}
+
+void OnShutdownDestroyString(const TProtoStringType* ptr) {
+  InitShutdownFunctionsOnce();
+  MutexLock lock(&shutdown_data->mutex);
+  shutdown_data->strings.push_back(ptr);
+}
+
+void OnShutdownDestroyMessage(const void* ptr) {
+  InitShutdownFunctionsOnce();
+  MutexLock lock(&shutdown_data->mutex);
+  shutdown_data->messages.push_back(static_cast<const MessageLite*>(ptr));
 }
 
 }  // namespace internal
 
 void ShutdownProtobufLibrary() {
+  internal::InitShutdownFunctionsOnce();
+
+  // We don't need to lock shutdown_functions_mutex because it's up to the
+  // caller to make sure that no one is using the library before this is
+  // called.
+
+  // Make it safe to call this multiple times.
+  if (internal::shutdown_data == NULL) return;
+
+  delete internal::shutdown_data;
+  internal::shutdown_data = NULL;
 }
+
+#if PROTOBUF_USE_EXCEPTIONS
+FatalException::~FatalException() throw() {}
+
+const char* FatalException::what() const throw() {
+  return message_.c_str();
+}
+#endif
 
 }  // namespace protobuf
 }  // namespace google

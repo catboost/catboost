@@ -241,9 +241,18 @@ static const uint64 kuint64max = GOOGLE_ULONGLONG(0xFFFFFFFFFFFFFFFF);
 #define GOOGLE_GUARDED_BY(x)
 #define GOOGLE_ATTRIBUTE_COLD
 
+#ifdef GOOGLE_PROTOBUF_DONT_USE_UNALIGNED
+# define GOOGLE_PROTOBUF_USE_UNALIGNED 0
+#else
 // x86 and x86-64 can perform unaligned loads/stores directly.
-#if defined(_M_X64) || defined(__x86_64__) || \
-    defined(_M_IX86) || defined(__i386__)
+# if defined(_M_X64) || defined(__x86_64__) || defined(_M_IX86) || defined(__i386__)
+#  define GOOGLE_PROTOBUF_USE_UNALIGNED 1
+# else
+#  define GOOGLE_PROTOBUF_USE_UNALIGNED 0
+# endif
+#endif
+
+#if GOOGLE_PROTOBUF_USE_UNALIGNED
 
 #define GOOGLE_UNALIGNED_LOAD16(_p) (*reinterpret_cast<const uint16 *>(_p))
 #define GOOGLE_UNALIGNED_LOAD32(_p) (*reinterpret_cast<const uint32 *>(_p))
@@ -346,7 +355,7 @@ class Bits {
  public:
   static uint32 Log2FloorNonZero(uint32 n) {
 #if defined(__GNUC__)
-  return 31 ^ __builtin_clz(n);
+  return 31 ^ static_cast<uint32>(__builtin_clz(n));
 #elif defined(COMPILER_MSVC) && defined(_M_IX86)
   _asm {
     bsr ebx, n
@@ -393,9 +402,9 @@ class Bits {
     const uint32 topbits = static_cast<uint32>(n >> 32);
     if (topbits == 0) {
       // Top bits are zero, so scan in bottom bits
-      return Log2FloorNonZero(static_cast<uint32>(n));
+      return static_cast<int>(Log2FloorNonZero(static_cast<uint32>(n)));
     } else {
-      return 32 + Log2FloorNonZero(topbits);
+      return 32 + static_cast<int>(Log2FloorNonZero(topbits));
     }
   }
 };
@@ -459,6 +468,10 @@ class BigEndian {
     GOOGLE_UNALIGNED_STORE64(p, FromHost64(v));
   }
 };
+
+#ifndef GOOGLE_ATTRIBUTE_SECTION_VARIABLE
+#define GOOGLE_ATTRIBUTE_SECTION_VARIABLE(name)
+#endif
 
 }  // namespace protobuf
 }  // namespace google

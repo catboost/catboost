@@ -28,41 +28,44 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: seongkim@google.com (Seong Beom Kim)
-//
-// protoc (Protocol Compiler) can generate more efficient code
-// if it knows how a workload accesses fields of a message;
-// e.g. some much more frequently than others.
-//
-// Protos defined here describe the access information per message
-// and per field. Note that one can use any methods to collect
-// the access patterns like CPU profiling, instrumented build, etc.
+package com.google.protobuf;
 
-syntax = "proto2";
+/**
+ * Parsers to discard unknown fields during parsing.
+ */
+public final class DiscardUnknownFieldsParser {
 
-package google.protobuf.compiler;
+  /**
+   * Warps a given {@link Parser} into a new {@link Parser} that discards unknown fields during
+   * parsing.
+   *
+   * <p>Usage example:
+   * <pre>{@code
+     * private final static Parser<Foo> FOO_PARSER = DiscardUnknownFieldsParser.wrap(Foo.parser());
+     * Foo parseFooDiscardUnknown(ByteBuffer input) throws IOException {
+     *   return FOO_PARSER.parseFrom(input);
+     * }
+   * }</pre>
+   *
+   * <p>Like all other implementations of {@code Parser}, this parser is stateless and thread-safe.
+   *
+   * @param parser The delegated parser that parses messages.
+   * @return a {@link Parser} that will discard unknown fields during parsing.
+   */
+  public static final <T extends Message> Parser<T> wrap(final Parser<T> parser) {
+    return new AbstractParser<T>() {
+      @Override
+      public T parsePartialFrom(CodedInputStream input, ExtensionRegistryLite extensionRegistry)
+          throws InvalidProtocolBufferException {
+        try {
+          input.discardUnknownFields();
+          return parser.parsePartialFrom(input, extensionRegistry);
+        } finally {
+          input.unsetDiscardUnknownFields();
+        }
+      }
+    };
+  }
 
-// To convey the access pattern of a field, it classifies
-// the type of the accessor methods into getters, setters and
-// configs. Getters and setters read and write the field
-// respectively and other operations like checking if the field
-// exists are considered as configs.
-message FieldAccessInfo {
-  optional string name = 1;
-  optional uint64 getters_count = 2;
-  optional uint64 setters_count = 3;
-  optional uint64 configs_count = 4;
-}
-
-// "count" correlates with how many samples an access info has
-// for a message. High "count" means more confident optimization
-// based on the info.
-message MessageAccessInfo {
-  optional string name = 1;
-  optional uint64 count = 2;
-  repeated FieldAccessInfo field = 3;
-}
-
-message AccessInfo {
-  repeated MessageAccessInfo message = 1;
+  private DiscardUnknownFieldsParser() {}
 }

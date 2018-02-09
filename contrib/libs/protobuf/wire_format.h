@@ -45,14 +45,6 @@
 #include "message.h"
 #include "wire_format_lite.h"
 
-// mowgli@yandex-team.ru: temporarily disabled - so non-utf8 string values are still allowed.
-/*
-// Do UTF-8 validation on string type in Debug build only
-#ifndef NDEBUG
-#define GOOGLE_PROTOBUF_UTF8_VALIDATION_ENABLED
-#endif
-*/
-
 namespace google {
 namespace protobuf {
   namespace io {

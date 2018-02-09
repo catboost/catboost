@@ -43,7 +43,6 @@
 #include "stubs/common.h"
 
 
-
 namespace google {
 namespace protobuf {
 

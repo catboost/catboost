@@ -65,7 +65,6 @@ class LIBPROTOBUF_EXPORT FileInputStream : public ZeroCopyInputStream {
   // should be read and returned with each call to Next().  Otherwise,
   // a reasonable default is used.
   explicit FileInputStream(int file_descriptor, int block_size = -1);
-  ~FileInputStream();
 
   // Flushes any buffers and closes the underlying file.  Returns false if
   // an error occurs during the process; use GetErrno() to examine the error.
@@ -217,7 +216,6 @@ class LIBPROTOBUF_EXPORT IstreamInputStream : public ZeroCopyInputStream {
   // should be read and returned with each call to Next().  Otherwise,
   // a reasonable default is used.
   explicit IstreamInputStream(std::istream* stream, int block_size = -1);
-  ~IstreamInputStream();
 
   // implements ZeroCopyInputStream ----------------------------------
   bool Next(const void** data, int* size);
@@ -304,7 +302,6 @@ class LIBPROTOBUF_EXPORT ConcatenatingInputStream : public ZeroCopyInputStream {
   // All streams passed in as well as the array itself must remain valid
   // until the ConcatenatingInputStream is destroyed.
   ConcatenatingInputStream(ZeroCopyInputStream* const streams[], int count);
-  ~ConcatenatingInputStream();
 
   // implements ZeroCopyInputStream ----------------------------------
   bool Next(const void** data, int* size);

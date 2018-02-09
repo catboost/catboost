@@ -44,6 +44,7 @@ SRCS(
     field_mask.pb.cc
     generated_message_reflection.cc
     generated_message_table_driven.cc
+    generated_message_table_driven_lite.cc
     generated_message_util.cc
     io/coded_stream.cc
     io/gzip_stream.cc
@@ -69,6 +70,7 @@ SRCS(
     stubs/bytestream.cc
     stubs/common.cc
     stubs/int128.cc
+    stubs/io_win32.cc
     stubs/mathlimits.cc
     stubs/once.cc
     stubs/status.cc

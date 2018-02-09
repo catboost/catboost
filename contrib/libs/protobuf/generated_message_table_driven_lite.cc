@@ -28,15 +28,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "generated_message_table_driven.h"
+#include "generated_message_table_driven_lite.h"
 
 #include "stubs/type_traits.h"
 
-#include "generated_message_table_driven_lite.h"
 #include "io/zero_copy_stream_impl_lite.h"
-#include "metadata.h"
+#include "metadata_lite.h"
 #include "repeated_field.h"
-#include "wire_format.h"
 #include "wire_format_lite.h"
 #include "wire_format_lite_inl.h"
 
@@ -46,27 +44,35 @@ namespace internal {
 
 namespace {
 
-UnknownFieldSet* MutableUnknownFields(MessageLite* msg, int64 arena_offset) {
-  return Raw<InternalMetadataWithArena>(msg, arena_offset)
+string* MutableUnknownFields(MessageLite* msg, int64 arena_offset) {
+  return Raw<InternalMetadataWithArenaLite>(msg, arena_offset)
       ->mutable_unknown_fields();
 }
 
-struct UnknownFieldHandler {
+struct UnknownFieldHandlerLite {
   static bool Skip(MessageLite* msg, const ParseTable& table,
                    io::CodedInputStream* input,
                    int tag) {
-    GOOGLE_DCHECK(table.unknown_field_set);
-
-    return WireFormat::SkipField(input, tag,
+    GOOGLE_DCHECK(!table.unknown_field_set);
+    ::google::protobuf::io::StringOutputStream unknown_fields_string(
         MutableUnknownFields(msg, table.arena_offset));
+    ::google::protobuf::io::CodedOutputStream unknown_fields_stream(
+        &unknown_fields_string, false);
+
+    return ::google::protobuf::internal::WireFormatLite::SkipField(
+        input, tag, &unknown_fields_stream);
   }
 
   static void Varint(MessageLite* msg, const ParseTable& table,
                      int tag, int value) {
-    GOOGLE_DCHECK(table.unknown_field_set);
+    GOOGLE_DCHECK(!table.unknown_field_set);
 
-    MutableUnknownFields(msg, table.arena_offset)->AddVarint(
-        WireFormatLite::GetTagFieldNumber(tag), value);
+    ::google::protobuf::io::StringOutputStream unknown_fields_string(
+        MutableUnknownFields(msg, table.arena_offset));
+    ::google::protobuf::io::CodedOutputStream unknown_fields_stream(
+        &unknown_fields_string, false);
+    unknown_fields_stream.WriteVarint32(tag);
+    unknown_fields_stream.WriteVarint32(value);
   }
 
   static bool ParseExtension(
@@ -77,25 +83,25 @@ struct UnknownFieldHandler {
       return false;
     }
 
-    const Message* prototype = down_cast<const Message*>(
-        table.default_instance());
+    const MessageLite* prototype = table.default_instance();
 
-    GOOGLE_DCHECK(prototype != NULL);
-    GOOGLE_DCHECK(table.unknown_field_set);
-    UnknownFieldSet* unknown_fields =
-        MutableUnknownFields(msg, table.arena_offset);
-
-    return extensions->ParseField(tag, input, prototype, unknown_fields);
+    GOOGLE_DCHECK(!table.unknown_field_set);
+    ::google::protobuf::io::StringOutputStream unknown_fields_string(
+        MutableUnknownFields(msg, table.arena_offset));
+    ::google::protobuf::io::CodedOutputStream unknown_fields_stream(
+        &unknown_fields_string, false);
+    return extensions->ParseField(
+        tag, input, prototype, &unknown_fields_stream);
   }
 };
 
 }  // namespace
 
-bool MergePartialFromCodedStream(
+bool MergePartialFromCodedStreamLite(
     MessageLite* msg, const ParseTable& table, io::CodedInputStream* input) {
-  return MergePartialFromCodedStreamImpl<UnknownFieldHandler,
-                                         InternalMetadataWithArena>(msg, table,
-                                                                    input);
+  return MergePartialFromCodedStreamImpl<UnknownFieldHandlerLite,
+                                         InternalMetadataWithArenaLite>(
+      msg, table, input);
 }
 
 }  // namespace internal

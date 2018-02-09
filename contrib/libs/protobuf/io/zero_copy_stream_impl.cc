@@ -38,9 +38,9 @@
 #include <errno.h>
 #include <iostream>
 #include <algorithm>
-
 #include "io/zero_copy_stream_impl.h"
 #include "stubs/common.h"
+#include "stubs/io_win32.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/stl_util.h"
 
@@ -50,10 +50,19 @@ namespace protobuf {
 namespace io {
 
 #ifdef _WIN32
-#include <io.h>
 // Win32 lseek is broken:  If invoked on a non-seekable file descriptor, its
 // return value is undefined.  We re-define it to always produce an error.
 #define lseek(fd, offset, origin) ((off_t)-1)
+#endif
+
+#ifdef _MSC_VER
+// DO NOT include <io.h>, instead create functions in io_win32.{h,cc} and import
+// them like we do below.
+using google::protobuf::internal::win32::access;
+using google::protobuf::internal::win32::close;
+using google::protobuf::internal::win32::open;
+using google::protobuf::internal::win32::read;
+using google::protobuf::internal::win32::write;
 #endif
 
 namespace {
@@ -76,8 +85,6 @@ FileInputStream::FileInputStream(int file_descriptor, int block_size)
   : copying_input_(file_descriptor),
     impl_(&copying_input_, block_size) {
 }
-
-FileInputStream::~FileInputStream() {}
 
 bool FileInputStream::Close() {
   return copying_input_.Close();
@@ -269,8 +276,6 @@ bool FileOutputStream::CopyingFileOutputStream::Write(
 IstreamInputStream::IstreamInputStream(std::istream* input, int block_size)
     : copying_input_(input), impl_(&copying_input_, block_size) {}
 
-IstreamInputStream::~IstreamInputStream() {}
-
 bool IstreamInputStream::Next(const void** data, int* size) {
   return impl_.Next(data, size);
 }
@@ -342,9 +347,6 @@ bool OstreamOutputStream::CopyingOstreamOutputStream::Write(
 ConcatenatingInputStream::ConcatenatingInputStream(
     ZeroCopyInputStream* const streams[], int count)
   : streams_(streams), stream_count_(count), bytes_retired_(0) {
-}
-
-ConcatenatingInputStream::~ConcatenatingInputStream() {
 }
 
 bool ConcatenatingInputStream::Next(const void** data, int* size) {
