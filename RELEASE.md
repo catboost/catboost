@@ -5,7 +5,8 @@
 - Added QuerySoftMax loss function
 
 ## Bug Fixes and Other Changes
-- Fixed GPU models bug on pools with both categorical and float features
+- Fixed GPU models bug on pools with both categorical and float features (issue #241)
+- Use all available cores by default
 - Fixed not querywise loss for pool with `QueryId`
 - Default float features binarization method set to `GreedyLogSum`
 
