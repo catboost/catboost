@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3367582 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3367582 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3377999 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=r3377999 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /D_WIN64 /DWIN64 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN32_WINNT=0x0601 /D_MBCS  -DHAVE_ZLIB -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -93,6 +93,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\field_mask.pb.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\io\gzip_stream.cc"/>
@@ -118,6 +119,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\bytestream.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\common.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\int128.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\io_win32.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\mathlimits.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\once.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\status.cc"/>
@@ -159,6 +161,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wrappers.pb.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\any.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arenastring.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\code_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\command_line_interface.h"/>
@@ -213,7 +216,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\plugin.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\plugin.pb.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\profile.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\python\python_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\subprocess.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\zip_writer.h"/>
@@ -225,6 +227,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_enum_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\any.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\api.pb.h"/>
@@ -285,6 +288,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\fastmem.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\hash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\int128.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\io_win32.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\logging.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\macros.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\stubs\map_util.h"/>
