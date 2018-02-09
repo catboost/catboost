@@ -657,6 +657,10 @@ public:
         return *Get();
     }
 
+    inline long RefCount() const noexcept {
+        return T_ ? Ops::RefCount(T_) : 0;
+    }
+
 private:
     inline void Ref() noexcept {
         if (T_ != nullptr) {
