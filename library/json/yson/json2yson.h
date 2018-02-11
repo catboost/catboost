@@ -7,7 +7,7 @@
 namespace NJson2Yson {
     class TJsonBuilderImpl: public NYT::TYsonConsumerBase {
     public:
-        TJsonBuilderImpl(NJson::TParserCallbacks* parserCallbacks)
+        TJsonBuilderImpl(NJson::TJsonCallbacks* parserCallbacks)
             : ParserCallbacks_(parserCallbacks)
         {
         }
@@ -66,7 +66,7 @@ namespace NJson2Yson {
         }
 
     private:
-        NJson::TParserCallbacks* ParserCallbacks_;
+        NJson::TJsonCallbacks* ParserCallbacks_;
     };
 
     template <typename TBase>
