@@ -8,6 +8,8 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/typetraits.h>
 
+#include <type_traits>
+
 /**
  * @addtogroup Streams_Base
  * @{
@@ -221,7 +223,14 @@ static inline IOutputStream& operator<<(IOutputStream& o, char* t) {
 }
 
 template <class T>
-static inline IOutputStream& operator<<(IOutputStream& o, const T& t) {
+static inline std::enable_if_t<std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, T t) {
+    Out<T>(o, t);
+
+    return o;
+}
+
+template <class T>
+static inline std::enable_if_t<!std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, const T& t) {
     Out<T>(o, t);
 
     return o;
