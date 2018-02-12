@@ -313,8 +313,7 @@ struct TFullModel {
     TFullModel() = default;
 
     bool operator==(const TFullModel& other) const {
-        return std::tie(ObliviousTrees, ModelInfo) ==
-               std::tie(other.ObliviousTrees, other.ModelInfo);
+        return ObliviousTrees == other.ObliviousTrees;
     }
 
     bool operator!=(const TFullModel& other) const {
