@@ -1,8 +1,4 @@
-var moduleBase = 'jupyter-js-widgets';
-
-try{
-    moduleBase = Jupyter.WidgetManager.prototype.loadClass.toString().indexOf('@jupyter-widgets/base') > -1 ? '@jupyter-widgets/base' : 'jupyter-js-widgets';
-} catch(e) {}
+var moduleBase = '@jupyter-widgets/base';
 
 define('catboost_module', [moduleBase], function(widgets) {
     var getInstance = function(el) {
