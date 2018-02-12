@@ -547,6 +547,12 @@
             "uri": "file://test.test_plain/test.eval"
         }
     ],
+    "test.test_pool_with_QueryId": [
+        {
+            "checksum": "9d25c7a27bd9073266a337132c4b56af",
+            "uri": "file://test.test_pool_with_QueryId/test.eval"
+        }
+    ],
     "test.test_prediction_type[Class-CrossEntropy]": [
         {
             "checksum": "68efdf5bf164a7cc1e3006dde79e240d",

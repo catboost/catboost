@@ -11,10 +11,10 @@ enum class EColumn {
     Baseline,
     Weight,
     DocId,
-    QueryId,
+    GroupId,
     SubgroupId,
     Timestamp,
-    Sparse
+    Sparse,
 };
 
 inline bool IsFactorColumn(EColumn column) {

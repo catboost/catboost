@@ -185,7 +185,7 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
             case EColumn::Baseline:
             case EColumn::Weight:
             case EColumn::DocId:
-            case EColumn::QueryId:
+            case EColumn::GroupId:
             case EColumn::SubgroupId:
             case EColumn::Timestamp:
                 break;
@@ -289,8 +289,8 @@ TPoolReader::TPoolReader(
     CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
     PoolMetaInfo.HasDocIds = (bool)docIdColumns;
 
-    const ui32 queryIdColumns = CountColumns(ColumnsDescription, EColumn::QueryId);
-    CB_ENSURE(queryIdColumns <= 1, "Too many QueryId columns");
+    const ui32 queryIdColumns = CountColumns(ColumnsDescription, EColumn::GroupId);
+    CB_ENSURE(queryIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
     PoolMetaInfo.HasQueryIds = (bool)queryIdColumns;
 
     CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Timestamp) <= 1, "Too many Timestamp columns");
@@ -406,7 +406,7 @@ void TPoolReader::ProcessBlock() {
                 case EColumn::Auxiliary: {
                     break;
                 }
-                case EColumn::QueryId: {
+                case EColumn::GroupId: {
                     CB_ENSURE(token.length() != 0, "empty values not supported for query id");
                     PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;

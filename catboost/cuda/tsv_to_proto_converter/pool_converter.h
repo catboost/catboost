@@ -384,8 +384,8 @@ namespace NCatboostCuda {
                         docIdColumn = col;
                         break;
                     }
-                    case EColumn::QueryId: {
-                        CB_ENSURE(queryIdColumn == -1, "Error: more than one qid column");
+                    case EColumn::GroupId: {
+                        CB_ENSURE(queryIdColumn == -1, "Error: more than one GroupId column.");
                         queryIdColumn = col;
                         break;
                     }

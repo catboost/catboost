@@ -45,6 +45,9 @@ TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaul
         columns.resize(Max(columns.ysize(), index + 1));
 
         TStringBuf type = tokens[1];
+        if (type == "QueryId") {
+            type = "GroupId";
+        }
         CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
         if (tokens.ysize() == 3) {
             columns[index].Id = tokens[2];
