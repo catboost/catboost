@@ -380,6 +380,9 @@ public:
      */
     TString ToStringLocalUpToSeconds() const;
 
+    TString FormatLocalTime(const char* format) const noexcept;
+    TString FormatGmTime(const char* format) const noexcept;
+
     static TInstant ParseIso8601(const TStringBuf);
     static TInstant ParseRfc822(const TStringBuf);
     static TInstant ParseHttp(const TStringBuf);

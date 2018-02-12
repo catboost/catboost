@@ -183,6 +183,18 @@ TString TInstant::ToStringLocalUpToSeconds() const {
     return ::ToString(FormatLocalUpToSeconds(*this));
 }
 
+TString TInstant::FormatLocalTime(const char* format) const noexcept {
+    struct tm theTm;
+    LocalTime(&theTm);
+    return Strftime(format, &theTm);
+}
+
+TString TInstant::FormatGmTime(const char* format) const noexcept {
+    struct tm theTm;
+    GmTime(&theTm);
+    return Strftime(format, &theTm);
+}
+
 ::NPrivate::TPrintableLocalTime<false> FormatLocal(TInstant instant) {
     return ::NPrivate::TPrintableLocalTime<false>(instant);
 }
