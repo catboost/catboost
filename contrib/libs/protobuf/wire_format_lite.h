@@ -853,7 +853,8 @@ inline double WireFormatLite::DecodeDouble(uint64 value) {
 
 inline uint32 WireFormatLite::ZigZagEncode32(int32 n) {
   // Note:  the right-shift must be arithmetic
-  return static_cast<uint32>((n << 1) ^ (n >> 31));
+  // Note:  left shift must be unsigned because of overflow
+  return (static_cast<uint32>(n) << 1) ^ static_cast<uint32>(n >> 31);
 }
 
 inline int32 WireFormatLite::ZigZagDecode32(uint32 n) {
@@ -862,7 +863,8 @@ inline int32 WireFormatLite::ZigZagDecode32(uint32 n) {
 
 inline uint64 WireFormatLite::ZigZagEncode64(int64 n) {
   // Note:  the right-shift must be arithmetic
-  return static_cast<uint64>((n << 1) ^ (n >> 63));
+  // Note:  left shift must be unsigned because of overflow
+  return (static_cast<uint64>(n) << 1) ^ static_cast<uint64>(n >> 63);
 }
 
 inline int64 WireFormatLite::ZigZagDecode64(uint64 n) {
