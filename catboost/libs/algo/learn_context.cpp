@@ -295,11 +295,13 @@ NJson::TJsonValue GetJsonMeta(
     meta.InsertValue("learn_metrics", NJson::JSON_ARRAY);
     meta.InsertValue("test_metrics", NJson::JSON_ARRAY);
     for (const auto& loss : losses) {
+        NJson::TJsonValue metricJson;
+        metricJson.InsertValue(loss->GetDescription(), loss->IsMaxOptimal() ? "max" : "min");
         if (hasTrain) {
-            meta["learn_metrics"].AppendValue(loss->GetDescription() + "\t" + (loss->IsMaxOptimal() ? "max" : "min"));
+            meta["learn_metrics"].AppendValue(metricJson);
         }
         if (hasTest) {
-            meta["test_metrics"].AppendValue(loss->GetDescription() + "\t" + (loss->IsMaxOptimal() ? "max" : "min"));
+            meta["test_metrics"].AppendValue(metricJson);
         }
     }
 

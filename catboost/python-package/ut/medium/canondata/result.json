@@ -16,11 +16,11 @@
         "uri": "file://test.test_coreml_import_export/model.coreml"
     },
     "test.test_cv_logging": {
-        "checksum": "6ed1a3a89d0be2ce55ff0772117f24ea",
+        "checksum": "e3012fb59478127b3d730455f0f1071c",
         "uri": "file://test.test_cv_logging/catboost_training.json"
     },
     "test.test_cv_with_not_binarized_target": {
-        "checksum": "6ed1a3a89d0be2ce55ff0772117f24ea",
+        "checksum": "e3012fb59478127b3d730455f0f1071c",
         "uri": "file://test.test_cv_with_not_binarized_target/catboost_training.json"
     },
     "test.test_doc_feature_importance": {
