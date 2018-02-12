@@ -16,7 +16,7 @@ namespace NCatboostOptions {
             , IterationCount("iterations", 1000)
             , PermutationCount("permutation_count", 4)
             , OverfittingDetector("od_config", TOverfittingDetectorOptions())
-            , BoostingType("boosting_type", EBoostingType::Dynamic)
+            , BoostingType("boosting_type", EBoostingType::Ordered)
             , ApproxOnFullHistory("approx_on_full_history", false, taskType)
             , MinFoldSize("min_fold_size", 100, taskType)
         {

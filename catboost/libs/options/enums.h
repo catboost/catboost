@@ -28,7 +28,7 @@ enum class ETaskType {
 };
 
 enum EBoostingType {
-    Dynamic,
+    Ordered,
     Plain
 };
 

@@ -1071,12 +1071,12 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Boosting scheme.
 #'      Possible values:
-#'          - 'Dynamic' - Gives better quality, but may slow down the training.
+#'          - 'Ordered' - Gives better quality, but may slow down the training.
 #'          - 'Plain' - The classic gradient boosting scheme. May result in quality degradation, but does not slow down the training.
 #'
 #'       Default value:
 #'
-#'       'Dynamic'
+#'       Depends on object count and feature count in dataset.
 #'   }
 #' }
 #'
