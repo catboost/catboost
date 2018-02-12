@@ -1948,7 +1948,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
-       shuffle=True, logging_level=None, stratified=False):
+       shuffle=True, logging_level=None, stratified=False, as_pandas=True):
     """
     Cross-validate the CatBoost model.
 
@@ -2005,9 +2005,14 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     stratified : bool, optional (default=False)
         Perform stratified sampling.
 
+    as_pandas : bool, optional (default=True)
+        Return pd.DataFrame when pandas is installed.
+        If False or pandas is not installed, return dict.
+
     Returns
     -------
-    cv results : dict with cross-validation results
+    cv results : pandas.core.frame.DataFrame with cross-validation results
+        columns are: test-error-mean  test-error-std  train-error-mean  train-error-std
     """
     if params is None:
         raise CatboostError("params should be set.")
@@ -2042,7 +2047,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         partition_random_seed = seed
 
     with log_fixup():
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

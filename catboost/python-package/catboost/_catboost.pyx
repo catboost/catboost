@@ -1142,7 +1142,7 @@ class _CatBoostBase(object):
         return getattr(self, '_random_seed', 0)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified):
+          bool_t shuffle, bool_t stratified, bool_t as_pandas):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -1167,14 +1167,21 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
             ResetPythonInterruptHandler()
 
     result = defaultdict(list)
-    for metric_idx in xrange(results.size()):
+    metric_count = results.size()
+    for metric_idx in xrange(metric_count):
         metric_name = to_native_str(results[metric_idx].Metric.c_str())
         for it in xrange(results[metric_idx].AverageTrain.size()):
-            result[metric_name + "_train_avg"].append(results[metric_idx].AverageTrain[it])
-            result[metric_name + "_train_stddev"].append(results[metric_idx].StdDevTrain[it])
-            result[metric_name + "_test_avg"].append(results[metric_idx].AverageTest[it])
-            result[metric_name + "_test_stddev"].append(results[metric_idx].StdDevTest[it])
+            result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
+            result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
+            result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
+            result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
+    if as_pandas:
+        try:
+            from pandas import DataFrame
+            return DataFrame.from_dict(result)
+        except ImportError:
+            pass
     return result
 
 

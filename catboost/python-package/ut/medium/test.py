@@ -575,11 +575,10 @@ def test_copy_model():
 def test_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
-    assert isinstance(results, dict)
-    assert "Logloss_train_avg" in results
+    assert "train-Logloss-mean" in results
 
-    prev_value = results["Logloss_train_avg"][0]
-    for value in results["Logloss_train_avg"][1:]:
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
 
@@ -587,11 +586,10 @@ def test_cv():
 def test_cv_query():
     pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
     results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "QueryRMSE"})
-    assert isinstance(results, dict)
-    assert "QueryRMSE_train_avg" in results
+    assert "train-QueryRMSE-mean" in results
 
-    prev_value = results["QueryRMSE_train_avg"][0]
-    for value in results["QueryRMSE_train_avg"][1:]:
+    prev_value = results["train-QueryRMSE-mean"][0]
+    for value in results["train-QueryRMSE-mean"][1:]:
         assert value < prev_value
         prev_value = value
 
