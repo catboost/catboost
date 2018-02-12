@@ -42,6 +42,8 @@
 #include <stdio.h>
 #include <vector>
 
+#include <util/system/atexit.h>
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN  // We only need minimal includes
 #include <windows.h>
@@ -462,6 +464,7 @@ GOOGLE_PROTOBUF_DECLARE_ONCE(shutdown_functions_init);
 
 void InitShutdownFunctions() {
   shutdown_data = new ShutdownData;
+  AtExit(ShutdownProtobufLibrary, 65536);
 }
 
 inline void InitShutdownFunctionsOnce() {
