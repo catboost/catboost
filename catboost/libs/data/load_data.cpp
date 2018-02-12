@@ -90,8 +90,8 @@ public:
         Pool->Docs.Id[Cursor + localIdx] = value;
     }
 
-    void AddGroupId(ui32 localIdx, ui32 value) override {
-        Pool->Docs.GroupId[Cursor + localIdx] = value;
+    void AddSubgroupId(ui32 localIdx, ui32 value) override {
+        Pool->Docs.SubgroupId[Cursor + localIdx] = value;
     }
 
     void AddTimestamp(ui32 localIdx, ui64 value) override {
@@ -186,7 +186,7 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
             case EColumn::Weight:
             case EColumn::DocId:
             case EColumn::QueryId:
-            case EColumn::GroupId:
+            case EColumn::SubgroupId:
             case EColumn::Timestamp:
                 break;
             default:
@@ -411,9 +411,9 @@ void TPoolReader::ProcessBlock() {
                     PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;
                 }
-                case EColumn::GroupId: {
+                case EColumn::SubgroupId: {
                     CB_ENSURE(token.length() != 0, "empty values not supported for group id");
-                    PoolBuilder.AddGroupId(lineIdx, FromString<ui32>(token));
+                    PoolBuilder.AddSubgroupId(lineIdx, FromString<ui32>(token));
                     break;
                 }
                 case EColumn::Baseline: {

@@ -12,7 +12,7 @@ enum class EColumn {
     Weight,
     DocId,
     QueryId,
-    GroupId,
+    SubgroupId,
     Timestamp,
     Sparse
 };

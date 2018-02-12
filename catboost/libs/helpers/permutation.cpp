@@ -33,7 +33,7 @@ void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLoca
         ApplyPermutation(permutation, &pool->Docs.Target);
         ApplyPermutation(permutation, &pool->Docs.Weight);
         ApplyPermutation(permutation, &pool->Docs.Id);
-        ApplyPermutation(permutation, &pool->Docs.GroupId);
+        ApplyPermutation(permutation, &pool->Docs.SubgroupId);
         ApplyPermutation(permutation, &pool->Docs.QueryId);
     }
 

@@ -38,7 +38,7 @@ public:
     virtual void AddTarget(ui32 localIdx, float value) = 0;
     virtual void AddWeight(ui32 localIdx, float value) = 0;
     virtual void AddQueryId(ui32 localIdx, ui32 value) = 0;
-    virtual void AddGroupId(ui32 localIdx, ui32 value) = 0;
+    virtual void AddSubgroupId(ui32 localIdx, ui32 value) = 0;
     virtual void AddBaseline(ui32 localIdx, ui32 offset, double value) = 0;
     virtual void AddDocId(ui32 localIdx, const TStringBuf& value) = 0;
     virtual void AddTimestamp(ui32 localIdx, ui64 value) = 0;

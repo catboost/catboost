@@ -133,18 +133,18 @@ namespace NCatboostCuda {
             return QueryPairWeights;
         }
 
-        void SetGroupIds(TVector<ui32>&& groupIds) {
-            GroupIds = std::move(groupIds);
+        void SetSubgroupIds(TVector<ui32>&& groupIds) {
+            SubgroupIds = std::move(groupIds);
         }
 
-        bool HasGroupIds() const {
-            return GroupIds.size();
+        bool HasSubgroupIds() const {
+            return SubgroupIds.size();
         }
 
-        const ui32* GetGroupIds(ui32 queryId) const {
-            CB_ENSURE(HasGroupIds());
+        const ui32* GetSubgroupIds(ui32 queryId) const {
+            CB_ENSURE(HasSubgroupIds());
             auto offset = GetQueryOffset(queryId);
-            return ~GroupIds + offset;
+            return ~SubgroupIds + offset;
         }
 
     private:
@@ -152,7 +152,7 @@ namespace NCatboostCuda {
         TVector<ui32> QueryOffsets;
         //doc to query ids map
         TVector<ui32> QueryIds;
-        TVector<ui32> GroupIds;
+        TVector<ui32> SubgroupIds;
 
         TVector<ui32> QueryPairOffsets;
         TVector<uint2> FlatQueryPairs;

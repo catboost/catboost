@@ -10,7 +10,7 @@ namespace NCatboostCuda {
         DataProvider.Targets.resize(newDataSize);
         DataProvider.Weights.resize(newDataSize, 1.0);
         DataProvider.QueryIds.resize(newDataSize);
-        DataProvider.GroupIds.resize(newDataSize);
+        DataProvider.SubgroupIds.resize(newDataSize);
         DataProvider.Timestamp.resize(newDataSize);
 
         for (ui32 i = Cursor; i < DataProvider.QueryIds.size(); ++i) {
@@ -78,7 +78,7 @@ namespace NCatboostCuda {
             }
             ApplyPermutation(DataProvider.Order, DataProvider.Targets);
             ApplyPermutation(DataProvider.Order, DataProvider.QueryIds);
-            ApplyPermutation(DataProvider.Order, DataProvider.GroupIds);
+            ApplyPermutation(DataProvider.Order, DataProvider.SubgroupIds);
             ApplyPermutation(DataProvider.Order, DataProvider.DocIds);
         }
 

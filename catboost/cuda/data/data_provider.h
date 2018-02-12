@@ -81,13 +81,13 @@ namespace NCatboostCuda {
             return QueryIds;
         }
 
-        bool HasGroupIds() const {
-            return GroupIds.size() == QueryIds.size();
+        bool HasSubgroupIds() const {
+            return SubgroupIds.size() == QueryIds.size();
         }
 
-        const TVector<ui32>& GetGroupIds() const {
-            CB_ENSURE(HasGroupIds(), "Current mode need groups ids but they were not found in loaded data");
-            return GroupIds;
+        const TVector<ui32>& GetSubgroupIds() const {
+            CB_ENSURE(HasSubgroupIds(), "Current mode need groups ids but they were not found in loaded data");
+            return SubgroupIds;
         }
 
         const TVector<TString>& GetFeatureNames() const {
@@ -146,7 +146,7 @@ namespace NCatboostCuda {
 
         TVector<ui64> Order;
         TVector<ui32> QueryIds;
-        TVector<ui32> GroupIds;
+        TVector<ui32> SubgroupIds;
         THashMap<ui32, TVector<TPair>> QueryPairs;
 
         TVector<ui32> DocIds;

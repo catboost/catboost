@@ -93,9 +93,9 @@ namespace NCatboostCuda {
             if (dataProvider.HasQueries()) {
                 auto permutedQids = Permutation.Gather(DataProvider->GetQueryIds());
                 auto samplesGrouping = MakeHolder<TQueriesGrouping>(std::move(permutedQids), DataProvider->GetPairs());
-                if (DataProvider->HasGroupIds()) {
-                    auto permutedGids = Permutation.Gather(DataProvider->GetGroupIds());
-                    samplesGrouping->SetGroupIds(std::move(permutedGids));
+                if (DataProvider->HasSubgroupIds()) {
+                    auto permutedGids = Permutation.Gather(DataProvider->GetSubgroupIds());
+                    samplesGrouping->SetSubgroupIds(std::move(permutedGids));
                 }
                 SamplesGrouping = std::move(samplesGrouping);
             } else {

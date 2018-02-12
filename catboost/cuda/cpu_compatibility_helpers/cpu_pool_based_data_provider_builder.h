@@ -49,7 +49,7 @@ namespace NCatboostCuda {
                 }
             }
 
-            DataProvider.GroupIds = Pool.Docs.GroupId;
+            DataProvider.SubgroupIds = Pool.Docs.SubgroupId;
             DataProvider.Timestamp = Pool.Docs.Timestamp;
         }
 

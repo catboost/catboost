@@ -83,8 +83,8 @@ namespace NCatboostCuda {
             for (ui32 query = 0; query < queryCount; ++query) {
                 ui32 offset = samplesGrouping.GetQueryOffset(query);
                 ui32 querySize = samplesGrouping.GetQuerySize(query);
-                const ui32* groupIds = samplesGrouping.GetGroupIds(query);
-                calcer.AddQuery(~TargetCpu + offset, ~pointCpu + offset, groupIds, querySize);
+                const ui32* subgroupIds = samplesGrouping.GetSubgroupIds(query);
+                calcer.AddQuery(~TargetCpu + offset, ~pointCpu + offset, subgroupIds, querySize);
             }
 
             auto metricHolder = calcer.GetMetric();

@@ -17,7 +17,7 @@ public:
     }
 
     template <class TFloatType>
-    void AddQuery(const TFloatType* relevs, const TFloatType* approxes, const ui32* groupData, ui32 querySize) {
+    void AddQuery(const TFloatType* relevs, const TFloatType* approxes, const ui32* subgroupData, ui32 querySize) {
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
         Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
@@ -27,16 +27,16 @@ public:
         double pLook = 1, pFound = 0;
         const ui32 depth = Min<ui32>(querySize, Depth);
 
-        TSet<ui32> groupIds;
+        TSet<ui32> subgroupIds;
         for (ui32 position = 0; position < depth; position++) {
             const int docId = qurls[position];
-            const ui32 gid = groupData[docId];
-            if (groupData && groupIds.has(gid)) {
+            const ui32 subgroupId = subgroupData[docId];
+            if (subgroupData != nullptr && subgroupIds.has(subgroupId)) {
                 continue;
             }
 
-            if (groupData) {
-                groupIds.insert(gid);
+            if (subgroupData != nullptr) {
+                subgroupIds.insert(subgroupId);
             }
 
             const double pRel =  relevs[docId];

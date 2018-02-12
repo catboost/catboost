@@ -42,10 +42,10 @@ namespace NCatboostCuda {
             return Grouping->GetQueryId(CurrentDocsSlice.Right) - Grouping->GetQueryId(CurrentDocsSlice.Left);
         }
 
-        const ui32* GetGroupIds(ui32 localQueryId) const {
+        const ui32* GetSubgroupIds(ui32 localQueryId) const {
             const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);
-            CB_ENSURE(queriesGrouping && queriesGrouping->HasGroupIds());
-            return queriesGrouping->GetGroupIds(GetQid(localQueryId));
+            CB_ENSURE(queriesGrouping && queriesGrouping->HasSubgroupIds());
+            return queriesGrouping->GetSubgroupIds(GetQid(localQueryId));
         }
 
     protected:
@@ -96,16 +96,16 @@ namespace NCatboostCuda {
     inline TGpuSamplesGrouping<NCudaLib::TMirrorMapping> CreateGpuGrouping(const TDataSet& dataSet, const TSlice& slice) {
         const IQueriesGrouping& grouping = dataSet.GetSamplesGrouping();
 
-        const ui32 rightGroupId = grouping.GetQueryId(slice.Right);
-        const ui32 leftGroupId = grouping.GetQueryId(slice.Left);
-        const ui32 groupCount = rightGroupId - leftGroupId;
+        const ui32 rightSubgroupId = grouping.GetQueryId(slice.Right);
+        const ui32 leftSubgroupId = grouping.GetQueryId(slice.Left);
+        const ui32 groupCount = rightSubgroupId - leftSubgroupId;
         TVector<ui32> offsets(groupCount);
         TVector<ui32> sizes(groupCount);
-        const ui32 offset = grouping.GetQueryOffset(leftGroupId);
+        const ui32 offset = grouping.GetQueryOffset(leftSubgroupId);
 
-        for (ui32 i = leftGroupId; i < rightGroupId; ++i) {
-            offsets[i - leftGroupId] = grouping.GetQueryOffset(i) - offset;
-            sizes[i - leftGroupId] = grouping.GetQuerySize(i);
+        for (ui32 i = leftSubgroupId; i < rightSubgroupId; ++i) {
+            offsets[i - leftSubgroupId] = grouping.GetQueryOffset(i) - offset;
+            sizes[i - leftSubgroupId] = grouping.GetQuerySize(i);
         }
         TMirrorBuffer<ui32> offsetsGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(offsets.size()));
         TMirrorBuffer<ui32> sizesGpu = TMirrorBuffer<ui32>::CopyMapping(offsetsGpu);
@@ -145,11 +145,11 @@ namespace NCatboostCuda {
         globalSlice.Left = localSlice.Left + grouping.CurrentDocsSlice.Left;
         globalSlice.Right = localSlice.Right + grouping.CurrentDocsSlice.Left;
 
-        const ui32 firstGroupId = grouping.Grouping->GetQueryId(globalSlice.Left);
-        const ui32 lastGroupId = grouping.Grouping->GetQueryId(globalSlice.Right);
+        const ui32 firstSubgroupId = grouping.Grouping->GetQueryId(globalSlice.Left);
+        const ui32 lastSubgroupId = grouping.Grouping->GetQueryId(globalSlice.Right);
 
-        const ui32 firstGroupDoc = grouping.Grouping->GetQueryOffset(firstGroupId);
-        const ui32 lastGroupDoc = grouping.Grouping->GetQueryOffset(lastGroupId);
+        const ui32 firstGroupDoc = grouping.Grouping->GetQueryOffset(firstSubgroupId);
+        const ui32 lastGroupDoc = grouping.Grouping->GetQueryOffset(lastSubgroupId);
 
         CB_ENSURE(firstGroupDoc == globalSlice.Left, "Error: slice should be group-consistent");
         CB_ENSURE(lastGroupDoc == globalSlice.Right, "Error: slice should be group-consistent");
@@ -161,9 +161,9 @@ namespace NCatboostCuda {
 
         TSlice groupsSlice;
         const ui32 groupOffset = grouping.Grouping->GetQueryId(grouping.CurrentDocsSlice.Left);
-        CB_ENSURE(firstGroupId >= groupOffset);
-        groupsSlice.Left = firstGroupId - groupOffset;
-        groupsSlice.Right = lastGroupId - groupOffset;
+        CB_ENSURE(firstSubgroupId >= groupOffset);
+        groupsSlice.Left = firstSubgroupId - groupOffset;
+        groupsSlice.Right = lastSubgroupId - groupOffset;
         CB_ENSURE(grouping.Offsets.GetObjectsSlice() == TSlice(0, grouping.Grouping->GetQueryId(
                                                                       grouping.CurrentDocsSlice.Right) -
                                                                       groupOffset));
@@ -177,10 +177,10 @@ namespace NCatboostCuda {
             const TQueriesGrouping* pointwiseSamplesGrouping = dynamic_cast<const TQueriesGrouping*>(grouping.Grouping);
             if (pointwiseSamplesGrouping && pointwiseSamplesGrouping->GetFlatQueryPairs().size()) {
                 TSlice pairsSlice;
-                CB_ENSURE(firstGroupId >= groupOffset);
+                CB_ENSURE(firstSubgroupId >= groupOffset);
                 const ui32 shift = pointwiseSamplesGrouping->GetQueryPairOffset(groupOffset);
-                pairsSlice.Left = pointwiseSamplesGrouping->GetQueryPairOffset(firstGroupId) - shift;
-                pairsSlice.Right = pointwiseSamplesGrouping->GetQueryPairOffset(lastGroupId) - shift;
+                pairsSlice.Left = pointwiseSamplesGrouping->GetQueryPairOffset(firstSubgroupId) - shift;
+                pairsSlice.Right = pointwiseSamplesGrouping->GetQueryPairOffset(lastSubgroupId) - shift;
 
                 sliceGrouping.Pairs = grouping.Pairs.SliceView(pairsSlice);
                 sliceGrouping.PairsWeights = grouping.PairsWeights.SliceView(pairsSlice);
@@ -209,10 +209,10 @@ namespace NCatboostCuda {
             TSlice deviceSlice = indices.GetMapping().DeviceSlice(dev);
             const ui32 localBias = baseBias.At(dev) + offset;
             deviceOffsetsBiases.Set(dev, localBias);
-            ui32 firstGroupId = grouping.GetQueryId(docsSlice.Left + offset) - queryIdOffset;
-            ui32 lastGroupId = grouping.GetQueryId(docsSlice.Left + offset + deviceSlice.Size()) - queryIdOffset;
+            ui32 firstSubgroupId = grouping.GetQueryId(docsSlice.Left + offset) - queryIdOffset;
+            ui32 lastSubgroupId = grouping.GetQueryId(docsSlice.Left + offset + deviceSlice.Size()) - queryIdOffset;
             offset += deviceSlice.Size();
-            groupMetaSlices[dev] = TSlice(firstGroupId, lastGroupId);
+            groupMetaSlices[dev] = TSlice(firstSubgroupId, lastSubgroupId);
         }
 
         NCudaLib::TStripeMapping groupMetaMapping(std::move(groupMetaSlices));
@@ -230,9 +230,9 @@ namespace NCatboostCuda {
             const TQueriesGrouping* pointwiseSamplesGrouping = dynamic_cast<const TQueriesGrouping*>(&grouping);
             if (pointwiseSamplesGrouping && pointwiseSamplesGrouping->GetFlatQueryPairs().size()) {
                 NCudaLib::TStripeMapping pairsMapping = groupMetaMapping.Transform([&](const TSlice& groupsSlice) -> ui64 {
-                    ui32 firstGroupId = groupsSlice.Left + queryIdOffset;
-                    ui32 lastGroupId = groupsSlice.Right + queryIdOffset;
-                    return pointwiseSamplesGrouping->GetQueryPairOffset(lastGroupId) - pointwiseSamplesGrouping->GetQueryPairOffset(firstGroupId);
+                    ui32 firstSubgroupId = groupsSlice.Left + queryIdOffset;
+                    ui32 lastSubgroupId = groupsSlice.Right + queryIdOffset;
+                    return pointwiseSamplesGrouping->GetQueryPairOffset(lastSubgroupId) - pointwiseSamplesGrouping->GetQueryPairOffset(firstSubgroupId);
                 });
                 samplesGrouping.Pairs = NCudaLib::StripeView(mirrorMapping.Pairs, pairsMapping);
                 samplesGrouping.PairsWeights = NCudaLib::StripeView(mirrorMapping.PairsWeights, pairsMapping);

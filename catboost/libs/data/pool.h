@@ -33,7 +33,7 @@ struct TDocumentStorage {
     TVector<float> Weight; // [docIdx]
     TVector<TString> Id; // [docIdx]
     TVector<ui32> QueryId; // [docIdx]
-    TVector<ui32> GroupId; // [docIdx]
+    TVector<ui32> SubgroupId; // [docIdx]
     TVector<ui64> Timestamp; // [docIdx]
 
     inline int GetBaselineDimension() const {
@@ -55,7 +55,7 @@ struct TDocumentStorage {
         Weight.swap(other.Weight);
         Id.swap(other.Id);
         QueryId.swap(other.QueryId);
-        GroupId.swap(other.GroupId);
+        SubgroupId.swap(other.SubgroupId);
         Timestamp.swap(other.Timestamp);
     }
 
@@ -72,7 +72,7 @@ struct TDocumentStorage {
         if (!QueryId.empty()) {
             DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
         }
-        DoSwap(GroupId[doc1Idx], GroupId[doc2Idx]);
+        DoSwap(SubgroupId[doc1Idx], SubgroupId[doc2Idx]);
         DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
     }
 
@@ -91,7 +91,7 @@ struct TDocumentStorage {
         if (!sourceDocs.QueryId.empty()) {
             QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
         }
-        GroupId[destinationIdx] = sourceDocs.GroupId[sourceIdx];
+        SubgroupId[destinationIdx] = sourceDocs.SubgroupId[sourceIdx];
         Timestamp[destinationIdx] = sourceDocs.Timestamp[sourceIdx];
     }
 
@@ -113,7 +113,7 @@ struct TDocumentStorage {
         if (hasQueryId) {
             QueryId.resize(docCount);
         }
-        GroupId.resize(docCount);
+        SubgroupId.resize(docCount);
         Timestamp.resize(docCount);
     }
 
@@ -135,8 +135,8 @@ struct TDocumentStorage {
         QueryId.clear();
         QueryId.shrink_to_fit();
 
-        GroupId.clear();
-        GroupId.shrink_to_fit();
+        SubgroupId.clear();
+        SubgroupId.shrink_to_fit();
         Timestamp.clear();
         Timestamp.shrink_to_fit();
     }
@@ -158,7 +158,7 @@ struct TDocumentStorage {
         Weight.insert(Weight.end(), documents.Weight.begin(), documents.Weight.end());
         Id.insert(Id.end(), documents.Id.begin(), documents.Id.end());
         QueryId.insert(QueryId.end(), documents.QueryId.begin(), documents.QueryId.end());
-        GroupId.insert(GroupId.end(), documents.GroupId.begin(), documents.GroupId.end());
+        SubgroupId.insert(SubgroupId.end(), documents.SubgroupId.begin(), documents.SubgroupId.end());
         Timestamp.insert(Timestamp.end(), documents.Timestamp.begin(), documents.Timestamp.end());
     }
 };
