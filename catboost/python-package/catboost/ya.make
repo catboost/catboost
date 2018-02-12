@@ -44,4 +44,8 @@ ELSE()
     ALLOCATOR(J)
 ENDIF()
 
+IF (OS_DARWIN)
+    LDFLAGS(-headerpad_max_install_names)
+ENDIF()
+
 END()
