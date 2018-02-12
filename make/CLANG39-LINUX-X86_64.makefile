@@ -3088,6 +3088,7 @@ $(BUILD_ROOT)/library/grid_creator/binarization.h_serialized.cpp\
 $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a\
 $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a.mf\
         ::\
+        $(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o\
         $(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o\
         $(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o\
         $(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o\
@@ -3110,7 +3111,14 @@ $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a.mf\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/options'
 	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-options -o catboost/libs/options/libcatboost-libs-options.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/oblivious_tree_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/metric_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/loss_description.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/system_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/data_processing_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/plain_options_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/catboost_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/cat_feature_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/boosting_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/bootstrap_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/overfitting_detector_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/binarization_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp.o'
+	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/oblivious_tree_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/metric_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/loss_description.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/system_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/data_processing_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/plain_options_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/catboost_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/cat_feature_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/boosting_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/bootstrap_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/overfitting_detector_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/binarization_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp.o'
+
+$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/options/check_train_options.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/options'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o' '$(SOURCE_ROOT)/catboost/libs/options/check_train_options.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=r3377999 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o\
         ::\
