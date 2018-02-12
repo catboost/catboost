@@ -32,17 +32,17 @@ Y_FORCE_INLINE void CalcIndexesBasic(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
         TIndexType* __restrict indexesVec,
-        const ui32* __restrict treeSplitsCurPtr,
+        const TRepackedBin* __restrict treeSplitsCurPtr,
         int curTreeSize) {
     if (START_BLOCK * SSE_BLOCK_SIZE >= docCountInBlock) {
         return;
     }
     for (int depth = 0; depth < curTreeSize; ++depth) {
-        const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth] & 0xff);
+        const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth].SplitIdx);
 
-        const auto featureId = treeSplitsCurPtr[depth] >> 16;
+        const auto featureId = treeSplitsCurPtr[depth].FeatureIndex;
         const ui8* __restrict binFeaturePtr = &binFeatures[featureId * docCountInBlock];
-        const ui8 xorMask = (ui8)((treeSplitsCurPtr[depth] & 0xff00) >> 8);
+        const ui8 xorMask = treeSplitsCurPtr[depth].XorMask;
         if (NeedXorMask) {
             Y_PREFETCH_READ(binFeaturePtr, 3);
             Y_PREFETCH_WRITE(indexesVec, 3);
@@ -66,7 +66,7 @@ void CalcIndexes(
     const ui8* __restrict binFeatures,
     size_t docCountInBlock,
     ui32* __restrict indexesVec,
-    const ui32* __restrict treeSplitsCurPtr,
+    const TRepackedBin* __restrict treeSplitsCurPtr,
     int curTreeSize) {
     // TODO(kirillovs): add sse dispatching here
     if (needXorMask) {
@@ -81,7 +81,7 @@ Y_FORCE_INLINE void CalcIndexesSse(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
         ui8* __restrict indexesVec,
-        const ui32* __restrict treeSplitsCurPtr,
+        const TRepackedBin* __restrict treeSplitsCurPtr,
         const int curTreeSize) {
     if (SSEBlockCount == 0) {
         CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
@@ -98,12 +98,10 @@ Y_FORCE_INLINE void CalcIndexesSse(
     __m128i v7 = _mm_setzero_si128();
     __m128i mask = _mm_set1_epi8(0x01);
     for (int depth = 0; depth < curTreeSize; ++depth) {
-        const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth] & 0xff);
-        const auto featureId = (treeSplitsCurPtr[depth] >> 16);
-        const ui8* __restrict binFeaturePtr = &binFeatures[featureId * docCountInBlock];
-        #define _mm_cmpge_epu8(a, b) _mm_cmpeq_epi8(_mm_max_epu8(a, b), a)
+        const ui8* __restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock;
+#define _mm_cmpge_epu8(a, b) _mm_cmpeq_epi8(_mm_max_epu8((a), (b)), (a))
 
-        const __m128i borderValVec = _mm_set1_epi8(borderVal);
+        const __m128i borderValVec = _mm_set1_epi8(treeSplitsCurPtr[depth].SplitIdx);
 #define update_16_documents_bits(reg, binFeaturesPtr16) \
         {__m128i val = _mm_loadu_si128((const __m128i *)(binFeaturesPtr16));\
         reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(val, borderValVec), mask));}
@@ -138,8 +136,7 @@ Y_FORCE_INLINE void CalcIndexesSse(
                 update_16_documents_bits(v7, binFeaturePtr + 16 * 7);
             }
         } else {
-            const ui8 xorMask = (ui8)((treeSplitsCurPtr[depth] & 0xff00) >> 8);
-            const __m128i xorMaskVec = _mm_set1_epi8(xorMask);
+            const __m128i xorMaskVec = _mm_set1_epi8(treeSplitsCurPtr[depth].XorMask);
             if (SSEBlockCount > 0) {
                 update_16_documents_bits_xored(v0, binFeaturePtr + 16 * 0);
             }
@@ -285,8 +282,9 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const size_t treeEnd,
     double* __restrict resultsPtr)
 {
-    const ui32* treeSplitsCurPtr =
+    const TRepackedBin* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() + model.ObliviousTrees.TreeStartOffsets[treeStart];
+
     bool allTreesAreShallow = AllOf(
         model.ObliviousTrees.TreeSizes.begin() + treeStart,
         model.ObliviousTrees.TreeSizes.begin() + treeEnd,
@@ -318,16 +316,11 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
                 indexesVec + docCountInBlock * 3,
                 resultsPtr
             );
-//            CalculateLeafValues(docCountInBlock, model.ObliviousTrees.LeafValues[treeId].data(), indexesVec+ docCountInBlock * 0, resultsPtr);
-//            CalculateLeafValues(docCountInBlock, model.ObliviousTrees.LeafValues[treeId + 1].data(), indexesVec+ docCountInBlock * 1, resultsPtr);
-//            CalculateLeafValues(docCountInBlock, model.ObliviousTrees.LeafValues[treeId + 2].data(), indexesVec+ docCountInBlock * 2, resultsPtr);
-//            CalculateLeafValues(docCountInBlock, model.ObliviousTrees.LeafValues[treeId + 3].data(), indexesVec+ docCountInBlock * 3, resultsPtr);
         }
         treeStart = treeEnd4;
     }
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
-
         memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
         if (curTreeSize <= 8) {
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
@@ -400,17 +393,17 @@ inline void CalcTreesSingleDocImpl(
     size_t treeEnd,
     double* __restrict results)
 {
-    const ui32* treeSplitsCurPtr =
+    const TRepackedBin* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() + model.ObliviousTrees.TreeStartOffsets[treeStart];
     double result = 0.0;
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
         TCalcerIndexType index = 0;
         for (int depth = 0; depth < curTreeSize; ++depth) {
-            const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth] & 0xff);
-            const ui32 featureIndex = (treeSplitsCurPtr[depth] >> 16);
+            const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth].SplitIdx);
+            const ui32 featureIndex = (treeSplitsCurPtr[depth].FeatureIndex);
             if (NeedXorMask) {
-                const ui8 xorMask = (ui8)((treeSplitsCurPtr[depth] & 0xff00) >> 8);
+                const ui8 xorMask = (ui8)(treeSplitsCurPtr[depth].XorMask);
                 index |= ((binFeatures[featureIndex] ^ xorMask) >= borderVal) << depth;
             } else {
                 index |= (binFeatures[featureIndex] >= borderVal) << depth;

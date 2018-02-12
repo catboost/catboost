@@ -206,11 +206,15 @@ void TObliviousTrees::UpdateMetadata() const {
         const auto& featureIndex = splitIds[binSplit];
         Y_ENSURE(featureIndex.FeatureIdx <= 0xffff, "To many features in model, ask catboost team for support");
         Y_ENSURE(featureIndex.SplitIdx <= 254, "To many splits in feature, ask catboost team for support");
+        TRepackedBin rb;
+        rb.FeatureIndex = featureIndex.FeatureIdx;
         if (feature.Type != ESplitType::OneHotFeature) {
-            ref.RepackedBins.push_back((featureIndex.FeatureIdx << 16) + featureIndex.SplitIdx);
+            rb.SplitIdx = featureIndex.SplitIdx;
         } else {
-            ref.RepackedBins.push_back((featureIndex.FeatureIdx << 16) + (((~featureIndex.SplitIdx)&0xff) << 8) + 0xff);
+            rb.XorMask = ((~featureIndex.SplitIdx) & 0xff);
+            rb.SplitIdx = 0xff;
         }
+        ref.RepackedBins.push_back(rb);
     }
 }
 

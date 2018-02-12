@@ -38,7 +38,11 @@ class TModelPartsCachingSerializer;
     - TreeSizes - holds tree depth.
     - TreeStartOffsets - holds offset of first tree split in TreeSplits vector
 */
-
+struct TRepackedBin {
+    ui16 FeatureIndex = 0;
+    ui8 XorMask = 0;
+    ui8 SplitIdx = 0;
+};
 struct TObliviousTrees {
 
     /**
@@ -62,7 +66,11 @@ struct TObliviousTrees {
         * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or one hot feature.
         * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this will be fixed soon.
         */
-        TVector<ui32> RepackedBins;
+
+
+        static_assert(sizeof(TRepackedBin) == 4, "");
+
+        TVector<TRepackedBin> RepackedBins;
 
         ui32 EffectiveBinFeaturesBucketCount = 0;
     };
@@ -210,7 +218,7 @@ struct TObliviousTrees {
         return MetaData->BinFeatures;
     }
 
-    const TVector<ui32>& GetRepackedBins() const {
+    const TVector<TRepackedBin>& GetRepackedBins() const {
         Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->RepackedBins;
     }

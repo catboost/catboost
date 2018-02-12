@@ -255,7 +255,7 @@ TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model, const TVecto
 
     auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
     TVector<TIndexType> indexesVec(docCount);
-    const ui32* treeSplitsCurPtr =
+    const auto* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() +
         model.ObliviousTrees.TreeStartOffsets[treeId];
     CalcIndexes(!model.ObliviousTrees.OneHotFeatures.empty(), binarizedFeatures.data(), docCount, indexesVec.data(), treeSplitsCurPtr, model.ObliviousTrees.TreeSizes[treeId]);

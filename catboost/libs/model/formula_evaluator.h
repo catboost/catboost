@@ -172,7 +172,7 @@ void CalcIndexes(
     const ui8* __restrict binFeatures,
     size_t docCountInBlock,
     ui32* __restrict indexesVec,
-    const ui32* __restrict treeSplitsCurPtr,
+    const TRepackedBin* __restrict treeSplitsCurPtr,
     int curTreeSize);
 
 TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock);
