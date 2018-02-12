@@ -5,6 +5,9 @@
 #include "flatbuffers_serializer_helper.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/options/check_train_options.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -27,11 +30,32 @@ void OutputModel(const TFullModel& model, const TString& modelFile) {
     Save(&f, model);
 }
 
+static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    for (const auto& param : params.GetMap()) {
+        NJson::TJsonValue paramToTest;
+        paramToTest[param.first] = param.second;
+
+        try {
+            CheckFitParams(paramToTest);
+            result[param.first] = param.second;
+        }
+        catch (...) {
+            MATRIXNET_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(paramToTest) << " is ignored, because it cannot be parsed." << Endl;
+        }
+    }
+    return result;
+}
+
+
 TFullModel ReadModel(const TString& modelFile, EModelType format) {
     TIFStream f(modelFile);
     TFullModel model;
     if (format == EModelType::CatboostBinary) {
         Load(&f, model);
+        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
+        paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
+        model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
     } else {
         CoreML::Specification::Model coreMLModel;
         CB_ENSURE(coreMLModel.ParseFromString(f.ReadAll()), "coreml model deserialization failed");

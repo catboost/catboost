@@ -232,11 +232,11 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         bool_t Stratified
         int EvalPeriod
 
-cdef extern from "catboost/libs/train_lib/train_model.h":
+cdef extern from "catboost/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
-        const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
-        const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor
+        const TCustomObjectiveDescriptor* objectiveDescriptor,
+        const TCustomMetricDescriptor* evalMetricDescriptor
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/options/json_helper.h":
@@ -1034,8 +1034,8 @@ class _CatBoostBase(object):
     def _check_train_params(self, dict params):
         prep_params = _PreprocessParams(params)
         CheckFitParams(prep_params.tree,
-                        prep_params.customObjectiveDescriptor,
-                        prep_params.customMetricDescriptor)
+                        prep_params.customObjectiveDescriptor.Get(),
+                        prep_params.customMetricDescriptor.Get())
 
     def copy(self):
         return self.__copy__()

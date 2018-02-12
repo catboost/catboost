@@ -50,7 +50,3 @@ void TrainOneIteration(
     TLearnContext* ctx);
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;
-
-void CheckFitParams(const NJson::TJsonValue& plainOptions,
-                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
