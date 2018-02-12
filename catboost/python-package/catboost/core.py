@@ -1295,7 +1295,7 @@ class CatBoostClassifier(CatBoost):
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
         If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
-    boosting_type : string, default value depends on object count and feature count
+    boosting_type : string, default value depends on object count and feature count in train dataset and on learning mode.
         Boosting scheme.
         Possible values:
             - 'Ordered' - Gives better quality, but may slow down the training.

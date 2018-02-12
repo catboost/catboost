@@ -1076,7 +1076,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       Depends on object count and feature count in dataset.
+#'       Depends on object count and feature count in train dataset and on learning mode.
 #'   }
 #' }
 #'
