@@ -401,12 +401,6 @@ class TCPUModelTrainer : public IModelTrainer {
         if (testPool.Docs.GetDocCount() != 0) {
             CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
             CB_ENSURE(testPool.Docs.GetBaselineDimension() == learnPool.Docs.GetBaselineDimension(), "train pool baseline dimension == " << learnPool.Docs.GetBaselineDimension() << " and test pool baseline dimension == " << testPool.Docs.GetBaselineDimension());
-
-            if (!IsPairwiseError(lossFunction)) {
-                float minTestTarget = *MinElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-                float maxTestTarget = *MaxElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-                CB_ENSURE(minTestTarget != maxTestTarget, "All targets in test are equal.");
-            }
         }
         learnPool.Docs.Append(testPool.Docs);
         const int factorsCount = learnPool.Docs.GetFactorsCount();
