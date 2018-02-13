@@ -33,7 +33,7 @@ NULL
 #' @param delimiter Delimiter character to use to separate features in a file.
 #' @param has_header Read column names from first line, if this parameter is set to True.
 #' @param weight The weights of the target vector.
-#' @param query_id The query_id of the target vector.
+#' @param group_id The group_id of the target vector.
 #' @param pairs_weight The weights of the pairs.
 #' @param baseline Vector of initial (raw) values of the target function for the object.
 #' Used in the calculation of final values of trees.
@@ -74,20 +74,20 @@ NULL
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
-                               query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, thread_count = -1) {
+                               group_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, thread_count = -1) {
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
 
     if (is.character(data) && length(data) == 1) {
-        if (any(!is.null(cat_features), !is.null(weight), !is.null(query_id), !is.null(pairs_weight), !is.null(baseline), !is.null(feature_names))) {
-            stop("cat_features, weight, query_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
+        if (any(!is.null(cat_features), !is.null(weight), !is.null(group_id), !is.null(pairs_weight), !is.null(baseline), !is.null(feature_names))) {
+            stop("cat_features, weight, group_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count)
     } else if (is.matrix(data)) {
-        pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
+        pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
     } else if (is.data.frame(data)) {
-        pool <- catboost.from_data_frame(data, label, pairs, weight, query_id, pairs_weight, baseline, feature_names)
+        pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, pairs_weight, baseline, feature_names)
     } else {
         stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
     }
@@ -110,7 +110,7 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 
 
 catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
-                                 query_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
+                                 group_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
   if (!is.matrix(data))
       stop("Unsupported data type, expecting matrix, got: ", class(data))
 
@@ -134,10 +134,10 @@ catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs
   if (length(weight) != nrow(data) && !is.null(weight))
       stop("Data has ", nrow(data), " rows, weight vector has ", length(weight), " rows.")
 
-  if (!is.integer(query_id) && !is.null(query_id))
-      stop("Unsupported query_id type, expecting int, got: ", typeof(query_id))
-  if (length(query_id) != nrow(data) && !is.null(query_id))
-      stop("Data has ", nrow(data), " rows, query_id vector has ", length(query_id), " rows.")
+  if (!is.integer(group_id) && !is.null(group_id))
+      stop("Unsupported group_id type, expecting int, got: ", typeof(group_id))
+  if (length(group_id) != nrow(data) && !is.null(group_id))
+      stop("Data has ", nrow(data), " rows, group_id vector has ", length(group_id), " rows.")
 
   if (!is.double(pairs_weight) && !is.null(pairs_weight))
       stop("Unsupported pairs_weight type, expecting double, got: ", typeof(pairs_weight))
@@ -159,13 +159,13 @@ catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs
   if (!is.double(target) && !is.null(target))
       target <- as.double(target)
 
-  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
+  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
 
 
-catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight = NULL, query_id = NULL,
+catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight = NULL, group_id = NULL,
                                      pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
@@ -191,7 +191,7 @@ catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight =
     if (!is.null(pairs)) {
         pairs <- as.matrix(pairs)
     }
-    pool <- catboost.from_matrix(as.matrix(preprocessed), target, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names)
+    pool <- catboost.from_matrix(as.matrix(preprocessed), target, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
     return(pool)
 }
 

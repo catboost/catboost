@@ -6,7 +6,7 @@
 \usage{
 catboost.load_pool(data, label = NULL, cat_features = NULL,
   column_description = NULL, pairs = NULL, delimiter = "\\t",
-  has_header = FALSE, weight = NULL, query_id = NULL,
+  has_header = FALSE, weight = NULL, group_id = NULL,
   pairs_weight = NULL, baseline = NULL, feature_names = NULL,
   thread_count = -1)
 }
@@ -42,7 +42,7 @@ The first element of pair is the index of winner document in training set. The s
 
 \item{weight}{The weights of the target vector.}
 
-\item{query_id}{The query_id of the target vector.}
+\item{group_id}{The group_id of the target vector.}
 
 \item{pairs_weight}{The weights of the pairs.}
 
