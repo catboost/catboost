@@ -569,7 +569,7 @@ cdef class _PoolBase:
         if len([target for target in self.__pool.Docs.Target]) > 1:
             self.has_label_ = True
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, query_id, pairs_weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names):
         if cat_features is not None:
             self._init_cat_features(cat_features)
         self._set_data(data)
@@ -584,8 +584,8 @@ cdef class _PoolBase:
             self._set_baseline(baseline)
         if weight is not None:
             self._set_weight(weight)
-        if query_id is not None:
-            self._set_query_id(query_id)
+        if group_id is not None:
+            self._set_group_id(group_id)
         if pairs_weight is not None:
             self._set_pairs_weight(pairs_weight)
         if feature_names is not None:
@@ -600,8 +600,8 @@ cdef class _PoolBase:
         self.__pool.Docs.Clear()
         if len(data) == 0:
             return
-        cdef bool_t has_query_id = not self.__pool.Docs.QueryId.empty()
-        self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_query_id)
+        cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
+        self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_group_id)
         cdef TString factor_str
         cat_features = set(self.get_cat_feature_indices())
         for i in range(len(data)):
@@ -636,8 +636,8 @@ cdef class _PoolBase:
         for i in range(rows):
             self.__pool.Docs.Weight[i] = float(weight[i])
 
-    cpdef _set_query_id(self, query_id):
-        if query_id is None:
+    cpdef _set_group_id(self, group_id):
+        if group_id is None:
             self.__pool.Docs.QueryId.clear();
 
         rows = self.num_row()
@@ -645,7 +645,7 @@ cdef class _PoolBase:
             return
         self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True)
         for i in range(rows):
-            self.__pool.Docs.QueryId[i] = int(query_id[i])
+            self.__pool.Docs.QueryId[i] = int(group_id[i])
 
     cpdef _set_pairs_weight(self, pairs_weight):
         rows = self.num_pairs()

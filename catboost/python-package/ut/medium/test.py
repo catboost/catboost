@@ -257,7 +257,7 @@ def test_querywise():
     df = read_table(QUERY_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1], axis=1).astype(str)
 
-    model.fit(train_data, train_target, query_id=train_query_id)
+    model.fit(train_data, train_target, group_id=train_query_id)
     pred2 = model.predict(test_data)
     assert _check_data(pred1, pred2)
 
