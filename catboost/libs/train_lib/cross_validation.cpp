@@ -302,7 +302,6 @@ void CrossValidate(
     if (ctx->OutputOptions.AllowWriteFiles()) {
         AddFileLoggers(
             /*detailedProfile=*/false,
-            ctx->Params.BoostingOptions->IterationCount,
             ctx->Files.LearnErrorLogFile,
             ctx->Files.TestErrorLogFile,
             ctx->Files.TimeLeftLogFile,

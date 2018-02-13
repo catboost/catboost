@@ -30,7 +30,6 @@ void WriteHistory(
 
 void AddFileLoggers(
     bool detailedProfile,
-    int iterationCount,
     const TString& learnErrorLogFile,
     const TString& testErrorLogFile,
     const TString& timeLogFile,
@@ -57,7 +56,7 @@ void AddFileLoggers(
     logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TTimeFileLoggingBackend(timeLogFile)));
     logger->AddProfileBackend(jsonLoggingBackend);
     if (detailedProfile) {
-        logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TProfileLoggingBackend(profileLogFile, iterationCount)));
+        logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TProfileLoggingBackend(profileLogFile)));
     }
 }
 

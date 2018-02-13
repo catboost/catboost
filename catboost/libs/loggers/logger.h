@@ -178,15 +178,12 @@ private:
 
 class TProfileLoggingBackend : public ILoggingBackend {
 public:
-    explicit TProfileLoggingBackend(const TString& fileName, int iterationsCount)
-        : IterationsCount(iterationsCount)
-        , CurrentIteration(0)
-        , File(new TOFStream(fileName))
+    explicit TProfileLoggingBackend(const TString& fileName)
+        : File(new TOFStream(fileName))
     {
     }
 
     void OutputProfile(const TProfileResults& profileResults) {
-        ++CurrentIteration;
         Stream << "\nProfile:" << Endl;
         for (const auto& it : profileResults.OperationToTime) {
             Stream << it.first << ": " << FloatToString(it.second, PREC_NDIGITS, 3) << " sec" << Endl;
@@ -196,9 +193,8 @@ public:
             Stream << "\ttotal: " << HumanReadable(TDuration::Seconds(profileResults.PassedTime));
             Stream << "\tremaining: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime));
         }
-        if (CurrentIteration == IterationsCount) {
-            LogSummary(profileResults);
-        }
+        PassedIterations = profileResults.PassedIterations;
+        OperationToTimeInAllIterations = profileResults.OperationToTimeInAllIterations;
     }
 
     void Flush(const int currentIteration) {
@@ -206,31 +202,35 @@ public:
         Stream.Clear();
     }
 
+    ~TProfileLoggingBackend() {
+        LogSummary();
+    }
+
 private:
-    void LogSummary(const TProfileResults& profileResults) {
-        Stream << Endl << "\nAverage times:" << Endl;
-        if (profileResults.PassedIterations == 0) {
-            Stream << Endl << "No iterations recorded" << Endl;
+    void LogSummary() {
+        *File << Endl << "\nAverage times:" << Endl;
+        if (PassedIterations == 0) {
+            *File << Endl << "No iterations recorded" << Endl;
             return;
         }
 
         double time = 0;
-        for (const auto& it : profileResults.OperationToTimeInAllIterations) {
+        for (const auto& it : OperationToTimeInAllIterations) {
             time += it.second;
         }
-        time /= profileResults.PassedIterations;
-        Stream << "Iteration time: " << FloatToString(time, PREC_NDIGITS, 3) << " sec" << Endl;
+        time /= PassedIterations;
+        *File << "Iteration time: " << FloatToString(time, PREC_NDIGITS, 3) << " sec" << Endl;
 
-        for (const auto& it : profileResults.OperationToTimeInAllIterations) {
-            Stream << it.first << ": "
-                << FloatToString(it.second / profileResults.PassedIterations, PREC_NDIGITS, 3) << " sec" << Endl;
+        for (const auto& it : OperationToTimeInAllIterations) {
+            *File << it.first << ": "
+                << FloatToString(it.second / PassedIterations, PREC_NDIGITS, 3) << " sec" << Endl;
         }
     }
 
-    int IterationsCount;
-    int CurrentIteration;
-    TStringStream Stream;
     THolder<TOFStream> File;
+    TStringStream Stream;
+    int PassedIterations;
+    TMap<TString, double> OperationToTimeInAllIterations;
 };
 
 class TErrorFileLoggingBackend : public ILoggingBackend {
@@ -401,7 +401,6 @@ void WriteHistory(
 
 void AddFileLoggers(
     bool detailedProfile,
-    int iterationCount,
     const TString& learnErrorLogFile,
     const TString& testErrorLogFile,
     const TString& timeLogFile,

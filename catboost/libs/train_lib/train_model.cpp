@@ -86,7 +86,6 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     if (ctx->OutputOptions.AllowWriteFiles()) {
         AddFileLoggers(
             ctx->Params.IsProfile,
-            ctx->Params.BoostingOptions->IterationCount,
             ctx->Files.LearnErrorLogFile,
             ctx->Files.TestErrorLogFile,
             ctx->Files.TimeLeftLogFile,
