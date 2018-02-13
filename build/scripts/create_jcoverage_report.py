@@ -13,7 +13,7 @@ def mkdir_p(path):
         pass
 
 
-def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format):
+def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format, tar_output, agent_disposition):
     reports_dir = 'jacoco_reports_dir'
     mkdir_p(reports_dir)
     with tarfile.open(source) as tf:
@@ -29,7 +29,6 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
     mkdir_p(src_dir)
     mkdir_p(cls_dir)
 
-    agent_disposition = None
     for jar in jars:
         if jar.endswith('devtools-jacoco-agent.jar'):
             agent_disposition = jar
@@ -50,7 +49,10 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
     if not agent_disposition:
         print>>sys.stderr, 'Can\'t find jacoco agent. Will not generate html report for java coverage.'
 
-    report_dir = 'java.report.temp'
+    if tar_output:
+        report_dir = 'java.report.temp'
+    else:
+        report_dir = output
     mkdir_p(report_dir)
 
     if agent_disposition:
@@ -58,8 +60,9 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
         agent_cmd += reports
         subprocess.check_call(agent_cmd)
 
-    with tarfile.open(output, 'w') as outf:
-        outf.add(report_dir, arcname='.')
+    if tar_output:
+        with tarfile.open(output, 'w') as outf:
+            outf.add(report_dir, arcname='.')
 
 
 if __name__ == '__main__':
@@ -72,5 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('--exclude-filter', action='store')
     parser.add_argument('--jars-list', action='store')
     parser.add_argument('--output-format', action='store', default="html")
+    parser.add_argument('--raw-output', dest='tar_output', action='store_false', default=True)
+    parser.add_argument('--agent-disposition', action='store')
     args = parser.parse_args()
     main(**vars(args))
