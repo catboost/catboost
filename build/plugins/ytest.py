@@ -710,3 +710,8 @@ def onrun(unit, *args):
 def onsetup_exectest(unit, *args):
     unit.set(["TEST_BLOB_DATA", base64.b64encode(unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", ""))])
     add_test_to_dart(unit, "exectest", binary_path=os.path.join(unit.path(), unit.filename()).replace(".pkg", ""))
+
+
+def onsetup_run_python(unit):
+    if unit.get("USE_ARCADIA_PYTHON") == "yes":
+        unit.ondepends('contrib/tools/python')
