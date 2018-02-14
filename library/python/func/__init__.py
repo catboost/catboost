@@ -1,5 +1,6 @@
 import functools
 import threading
+import collections
 
 
 def map0(func, value):
@@ -43,26 +44,37 @@ def lazy_property(fn):
     return _lazy_property
 
 
-def memoize(thread_safe=False):
+def memoize(thread_safe=False, limit=0):
+    assert limit >= 0
 
     def decorator(func):
-
         @functools.wraps(func)
-        def wrapper_with_memory(memory, lock):
+        def wrapper_with_memory(memory, lock, keys):
+            # remove branching for options
+            if limit:
+                def get(args):
+                    if args not in memory:
+                        memory[args] = func(*args)
+                        keys.append(args)
+                        if len(keys) > limit:
+                            del memory[keys.popleft()]
+                    return memory[args]
+            else:
+                def get(args):
+                    if args not in memory:
+                        memory[args] = func(*args)
+                    return memory[args]
 
-            def get(args):
-                if args not in memory:
-                    memory[args] = func(*args)
-                return memory[args]
-
-            def wrapper(*args):
-                if lock:
+            if thread_safe:
+                def wrapper(*args):
                     with lock:
                         return get(args)
-                return get(args)
+            else:
+                def wrapper(*args):
+                    return get(args)
 
             return wrapper
-        return wrapper_with_memory({}, threading.Lock() if thread_safe else None)
+        return wrapper_with_memory({}, threading.Lock() if thread_safe else None, collections.deque() if limit else None)
     return decorator
 
 

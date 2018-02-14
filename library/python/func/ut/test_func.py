@@ -49,6 +49,10 @@ def test_memoize():
     def t6():
         return Counter.inc()
 
+    @func.memoize(limit=2)
+    def t7(a, _b):
+        return a, Counter.inc()
+
     assert (1, 1) == t1(1)
     assert (1, 1) == t1(1)
     assert (2, 2) == t1(2)
@@ -76,6 +80,14 @@ def test_memoize():
 
     assert 11 == t6()
     assert 11 == t6()
+
+    assert (1, 12) == t7(1, None)
+    assert (2, 13) == t7(2, None)
+    assert (1, 12) == t7(1, None)
+    assert (2, 13) == t7(2, None)
+    # removed result for (1, None)
+    assert (3, 14) == t7(3, None)
+    assert (1, 15) == t7(1, None)
 
     class ClassWithMemoizedMethod(object):
 
