@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
         Clog << "Models are equal" << Endl;
         return 0;
     }
-    Clog << "Core model differ" << Endl;
     if (model1.ObliviousTrees.FloatFeatures != model2.ObliviousTrees.FloatFeatures) {
         Clog << "FloatFeatures differ" << Endl;
         if (model1.ObliviousTrees.FloatFeatures.size() != model2.ObliviousTrees.FloatFeatures.size()) {
@@ -48,11 +47,35 @@ int main(int argc, char** argv) {
             }
         }
     }
-    if (model1.ObliviousTrees.CatFeatures != model2.ObliviousTrees.CatFeatures) {
+     if (model1.ObliviousTrees.CatFeatures != model2.ObliviousTrees.CatFeatures) {
         Clog << "CatFeatures differ" << Endl;
+     }
+     if (model1.ObliviousTrees.OneHotFeatures != model2.ObliviousTrees.OneHotFeatures) {
+        Clog << "OneHotFeatures differ" << Endl;
+        if (model1.ObliviousTrees.OneHotFeatures.size() != model2.ObliviousTrees.OneHotFeatures.size()) {
+            Clog << "OneHotFeatures size differ" << Endl;
+        } else {
+            for (size_t i = 0; i < model1.ObliviousTrees.OneHotFeatures.size(); ++i) {
+                auto& feature1 = model1.ObliviousTrees.OneHotFeatures[i];
+                auto& feature2 = model2.ObliviousTrees.OneHotFeatures[i];
+                FeatureBordersDiff(i, feature1.Values, feature2.Values);
+            }
+        }
+     }
+     if (model1.ObliviousTrees.CtrFeatures != model2.ObliviousTrees.CtrFeatures) {
+        Clog << "CTRFeatures differ" << Endl;
+        if (model1.ObliviousTrees.CtrFeatures.size() != model2.ObliviousTrees.CtrFeatures.size()) {
+            Clog << "CTRFeatures size differ" << Endl;
+        } else {
+            for (size_t i = 0; i < model1.ObliviousTrees.CtrFeatures.size(); ++i) {
+                auto& feature1 = model1.ObliviousTrees.CtrFeatures[i];
+                auto& feature2 = model2.ObliviousTrees.CtrFeatures[i];
+                FeatureBordersDiff(i, feature1.Borders, feature2.Borders);
+            }
+        }
     }
     if (model1.ObliviousTrees != model2.ObliviousTrees) { //TODO(kirillovs): add detailed tree comparator
-        Clog << "CatFeatures differ" << Endl;
+        Clog << "Oblivious trees differ" << Endl;
     }
     if (model1.ModelInfo != model2.ModelInfo) {
         Clog << "ModelInfo differ" << Endl;
