@@ -100,7 +100,7 @@ struct TSplit : public TSplitCandidate {
     inline void Load(IInputStream* s) {
         ::LoadMany(s, static_cast<TSplitCandidate&>(*this), BinBorder);
     }
-    TModelSplit GetModelSplit(const TLearnContext& ctx) const;
+    TModelSplit GetModelSplit(const TLearnContext& ctx, const TTrainData& learnData) const;
 
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;

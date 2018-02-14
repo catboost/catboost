@@ -29,7 +29,6 @@
 static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     ui32 checkSum = 0;
     checkSum = CalcMatrixCheckSum(checkSum, allFeatures.FloatHistograms);
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.CatFeatures);
     checkSum = CalcMatrixCheckSum(checkSum, allFeatures.CatFeaturesRemapped);
     checkSum = CalcMatrixCheckSum(checkSum, allFeatures.OneHotValues);
     return checkSum;
@@ -362,7 +361,7 @@ class TCPUModelTrainer : public IModelTrainer {
             for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
                 TVector<TModelSplit> modelSplits;
                 for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
-                    auto modelSplit = split.GetModelSplit(ctx);
+                    auto modelSplit = split.GetModelSplit(ctx, trainData);
                     modelSplits.push_back(modelSplit);
                     if (modelSplit.Type == ESplitType::OnlineCtr) {
                         featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;

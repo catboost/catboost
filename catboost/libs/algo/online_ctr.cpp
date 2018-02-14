@@ -264,8 +264,29 @@ void ComputeOnlineCTRs(const TTrainData& data,
     Y_STATIC_THREAD(THashArr) tlsHashArr;
     Y_STATIC_THREAD(TRehashHash) rehashHashTlsVal;
     TVector<ui64>& hashArr = tlsHashArr.Get();
-    CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, &hashArr);
-    rehashHashTlsVal.Get().MakeEmpty(fold.LearnPermutation.size());
+    if (proj.IsSingleCatFeature()) {
+        // Shortcut for simple ctrs
+        Clear(&hashArr, fold.EffectiveDocCount);
+        const int* featureValues = data.AllFeatures.CatFeaturesRemapped[proj.CatFeatures[0]].data();
+        const auto* permutation = fold.LearnPermutation.data();
+        for (size_t i = 0; i < fold.LearnPermutation.size(); ++i) {
+            hashArr[i] = ((ui64)featureValues[permutation[i]]) + 1;
+        }
+        for (size_t i = fold.LearnPermutation.size(); i < fold.EffectiveDocCount; ++i) {
+            hashArr[i] = ((ui64)featureValues[i]) + 1;
+        }
+        rehashHashTlsVal.Get().MakeEmpty(data.AllFeatures.OneHotValues[proj.CatFeatures[0]].size());
+    } else {
+        CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, false, &hashArr);
+        size_t approxBucketsCount = 1;
+        for (auto cf : proj.CatFeatures) {
+            approxBucketsCount *= data.AllFeatures.OneHotValues[cf].size();
+            if (approxBucketsCount > fold.LearnPermutation.size()) {
+                break;
+            }
+        }
+        rehashHashTlsVal.Get().MakeEmpty(Min(fold.LearnPermutation.size(), approxBucketsCount));
+    }
     ui64 topSize = ctx->Params.CatFeatureParams->CtrLeafCountLimit;
     if (proj.IsSingleCatFeature() && ctx->Params.CatFeatureParams->StoreAllSimpleCtrs) {
         topSize = Max<ui64>();
@@ -444,7 +465,7 @@ void CalcFinalCtrs(const ECtrType ctrType, const TProjection& projection, const 
         sampleCount = data.GetSampleCount();
     }
     TVector<ui64> hashArr;
-    CalcHashes(projection, data.AllFeatures, sampleCount, learnPermutation, &hashArr);
+    CalcHashes(projection, data.AllFeatures, sampleCount, learnPermutation, true, &hashArr);
 
     if (projection.IsSingleCatFeature() && storeAllSimpleCtr) {
         ctrLeafCountLimit = Max<ui64>();

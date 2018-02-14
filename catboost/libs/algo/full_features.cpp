@@ -5,6 +5,7 @@
 #include <catboost/libs/data/load_data.h>
 
 #include <library/threading/local_executor/local_executor.h>
+#include <util/generic/set.h>
 
 static void AddReason(TVector<ui8>* hist,
                       const TDocumentStorage& docStorage,
@@ -57,7 +58,6 @@ static void ExtractBoolsFromDocInfo(const TVector<size_t>& docIndices,
                                     NPar::TLocalExecutor& localExecutor,
                                     TDocumentStorage* docStorage,
                                     TVector<TVector<ui8>>* hist,
-                                    TVector<TVector<int>>* catFeatures,
                                     TVector<TVector<int>>* catFeaturesRemapped,
                                     TVector<TVector<int>>* oneHotValues,
                                     TVector<bool>* isOneHot) {
@@ -76,7 +76,6 @@ static void ExtractBoolsFromDocInfo(const TVector<size_t>& docIndices,
         }
     }
 
-    catFeatures->resize(catFeatureIdx, TVector<int>(docStorage->GetDocCount()));
     catFeaturesRemapped->resize(catFeatureIdx, TVector<int>(docStorage->GetDocCount()));
     oneHotValues->resize(catFeatureIdx);
     isOneHot->resize(catFeatureIdx, false);
@@ -87,7 +86,6 @@ static void ExtractBoolsFromDocInfo(const TVector<size_t>& docIndices,
         int lastFeatureIdx = Min((blockId + 1) * BlockSize, (int)featureCount);
         for (int featureIdx = blockId * BlockSize; featureIdx  < lastFeatureIdx; ++featureIdx) {
             if (categFeatures.has(featureIdx)) {
-                TVector<int>& dst = (*catFeatures)[reasonTargetIdx[featureIdx]];
                 TVector<int>& dstRemapped = (*catFeaturesRemapped)[reasonTargetIdx[featureIdx]];
                 TVector<int>& dstValues = (*oneHotValues)[reasonTargetIdx[featureIdx]];
                 bool& dstIsOneHot = (*isOneHot)[reasonTargetIdx[featureIdx]];
@@ -101,29 +99,49 @@ static void ExtractBoolsFromDocInfo(const TVector<size_t>& docIndices,
                 }
 
                 if (ignoredFeaturesSet.has(featureIdx) || isRedundantFeature) {
-                    ClearVector(&dst);
                     ClearVector(&dstRemapped);
                     ClearVector(&dstValues);
                 } else {
-                    for (size_t i = 0; i < docStorage->GetDocCount(); ++i) {
-                        dst[i] = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
-                    }
-
-                    THashSet<int> uniqueFeatures;
                     if (learnSampleCount != LearnNotSet) {
-                        uniqueFeatures = THashSet<int>(dst.begin(), dst.begin() + learnSampleCount);
-                    }
-                    if (uniqueFeatures.size() <= oneHotMaxSize && learnSampleCount != LearnNotSet) {
-                        dstIsOneHot = true;
-
-                        dstValues.assign(uniqueFeatures.begin(), uniqueFeatures.end());
-                        Sort(dstValues.begin(), dstValues.end());
-
-                        for (size_t i = 0; i < docStorage->GetDocCount(); ++i) {
-                            dstRemapped[i] = LowerBound(dstValues.begin(), dstValues.end(), dst[i]) - dstValues.begin();
-                            if (dstRemapped[i] < dstValues.ysize() && dst[i] != dstValues[dstRemapped[i]]) {
-                                dstRemapped[i] = dstValues.ysize();
+                        using TCatFeaturesRemap = THashMap<int, int>;
+                        TCatFeaturesRemap uniqueFeaturesRemap;
+                        TSet<int> uniqueVals;
+                        for (int i = 0; i < learnSampleCount; ++i) {
+                            const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
+//                          TODO(kirillovs): use THashMap here as the next step of cat feature hashes vector elimination
+//                                           (i want to canonize less tests each commit)
+//                          TCatFeaturesRemap::insert_ctx ctx = nullptr;
+//                          TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val, ctx);
+//                          if (it == uniqueFeaturesRemap.end()) {
+//                              it = uniqueFeaturesRemap.emplace_direct(ctx, val, (int)uniqueFeaturesRemap.size());
+//                          }
+                            uniqueVals.insert(val);
+                        }
+                        if (uniqueVals.size() <= oneHotMaxSize) {
+                            dstIsOneHot = true;
+                        } else {
+                            // We store all hash values only for non one-hot features
+                            dstIsOneHot = false;
+                            for (int i = learnSampleCount; i < (int)docStorage->GetDocCount(); ++i) {
+                                const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
+                                uniqueVals.insert(val);
                             }
+                        }
+                        for (auto& uv : uniqueVals) {
+                            uniqueFeaturesRemap.emplace(uv, uniqueFeaturesRemap.size());
+                        }
+                        uniqueVals.clear();
+                        for (int i = 0; i < (int)docStorage->GetDocCount(); ++i) {
+                            const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
+                            if (uniqueFeaturesRemap.has(val)) {
+                                dstRemapped[i] = uniqueFeaturesRemap[val];
+                            } else {
+                                dstRemapped[i] = static_cast<int>(uniqueFeaturesRemap.size());
+                            }
+                        }
+                        dstValues.resize(uniqueFeaturesRemap.size());
+                        for (const auto& kv : uniqueFeaturesRemap) {
+                            dstValues[kv.second] = kv.first;
                         }
                     } else {
                         ClearVector(&dstRemapped);
@@ -187,12 +205,11 @@ void PrepareAllFeaturesFromPermutedDocs(const TVector<size_t>& docIndices,
                             localExecutor,
                             docStorage,
                             &allFeatures->FloatHistograms,
-                            &allFeatures->CatFeatures,
                             &allFeatures->CatFeaturesRemapped,
                             &allFeatures->OneHotValues,
                             &allFeatures->IsOneHot);
 
-    for (const auto& cf : allFeatures->CatFeatures) {
+    for (const auto& cf : allFeatures->CatFeaturesRemapped) {
         Y_ASSERT(cf.empty() || cf.size() == docStorage->GetDocCount());
     }
 }

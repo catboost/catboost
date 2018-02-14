@@ -14,7 +14,6 @@
 struct TAllFeatures {
     TVector<TVector<ui8>> FloatHistograms; // [featureIdx][doc]
     // FloatHistograms[featureIdx] might be empty if feature is const.
-    TVector<TVector<int>> CatFeatures; // [featureIdx][doc]
     TVector<TVector<int>> CatFeaturesRemapped; // [featureIdx][doc]
     TVector<TVector<int>> OneHotValues; // [featureIdx][valueIdx]
     TVector<bool> IsOneHot;

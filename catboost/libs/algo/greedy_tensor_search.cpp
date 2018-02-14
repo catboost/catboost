@@ -117,8 +117,8 @@ static void AddOneHotFeatures(const TTrainData& data,
                               TLearnContext* ctx,
                               TBucketStatsCache* statsFromPrevTree,
                               TCandidateList* candList) {
-    for (int cf = 0; cf < data.AllFeatures.CatFeatures.ysize(); ++cf) {
-        if (data.AllFeatures.CatFeatures[cf].empty() ||
+    for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+        if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
             !data.AllFeatures.IsOneHot[cf]) {
             continue;
         }
@@ -188,8 +188,8 @@ static void AddSimpleCtrs(const TTrainData& data,
                           TLearnContext* ctx,
                           TBucketStatsCache* statsFromPrevTree,
                           TCandidateList* candList) {
-    for (int cf = 0; cf < data.AllFeatures.CatFeatures.ysize(); ++cf) {
-        if (data.AllFeatures.CatFeatures[cf].empty() ||
+    for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+        if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
             data.AllFeatures.IsOneHot[cf]) {
             continue;
         }
@@ -230,8 +230,8 @@ static void AddTreeCtrs(const TTrainData& data,
         if (baseProj.IsEmpty()) {
             continue;
         }
-        for (int cf = 0; cf < data.AllFeatures.CatFeatures.ysize(); ++cf) {
-            if (data.AllFeatures.CatFeatures[cf].empty() ||
+        for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+            if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
                 data.AllFeatures.IsOneHot[cf] ||
                 ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
                 continue;
@@ -448,6 +448,7 @@ void GreedyTensorSearch(const TTrainData& data,
         for (const auto& subList : candList) {
             for (const auto& candidate : subList.Candidates) {
                 double score = candidate.BestScore.GetInstance(ctx->Rand);
+                // MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = " << score << "\t";
                 TProjection projection = candidate.SplitCandidate.Ctr.Projection;
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
@@ -464,6 +465,7 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
             }
         }
+        // MATRIXNET_INFO_LOG << Endl;
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
@@ -484,8 +486,6 @@ void GreedyTensorSearch(const TTrainData& data,
                                   &fold->GetCtrRef(proj));
                 DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
             }
-        } else if (bestSplit.Type == ESplitType::OneHotFeature) {
-            bestSplit.BinBorder = data.AllFeatures.OneHotValues[bestSplit.FeatureIdx][bestSplit.BinBorder];
         }
         SetPermutedIndices(bestSplit, data.AllFeatures, curDepth + 1, *fold, &indices, ctx);
         if (isSamplingPerTree) {

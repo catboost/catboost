@@ -7,21 +7,48 @@
 
 #include <library/containers/dense_hash/dense_hash.h>
 
+/**
+ * Calculate hashes for CTR bucket identification
+ * @param proj
+ * @param af
+ * @param sampleCount
+ * @param learnPermutation
+ * @param calculateExactCatHashes enable calculation of hashes for model (use original cat feature hash values)
+ * @param [out]res result
+ */
 inline void CalcHashes(const TProjection& proj,
                        const TAllFeatures& af,
                        size_t sampleCount,
                        const TVector<int>& learnPermutation,
+                       bool calculateExactCatHashes,
                        TVector<ui64>* res) {
     TVector<ui64>& hashArr = *res;
     Clear(&hashArr, sampleCount);
+    TVector<int> exactValues;
     const size_t learnSize = learnPermutation.size();
     for (const int featureIdx : proj.CatFeatures) {
-        const int* featureValues = af.CatFeatures[featureIdx].data();
-        for (size_t i = 0; i < learnSize; ++i) {
-            hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[learnPermutation[i]]);
-        }
-        for (size_t i = learnSize; i < sampleCount; ++i) {
-            hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[i]);
+        const int* featureValues = af.CatFeaturesRemapped[featureIdx].data();
+        if (calculateExactCatHashes) {
+            // Calculate hashes for model CTR table
+            exactValues.resize(af.CatFeaturesRemapped[featureIdx].size());
+            auto& ohv = af.OneHotValues[featureIdx];
+            for (size_t i = 0; i < sampleCount; ++i) {
+                exactValues[i] = ohv[featureValues[i]];
+            }
+            featureValues = exactValues.data();
+            for (size_t i = 0; i < learnSize; ++i) {
+                hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[learnPermutation[i]]);
+            }
+            for (size_t i = learnSize; i < sampleCount; ++i) {
+                hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[i]);
+            }
+        } else {
+            for (size_t i = 0; i < learnSize; ++i) {
+                hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[learnPermutation[i]] + 1);
+            }
+            for (size_t i = learnSize; i < sampleCount; ++i) {
+                hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[i] + 1);
+            }
         }
     }
 
@@ -38,7 +65,7 @@ inline void CalcHashes(const TProjection& proj,
     }
 
     for (const TOneHotSplit& feature : proj.OneHotFeatures) {
-        const int* featureValues = af.CatFeatures[feature.CatFeatureIdx].data();
+        const int* featureValues = af.CatFeaturesRemapped[feature.CatFeatureIdx].data();
         for (size_t i = 0; i < learnSize; ++i) {
             const bool isTrueFeature = IsTrueOneHotFeature(featureValues[learnPermutation[i]], feature.Value);
             hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
@@ -51,11 +78,10 @@ inline void CalcHashes(const TProjection& proj,
 }
 
 
-/* Function for calculation of zero based bucket numbers for given hash values array.
-   if number of unique values in hashVecPtr is greater than topSize and topSize + trashMask + 1 > learnSize
-   only topSize hash values would be reindexed directly, rest will be remapped into trash bins: trash_hash = hash & trashMask
-   trashMask is bitmask
-
-   Function returns pair of (number of leaves for learn, number of leaves for test)
+/**
+ *  Function for calculation of zero based bucket numbers for given hash values array.
+ *  if number of unique values in hashVecPtr is greater than topSize and topSize + trashMask + 1 > learnSize
+ *  only topSize hash values would be reindexed directly, rest will be remapped into single bin
+ *  Function returns pair of (number of leaves for learn, number of leaves for test)
 */
 std::pair<size_t, size_t> ReindexHash(size_t learnSize, ui64 topSize, TVector<ui64>* hashVecPtr, TDenseHash<ui64, ui32>* reindexHashPtr);

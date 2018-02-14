@@ -27,7 +27,7 @@ static inline const TVector<ui8>& GetFloatHistogram(const TSplit& split, const T
 }
 
 static inline const TVector<int>& GetRemappedCatFeatures(const TSplit& split, const TAllFeatures& features) {
-    return features.CatFeatures[split.FeatureIdx];
+    return features.CatFeaturesRemapped[split.FeatureIdx];
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
@@ -221,9 +221,9 @@ int GetDocCount(const TAllFeatures& features) {
         if (!features.FloatHistograms[i].empty())
             return features.FloatHistograms[i].ysize();
     }
-    for (int i = 0; i < features.CatFeatures.ysize(); ++i) {
-        if (!features.CatFeatures[i].empty())
-            return features.CatFeatures[i].ysize();
+    for (int i = 0; i < features.CatFeaturesRemapped.ysize(); ++i) {
+        if (!features.CatFeaturesRemapped[i].empty())
+            return features.CatFeaturesRemapped[i].ysize();
     }
     return 0;
 }

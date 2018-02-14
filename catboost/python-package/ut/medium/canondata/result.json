@@ -32,15 +32,15 @@
         "uri": "file://test.test_feature_importance/feature_importance.npy"
     },
     "test.test_fit_data": {
-        "checksum": "0eb3af2d2b0f6cce00b9fc5cef25eba8",
+        "checksum": "6254aef8597589d4f394599f43de71d8",
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "683d270ff7682dc0f7a6983d4e965b67",
+        "checksum": "5150c6a94a37de28c86e44c72794cef1",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "955d6726712349965e8c3731480f7c29",
+        "checksum": "ee93da3823c996b886a1ba43d3c458d9",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
@@ -48,7 +48,7 @@
         "uri": "file://test.test_interaction_feature_importance/feature_importance.npy"
     },
     "test.test_multiclass": {
-        "checksum": "ca6b4c7ac7c9e5ec6fe8e36301dc243b",
+        "checksum": "13c95bda9333506f4f782888a213530c",
         "uri": "file://test.test_multiclass/predictions.npy"
     },
     "test.test_non_ones_weight": {
