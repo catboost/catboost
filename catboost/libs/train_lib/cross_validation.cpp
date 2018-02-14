@@ -1,5 +1,7 @@
 #include "cross_validation.h"
+
 #include "train_model.h"
+#include "preprocess.h"
 
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
@@ -92,21 +94,13 @@ static void PrepareFolds(
             fold.Target.push_back(pool.Docs.Target[idx]);
             fold.Weights.push_back(pool.Docs.Weight[idx]);
         }
-
-        if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
-            PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &fold.Target);
-            float minTarget = *MinElement(fold.Target.begin(), fold.Target.begin() + fold.LearnSampleCount);
-            float maxTarget = *MaxElement(fold.Target.begin(), fold.Target.begin() + fold.LearnSampleCount);
-            CB_ENSURE(minTarget == 0, "All targets are greater than border");
-            CB_ENSURE(maxTarget == 1, "All targets are smaller than border");
-        }
-
         for (int dim = 0; dim < pool.Docs.GetBaselineDimension(); ++dim) {
             fold.Baseline[dim].reserve(pool.Docs.GetDocCount());
             for (auto idx : docIndices) {
                 fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][idx]);
             }
         }
+
         if (hasQuery) {
             fold.QueryId.reserve(pool.Docs.GetDocCount());
             for (size_t idx = 0; idx < docIndices.size(); ++idx) {
@@ -116,6 +110,9 @@ static void PrepareFolds(
             fold.LearnQueryCount = fold.QueryInfo.ysize();
             UpdateQueriesInfo(fold.QueryId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
         }
+
+        const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
+        PreprocessAndCheck(lossDescription, fold.LearnSampleCount, fold.QueryId, classWeights, &fold.Weights, &fold.Target);
 
         PrepareAllFeaturesFromPermutedDocs(
             docIndices,
@@ -209,20 +206,13 @@ void CrossValidate(
 
     auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
-    float minTarget = *MinElement(pool.Docs.Target.begin(), pool.Docs.Target.end());
-    float maxTarget = *MaxElement(pool.Docs.Target.begin(), pool.Docs.Target.end());
-    CB_ENSURE(minTarget != maxTarget, "All targets are equal");
-
     if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-        CB_ENSURE(AllOf(pool.Docs.Target, [] (float target) { return floor(target) == target && target >= 0; }),
-                  "Each target label should be non-negative integer for Multiclass/MultiClassOneVsAll loss function");
         for (const auto& context : contexts) {
             context->LearnProgress.ApproxDimension = GetClassesCount(
                 pool.Docs.Target,
                 static_cast<int>(context->Params.DataProcessingOptions->ClassesCount)
             );
         }
-        CB_ENSURE(ctx->LearnProgress.ApproxDimension > 1, "All targets are equal");
     }
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
