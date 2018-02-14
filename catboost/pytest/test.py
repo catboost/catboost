@@ -93,6 +93,34 @@ def test_queryaverage():
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_pfound():
+    top_sizes = [2, 5, 10, -1]
+    learn_error_paths = [yatest.common.test_output_path('learn_error_{}.tsv'.format(top_size)) for top_size in top_sizes]
+    test_error_paths = [yatest.common.test_output_path('test_error_{}.tsv'.format(top_size)) for top_size in top_sizes]
+
+    def run_catboost(top_size, learn_error_path, test_error_path):
+        cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'QueryRMSE',
+            '-f', data_file('querywise_pool', 'train_full3'),
+            '-t', data_file('querywise_pool', 'test3'),
+            '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '--custom-metric', 'PFound:top=2',
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+        )
+        yatest.common.execute(cmd)
+
+    for args in zip(top_sizes, learn_error_paths, test_error_paths):
+        run_catboost(*args)
+
+    return [local_canonical_file(error_path) for error_path in learn_error_paths + test_error_paths]
+
+
 def test_queryrmse_approx_on_full_history():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

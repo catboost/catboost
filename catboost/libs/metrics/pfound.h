@@ -10,14 +10,14 @@
 class TPFoundCalcer {
 public:
 
-    explicit TPFoundCalcer(ui32 depth = -1,
-                           double decay = 0.85)
-    : Depth(depth)
-    , Decay(decay) {
+    explicit TPFoundCalcer(ui32 depth = -1, double decay = 0.85)
+        : Depth(depth)
+        , Decay(decay)
+    {
     }
 
-    template <class TFloatType>
-    void AddQuery(const TFloatType* relevs, const TFloatType* approxes, const ui32* subgroupData, ui32 querySize) {
+    template <class TRelevsType, class TApproxType>
+    void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, const ui32* subgroupData, ui32 querySize) {
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
         Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
@@ -30,12 +30,11 @@ public:
         TSet<ui32> subgroupIds;
         for (ui32 position = 0; position < depth; position++) {
             const int docId = qurls[position];
-            const ui32 subgroupId = subgroupData[docId];
-            if (subgroupData != nullptr && subgroupIds.has(subgroupId)) {
-                continue;
-            }
-
             if (subgroupData != nullptr) {
+                const ui32 subgroupId = subgroupData[docId];
+                if (subgroupIds.has(subgroupId)) {
+                    continue;
+                }
                 subgroupIds.insert(subgroupId);
             }
 

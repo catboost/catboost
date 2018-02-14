@@ -541,6 +541,40 @@
             "uri": "file://test.test_permutation_block/test.eval"
         }
     ],
+    "test.test_pfound": [
+        {
+            "checksum": "012ff2ab47ec8cd234cc96eea99e2356",
+            "uri": "file://test.test_pfound/learn_error_2.tsv"
+        },
+        {
+            "checksum": "012ff2ab47ec8cd234cc96eea99e2356",
+            "uri": "file://test.test_pfound/learn_error_5.tsv"
+        },
+        {
+            "checksum": "012ff2ab47ec8cd234cc96eea99e2356",
+            "uri": "file://test.test_pfound/learn_error_10.tsv"
+        },
+        {
+            "checksum": "012ff2ab47ec8cd234cc96eea99e2356",
+            "uri": "file://test.test_pfound/learn_error_-1.tsv"
+        },
+        {
+            "checksum": "cbc936665e831e3ae128567d92d12b97",
+            "uri": "file://test.test_pfound/test_error_2.tsv"
+        },
+        {
+            "checksum": "cbc936665e831e3ae128567d92d12b97",
+            "uri": "file://test.test_pfound/test_error_5.tsv"
+        },
+        {
+            "checksum": "cbc936665e831e3ae128567d92d12b97",
+            "uri": "file://test.test_pfound/test_error_10.tsv"
+        },
+        {
+            "checksum": "cbc936665e831e3ae128567d92d12b97",
+            "uri": "file://test.test_pfound/test_error_-1.tsv"
+        }
+    ],
     "test.test_plain": [
         {
             "checksum": "06119050c7c1e89cd59600875d4ea091",

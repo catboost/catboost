@@ -51,6 +51,7 @@ TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
         return metric.Eval(approx,
                            target,
                            weights,
+                           {},
                            0,
                            docCount,
                            Executor);
@@ -112,6 +113,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics() {
                 MetricPlots[metricId][idx] = Metrics[metricId]->Eval(approx,
                                                                      target,
                                                                      weights,
+                                                                     {},
                                                                      0,
                                                                      target.size(),
                                                                      Executor);
