@@ -1,5 +1,7 @@
 #include "train_model.h"
 
+#include "preprocess.h"
+
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/algo/train.h>
@@ -23,22 +25,6 @@
 #include <util/generic/vector.h>
 #include <catboost/app/output_fstr.h>
 #include <util/system/info.h>
-
-// TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
-static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
-    THashSet<ui32> queryGroupIds;
-    ui32 lastId = queryIds.empty() ? 0 : queryIds[0];
-    for (ui32 id : queryIds) {
-        if (id != lastId) {
-            if (queryGroupIds.has(id)) {
-                return false;
-            }
-            queryGroupIds.insert(lastId);
-            lastId = id;
-        }
-    }
-    return true;
-}
 
 static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     ui32 checkSum = 0;
@@ -237,14 +223,13 @@ class TCPUModelTrainer : public IModelTrainer {
         TFullModel* modelPtr,
         TEvalResult* evalResult
     ) const override {
-        CB_ENSURE(learnPool.Docs.GetDocCount() != 0, "Train dataset is empty");
-
         auto sortedCatFeatures = learnPool.CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
+
         if (testPool.Docs.GetDocCount() != 0) {
+            CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
             auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());
-
             CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
         }
         if ((modelPtr == nullptr) == outputOptions.GetResultModelFilename().empty()) {
@@ -279,62 +264,20 @@ class TCPUModelTrainer : public IModelTrainer {
             ctx.Params.DataProcessingOptions->HasTimeFlag = true;
         }
 
-        const NCatboostOptions::TLossDescription& lossDescription = ctx.Params.LossFunctionDescription;
-        ELossFunction lossFunction = lossDescription.GetLossFunction();
         if (!ctx.Params.DataProcessingOptions->HasTimeFlag) {
             Shuffle(learnPool.Docs.QueryId, ctx.Rand, &indices);
         }
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
         auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
-        TTrainData trainData;
-        trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
-
         UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &ctx.Params.BoostingOptions->BoostingType);
 
-        trainData.Target.reserve(learnPool.Docs.GetDocCount() + testPool.Docs.GetDocCount());
+        ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
+        TTrainData trainData = BuildTrainData(lossFunction, learnPool, testPool);
 
-        trainData.Pairs.reserve(learnPool.Pairs.size() + testPool.Pairs.size());
-        trainData.Pairs.insert(trainData.Pairs.end(), learnPool.Pairs.begin(), learnPool.Pairs.end());
-        trainData.Pairs.insert(trainData.Pairs.end(), testPool.Pairs.begin(), testPool.Pairs.end());
-        for (int pairInd = learnPool.Pairs.ysize(); pairInd < trainData.Pairs.ysize(); ++pairInd) {
-            trainData.Pairs[pairInd].WinnerId += trainData.LearnSampleCount;
-            trainData.Pairs[pairInd].LoserId += trainData.LearnSampleCount;
-        }
-
-        bool trainHasBaseline = learnPool.Docs.GetBaselineDimension() != 0;
-        bool testHasBaseline = trainHasBaseline;
-        if (testPool.Docs.GetDocCount() != 0) {
-            testHasBaseline = testPool.Docs.GetBaselineDimension() != 0;
-        }
-        if (trainHasBaseline && !testHasBaseline) {
-            CB_ENSURE(false, "Baseline for test is not provided");
-        }
-        if (testHasBaseline && !trainHasBaseline) {
-            CB_ENSURE(false, "Baseline for train is not provided");
-        }
-        if (trainHasBaseline && testHasBaseline && testPool.Docs.GetDocCount() != 0) {
-            CB_ENSURE(learnPool.Docs.GetBaselineDimension() == testPool.Docs.GetBaselineDimension(), "Baseline dimensions differ.");
-        }
-
-        bool nonZero = !AllOf(learnPool.Docs.Weight, [] (float weight) { return weight == 0; });
-        CB_ENSURE(nonZero, "All documents have zero weights");
-
-        trainData.Target = learnPool.Docs.Target;
-        trainData.Weights = learnPool.Docs.Weight;
-        trainData.QueryId = learnPool.Docs.QueryId;
-        trainData.Baseline = learnPool.Docs.Baseline;
-
-        float minTarget = *MinElement(trainData.Target.begin(), trainData.Target.end());
-        float maxTarget = *MaxElement(trainData.Target.begin(), trainData.Target.end());
-        CB_ENSURE(minTarget != maxTarget || IsPairwiseError(lossFunction), "All targets are equal");
-
-        trainData.Target.insert(trainData.Target.end(), testPool.Docs.Target.begin(), testPool.Docs.Target.end());
-        trainData.Weights.insert(trainData.Weights.end(), testPool.Docs.Weight.begin(), testPool.Docs.Weight.end());
-        trainData.QueryId.insert(trainData.QueryId.end(), testPool.Docs.QueryId.begin(), testPool.Docs.QueryId.end());
-        for (int dim = 0; dim < testPool.Docs.GetBaselineDimension(); ++dim) {
-            trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
-        }
+        if (IsMultiClassError(lossFunction)) {
+             ctx.LearnProgress.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
+         }
 
         TVector<THolder<IMetric>> metrics = CreateMetrics(
             ctx.Params.LossFunctionDescription,
@@ -352,60 +295,25 @@ class TCPUModelTrainer : public IModelTrainer {
             CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
         }
         if (!trainData.QueryId.empty()) {
-            bool isDataCorrect = IsCorrectQueryIdsFormat(trainData.QueryId);
-            if (testPool.Docs.GetDocCount() != 0) {
-                isDataCorrect &= learnPool.Docs.QueryId.back() != testPool.Docs.QueryId.front();
-            }
-            CB_ENSURE(isDataCorrect, "If query id is provided then train Pool & Test Pool should be grouped by QueryId and should have different QueryId");
-            //TODO(annaveronika): Allow no grouping by query id. Warning
-            //when same query id in train+test - no error.
             UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
             trainData.LearnQueryCount = trainData.QueryInfo.ysize();
             UpdateQueriesInfo(trainData.QueryId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
         }
 
-        if (lossFunction == ELossFunction::Logloss) {
-            PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &trainData.Target);
-            float minTarget = *MinElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-            float maxTarget = *MaxElement(trainData.Target.begin(), trainData.Target.begin() + trainData.LearnSampleCount);
-            CB_ENSURE(minTarget == 0, "All targets are greater than border");
-            CB_ENSURE(maxTarget == 1, "All targets are smaller than border");
-        }
+        const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
+        PreprocessAndCheck(ctx.Params.LossFunctionDescription, trainData.LearnSampleCount, trainData.QueryId, classWeights, &trainData.Weights, &trainData.Target);
 
-        if (trainHasBaseline) {
-            CB_ENSURE((trainData.Baseline.ysize() > 1) == IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
-        }
-        if (IsMultiClassError(lossFunction)) {
-            CB_ENSURE(AllOf(trainData.Target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
-            ctx.LearnProgress.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
-            CB_ENSURE(ctx.LearnProgress.ApproxDimension > 1, "All targets are equal");
-        }
         ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(trainData.AllFeatures);
 
         ctx.OutputMeta();
-
-        const TVector<float>& classesWeights = ctx.Params.DataProcessingOptions->ClassWeights;
-        if (!classesWeights.empty()) {
-            int dataSize = trainData.Target.ysize();
-            for (int i = 0; i < dataSize; ++i) {
-                CB_ENSURE(trainData.Target[i] < classesWeights.ysize(), "class " + ToString(trainData.Target[i]) + " is missing in class weights");
-                trainData.Weights[i] *= classesWeights[trainData.Target[i]];
-            }
-        }
-
         ctx.InitData(trainData);
 
         GenerateBorders(learnPool, &ctx, &ctx.LearnProgress.FloatFeatures);
 
-        if (testPool.Docs.GetDocCount() != 0) {
-            CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
-            CB_ENSURE(testPool.Docs.GetBaselineDimension() == learnPool.Docs.GetBaselineDimension(), "train pool baseline dimension == " << learnPool.Docs.GetBaselineDimension() << " and test pool baseline dimension == " << testPool.Docs.GetBaselineDimension());
-        }
         learnPool.Docs.Append(testPool.Docs);
         const int factorsCount = learnPool.Docs.GetFactorsCount();
         const int approxDim = learnPool.Docs.GetBaselineDimension();
         bool hasQueryId = !learnPool.Docs.QueryId.empty();
-
         auto learnPoolGuard = Finally([&] {
             if (!allowClearPool) {
                 learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId);
@@ -431,15 +339,6 @@ class TCPUModelTrainer : public IModelTrainer {
             learnPool.Docs.Clear();
         }
 
-        float minWeight = *MinElement(trainData.Weights.begin(), trainData.Weights.begin() + trainData.LearnSampleCount);
-        float maxWeight = *MaxElement(trainData.Weights.begin(), trainData.Weights.begin() + trainData.LearnSampleCount);
-
-        if (minWeight == maxWeight) {
-            trainData.Weights.clear();
-            trainData.Weights.shrink_to_fit();
-        } else { // Learn weight sum should be equal to learn sample count
-            CB_ENSURE(minWeight > 0, "weights should be positive");
-        }
         ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());
         for (size_t i = 0; i < sortedCatFeatures.size(); ++i) {
             auto& catFeature = ctx.LearnProgress.CatFeatures[i];
