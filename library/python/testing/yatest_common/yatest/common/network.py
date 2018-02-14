@@ -75,15 +75,18 @@ class PortManager(object):
                 continue
             finally:
                 sock.close()
-            # Don't try to _lock_port(), it's already locked in the get_tcp_port()
+            # Don't try to _capture_port(), it's already captured in the get_tcp_port()
             return result_port
         raise Exception('Failed to find port')
 
     def release_port(self, port):
         with self._lock:
-            filelock = self._filelocks.get(port, None)
-            if filelock:
-                self._relase_filelock(filelock)
+            self._release_port_no_lock(port)
+
+    def _release_port_no_lock(self, port):
+        filelock = self._filelocks.pop(port, None)
+        if filelock:
+            self._relase_filelock(filelock)
 
     def release(self):
         with self._lock:
@@ -91,6 +94,35 @@ class PortManager(object):
                 _, filelock = self._filelocks.popitem()
                 if filelock:
                     self._relase_filelock(filelock)
+
+    def get_port_range(self, start_port, count):
+        assert count > 0
+        if start_port and self._no_random_ports():
+            return start_port
+
+        candidates = []
+
+        def drop_candidates():
+            for port in candidates:
+                self._release_port_no_lock(port)
+            candidates[:] = []
+
+        with self._lock:
+            for attempts in xrange(5):
+                for left, right in self._valid_range:
+                    for probe_port in xrange(left, right + 1):
+                        if self._capture_port_no_lock(probe_port, socket.SOCK_STREAM):
+                            candidates.append(probe_port)
+                        else:
+                            drop_candidates()
+
+                        if len(candidates) == count:
+                            return candidates[0]
+                    # Can't find required number of ports without gap in the current range
+                    drop_candidates()
+
+            raise PortManagerException("Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
+                start_port, count, self._valid_range, self._filelocks))
 
     def _relase_filelock(self, filelock):
         try:
@@ -124,25 +156,28 @@ class PortManager(object):
                     probe_port += left
                     break
 
-            sock = socket.socket(socket.AF_INET6, sock_type)
-            try:
-                sock.bind(('::', probe_port))
-            except socket.error as e:
-                if e.errno == errno.EADDRINUSE:
-                    continue
-            finally:
-                sock.close()
-
-            if not self._lock_port(probe_port):
+            if not self._capture_port(probe_port, sock_type):
                 continue
             return probe_port
 
         raise PortManagerException("Failed to find valid port (range: {} used: {})".format(self._valid_range, self._filelocks))
 
-    def _lock_port(self, port):
+    def _capture_port(self, port, sock_type):
         with self._lock:
+            return self._capture_port_no_lock(port, sock_type)
+
+    def _capture_port_no_lock(self, port, sock_type):
             if port in self._filelocks:
                 return False
+
+            sock = socket.socket(socket.AF_INET6, sock_type)
+            try:
+                sock.bind(('::', port))
+            except socket.error as e:
+                if e.errno == errno.EADDRINUSE:
+                    return False
+            finally:
+                sock.close()
 
             if self._sync_dir:
                 # yatest.common should try do be hermetic and don't have peerdirs
