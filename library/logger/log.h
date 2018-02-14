@@ -44,6 +44,7 @@ public:
     void Y_PRINTF_FORMAT(2, 3) AddLog(const char* format, ...) const;
     void Y_PRINTF_FORMAT(3, 4) AddLog(TLogPriority priority, const char* format, ...) const;
     void ReopenLog();
+    void ReopenLogNoFlush();
 
     /*
          * compat methods, remove in near future...

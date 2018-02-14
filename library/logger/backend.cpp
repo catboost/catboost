@@ -26,10 +26,14 @@ namespace {
             Y_FAIL("Incorrect pointer for log backend");
         }
 
-        void Reopen() {
+        void Reopen(bool flush) {
             TGuard<TMutex> g(Mutex);
             for (auto& b : Backends) {
-                b->ReopenLog();
+                if (flush) {
+                    b->ReopenLog();
+                } else {
+                    b->ReopenLogNoFlush();
+                }
             }
         }
     };
@@ -53,6 +57,10 @@ TLogBackend::~TLogBackend() {
     Singleton<TGlobalLogsStorage>()->UnRegister(this);
 }
 
-void TLogBackend::ReopenAllBackends() {
-    Singleton<TGlobalLogsStorage>()->Reopen();
+void TLogBackend::ReopenLogNoFlush() {
+    ReopenLog();
+}
+
+void TLogBackend::ReopenAllBackends(bool flush) {
+    Singleton<TGlobalLogsStorage>()->Reopen(flush);
 }

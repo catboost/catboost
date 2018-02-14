@@ -92,6 +92,14 @@ public:
         BackEnd_->ReopenLog();
     }
 
+    inline void ReopenLogNoFlush() {
+        if (!IsOpen()) {
+            return;
+        }
+
+        BackEnd_->ReopenLogNoFlush();
+    }
+
     inline void AddLog(TLogPriority priority, const char* format, va_list args) const {
         if (!IsOpen()) {
             return;
@@ -208,6 +216,13 @@ void TLog::ReopenLog() {
     TSimpleIntrusivePtr<TImpl> copy = Impl_;
     if (copy) {
         copy->ReopenLog();
+    }
+}
+
+void TLog::ReopenLogNoFlush() {
+    TSimpleIntrusivePtr<TImpl> copy = Impl_;
+    if (copy) {
+        copy->ReopenLogNoFlush();
     }
 }
 

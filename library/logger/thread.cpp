@@ -96,6 +96,10 @@ public:
         reopener->Wait();
     }
 
+    inline void ReopenLogNoFlush() {
+        Slave_->ReopenLogNoFlush();
+    }
+
 private:
     TLogBackend* Slave_;
     TMtpQueue Queue_;
@@ -120,6 +124,10 @@ void TThreadedLogBackend::WriteData(const TLogRecord& rec) {
 
 void TThreadedLogBackend::ReopenLog() {
     Impl_->ReopenLog();
+}
+
+void TThreadedLogBackend::ReopenLogNoFlush() {
+    Impl_->ReopenLogNoFlush();
 }
 
 void TThreadedLogBackend::WriteEmergencyData(const TLogRecord& rec) {
