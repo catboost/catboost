@@ -429,7 +429,7 @@ TMetricHolder TPairLogitMetric::EvalPairwise(
         float w = pair.Weight;
         double expWinner = approxExpShifted[pair.WinnerId - begin];
         double expLoser = approxExpShifted[pair.LoserId - begin];
-        error.Error += -log(expWinner / (expWinner + expLoser));
+        error.Error += -w * log(expWinner / (expWinner + expLoser));
         error.Weight += w;
     }
     return error;
