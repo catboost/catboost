@@ -3,6 +3,7 @@ import tarfile
 import zipfile
 import os
 import sys
+import time
 import subprocess
 
 
@@ -13,11 +14,23 @@ def mkdir_p(path):
         pass
 
 
+class Timer(object):
+
+    def __init__(self):
+        self.start = time.time()
+
+    def step(self, msg):
+        sys.stderr.write("{} ({}s)\n".format(msg, int(time.time() - self.start)))
+        self.start = time.time()
+
+
 def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format, tar_output, agent_disposition):
+    timer = Timer()
     reports_dir = 'jacoco_reports_dir'
     mkdir_p(reports_dir)
     with tarfile.open(source) as tf:
         tf.extractall(reports_dir)
+    timer.step("Coverage data extracted")
     reports = [os.path.join(reports_dir, fname) for fname in os.listdir(reports_dir)]
 
     with open(jars_list) as f:
@@ -45,6 +58,7 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
                     continue
 
                 jf.extract(entry, dest)
+    timer.step("Jar files extracted")
 
     if not agent_disposition:
         print>>sys.stderr, 'Can\'t find jacoco agent. Will not generate html report for java coverage.'
@@ -59,6 +73,7 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
         agent_cmd = [java, '-jar', agent_disposition, src_dir, cls_dir, prefix_filter or '.', exclude_filter or '__no_exclude__', report_dir, output_format]
         agent_cmd += reports
         subprocess.check_call(agent_cmd)
+        timer.step("Jacoco finished")
 
     if tar_output:
         with tarfile.open(output, 'w') as outf:
