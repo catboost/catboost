@@ -1594,7 +1594,7 @@ double EvalErrors(
     TMetricHolder metric;
     if (error->GetErrorType() == EErrorType::PerObjectError) {
         metric = error->Eval(avrgApprox, target, weight, queriesInfo, begin, end, *localExecutor);
-    } else if (error->GetErrorType() == EErrorType::PerObjectError) {
+    } else if (error->GetErrorType() == EErrorType::PairwiseError) {
         metric = error->EvalPairwise(avrgApprox, pairs, begin, end);
     } else {
         CB_ENSURE(error->GetErrorType() == EErrorType::QuerywiseError);
