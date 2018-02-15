@@ -99,7 +99,7 @@ class CatboostEvaluation(object):
         if eval_type == EvalType.All or eval_type == EvalType.SeqAddAndAll or len(set_features_to_eval) == 1:
             test_cases.append(ExecutionCase(params,
                                             ignored_features=[]))
-        elif eval_type == EvalType.SeqRem:
+        if eval_type == EvalType.SeqRem:
             for feature_num in set_features_to_eval:
                 test_cases.append(ExecutionCase(params,
                                                 ignored_features=[feature_num]))
@@ -107,10 +107,9 @@ class CatboostEvaluation(object):
             for feature_num in set_features_to_eval:
                 cur_features = copy(set_features_to_eval)
                 cur_features.remove(feature_num)
-                test_cases.append(
-                    ExecutionCase(params,
+                test_cases.append(ExecutionCase(params,
                                   ignored_features=list(cur_features)))
-        else:
+        elif eval_type != EvalType.All:
             raise AttributeError("Don't support {} mode.", eval_type.value)
         return baseline_case, test_cases
 
