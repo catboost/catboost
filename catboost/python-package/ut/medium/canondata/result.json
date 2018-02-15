@@ -1,6 +1,6 @@
 {
     "test.test_class_weights": {
-        "checksum": "827cbecf3ea20ee68b71c22e264eaa6e",
+        "checksum": "ab7f2f6d464a4c4ea0102318e86001fe",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
@@ -8,7 +8,7 @@
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
-        "checksum": "43ef8302e2de0588db0e87a9e962c6ca",
+        "checksum": "3aaabea246e0da138eec2ff106c907b8",
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_coreml_import_export": {
@@ -36,11 +36,11 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "5150c6a94a37de28c86e44c72794cef1",
+        "checksum": "b8bd7175bc32415f9629522cbd251819",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "ee93da3823c996b886a1ba43d3c458d9",
+        "checksum": "121ce305e06ba5dad992ee9a3b3d57ec",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
@@ -60,7 +60,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "180c41481f43510ef9f8c9319fc76440",
+        "checksum": "e9509557daec69aeaf070f51ec20594a",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
@@ -84,7 +84,7 @@
         "uri": "file://test.test_predict_class_raw/predictions.npy"
     },
     "test.test_predict_regress": {
-        "checksum": "e934d5cc4ea95ec5a832fcb2557ab73d",
+        "checksum": "002574b11a9c48be6ffc22ba1fbf2034",
         "uri": "file://test.test_predict_regress/model.bin"
     },
     "test.test_predict_sklearn_class": {
@@ -92,7 +92,7 @@
         "uri": "file://test.test_predict_sklearn_class/model.bin"
     },
     "test.test_predict_sklearn_regress": {
-        "checksum": "e934d5cc4ea95ec5a832fcb2557ab73d",
+        "checksum": "002574b11a9c48be6ffc22ba1fbf2034",
         "uri": "file://test.test_predict_sklearn_regress/model.bin"
     },
     "test.test_priors": {

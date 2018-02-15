@@ -105,40 +105,40 @@ static void ExtractBoolsFromDocInfo(const TVector<size_t>& docIndices,
                     if (learnSampleCount != LearnNotSet) {
                         using TCatFeaturesRemap = THashMap<int, int>;
                         TCatFeaturesRemap uniqueFeaturesRemap;
-                        TSet<int> uniqueVals;
                         for (int i = 0; i < learnSampleCount; ++i) {
                             const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
-//                          TODO(kirillovs): use THashMap here as the next step of cat feature hashes vector elimination
-//                                           (i want to canonize less tests each commit)
-//                          TCatFeaturesRemap::insert_ctx ctx = nullptr;
-//                          TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val, ctx);
-//                          if (it == uniqueFeaturesRemap.end()) {
-//                              it = uniqueFeaturesRemap.emplace_direct(ctx, val, (int)uniqueFeaturesRemap.size());
-//                          }
-                            uniqueVals.insert(val);
+                            TCatFeaturesRemap::insert_ctx ctx = nullptr;
+                            TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val, ctx);
+                            if (it == uniqueFeaturesRemap.end()) {
+                              it = uniqueFeaturesRemap.emplace_direct(ctx, val, (int)uniqueFeaturesRemap.size());
+                            }
+                            dstRemapped[i] = it->second;
                         }
-                        if (uniqueVals.size() <= oneHotMaxSize) {
+                        if (uniqueFeaturesRemap.size() <= oneHotMaxSize) {
                             dstIsOneHot = true;
+                            for (int i = learnSampleCount; i < (int)docStorage->GetDocCount(); ++i) {
+                                const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
+                                TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val);
+                                if (it != uniqueFeaturesRemap.end()) {
+                                    dstRemapped[i] = it->second;
+                                } else {
+                                    dstRemapped[i] = static_cast<int>(uniqueFeaturesRemap.size());
+                                }
+                            }
                         } else {
                             // We store all hash values only for non one-hot features
                             dstIsOneHot = false;
                             for (int i = learnSampleCount; i < (int)docStorage->GetDocCount(); ++i) {
                                 const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
-                                uniqueVals.insert(val);
+                                TCatFeaturesRemap::insert_ctx ctx = nullptr;
+                                TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val, ctx);
+                                if (it == uniqueFeaturesRemap.end()) {
+                                    it = uniqueFeaturesRemap.emplace_direct(ctx, val, (int)uniqueFeaturesRemap.size());
+                                }
+                                dstRemapped[i] = it->second;
                             }
                         }
-                        for (auto& uv : uniqueVals) {
-                            uniqueFeaturesRemap.emplace(uv, uniqueFeaturesRemap.size());
-                        }
-                        uniqueVals.clear();
-                        for (int i = 0; i < (int)docStorage->GetDocCount(); ++i) {
-                            const auto val = ConvertFloatCatFeatureToIntHash(docStorage->Factors[featureIdx][docIndices[i]]);
-                            if (uniqueFeaturesRemap.has(val)) {
-                                dstRemapped[i] = uniqueFeaturesRemap[val];
-                            } else {
-                                dstRemapped[i] = static_cast<int>(uniqueFeaturesRemap.size());
-                            }
-                        }
+
                         dstValues.resize(uniqueFeaturesRemap.size());
                         for (const auto& kv : uniqueFeaturesRemap) {
                             dstValues[kv.second] = kv.first;
