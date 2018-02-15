@@ -32,6 +32,11 @@ static void CheckTarget(const TVector<float>& target, int learnSampleCount, ELos
         CB_ENSURE(maxTarget <= 1, "Max target greater than 1: " + ToString(minTarget));
     }
 
+    if (lossFunction == ELossFunction::QuerySoftMax) {
+        float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
+        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
+    }
+
     if (IsMultiClassError(lossFunction)) {
         CB_ENSURE(AllOf(target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
     }

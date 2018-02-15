@@ -38,7 +38,7 @@ namespace NKernel {
             const float w = weights != nullptr ? __ldg(weights + i) : 1.0f;
             const float a = __ldg(approxExp + i);
             maxApprox = (w > 0) ? max(maxApprox, a) : maxApprox;
-            sumWeightedTarget += max(t, 0.0f) * max(w, 0.0f);
+            sumWeightedTarget += t * w;
         }
 
         line[threadIdx.x] = maxApprox;
@@ -177,7 +177,7 @@ namespace NKernel {
         const float sumTargets = i < size ? __ldg(sumWeightedTargets + qid) : 0;
         
         const float softmax = approx / approxSum;
-        const float wt = (weight > 0 && targetVal > 0) ? weight * targetVal : 0;
+        const float wt = weight * targetVal;
 
         if (i < size) {
             const ui32 dstIdx = writeMap != nullptr ? writeMap[i] : i;
