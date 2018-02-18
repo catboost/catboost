@@ -1270,7 +1270,7 @@ class Clang(GnuCompiler):
         super(Clang, self).print_compiler()
 
         # fuzzing configuration
-        if self.tc.version_at_least(5,0):
+        if self.tc.version_at_least(5, 0):
             emit('FSANITIZE_FUZZER_SUPPORTED', 'yes')
             emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
 
