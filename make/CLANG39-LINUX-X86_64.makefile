@@ -1,9 +1,10 @@
 MAKEFLAGS += --no-builtin-rules
 .ONESHELL:
-PYTHON = $(dir $(shell which python))
 BUILD_ROOT = $(shell pwd)
 SOURCE_ROOT = $(shell pwd)
+PYTHON = $(shell which python)
 
+ifneq ($(MAKECMDGOALS),help)
 define _CC_TEST
 __clang_major__ __clang_minor__
 endef
@@ -14,7 +15,9 @@ $(info _CC_VERSION = '$(_CC_VERSION)')
 ifneq '$(_CC_VERSION)' '3 9'
     $(error clang 3.9 is required)
 endif
+endif
 
+ifneq ($(MAKECMDGOALS),help)
 define _CXX_TEST
 __clang_major__ __clang_minor__
 endef
@@ -25,12 +28,15 @@ $(info _CXX_VERSION = '$(_CXX_VERSION)')
 ifneq '$(_CXX_VERSION)' '3 9'
     $(error clang 3.9 is required)
 endif
+endif
+
 
 all\
         ::\
         $(BUILD_ROOT)/catboost/app/catboost\
         $(BUILD_ROOT)/catboost/app/catboost.mf\
 
+.PHONY : all
 
 $(BUILD_ROOT)/catboost/app/catboost\
 $(BUILD_ROOT)/catboost/app/catboost.mf\
@@ -111,8 +117,8 @@ $(BUILD_ROOT)/catboost/app/catboost.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/app'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost -o catboost/app/catboost.mf -t PROGRAM --no-gpl -Ya,lics -Ya,peers catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/catboost/app/cmd_line.cpp.o' '$(BUILD_ROOT)/catboost/app/bind_options.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_plot.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fstr.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fit.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_calc.cpp.o' '$(BUILD_ROOT)/catboost/app/main.cpp.o' -o '$(BUILD_ROOT)/catboost/app/catboost' -rdynamic catboost/libs/train_lib/train_model.cpp.o -Wl,--start-group catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost -o catboost/app/catboost.mf -t PROGRAM --no-gpl -Ya,lics -Ya,peers catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/catboost/app/cmd_line.cpp.o' '$(BUILD_ROOT)/catboost/app/bind_options.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_plot.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fstr.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fit.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_calc.cpp.o' '$(BUILD_ROOT)/catboost/app/main.cpp.o' -o '$(BUILD_ROOT)/catboost/app/catboost' -rdynamic catboost/libs/train_lib/train_model.cpp.o -Wl,--start-group catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a\
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
@@ -122,8 +128,8 @@ $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cppdemangle'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-cppdemangle -o contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a' '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-cppdemangle -o contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a' '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.o\
         ::\
@@ -146,8 +152,8 @@ $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.m
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/libunwind_master'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-libunwind_master -o contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersSave.S.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersRestore.S.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-sjlj.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1-gcc-ext.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-EHABI.cpp.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/libunwind.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-libunwind_master -o contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersSave.S.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersRestore.S.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-sjlj.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1-gcc-ext.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1.c.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-EHABI.cpp.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/libunwind.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersSave.S.o\
         ::\
@@ -219,8 +225,8 @@ $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-builtins -o contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/int_util.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/floatuntidf.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/fixunsdfti.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/clzti2.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divdc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divxc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divsc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulxc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/muldc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulsc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/umodti3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivti3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivmodti4.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-builtins -o contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/int_util.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/floatuntidf.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/fixunsdfti.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/clzti2.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divdc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divxc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divsc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulxc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/muldc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulsc3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/umodti3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivti3.c.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivmodti4.c.o'
 
 $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c.o\
         ::\
@@ -335,8 +341,8 @@ $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-libcxxrt -o contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/unwind.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/guard.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/exception.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/memory.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-libcxxrt -o contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/unwind.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/guard.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/exception.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/memory.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/unwind.cc.o\
         ::\
@@ -431,8 +437,8 @@ $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-libcxx -o contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/new.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/vector.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/variant.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/valarray.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/utility.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/typeinfo.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/thread.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/system_error.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/strstream.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/string.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/stdexcept.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/shared_mutex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/regex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/random.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/optional.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/mutex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/memory.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/locale.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/iostream.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/ios.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/hash.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/future.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/functional.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/exception.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/debug.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/condition_variable.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/chrono.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/bind.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/any.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-cxxsupp-libcxx -o contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a.mf -t LIBRARY -Ya,lics MIT BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/new.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/vector.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/variant.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/valarray.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/utility.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/typeinfo.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/thread.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/system_error.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/strstream.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/string.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/stdexcept.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/shared_mutex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/regex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/random.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/optional.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/mutex.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/memory.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/locale.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/iostream.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/ios.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/hash.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/future.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/functional.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/exception.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/debug.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/condition_variable.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/chrono.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/bind.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/any.cpp.o' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/new.cpp.o\
         ::\
@@ -652,8 +658,8 @@ $(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cxxsupp'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-cxxsupp -o contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/__/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-cxxsupp -o contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/__/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/cxxsupp/__/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -671,8 +677,8 @@ $(BUILD_ROOT)/util/charset/libutil-charset.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/util/charset'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name util-charset -o util/charset/libutil-charset.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/charset/libutil-charset.a' '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.o' '$(BUILD_ROOT)/util/charset/all_charset.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name util-charset -o util/charset/libutil-charset.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/charset/libutil-charset.a' '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.o' '$(BUILD_ROOT)/util/charset/all_charset.cpp.o'
 
 $(BUILD_ROOT)/util/charset/wide_sse41.cpp.o\
         ::\
@@ -699,7 +705,7 @@ $(BUILD_ROOT)/util/charset/all_charset.cpp\
         $(SOURCE_ROOT)/util/charset/wide.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util/charset'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/charset/all_charset.cpp' util/charset/generated/unidata.cpp util/charset/recode_result.cpp util/charset/unicode_table.cpp util/charset/unidata.cpp util/charset/utf8.cpp util/charset/wide.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/charset/all_charset.cpp' util/charset/generated/unidata.cpp util/charset/recode_result.cpp util/charset/unicode_table.cpp util/charset/unidata.cpp util/charset/utf8.cpp util/charset/wide.cpp
 
 $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
 $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a.mf\
@@ -723,8 +729,8 @@ $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/zlib'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics ZLIB -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a' '$(BUILD_ROOT)/contrib/libs/zlib/zutil.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/uncompr.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/trees.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inftrees.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inflate.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inffast.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/infback.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzwrite.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzread.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzlib.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzclose.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/deflate.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/crc32.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/compress.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/adler32.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics ZLIB -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a' '$(BUILD_ROOT)/contrib/libs/zlib/zutil.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/uncompr.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/trees.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inftrees.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inflate.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/inffast.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/infback.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzwrite.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzread.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzlib.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzclose.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/deflate.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/crc32.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/compress.c.o' '$(BUILD_ROOT)/contrib/libs/zlib/adler32.c.o'
 
 $(BUILD_ROOT)/contrib/libs/zlib/zutil.c.o\
         ::\
@@ -846,8 +852,8 @@ $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/double-conversion'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-double-conversion -o contrib/libs/double-conversion/libcontrib-libs-double-conversion.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a' '$(BUILD_ROOT)/contrib/libs/double-conversion/fast-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/strtod.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/fixed-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/diy-fp.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/double-conversion.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/cached-powers.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-double-conversion -o contrib/libs/double-conversion/libcontrib-libs-double-conversion.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a' '$(BUILD_ROOT)/contrib/libs/double-conversion/fast-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/strtod.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/fixed-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/diy-fp.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/double-conversion.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum-dtoa.cc.o' '$(BUILD_ROOT)/contrib/libs/double-conversion/cached-powers.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/double-conversion/fast-dtoa.cc.o\
         ::\
@@ -913,8 +919,8 @@ $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/malloc/api'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-malloc-api -o library/malloc/api/liblibrary-malloc-api.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a' '$(BUILD_ROOT)/library/malloc/api/malloc.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-malloc-api -o library/malloc/api/liblibrary-malloc-api.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a' '$(BUILD_ROOT)/library/malloc/api/malloc.cpp.o'
 
 $(BUILD_ROOT)/library/malloc/api/malloc.cpp.o\
         ::\
@@ -951,8 +957,8 @@ $(BUILD_ROOT)/util/libyutil.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yutil -o util/libyutil.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.o' '$(BUILD_ROOT)/util/system/strlcpy.c.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/string/cast.cc.o' '$(BUILD_ROOT)/util/random/random.cpp.o' '$(BUILD_ROOT)/util/digest/city.cpp.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.o' '$(BUILD_ROOT)/util/all_thread.cpp.o' '$(BUILD_ROOT)/util/all_system_2.cpp.o' '$(BUILD_ROOT)/util/all_system_1.cpp.o' '$(BUILD_ROOT)/util/all_string.cpp.o' '$(BUILD_ROOT)/util/all_stream.cpp.o' '$(BUILD_ROOT)/util/all_random.cpp.o' '$(BUILD_ROOT)/util/all_network.cpp.o' '$(BUILD_ROOT)/util/all_memory.cpp.o' '$(BUILD_ROOT)/util/all_generic.cpp.o' '$(BUILD_ROOT)/util/all_folder.cpp.o' '$(BUILD_ROOT)/util/all_util.cpp.o' '$(BUILD_ROOT)/util/all_digest.cpp.o' '$(BUILD_ROOT)/util/all_datetime.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yutil -o util/libyutil.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.o' '$(BUILD_ROOT)/util/system/strlcpy.c.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/string/cast.cc.o' '$(BUILD_ROOT)/util/random/random.cpp.o' '$(BUILD_ROOT)/util/digest/city.cpp.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.o' '$(BUILD_ROOT)/util/all_thread.cpp.o' '$(BUILD_ROOT)/util/all_system_2.cpp.o' '$(BUILD_ROOT)/util/all_system_1.cpp.o' '$(BUILD_ROOT)/util/all_string.cpp.o' '$(BUILD_ROOT)/util/all_stream.cpp.o' '$(BUILD_ROOT)/util/all_random.cpp.o' '$(BUILD_ROOT)/util/all_network.cpp.o' '$(BUILD_ROOT)/util/all_memory.cpp.o' '$(BUILD_ROOT)/util/all_generic.cpp.o' '$(BUILD_ROOT)/util/all_folder.cpp.o' '$(BUILD_ROOT)/util/all_util.cpp.o' '$(BUILD_ROOT)/util/all_digest.cpp.o' '$(BUILD_ROOT)/util/all_datetime.cpp.o'
 
 $(BUILD_ROOT)/util/system/mktemp_system.cpp.o\
         ::\
@@ -1068,8 +1074,8 @@ $(BUILD_ROOT)/contrib/tools/yasm/yasm.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/yasm'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yasm -o contrib/tools/yasm/yasm.mf -t PROGRAM -Ya,lics -Ya,peers
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86regtmod.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86cpu.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/raw/raw-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasmlib.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-pp.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-eval.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-eval.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/cpp/cpp-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parser.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parse.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parser.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse-intel.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/xdf/xdf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/rdf/rdf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/macho/macho-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x86.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x32.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-amd64.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/dbg/dbg-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/win64-except.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/coff-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/bin/bin-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/nasm-token.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/listfmts/nasm/nasm-listfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/lc3bid.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/init_plugin.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/gas-token.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/stabs/stabs-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/null/null-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-line.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-info.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-aranges.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-type.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-symline.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86id.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86expr.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86bc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86arch.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3bbc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3barch.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xstrdup.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xmalloc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/value.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/valparam.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/symrec.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strsep.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strcasecmp.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/section.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/phash.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/mergesort.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/md5.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/linemap.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/inttree.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/intnum.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/insn.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/hamt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/floatnum.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/file.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/expr.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/errwarn.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/cmake-module.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bytecode.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bitvect.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-reserve.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-org.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-incbin.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-data.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-align.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/assocdat.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm-options.c.o' -o '$(BUILD_ROOT)/contrib/tools/yasm/yasm' -rdynamic -Wl,--start-group -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -nodefaultlibs -lpthread -lc -lm -s
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yasm -o contrib/tools/yasm/yasm.mf -t PROGRAM -Ya,lics -Ya,peers
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86regtmod.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86cpu.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/raw/raw-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasmlib.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-pp.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-eval.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-eval.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/cpp/cpp-preproc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parser.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parse.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parser.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse-intel.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/xdf/xdf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/rdf/rdf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/macho/macho-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x86.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x32.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-amd64.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/dbg/dbg-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/win64-except.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/coff-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/bin/bin-objfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/nasm-token.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/listfmts/nasm/nasm-listfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/lc3bid.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/init_plugin.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/gas-token.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/stabs/stabs-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/null/null-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-line.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-info.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-aranges.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-type.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-symline.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-dbgfmt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86id.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86expr.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86bc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86arch.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3bbc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3barch.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xstrdup.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xmalloc.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/value.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/valparam.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/symrec.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strsep.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strcasecmp.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/section.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/phash.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/mergesort.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/md5.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/linemap.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/inttree.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/intnum.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/insn.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/hamt.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/floatnum.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/file.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/expr.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/errwarn.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/cmake-module.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bytecode.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bitvect.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-reserve.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-org.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-incbin.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-data.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-align.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/assocdat.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm.c.o' '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm-options.c.o' -o '$(BUILD_ROOT)/contrib/tools/yasm/yasm' -rdynamic -Wl,--start-group -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/contrib/tools/yasm/modules/x86regtmod.c.o\
         ::\
@@ -1676,8 +1682,8 @@ $(BUILD_ROOT)/contrib/tools/ragel6/ragel6.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name ragel6 -o contrib/tools/ragel6/ragel6.mf -t PROGRAM -Ya,lics -Ya,peers contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/malloc/jemalloc/liblibrary-malloc-jemalloc.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/jemalloc/libcontrib-libs-jemalloc.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/ragel6/rlscan.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -rdynamic -Wl,--start-group contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/malloc/jemalloc/liblibrary-malloc-jemalloc.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/jemalloc/libcontrib-libs-jemalloc.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm -s
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name ragel6 -o contrib/tools/ragel6/ragel6.mf -t PROGRAM -Ya,lics -Ya,peers contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/malloc/jemalloc/liblibrary-malloc-jemalloc.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/jemalloc/libcontrib-libs-jemalloc.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/ragel6/rlscan.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp.o' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -rdynamic -Wl,--start-group contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/malloc/jemalloc/liblibrary-malloc-jemalloc.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/jemalloc/libcontrib-libs-jemalloc.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a\
 $(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a.mf\
@@ -1687,8 +1693,8 @@ $(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel5/aapl'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name tools-ragel5-aapl -o contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a.mf -t LIBRARY -Ya,lics LGPL -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a' '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/__/__/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name tools-ragel5-aapl -o contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a.mf -t LIBRARY -Ya,lics LGPL -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a' '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/__/__/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/contrib/tools/ragel5/aapl/__/__/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -1727,8 +1733,8 @@ $(BUILD_ROOT)/contrib/libs/jemalloc/libcontrib-libs-jemalloc.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/jemalloc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-jemalloc -o contrib/libs/jemalloc/libcontrib-libs-jemalloc.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/jemalloc/libcontrib-libs-jemalloc.a' '$(BUILD_ROOT)/contrib/libs/jemalloc/hack.cpp.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/util.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tsd.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tcache.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/stats.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/rtree.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/quarantine.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/prof.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mutex.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mb.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/jemalloc.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/huge.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/hash.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/extent.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ctl.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ckh.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_mmap.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_dss.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/bitmap.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/base.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/atomic.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/arena.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-jemalloc -o contrib/libs/jemalloc/libcontrib-libs-jemalloc.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/jemalloc/libcontrib-libs-jemalloc.a' '$(BUILD_ROOT)/contrib/libs/jemalloc/hack.cpp.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/util.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tsd.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tcache.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/stats.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/rtree.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/quarantine.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/prof.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mutex.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mb.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/jemalloc.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/huge.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/hash.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/extent.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ctl.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ckh.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_mmap.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_dss.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/bitmap.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/base.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/atomic.c.o' '$(BUILD_ROOT)/contrib/libs/jemalloc/src/arena.c.o'
 
 $(BUILD_ROOT)/contrib/libs/jemalloc/hack.cpp.o\
         ::\
@@ -1899,8 +1905,8 @@ $(BUILD_ROOT)/library/malloc/jemalloc/liblibrary-malloc-jemalloc.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/malloc/jemalloc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-malloc-jemalloc -o library/malloc/jemalloc/liblibrary-malloc-jemalloc.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/malloc/jemalloc/liblibrary-malloc-jemalloc.a' '$(BUILD_ROOT)/library/malloc/jemalloc/malloc-info.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-malloc-jemalloc -o library/malloc/jemalloc/liblibrary-malloc-jemalloc.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/malloc/jemalloc/liblibrary-malloc-jemalloc.a' '$(BUILD_ROOT)/library/malloc/jemalloc/malloc-info.cpp.o'
 
 $(BUILD_ROOT)/library/malloc/jemalloc/malloc-info.cpp.o\
         ::\
@@ -1935,7 +1941,7 @@ $(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp\
         $(SOURCE_ROOT)/contrib/tools/ragel6/rbxgoto.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp' contrib/tools/ragel6/dotcodegen.cpp contrib/tools/ragel6/fsmgraph.cpp contrib/tools/ragel6/inputdata.cpp contrib/tools/ragel6/parsetree.cpp contrib/tools/ragel6/redfsm.cpp contrib/tools/ragel6/javacodegen.cpp contrib/tools/ragel6/rbxgoto.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp' contrib/tools/ragel6/dotcodegen.cpp contrib/tools/ragel6/fsmgraph.cpp contrib/tools/ragel6/inputdata.cpp contrib/tools/ragel6/parsetree.cpp contrib/tools/ragel6/redfsm.cpp contrib/tools/ragel6/javacodegen.cpp contrib/tools/ragel6/rbxgoto.cpp
 
 $(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp.o\
         ::\
@@ -1958,7 +1964,7 @@ $(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp\
         $(SOURCE_ROOT)/contrib/tools/ragel6/rubyftable.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp' contrib/tools/ragel6/rubyfflat.cpp contrib/tools/ragel6/cdfgoto.cpp contrib/tools/ragel6/cdipgoto.cpp contrib/tools/ragel6/cscodegen.cpp contrib/tools/ragel6/csftable.cpp contrib/tools/ragel6/cstable.cpp contrib/tools/ragel6/fsmbase.cpp contrib/tools/ragel6/gendata.cpp contrib/tools/ragel6/rubyftable.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp' contrib/tools/ragel6/rubyfflat.cpp contrib/tools/ragel6/cdfgoto.cpp contrib/tools/ragel6/cdipgoto.cpp contrib/tools/ragel6/cscodegen.cpp contrib/tools/ragel6/csftable.cpp contrib/tools/ragel6/cstable.cpp contrib/tools/ragel6/fsmbase.cpp contrib/tools/ragel6/gendata.cpp contrib/tools/ragel6/rubyftable.cpp
 
 $(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp.o\
         ::\
@@ -1982,7 +1988,7 @@ $(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp\
         $(SOURCE_ROOT)/contrib/tools/ragel6/rubyflat.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp' contrib/tools/ragel6/cdcodegen.cpp contrib/tools/ragel6/cdftable.cpp contrib/tools/ragel6/cdtable.cpp contrib/tools/ragel6/csfgoto.cpp contrib/tools/ragel6/csipgoto.cpp contrib/tools/ragel6/fsmap.cpp contrib/tools/ragel6/fsmmin.cpp contrib/tools/ragel6/fsmattach.cpp contrib/tools/ragel6/csfflat.cpp contrib/tools/ragel6/rubyflat.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp' contrib/tools/ragel6/cdcodegen.cpp contrib/tools/ragel6/cdftable.cpp contrib/tools/ragel6/cdtable.cpp contrib/tools/ragel6/csfgoto.cpp contrib/tools/ragel6/csipgoto.cpp contrib/tools/ragel6/fsmap.cpp contrib/tools/ragel6/fsmmin.cpp contrib/tools/ragel6/fsmattach.cpp contrib/tools/ragel6/csfflat.cpp contrib/tools/ragel6/rubyflat.cpp
 
 $(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp.o\
         ::\
@@ -2003,7 +2009,7 @@ $(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp\
         $(SOURCE_ROOT)/contrib/tools/ragel6/xmlcodegen.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp' contrib/tools/ragel6/rlparse.cpp contrib/tools/ragel6/cdflat.cpp contrib/tools/ragel6/cdsplit.cpp contrib/tools/ragel6/csgoto.cpp contrib/tools/ragel6/fsmstate.cpp contrib/tools/ragel6/main.cpp contrib/tools/ragel6/xmlcodegen.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp' contrib/tools/ragel6/rlparse.cpp contrib/tools/ragel6/cdflat.cpp contrib/tools/ragel6/cdsplit.cpp contrib/tools/ragel6/csgoto.cpp contrib/tools/ragel6/fsmstate.cpp contrib/tools/ragel6/main.cpp contrib/tools/ragel6/xmlcodegen.cpp
 
 $(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp.o\
         ::\
@@ -2025,7 +2031,7 @@ $(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp\
         $(SOURCE_ROOT)/contrib/tools/ragel6/parsedata.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/ragel6'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp' contrib/tools/ragel6/rubycodegen.cpp contrib/tools/ragel6/rubytable.cpp contrib/tools/ragel6/cdfflat.cpp contrib/tools/ragel6/cdgoto.cpp contrib/tools/ragel6/common.cpp contrib/tools/ragel6/csflat.cpp contrib/tools/ragel6/cssplit.cpp contrib/tools/ragel6/parsedata.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp' contrib/tools/ragel6/rubycodegen.cpp contrib/tools/ragel6/rubytable.cpp contrib/tools/ragel6/cdfflat.cpp contrib/tools/ragel6/cdgoto.cpp contrib/tools/ragel6/common.cpp contrib/tools/ragel6/csflat.cpp contrib/tools/ragel6/cssplit.cpp contrib/tools/ragel6/parsedata.cpp
 
 $(BUILD_ROOT)/util/all_thread.cpp.o\
         ::\
@@ -2045,7 +2051,7 @@ $(BUILD_ROOT)/util/all_thread.cpp\
         $(SOURCE_ROOT)/util/thread/fwd.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_thread.cpp' util/thread/pool.cpp util/thread/queue.cpp util/thread/lfqueue.cpp util/thread/lfstack.cpp util/thread/singleton.cpp util/thread/fwd.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_thread.cpp' util/thread/pool.cpp util/thread/queue.cpp util/thread/lfqueue.cpp util/thread/lfstack.cpp util/thread/singleton.cpp util/thread/fwd.cpp
 
 $(BUILD_ROOT)/util/all_system_2.cpp.o\
         ::\
@@ -2097,7 +2103,7 @@ $(BUILD_ROOT)/util/all_system_2.cpp\
         $(SOURCE_ROOT)/util/system/cpu_id.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_2.cpp' util/system/madvise.cpp util/system/mem_info.cpp util/system/mktemp.cpp util/system/mlock.cpp util/system/mutex.cpp util/system/nice.cpp util/system/pipe.cpp util/system/platform.cpp util/system/progname.cpp util/system/protect.cpp util/system/rusage.cpp util/system/rwlock.cpp util/system/sanitizers.cpp util/system/sem.cpp util/system/shmat.cpp util/system/spin_wait.cpp util/system/spinlock.cpp util/system/sysstat.cpp util/system/sys_alloc.cpp util/system/tempfile.cpp util/system/thread.cpp util/system/tls.cpp util/system/types.cpp util/system/user.cpp util/system/yassert.cpp util/system/yield.cpp util/system/shellcommand.cpp util/system/src_location.cpp util/system/unaligned_mem.cpp util/system/align.cpp util/system/atomic.cpp util/system/byteorder.cpp util/system/fhandle.cpp util/system/guard.cpp util/system/maxlen.cpp util/system/sigset.cpp util/system/utime.cpp util/system/cpu_id.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_2.cpp' util/system/madvise.cpp util/system/mem_info.cpp util/system/mktemp.cpp util/system/mlock.cpp util/system/mutex.cpp util/system/nice.cpp util/system/pipe.cpp util/system/platform.cpp util/system/progname.cpp util/system/protect.cpp util/system/rusage.cpp util/system/rwlock.cpp util/system/sanitizers.cpp util/system/sem.cpp util/system/shmat.cpp util/system/spin_wait.cpp util/system/spinlock.cpp util/system/sysstat.cpp util/system/sys_alloc.cpp util/system/tempfile.cpp util/system/thread.cpp util/system/tls.cpp util/system/types.cpp util/system/user.cpp util/system/yassert.cpp util/system/yield.cpp util/system/shellcommand.cpp util/system/src_location.cpp util/system/unaligned_mem.cpp util/system/align.cpp util/system/atomic.cpp util/system/byteorder.cpp util/system/fhandle.cpp util/system/guard.cpp util/system/maxlen.cpp util/system/sigset.cpp util/system/utime.cpp util/system/cpu_id.cpp
 
 $(BUILD_ROOT)/util/all_system_1.cpp.o\
         ::\
@@ -2139,7 +2145,7 @@ $(BUILD_ROOT)/util/all_system_1.cpp\
         $(SOURCE_ROOT)/util/system/info.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_1.cpp' util/system/atexit.cpp util/system/backtrace.cpp util/system/compat.cpp util/system/compiler.cpp util/system/condvar.cpp util/system/context.cpp util/system/daemon.cpp util/system/datetime.cpp util/system/defaults.c util/system/demangle.cpp util/system/direct_io.cpp util/system/dynlib.cpp util/system/env.cpp util/system/err.cpp util/system/error.cpp util/system/event.cpp util/system/execpath.cpp util/system/fasttime.cpp util/system/file.cpp util/system/filemap.cpp util/system/flock.cpp util/system/file_lock.cpp util/system/fs.cpp util/system/fstat.cpp util/system/getpid.cpp util/system/hostname.cpp util/system/hp_timer.cpp util/system/info.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_1.cpp' util/system/atexit.cpp util/system/backtrace.cpp util/system/compat.cpp util/system/compiler.cpp util/system/condvar.cpp util/system/context.cpp util/system/daemon.cpp util/system/datetime.cpp util/system/defaults.c util/system/demangle.cpp util/system/direct_io.cpp util/system/dynlib.cpp util/system/env.cpp util/system/err.cpp util/system/error.cpp util/system/event.cpp util/system/execpath.cpp util/system/fasttime.cpp util/system/file.cpp util/system/filemap.cpp util/system/flock.cpp util/system/file_lock.cpp util/system/fs.cpp util/system/fstat.cpp util/system/getpid.cpp util/system/hostname.cpp util/system/hp_timer.cpp util/system/info.cpp
 
 $(BUILD_ROOT)/util/all_string.cpp.o\
         ::\
@@ -2176,7 +2182,7 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/subst.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/builder.cpp util/string/cgiparam.cpp util/string/delim_string_iter.cpp util/string/escape.cpp util/string/util.cpp util/string/vector.cpp util/string/split_iterator.cpp util/string/split.cpp util/string/url.cpp util/string/kmp.cpp util/string/quote.cpp util/string/ascii.cpp util/string/printf.cpp util/string/type.cpp util/string/strip.cpp util/string/pcdata.cpp util/string/hex.cpp util/string/cstriter.cpp util/string/iterator.cpp util/string/join.cpp util/string/scan.cpp util/string/strspn.cpp util/string/subst.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/builder.cpp util/string/cgiparam.cpp util/string/delim_string_iter.cpp util/string/escape.cpp util/string/util.cpp util/string/vector.cpp util/string/split_iterator.cpp util/string/split.cpp util/string/url.cpp util/string/kmp.cpp util/string/quote.cpp util/string/ascii.cpp util/string/printf.cpp util/string/type.cpp util/string/strip.cpp util/string/pcdata.cpp util/string/hex.cpp util/string/cstriter.cpp util/string/iterator.cpp util/string/join.cpp util/string/scan.cpp util/string/strspn.cpp util/string/subst.cpp
 
 $(BUILD_ROOT)/util/all_stream.cpp.o\
         ::\
@@ -2217,7 +2223,7 @@ $(BUILD_ROOT)/util/all_stream.cpp\
         $(SOURCE_ROOT)/util/stream/fwd.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_stream.cpp' util/stream/buffer.cpp util/stream/buffered.cpp util/stream/debug.cpp util/stream/direct_io.cpp util/stream/file.cpp util/stream/hex.cpp util/stream/input.cpp util/stream/length.cpp util/stream/mem.cpp util/stream/multi.cpp util/stream/null.cpp util/stream/output.cpp util/stream/pipe.cpp util/stream/str.cpp util/stream/tee.cpp util/stream/zerocopy.cpp util/stream/zlib.cpp util/stream/printf.cpp util/stream/format.cpp util/stream/tempbuf.cpp util/stream/walk.cpp util/stream/aligned.cpp util/stream/holder.cpp util/stream/labeled.cpp util/stream/tokenizer.cpp util/stream/trace.cpp util/stream/fwd.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_stream.cpp' util/stream/buffer.cpp util/stream/buffered.cpp util/stream/debug.cpp util/stream/direct_io.cpp util/stream/file.cpp util/stream/hex.cpp util/stream/input.cpp util/stream/length.cpp util/stream/mem.cpp util/stream/multi.cpp util/stream/null.cpp util/stream/output.cpp util/stream/pipe.cpp util/stream/str.cpp util/stream/tee.cpp util/stream/zerocopy.cpp util/stream/zlib.cpp util/stream/printf.cpp util/stream/format.cpp util/stream/tempbuf.cpp util/stream/walk.cpp util/stream/aligned.cpp util/stream/holder.cpp util/stream/labeled.cpp util/stream/tokenizer.cpp util/stream/trace.cpp util/stream/fwd.cpp
 
 $(BUILD_ROOT)/util/all_random.cpp.o\
         ::\
@@ -2241,7 +2247,7 @@ $(BUILD_ROOT)/util/all_random.cpp\
         $(SOURCE_ROOT)/util/random/shuffle.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_random.cpp' util/random/common_ops.cpp util/random/easy.cpp util/random/fast.cpp util/random/lcg_engine.cpp util/random/entropy.cpp util/random/mersenne.cpp util/random/mersenne32.cpp util/random/mersenne64.cpp util/random/normal.cpp util/random/shuffle.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_random.cpp' util/random/common_ops.cpp util/random/easy.cpp util/random/fast.cpp util/random/lcg_engine.cpp util/random/entropy.cpp util/random/mersenne.cpp util/random/mersenne32.cpp util/random/mersenne64.cpp util/random/normal.cpp util/random/shuffle.cpp
 
 $(BUILD_ROOT)/util/all_network.cpp.o\
         ::\
@@ -2269,7 +2275,7 @@ $(BUILD_ROOT)/util/all_network.cpp\
         $(SOURCE_ROOT)/util/network/sock.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_network.cpp' util/network/hostip.cpp util/network/init.cpp util/network/poller.cpp util/network/socket.cpp util/network/pair.cpp util/network/address.cpp util/network/endpoint.cpp util/network/interface.cpp util/network/nonblock.cpp util/network/iovec.cpp util/network/ip.cpp util/network/netloss.cpp util/network/pollerimpl.cpp util/network/sock.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_network.cpp' util/network/hostip.cpp util/network/init.cpp util/network/poller.cpp util/network/socket.cpp util/network/pair.cpp util/network/address.cpp util/network/endpoint.cpp util/network/interface.cpp util/network/nonblock.cpp util/network/iovec.cpp util/network/ip.cpp util/network/netloss.cpp util/network/pollerimpl.cpp util/network/sock.cpp
 
 $(BUILD_ROOT)/util/all_memory.cpp.o\
         ::\
@@ -2292,7 +2298,7 @@ $(BUILD_ROOT)/util/all_memory.cpp\
         $(SOURCE_ROOT)/util/memory/smallobj.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_memory.cpp' util/memory/tempbuf.cpp util/memory/blob.cpp util/memory/mmapalloc.cpp util/memory/alloc.cpp util/memory/pool.cpp util/memory/addstorage.cpp util/memory/segmented_string_pool.cpp util/memory/segpool_alloc.cpp util/memory/smallobj.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_memory.cpp' util/memory/tempbuf.cpp util/memory/blob.cpp util/memory/mmapalloc.cpp util/memory/alloc.cpp util/memory/pool.cpp util/memory/addstorage.cpp util/memory/segmented_string_pool.cpp util/memory/segpool_alloc.cpp util/memory/smallobj.cpp
 
 $(BUILD_ROOT)/util/all_generic.cpp.o\
         ::\
@@ -2363,7 +2369,7 @@ $(BUILD_ROOT)/util/all_generic.cpp\
         $(SOURCE_ROOT)/util/generic/ylimits.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_generic.cpp' util/generic/adaptor.cpp util/generic/array_ref.cpp util/generic/array_size.cpp util/generic/buffer.cpp util/generic/chartraits.cpp util/generic/explicit_type.cpp util/generic/function.cpp util/generic/guid.cpp util/generic/hash.cpp util/generic/hash_primes.cpp util/generic/hide_ptr.cpp util/generic/mem_copy.cpp util/generic/ptr.cpp util/generic/singleton.cpp util/generic/strbuf.cpp util/generic/strfcpy.cpp util/generic/string.cpp util/generic/utility.cpp util/generic/va_args.cpp util/generic/xrange.cpp util/generic/yexception.cpp util/generic/ymath.cpp util/generic/algorithm.cpp util/generic/bitmap.cpp util/generic/bitops.cpp util/generic/bt_exception.cpp util/generic/cast.cpp util/generic/deque.cpp util/generic/fastqueue.cpp util/generic/flags.cpp util/generic/fwd.cpp util/generic/hash_set.cpp util/generic/intrlist.cpp util/generic/is_in.cpp util/generic/iterator.cpp util/generic/iterator_range.cpp util/generic/lazy_value.cpp util/generic/list.cpp util/generic/map.cpp util/generic/mapfindptr.cpp util/generic/maybe.cpp util/generic/noncopyable.cpp util/generic/object_counter.cpp util/generic/queue.cpp util/generic/refcount.cpp util/generic/region.cpp util/generic/reinterpretcast.cpp util/generic/set.cpp util/generic/stack.cpp util/generic/stlfwd.cpp util/generic/store_policy.cpp util/generic/type_name.cpp util/generic/typelist.cpp util/generic/typetraits.cpp util/generic/vector.cpp util/generic/vector_ops.cpp util/generic/ylimits.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_generic.cpp' util/generic/adaptor.cpp util/generic/array_ref.cpp util/generic/array_size.cpp util/generic/buffer.cpp util/generic/chartraits.cpp util/generic/explicit_type.cpp util/generic/function.cpp util/generic/guid.cpp util/generic/hash.cpp util/generic/hash_primes.cpp util/generic/hide_ptr.cpp util/generic/mem_copy.cpp util/generic/ptr.cpp util/generic/singleton.cpp util/generic/strbuf.cpp util/generic/strfcpy.cpp util/generic/string.cpp util/generic/utility.cpp util/generic/va_args.cpp util/generic/xrange.cpp util/generic/yexception.cpp util/generic/ymath.cpp util/generic/algorithm.cpp util/generic/bitmap.cpp util/generic/bitops.cpp util/generic/bt_exception.cpp util/generic/cast.cpp util/generic/deque.cpp util/generic/fastqueue.cpp util/generic/flags.cpp util/generic/fwd.cpp util/generic/hash_set.cpp util/generic/intrlist.cpp util/generic/is_in.cpp util/generic/iterator.cpp util/generic/iterator_range.cpp util/generic/lazy_value.cpp util/generic/list.cpp util/generic/map.cpp util/generic/mapfindptr.cpp util/generic/maybe.cpp util/generic/noncopyable.cpp util/generic/object_counter.cpp util/generic/queue.cpp util/generic/refcount.cpp util/generic/region.cpp util/generic/reinterpretcast.cpp util/generic/set.cpp util/generic/stack.cpp util/generic/stlfwd.cpp util/generic/store_policy.cpp util/generic/type_name.cpp util/generic/typelist.cpp util/generic/typetraits.cpp util/generic/vector.cpp util/generic/vector_ops.cpp util/generic/ylimits.cpp
 
 $(BUILD_ROOT)/util/all_folder.cpp.o\
         ::\
@@ -2384,7 +2390,7 @@ $(BUILD_ROOT)/util/all_folder.cpp\
         $(SOURCE_ROOT)/util/folder/tempdir.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_folder.cpp' util/folder/fts.cpp util/folder/filelist.cpp util/folder/dirut.cpp util/folder/path.cpp util/folder/pathsplit.cpp util/folder/iterator.cpp util/folder/tempdir.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_folder.cpp' util/folder/fts.cpp util/folder/filelist.cpp util/folder/dirut.cpp util/folder/path.cpp util/folder/pathsplit.cpp util/folder/iterator.cpp util/folder/tempdir.cpp
 
 $(BUILD_ROOT)/util/all_util.cpp.o\
         ::\
@@ -2401,7 +2407,7 @@ $(BUILD_ROOT)/util/all_util.cpp\
         $(SOURCE_ROOT)/util/str_stl.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_util.cpp' util/ysafeptr.cpp util/ysaveload.cpp util/str_stl.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_util.cpp' util/ysafeptr.cpp util/ysaveload.cpp util/str_stl.cpp
 
 $(BUILD_ROOT)/util/all_digest.cpp.o\
         ::\
@@ -2421,7 +2427,7 @@ $(BUILD_ROOT)/util/all_digest.cpp\
         $(SOURCE_ROOT)/util/digest/sequence.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_digest.cpp' util/digest/murmur.cpp util/digest/fnv.cpp util/digest/iterator.cpp util/digest/numeric.cpp util/digest/multi.cpp util/digest/sequence.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_digest.cpp' util/digest/murmur.cpp util/digest/fnv.cpp util/digest/iterator.cpp util/digest/numeric.cpp util/digest/multi.cpp util/digest/sequence.cpp
 
 $(BUILD_ROOT)/util/all_datetime.cpp.o\
         ::\
@@ -2439,7 +2445,7 @@ $(BUILD_ROOT)/util/all_datetime.cpp\
         $(SOURCE_ROOT)/util/datetime/constants.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_datetime.cpp' util/datetime/base.cpp util/datetime/cputimer.cpp util/datetime/systime.cpp util/datetime/constants.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_datetime.cpp' util/datetime/base.cpp util/datetime/cputimer.cpp util/datetime/systime.cpp util/datetime/constants.cpp
 
 $(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a\
 $(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf\
@@ -2449,8 +2455,8 @@ $(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/cat_feature'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-cat_feature -o catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a' '$(BUILD_ROOT)/catboost/libs/cat_feature/cat_feature.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-cat_feature -o catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a' '$(BUILD_ROOT)/catboost/libs/cat_feature/cat_feature.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/cat_feature/cat_feature.cpp.o\
         ::\
@@ -2468,8 +2474,8 @@ $(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/colorizer'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-colorizer -o library/colorizer/liblibrary-colorizer.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a' '$(BUILD_ROOT)/library/colorizer/output.cpp.o' '$(BUILD_ROOT)/library/colorizer/colors.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-colorizer -o library/colorizer/liblibrary-colorizer.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a' '$(BUILD_ROOT)/library/colorizer/output.cpp.o' '$(BUILD_ROOT)/library/colorizer/colors.cpp.o'
 
 $(BUILD_ROOT)/library/colorizer/output.cpp.o\
         ::\
@@ -2503,8 +2509,8 @@ $(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-getopt-small -o library/getopt/small/liblibrary-getopt-small.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a' '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.o' '$(BUILD_ROOT)/library/getopt/small/opt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-getopt-small -o library/getopt/small/liblibrary-getopt-small.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a' '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.o' '$(BUILD_ROOT)/library/getopt/small/opt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.o'
 
 $(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.o\
         ::\
@@ -2591,8 +2597,8 @@ $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/lfalloc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-lfalloc -o library/lfalloc/liblibrary-lfalloc.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a' '$(BUILD_ROOT)/library/lfalloc/lf_allocX64.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-lfalloc -o library/lfalloc/liblibrary-lfalloc.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a' '$(BUILD_ROOT)/library/lfalloc/lf_allocX64.cpp.o'
 
 $(BUILD_ROOT)/library/lfalloc/lf_allocX64.cpp.o\
         ::\
@@ -2618,8 +2624,8 @@ $(BUILD_ROOT)/library/logger/liblibrary-logger.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/logger'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-logger -o library/logger/liblibrary-logger.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/liblibrary-logger.a' '$(BUILD_ROOT)/library/logger/filter.cpp.o' '$(BUILD_ROOT)/library/logger/element.cpp.o' '$(BUILD_ROOT)/library/logger/stream.cpp.o' '$(BUILD_ROOT)/library/logger/thread.cpp.o' '$(BUILD_ROOT)/library/logger/backend.cpp.o' '$(BUILD_ROOT)/library/logger/null.cpp.o' '$(BUILD_ROOT)/library/logger/file.cpp.o' '$(BUILD_ROOT)/library/logger/system.cpp.o' '$(BUILD_ROOT)/library/logger/log.cpp.o' '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-logger -o library/logger/liblibrary-logger.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/liblibrary-logger.a' '$(BUILD_ROOT)/library/logger/filter.cpp.o' '$(BUILD_ROOT)/library/logger/element.cpp.o' '$(BUILD_ROOT)/library/logger/stream.cpp.o' '$(BUILD_ROOT)/library/logger/thread.cpp.o' '$(BUILD_ROOT)/library/logger/backend.cpp.o' '$(BUILD_ROOT)/library/logger/null.cpp.o' '$(BUILD_ROOT)/library/logger/file.cpp.o' '$(BUILD_ROOT)/library/logger/system.cpp.o' '$(BUILD_ROOT)/library/logger/log.cpp.o' '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/library/logger/filter.cpp.o\
         ::\
@@ -2723,8 +2729,8 @@ $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/tools/enum_parser/enum_parser'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name enum_parser -o tools/enum_parser/enum_parser/enum_parser.mf -t PROGRAM -Ya,lics -Ya,peers library/getopt/small/liblibrary-getopt-small.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/cppparser/liblibrary-cppparser.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/enum_parser/enum_parser/main.cpp.o' -o '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' -rdynamic -Wl,--start-group library/getopt/small/liblibrary-getopt-small.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/cppparser/liblibrary-cppparser.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name enum_parser -o tools/enum_parser/enum_parser/enum_parser.mf -t PROGRAM -Ya,lics -Ya,peers library/getopt/small/liblibrary-getopt-small.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/cppparser/liblibrary-cppparser.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/enum_parser/enum_parser/main.cpp.o' -o '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' -rdynamic -Wl,--start-group library/getopt/small/liblibrary-getopt-small.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/cppparser/liblibrary-cppparser.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a\
 $(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a.mf\
@@ -2734,8 +2740,8 @@ $(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/cppparser'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-cppparser -o library/cppparser/liblibrary-cppparser.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a' '$(BUILD_ROOT)/library/cppparser/parser.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-cppparser -o library/cppparser/liblibrary-cppparser.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a' '$(BUILD_ROOT)/library/cppparser/parser.cpp.o'
 
 $(BUILD_ROOT)/library/cppparser/parser.cpp.o\
         ::\
@@ -2752,8 +2758,8 @@ $(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/tools/enum_parser/parse_enum'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name tools-enum_parser-parse_enum -o tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a' '$(BUILD_ROOT)/tools/enum_parser/parse_enum/parse_enum.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name tools-enum_parser-parse_enum -o tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a' '$(BUILD_ROOT)/tools/enum_parser/parse_enum/parse_enum.cpp.o'
 
 $(BUILD_ROOT)/tools/enum_parser/parse_enum/parse_enum.cpp.o\
         ::\
@@ -2779,8 +2785,8 @@ $(BUILD_ROOT)/library/logger/global/liblibrary-logger-global.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/logger/global'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-logger-global -o library/logger/global/liblibrary-logger-global.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/global/liblibrary-logger-global.a' '$(BUILD_ROOT)/library/logger/global/rty_formater.cpp.o' '$(BUILD_ROOT)/library/logger/global/global.cpp.o' '$(BUILD_ROOT)/library/logger/global/common.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-logger-global -o library/logger/global/liblibrary-logger-global.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/global/liblibrary-logger-global.a' '$(BUILD_ROOT)/library/logger/global/rty_formater.cpp.o' '$(BUILD_ROOT)/library/logger/global/global.cpp.o' '$(BUILD_ROOT)/library/logger/global/common.cpp.o'
 
 $(BUILD_ROOT)/library/logger/global/rty_formater.cpp.o\
         ::\
@@ -2812,8 +2818,8 @@ $(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/logging'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-logging -o catboost/libs/logging/libcatboost-libs-logging.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a' '$(BUILD_ROOT)/catboost/libs/logging/logging.cpp.o' '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-logging -o catboost/libs/logging/libcatboost-libs-logging.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a' '$(BUILD_ROOT)/catboost/libs/logging/logging.cpp.o' '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/logging/logging.cpp.o\
         ::\
@@ -2845,8 +2851,8 @@ $(BUILD_ROOT)/contrib/libs/rapidjson/libcontrib-libs-rapidjson.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/rapidjson'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-rapidjson -o contrib/libs/rapidjson/libcontrib-libs-rapidjson.a.mf -t LIBRARY -Ya,lics RAPIDJSON -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/rapidjson/libcontrib-libs-rapidjson.a' '$(BUILD_ROOT)/contrib/libs/rapidjson/__/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-rapidjson -o contrib/libs/rapidjson/libcontrib-libs-rapidjson.a.mf -t LIBRARY -Ya,lics RAPIDJSON -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/rapidjson/libcontrib-libs-rapidjson.a' '$(BUILD_ROOT)/contrib/libs/rapidjson/__/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/rapidjson/__/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -2863,8 +2869,8 @@ $(BUILD_ROOT)/library/json/common/liblibrary-json-common.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/json/common'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-common -o library/json/common/liblibrary-json-common.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/common/liblibrary-json-common.a' '$(BUILD_ROOT)/library/json/common/defs.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-common -o library/json/common/liblibrary-json-common.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/common/liblibrary-json-common.a' '$(BUILD_ROOT)/library/json/common/defs.cpp.o'
 
 $(BUILD_ROOT)/library/json/common/defs.cpp.o\
         ::\
@@ -2883,8 +2889,8 @@ $(BUILD_ROOT)/library/json/writer/liblibrary-json-writer.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/json/writer'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-writer -o library/json/writer/liblibrary-json-writer.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/writer/liblibrary-json-writer.a' '$(BUILD_ROOT)/library/json/writer/json.cpp.o' '$(BUILD_ROOT)/library/json/writer/json_value.cpp.o' '$(BUILD_ROOT)/library/json/writer/json_value.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-writer -o library/json/writer/liblibrary-json-writer.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/writer/liblibrary-json-writer.a' '$(BUILD_ROOT)/library/json/writer/json.cpp.o' '$(BUILD_ROOT)/library/json/writer/json_value.cpp.o' '$(BUILD_ROOT)/library/json/writer/json_value.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/library/json/writer/json.cpp.o\
         ::\
@@ -2924,8 +2930,8 @@ $(BUILD_ROOT)/library/json/fast_sax/liblibrary-json-fast_sax.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/json/fast_sax'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-fast_sax -o library/json/fast_sax/liblibrary-json-fast_sax.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/fast_sax/liblibrary-json-fast_sax.a' '$(BUILD_ROOT)/library/json/fast_sax/unescape.cpp.o' '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json-fast_sax -o library/json/fast_sax/liblibrary-json-fast_sax.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/fast_sax/liblibrary-json-fast_sax.a' '$(BUILD_ROOT)/library/json/fast_sax/unescape.cpp.o' '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp.o'
 
 $(BUILD_ROOT)/library/json/fast_sax/unescape.cpp.o\
         ::\
@@ -2957,8 +2963,8 @@ $(BUILD_ROOT)/library/string_utils/relaxed_escaper/liblibrary-string_utils-relax
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/string_utils/relaxed_escaper'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-string_utils-relaxed_escaper -o library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a' '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/relaxed_escaper.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-string_utils-relaxed_escaper -o library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a' '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/relaxed_escaper.cpp.o'
 
 $(BUILD_ROOT)/library/string_utils/relaxed_escaper/relaxed_escaper.cpp.o\
         ::\
@@ -2978,8 +2984,8 @@ $(BUILD_ROOT)/library/json/liblibrary-json.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/json'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json -o library/json/liblibrary-json.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/liblibrary-json.a' '$(BUILD_ROOT)/library/json/rapidjson_helpers.cpp.o' '$(BUILD_ROOT)/library/json/json_prettifier.cpp.o' '$(BUILD_ROOT)/library/json/json_reader.cpp.o' '$(BUILD_ROOT)/library/json/json_writer.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-json -o library/json/liblibrary-json.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/json/liblibrary-json.a' '$(BUILD_ROOT)/library/json/rapidjson_helpers.cpp.o' '$(BUILD_ROOT)/library/json/json_prettifier.cpp.o' '$(BUILD_ROOT)/library/json/json_reader.cpp.o' '$(BUILD_ROOT)/library/json/json_writer.cpp.o'
 
 $(BUILD_ROOT)/library/json/rapidjson_helpers.cpp.o\
         ::\
@@ -3018,8 +3024,8 @@ $(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.m
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/ctr_description'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-ctr_description -o catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a' '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.cpp.o' '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-ctr_description -o catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a' '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.cpp.o' '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.cpp.o\
         ::\
@@ -3053,8 +3059,8 @@ $(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/grid_creator'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-grid_creator -o library/grid_creator/liblibrary-grid_creator.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a' '$(BUILD_ROOT)/library/grid_creator/median_in_bin_binarization.cpp.o' '$(BUILD_ROOT)/library/grid_creator/binarization.cpp.o' '$(BUILD_ROOT)/library/grid_creator/binarization.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-grid_creator -o library/grid_creator/liblibrary-grid_creator.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a' '$(BUILD_ROOT)/library/grid_creator/median_in_bin_binarization.cpp.o' '$(BUILD_ROOT)/library/grid_creator/binarization.cpp.o' '$(BUILD_ROOT)/library/grid_creator/binarization.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/library/grid_creator/median_in_bin_binarization.cpp.o\
         ::\
@@ -3110,8 +3116,8 @@ $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/options'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-options -o catboost/libs/options/libcatboost-libs-options.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/oblivious_tree_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/metric_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/loss_description.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/system_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/data_processing_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/plain_options_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/catboost_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/cat_feature_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/boosting_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/bootstrap_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/overfitting_detector_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/binarization_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-options -o catboost/libs/options/libcatboost-libs-options.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/oblivious_tree_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/metric_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/loss_description.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/system_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/data_processing_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/plain_options_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/catboost_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/cat_feature_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/boosting_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/bootstrap_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/overfitting_detector_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/binarization_options.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.o' '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o\
         ::\
@@ -3263,8 +3269,8 @@ $(BUILD_ROOT)/library/containers/2d_array/liblibrary-containers-2d_array.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/containers/2d_array'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-containers-2d_array -o library/containers/2d_array/liblibrary-containers-2d_array.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/containers/2d_array/liblibrary-containers-2d_array.a' '$(BUILD_ROOT)/library/containers/2d_array/2d_array.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-containers-2d_array -o library/containers/2d_array/liblibrary-containers-2d_array.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/containers/2d_array/liblibrary-containers-2d_array.a' '$(BUILD_ROOT)/library/containers/2d_array/2d_array.cpp.o'
 
 $(BUILD_ROOT)/library/containers/2d_array/2d_array.cpp.o\
         ::\
@@ -3285,8 +3291,8 @@ $(BUILD_ROOT)/library/binsaver/liblibrary-binsaver.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/binsaver'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-binsaver -o library/binsaver/liblibrary-binsaver.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/binsaver/liblibrary-binsaver.a' '$(BUILD_ROOT)/library/binsaver/util_stream_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/mem_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/buffered_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/blob_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/bin_saver.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-binsaver -o library/binsaver/liblibrary-binsaver.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/binsaver/liblibrary-binsaver.a' '$(BUILD_ROOT)/library/binsaver/util_stream_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/mem_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/buffered_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/blob_io.cpp.o' '$(BUILD_ROOT)/library/binsaver/bin_saver.cpp.o'
 
 $(BUILD_ROOT)/library/binsaver/util_stream_io.cpp.o\
         ::\
@@ -3331,8 +3337,8 @@ $(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/nayuki_md5'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-nayuki_md5 -o contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a' '$(BUILD_ROOT)/contrib/libs/nayuki_md5/md5-fast-x8664.S.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-nayuki_md5 -o contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a' '$(BUILD_ROOT)/contrib/libs/nayuki_md5/md5-fast-x8664.S.o'
 
 $(BUILD_ROOT)/contrib/libs/nayuki_md5/md5-fast-x8664.S.o\
         ::\
@@ -3350,8 +3356,8 @@ $(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/avx2'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-avx2 -o contrib/libs/base64/avx2/liblibs-base64-avx2.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a' '$(BUILD_ROOT)/contrib/libs/base64/avx2/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/avx2/codec_avx2.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-avx2 -o contrib/libs/base64/avx2/liblibs-base64-avx2.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a' '$(BUILD_ROOT)/contrib/libs/base64/avx2/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/avx2/codec_avx2.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/avx2/lib.c.o\
         ::\
@@ -3376,8 +3382,8 @@ $(BUILD_ROOT)/contrib/libs/base64/ssse3/liblibs-base64-ssse3.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/ssse3'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-ssse3 -o contrib/libs/base64/ssse3/liblibs-base64-ssse3.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/ssse3/liblibs-base64-ssse3.a' '$(BUILD_ROOT)/contrib/libs/base64/ssse3/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/ssse3/codec_ssse3.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-ssse3 -o contrib/libs/base64/ssse3/liblibs-base64-ssse3.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/ssse3/liblibs-base64-ssse3.a' '$(BUILD_ROOT)/contrib/libs/base64/ssse3/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/ssse3/codec_ssse3.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/ssse3/lib.c.o\
         ::\
@@ -3402,8 +3408,8 @@ $(BUILD_ROOT)/contrib/libs/base64/neon32/liblibs-base64-neon32.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/neon32'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-neon32 -o contrib/libs/base64/neon32/liblibs-base64-neon32.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/neon32/liblibs-base64-neon32.a' '$(BUILD_ROOT)/contrib/libs/base64/neon32/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/neon32/codec_neon32.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-neon32 -o contrib/libs/base64/neon32/liblibs-base64-neon32.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/neon32/liblibs-base64-neon32.a' '$(BUILD_ROOT)/contrib/libs/base64/neon32/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/neon32/codec_neon32.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/neon32/lib.c.o\
         ::\
@@ -3428,8 +3434,8 @@ $(BUILD_ROOT)/contrib/libs/base64/neon64/liblibs-base64-neon64.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/neon64'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-neon64 -o contrib/libs/base64/neon64/liblibs-base64-neon64.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/neon64/liblibs-base64-neon64.a' '$(BUILD_ROOT)/contrib/libs/base64/neon64/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/neon64/codec_neon64.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-neon64 -o contrib/libs/base64/neon64/liblibs-base64-neon64.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/neon64/liblibs-base64-neon64.a' '$(BUILD_ROOT)/contrib/libs/base64/neon64/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/neon64/codec_neon64.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/neon64/lib.c.o\
         ::\
@@ -3454,8 +3460,8 @@ $(BUILD_ROOT)/contrib/libs/base64/plain32/liblibs-base64-plain32.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/plain32'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-plain32 -o contrib/libs/base64/plain32/liblibs-base64-plain32.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/plain32/liblibs-base64-plain32.a' '$(BUILD_ROOT)/contrib/libs/base64/plain32/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/plain32/codec_plain.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-plain32 -o contrib/libs/base64/plain32/liblibs-base64-plain32.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/plain32/liblibs-base64-plain32.a' '$(BUILD_ROOT)/contrib/libs/base64/plain32/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/plain32/codec_plain.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/plain32/lib.c.o\
         ::\
@@ -3480,8 +3486,8 @@ $(BUILD_ROOT)/contrib/libs/base64/plain64/liblibs-base64-plain64.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/base64/plain64'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-plain64 -o contrib/libs/base64/plain64/liblibs-base64-plain64.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/plain64/liblibs-base64-plain64.a' '$(BUILD_ROOT)/contrib/libs/base64/plain64/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/plain64/codec_plain.c.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-base64-plain64 -o contrib/libs/base64/plain64/liblibs-base64-plain64.a.mf -t LIBRARY -Ya,lics BSD2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/base64/plain64/liblibs-base64-plain64.a' '$(BUILD_ROOT)/contrib/libs/base64/plain64/lib.c.o' '$(BUILD_ROOT)/contrib/libs/base64/plain64/codec_plain.c.o'
 
 $(BUILD_ROOT)/contrib/libs/base64/plain64/lib.c.o\
         ::\
@@ -3505,8 +3511,8 @@ $(BUILD_ROOT)/library/string_utils/base64/liblibrary-string_utils-base64.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/string_utils/base64'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-string_utils-base64 -o library/string_utils/base64/liblibrary-string_utils-base64.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/string_utils/base64/liblibrary-string_utils-base64.a' '$(BUILD_ROOT)/library/string_utils/base64/base64.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-string_utils-base64 -o library/string_utils/base64/liblibrary-string_utils-base64.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/string_utils/base64/liblibrary-string_utils-base64.a' '$(BUILD_ROOT)/library/string_utils/base64/base64.cpp.o'
 
 $(BUILD_ROOT)/library/string_utils/base64/base64.cpp.o\
         ::\
@@ -3523,8 +3529,8 @@ $(BUILD_ROOT)/library/digest/md5/liblibrary-digest-md5.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/digest/md5'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-digest-md5 -o library/digest/md5/liblibrary-digest-md5.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/digest/md5/liblibrary-digest-md5.a' '$(BUILD_ROOT)/library/digest/md5/md5.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-digest-md5 -o library/digest/md5/liblibrary-digest-md5.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/digest/md5/liblibrary-digest-md5.a' '$(BUILD_ROOT)/library/digest/md5/md5.cpp.o'
 
 $(BUILD_ROOT)/library/digest/md5/md5.cpp.o\
         ::\
@@ -3546,8 +3552,8 @@ $(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/crcutil'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-crcutil -o contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-crcutil -o contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.o\
         ::\
@@ -3599,8 +3605,8 @@ $(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/digest/crc32c'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-digest-crc32c -o library/digest/crc32c/liblibrary-digest-crc32c.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a' '$(BUILD_ROOT)/library/digest/crc32c/crc32c.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-digest-crc32c -o library/digest/crc32c/liblibrary-digest-crc32c.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a' '$(BUILD_ROOT)/library/digest/crc32c/crc32c.cpp.o'
 
 $(BUILD_ROOT)/library/digest/crc32c/crc32c.cpp.o\
         ::\
@@ -3617,8 +3623,8 @@ $(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_execut
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/threading/local_executor'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-threading-local_executor -o library/threading/local_executor/liblibrary-threading-local_executor.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_executor.a' '$(BUILD_ROOT)/library/threading/local_executor/local_executor.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-threading-local_executor -o library/threading/local_executor/liblibrary-threading-local_executor.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_executor.a' '$(BUILD_ROOT)/library/threading/local_executor/local_executor.cpp.o'
 
 $(BUILD_ROOT)/library/threading/local_executor/local_executor.cpp.o\
         ::\
@@ -3647,8 +3653,8 @@ $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-helpers -o catboost/libs/helpers/libcatboost-libs-helpers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/data_split.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/binarize_target.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-helpers -o catboost/libs/helpers/libcatboost-libs-helpers.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/data_split.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/binarize_target.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.o' '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/helpers/data_split.cpp.o\
         ::\
@@ -3758,8 +3764,8 @@ $(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_descripti
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/column_description'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-column_description -o catboost/libs/column_description/libcatboost-libs-column_description.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_description.a' '$(BUILD_ROOT)/catboost/libs/column_description/cd_parser.cpp.o' '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-column_description -o catboost/libs/column_description/libcatboost-libs-column_description.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_description.a' '$(BUILD_ROOT)/catboost/libs/column_description/cd_parser.cpp.o' '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/column_description/cd_parser.cpp.o\
         ::\
@@ -3872,8 +3878,8 @@ $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-protobuf -o contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-protobuf -o contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.o\
         ::\
@@ -4473,8 +4479,8 @@ $(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-coreml -o contrib/libs/coreml/libcontrib-libs-coreml.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a' '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-coreml -o contrib/libs/coreml/libcontrib-libs-coreml.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a' '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.o\
         ::\
@@ -4520,8 +4526,8 @@ $(BUILD_ROOT)/contrib/tools/protoc/protoc.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/protoc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name protoc -o contrib/tools/protoc/protoc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/protoc/__/__/libs/protobuf/compiler/main.cc.o' -o '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -rdynamic -Wl,--start-group contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name protoc -o contrib/tools/protoc/protoc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/protoc/__/__/libs/protobuf/compiler/main.cc.o' -o '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -rdynamic -Wl,--start-group contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a\
 $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf\
@@ -4585,8 +4591,8 @@ $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/protoc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-protobuf-protoc -o contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/zip_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/subprocess.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/python/python_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/main.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_shared_code_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_name_resolver.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator_factory.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_file.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_doc_comment.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_context.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/importer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_string_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_primitive_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_file.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_extension.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/command_line_interface.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/code_generator.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-protobuf-protoc -o contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/zip_writer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/subprocess.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/python/python_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/parser.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/main.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_shared_code_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_name_resolver.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator_factory.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_file.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field_lite.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_doc_comment.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_context.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/importer.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_string_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_service.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_primitive_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_map_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_helpers.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_generator.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_file.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_extension.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum_field.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/command_line_interface.cc.o' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/code_generator.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/zip_writer.cc.o\
         ::\
@@ -5002,8 +5008,8 @@ $(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name cpp_styleguide -o contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' -rdynamic -Wl,--start-group contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name cpp_styleguide -o contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' -rdynamic -Wl,--start-group contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp.o\
         ::\
@@ -5370,8 +5376,8 @@ $(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a.m
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/containers/dense_hash'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-containers-dense_hash -o library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a' '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-containers-dense_hash -o library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a' '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o'
 
 $(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o\
         ::\
@@ -5391,8 +5397,8 @@ $(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-flatbuffers -o contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-flatbuffers -o contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o\
         ::\
@@ -5430,8 +5436,8 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-flatbuffers -o catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-flatbuffers -o catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -5458,8 +5464,8 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o\
         ::\
@@ -5478,7 +5484,7 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
 
 $(BUILD_ROOT)/contrib/tools/flatc/flatc\
 $(BUILD_ROOT)/contrib/tools/flatc/flatc.mf\
@@ -5498,8 +5504,8 @@ $(BUILD_ROOT)/contrib/tools/flatc/flatc.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/flatc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name flatc -o contrib/tools/flatc/flatc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/flatc/flatc' -rdynamic -Wl,--start-group contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name flatc -o contrib/tools/flatc/flatc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/flatc/flatc' -rdynamic -Wl,--start-group contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
 $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf\
@@ -5516,8 +5522,8 @@ $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-flatbuffers-flatc -o contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-flatbuffers-flatc -o contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o\
         ::\
@@ -5589,7 +5595,7 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
 
 $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         ::\
@@ -5598,7 +5604,7 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
 
 $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o\
         ::\
@@ -5782,8 +5788,8 @@ $(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/data'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-data -o catboost/libs/data/libcatboost-libs-data.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a' '$(BUILD_ROOT)/catboost/libs/data/load_data.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-data -o catboost/libs/data/libcatboost-libs-data.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a' '$(BUILD_ROOT)/catboost/libs/data/load_data.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/data/load_data.cpp.o\
         ::\
@@ -5807,8 +5813,8 @@ $(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/tensorboard'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-tensorboard -o contrib/libs/tensorboard/libcontrib-libs-tensorboard.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a' '$(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-tensorboard -o contrib/libs/tensorboard/libcontrib-libs-tensorboard.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a' '$(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc.o' '$(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc.o'
 
 $(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc.o\
         ::\
@@ -5951,8 +5957,8 @@ $(BUILD_ROOT)/catboost/libs/loggers/libcatboost-libs-loggers.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/loggers'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-loggers -o catboost/libs/loggers/libcatboost-libs-loggers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/loggers/libcatboost-libs-loggers.a' '$(BUILD_ROOT)/catboost/libs/loggers/logger.cpp.o' '$(BUILD_ROOT)/catboost/libs/loggers/tensorboard_logger.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-loggers -o catboost/libs/loggers/libcatboost-libs-loggers.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/loggers/libcatboost-libs-loggers.a' '$(BUILD_ROOT)/catboost/libs/loggers/logger.cpp.o' '$(BUILD_ROOT)/catboost/libs/loggers/tensorboard_logger.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/loggers/logger.cpp.o\
         ::\
@@ -6004,8 +6010,8 @@ $(BUILD_ROOT)/catboost/libs/metrics/libcatboost-libs-metrics.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/metrics'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-metrics -o catboost/libs/metrics/libcatboost-libs-metrics.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/metrics/libcatboost-libs-metrics.a' '$(BUILD_ROOT)/catboost/libs/metrics/pfound.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/metric.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/auc.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/sample.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/metric.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-metrics -o catboost/libs/metrics/libcatboost-libs-metrics.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/metrics/libcatboost-libs-metrics.a' '$(BUILD_ROOT)/catboost/libs/metrics/pfound.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/metric.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/auc.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/sample.cpp.o' '$(BUILD_ROOT)/catboost/libs/metrics/metric.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/metrics/pfound.cpp.o\
         ::\
@@ -6058,8 +6064,8 @@ $(BUILD_ROOT)/library/statistics/liblibrary-statistics.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/statistics'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-statistics -o library/statistics/liblibrary-statistics.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/statistics/liblibrary-statistics.a' '$(BUILD_ROOT)/library/statistics/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-statistics -o library/statistics/liblibrary-statistics.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/statistics/liblibrary-statistics.a' '$(BUILD_ROOT)/library/statistics/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/library/statistics/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -6077,8 +6083,8 @@ $(BUILD_ROOT)/catboost/libs/overfitting_detector/libcatboost-libs-overfitting_de
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/overfitting_detector'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-overfitting_detector -o catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a' '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.cpp.o' '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-overfitting_detector -o catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a' '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.cpp.o' '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.cpp.o\
         ::\
@@ -6110,8 +6116,8 @@ $(BUILD_ROOT)/library/dot_product/liblibrary-dot_product.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/dot_product'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-dot_product -o library/dot_product/liblibrary-dot_product.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/dot_product/liblibrary-dot_product.a' '$(BUILD_ROOT)/library/dot_product/dot_product.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-dot_product -o library/dot_product/liblibrary-dot_product.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/dot_product/liblibrary-dot_product.a' '$(BUILD_ROOT)/library/dot_product/dot_product.cpp.o'
 
 $(BUILD_ROOT)/library/dot_product/dot_product.cpp.o\
         ::\
@@ -6128,8 +6134,8 @@ $(BUILD_ROOT)/contrib/libs/fmath/libcontrib-libs-fmath.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/fmath'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-fmath -o contrib/libs/fmath/libcontrib-libs-fmath.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/fmath/libcontrib-libs-fmath.a' '$(BUILD_ROOT)/contrib/libs/fmath/__/__/__/build/scripts/_fake_src.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-fmath -o contrib/libs/fmath/libcontrib-libs-fmath.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/fmath/libcontrib-libs-fmath.a' '$(BUILD_ROOT)/contrib/libs/fmath/__/__/__/build/scripts/_fake_src.cpp.o'
 
 $(BUILD_ROOT)/contrib/libs/fmath/__/__/__/build/scripts/_fake_src.cpp.o\
         ::\
@@ -6148,8 +6154,8 @@ $(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/fast_exp'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-fast_exp -o library/fast_exp/liblibrary-fast_exp.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a' '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-fast_exp -o library/fast_exp/liblibrary-fast_exp.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a' '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.o'
 
 $(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.o\
         ::\
@@ -6180,8 +6186,8 @@ $(BUILD_ROOT)/library/fast_log/liblibrary-fast_log.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/fast_log'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-fast_log -o library/fast_log/liblibrary-fast_log.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/fast_log/liblibrary-fast_log.a' '$(BUILD_ROOT)/library/fast_log/fast_log.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-fast_log -o library/fast_log/liblibrary-fast_log.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/fast_log/liblibrary-fast_log.a' '$(BUILD_ROOT)/library/fast_log/fast_log.cpp.o'
 
 $(BUILD_ROOT)/library/fast_log/fast_log.cpp.o\
         ::\
@@ -6198,8 +6204,8 @@ $(BUILD_ROOT)/library/object_factory/liblibrary-object_factory.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/object_factory'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-object_factory -o library/object_factory/liblibrary-object_factory.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/object_factory/liblibrary-object_factory.a' '$(BUILD_ROOT)/library/object_factory/object_factory.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-object_factory -o library/object_factory/liblibrary-object_factory.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/object_factory/liblibrary-object_factory.a' '$(BUILD_ROOT)/library/object_factory/object_factory.cpp.o'
 
 $(BUILD_ROOT)/library/object_factory/object_factory.cpp.o\
         ::\
@@ -6251,8 +6257,8 @@ $(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-algo -o catboost/libs/algo/libcatboost-libs-algo.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a' '$(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/cv_data_partition.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tree_print.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_querywise.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_per_object.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_soft_max.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_poisson.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_pair_logit.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/split.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/score_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/ctr_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_predictor.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/learn_context.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_hash_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/greedy_tensor_search.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/full_features.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/fold.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/features_layout.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/error_functions.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/apply.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-algo -o catboost/libs/algo/libcatboost-libs-algo.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a' '$(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/cv_data_partition.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tree_print.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_querywise.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_per_object.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_soft_max.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_poisson.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_pair_logit.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/split.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/score_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/ctr_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_predictor.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/learn_context.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_hash_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/greedy_tensor_search.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/full_features.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/fold.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/features_layout.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/error_functions.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/apply.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o\
         ::\
@@ -6584,8 +6590,8 @@ $(BUILD_ROOT)/catboost/libs/fstr/libcatboost-libs-fstr.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/fstr'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-fstr -o catboost/libs/fstr/libcatboost-libs-fstr.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/fstr/libcatboost-libs-fstr.a' '$(BUILD_ROOT)/catboost/libs/fstr/calc_fstr.cpp.o' '$(BUILD_ROOT)/catboost/libs/fstr/doc_fstr.cpp.o' '$(BUILD_ROOT)/catboost/libs/fstr/feature_str.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-fstr -o catboost/libs/fstr/libcatboost-libs-fstr.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/fstr/libcatboost-libs-fstr.a' '$(BUILD_ROOT)/catboost/libs/fstr/calc_fstr.cpp.o' '$(BUILD_ROOT)/catboost/libs/fstr/doc_fstr.cpp.o' '$(BUILD_ROOT)/catboost/libs/fstr/feature_str.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/fstr/calc_fstr.cpp.o\
         ::\
@@ -6645,8 +6651,8 @@ $(BUILD_ROOT)/catboost/libs/train_lib/libcatboost-libs-train_lib.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/train_lib'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-train_lib -o catboost/libs/train_lib/libcatboost-libs-train_lib.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/train_lib/libcatboost-libs-train_lib.a' '$(BUILD_ROOT)/catboost/libs/train_lib/preprocess.cpp.o' '$(BUILD_ROOT)/catboost/libs/train_lib/cross_validation.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-train_lib -o catboost/libs/train_lib/libcatboost-libs-train_lib.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/train_lib/libcatboost-libs-train_lib.a' '$(BUILD_ROOT)/catboost/libs/train_lib/preprocess.cpp.o' '$(BUILD_ROOT)/catboost/libs/train_lib/cross_validation.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/train_lib/preprocess.cpp.o\
         ::\
@@ -6687,8 +6693,8 @@ $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/svnversion'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-svnversion -o library/svnversion/liblibrary-svnversion.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-svnversion -o library/svnversion/liblibrary-svnversion.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.o'
 
 $(BUILD_ROOT)/library/svnversion/svnversion.cpp.o\
         ::\
@@ -6705,10 +6711,10 @@ $(BUILD_ROOT)/library/svnversion/svnversion_data.h\
         $(SOURCE_ROOT)/build/scripts/svn_version_gen.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/svnversion'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(SOURCE_ROOT)'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(BUILD_ROOT)'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)/python'
-	'$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/xargs.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)/python' '$(SOURCE_ROOT)/build/scripts/svn_version_gen.py' '$(BUILD_ROOT)/library/svnversion/svnversion_data.h'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(SOURCE_ROOT)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(BUILD_ROOT)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/xargs.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/svn_version_gen.py' '$(BUILD_ROOT)/library/svnversion/svnversion_data.h'
 
 $(BUILD_ROOT)/catboost/app/cmd_line.cpp.o\
         ::\
@@ -6770,3 +6776,746 @@ $(BUILD_ROOT)/catboost/app/main.cpp.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/app'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/app/main.cpp.o' '$(SOURCE_ROOT)/catboost/app/main.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=r3377999 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+clean\
+        ::\
+
+	rm -f '$(BUILD_ROOT)/catboost/app/catboost' '$(BUILD_ROOT)/catboost/app/catboost.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a' '$(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a' '$(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersSave.S.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersRestore.S.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-sjlj.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1-gcc-ext.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-EHABI.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/libunwind.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/int_util.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/floatuntidf.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/fixunsdfti.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/clzti2.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divdc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divxc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/divsc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulxc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/muldc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/mulsc3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/umodti3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivti3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/udivmodti4.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/unwind.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/guard.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/exception.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/memory.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/new.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/vector.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/variant.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/valarray.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/utility.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/typeinfo.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/thread.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/system_error.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/strstream.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/string.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/stdexcept.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/shared_mutex.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/regex.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/random.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/optional.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/mutex.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/memory.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/locale.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/iostream.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/ios.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/hash.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/future.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/functional.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/exception.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/debug.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/condition_variable.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/chrono.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/bind.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/any.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a' '$(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/cxxsupp/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/charset/libutil-charset.a' '$(BUILD_ROOT)/util/charset/libutil-charset.a.mf'
+	rm -f '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/charset/all_charset.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/charset/all_charset.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a' '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/zutil.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/uncompr.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/trees.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/inftrees.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/inflate.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/inffast.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/infback.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/gzwrite.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/gzread.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/gzlib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/gzclose.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/deflate.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/crc32.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/compress.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/zlib/adler32.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a' '$(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/fast-dtoa.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/strtod.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/fixed-dtoa.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/diy-fp.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/double-conversion.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/bignum-dtoa.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/double-conversion/cached-powers.cc.o'
+	rm -f '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a' '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a.mf'
+	rm -f '$(BUILD_ROOT)/library/malloc/api/malloc.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/libyutil.a.mf'
+	rm -f '$(BUILD_ROOT)/util/system/mktemp_system.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/system/strlcpy.c.o'
+	rm -f '$(BUILD_ROOT)/util/system/valgrind.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/system/context_x86.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/yasm' '$(BUILD_ROOT)/contrib/tools/yasm/yasm.mf'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86regtmod.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/x86cpu.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/raw/raw-preproc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasmlib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-preproc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-pp.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/nasm/nasm-eval.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-preproc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/gas/gas-eval.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/preprocs/cpp/cpp-preproc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parser.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/nasm/nasm-parse.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parser.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/parsers/gas/gas-parse-intel.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/xdf/xdf-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/rdf/rdf-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/macho/macho-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x86.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-x32.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-x86-amd64.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/elf/elf-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/dbg/dbg-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/win64-except.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/coff/coff-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/objfmts/bin/bin-objfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/nasm-token.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/listfmts/nasm/nasm-listfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/lc3bid.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/init_plugin.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/gas-token.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/stabs/stabs-dbgfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/null/null-dbgfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-line.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-info.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-dbgfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/dwarf2/dwarf2-aranges.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-type.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-symline.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/dbgfmts/codeview/cv-dbgfmt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86id.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86expr.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86bc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/x86/x86arch.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3bbc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/modules/arch/lc3b/lc3barch.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xstrdup.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/xmalloc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/value.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/valparam.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/symrec.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strsep.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/strcasecmp.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/section.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/phash.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/mergesort.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/md5.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/linemap.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/inttree.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/intnum.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/insn.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/hamt.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/floatnum.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/file.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/expr.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/errwarn.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/cmake-module.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bytecode.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bitvect.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-reserve.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-org.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-incbin.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-data.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/bc-align.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/libyasm/assocdat.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm-options.c.o'
+	rm -f '$(BUILD_ROOT)/util/string/cast.cc.o'
+	rm -f '$(BUILD_ROOT)/util/random/random.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/digest/city.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' '$(BUILD_ROOT)/contrib/tools/ragel6/ragel6.mf'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a' '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/libtools-ragel5-aapl.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel5/aapl/__/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/libcontrib-libs-jemalloc.a' '$(BUILD_ROOT)/contrib/libs/jemalloc/libcontrib-libs-jemalloc.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/hack.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/util.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tsd.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/tcache.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/stats.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/rtree.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/quarantine.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/prof.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mutex.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/mb.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/jemalloc.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/huge.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/hash.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/extent.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ctl.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/ckh.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_mmap.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk_dss.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/chunk.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/bitmap.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/base.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/atomic.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/jemalloc/src/arena.c.o'
+	rm -f '$(BUILD_ROOT)/library/malloc/jemalloc/liblibrary-malloc-jemalloc.a' '$(BUILD_ROOT)/library/malloc/jemalloc/liblibrary-malloc-jemalloc.a.mf'
+	rm -f '$(BUILD_ROOT)/library/malloc/jemalloc/malloc-info.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/rlscan.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src5.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src4.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src3.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src2.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/ragel6/all_src1.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_thread.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_thread.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_system_2.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_system_2.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_system_1.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_system_1.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_string.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_string.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_stream.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_stream.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_random.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_random.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_network.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_network.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_memory.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_memory.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_generic.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_generic.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_folder.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_folder.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_util.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_util.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_digest.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_digest.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp.o'
+	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a' '$(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/cat_feature/cat_feature.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a' '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a.mf'
+	rm -f '$(BUILD_ROOT)/library/colorizer/output.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/colorizer/colors.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a' '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a.mf'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/opt.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a' '$(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a.mf'
+	rm -f '$(BUILD_ROOT)/library/lfalloc/lf_allocX64.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/liblibrary-logger.a' '$(BUILD_ROOT)/library/logger/liblibrary-logger.a.mf'
+	rm -f '$(BUILD_ROOT)/library/logger/filter.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/element.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/stream.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/thread.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/backend.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/null.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/file.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/system.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/log.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser.mf'
+	rm -f '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a' '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a.mf'
+	rm -f '$(BUILD_ROOT)/library/cppparser/parser.cpp.o'
+	rm -f '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a' '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a.mf'
+	rm -f '$(BUILD_ROOT)/tools/enum_parser/parse_enum/parse_enum.cpp.o'
+	rm -f '$(BUILD_ROOT)/tools/enum_parser/enum_parser/main.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/global/liblibrary-logger-global.a' '$(BUILD_ROOT)/library/logger/global/liblibrary-logger-global.a.mf'
+	rm -f '$(BUILD_ROOT)/library/logger/global/rty_formater.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/global/global.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/logger/global/common.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a' '$(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/libs/rapidjson/libcontrib-libs-rapidjson.a' '$(BUILD_ROOT)/contrib/libs/rapidjson/libcontrib-libs-rapidjson.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/rapidjson/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/common/liblibrary-json-common.a' '$(BUILD_ROOT)/library/json/common/liblibrary-json-common.a.mf'
+	rm -f '$(BUILD_ROOT)/library/json/common/defs.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/writer/liblibrary-json-writer.a' '$(BUILD_ROOT)/library/json/writer/liblibrary-json-writer.a.mf'
+	rm -f '$(BUILD_ROOT)/library/json/writer/json.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/writer/json_value.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/writer/json_value.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/writer/json_value.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/library/json/fast_sax/liblibrary-json-fast_sax.a' '$(BUILD_ROOT)/library/json/fast_sax/liblibrary-json-fast_sax.a.mf'
+	rm -f '$(BUILD_ROOT)/library/json/fast_sax/unescape.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp'
+	rm -f '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a' '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a.mf'
+	rm -f '$(BUILD_ROOT)/library/string_utils/relaxed_escaper/relaxed_escaper.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/liblibrary-json.a' '$(BUILD_ROOT)/library/json/liblibrary-json.a.mf'
+	rm -f '$(BUILD_ROOT)/library/json/rapidjson_helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/json_prettifier.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/json_reader.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/json/json_writer.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a' '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a' '$(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a.mf'
+	rm -f '$(BUILD_ROOT)/library/grid_creator/median_in_bin_binarization.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/grid_creator/binarization.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/grid_creator/binarization.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/grid_creator/binarization.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/check_train_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/json_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/enum_helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/output_file_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/oblivious_tree_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/metric_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/loss_description.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/system_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/data_processing_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/plain_options_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/catboost_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/cat_feature_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/boosting_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/bootstrap_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/overfitting_detector_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/binarization_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/library/containers/2d_array/liblibrary-containers-2d_array.a' '$(BUILD_ROOT)/library/containers/2d_array/liblibrary-containers-2d_array.a.mf'
+	rm -f '$(BUILD_ROOT)/library/containers/2d_array/2d_array.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/binsaver/liblibrary-binsaver.a' '$(BUILD_ROOT)/library/binsaver/liblibrary-binsaver.a.mf'
+	rm -f '$(BUILD_ROOT)/library/binsaver/util_stream_io.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/binsaver/mem_io.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/binsaver/buffered_io.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/binsaver/blob_io.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/binsaver/bin_saver.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a' '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/nayuki_md5/md5-fast-x8664.S.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a' '$(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/avx2/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/avx2/codec_avx2.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/ssse3/liblibs-base64-ssse3.a' '$(BUILD_ROOT)/contrib/libs/base64/ssse3/liblibs-base64-ssse3.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/ssse3/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/ssse3/codec_ssse3.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon32/liblibs-base64-neon32.a' '$(BUILD_ROOT)/contrib/libs/base64/neon32/liblibs-base64-neon32.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon32/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon32/codec_neon32.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon64/liblibs-base64-neon64.a' '$(BUILD_ROOT)/contrib/libs/base64/neon64/liblibs-base64-neon64.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon64/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/neon64/codec_neon64.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain32/liblibs-base64-plain32.a' '$(BUILD_ROOT)/contrib/libs/base64/plain32/liblibs-base64-plain32.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain32/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain32/codec_plain.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain64/liblibs-base64-plain64.a' '$(BUILD_ROOT)/contrib/libs/base64/plain64/liblibs-base64-plain64.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain64/lib.c.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/base64/plain64/codec_plain.c.o'
+	rm -f '$(BUILD_ROOT)/library/string_utils/base64/liblibrary-string_utils-base64.a' '$(BUILD_ROOT)/library/string_utils/base64/liblibrary-string_utils-base64.a.mf'
+	rm -f '$(BUILD_ROOT)/library/string_utils/base64/base64.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/digest/md5/liblibrary-digest-md5.a' '$(BUILD_ROOT)/library/digest/md5/liblibrary-digest-md5.a.mf'
+	rm -f '$(BUILD_ROOT)/library/digest/md5/md5.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.o'
+	rm -f '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a' '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a.mf'
+	rm -f '$(BUILD_ROOT)/library/digest/crc32c/crc32c.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_executor.a' '$(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_executor.a.mf'
+	rm -f '$(BUILD_ROOT)/library/threading/local_executor/local_executor.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/data_split.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/binarize_target.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/eval_helpers.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_description.a' '$(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_description.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/cd_parser.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a' '$(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/tools/protoc/protoc' '$(BUILD_ROOT)/contrib/tools/protoc/protoc.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/zip_writer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/subprocess.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/python/python_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/plugin.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_helpers.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/perlxs/perlxs_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/parser.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/main.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_string_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_shared_code_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_service.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_primitive_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_name_resolver.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message_builder.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_message.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_map_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_lazy_message_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_helpers.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator_factory.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_file.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_extension.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field_lite.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_enum.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_doc_comment.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/java/java_context.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/importer.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_string_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_service.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_primitive_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_message.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_map_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_helpers.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_file.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_extension.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum_field.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/cpp/cpp_enum.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/command_line_interface.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/code_generator.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/protoc/__/__/libs/protobuf/compiler/main.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.mf'
+	rm -f '$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc' '$(BUILD_ROOT)/contrib/libs/coreml/Model.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a' '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf'
+	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h'
+	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/flatc' '$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a' '$(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/data/load_data.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a' '$(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.h'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc' '$(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/loggers/libcatboost-libs-loggers.a' '$(BUILD_ROOT)/catboost/libs/loggers/libcatboost-libs-loggers.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/loggers/logger.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/loggers/tensorboard_logger.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/libcatboost-libs-metrics.a' '$(BUILD_ROOT)/catboost/libs/metrics/libcatboost-libs-metrics.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/pfound.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/metric.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/auc.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/sample.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/metric.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/metrics/metric.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/library/statistics/liblibrary-statistics.a' '$(BUILD_ROOT)/library/statistics/liblibrary-statistics.a.mf'
+	rm -f '$(BUILD_ROOT)/library/statistics/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a' '$(BUILD_ROOT)/catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/overfitting_detector/overfitting_detector.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/library/dot_product/liblibrary-dot_product.a' '$(BUILD_ROOT)/library/dot_product/liblibrary-dot_product.a.mf'
+	rm -f '$(BUILD_ROOT)/library/dot_product/dot_product.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/fmath/libcontrib-libs-fmath.a' '$(BUILD_ROOT)/contrib/libs/fmath/libcontrib-libs-fmath.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/fmath/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a' '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a.mf'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/fast_log/liblibrary-fast_log.a' '$(BUILD_ROOT)/library/fast_log/liblibrary-fast_log.a.mf'
+	rm -f '$(BUILD_ROOT)/library/fast_log/fast_log.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/object_factory/liblibrary-object_factory.a' '$(BUILD_ROOT)/library/object_factory/liblibrary-object_factory.a.mf'
+	rm -f '$(BUILD_ROOT)/library/object_factory/object_factory.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a' '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/cv_data_partition.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/tree_print.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_querywise.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_per_object.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_rmse.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_soft_max.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_rmse.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_quantile.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_poisson.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_pair_logit.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/split.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/score_calcer.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/ctr_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/online_predictor.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/online_ctr.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/learn_context.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/index_hash_calcer.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/index_calcer.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/greedy_tensor_search.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/full_features.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/fold.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/features_layout.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/error_functions.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/apply.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/fstr/libcatboost-libs-fstr.a' '$(BUILD_ROOT)/catboost/libs/fstr/libcatboost-libs-fstr.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/fstr/calc_fstr.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/fstr/doc_fstr.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/fstr/feature_str.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/train_lib/train_model.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/train_lib/libcatboost-libs-train_lib.a' '$(BUILD_ROOT)/catboost/libs/train_lib/libcatboost-libs-train_lib.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/train_lib/preprocess.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/train_lib/cross_validation.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf'
+	rm -f '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/svnversion/svnversion_data.h'
+	rm -f '$(BUILD_ROOT)/catboost/app/cmd_line.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/bind_options.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/mode_plot.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/mode_fstr.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/mode_fit.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/mode_calc.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/app/main.cpp.o'
+.PHONY : clean
+
+help\
+        ::\
+
+	@echo 'The following are some of the valid targets for this Makefile:'
+	@echo '    all'
+	@echo '    clean'
+	@echo ''
+	@echo 'Used variables:'
+	@echo '    BUILD_ROOT      Path to the build directory (default: $(shell pwd))'
+	@echo '    SOURCE_ROOT     Path to the source directory (default: $(shell pwd))'
+	@echo '    CC              Path to clang 3.9'
+	@echo '    CXX             Path to clang 3.9'
+	@echo '    PYTHON          Path to Python 2.7 (default: $(shell which python))'
+.PHONY : help
