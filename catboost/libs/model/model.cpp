@@ -14,6 +14,7 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/stream/buffer.h>
 #include <util/stream/str.h>
 #include <util/stream/file.h>
 
@@ -47,21 +48,30 @@ static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
     return result;
 }
 
-
-TFullModel ReadModel(const TString& modelFile, EModelType format) {
-    TIFStream f(modelFile);
+TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
     TFullModel model;
     if (format == EModelType::CatboostBinary) {
-        Load(&f, model);
+        Load(modelStream, model);
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
         paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
         model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
     } else {
         CoreML::Specification::Model coreMLModel;
-        CB_ENSURE(coreMLModel.ParseFromString(f.ReadAll()), "coreml model deserialization failed");
+        CB_ENSURE(coreMLModel.ParseFromString(modelStream->ReadAll()), "coreml model deserialization failed");
         NCatboost::NCoreML::ConvertCoreMLToCatboostModel(coreMLModel, &model);
     }
     return model;
+}
+
+TFullModel ReadModel(const TString& modelFile, EModelType format) {
+    TIFStream f(modelFile);
+    return ReadModel(&f, format);
+}
+
+TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format)  {
+    TBuffer buf((char*)binaryBuffer, binaryBufferSize);
+    TBufferInput bs(buf);
+    return ReadModel(&bs, format);
 }
 
 void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const NJson::TJsonValue& userParameters) {

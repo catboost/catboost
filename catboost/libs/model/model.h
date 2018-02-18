@@ -507,6 +507,7 @@ enum class EModelType {
 
 void OutputModel(const TFullModel& model, const TString& modelFile);
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
+TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format = EModelType::CatboostBinary);
 
 /**
  * Export model in our binary or protobuf CoreML format

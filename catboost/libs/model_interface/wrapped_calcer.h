@@ -32,7 +32,18 @@ public:
             throw std::runtime_error(GetErrorString());
         }
     }
+    /**
+     * Load model from memory buffer
+     * @param[in] binaryBuffer
+     * @param[in] binaryBufferSize
+     */
+    explicit ModelCalcerWrapper(const void* binaryBuffer, size_t binaryBufferSize) {
+        CalcerHolder = CalcerHolderType(ModelCalcerCreate(), ModelCalcerDelete);
 
+        if (!LoadFullModelFromBuffer(CalcerHolder.get(), binaryBuffer, binaryBufferSize) ) {
+            throw std::runtime_error(GetErrorString());
+        }
+    }
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.

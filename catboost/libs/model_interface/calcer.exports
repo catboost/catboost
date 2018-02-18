@@ -4,6 +4,7 @@ C ModelCalcerDelete
 C GetErrorString
 
 C LoadFullModelFromFile
+C LoadFullModelFromBuffer
 C CalcModelPrediction
 C CalcModelPredictionFlat
 C CalcModelPredictionWithHashedCatFeatures

@@ -45,6 +45,17 @@ EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* fi
     return true;
 }
 
+EXPORT bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const void* binaryBuffer, size_t binaryBufferSize) {
+    try {
+        *FULL_MODEL_PTR(modelHandle) = ReadModel(binaryBuffer, binaryBufferSize);
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+
+    return true;
+}
+
 EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
         if (docCount == 1) {

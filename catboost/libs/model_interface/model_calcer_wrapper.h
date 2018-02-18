@@ -48,6 +48,18 @@ EXPORT bool LoadFullModelFromFile(
     const char* filename);
 
 /**
+ * Load model from memory buffer into given model handle
+ * @param calcer
+ * @param binaryBuffer pointer to a memory buffer where model file is mapped
+ * @param binaryBufferSize size of the buffer in bytes
+ * @return false if error occured
+ */
+EXPORT bool LoadFullModelFromBuffer(
+    ModelCalcerHandle* calcer,
+    const void* binaryBuffer,
+    size_t binaryBufferSize);
+
+/**
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on flat feature vectors
  * Flat here means that float features and categorical feature are in the same float array.
