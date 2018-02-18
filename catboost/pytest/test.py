@@ -1093,7 +1093,7 @@ def test_custom_loss_for_classification():
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
+        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,CtrFactor',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )

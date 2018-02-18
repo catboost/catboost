@@ -15,6 +15,7 @@ namespace NCatboostOptions {
 
         void Load(const NJson::TJsonValue& options) {
             CheckedLoad(options, &EvalMetric, &CustomMetrics);
+            CB_ENSURE(EvalMetric.Get().GetLossFunction() != ELossFunction::CtrFactor, ToString(ELossFunction::CtrFactor) << " cannot be used for overfitting detection or selecting best iteration on validation");
         }
 
         void Save(NJson::TJsonValue* options) const {

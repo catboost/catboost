@@ -25,7 +25,8 @@ bool IsClassificationLoss(ELossFunction lossFunction) {
             lossFunction == ELossFunction::Recall ||
             lossFunction == ELossFunction::F1 ||
             lossFunction == ELossFunction::TotalF1 ||
-            lossFunction == ELossFunction::MCC);
+            lossFunction == ELossFunction::MCC ||
+            lossFunction == ELossFunction::CtrFactor);
 }
 
 bool IsClassificationLoss(const TString& lossFunction) {

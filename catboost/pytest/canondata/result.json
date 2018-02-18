@@ -257,11 +257,11 @@
     ],
     "test.test_custom_loss_for_classification": [
         {
-            "checksum": "93ac3a7e68dc15a72691c18e41410144",
+            "checksum": "a824220e2029276d859b73e45486de79",
             "uri": "file://test.test_custom_loss_for_classification/learn_error.tsv"
         },
         {
-            "checksum": "1328c5c960f126db392585038cbbb1e8",
+            "checksum": "8988975a97b3247bd5cdae8f8b1ce959",
             "uri": "file://test.test_custom_loss_for_classification/test_error.tsv"
         }
     ],

@@ -170,6 +170,23 @@ private:
     double Border = GetDefaultClassificationBorder();
 };
 
+class TCtrFactorMetric : public TAdditiveMetric<TCtrFactorMetric> {
+public:
+    explicit TCtrFactorMetric(double border = GetDefaultClassificationBorder()) : Border(border) {}
+    TMetricHolder EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int begin,
+        int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual bool IsMaxOptimal() const override;
+private:
+    double Border;
+};
+
 struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,

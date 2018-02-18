@@ -117,6 +117,44 @@ bool TCrossEntropyMetric::IsMaxOptimal() const {
     return false;
 }
 
+/* CtrFactor */
+
+TMetricHolder TCtrFactorMetric::EvalSingleThread(
+    const TVector<TVector<double>>& approx,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<TQueryInfo>& /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric CtrFactor supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder holder;
+    const double* approxPtr = approxVec.data();
+    const float* targetPtr = target.data();
+    for (int i = begin; i < end; ++i) {
+        float w = weight.empty() ? 1 : weight[i];
+        const float targetVal = targetPtr[i] > Border;
+        holder.Error += w * targetVal;
+
+        const double approxExp = exp(approxPtr[i]);
+        holder.Weight += w * approxExp / (approxExp + 1);
+    }
+    return holder;
+}
+
+TString TCtrFactorMetric::GetDescription() const {
+    return ToString(ELossFunction::CtrFactor);
+}
+
+bool TCtrFactorMetric::IsMaxOptimal() const {
+    // TODO(annaveronika): allow Max, Min, No
+    return false;
+}
+
 /* RMSE */
 
 TMetricHolder TRMSEMetric::EvalSingleThread(
@@ -865,6 +903,7 @@ TMetricHolder TAccuracyMetric::EvalSingleThread(
     return error;
 }
 
+// TODO(annaveronika): write border in description if differs from default.
 TString TAccuracyMetric::GetDescription() const {
     return ToString(ELossFunction::Accuracy);
 }
@@ -1351,7 +1390,8 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         ELossFunction::Accuracy,
         ELossFunction::F1,
         ELossFunction::TotalF1,
-        ELossFunction::PFound
+        ELossFunction::PFound,
+        ELossFunction::CtrFactor
     };
     if (!metricsWithParams.has(metric)) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
@@ -1461,6 +1501,10 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::Accuracy:
             result.emplace_back(new TAccuracyMetric(border));
+            return result;
+
+        case ELossFunction::CtrFactor:
+            result.emplace_back(new TCtrFactorMetric(border));
             return result;
 
         case ELossFunction::Precision: {
