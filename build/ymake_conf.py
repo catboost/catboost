@@ -2055,7 +2055,7 @@ class Cuda(object):
 
         elif target.is_macos:
             if target.is_x86_64:
-                return '$(CUDA_XCODE)/usr/bin'
+                return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
 
         return None
 
