@@ -1,11 +1,11 @@
 #pragma once
 
+#include "pair.h"
+
+#include <util/generic/vector.h>
+
 struct TQueryInfo {
     int Begin;
     int End;
-};
-
-struct TQueryEndInfo {
-    int QueryEnd;
-    int QueryIndex;
+    TVector<TVector<TCompetitor>> Competitors;
 };

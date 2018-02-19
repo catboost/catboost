@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/data_types/query.h>
 
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
@@ -45,10 +46,26 @@ static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* 
 
 
 inline bool IsStoreExpApprox(const NCatboostOptions::TCatBoostOptions& options) {
-    return EqualToOneOf(options.LossFunctionDescription->GetLossFunction(),
-                        ELossFunction::Logloss,
-                        ELossFunction::LogLinQuantile,
-                        ELossFunction::Poisson,
-                        ELossFunction::CrossEntropy,
-                        ELossFunction::PairLogit);
+    return EqualToOneOf(
+        options.LossFunctionDescription->GetLossFunction(),
+        ELossFunction::Logloss,
+        ELossFunction::LogLinQuantile,
+        ELossFunction::Poisson,
+        ELossFunction::CrossEntropy,
+        ELossFunction::PairLogit
+    );
 }
+
+inline TVector<float> CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo) {
+    TVector<float> weights(queriesInfo.back().End);
+    for (const auto& queryInfo : queriesInfo) {
+        for (int docId = 0; docId < queryInfo.Competitors.ysize(); ++docId) {
+            for (const auto& competitor : queryInfo.Competitors[docId]) {
+                weights[queryInfo.Begin + docId] += competitor.Weight;
+                weights[queryInfo.Begin + competitor.Id] += competitor.Weight;
+            }
+        }
+    }
+    return weights;
+}
+

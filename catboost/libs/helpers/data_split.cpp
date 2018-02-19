@@ -17,7 +17,7 @@ TVector<std::pair<size_t, size_t>> Split(size_t docCount, int partCount) {
 TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<ui32>& queryId, int partCount) {
     TVector<TQueryInfo> queryInfo;
     UpdateQueriesInfo(queryId, /*begin=*/0, docCount, &queryInfo);
-    TVector<TQueryEndInfo> queryEndInfo = GetQueryEndInfo(queryInfo, docCount);
+    TVector<int> queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
 
     TVector<std::pair<size_t, size_t>> result(partCount);
     const size_t partSize = docCount / partCount;
@@ -25,7 +25,7 @@ TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<ui32>& q
     for (int part = 0; part < partCount; ++part) {
         size_t partStartIndex = currentPartEnd;
         size_t partEndIndex = Min(partStartIndex + partSize, docCount);
-        partEndIndex = queryEndInfo[partEndIndex - 1].QueryEnd;
+        partEndIndex = queryInfo[queryIndices[partEndIndex - 1]].End;
 
         currentPartEnd = partEndIndex;
         if (part + 1 == partCount) {

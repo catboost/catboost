@@ -11,8 +11,16 @@
 #include <numeric>
 
 void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor);
-TVector<ui64> InvertPermutation(const TVector<ui64>& permutation);
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key);
+
+template<typename IndexType>
+TVector<IndexType> InvertPermutation(const TVector<IndexType>& permutation) {
+    TVector<IndexType> result(permutation.size());
+    for (ui64 i = 0; i < permutation.size(); ++i) {
+        result[permutation[i]] = i;
+    }
+    return result;
+}
 
 template<typename TDataType, typename TRandGen>
 void Shuffle(const TVector<ui32>& queryId, TRandGen& rand, TVector<TDataType>* indices) {

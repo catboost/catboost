@@ -6,33 +6,25 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 
-TVector<int> InvertPermutation(const TVector<int>& permutation) {
-    TVector<int> result(permutation.size());
-    for (size_t i = 0; i < permutation.size(); ++i) {
-        result[permutation[i]] = i;
-    }
-    return result;
-}
-
-static int UpdateSize(int size, const TVector<TQueryEndInfo>& queryEndInfo, int learnSampleCount) {
+static int UpdateSize(int size, const TVector<TQueryInfo>& queryInfo, const TVector<int>& queryIndices, int learnSampleCount) {
     size = Min(size, learnSampleCount);
-    if (!queryEndInfo.empty()) {
-        size = queryEndInfo[size - 1].QueryEnd;
+    if (!queryInfo.empty()) {
+        size = queryInfo[queryIndices[size - 1]].End;
     }
     return size;
 }
 
-static int SelectMinBatchSize(int learnSampleCount, const TVector<TQueryEndInfo>& queryEndInfo) {
+static int SelectMinBatchSize(int learnSampleCount) {
     int size = learnSampleCount > 500 ? Min<int>(100, learnSampleCount / 50) : 1;
-    return UpdateSize(size, queryEndInfo, learnSampleCount);
+    return size;
 }
 
-static double SelectTailSize(int oldSize, double multiplier, const TVector<TQueryEndInfo>& queryEndInfo, int learnSampleCount) {
+static double SelectTailSize(int oldSize, double multiplier) {
     int size = ceil(oldSize * multiplier);
-    return UpdateSize(size, queryEndInfo, learnSampleCount);
+    return size;
 }
 
-void InitFromBaseline(
+static void InitFromBaseline(
     const int beginIdx,
     const int endIdx,
     const TVector<TVector<double>>& baseline,
@@ -105,30 +97,32 @@ TFold BuildDynamicFold(
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    TVector<TQueryEndInfo> queryEndInfo;
+    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+
+    TVector<int> queryIndices;
     if (!data.QueryId.empty()) {
-        TVector<ui32> queriesId;
-        ff.AssignPermuted(data.QueryId, &queriesId);
         if (shuffle) {
-            UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueryInfo);
+            TVector<ui32> queriesId;
+            ff.AssignPermuted(data.QueryId, &queriesId);
+            UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
+            UpdateQueriesPairs(data.Pairs, 0, data.LearnPairsCount, invertPermutation, &ff.LearnQueriesInfo);
         } else {
-            ff.LearnQueryInfo.insert(ff.LearnQueryInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);
+            ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);
         }
-        queryEndInfo = GetQueryEndInfo(ff.LearnQueryInfo, data.LearnSampleCount);
+        queryIndices = GetQueryIndicesForDocs(ff.LearnQueriesInfo, data.LearnSampleCount);
     }
 
     ff.EffectiveDocCount = data.LearnSampleCount;
-    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
-    int leftPartLen = SelectMinBatchSize(data.LearnSampleCount, queryEndInfo);
+    int leftPartLen = UpdateSize(SelectMinBatchSize(data.LearnSampleCount), ff.LearnQueriesInfo, queryIndices, data.LearnSampleCount);
     while (ff.BodyTailArr.empty() || leftPartLen < data.LearnSampleCount) {
         TFold::TBodyTail bt;
 
         bt.BodyFinish = leftPartLen;
-        bt.TailFinish = SelectTailSize(leftPartLen, multiplier, queryEndInfo, data.LearnSampleCount);
+        bt.TailFinish = UpdateSize(SelectTailSize(leftPartLen, multiplier), ff.LearnQueriesInfo, queryIndices, data.LearnSampleCount);
         if (!data.QueryId.empty()) {
-            bt.BodyQueryFinish = queryEndInfo[bt.BodyFinish].QueryIndex;
-            bt.TailQueryFinish = queryEndInfo[bt.TailFinish - 1].QueryIndex + 1;
+            bt.BodyQueryFinish = queryIndices[bt.BodyFinish - 1] + 1;
+            bt.TailQueryFinish = queryIndices[bt.TailFinish - 1] + 1;
         }
 
         bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
@@ -137,7 +131,6 @@ TFold BuildDynamicFold(
         }
         bt.Derivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
         bt.WeightedDer.resize(approxDimension, TVector<double>(bt.TailFinish));
-        ff.AssignCompetitors(data.Pairs, invertPermutation, &bt);
         ff.BodyTailArr.emplace_back(std::move(bt));
         leftPartLen = bt.TailFinish;
     }
@@ -170,27 +163,27 @@ TFold BuildPlainFold(
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    if (!data.QueryId.empty()) {
+    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+
+    if (shuffle) {
         TVector<ui32> queriesId;
-        ff.AssignPermuted(data.QueryId, &queriesId);
-        if (shuffle) {
-            UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueryInfo);
-        } else {
-            ff.LearnQueryInfo.insert(ff.LearnQueryInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);
+        if (!data.QueryId.empty()) {
+            ff.AssignPermuted(data.QueryId, &queriesId);
         }
+        UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
+        UpdateQueriesPairs(data.Pairs, 0, data.LearnPairsCount, invertPermutation, &ff.LearnQueriesInfo);
+    } else {
+        ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);
     }
 
     ff.EffectiveDocCount = data.GetSampleCount();
-    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     TFold::TBodyTail bt;
 
     bt.BodyFinish = data.LearnSampleCount;
     bt.TailFinish = data.LearnSampleCount;
-    if (!data.QueryId.empty()) {
-        bt.BodyQueryFinish = data.LearnQueryCount;
-        bt.TailQueryFinish = data.LearnQueryCount;
-    }
+    bt.BodyQueryFinish = data.LearnQueryCount;
+    bt.TailQueryFinish = data.LearnQueryCount;
 
     bt.Approx.resize(approxDimension, TVector<double>(data.GetSampleCount(), GetNeutralApprox(storeExpApproxes)));
     bt.Derivatives.resize(approxDimension, TVector<double>(data.GetSampleCount()));
@@ -198,7 +191,6 @@ TFold BuildPlainFold(
     if (!data.Baseline.empty()) {
         InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }
-    ff.AssignCompetitors(data.Pairs, invertPermutation, &bt);
     ff.BodyTailArr.emplace_back(std::move(bt));
     return ff;
 }
@@ -233,36 +225,6 @@ void TFold::AssignTarget(const TVector<float>& target, const TVector<TTargetClas
             LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[z]);
         }
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
-    }
-}
-
-
-void TFold::AssignCompetitors(const TVector<TPair>& pairs, const TVector<int>& invertPermutation, TBodyTail* bt) {
-    int learnSampleCount = LearnPermutation.ysize();
-    int bodyFinish = bt->BodyFinish;
-    int tailFinish = bt->TailFinish;
-    TVector<TVector<TCompetitor>>& competitors = bt->Competitors;
-    competitors.resize(tailFinish);
-    for (const auto& pair : pairs) {
-        if (pair.WinnerId >= learnSampleCount || pair.LoserId >= learnSampleCount) {
-            continue;
-        }
-
-        int winnerId = invertPermutation[pair.WinnerId];
-        int loserId = invertPermutation[pair.LoserId];
-
-        if (winnerId >= tailFinish || loserId >= tailFinish) {
-            continue;
-        }
-
-        float weight = pair.Weight;
-
-        if (winnerId < bodyFinish || winnerId > loserId) {
-            competitors[winnerId].emplace_back(loserId, weight);
-        }
-        if (loserId < bodyFinish || loserId > winnerId) {
-            competitors[loserId].emplace_back(winnerId, -weight);
-        }
     }
 }
 

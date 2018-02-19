@@ -43,14 +43,6 @@ void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLoca
     }
 }
 
-TVector<ui64> InvertPermutation(const TVector<ui64>& permutation) {
-    TVector<ui64> result(permutation.size());
-    for (ui64 i = 0; i < permutation.size(); ++i) {
-        result[permutation[i]] = i;
-    }
-    return result;
-}
-
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key) {
     TVector<ui64> indices(key.size());
     std::iota(indices.begin(), indices.end(), 0);

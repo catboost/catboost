@@ -293,14 +293,22 @@ class TCPUModelTrainer : public IModelTrainer {
         if (hasQuerywiseMetric) {
             CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
         }
-        if (!trainData.QueryId.empty()) {
-            UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
-            trainData.LearnQueryCount = trainData.QueryInfo.ysize();
-            UpdateQueriesInfo(trainData.QueryId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
-        }
+        UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
+        trainData.LearnQueryCount = trainData.QueryInfo.ysize();
+        UpdateQueriesInfo(trainData.QueryId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
+        UpdateQueriesPairs(trainData.Pairs, 0, trainData.Pairs.ysize(), /*invertedPermutation=*/{}, &trainData.QueryInfo);
+        trainData.LearnPairsCount = learnPool.Pairs.ysize();
 
         const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
-        PreprocessAndCheck(ctx.Params.LossFunctionDescription, trainData.LearnSampleCount, trainData.QueryId, classWeights, &trainData.Weights, &trainData.Target);
+        PreprocessAndCheck(
+            ctx.Params.LossFunctionDescription,
+            trainData.LearnSampleCount,
+            trainData.QueryId,
+            trainData.Pairs,
+            classWeights,
+            &trainData.Weights,
+            &trainData.Target
+        );
 
         ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(trainData.AllFeatures);
 

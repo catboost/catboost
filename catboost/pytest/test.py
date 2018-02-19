@@ -143,6 +143,93 @@ def test_queryrmse_approx_on_full_history():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_pairlogit():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    def run_catboost(eval_path, learn_pairs):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('pairwise_pool', 'train_full3'),
+            '-t', data_file('pairwise_pool', 'test3'),
+            '--column-description', data_file('pairwise_pool', 'train_full3.cd'),
+            '--learn-pairs', data_file('pairwise_pool', learn_pairs),
+            '--test-pairs', data_file('pairwise_pool', 'test_pairs.tsv'),
+            '--ctr', 'Borders,Counter',
+            '--l2-leaf-reg', '0',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path, 'learn_pairs.tsv')
+    output_weighted_eval_path = yatest.common.test_output_path('test_weighted.eval')
+    run_catboost(output_weighted_eval_path, 'learn_weighted_pairs.tsv')
+
+    assert filecmp.cmp(output_eval_path, output_weighted_eval_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
+def test_pairlogit_no_target():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('pairwise_pool', 'train_full3'),
+        '-t', data_file('pairwise_pool', 'test3'),
+        '--column-description', data_file('pairwise_pool', 'train_full3_no_target.cd'),
+        '--learn-pairs', data_file('pairwise_pool', 'learn_pairs.tsv'),
+        '--test-pairs', data_file('pairwise_pool', 'test_pairs.tsv'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_pairlogit_approx_on_full_history():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('pairwise_pool', 'train_full3'),
+        '-t', data_file('pairwise_pool', 'test3'),
+        '--column-description', data_file('pairwise_pool', 'train_full3.cd'),
+        '--learn-pairs', data_file('pairwise_pool', 'learn_pairs.tsv'),
+        '--test-pairs', data_file('pairwise_pool', 'test_pairs.tsv'),
+        '--approx-on-full-history',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 NAN_MODE = ['Min', 'Max']
 
 

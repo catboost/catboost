@@ -17,6 +17,15 @@ static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds, int begin, in
     return true;
 }
 
+static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<TPair>& pairs) {
+    for (const auto& pair : pairs) {
+        if (queryId[pair.WinnerId] != queryId[pair.LoserId]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static void CheckTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
     if (lossFunction == ELossFunction::Logloss) {
         float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
@@ -78,6 +87,7 @@ static void CheckBaseline(ELossFunction lossFunction,
 void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescription,
                         int learnSampleCount,
                         const TVector<ui32>& queryId,
+                        const TVector<TPair>& pairs,
                         const TVector<float>& classWeights,
                         TVector<float>* weights,
                         TVector<float>* target) {
@@ -115,6 +125,11 @@ void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescriptio
         }
         CB_ENSURE(isGroupIdCorrect, "If GroupId is provided then train Pool & Test Pool should be grouped by GroupId and should have different GroupId");
     }
+    if (IsPairwiseError(lossDescription.GetLossFunction())) {
+        CB_ENSURE(!queryId.empty(), "You should provide QueryId for Pairwise Errors." );
+        CB_ENSURE(ArePairsGroupedByQuery(queryId, pairs), "Pairs should have same QueryId");
+    }
+
 }
 
 TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& learnPool, const TPool& testPool) {

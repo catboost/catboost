@@ -84,16 +84,6 @@ public:
         CB_ENSURE(false, "Not implemented");
     }
 
-    void CalcDersPairs(
-        const TVector<double>& /*approxes*/,
-        const TVector<TVector<TCompetitor>>& /*competitors*/,
-        int /*start*/,
-        int /*count*/,
-        TVector<double>* /*ders*/
-    ) const {
-        CB_ENSURE(false, "Not implemented");
-    }
-
     void CalcDersForQueries(
         int /*queryStartIndex*/,
         int /*queryEndIndex*/,
@@ -442,23 +432,31 @@ public:
         return EErrorType::PairwiseError;
     }
 
-    void CalcDersPairs(
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
         const TVector<double>& expApproxes,
-        const TVector<TVector<TCompetitor>>& competitors,
-        int start,
-        int count,
-        TVector<double>* ders
+        const TVector<float>& /*targets*/,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TVector<TDer1Der2>* ders
     ) const {
-        for (int docId = start; docId < start + count; ++docId) {
-            double curDer = 0;
-            for (const auto& competitor : competitors[docId]) {
-                if (competitor.Weight > 0) {
-                    curDer += competitor.Weight * expApproxes[competitor.Id] / (expApproxes[competitor.Id] + expApproxes[docId]);
-                } else {
-                    curDer += competitor.Weight * expApproxes[docId] / (expApproxes[competitor.Id] + expApproxes[docId]);
+        CB_ENSURE(queryStartIndex < queryEndIndex);
+        int start = queriesInfo[queryStartIndex].Begin;
+        for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+            int begin = queriesInfo[queryIndex].Begin;
+            int end = queriesInfo[queryIndex].End;
+            TVector<double> weightedDers(end - begin);
+            for (int docId = begin; docId < end; ++docId) {
+                for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
+                    double firstDocDer = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
+                    weightedDers[docId - begin] += competitor.Weight * firstDocDer;
+                    weightedDers[competitor.Id] -= competitor.Weight * (1 - firstDocDer);
                 }
             }
-            (*ders)[docId - start] = curDer;
+            for (int docId = begin; docId < end; ++docId) {
+                (*ders)[docId - start].Der1 = weightedDers[docId - begin];
+            }
         }
     }
 };

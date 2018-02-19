@@ -1,5 +1,4 @@
 #include "cross_validation.h"
-
 #include "train_model.h"
 #include "preprocess.h"
 
@@ -100,19 +99,20 @@ static void PrepareFolds(
                 fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][idx]);
             }
         }
-
         if (hasQuery) {
             fold.QueryId.reserve(pool.Docs.GetDocCount());
             for (size_t idx = 0; idx < docIndices.size(); ++idx) {
                 fold.QueryId.push_back(pool.Docs.QueryId[docIndices[idx]]);
             }
-            UpdateQueriesInfo(fold.QueryId, 0, fold.LearnSampleCount, &fold.QueryInfo);
-            fold.LearnQueryCount = fold.QueryInfo.ysize();
-            UpdateQueriesInfo(fold.QueryId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
         }
+        UpdateQueriesInfo(fold.QueryId, 0, fold.LearnSampleCount, &fold.QueryInfo);
+        fold.LearnQueryCount = fold.QueryInfo.ysize();
+        UpdateQueriesInfo(fold.QueryId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
+        UpdateQueriesPairs(fold.Pairs, 0, fold.Pairs.ysize(), /*invertedPermutation=*/{}, &fold.QueryInfo);
+        fold.LearnPairsCount = fold.Pairs.ysize();
 
         const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
-        PreprocessAndCheck(lossDescription, fold.LearnSampleCount, fold.QueryId, classWeights, &fold.Weights, &fold.Target);
+        PreprocessAndCheck(lossDescription, fold.LearnSampleCount, fold.QueryId, fold.Pairs, classWeights, &fold.Weights, &fold.Target);
 
         PrepareAllFeaturesFromPermutedDocs(
             docIndices,

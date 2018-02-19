@@ -6,54 +6,45 @@
 #include <catboost/libs/data_types/query.h>
 
 template <typename TError>
-void CalcShiftedApproxDersQueries(const TVector<double>& approx,
-                                  const TVector<double>& approxDelta,
-                                  const TVector<float>& target,
-                                  const TVector<float>& weight,
-                                  const TVector<TQueryInfo>& queriesInfo,
-                                  const TError& error,
-                                  int queryStartIndex,
-                                  int queryEndIndex,
-                                  TVector<TDer1Der2>* scratchDers) {
-    TVector<double> fullApproxes(approx);
-    if (!approxDelta.empty()) {
+void CalculateDersForQueries(
+    const TVector<double>& approxes,
+    const TVector<double>& approxesDelta,
+    const TVector<float>& targets,
+    const TVector<float>& weights,
+    const TVector<TQueryInfo>& queriesInfo,
+    const TError& error,
+    int queryStartIndex,
+    int queryEndIndex,
+    TVector<TDer1Der2>* weightedDers
+) {
+    TVector<double> fullApproxes(approxes);
+    if (!approxesDelta.empty()) {
         for (int docId = queriesInfo[queryStartIndex].Begin; docId < queriesInfo[queryEndIndex - 1].End; ++docId) {
-            fullApproxes[docId] = UpdateApprox<TError::StoreExpApprox>(approx[docId], approxDelta[docId]);
+            fullApproxes[docId] = UpdateApprox<TError::StoreExpApprox>(approxes[docId], approxesDelta[docId]);
         }
     }
 
-    error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, target, weight, queriesInfo, scratchDers);
+    error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, weightedDers);
 }
 
-template <typename TError>
-void CalcApproxDersQueriesRange(const TVector<TIndexType>& indices,
-                                const TVector<double>& approx,
-                                const TVector<double>& approxDelta,
-                                const TVector<float>& target,
-                                const TVector<float>& weight,
-                                const TVector<TQueryInfo>& queriesInfo,
-                                const TError& error,
-                                int queryCount,
-                                int iteration,
-                                TVector<TSum>* buckets,
-                                TVector<TDer1Der2>* scratchDers) {
+inline void UpdateBucketsForQueries(
+    TVector<TDer1Der2> weightedDers,
+    const TVector<TIndexType>& indices,
+    const TVector<float>& weights,
+    const TVector<TQueryInfo>& queriesInfo,
+    int queryStartIndex,
+    int queryEndIndex,
+    int iteration,
+    TVector<TSum>* buckets
+) {
     const int leafCount = buckets->ysize();
-
-    TVector<double> fullApproxes(approx);
-    if (!approxDelta.empty()) {
-        for (int docId = 0; docId < queriesInfo[queryCount - 1].End; ++docId) {
-            fullApproxes[docId] = UpdateApprox<TError::StoreExpApprox>(approx[docId], approxDelta[docId]);
-        }
-    }
-
-    error.CalcDersForQueries(/*queryStartIndex=*/0, queryCount, fullApproxes, target, weight, queriesInfo, scratchDers);
-
     TVector<TDer1Der2> bucketDers(leafCount, TDer1Der2{/*Der1*/0.0, /*Der2*/0.0 });
     TVector<double> bucketWeights(leafCount, 0);
-    for (int docId = 0; docId < queriesInfo[queryCount - 1].End; ++docId) {
+
+    for (int docId = queriesInfo[queryStartIndex].Begin; docId < queriesInfo[queryEndIndex - 1].End; ++docId) {
         TDer1Der2& currentDers = bucketDers[indices[docId]];
-        currentDers.Der1 += (*scratchDers)[docId].Der1;
-        bucketWeights[indices[docId]] += weight.empty() ? 1.0f : weight[docId];
+        currentDers.Der1 += weightedDers[docId].Der1;
+        bucketWeights[indices[docId]] += weights.empty() ? 1.0f : weights[docId];
     }
 
     for (int leafId = 0; leafId < leafCount; ++leafId) {

@@ -40,11 +40,11 @@ void BuildCvPools(
     const size_t docCount = allDocs.GetDocCount();
 
     bool hasQueryId = !allDocs.QueryId.empty();
-    TVector<TQueryEndInfo> queryEndInfo;
+    TVector<int> queryIndices;
+    TVector<TQueryInfo> queryInfo;
     if (hasQueryId) {
-        TVector<TQueryInfo> queryInfo;
         UpdateQueriesInfo(allDocs.QueryId, /*begin=*/0, docCount, &queryInfo);
-        queryEndInfo = GetQueryEndInfo(queryInfo, docCount);
+        queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
     }
 
     int testCount = 0;
@@ -52,7 +52,7 @@ void BuildCvPools(
     for (int i = 1; i < foldEndIndices.ysize(); ++i) {
         foldEndIndices[i] = docCount * i / foldCount;
         if (hasQueryId) {
-            foldEndIndices[i] = queryEndInfo[foldEndIndices[i] - 1].QueryEnd;
+            foldEndIndices[i] = queryInfo[queryIndices[foldEndIndices[i] - 1]].End;
         }
         int foldSize = foldEndIndices[i] - foldEndIndices[i - 1];
         CB_ENSURE(foldSize > 0, "Not enough documents for cross validataion");

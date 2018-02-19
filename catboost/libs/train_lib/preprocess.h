@@ -10,6 +10,7 @@
 void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescription,
                         int learnSampleCount,
                         const TVector<ui32>& queryId,
+                        const TVector<TPair>& pairs,
                         const TVector<float>& classWeights,
                         TVector<float>* weights,
                         TVector<float>* target);

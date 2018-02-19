@@ -43,21 +43,18 @@ void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& queriesInfo,
-    const TVector<TVector<TCompetitor>>& competitors,
     const TError& error,
     int tailFinish,
     int tailQueryFinish,
     TLearnContext* ctx,
     TVector<TVector<double>>* derivatives
 ) {
-    if (error.GetErrorType() == EErrorType::QuerywiseError) {
+    if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
         TVector<TDer1Der2> ders((*derivatives)[0].ysize());
         error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*derivatives)[0][docId] = ders[docId].Der1;
         }
-    } else if (error.GetErrorType() == EErrorType::PairwiseError) {
-        error.CalcDersPairs(approx[0], competitors, 0, tailFinish, &(*derivatives)[0]);
     } else {
         int approxDimension = approx.ysize();
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
@@ -235,8 +232,7 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
                 bt.Approx,
                 takenFold->LearnTarget,
                 takenFold->LearnWeights,
-                takenFold->LearnQueryInfo,
-                bt.Competitors,
+                takenFold->LearnQueriesInfo,
                 error,
                 bt.TailFinish,
                 bt.TailQueryFinish,

@@ -18,21 +18,12 @@
 
 #include <tuple>
 
-TVector<int> InvertPermutation(const TVector<int>& permutation);
-
-int UpdateSizeForQueries(int size, const TVector<int>& queriesFinishIndex);
-
-int SelectMinBatchSize(const int sampleCount, const TVector<int>& queriesFinishIndex);
-
-double SelectTailSize(const int oldSize, const double multiplier, const TVector<int>& queriesFinishIndex);
-
 struct TFold {
     struct TBodyTail {
         TVector<TVector<double>> Approx;
         TVector<TVector<double>> Derivatives;
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
         TVector<TVector<double>> WeightedDer;
-        TVector<TVector<TCompetitor>> Competitors;
 
         int BodyQueryFinish = 0;
         int TailQueryFinish = 0;
@@ -41,7 +32,7 @@ struct TFold {
     };
 
     TVector<float> LearnWeights;
-    TVector<TQueryInfo> LearnQueryInfo;
+    TVector<TQueryInfo> LearnQueriesInfo;
     TVector<int> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;
@@ -87,10 +78,6 @@ struct TFold {
         }
     }
 
-    void AssignCompetitors(const TVector<TPair>& pairs,
-                           const TVector<int>& invertPermutation,
-                           TFold::TBodyTail* bt);
-
     int GetApproxDimension() const {
         return BodyTailArr[0].Approx.ysize();
     }
@@ -107,14 +94,6 @@ private:
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
 };
-
-void InitFromBaseline(const int beginIdx, const int endIdx,
-                        const TVector<TVector<double>>& baseline,
-                        const TVector<int>& learnPermutation,
-                        bool storeExpApproxes,
-                        TVector<TVector<double>>* approx);
-
-TVector<int> CalcQueriesFinishIndex(const TVector<ui32>& queriesId);
 
 struct TRestorableFastRng64;
 class TTrainData;

@@ -529,6 +529,32 @@
             "uri": "file://test.test_overfit_detector_iter/test.eval"
         }
     ],
+    "test.test_pairlogit": [
+        {
+            "checksum": "3ae7da9356b83009dc40219e05c46617",
+            "uri": "file://test.test_pairlogit/learn_error.tsv"
+        },
+        {
+            "checksum": "6d9c917c344aa021fd5a072ab1662ebc",
+            "uri": "file://test.test_pairlogit/test_error.tsv"
+        },
+        {
+            "checksum": "f77b77ba6d265cb845707ae07b1bd7e9",
+            "uri": "file://test.test_pairlogit/test.eval"
+        }
+    ],
+    "test.test_pairlogit_approx_on_full_history": [
+        {
+            "checksum": "638140735ed6ebc997d5fe248f438fb3",
+            "uri": "file://test.test_pairlogit_approx_on_full_history/test.eval"
+        }
+    ],
+    "test.test_pairlogit_no_target": [
+        {
+            "checksum": "100668744d2df935714854d978f120a3",
+            "uri": "file://test.test_pairlogit_no_target/test.eval"
+        }
+    ],
     "test.test_params_from_file": [
         {
             "checksum": "bff5859c456b9d5b4551db3bacc51e86",

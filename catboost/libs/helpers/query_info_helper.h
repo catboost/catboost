@@ -6,5 +6,6 @@
 
 void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* queryInfo);
 
-TVector<TQueryEndInfo> GetQueryEndInfo(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
+TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
 
+void UpdateQueriesPairs(const TVector<TPair>& pairs, int begin, int end, const TVector<int>& invertedPermutation, TVector<TQueryInfo>* queryInfo);
