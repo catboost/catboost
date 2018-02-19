@@ -297,7 +297,7 @@ NJson::TJsonValue GetJsonMeta(
     for (const auto& loss : losses) {
         NJson::TJsonValue metricJson;
         metricJson.InsertValue("name", loss->GetDescription());
-        metricJson.InsertValue("value", loss->IsMaxOptimal() ? "max" : "min");
+        metricJson.InsertValue("best_value", loss->IsMaxOptimal() ? "Max" : "Min");
         if (hasTrain) {
             meta["learn_metrics"].AppendValue(metricJson);
         }

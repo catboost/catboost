@@ -413,13 +413,13 @@
     ],
     "test.test_json_logging": [
         {
-            "checksum": "1ab9b8a430a6d4cebda7bb160ab79b09",
+            "checksum": "feb1d903773c20999f13f1e67920bdea",
             "uri": "file://test.test_json_logging/catboost_training.json"
         }
     ],
     "test.test_json_logging_metric_period": [
         {
-            "checksum": "40dcc5e9f72da99d8ca78c1cb36e125f",
+            "checksum": "273adb5649f7b8f0769a563591b9ba2b",
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
