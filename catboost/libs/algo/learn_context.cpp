@@ -258,50 +258,38 @@ void TLearnProgress::Load(IInputStream* s) {
                PoolCheckSum);
 }
 
-
 NJson::TJsonValue GetJsonMeta(
-    const TVector<const TLearnContext*>& learnContexts,
-    ELaunchMode launchMode,
-    const TString& learnToken,
-    const TString& testToken,
-    bool hasTrain,
-    bool hasTest
+    int iterationCount,
+    const TString& optionalExperimentName,
+    const TVector<THolder<IMetric>>& metrics,
+    const TVector<TString>& learnSetNames,
+    const TVector<TString>& testSetNames,
+    ELaunchMode launchMode
 ) {
     NJson::TJsonValue meta;
-    meta["iteration_count"] = learnContexts[0]->Params.BoostingOptions->IterationCount.Get();
-    meta["name"] = learnContexts[0]->OutputOptions.GetName();
+    meta["iteration_count"] = iterationCount;
+    meta["name"] = optionalExperimentName;
 
     meta.InsertValue("learn_sets", NJson::JSON_ARRAY);
-    if (hasTrain) {
-        for (auto& ctx : learnContexts) {
-            meta["learn_sets"].AppendValue(ctx->Files.NamesPrefix + learnToken);
-        }
+    for (auto& name : learnSetNames) {
+        meta["learn_sets"].AppendValue(name);
     }
 
     meta.InsertValue("test_sets", NJson::JSON_ARRAY);
-    if (hasTest) {
-        for (auto& ctx : learnContexts) {
-            meta["test_sets"].AppendValue(ctx->Files.NamesPrefix + testToken);
-        }
+    for (auto& name : testSetNames) {
+        meta["test_sets"].AppendValue(name);
     }
-
-    auto losses = CreateMetrics(
-        learnContexts[0]->Params.LossFunctionDescription,
-        learnContexts[0]->Params.MetricOptions,
-        learnContexts[0]->EvalMetricDescriptor,
-        learnContexts[0]->LearnProgress.ApproxDimension
-    );
 
     meta.InsertValue("learn_metrics", NJson::JSON_ARRAY);
     meta.InsertValue("test_metrics", NJson::JSON_ARRAY);
-    for (const auto& loss : losses) {
+    for (const auto& loss : metrics) {
         NJson::TJsonValue metricJson;
         metricJson.InsertValue("name", loss->GetDescription());
         metricJson.InsertValue("best_value", loss->IsMaxOptimal() ? "Max" : "Min");
-        if (hasTrain) {
+        if (!learnSetNames.empty()) {
             meta["learn_metrics"].AppendValue(metricJson);
         }
-        if (hasTest) {
+        if (!testSetNames.empty()) {
             meta["test_metrics"].AppendValue(metricJson);
         }
     }

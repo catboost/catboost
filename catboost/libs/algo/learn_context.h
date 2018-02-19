@@ -135,10 +135,10 @@ public:
 };
 
 NJson::TJsonValue GetJsonMeta(
-    const TVector<const TLearnContext*>& learnContexts,
-    ELaunchMode lanchMode,
-    const TString& learnToken,
-    const TString& testToken,
-    bool hasTrain,
-    bool hasTest
+    int iterationCount,
+    const TString& optionalExperimentName,
+    const TVector<THolder<IMetric>>& metrics,
+    const TVector<TString>& learnSetNames,
+    const TVector<TString>& testSetNames,
+    ELaunchMode launchMode
 );

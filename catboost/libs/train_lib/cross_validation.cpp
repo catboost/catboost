@@ -290,6 +290,11 @@ void CrossValidate(
     TString learnToken = "learn";
     TString testToken = "test";
     if (ctx->OutputOptions.AllowWriteFiles()) {
+        TVector<TString> learnSetNames, testSetNames;
+        for (const auto& x : GetRawPointers(contexts)) {
+           learnSetNames.push_back(x->Files.NamesPrefix + learnToken);
+           testSetNames.push_back(x->Files.NamesPrefix + testToken);
+        }
         AddFileLoggers(
             /*detailedProfile=*/false,
             ctx->Files.LearnErrorLogFile,
@@ -299,13 +304,12 @@ void CrossValidate(
             ctx->Files.ProfileLogFile,
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
-                GetRawPointers(contexts),
-                ELaunchMode::CV,
-                learnToken,
-                testToken,
-                /*hasTrain=*/true,
-                /*hasTest=*/true
-            ),
+                ctx->Params.BoostingOptions->IterationCount.Get(),
+                ctx->OutputOptions.GetName(),
+                metrics,
+                learnSetNames,
+                testSetNames,
+                ELaunchMode::CV),
             ctx->OutputOptions.GetMetricPeriod(),
             &logger
         );

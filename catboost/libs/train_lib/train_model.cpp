@@ -69,6 +69,18 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     TLogger logger;
     TString learnToken = "learn", testToken = "test";
     if (ctx->OutputOptions.AllowWriteFiles()) {
+        TVector<TString> learnSetNames = {ctx->Files.NamesPrefix + learnToken};
+        TVector<TString> testSetNames;
+        if (hasTest) {
+            testSetNames.push_back({ctx->Files.NamesPrefix + testToken});
+        }
+        auto losses = CreateMetrics(
+            ctx->Params.LossFunctionDescription,
+            ctx->Params.MetricOptions,
+            ctx->EvalMetricDescriptor,
+            ctx->LearnProgress.ApproxDimension
+        );
+
         AddFileLoggers(
             ctx->Params.IsProfile,
             ctx->Files.LearnErrorLogFile,
@@ -78,13 +90,12 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             ctx->Files.ProfileLogFile,
             ctx->OutputOptions.GetTrainDir(),
             GetJsonMeta(
-                {ctx},
-                ELaunchMode::Train,
-                learnToken,
-                testToken,
-                /*hasTrain=*/true,
-                hasTest
-            ),
+                ctx->Params.BoostingOptions->IterationCount.Get(),
+                ctx->OutputOptions.GetName(),
+                losses,
+                learnSetNames,
+                testSetNames,
+                ELaunchMode::Train),
             ctx->OutputOptions.GetMetricPeriod(),
             &logger
         );
