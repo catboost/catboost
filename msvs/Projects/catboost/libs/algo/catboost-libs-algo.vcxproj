@@ -115,7 +115,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_pairwise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
