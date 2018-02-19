@@ -146,7 +146,7 @@ private:
     using TSlice = TVectorSlicing::TSlice;
     template<typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
-    void SetSmallestSideControl(int curDepth, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, TRestorableFastRng64* rand);
     TUnsizedVector<bool> Control;
     int DocCount;

@@ -143,7 +143,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     srcBlocks.Create(blockParams);
 
     TVectorSlicing dstBlocks;
-    SetSmallestSideControl(curDepth, fold.Indices, localExecutor);
+    SetSmallestSideControl(curDepth, fold.DocCount, fold.Indices, localExecutor);
     dstBlocks.CreateByControl(blockParams, Control, localExecutor);
 
     DocCount = dstBlocks.Total;
@@ -223,10 +223,8 @@ int TCalcScoreFold::GetBodyTailCount() const {
     return BodyTailCount;
 }
 
-void TCalcScoreFold::SetSmallestSideControl(int curDepth, const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
+void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
     Y_ASSERT(curDepth > 0);
-
-    const int docCount = indices.ysize();
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(4000);
