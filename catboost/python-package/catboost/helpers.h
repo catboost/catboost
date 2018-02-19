@@ -45,16 +45,15 @@ public:
                                     int threadCount,
                                     const TString& tmpDir,
                                     bool deleteTempDirOnExit = false)
-    : MetricPlotCalcer(CreateMetricCalcer(
+    : Metrics(CreateMetricsFromDescription(metricDescriptions, model.ObliviousTrees.ApproxDimension))
+    , MetricPlotCalcer(CreateMetricCalcer(
             model,
-            metricDescriptions,
             begin,
             end,
             evalPeriod,
             Executor,
             tmpDir,
-            &Metrics)) {
-
+            Metrics)) {
         Executor.RunAdditionalThreads(threadCount - 1);
         MetricPlotCalcer.SetDeleteTmpDirOnExit(deleteTempDirOnExit);
     }

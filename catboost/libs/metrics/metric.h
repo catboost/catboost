@@ -630,6 +630,19 @@ TVector<THolder<IMetric>> CreateMetrics(
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     int approxDimension
 );
+
+
+inline TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim) {
+    TVector<THolder<IMetric>> metrics;
+    for (const auto& metricDescription : description) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
+        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
+            metrics.push_back(std::move(metricsBatch[i]));
+        }
+    }
+    return metrics;
+}
+
 double EvalErrors(
     const TVector<TVector<double>>& avrgApprox,
     const TVector<float>& target,

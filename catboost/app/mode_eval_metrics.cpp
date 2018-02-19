@@ -5,30 +5,31 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/metrics/metric.h>
 
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
 #include <util/folder/tempdir.h>
 
-struct TModePlotParams {
+struct TModeEvalMetricsParams {
     ui32 Step = 0;
     ui32 FirstIteration = 0;
-    ui32 LastIteration = 0;
+    ui32 EndIteration = 0;
     int ReadBlockSize = 32768;
     TString MetricsDescription;
     TString TmpDir;
 
     void BindParserOpts(NLastGetopt::TOpts& parser) {
-        parser.AddLongOption("first-iteration", "First iteration to plot.")
+        parser.AddLongOption("ntree-start", "First iteration to plot.")
                 .RequiredArgument("INT")
                 .StoreResult(&FirstIteration);
-        parser.AddLongOption("last-iteration", "Last iteration to plot.")
+        parser.AddLongOption("ntree-end", "Last iteration to plot.")
                 .RequiredArgument("INT")
-                .StoreResult(&LastIteration);
-        parser.AddLongOption("step", "Plot every step trees.")
+                .StoreResult(&EndIteration);
+        parser.AddLongOption("eval-period", "Eval metrics every step trees.")
                 .RequiredArgument("INT")
                 .StoreResult(&Step);
-        parser.AddLongOption("eval-metric", "coma-separated eval metrics")
+        parser.AddLongOption("metrics", "coma-separated eval metrics")
                 .RequiredArgument("String")
                 .StoreResult(&MetricsDescription);
         parser.AddLongOption("block-size", "Compute block size")
@@ -42,9 +43,9 @@ struct TModePlotParams {
     }
 };
 
-int mode_plot(int argc, const char* argv[]) {
+int mode_eval_metrics(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
-    TModePlotParams plotParams;
+    TModeEvalMetricsParams plotParams;
     bool verbose = false;
 
     auto parser = NLastGetopt::TOpts();
@@ -68,11 +69,11 @@ int mode_plot(int argc, const char* argv[]) {
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
     CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
-    if (plotParams.LastIteration == 0) {
-        plotParams.LastIteration = model.ObliviousTrees.TreeSizes.size();
+    if (plotParams.EndIteration == 0) {
+        plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
     }
     if (plotParams.Step == 0) {
-        plotParams.Step = (plotParams.LastIteration - plotParams.FirstIteration) > 100 ? 10 : 1;
+        plotParams.Step = (plotParams.EndIteration - plotParams.FirstIteration) > 100 ? 10 : 1;
     }
     if (plotParams.TmpDir == "-") {
         plotParams.TmpDir = TTempDir().Name();
@@ -83,19 +84,19 @@ int mode_plot(int argc, const char* argv[]) {
         metricsDescription.emplace_back(metricDescription.Token());
     }
 
-    TVector<THolder<IMetric>> metrics;
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
+
+    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
-        metricsDescription,
         plotParams.FirstIteration,
-        plotParams.LastIteration,
+        plotParams.EndIteration,
         plotParams.Step,
         executor,
         plotParams.TmpDir,
-        &metrics
+        metrics
     );
 
     ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {

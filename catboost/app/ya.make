@@ -9,7 +9,7 @@ SRCS(
     mode_calc.cpp
     mode_fit.cpp
     mode_fstr.cpp
-    mode_plot.cpp
+    mode_eval_metrics.cpp
     bind_options.cpp
     cmd_line.cpp
 )

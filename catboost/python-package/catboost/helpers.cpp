@@ -43,19 +43,18 @@ TVector<TVector<double>> EvalMetrics(
     int threadCount,
     const TString& tmpDir
 ) {
-    TVector<THolder<IMetric>> metrics;
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
 
+    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
-        metricsDescription,
         begin,
         end,
         evalPeriod,
         executor,
         tmpDir,
-        &metrics
+        metrics
     );
     plotCalcer.ProceedDataSet(pool);
 

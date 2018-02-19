@@ -122,7 +122,6 @@ private:
         }
     }
 
-
     void ComputeNonAdditiveMetrics();
 
     void ProceedMetrics(const TVector<TVector<double>>& cursor,
@@ -202,11 +201,10 @@ private:
 
 TMetricsPlotCalcer CreateMetricCalcer(
     const TFullModel& model,
-    const TVector<TString>& metriscDescription,
     int begin,
     int end,
     int evalPeriod,
     NPar::TLocalExecutor& executor,
     const TString& tmpDir,
-    TVector<THolder<IMetric>>* metrics
+    const TVector<THolder<IMetric>>& metrics
 );
