@@ -91,7 +91,7 @@ enum class ELossFunction {
     QueryRMSE,
     QuerySoftMax,
 
-    /* custom errors */
+    /* user defined errors */
 
     Custom,
     UserPerObjMetric,
