@@ -193,6 +193,7 @@ def pytest_configure(config):
             data_file=cov_prefix,
             concurrency=['multiprocessing', 'thread'],
             auto_data=True,
+            branch=True,
             # debug=['pid', 'trace', 'sys', 'config'],
         )
         config.coverage = cov
