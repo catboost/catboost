@@ -1552,12 +1552,12 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.emplace_back(new TPairAccuracyMetric());
             return result;
 
-        case ELossFunction::UserPerObjErr: {
+        case ELossFunction::UserPerObjMetric: {
             result.emplace_back(new TUserDefinedPerObjectMetric(params));
             return result;
         }
 
-        case ELossFunction::UserQuerywiseErr: {
+        case ELossFunction::UserQuerywiseMetric: {
             result.emplace_back(new TUserDefinedQuerywiseMetric(params));
             return result;
         }

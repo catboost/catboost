@@ -53,8 +53,8 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
         case ELossFunction::QuerySoftMax:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
-        case ELossFunction::UserPerObjErr:
-        case ELossFunction::UserQuerywiseErr:
+        case ELossFunction::UserPerObjMetric:
+        case ELossFunction::UserQuerywiseMetric:
             return TTargetClassifier(SelectBorders(
                 target,
                 learnSampleCount,

@@ -71,8 +71,8 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultNewtonIterations = 1;
             break;
         }
-        case ELossFunction::UserPerObjErr:
-        case ELossFunction::UserQuerywiseErr:
+        case ELossFunction::UserPerObjMetric:
+        case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::Custom: {
             //skip
             defaultNewtonIterations = 1;

@@ -91,6 +91,12 @@ enum class ELossFunction {
     QueryRMSE,
     QuerySoftMax,
 
+    /* custom errors */
+
+    Custom,
+    UserPerObjMetric,
+    UserQuerywiseMetric,
+
     /* regression metrics */
 
     R2,
@@ -111,13 +117,7 @@ enum class ELossFunction {
 
     /* ranking metrics */
     QueryAverage,
-    PFound,
-
-    /* custom errors */
-
-    Custom,
-    UserPerObjErr,
-    UserQuerywiseErr
+    PFound
 };
 
 enum class ECounterCalc {

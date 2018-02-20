@@ -71,10 +71,10 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
         case ELossFunction::Custom:
             return TrainOneIter<TCustomError>;
             break;
-        case ELossFunction::UserPerObjErr:
+        case ELossFunction::UserPerObjMetric:
             return TrainOneIter<TUserDefinedPerObjectError>;
             break;
-        case ELossFunction::UserQuerywiseErr:
+        case ELossFunction::UserQuerywiseMetric:
             return TrainOneIter<TUserDefinedQuerywiseError>;
             break;
         default:
