@@ -6575,6 +6575,18 @@ $(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.h\
         $(SOURCE_ROOT)/catboost/libs/algo/plot.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
@@ -6735,6 +6747,18 @@ $(BUILD_ROOT)/catboost/app/mode_eval_metrics.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/types.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor_shape.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/resource_handle.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/tensor.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/summary.pb.h\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/tensorboard/event.pb.h\
         $(SOURCE_ROOT)/catboost/app/mode_eval_metrics.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/app'
