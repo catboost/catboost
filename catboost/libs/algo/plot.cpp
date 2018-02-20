@@ -200,3 +200,46 @@ TMetricsPlotCalcer CreateMetricCalcer(
 
     return plotCalcer;
 }
+
+TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
+    if (HasNonAdditiveMetric()) {
+        ComputeNonAdditiveMetrics();
+    }
+    TVector<TVector<double>> metricsScore(Metrics.size(), TVector<double>(Iterations.size()));
+    for (ui32 i = 0; i < Iterations.size(); ++i) {
+        for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
+            metricsScore[metricId][i] = Metrics[metricId]->GetFinalError(MetricPlots[metricId][i]);
+        }
+    }
+    return metricsScore;
+}
+
+TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile) {
+    TFsPath trainDirPath(resultDir);
+    if (!resultDir.empty() && !trainDirPath.Exists()) {
+        trainDirPath.MkDir();
+    }
+
+    TOFStream statsStream(JoinFsPaths(resultDir, "partial_stats.tsv"));
+    const char sep = '\t';
+    WriteHeaderForPartialStats(&statsStream, sep);
+    WritePartialStats(&statsStream, sep);
+
+    TString token = "eval_dataset";
+
+    TLogger logger;
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
+
+    auto metaJson = GetJsonMeta(Iterations.back() + 1, ""/*optionalExperimentName*/, Metrics, {}/*learnSetNames*/, {token}, ELaunchMode::Eval);
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "eval.json"), metaJson)));
+
+    TVector<TVector<double>> results = GetMetricsScore();
+    for (int iteration = 0; iteration < results[0].ysize(); ++iteration) {
+        TOneInterationLogger oneIterLogger(logger);
+        for (int metricIdx = 0; metricIdx < results.ysize(); ++metricIdx) {
+            oneIterLogger.OutputMetric(token, TMetricEvalResult(Metrics[metricIdx]->GetDescription(), results[metricIdx][iteration], false));
+        }
+    }
+    return *this;
+}

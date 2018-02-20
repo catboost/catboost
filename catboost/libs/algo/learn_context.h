@@ -137,7 +137,7 @@ public:
 NJson::TJsonValue GetJsonMeta(
     int iterationCount,
     const TString& optionalExperimentName,
-    const TVector<THolder<IMetric>>& metrics,
+    const TVector<const IMetric*>& metrics,
     const TVector<TString>& learnSetNames,
     const TVector<TString>& testSetNames,
     ELaunchMode launchMode

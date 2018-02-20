@@ -16,6 +16,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
 
@@ -92,7 +93,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             GetJsonMeta(
                 ctx->Params.BoostingOptions->IterationCount.Get(),
                 ctx->OutputOptions.GetName(),
-                losses,
+                GetConstPointers(losses),
                 learnSetNames,
                 testSetNames,
                 ELaunchMode::Train),

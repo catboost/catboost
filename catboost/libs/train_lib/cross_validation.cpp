@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
@@ -306,7 +307,7 @@ void CrossValidate(
             GetJsonMeta(
                 ctx->Params.BoostingOptions->IterationCount.Get(),
                 ctx->OutputOptions.GetName(),
-                metrics,
+                GetConstPointers(metrics),
                 learnSetNames,
                 testSetNames,
                 ELaunchMode::CV),

@@ -12,26 +12,30 @@
 #include <util/folder/tempdir.h>
 
 struct TModeEvalMetricsParams {
-    ui32 Step = 0;
+    ui32 Step = 1;
     ui32 FirstIteration = 0;
     ui32 EndIteration = 0;
     int ReadBlockSize = 32768;
     TString MetricsDescription;
+    TString ResultDirectory;
     TString TmpDir;
 
     void BindParserOpts(NLastGetopt::TOpts& parser) {
-        parser.AddLongOption("ntree-start", "First iteration to plot.")
+        parser.AddLongOption("ntree-start", "Start iteration.")
                 .RequiredArgument("INT")
                 .StoreResult(&FirstIteration);
-        parser.AddLongOption("ntree-end", "Last iteration to plot.")
+        parser.AddLongOption("ntree-end", "End iteration.")
                 .RequiredArgument("INT")
                 .StoreResult(&EndIteration);
-        parser.AddLongOption("eval-period", "Eval metrics every step trees.")
+        parser.AddLongOption("eval-period", "Eval metrics every eval-period trees.")
                 .RequiredArgument("INT")
                 .StoreResult(&Step);
         parser.AddLongOption("metrics", "coma-separated eval metrics")
                 .RequiredArgument("String")
                 .StoreResult(&MetricsDescription);
+        parser.AddLongOption("result-dir", "directory with results")
+                .RequiredArgument("String")
+                .StoreResult(&ResultDirectory);
         parser.AddLongOption("block-size", "Compute block size")
                 .RequiredArgument("INT")
                 .DefaultValue("32768")
@@ -72,12 +76,10 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
     }
-    if (plotParams.Step == 0) {
-        plotParams.Step = (plotParams.EndIteration - plotParams.FirstIteration) > 100 ? 10 : 1;
-    }
     if (plotParams.TmpDir == "-") {
         plotParams.TmpDir = TTempDir().Name();
     }
+    // TODO(annaveronika): if AUC is specified, we will use a lot of disc for approxes on every iteration. Need to make a warning at least or decide if we load pool in memory.
 
     TVector<TString> metricsDescription;
     for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
@@ -86,7 +88,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
-
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
@@ -103,9 +104,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         plotCalcer.ProceedDataSet(poolPart);
     });
 
-    TOFStream outputStream(params.OutputPath);
-    plotCalcer.SaveResult(&outputStream)
-            .ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath).ClearTempFiles();
 
     return 0;
 }

@@ -47,9 +47,9 @@ public:
             , Executor(executor)
             , BlockParams(0, pool.Docs.GetDocCount()) {
         CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-        const size_t poolCatFeaturesCout = pool.CatFeatures.size();
-        CB_ENSURE(poolCatFeaturesCout >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count");
-        CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCout) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCout) << "<" << model.GetNumFloatFeatures());
+        const size_t poolCatFeaturesCount = pool.CatFeatures.size();
+        CB_ENSURE(poolCatFeaturesCount >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count. Model has " << model.ObliviousTrees.GetNumCatFeatures() << " and dataset has " << poolCatFeaturesCount << " categorical features");
+        CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCount) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCount) << "<" << model.GetNumFloatFeatures());
 
         const int threadCount = executor.GetThreadCount() + 1; //one for current thread
         BlockParams.SetBlockCount(threadCount);

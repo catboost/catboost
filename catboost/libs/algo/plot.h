@@ -6,6 +6,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/loggers/logger.h>
 
 #include <util/string/builder.h>
 #include <util/generic/guid.h>
@@ -53,30 +54,8 @@ public:
     }
 
     TMetricsPlotCalcer& ProceedDataSet(const TPool& pool);
-
-    template <class TOutput>
-    TMetricsPlotCalcer& SaveResult(TOutput* output) {
-        if (HasNonAdditiveMetric()) {
-            ComputeNonAdditiveMetrics();
-        }
-        const char sep = '\t';
-        WriteHeader(output, sep);
-        WriteMetrics(output, sep);
-        return *this;
-    }
-
-    TVector<TVector<double>> GetMetricsScore() {
-        if (HasNonAdditiveMetric()) {
-            ComputeNonAdditiveMetrics();
-        }
-        TVector<TVector<double>> metricsScore(Metrics.size(), TVector<double>(Iterations.size()));
-        for (ui32 i = 0; i < Iterations.size(); ++i) {
-            for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
-                metricsScore[metricId][i] = Metrics[metricId]->GetFinalError(MetricPlots[metricId][i]);
-            }
-        }
-        return metricsScore;
-    }
+    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile);
+    TVector<TVector<double>> GetMetricsScore();
 
     void ClearTempFiles() {
         for (const auto& tmpFile : NonAdditiveMetricsData.ApproxFiles) {
@@ -92,13 +71,13 @@ public:
 private:
 
     template <class TOutput>
-    void WriteMetrics(TOutput* output, const char sep) const
-    {//results
+    void WritePartialStats(TOutput* output, const char sep) const
+    {
         for (ui32 i = 0; i < Iterations.size(); ++i) {
             (*output) << Iterations[i] << sep;
 
             for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
-                WriteMetricStats(*Metrics[metricId], MetricPlots[metricId][i], output);
+                WriteMetricStats(MetricPlots[metricId][i], output);
                 if ((metricId + 1) != Metrics.size()) {
                     (*output) << sep;
                 } else {
@@ -109,9 +88,12 @@ private:
     }
 
     template <class TOutput>
-    void WriteHeader(TOutput* output, const char sep) const
+    void WriteHeaderForPartialStats(TOutput* output, const char sep) const
     {
-        (*output) << "Iteration" << sep;
+        // TODO(annaveronika): same name as in metrics file.
+        // TODO(annaveronika): create logger that outputs partial stats.
+        // TODO(annaveronika): loss before first iteration should have iteration index -1.
+        (*output) << "iter" << sep;
         for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
             WriteMetricColumns(*Metrics[metricId], output);
             if ((metricId + 1) != Metrics.size()) {
@@ -147,14 +129,14 @@ private:
     template <class TWriter>
     static TWriter& WriteMetricColumns(const IMetric& metric, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
-        (*writer) << metric.GetDescription() << "_score" << sep << metric.GetDescription() << "_sum" << sep << metric.GetDescription() << "_weight";
+        (*writer) << metric.GetDescription() << "_sum" << sep << metric.GetDescription() << "_weight";
         return *writer;
     }
 
     template <class TWriter>
-    static TWriter& WriteMetricStats(const IMetric& metric, const TMetricHolder& errorHolder, TWriter* writer, char sep = '\t') {
+    static TWriter& WriteMetricStats(const TMetricHolder& errorHolder, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
-        (*writer) << metric.GetFinalError(errorHolder) << sep << errorHolder.Error << sep << errorHolder.Weight;
+        (*writer) << errorHolder.Error << sep << errorHolder.Weight;
         return *writer;
     }
 

@@ -13,9 +13,9 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    const size_t poolCatFeaturesCout = pool.CatFeatures.size();
-    CB_ENSURE(poolCatFeaturesCout >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count");
-    CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCout) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCout) << "<" << model.GetNumFloatFeatures());
+    const size_t poolCatFeaturesCount = pool.CatFeatures.size();
+    CB_ENSURE(poolCatFeaturesCount >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count");
+    CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCount) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCount) << "<" << model.GetNumFloatFeatures());
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;
     TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
