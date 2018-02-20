@@ -12,7 +12,7 @@ class TLog;
 class TLogElement: public TGrowingTempBufOutput {
 public:
     TLogElement(const TLog* parent);
-    TLogElement(const TLog* parent, TLogPriority priority);
+    TLogElement(const TLog* parent, ELogPriority priority);
 
     TLogElement(TLogElement&&) noexcept = default;
     TLogElement& operator=(TLogElement&&) noexcept = default;
@@ -29,13 +29,13 @@ public:
     /*
          * for pretty usage: logger << TLOG_ERROR << "Error description";
          */
-    inline TLogElement& operator<<(TLogPriority priority) {
+    inline TLogElement& operator<<(ELogPriority priority) {
         Flush();
         Priority_ = priority;
         return *this;
     }
 
-    TLogPriority Priority() const noexcept {
+    ELogPriority Priority() const noexcept {
         return Priority_;
     }
 
@@ -44,5 +44,5 @@ protected:
 
 protected:
     const TLog* Parent_;
-    TLogPriority Priority_;
+    ELogPriority Priority_;
 };

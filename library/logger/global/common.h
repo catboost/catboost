@@ -63,16 +63,16 @@ namespace NLoggingImpl {
         if (startAsDaemon && (logType == "console" || logType == "cout" || logType == "cerr")) {
             logType = "null";
         }
-        TLoggerOperator<TLoggerType>::Set(new TLoggerType(logType, (TLogPriority)logLevel));
+        TLoggerOperator<TLoggerType>::Set(new TLoggerType(logType, (ELogPriority)logLevel));
     }
 }
 
 struct TLogRecordContext {
-    TLogRecordContext(const TSourceLocation& sourceLocation, const char* customMessage, TLogPriority priority);
+    TLogRecordContext(const TSourceLocation& sourceLocation, const char* customMessage, ELogPriority priority);
 
     TSourceLocation SourceLocation;
     TStringBuf CustomMessage;
-    TLogPriority Priority;
+    ELogPriority Priority;
 };
 
 template <class... R>

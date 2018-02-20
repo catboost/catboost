@@ -18,7 +18,7 @@ public:
     }
 
     bool OutputExtendedInfo = false;
-    TLogPriority LogPriority = TLOG_WARNING;
+    ELogPriority LogPriority = TLOG_WARNING;
 };
 
 struct TMatrixnetMessageFormater {

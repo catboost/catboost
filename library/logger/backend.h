@@ -18,7 +18,7 @@ public:
     // buffering effects.
     virtual void ReopenLogNoFlush();
 
-    virtual TLogPriority FiltrationLevel() const;
+    virtual ELogPriority FiltrationLevel() const;
 
     static void ReopenAllBackends(bool flush = true);
 };

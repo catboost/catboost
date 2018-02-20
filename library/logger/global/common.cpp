@@ -7,7 +7,7 @@ namespace NLoggingImpl {
     }
 }
 
-TLogRecordContext::TLogRecordContext(const TSourceLocation& sourceLocation, const char* customMessage, TLogPriority priority)
+TLogRecordContext::TLogRecordContext(const TSourceLocation& sourceLocation, const char* customMessage, ELogPriority priority)
     : SourceLocation(sourceLocation)
     , CustomMessage(customMessage)
     , Priority(priority)

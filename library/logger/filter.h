@@ -8,10 +8,10 @@
 template <class TBaseBackend>
 class TFilteredLogBackend: public TLogBackend {
     THolder<TBaseBackend> Backend;
-    TLogPriority Level;
+    ELogPriority Level;
 
 public:
-    TFilteredLogBackend(TBaseBackend* t, TLogPriority level = LOG_MAX_PRIORITY) noexcept
+    TFilteredLogBackend(TBaseBackend* t, ELogPriority level = LOG_MAX_PRIORITY) noexcept
         : Backend(t)
         , Level(level)
     {
@@ -20,7 +20,7 @@ public:
     ~TFilteredLogBackend() override {
     }
 
-    TLogPriority FiltrationLevel() const override {
+    ELogPriority FiltrationLevel() const override {
         return Level;
     }
 
@@ -29,7 +29,7 @@ public:
     }
 
     void WriteData(const TLogRecord& rec) override {
-        if (rec.Priority <= (TLogPriority)Level) {
+        if (rec.Priority <= (ELogPriority)Level) {
             Backend->WriteData(rec);
         }
     }
