@@ -272,7 +272,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("boosting-type")
         .RequiredArgument("BoostingType")
-        .Help("GPU only. Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best GPU performance you could set it to Plain. One ")
+        .Help("Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best performance you could set it to Plain.")
         .Handler1T<TString>([plainJsonPtr](const TString& boostingType) {
             (*plainJsonPtr)["boosting_type"] = boostingType;
         });
