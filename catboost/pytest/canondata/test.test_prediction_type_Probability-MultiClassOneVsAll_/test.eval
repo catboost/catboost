@@ -1,4 +1,4 @@
-DocId	Class_0_Probability	Class_1_Probability	Target
+DocId	Probability:Class=0	Probability:Class=1	Target
 0	0.3243809495	0.6756190505	1
 1	0.3179937761	0.6820062239	1
 2	0.3267374288	0.6732625712	1

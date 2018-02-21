@@ -10,6 +10,16 @@
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 
+struct TPoolMetaInfo {
+    ui32 ColumnsCount;
+    ui32 BaselineCount;
+
+    bool HasGroupIds;
+    bool HasDocIds;
+    bool HasWeights;
+    bool HasTimestamp;
+};
+
 struct TDocInfo {
     float Target = 0;
     float Weight = 1;
@@ -169,4 +179,5 @@ struct TPool {
     TVector<TString> FeatureId;
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
+    TPoolMetaInfo MetaInfo;
 };

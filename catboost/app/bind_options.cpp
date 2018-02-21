@@ -213,12 +213,25 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["snapshot_file"] = path;
         });
 
+    parser.AddLongOption("output-columns")
+            .RequiredArgument("Comma separated list of column indexes")
+            .Handler1T<TString>([plainJsonPtr](const TString& indexesLine) {
+                (*plainJsonPtr)["output_columns"] = NULL;
+                for (const auto& t : StringSplitter(indexesLine).Split(',')) {
+                    (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
+
+                }
+            });
+
     parser.AddLongOption("prediction-type")
-        .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
+        .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal. CPU only")
         .Handler1T<TString>([plainJsonPtr](const TString& predictionTypes) {
+            (*plainJsonPtr)["output_columns"].AppendValue("DocId");
             for (const auto& t : StringSplitter(predictionTypes).Split(',')) {
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
+                (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
+            (*plainJsonPtr)["output_columns"].AppendValue("Target");
         });
 
     parser.AddLongOption('i', "iterations", "iterations count")

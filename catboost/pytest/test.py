@@ -727,6 +727,26 @@ def test_cv_for_query():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_empty_eval():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_time():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -736,6 +756,7 @@ def test_time():
         'fit',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
@@ -1180,7 +1201,7 @@ def test_custom_loss_for_classification():
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,CtrFactor',
+        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1996,3 +2017,135 @@ def test_json_logging_metric_period():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(remove_time_from_json(json_path))]
+
+
+def test_output_columns_format():
+    model_path = yatest.common.test_output_path('adult_model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--output-columns', 'DocId,RawFormulaVal,#2,Target',
+        '--eval-file', output_eval_path
+    )
+    yatest.common.execute(cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--output-columns', 'DocId,RawFormulaVal,#2'
+    )
+    yatest.common.execute(calc_cmd)
+
+    return local_canonical_file(output_eval_path, formula_predict_path)
+
+
+def test_eval_period():
+    model_path = yatest.common.test_output_path('adult_model.bin')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+    )
+    yatest.common.execute(cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--eval-period', '2'
+    )
+    yatest.common.execute(calc_cmd)
+
+    return local_canonical_file(formula_predict_path)
+
+
+def test_weights_output():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult_weight', 'train_weight'),
+        '-t', data_file('adult_weight', 'test_weight'),
+        '--column-description', data_file('adult_weight', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--output-columns', 'DocId,RawFormulaVal,Weight,Target',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_baseline_output():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult_weight', 'train_weight'),
+        '-t', data_file('adult_weight', 'test_weight'),
+        '--column-description', data_file('train_adult_baseline.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--output-columns', 'DocId,RawFormulaVal,Baseline,Target',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_query_output():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise_pool', 'train_full3'),
+        '-t', data_file('querywise_pool', 'test3'),
+        '--column-description', data_file('querywise_pool', 'train_full3.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--output-columns', 'DocId,Target,RawFormulaVal,GroupId',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

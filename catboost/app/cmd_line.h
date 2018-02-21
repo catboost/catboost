@@ -13,6 +13,7 @@ struct TAnalyticalModeCommonParams {
     TString InputPath;
     TString CdFile;
     TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
+    TVector<TString> OutputColumnsIds = {"DocId", "RawFormulaVal"};
     EFstrType FstrType = EFstrType::FeatureImportance;
     TVector<TString> ClassNames;
     int ThreadCount = NSystemInfo::CachedNumberOfCpus();

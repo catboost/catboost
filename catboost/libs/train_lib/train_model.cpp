@@ -368,11 +368,10 @@ class TCPUModelTrainer : public IModelTrainer {
             }
         }
 
-        evalResult->GetRawValuesRef().resize(ctx.LearnProgress.ApproxDimension);
+        evalResult->GetRawValuesRef().at(0).resize(ctx.LearnProgress.ApproxDimension);
         DumpMemUsage("Before start train");
 
-        Train(trainData, &ctx, &(evalResult->GetRawValuesRef()));
-        evalResult->SetPredictionTypes(ctx.OutputOptions.GetPredictionTypes());
+        Train(trainData, &ctx, &(evalResult->GetRawValuesRef().at(0)));
 
         TObliviousTrees obliviousTrees;
         THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
@@ -491,6 +490,11 @@ class TCPUModelTrainer : public IModelTrainer {
             profile.AddOperation("Build test pool");
         }
 
+        const auto evalFileName = outputOptions.CreateEvalFullPath();
+        if (!evalFileName.empty() && !loadOptions.TestFile.empty()) {
+            ValidateColumnOutput(outputOptions.GetOutputColumns(), learnPool, loadOptions.CvParams.FoldCount > 0);
+        }
+
         const auto& cvParams = loadOptions.CvParams;
         if (cvParams.FoldCount != 0) {
             CB_ENSURE(loadOptions.TestFile.empty(), "Test file is not supported in cross-validation mode");
@@ -509,7 +513,6 @@ class TCPUModelTrainer : public IModelTrainer {
             profile.AddOperation("Build cv pools");
         }
 
-        TEvalResult evalResult;
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
         const auto modelPath = outputOptions.CreateResultModelFullPath();
@@ -517,15 +520,17 @@ class TCPUModelTrainer : public IModelTrainer {
         const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
         const bool allowClearPool = !needFstr;
 
+        TEvalResult evalResult;
         TrainModel(trainJson, outputOptions, Nothing(), Nothing(), learnPool, allowClearPool, testPool, nullptr, &evalResult);
 
         SetVerboseLogingMode();
-        const auto evalFileName = outputOptions.CreateEvalFullPath();
         if (!evalFileName.empty()) {
+            if (!loadOptions.CvParams.FoldCount && loadOptions.TestFile.empty() && !outputOptions.GetOutputColumns().empty()) {
+                MATRIXNET_WARNING_LOG << "No test file, can't output columns\n";
+            }
             MATRIXNET_INFO_LOG << "Writing test eval to: " << evalFileName << Endl;
             TOFStream fileStream(evalFileName);
-            evalResult.PostProcess(threadCount);
-            evalResult.OutputToFile(testPool.Docs.Id, &fileStream, true, &testPool.Docs.Target);
+            evalResult.OutputToFile(threadCount, outputOptions.GetOutputColumns(), testPool, &fileStream, loadOptions.TestFile, loadOptions.Delimiter, loadOptions.HasHeader);
         } else {
             MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;
         }

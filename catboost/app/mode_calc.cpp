@@ -24,9 +24,10 @@ static TEvalResult Apply(
     NPar::TLocalExecutor* executor)
 {
     TEvalResult resultApprox;
-    TVector<TVector<double>>& rawValues = resultApprox.GetRawValuesRef();
+    TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
+    rawValues.resize(1);
     if (pool.Docs.Baseline.ysize() > 0) {
-        rawValues.assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
+        rawValues[0].assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
     }
     TModelCalcerOnPool modelCalcerOnPool(model, pool, *executor);
     TVector<TVector<double>> approx;
@@ -35,16 +36,18 @@ static TEvalResult Apply(
                                           begin,
                                           Min(begin + evalPeriod, end),
                                           &approx);
-        if (rawValues.empty()) {
-            rawValues.swap(approx);
+        if (rawValues.back().empty()) {
+            rawValues.back().swap(approx);
         } else {
             for (size_t i = 0; i < approx.size(); ++i) {
                 for (size_t j = 0; j < approx[0].size(); ++j) {
-                    rawValues[i][j] += approx[i][j];
+                    rawValues.back()[i][j] += approx[i][j];
                 }
             }
         }
-        resultApprox.PostProcess(executor, std::make_pair((int)begin, (int)Min(begin + evalPeriod, end)));
+        if (begin + evalPeriod < end) {
+            rawValues.push_back(rawValues.back());
+        }
     }
     return resultApprox;
 }
@@ -59,12 +62,22 @@ int mode_calc(int argc, const char* argv[]) {
     params.BindParserOpts(parser);
     parser.AddLongOption("tree-count-limit", "limit count of used trees")
         .StoreResult(&iterationsLimit);
+    parser.AddLongOption("output-columns")
+            .RequiredArgument("Comma separated list of column indexes")
+            .Handler1T<TString>([&](const TString& outputColumns) {
+                params.OutputColumnsIds.clear();
+                for (const auto&  typeName : StringSplitter(outputColumns).Split(',')) {
+                    params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
+                }
+            });
     parser.AddLongOption("prediction-type")
         .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
+            params.OutputColumnsIds = {"DocId"};
             for (const auto&  typeName : StringSplitter(predictionTypes).Split(',')) {
                 params.PredictionTypes.push_back(FromString<EPredictionType>(typeName.Token()));
+                params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
             }
         });
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
@@ -100,11 +113,22 @@ int mode_calc(int argc, const char* argv[]) {
     SetVerboseLogingMode();
     bool IsFirstBlock = true;
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
+        if (IsFirstBlock) {
+            ValidateColumnOutput(params.OutputColumnsIds, poolPart);
+        }
         TEvalResult approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
-        approx.SetPredictionTypes(params.PredictionTypes);
         SetSilentLogingMode();
-        approx.PostProcess(&executor);
-        approx.OutputToFile(poolPart.Docs.Id, &outputStream, IsFirstBlock);
+        approx.OutputToFile(
+                &executor,
+                params.OutputColumnsIds,
+                poolPart,
+                &outputStream,
+                params.InputPath,
+                params.Delimiter,
+                params.HasHeader,
+                IsFirstBlock,
+                std::make_pair(evalPeriod, iterationsLimit)
+        );
         IsFirstBlock = false;
     });
 

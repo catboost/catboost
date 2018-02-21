@@ -51,21 +51,21 @@
     ],
     "test.test_all_targets[MultiClassOneVsAll]": [
         {
-            "checksum": "faccdf03b2e9a0e7cae38547da7e9662",
+            "checksum": "0f86f816aba233838d90bbecf40e0335",
             "uri": "file://test.test_all_targets_MultiClassOneVsAll_/test.eval"
         },
         {
-            "checksum": "6be1109298a2305e522b912f6e50bb34",
+            "checksum": "9cf27d31172cd8309901d8932efe97a9",
             "uri": "file://test.test_all_targets_MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_all_targets[MultiClass]": [
         {
-            "checksum": "b57e6d2425a160b40e8ef1bf3fd388aa",
+            "checksum": "1f5275ec13ccb0fff65a6c3b481c08ef",
             "uri": "file://test.test_all_targets_MultiClass_/test.eval"
         },
         {
-            "checksum": "29aa8f1e5a7b7fe8f8f7e25f9dd12333",
+            "checksum": "73eaf0342f2310cb1fcd7ef336f94fd5",
             "uri": "file://test.test_all_targets_MultiClass_/predict_test.eval"
         }
     ],
@@ -123,6 +123,12 @@
             "uri": "file://test.test_baseline/predict_test.eval"
         }
     ],
+    "test.test_baseline_output": [
+        {
+            "checksum": "ab334a0139b6f7c8edaae1cb23d5b3f2",
+            "uri": "file://test.test_baseline_output/test.eval"
+        }
+    ],
     "test.test_bootstrap": [
         {
             "checksum": "26a46ff568a9d3ca3a979fd82e5884e4",
@@ -141,13 +147,13 @@
     ],
     "test.test_class_names_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "3fdc8fc41b720364f2765d85c036f870",
+            "checksum": "b47ae44ae6663f5db1eca20e6b5b1620",
             "uri": "file://test.test_class_names_multiclass_MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[MultiClass]": [
         {
-            "checksum": "c8374fa73a7245874716b78a5b466aee",
+            "checksum": "e6695ea1b36e78c6f5f31f04dcd4583d",
             "uri": "file://test.test_class_names_multiclass_MultiClass_/test.eval"
         }
     ],
@@ -159,19 +165,19 @@
     ],
     "test.test_class_weight_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "649ba4afa9c8ed74a6326812e9435a12",
+            "checksum": "7f74b431d1e8f62a4e62023da5877c4e",
             "uri": "file://test.test_class_weight_multiclass_MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[MultiClass]": [
         {
-            "checksum": "42bbcd836e0f5f05ddf478b1119c1784",
+            "checksum": "b03e7ec0529e4986c09717a5e31e23c2",
             "uri": "file://test.test_class_weight_multiclass_MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class": [
         {
-            "checksum": "fce83f798faa230798819408bd166633",
+            "checksum": "6d2b367802d2d03d14e1073a288fcc50",
             "uri": "file://test.test_class_weight_with_lost_class/test.eval"
         }
     ],
@@ -201,7 +207,7 @@
     ],
     "test.test_ctr_buckets": [
         {
-            "checksum": "6c38ca339e91d50ac5222077538486a4",
+            "checksum": "bd20f22b00425b08a6cbcb5bf78455ee",
             "uri": "file://test.test_ctr_buckets/test.eval"
         }
     ],
@@ -257,11 +263,11 @@
     ],
     "test.test_custom_loss_for_classification": [
         {
-            "checksum": "a824220e2029276d859b73e45486de79",
+            "checksum": "93ac3a7e68dc15a72691c18e41410144",
             "uri": "file://test.test_custom_loss_for_classification/learn_error.tsv"
         },
         {
-            "checksum": "8988975a97b3247bd5cdae8f8b1ce959",
+            "checksum": "1328c5c960f126db392585038cbbb1e8",
             "uri": "file://test.test_custom_loss_for_classification/test_error.tsv"
         }
     ],
@@ -323,10 +329,20 @@
     ],
     "test.test_doc_id[MultiClass]": [
         {
-            "checksum": "658aa9d545a9cf3ab4046152dcd8f639",
+            "checksum": "f1e14741271abcc2c93aa0a00a9b1220",
             "uri": "file://test.test_doc_id_MultiClass_/test.eval"
         }
     ],
+    "test.test_empty_eval": [
+        {
+            "checksum": "1955ef12f93bb4c7330aaf56ece263b5",
+            "uri": "file://test.test_empty_eval/test.eval"
+        }
+    ],
+    "test.test_eval_period": {
+        "checksum": "f75a5357497cd2583f5eedb581981f41",
+        "uri": "file://test.test_eval_period/predict_test.eval"
+    },
     "test.test_feature_border_types[GreedyLogSum]": [
         {
             "checksum": "cd1c258d97621c018a46b68924c52064",
@@ -369,7 +385,7 @@
     },
     "test.test_fold_len_multiplier": [
         {
-            "checksum": "9919c1d419237eda80be991e38098883",
+            "checksum": "526b56c6e0f00a201a4a18964c07dfb4",
             "uri": "file://test.test_fold_len_multiplier/test.eval"
         }
     ],
@@ -431,7 +447,7 @@
     ],
     "test.test_lost_class": [
         {
-            "checksum": "c8dfe39cfb1e24524372a83669890f30",
+            "checksum": "8303482cc3ca0193d3ed8052f52d0657",
             "uri": "file://test.test_lost_class/test.eval"
         }
     ],
@@ -443,41 +459,41 @@
     ],
     "test.test_multi_leaf_estimation_method[Gradient]": [
         {
-            "checksum": "2803e42f8e742c40f07d03948eb4db15",
+            "checksum": "8d7e1c40ad6274555433872117e91d47",
             "uri": "file://test.test_multi_leaf_estimation_method_Gradient_/test.eval"
         },
         {
-            "checksum": "ab6dd44eac3c2d96902b461e90a25d7a",
+            "checksum": "74df85297aadf14c356ffed811c77f92",
             "uri": "file://test.test_multi_leaf_estimation_method_Gradient_/predict_test.eval"
         }
     ],
     "test.test_multi_leaf_estimation_method[Newton]": [
         {
-            "checksum": "0a576e49c43fbb39c136a998dc236c07",
+            "checksum": "55630b86c8ee4947424c008f1c065fcd",
             "uri": "file://test.test_multi_leaf_estimation_method_Newton_/test.eval"
         },
         {
-            "checksum": "c845f3a3c6caa080319f0219486198a8",
+            "checksum": "e94b0975f89aba63ef4e3c0f615495ab",
             "uri": "file://test.test_multi_leaf_estimation_method_Newton_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[MultiClassOneVsAll]": [
         {
-            "checksum": "a5dbaf7dd170681934493bc293ea414f",
+            "checksum": "88a1bd8d9d2f1f20938a1436d7ff4087",
             "uri": "file://test.test_multi_targets_MultiClassOneVsAll_/test.eval"
         },
         {
-            "checksum": "2ba9d26f41f5adfe802f2a3ef6ab09ac",
+            "checksum": "5b980d6dadb498bfe8c6231e8eed2dca",
             "uri": "file://test.test_multi_targets_MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[MultiClass]": [
         {
-            "checksum": "a502020c48566eb9791c6eb597c65e83",
+            "checksum": "d497742a60f11d9f27714437cf45f3ec",
             "uri": "file://test.test_multi_targets_MultiClass_/test.eval"
         },
         {
-            "checksum": "8dfbb097a3ae05621b8342c479981df8",
+            "checksum": "34c65a6dbd18fa77d66fd25f8aa3ca59",
             "uri": "file://test.test_multi_targets_MultiClass_/predict_test.eval"
         }
     ],
@@ -517,6 +533,10 @@
             "uri": "file://test.test_only_categorical_features/test.eval"
         }
     ],
+    "test.test_output_columns_format": {
+        "checksum": "754c63cbef3dac2c41aea7a5194e389b",
+        "uri": "file://test.test_output_columns_format/test.eval"
+    },
     "test.test_overfit_detector_inc_to_dec": [
         {
             "checksum": "43717f2d68eca8f669b0a4f4d7e2459c",
@@ -557,7 +577,7 @@
     ],
     "test.test_params_from_file": [
         {
-            "checksum": "bff5859c456b9d5b4551db3bacc51e86",
+            "checksum": "e6d34ae311060307bcb282b116e61144",
             "uri": "file://test.test_params_from_file/test.eval"
         }
     ],
@@ -627,13 +647,13 @@
     ],
     "test.test_prediction_type[Class-MultiClassOneVsAll]": [
         {
-            "checksum": "e01414abad0b0ecc04a0e9bdfc4e8d1b",
+            "checksum": "bee29f35627c66119caef72b04da07ca",
             "uri": "file://test.test_prediction_type_Class-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_prediction_type[Class-MultiClass]": [
         {
-            "checksum": "e01414abad0b0ecc04a0e9bdfc4e8d1b",
+            "checksum": "bee29f35627c66119caef72b04da07ca",
             "uri": "file://test.test_prediction_type_Class-MultiClass_/test.eval"
         }
     ],
@@ -651,13 +671,13 @@
     ],
     "test.test_prediction_type[Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "0efe4e4e325ff6165235b4cd9a7efa15",
+            "checksum": "d6c25ae6ddf1fad348e80f710c3dcf32",
             "uri": "file://test.test_prediction_type_Probability-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_prediction_type[Probability-MultiClass]": [
         {
-            "checksum": "6893d1a3b2b797a83565a35bfc357bcd",
+            "checksum": "6de9d9d96525a816a2b3d68e76e0fc7e",
             "uri": "file://test.test_prediction_type_Probability-MultiClass_/test.eval"
         }
     ],
@@ -675,13 +695,13 @@
     ],
     "test.test_prediction_type[RawFormulaVal-MultiClassOneVsAll]": [
         {
-            "checksum": "faccdf03b2e9a0e7cae38547da7e9662",
+            "checksum": "0f86f816aba233838d90bbecf40e0335",
             "uri": "file://test.test_prediction_type_RawFormulaVal-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_prediction_type[RawFormulaVal-MultiClass]": [
         {
-            "checksum": "b57e6d2425a160b40e8ef1bf3fd388aa",
+            "checksum": "1f5275ec13ccb0fff65a6c3b481c08ef",
             "uri": "file://test.test_prediction_type_RawFormulaVal-MultiClass_/test.eval"
         }
     ],
@@ -695,6 +715,12 @@
         {
             "checksum": "6f924e645a7d10d93fefee5e324d189f",
             "uri": "file://test.test_quantile_targets_Quantile_/test.eval"
+        }
+    ],
+    "test.test_query_output": [
+        {
+            "checksum": "622c9829039d92ea546a962634dba621",
+            "uri": "file://test.test_query_output/test.eval"
         }
     ],
     "test.test_queryaverage": [
@@ -825,7 +851,7 @@
     ],
     "test.test_time": [
         {
-            "checksum": "b7c59ed27141b7f53acee514674028dd",
+            "checksum": "ead8fc0edfc26a4855a5cd45eff2a844",
             "uri": "file://test.test_time/test.eval"
         }
     ],
@@ -843,6 +869,12 @@
         {
             "checksum": "0b75e5df93ec4c3dbabb952acef42f14",
             "uri": "file://test.test_weights_gradient/test.eval"
+        }
+    ],
+    "test.test_weights_output": [
+        {
+            "checksum": "3d13628898bf1efa53e748c7459571e1",
+            "uri": "file://test.test_weights_output/test.eval"
         }
     ]
 }

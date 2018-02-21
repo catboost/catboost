@@ -18,12 +18,13 @@
 struct TPoolColumnsMetaInfo {
     ui32 FactorCount;
     TVector<int> CatFeatureIds;
-
+    ui32 ColumnsCount;
     ui32 BaselineCount = 0;
 
-    bool HasQueryIds = false;
     bool HasDocIds = false;
     bool HasWeights = false;
+    bool HasGroupIds = false;
+    bool HasTimestamp = false;
 };
 
 class IPoolBuilder {

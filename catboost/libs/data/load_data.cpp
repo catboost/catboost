@@ -34,8 +34,15 @@ public:
         FactorCount = poolMetaInfo.FactorCount;
         BaselineCount = poolMetaInfo.BaselineCount;
 
-        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasQueryIds);
+        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasGroupIds);
         Pool->CatFeatures = poolMetaInfo.CatFeatureIds;
+
+        Pool->MetaInfo.ColumnsCount = poolMetaInfo.ColumnsCount;
+        Pool->MetaInfo.BaselineCount = poolMetaInfo.BaselineCount;
+        Pool->MetaInfo.HasDocIds = poolMetaInfo.HasDocIds;
+        Pool->MetaInfo.HasWeights = poolMetaInfo.HasWeights;
+        Pool->MetaInfo.HasGroupIds = poolMetaInfo.HasGroupIds;
+        Pool->MetaInfo.HasTimestamp = poolMetaInfo.HasTimestamp;
     }
 
     void StartNextBlock(ui32 blockSize) override {
@@ -268,12 +275,12 @@ TPoolReader::TPoolReader(
     , LocalExecutor(localExecutor)
 {
     CB_ENSURE(NFs::Exists(TString(poolFile)), "pool file is not found " + TString(poolFile));
-    const int columnsCount = ReadColumnsCount(poolFile, FieldDelimiter);
+    PoolMetaInfo.ColumnsCount = ReadColumnsCount(poolFile, FieldDelimiter);
 
     if (!cdFile.empty()) {
-        ColumnsDescription = ReadCD(cdFile, TCdParserDefaults(EColumn::Num, columnsCount));
+        ColumnsDescription = ReadCD(cdFile, TCdParserDefaults(EColumn::Num, PoolMetaInfo.ColumnsCount));
     } else {
-        ColumnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
+        ColumnsDescription.assign(PoolMetaInfo.ColumnsCount, TColumn{EColumn::Num, TString()});
         ColumnsDescription[0].Type = EColumn::Target;
     }
 
@@ -289,11 +296,13 @@ TPoolReader::TPoolReader(
     CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
     PoolMetaInfo.HasDocIds = (bool)docIdColumns;
 
-    const ui32 queryIdColumns = CountColumns(ColumnsDescription, EColumn::GroupId);
-    CB_ENSURE(queryIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
-    PoolMetaInfo.HasQueryIds = (bool)queryIdColumns;
+    const ui32 groupIdColumns = CountColumns(ColumnsDescription, EColumn::GroupId);
+    CB_ENSURE(groupIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
+    PoolMetaInfo.HasGroupIds = (bool)groupIdColumns;
 
-    CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Timestamp) <= 1, "Too many Timestamp columns");
+    const ui32 timestampColumns = CountColumns(ColumnsDescription, EColumn::Timestamp);
+    CB_ENSURE(timestampColumns <= 1, "Too many Timestamp columns");
+    PoolMetaInfo.HasTimestamp = (bool)timestampColumns;
 
     PoolMetaInfo.FactorCount = (const ui32)CountIf(
         ColumnsDescription.begin(),

@@ -27,6 +27,7 @@ namespace NCatboostOptions {
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , EvalFileName("eval_file_name", "", taskType)
+            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Target"}, taskType)
             , FstrRegularFileName("fstr_regular_file", "", taskType)
             , FstrInternalFileName("fstr_internal_file", "", taskType)
 
@@ -115,6 +116,10 @@ namespace NCatboostOptions {
             return PredictionTypes.Get();
         }
 
+        const TVector<TString>& GetOutputColumns() const {
+            return OutputColumns.Get();
+        }
+
         bool AllowWriteFiles() const {
             return AllowWriteFilesFlag.Get();
         }
@@ -162,7 +167,7 @@ namespace NCatboostOptions {
                         &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
                         &ResultModelPath,
                         &SnapshotPath, &SaveSnapshotFlag, &AllowWriteFilesFlag, &UseBestModel, &SnapshotSaveIntervalSeconds,
-                        &EvalFileName, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &PredictionTypes);
+                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &PredictionTypes);
             Validate();
         }
 
@@ -170,7 +175,7 @@ namespace NCatboostOptions {
             SaveFields(options,
                        TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
                        SnapshotPath, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
-                       EvalFileName, FstrRegularFileName, FstrInternalFileName, MetricPeriod, PredictionTypes);
+                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, PredictionTypes);
         }
 
         void Validate() const {
@@ -215,6 +220,7 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
         TCpuOnlyOption<TString> EvalFileName;
+        TCpuOnlyOption<TVector<TString>> OutputColumns;
         TCpuOnlyOption<TString> FstrRegularFileName;
         TCpuOnlyOption<TString> FstrInternalFileName;
     };
