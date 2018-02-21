@@ -360,7 +360,7 @@ def test_shrink_model():
     return [local_canonical_file(output_eval_path)]
 
 
-LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'SMAPE', 'MultiClass', 'MultiClassOneVsAll']
+LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
 
 
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
@@ -1016,7 +1016,7 @@ def test_regularization():
     return [local_canonical_file(output_eval_path)]
 
 
-REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'SMAPE']
+REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
 
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)

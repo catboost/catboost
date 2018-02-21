@@ -284,29 +284,6 @@ public:
     }
 };
 
-class TSMAPError : public IDerCalcer<TSMAPError, /*StoreExpApproxParam*/ false> {
-public:
-    explicit TSMAPError(bool storeExpApprox) {
-        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
-    }
-
-    double CalcDer(double approx, double target) const {
-        const double sumabs = abs(target) + abs(approx);
-        const double diff = target - approx;
-        const double absdiff = abs(diff);
-        return diff / (absdiff * sumabs) + (approx * absdiff) / (abs(approx) * sumabs * sumabs);
-    }
-
-    double CalcDer2(double approx, double target) const {
-        const double sumabs = abs(target) + abs(approx);
-        const double sumabs2 = sumabs * sumabs;
-        const double sumabs3 = sumabs2 * sumabs;
-        const double diff = target - approx;
-        const double absdiff = abs(diff);
-        return -2 * (absdiff / sumabs3 + (approx * diff) / (abs(approx) * absdiff * sumabs2));
-    }
-};
-
 class TPoissonError : public IDerCalcer<TPoissonError, /*StoreExpApproxParam*/ true> {
 public:
     explicit TPoissonError(bool storeExpApprox) {
