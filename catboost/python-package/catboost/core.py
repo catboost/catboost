@@ -1654,7 +1654,6 @@ class CatBoostRegressor(CatBoost):
         'LogLinQuantile:alpha=value'
         'Poisson'
         'MAPE'
-        'SMAPE'
     """
     def __init__(
         self,
@@ -1725,7 +1724,7 @@ class CatBoostRegressor(CatBoost):
             objective = None
 
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
-            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, SMAPE, R2.".format(loss_function))
+            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
         params = {}
         params["kwargs"] = kwargs
         not_params = ["not_params", "self", "params", "kwargs", "__class__"]

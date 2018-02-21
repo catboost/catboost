@@ -29,9 +29,6 @@ namespace NCatboostCuda {
                 case ELossFunction::MAPE: {
                     break;
                 }
-                case ELossFunction::SMAPE: {
-                    break;
-                }
                 case ELossFunction::MAE: {
                     Alpha = 0.5;
                     break;
