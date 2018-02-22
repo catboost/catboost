@@ -317,39 +317,6 @@ bool TMAPEMetric::IsMaxOptimal() const {
     return false;
 }
 
-/* SMAPE */
-
-TMetricHolder TSMAPEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    CB_ENSURE(approx.size() == 1, "Metric SMAPE quantile supports only single-dimensional data");
-
-    const auto& approxVec = approx.front();
-    Y_ASSERT(approxVec.size() == target.size());
-
-    TMetricHolder error;
-    for (int k = begin; k < end; ++k) {
-        float w = weight.empty() ? 1 : weight[k];
-        error.Error += Abs(target[k] - approxVec[k]) / (Abs(approxVec[k]) + Abs(target[k]));
-        error.Weight += w;
-    }
-
-    return error;
-}
-
-TString TSMAPEMetric::GetDescription() const {
-    return ToString(ELossFunction::SMAPE);
-}
-
-bool TSMAPEMetric::IsMaxOptimal() const {
-    return true;
-}
-
 /* Poisson */
 
 TMetricHolder TPoissonMetric::EvalSingleThread(
@@ -1482,10 +1449,6 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::MAPE:
             result.emplace_back(new TMAPEMetric());
-            return result;
-
-        case ELossFunction::SMAPE:
-            result.emplace_back(new TSMAPEMetric());
             return result;
 
         case ELossFunction::Poisson:

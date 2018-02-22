@@ -249,19 +249,6 @@ struct TMAPEMetric : public TAdditiveMetric<TMAPEMetric> {
     virtual bool IsMaxOptimal() const override;
 };
 
-struct TSMAPEMetric : public TAdditiveMetric<TSMAPEMetric> {
-    TMetricHolder EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
-        int begin,
-        int end
-    ) const;
-    virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
-};
-
 struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,

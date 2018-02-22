@@ -6,7 +6,6 @@ namespace NCatboostCuda {
 
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoisson(ELossFunction::Poisson);
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMape(ELossFunction::MAPE);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorSmape(ELossFunction::SMAPE);
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMae(ELossFunction::MAE);
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantile(ELossFunction::Quantile);
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantile(ELossFunction::LogLinQuantile);
