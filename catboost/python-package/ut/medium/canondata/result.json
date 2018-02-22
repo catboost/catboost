@@ -24,7 +24,7 @@
         "uri": "file://test.test_cv_with_not_binarized_target/catboost_training.json"
     },
     "test.test_doc_feature_importance": {
-        "checksum": "d57a45580184f986df41bf91d229c39b",
+        "checksum": "55f8aa6be60c2299f379a1e7a622ed6b",
         "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
     },
     "test.test_feature_importance": {
@@ -64,7 +64,7 @@
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
-        "checksum": "ea2d3fa8747d875458d3c52940ce5a96",
+        "checksum": "40f48b938348e475b24bf15723921601",
         "uri": "file://test.test_one_doc_feature_importance/feature_importance.npy"
     },
     "test.test_ones_weight": {

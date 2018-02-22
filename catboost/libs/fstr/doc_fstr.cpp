@@ -136,7 +136,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                         leafValue += model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
                     }
                     leafValue /= static_cast<double>(indices[doc].ysize());
-                    result[featureId][doc] += Abs(approx[treeIdx][dim][doc] - leafValue);
+                    result[featureId][doc] += approx[treeIdx][dim][doc] - leafValue;
                 }
             }
         }

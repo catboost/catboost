@@ -390,7 +390,7 @@
         }
     ],
     "test.test_fstr[Doc]": {
-        "checksum": "5a5c2e797a047501bba0ddc3a340278c",
+        "checksum": "ed8f617fe5e8f17c805823dcf4f14414",
         "uri": "file://test.test_fstr_Doc_/fstr.tsv"
     },
     "test.test_fstr[FeatureImportance]": {
