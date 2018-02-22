@@ -6,7 +6,7 @@
 enum class EColumn {
     Num,
     Categ,
-    Target,
+    Label,
     Auxiliary,
     Baseline,
     Weight,
@@ -15,6 +15,7 @@ enum class EColumn {
     SubgroupId,
     Timestamp,
     Sparse,
+    Prediction
 };
 
 inline bool IsFactorColumn(EColumn column) {

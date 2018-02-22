@@ -22,7 +22,7 @@ load_data_frame <- function(pool_path, column_description_path) {
   column_description <- read.csv(column_description_path, sep = "\t", col.names = c("index", "type"), header = F)
   pool <- read.csv(pool_path, sep = "\t", header = F)
   column_description$index <- column_description$index + 1
-  names(pool)[as.integer(column_description$index[column_description$type == "Target"])] <- "Target"
+  names(pool)[as.integer(column_description$index[column_description$type == "Label"])] <- "Label"
   for (i in column_description$index[column_description$type == "Categ"]) {
     if (is.factor(pool[, i]) == FALSE) {
       pool[, i] <- as.factor(pool[, i])
@@ -90,13 +90,13 @@ test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
   column_description_path <- system.file("extdata", "adult.cd", package="catboost")
 
   data_frame <- load_data_frame(pool_path, column_description_path)
-  data_frame_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Target")],
+  data_frame_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")],
                                               as.double(data_frame$Target))
-  data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Target")])
+  data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")])
 
-  tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Target")]),
+  tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]),
                                               as.double(data_frame$Target))
-  tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Target")]))
+  tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]))
 
   params <- list(iterations = 10,
                  loss_function = "Logloss")

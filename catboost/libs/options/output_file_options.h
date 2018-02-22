@@ -27,7 +27,7 @@ namespace NCatboostOptions {
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , EvalFileName("eval_file_name", "", taskType)
-            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Target"}, taskType)
+            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType)
             , FstrRegularFileName("fstr_regular_file", "", taskType)
             , FstrInternalFileName("fstr_internal_file", "", taskType)
 

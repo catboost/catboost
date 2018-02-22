@@ -369,18 +369,19 @@ namespace NCatboostCuda {
                         featureColumns.push_back(col);
                         break;
                     }
-                    case EColumn::Target: {
-                        CB_ENSURE(targetColumn == -1, "Error: more than one target column");
+                    case EColumn::Label: {
+                        CB_ENSURE(targetColumn == -1, "Error: more than one Label column");
+
                         targetColumn = col;
                         break;
                     }
                     case EColumn::Weight: {
-                        CB_ENSURE(weightColumn == -1, "Error: more than one weight column");
+                        CB_ENSURE(weightColumn == -1, "Error: more than one Weight column");
                         weightColumn = col;
                         break;
                     }
                     case EColumn::DocId: {
-                        CB_ENSURE(docIdColumn == -1, "Error: more than one docId column");
+                        CB_ENSURE(docIdColumn == -1, "Error: more than one DocId column");
                         docIdColumn = col;
                         break;
                     }

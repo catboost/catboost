@@ -1,5 +1,7 @@
 #include "bind_options.h"
 
+#include <catboost/libs/column_description/column.h>
+
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
     for (const auto& t : StringSplitter(indicesLine).Split(':')) {
@@ -231,7 +233,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
                 (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
-            (*plainJsonPtr)["output_columns"].AppendValue("Target");
+            (*plainJsonPtr)["output_columns"].AppendValue(ToString(EColumn::Label));
         });
 
     parser.AddLongOption('i', "iterations", "iterations count")

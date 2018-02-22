@@ -48,6 +48,9 @@ TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaul
         if (type == "QueryId") {
             type = "GroupId";
         }
+        if (type == "Target") {
+            type = "Label";
+        }
         CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
         if (tokens.ysize() == 3) {
             columns[index].Id = tokens[2];

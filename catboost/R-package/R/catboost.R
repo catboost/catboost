@@ -238,7 +238,7 @@ catboost.save_pool <- function(data, target = NULL, weight = NULL, baseline = NU
         stop("Path must be a string.")
 
     pool <- target
-    column_description <- c("Target")
+    column_description <- c("Label")
     if (is.null(weight) == FALSE) {
         pool <- cbind(pool, weight)
         column_description <- c(column_description, "Weight")

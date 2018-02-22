@@ -2032,7 +2032,7 @@ def test_output_columns_format():
         '-T', '4',
         '-r', '0',
         '-m', model_path,
-        '--output-columns', 'DocId,RawFormulaVal,#2,Target',
+        '--output-columns', 'DocId,RawFormulaVal,#2,Label',
         '--eval-file', output_eval_path
     )
     yatest.common.execute(cmd)
@@ -2099,7 +2099,7 @@ def test_weights_output():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,RawFormulaVal,Weight,Target',
+        '--output-columns', 'DocId,RawFormulaVal,Weight,Label',
     )
     yatest.common.execute(cmd)
 
@@ -2122,7 +2122,7 @@ def test_baseline_output():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,RawFormulaVal,Baseline,Target',
+        '--output-columns', 'DocId,RawFormulaVal,Baseline,Label',
     )
     yatest.common.execute(cmd)
 
@@ -2144,7 +2144,7 @@ def test_query_output():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,Target,RawFormulaVal,GroupId',
+        '--output-columns', 'DocId,Label,RawFormulaVal,GroupId',
     )
     yatest.common.execute(cmd)
 

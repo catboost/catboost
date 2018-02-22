@@ -188,7 +188,7 @@ static TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
                 ++featureId;
                 break;
             case EColumn::Auxiliary:
-            case EColumn::Target:
+            case EColumn::Label:
             case EColumn::Baseline:
             case EColumn::Weight:
             case EColumn::DocId:
@@ -281,7 +281,7 @@ TPoolReader::TPoolReader(
         ColumnsDescription = ReadCD(cdFile, TCdParserDefaults(EColumn::Num, PoolMetaInfo.ColumnsCount));
     } else {
         ColumnsDescription.assign(PoolMetaInfo.ColumnsCount, TColumn{EColumn::Num, TString()});
-        ColumnsDescription[0].Type = EColumn::Target;
+        ColumnsDescription[0].Type = EColumn::Label;
     }
 
     const ui32 weightColumns = CountColumns(ColumnsDescription, EColumn::Weight);
@@ -290,7 +290,7 @@ TPoolReader::TPoolReader(
 
     PoolMetaInfo.BaselineCount = CountColumns(ColumnsDescription, EColumn::Baseline);
 
-    CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Target) <= 1, "Too many Target columns");
+    CB_ENSURE(CountColumns(ColumnsDescription, EColumn::Label) <= 1, "Too many Label columns");
 
     const ui32 docIdColumns = CountColumns(ColumnsDescription, EColumn::DocId);
     CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
@@ -402,8 +402,8 @@ void TPoolReader::ProcessBlock() {
                     ++featureId;
                     break;
                 }
-                case EColumn::Target: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for target. Target should be float.");
+                case EColumn::Label: {
+                    CB_ENSURE(token.length() != 0, "empty values not supported for Label. Label should be float.");
                     PoolBuilder.AddTarget(lineIdx, ConvertTarget(FromString<TString>(token)));
                     break;
                 }
@@ -416,28 +416,28 @@ void TPoolReader::ProcessBlock() {
                     break;
                 }
                 case EColumn::GroupId: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for query id");
+                    CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
                     PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
                     break;
                 }
                 case EColumn::SubgroupId: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for group id");
+                    CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
                     PoolBuilder.AddSubgroupId(lineIdx, FromString<ui32>(token));
                     break;
                 }
                 case EColumn::Baseline: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for baseline");
+                    CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
                     PoolBuilder.AddBaseline(lineIdx, baselineIdx, FromString<double>(token));
                     ++baselineIdx;
                     break;
                 }
                 case EColumn::DocId: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for doc id");
+                    CB_ENSURE(token.length() != 0, "empty values not supported for DocId");
                     PoolBuilder.AddDocId(lineIdx, token);
                     break;
                 }
                 case EColumn::Timestamp: {
-                    CB_ENSURE(token.length() != 0, "empty values not supported for timestamp");
+                    CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
                     PoolBuilder.AddTimestamp(lineIdx, FromString<ui64>(token));
                     break;
                 }

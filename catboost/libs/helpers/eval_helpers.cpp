@@ -201,7 +201,7 @@ void TEvalResult::OutputToFile(
         }
         EColumn outputType;
         if (TryFromString<EColumn>(columnName, outputType)) {
-            if (outputType == EColumn::Target) {
+            if (outputType == EColumn::Label) {
                 if  (!pool.Docs.Target.empty()) {
                     columnPrinter.push_back(MakeHolder<TVectorPrinter<float>>(pool.Docs.Target, columnName));
                 }
