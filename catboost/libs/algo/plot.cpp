@@ -1,5 +1,8 @@
 #include "plot.h"
 
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/loss_description.h>
+
 #include <library/threading/local_executor/local_executor.h>
 
 void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
@@ -45,8 +48,10 @@ TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
                                                 const TVector<float>& target,
                                                 const TVector<float>& weights,
                                                 const TVector<TVector<double>>& approx) {
-    const auto docCount = static_cast<int>(target.size());
+    ELossFunction lossFunction = ParseLossType(metric.GetDescription());
+    CheckTarget(target, lossFunction);
 
+    const auto docCount = static_cast<int>(target.size());
     if (metric.GetErrorType() == EErrorType::PerObjectError) {
         return metric.Eval(approx,
                            target,

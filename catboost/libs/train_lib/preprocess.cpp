@@ -1,5 +1,7 @@
 #include "preprocess.h"
 
+#include <catboost/libs/metrics/metric.h>
+
 // TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
 static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds, int begin, int end) {
     THashSet<ui32> queryGroupIds;
@@ -26,28 +28,13 @@ static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<T
     return true;
 }
 
-static void CheckTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
+void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
+    CheckTarget(target, lossFunction);
     if (lossFunction == ELossFunction::Logloss) {
         float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
         float maxTarget = *MaxElement(target.begin(), target.begin() + learnSampleCount);
         CB_ENSURE(minTarget == 0, "All train targets are greater than border");
         CB_ENSURE(maxTarget == 1, "All train targets are smaller than border");
-    }
-
-    if (lossFunction == ELossFunction::CrossEntropy) {
-        float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
-        float maxTarget = *MaxElement(target.begin(), target.begin() + learnSampleCount);
-        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
-        CB_ENSURE(maxTarget <= 1, "Max target greater than 1: " + ToString(minTarget));
-    }
-
-    if (lossFunction == ELossFunction::QuerySoftMax) {
-        float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
-        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
-    }
-
-    if (IsMultiClassError(lossFunction)) {
-        CB_ENSURE(AllOf(target, [](float x) { return floor(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
     }
 
     if (lossFunction != ELossFunction::PairLogit) {
@@ -115,7 +102,7 @@ void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescriptio
         }
     }
 
-    CheckTarget(*target, learnSampleCount, lossDescription.GetLossFunction());
+    CheckTrainTarget(*target, learnSampleCount, lossDescription.GetLossFunction());
 
     bool hasQuery = !queryId.empty();
     if (hasQuery) {
