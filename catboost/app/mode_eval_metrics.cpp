@@ -52,7 +52,7 @@ static void CheckMetrics(const TVector<THolder<IMetric>>& metrics) {
     bool isClassification = IsClassificationLoss(metrics[0]->GetDescription());
     for (int i = 1; i < metrics.ysize(); ++i) {
         bool isNextMetricClass = IsClassificationLoss(metrics[i]->GetDescription());
-        CB_ENSURE(isClassification != isNextMetricClass, "Cannot use classification and non classification metrics together. If you trained classification, use classification metrics. If you trained regression, use regression metrics.");
+        CB_ENSURE(isClassification == isNextMetricClass, "Cannot use classification and non classification metrics together. If you trained classification, use classification metrics. If you trained regression, use regression metrics.");
         isClassification = isNextMetricClass;
     }
 }
