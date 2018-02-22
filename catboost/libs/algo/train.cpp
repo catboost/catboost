@@ -16,10 +16,11 @@ class TCustomError;
 class TUserDefinedPerObjectError;
 class TUserDefinedQuerywiseError;
 
-TErrorTracker BuildErrorTracker(bool isMaxOptimal, bool hasTest, TLearnContext* ctx) {
+TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, float bestPossibleValue, bool hasTest, TLearnContext* ctx) {
     const auto& odOptions = ctx->Params.BoostingOptions->OverfittingDetector;
     return TErrorTracker(odOptions->OverfittingDetectorType,
-                         isMaxOptimal,
+                         bestValueType,
+                         bestPossibleValue,
                          odOptions->AutoStopPValue,
                          odOptions->IterationsWait,
                          true,

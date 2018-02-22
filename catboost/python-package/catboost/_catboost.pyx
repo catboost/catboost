@@ -168,8 +168,10 @@ cdef extern from "catboost/libs/metrics/metric_holder.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass IMetric:
         TString GetDescription() const;
-        bool_t IsMaxOptimal() const;
         bool_t IsAdditiveMetric() const;
+
+cdef extern from "catboost/libs/metrics/metric.h":
+    cdef bool_t IsMaxOptimal(const IMetric& metric);
 
 cdef extern from "catboost/libs/metrics/ders_holder.h":
     cdef cppclass TDer1Der2:
@@ -1314,7 +1316,7 @@ cdef class _MetricCalcerBase:
         for metric_idx in xrange(metrics.size()):
             metric = metrics[metric_idx]
             name = to_native_str(metric.GetDescription().c_str())
-            flag = metric.IsMaxOptimal()
+            flag = IsMaxOptimal(dereference(metric))
             self._metric_descriptions.append(MetricDescription(name, flag))
 
     def __cinit__(self, catboost_model, *args, **kwargs):

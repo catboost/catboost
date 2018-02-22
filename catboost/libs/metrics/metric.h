@@ -20,6 +20,13 @@ inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;
 }
 
+enum class EMetricBestValue {
+    Max,
+    Min,
+    FixedValue,
+    Undefined
+};
+
 struct TCustomMetricDescriptor {
     void* CustomData;
     TMetricHolder (*EvalFunc)(
@@ -72,7 +79,7 @@ struct IMetric {
         int end
     ) const = 0;
     virtual TString GetDescription() const = 0;
-    virtual bool IsMaxOptimal() const = 0;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
     virtual EErrorType GetErrorType() const = 0;
     virtual double GetFinalError(const TMetricHolder& error) const = 0;
     virtual bool IsAdditiveMetric() const = 0;
@@ -164,7 +171,7 @@ struct TCrossEntropyMetric: public TAdditiveMetric<TCrossEntropyMetric> {
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     ELossFunction LossFunction;
     double Border = GetDefaultClassificationBorder();
@@ -182,7 +189,7 @@ public:
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     double Border;
 };
@@ -198,7 +205,7 @@ struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
     ) const;
     virtual TString GetDescription() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 class TQuantileMetric : public TAdditiveMetric<TQuantileMetric> {
@@ -213,7 +220,7 @@ public:
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     ELossFunction LossFunction;
     double Alpha;
@@ -231,7 +238,7 @@ public:
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     double Alpha;
 };
@@ -246,7 +253,7 @@ struct TMAPEMetric : public TAdditiveMetric<TMAPEMetric> {
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
@@ -259,7 +266,7 @@ struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
@@ -272,7 +279,7 @@ struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TMultiClassOneVsAllMetric : public TAdditiveMetric<TMultiClassOneVsAllMetric> {
@@ -285,7 +292,7 @@ struct TMultiClassOneVsAllMetric : public TAdditiveMetric<TMultiClassOneVsAllMet
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TPairLogitMetric : public TPairwiseAdditiveMetric {
@@ -296,7 +303,7 @@ struct TPairLogitMetric : public TPairwiseAdditiveMetric {
         int end
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TQueryRMSEMetric : public TAdditiveMetric<TQueryRMSEMetric> {
@@ -311,7 +318,7 @@ struct TQueryRMSEMetric : public TAdditiveMetric<TQueryRMSEMetric> {
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     double CalcQueryAvrg(
         int start,
@@ -335,7 +342,7 @@ struct TPFoundMetric : public TAdditiveMetric<TPFoundMetric> {
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int TopSize;
     double Decay;
@@ -352,7 +359,7 @@ struct TQuerySoftMaxMetric : public TAdditiveMetric<TQuerySoftMaxMetric> {
     ) const;
     virtual EErrorType GetErrorType() const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     TMetricHolder EvalSingleQuery(
         int start,
@@ -376,7 +383,7 @@ struct TR2Metric: public TNonAdditiveMetric {
     ) const override;
     virtual TString GetDescription() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TAUCMetric: public TNonAdditiveMetric {
@@ -394,7 +401,7 @@ struct TAUCMetric: public TNonAdditiveMetric {
         int end,
         NPar::TLocalExecutor& executor) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
@@ -415,7 +422,7 @@ struct TAccuracyMetric : public TAdditiveMetric<TAccuracyMetric> {
         int end
     ) const;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     double Border = GetDefaultClassificationBorder();
 };
@@ -436,7 +443,7 @@ struct TPrecisionMetric : public TNonAdditiveMetric {
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
@@ -459,7 +466,7 @@ struct TRecallMetric: public TNonAdditiveMetric {
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
@@ -479,7 +486,7 @@ struct TF1Metric: public TNonAdditiveMetric {
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     TF1Metric()
     {
@@ -501,7 +508,7 @@ struct TTotalF1Metric : public TNonAdditiveMetric {
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TMCCMetric : public TNonAdditiveMetric {
@@ -515,7 +522,7 @@ struct TMCCMetric : public TNonAdditiveMetric {
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 struct TPairAccuracyMetric : public TPairwiseAdditiveMetric {
@@ -526,7 +533,7 @@ struct TPairAccuracyMetric : public TPairwiseAdditiveMetric {
         int end
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
 class TCustomMetric: public IMetric {
@@ -548,7 +555,7 @@ public:
         int end
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     //we don't now anything about custom metrics
@@ -572,7 +579,7 @@ public:
         NPar::TLocalExecutor& executor
     ) const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     bool IsAdditiveMetric() const final {
         return true;
     }
@@ -593,7 +600,7 @@ public:
     ) const;
     virtual EErrorType GetErrorType() const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     double Alpha;
 };
@@ -615,7 +622,7 @@ public:
     ) const;
     virtual EErrorType GetErrorType() const override;
     virtual TString GetDescription() const override;
-    virtual bool IsMaxOptimal() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int TopSize;
 };
@@ -656,3 +663,10 @@ double EvalErrors(
     int end,
     NPar::TLocalExecutor* localExecutor
 );
+
+inline bool IsMaxOptimal(const IMetric& metric) {
+    EMetricBestValue bestValueType;
+    float bestPossibleValue;
+    metric.GetBestValue(&bestValueType, &bestPossibleValue);
+    return bestValueType == EMetricBestValue::Max;
+}

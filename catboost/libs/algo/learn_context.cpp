@@ -91,10 +91,18 @@ void TLearnContext::OutputMeta() {
     );
 
     for (const auto& loss : losses) {
-        meta << "loss\t" << loss->GetDescription() << "\t" << (loss->IsMaxOptimal() ? "max" : "min") << Endl;
+        EMetricBestValue bestValueType;
+        float bestValue;
+        loss->GetBestValue(&bestValueType, &bestValue);
+        TString bestValueString;
+        if (bestValueType == EMetricBestValue::Max) {
+            bestValueString = "max";
+        } else {
+            bestValueString = "min";
+        }
+        meta << "loss\t" << loss->GetDescription() << "\t" << bestValueString << Endl;
     }
 }
-
 
 void TLearnContext::InitData(const TTrainData& data) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
@@ -285,7 +293,17 @@ NJson::TJsonValue GetJsonMeta(
     for (const auto& loss : metrics) {
         NJson::TJsonValue metricJson;
         metricJson.InsertValue("name", loss->GetDescription());
-        metricJson.InsertValue("best_value", loss->IsMaxOptimal() ? "Max" : "Min");
+
+        EMetricBestValue bestValueType;
+        float bestValue;
+        loss->GetBestValue(&bestValueType, &bestValue);
+        TString bestValueString;
+        if (bestValueType != EMetricBestValue::FixedValue) {
+            metricJson.InsertValue("best_value", ToString(bestValueType));
+        } else {
+            metricJson.InsertValue("best_value", bestValue);
+        }
+
         if (!learnSetNames.empty()) {
             meta["learn_metrics"].AppendValue(metricJson);
         }

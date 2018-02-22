@@ -25,28 +25,41 @@
 
 #include "overfitting_detector.h"
 
+#include <catboost/libs/metrics/metric.h>
+
+#include <util/generic/ymath.h>
+
 class TErrorTracker {
 public:
     TErrorTracker(EOverfittingDetectorType type,
-                  bool maxIsOptimal,
+                  EMetricBestValue bestValueType,
+                  float metricBestValue,
                   double threshold,
                   int iterationsWait,
                   bool findBestIteration,
-                  bool hasTest) {
-        OverfittingDetector = CreateOverfittingDetector(type, maxIsOptimal, threshold, iterationsWait, hasTest);
+                  bool hasTest)
+    : BestPossibleError(metricBestValue)
+    , BestValueType(bestValueType) {
+        if (bestValueType == EMetricBestValue::Min || bestValueType == EMetricBestValue::Max) {
+            OverfittingDetector = CreateOverfittingDetector(type, bestValueType == EMetricBestValue::Max, threshold, iterationsWait, hasTest);
+        }
         IsNeedStop = false;
 
         FindBestIteration = findBestIteration;
         BestIteration = NotSet;
-        BestError = (OverfittingDetector->GetMaxIsOptimal() ? -1e100 : 1e100);
+        BestError = bestValueType == EMetricBestValue::Max ? -1e100 : 1e100;
     }
 
     // Saves error in overfitting detector. Pushes current pvalue to
     // valuesToLog.
     void AddError(double error, int iteration, TVector<double>* valuesToLog) {
-        if (FindBestIteration && ((error < BestError) ^ (OverfittingDetector->GetMaxIsOptimal()))) {
-            BestError = error;
-            BestIteration = iteration;
+        if (FindBestIteration) {
+            if (BestValueType == EMetricBestValue::Min && error < BestError ||
+                BestValueType == EMetricBestValue::Max && error > BestError ||
+                BestValueType == EMetricBestValue::FixedValue && Abs(error - BestPossibleError) < Abs(BestError - BestPossibleError)) {
+                BestError = error;
+                BestIteration = iteration;
+            }
         }
 
         if (NeedOverfittingDetection(OverfittingDetector.Get())) {
@@ -86,6 +99,8 @@ private:
     bool FindBestIteration;
     double BestError;
     int BestIteration;
+    float BestPossibleError;
+    EMetricBestValue BestValueType;
 
     enum {
         NotSet = -1

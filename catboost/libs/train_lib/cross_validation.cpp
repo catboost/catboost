@@ -278,7 +278,10 @@ void CrossValidate(
         ctx.SampledDocs.Create(*learnFold, GetBernoulliSampleRate(ctx.Params.ObliviousTreeOptions->BootstrapConfig)); // TODO(espetrov): create only if sample rate < 1
     }
 
-    TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), /* hasTest */ true, ctx.Get());
+    EMetricBestValue bestValueType;
+    float bestPossibleValue;
+    metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
+    TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, /* hasTest */ true, ctx.Get());
 
     results->reserve(metrics.size());
     for (const auto& metric : metrics) {

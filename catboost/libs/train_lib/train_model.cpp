@@ -19,12 +19,13 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
+#include <catboost/app/output_fstr.h> // TODO(annaveronika): files from app/ should not be used here.
 
 #include <library/grid_creator/binarization.h>
 
 #include <util/random/shuffle.h>
 #include <util/generic/vector.h>
-#include <catboost/app/output_fstr.h>
+#include <util/generic/ymath.h>
 #include <util/system/info.h>
 
 static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
@@ -55,7 +56,10 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         approxDimension
     );
 
-    TErrorTracker errorTracker = BuildErrorTracker(metrics.front()->IsMaxOptimal(), hasTest, ctx);
+    EMetricBestValue bestValueType;
+    float bestPossibleValue;
+    metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
+    TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
     CB_ENSURE(hasTest || !useBestModel, "cannot select best model, no test provided");

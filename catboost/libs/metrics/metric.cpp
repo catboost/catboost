@@ -113,8 +113,8 @@ TString TCrossEntropyMetric::GetDescription() const {
     return AddBorderIfNotDefault(ToString(LossFunction), Border);
 }
 
-bool TCrossEntropyMetric::IsMaxOptimal() const {
-    return false;
+void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* CtrFactor */
@@ -150,9 +150,9 @@ TString TCtrFactorMetric::GetDescription() const {
     return ToString(ELossFunction::CtrFactor);
 }
 
-bool TCtrFactorMetric::IsMaxOptimal() const {
-    // TODO(annaveronika): allow Max, Min, No
-    return false;
+void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
+    *valueType = EMetricBestValue::FixedValue;
+    *bestValue = 1;
 }
 
 /* RMSE */
@@ -187,8 +187,8 @@ TString TRMSEMetric::GetDescription() const {
     return ToString(ELossFunction::RMSE);
 }
 
-bool TRMSEMetric::IsMaxOptimal() const {
-    return false;
+void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* Quantile */
@@ -238,8 +238,8 @@ TString TQuantileMetric::GetDescription() const {
     }
 }
 
-bool TQuantileMetric::IsMaxOptimal() const {
-    return false;
+void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* LogLinQuantile */
@@ -280,8 +280,8 @@ TString TLogLinQuantileMetric::GetDescription() const {
     return Sprintf("%s:alpha=%.3lf", metricName.c_str(), Alpha);
 }
 
-bool TLogLinQuantileMetric::IsMaxOptimal() const {
-    return false;
+void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* MAPE */
@@ -313,8 +313,8 @@ TString TMAPEMetric::GetDescription() const {
     return ToString(ELossFunction::MAPE);
 }
 
-bool TMAPEMetric::IsMaxOptimal() const {
-    return false;
+void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* Poisson */
@@ -350,8 +350,8 @@ TString TPoissonMetric::GetDescription() const {
     return ToString(ELossFunction::Poisson);
 }
 
-bool TPoissonMetric::IsMaxOptimal() const {
-    return false;
+void TPoissonMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* MultiClass */
@@ -399,8 +399,8 @@ TString TMultiClassMetric::GetDescription() const {
     return ToString(ELossFunction::MultiClass);
 }
 
-bool TMultiClassMetric::IsMaxOptimal() const {
-    return true;
+void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* MultiClassOneVsAll */
@@ -438,8 +438,8 @@ TString TMultiClassOneVsAllMetric::GetDescription() const {
     return ToString(ELossFunction::MultiClassOneVsAll);
 }
 
-bool TMultiClassOneVsAllMetric::IsMaxOptimal() const {
-    return true;
+void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* PairLogit */
@@ -477,8 +477,8 @@ TString TPairLogitMetric::GetDescription() const {
     return ToString(ELossFunction::PairLogit);
 }
 
-bool TPairLogitMetric::IsMaxOptimal() const {
-    return false;
+void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* QueryRMSE */
@@ -541,8 +541,8 @@ double TQueryRMSEMetric::GetFinalError(const TMetricHolder& error) const {
     return sqrt(error.Error / (error.Weight + 1e-38));
 }
 
-bool TQueryRMSEMetric::IsMaxOptimal() const {
-    return false;
+void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* PFound */
@@ -590,8 +590,8 @@ double TPFoundMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Weight > 0 ? error.Error / error.Weight : 0;
 }
 
-bool TPFoundMetric::IsMaxOptimal() const {
-    return true;
+void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* QuerySoftMax */
@@ -683,8 +683,8 @@ TString TQuerySoftMaxMetric::GetDescription() const {
     return ToString(ELossFunction::QuerySoftMax);
 }
 
-bool TQuerySoftMaxMetric::IsMaxOptimal() const {
-    return false;
+void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* R2 */
@@ -729,8 +729,8 @@ TString TR2Metric::GetDescription() const {
     return ToString(ELossFunction::R2);
 }
 
-bool TR2Metric::IsMaxOptimal() const {
-    return true;
+void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Classification helpers */
@@ -873,8 +873,8 @@ TString TAUCMetric::GetDescription() const {
     }
 }
 
-bool TAUCMetric::IsMaxOptimal() const {
-    return true;
+void TAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Accuracy */
@@ -908,8 +908,8 @@ TString TAccuracyMetric::GetDescription() const {
     return ToString(ELossFunction::Accuracy);
 }
 
-bool TAccuracyMetric::IsMaxOptimal() const {
-    return true;
+void TAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Precision */
@@ -953,8 +953,8 @@ TString TPrecisionMetric::GetDescription() const {
     }
 }
 
-bool TPrecisionMetric::IsMaxOptimal() const {
-    return true;
+void TPrecisionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Recall */
@@ -1007,8 +1007,8 @@ TString TRecallMetric::GetDescription() const {
     }
 }
 
-bool TRecallMetric::IsMaxOptimal() const {
-    return true;
+void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* F1 */
@@ -1059,8 +1059,8 @@ TString TF1Metric::GetDescription() const {
     }
 }
 
-bool TF1Metric::IsMaxOptimal() const {
-    return true;
+void TF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* TotalF1 */
@@ -1094,8 +1094,8 @@ TString TTotalF1Metric::GetDescription() const {
     return ToString(ELossFunction::TotalF1);
 }
 
-bool TTotalF1Metric::IsMaxOptimal() const {
-    return true;
+void TTotalF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Confusion matrix */
@@ -1168,8 +1168,8 @@ TString TMCCMetric::GetDescription() const {
     return ToString(ELossFunction::MCC);
 }
 
-bool TMCCMetric::IsMaxOptimal() const {
-    return true;
+void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* PairAccuracy */
@@ -1203,8 +1203,8 @@ TString TPairAccuracyMetric::GetDescription() const {
     return ToString(ELossFunction::PairAccuracy);
 }
 
-bool TPairAccuracyMetric::IsMaxOptimal() const {
-    return true;
+void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Custom */
@@ -1239,8 +1239,9 @@ TString TCustomMetric::GetDescription() const {
     return Descriptor.GetDescriptionFunc(Descriptor.CustomData);
 }
 
-bool TCustomMetric::IsMaxOptimal() const {
-    return Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
+void TCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
+    *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
 }
 
 EErrorType TCustomMetric::GetErrorType() const {
@@ -1279,8 +1280,8 @@ TString TUserDefinedPerObjectMetric::GetDescription() const {
     return "UserDefinedPerObjectMetric";
 }
 
-bool TUserDefinedPerObjectMetric::IsMaxOptimal() const {
-    return false;
+void TUserDefinedPerObjectMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* UserDefinedQuerywiseMetric */
@@ -1314,8 +1315,8 @@ TString TUserDefinedQuerywiseMetric::GetDescription() const {
     return "TUserDefinedQuerywiseMetric";
 }
 
-bool TUserDefinedQuerywiseMetric::IsMaxOptimal() const {
-    return false;
+void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* QueryAverage */
@@ -1373,8 +1374,8 @@ TString TQueryAverage::GetDescription() const {
     return Sprintf("%s:top=%d", metricName.c_str(), TopSize);
 }
 
-bool TQueryAverage::IsMaxOptimal() const {
-    return true;
+void TQueryAverage::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* Create */
