@@ -75,6 +75,7 @@ enum class ELossFunction {
     Quantile,
     LogLinQuantile,
     MAPE,
+    SMAPE,
     Poisson,
 
     /* multiclassification errors */

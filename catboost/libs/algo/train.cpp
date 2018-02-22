@@ -6,6 +6,7 @@ class TRMSEError;
 class TQuantileError;
 class TLogLinQuantileError;
 class TMAPError;
+class TSMAPError;
 class TPoissonError;
 class TMultiClassError;
 class TMultiClassOneVsAllError;
@@ -49,6 +50,9 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
             break;
         case ELossFunction::MAPE:
             return TrainOneIter<TMAPError>;
+            break;
+        case ELossFunction::SMAPE:
+            return TrainOneIter<TSMAPError>;
             break;
         case ELossFunction::Poisson:
             return TrainOneIter<TPoissonError>;
