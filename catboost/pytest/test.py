@@ -1454,7 +1454,8 @@ def test_custom_loss(custom_loss_function):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
-def test_meta():
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
+def test_meta(loss_function):
     pool = 'no_split'
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -1462,10 +1463,10 @@ def test_meta():
     cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'RMSE',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
+        '--loss-function', loss_function,
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
         '-r', '0',

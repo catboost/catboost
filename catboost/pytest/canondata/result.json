@@ -451,10 +451,64 @@
             "uri": "file://test.test_lost_class/test.eval"
         }
     ],
-    "test.test_meta": [
+    "test.test_meta[CrossEntropy]": [
+        {
+            "checksum": "0ca3809c99cd8a06aa01ed5e469de436",
+            "uri": "file://test.test_meta_CrossEntropy_/meta.tsv"
+        }
+    ],
+    "test.test_meta[LogLinQuantile]": [
+        {
+            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
+            "uri": "file://test.test_meta_LogLinQuantile_/meta.tsv"
+        }
+    ],
+    "test.test_meta[Logloss]": [
+        {
+            "checksum": "ffff8a73f5600bdfc27662a14afd23a2",
+            "uri": "file://test.test_meta_Logloss_/meta.tsv"
+        }
+    ],
+    "test.test_meta[MAE]": [
+        {
+            "checksum": "bf38ad355578219a049d2d4233f58812",
+            "uri": "file://test.test_meta_MAE_/meta.tsv"
+        }
+    ],
+    "test.test_meta[MAPE]": [
+        {
+            "checksum": "d39c665eb55e84c64df4818dccf19096",
+            "uri": "file://test.test_meta_MAPE_/meta.tsv"
+        }
+    ],
+    "test.test_meta[MultiClassOneVsAll]": [
+        {
+            "checksum": "054674e491983e1cc5bdce7f7019540e",
+            "uri": "file://test.test_meta_MultiClassOneVsAll_/meta.tsv"
+        }
+    ],
+    "test.test_meta[MultiClass]": [
+        {
+            "checksum": "c5064d330cc84de72194a73508fe12a5",
+            "uri": "file://test.test_meta_MultiClass_/meta.tsv"
+        }
+    ],
+    "test.test_meta[Poisson]": [
+        {
+            "checksum": "1603fb7c0e5deabdafdadb7c34a01a61",
+            "uri": "file://test.test_meta_Poisson_/meta.tsv"
+        }
+    ],
+    "test.test_meta[Quantile]": [
+        {
+            "checksum": "2ceb7f5c974df987257986ee787e696a",
+            "uri": "file://test.test_meta_Quantile_/meta.tsv"
+        }
+    ],
+    "test.test_meta[RMSE]": [
         {
             "checksum": "6d2c8e5938cd511679829bbbf2dbc3c3",
-            "uri": "file://test.test_meta/meta.tsv"
+            "uri": "file://test.test_meta_RMSE_/meta.tsv"
         }
     ],
     "test.test_multi_leaf_estimation_method[Gradient]": [
