@@ -1456,7 +1456,6 @@ def test_custom_loss(custom_loss_function):
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
 def test_meta(loss_function):
-    pool = 'no_split'
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     meta_path = 'meta.tsv'
