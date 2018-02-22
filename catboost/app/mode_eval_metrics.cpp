@@ -47,6 +47,16 @@ struct TModeEvalMetricsParams {
     }
 };
 
+static void CheckMetrics(const TVector<THolder<IMetric>>& metrics) {
+    CB_ENSURE(!metrics.empty(), "No metrics specified for evaluation");
+    bool isClassification = IsClassificationLoss(metrics[0]->GetDescription());
+    for (int i = 1; i < metrics.ysize(); ++i) {
+        bool isNextMetricClass = IsClassificationLoss(metrics[i]->GetDescription());
+        CB_ENSURE(isClassification != isNextMetricClass, "Cannot use classification and non classification metrics together. If you trained classification, use classification metrics. If you trained regression, use regression metrics.");
+        isClassification = isNextMetricClass;
+    }
+}
+
 int mode_eval_metrics(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
@@ -90,6 +100,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
+    CheckMetrics(metrics); // TODO(annaveronika): check with model.
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
         plotParams.FirstIteration,

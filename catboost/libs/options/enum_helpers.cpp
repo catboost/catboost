@@ -29,8 +29,8 @@ bool IsClassificationLoss(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
-bool IsClassificationLoss(const TString& lossFunction) {
-    ELossFunction lossType = ParseLossType(lossFunction);
+bool IsClassificationLoss(const TString& lossDescription) {
+    ELossFunction lossType = ParseLossType(lossDescription);
     return IsClassificationLoss(lossType);
 }
 

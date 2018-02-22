@@ -7,7 +7,7 @@ bool IsSupportedOnGpu(ELossFunction lossFunction);
 
 bool IsClassificationLoss(ELossFunction lossFunction);
 
-bool IsClassificationLoss(const TString& lossFunction);
+bool IsClassificationLoss(const TString& lossDescription);
 
 bool IsMultiClassError(ELossFunction lossFunction);
 
