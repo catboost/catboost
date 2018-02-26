@@ -211,7 +211,7 @@ namespace NCatboostCuda {
             CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
             const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
             auto& borders = FeaturesManager.GetBorders(split.FeatureId);
-            CB_ENSURE(split.BinIdx < borders.size());
+            CB_ENSURE(split.BinIdx < borders.size(), "Split " << split.BinIdx << ", borders: " << borders.size());
 
             modelSplit.Type = ESplitType::OnlineCtr;
             modelSplit.OnlineCtr.Border = borders[split.BinIdx];
