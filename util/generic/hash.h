@@ -814,6 +814,7 @@ public:
     template <class OtherKey>
     size_type erase_one(const OtherKey& key);
 
+    // void (instead of iterator) is intended, see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2023.pdf
     void erase(const iterator& it);
     void erase(iterator first, iterator last);
 
