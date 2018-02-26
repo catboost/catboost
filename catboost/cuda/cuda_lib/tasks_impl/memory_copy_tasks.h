@@ -397,6 +397,7 @@ namespace NCudaLib {
         //Streams are from CudaManager
         template <typename T, EPtrType DevicePtr>
         static THolder<IDeviceRequest> AsyncRead(const TCudaSingleDevice::TSingleBuffer<T, DevicePtr>& from, ui32 stream, ui64 fromOffset, std::remove_const_t<T>* to, ui64 readSize) {
+            Y_ASSERT(readSize);
             const auto sizeInBytes = readSize * sizeof(T);
             THandleRawPtr readPtr(DevicePtr, from.MemoryHandle(), (from.GetOffset() + fromOffset) * sizeof(T));
             char* dst = ToCopyPointerType(to);
@@ -413,6 +414,7 @@ namespace NCudaLib {
         template <typename T,
                   EPtrType DevicePtr>
         static THolder<IDeviceRequest> AsyncWrite(const T* from, TCudaSingleDevice::TSingleBuffer<T, DevicePtr>& buffer, ui32 stream, ui64 writeOffset, ui64 writeSize) {
+            Y_ASSERT(writeSize);
             const ui64 sizeInBytes = writeSize * sizeof(T);
             THandleRawPtr writePtr(DevicePtr, buffer.MemoryHandle(), (buffer.GetOffset() + writeOffset) * sizeof(T));
             TCudaSingleDevice* device = buffer.Owner;

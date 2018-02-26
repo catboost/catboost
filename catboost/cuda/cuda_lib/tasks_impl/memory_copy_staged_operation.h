@@ -96,9 +96,10 @@ namespace NCudaLib {
                 State.IsOperatorComplete = true;
                 State.IsRemoteCopyComplete = false;
                 const ui64 size = Min<ui64>(Size, State.BlockSize);
+                const ui32 receiveSize = UseCompression ? sizeof(T) * State.ReservedSize : sizeof(T) * size;
 
                 State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
-                                                               sizeof(T) * State.ReservedSize,
+                                                               receiveSize,
                                                                RemoteHost,
                                                                Tag);
                 State.WorkingBufferSize = size;
@@ -130,8 +131,9 @@ namespace NCudaLib {
 
                 if (readOffset < Size) {
                     const ui64 size = Min<ui64>(Size - readOffset, State.BlockSize);
+                    const ui32 receiveSize = UseCompression ? sizeof(T) * State.ReservedSize : sizeof(T) * size;
                     State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
-                                                                    sizeof(T) * State.ReservedSize,
+                                                                    receiveSize,
                                                                     RemoteHost,
                                                                     Tag);
                     State.WorkingBufferSize = size;
@@ -154,11 +156,7 @@ namespace NCudaLib {
                     return true;
                 }
             }
-            if (State.Offset >= Size) {
-                return true;
-            } else {
-                return false;
-            }
+            return State.Offset >= Size;
         }
     };
 
@@ -249,6 +247,7 @@ namespace NCudaLib {
 
             if (State.IsRemoteCopyComplete && State.IsOperatorComplete) {
                 ui64 writeSize = Min<ui64>(Size - State.Offset, State.BlockSize) * sizeof(T);
+                Y_ASSERT(writeSize);
 
                 if (UseCompression && (sizeof(T) * State.OperatorWorkingBufferSize > State.Manager->GetMinCompressSize())) {
                     TStringBuf data((char*)State.OperatorBuffer.Get(),
@@ -346,11 +345,9 @@ namespace NCudaLib {
 #endif
 
                     if (IsRecv) {
-                        State.Requests.push_back(
-                            manager.ReadAsync((char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
+                        State.Requests.push_back(manager.ReadAsync((char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
                     } else {
-                        State.Requests.push_back(
-                            manager.WriteAsync((const char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
+                        State.Requests.push_back(manager.WriteAsync((const char*)(Buffer + offset), sizeof(T) * size, RemoteHost, Tag));
                     }
                 }
                 State.AreRequestsCreated = true;
