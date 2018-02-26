@@ -80,7 +80,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\mse.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\qrmse.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\qsoftmax.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\target_base.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\target_func.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\yeti_rank.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -150,11 +150,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\kernel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\mse.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\pair_logit.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\permutation_der_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\pointwise_target_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\qrmse.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\qsoftmax.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\quality_metric_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\target_base.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\target_func.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\yeti_rank.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

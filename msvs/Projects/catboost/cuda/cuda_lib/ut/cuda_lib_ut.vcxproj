@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\performance_tests.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_all_reduce.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_cuda_buffer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_cuda_manager.cpp"/>

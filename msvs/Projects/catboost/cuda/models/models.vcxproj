@@ -107,9 +107,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\models\kernel\add_model_value.cu.o"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_oblivious_tree_model_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\additive_model.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model_progress.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

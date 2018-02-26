@@ -75,11 +75,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_listeners.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\bootstrap.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\feature_parallel_pointwise_oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\histograms_helper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_leaves_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_structure_searcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.cpp"/>
@@ -122,22 +122,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\methods\kernel\pointwise_hist2.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\methods\kernel\pointwise_scores.cu.o"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\add_oblivious_tree_model.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\boosting.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\add_oblivious_tree_model_feature_parallel.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\batch_feature_tensor_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\boosting_listeners.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\bootstrap.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\ctr_from_tensor_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\descent_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\doc_parallel_boosting.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\doc_parallel_boosting_progress.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\doc_parallel_pointwise_oblivious_tree.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting_progress.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\feature_parallel_pointwise_oblivious_tree.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\histograms_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\learning_rate.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_doc_parallel_structure_searcher.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_leaves_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_structure_searcher.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointiwise_optimization_subsets.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_scores_calcer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\random_score_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\serialization_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctr_datasets_visitor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctr_memory_usage_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs_dataset.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\weak_target_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

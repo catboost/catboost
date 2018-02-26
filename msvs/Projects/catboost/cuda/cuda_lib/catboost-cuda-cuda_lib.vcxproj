@@ -163,6 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cpu_reducers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_base.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\all_reduce.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_reader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_resharding.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_writer.h"/>
