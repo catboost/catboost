@@ -184,3 +184,4 @@ namespace NCudaLib {
             .SetProfileLevel(level);
     }
 }
+

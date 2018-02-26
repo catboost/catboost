@@ -1,10 +1,10 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 
 #include <catboost/cuda/data/load_data.h>
-#include <catboost/cuda/gpu_data/binarized_dataset_builder.h>
+#include <catboost/cuda/gpu_data/compressed_index_builder.h>
 #include <catboost/cuda/ctrs/ut/calc_ctr_cpu.h>
 #include <catboost/cuda/data/permutation.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 
 #include <library/unittest/registar.h>
@@ -157,13 +157,13 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         }
     };
 
-    void CheckBins(const TDataSet<>& dataSet,
+    void CheckBins(const TFeatureParallelDataSet<>& dataSet,
                    const TBinarizedFeaturesManager& featuresManager,
                    const TBinarySplit& split, ui32 depth,
                    const TCudaBuffer<ui32, NCudaLib::TMirrorMapping>& bins,
                    TVector<ui32>& currentBins) {
         auto& dataProvider = dataSet.GetDataProvider();
-        auto& permutation = dataSet.GetPermutation();
+        auto& permutation = dataSet.GetCtrsEstimationPermutation();
 
         TCpuTreeCtrHelper helper(featuresManager, dataProvider, permutation);
         helper.Split(split, depth, currentBins);
@@ -217,7 +217,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         {
         }
 
-        TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
+        TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
                                                        dataProvider);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
@@ -241,7 +241,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
             }
         }
 
-        TVector<ui32> simpleCtrIds = dataSet.GetDataSetForPermutation(0).GetPermutationFeatures().ComputeAllFeatureIds();
+        TVector<ui32> simpleCtrIds = featuresManager.GetAllSimpleCtrs();
 
         TVector<TBinarySplit> splits;
         TBinarySplit firstSplit = TBinarySplit(floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater);
@@ -286,11 +286,11 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
 
         {
             for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
-                const TDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
+                const TFeatureParallelDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
 
                 {
-                    TTreeUpdater<TDataSet<>> treeBuilder(cacheHolder, featuresManager,
+                    TTreeUpdater<TFeatureParallelDataSet<>> treeBuilder(cacheHolder, featuresManager,
                                                          dataSet.GetCtrTargets(), ds,
                                                          bins);
                     TVector<ui32> currentBinsCpu;
@@ -315,12 +315,13 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         {
             for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
                 TScopedCacheHolder cacheHolder;
-                const TDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
+                const TFeatureParallelDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
                 {
-                    TTreeUpdater<TDataSet<>> treeBuilder(cacheHolder, featuresManager,
-                                                         dataSet.GetCtrTargets(), ds,
-                                                         bins);
+                    TTreeUpdater<TFeatureParallelDataSet<>> treeBuilder(cacheHolder,
+                                                                        featuresManager,
+                                                                        dataSet.GetCtrTargets(), ds,
+                                                                        bins);
 
                     TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);

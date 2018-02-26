@@ -1,6 +1,6 @@
 #pragma once
 
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/libs/options/loss_description.h>
@@ -27,38 +27,45 @@ namespace NCatboostCuda {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::RMSE);
         }
 
+        TL2(const TDataSet& dataSet,
+            TRandom& random,
+            const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::RMSE);
+        }
+
+
         TL2(const TL2& target,
             const TSlice& slice)
             : TParent(target,
                       slice) {
         }
 
+        TL2(const TL2& target)
+            : TParent(target) {
+        }
+
         template <class TLayout>
         TL2(const TL2<TLayout, TDataSet>& basedOn,
-            TCudaBuffer<const float, TMapping>&& target,
-            TCudaBuffer<const float, TMapping>&& weights,
-            TCudaBuffer<const ui32, TMapping>&& indices)
+            TTarget<TMapping>&& target)
             : TParent(basedOn.GetDataSet(),
                       basedOn.GetRandom(),
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices)) {
+                      std::move(target)) {
         }
 
         TL2(TL2&& other)
-            : TParent(std::move(other))
-        {
+            : TParent(std::move(other)) {
         }
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVec tmp = TVec::CopyMapping(point);
             tmp.Copy(point);
-            SubtractVector(tmp, GetTarget());
-            auto& weights = GetWeights();
+            SubtractVector(tmp, GetTarget().GetTargets());
+            auto& weights = GetTarget().GetWeights();
             const double sum2 = DotProduct(tmp, tmp, &weights);
             const double weight = GetTotalWeight();
 
@@ -74,17 +81,25 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
+                        TVec& weightedDer,
                         TVec& weights,
                         ui32 stream = 0) const {
-            Approximate(GetTarget(),
-                        GetWeights(),
+            const auto& weight = GetTarget().GetWeights();
+            Approximate(GetTarget().GetTargets(),
+                        weight,
                         point,
                         nullptr,
-                        &dst,
+                        &weightedDer,
                         nullptr,
                         stream);
-            weights.Copy(GetWeights(), stream);
+            weights.Copy(weight, stream);
+        }
+
+        void NewtonAt(const TConstVec& point,
+                        TVec& dst,
+                        TVec& weightederDer2,
+                        ui32 stream = 0) const {
+            return GradientAt(point, dst, weightederDer2, stream);
         }
 
         void Approximate(const TConstVec& target,

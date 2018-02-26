@@ -5,29 +5,28 @@
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_util/bootstrap.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_util/transform.h>
+#include <catboost/cuda/cuda_util/sort.h>
+#include <catboost/cuda/cuda_util/filter.h>
+#include <catboost/cuda/cuda_util/helpers.h>
 
 namespace NCatboostCuda {
     template <class TMapping>
     class TBootstrap {
     public:
-        TBootstrap(const TMapping& suggestedSeedsMapping,
-                   const NCatboostOptions::TBootstrapConfig& config,
+        TBootstrap(const NCatboostOptions::TBootstrapConfig& config,
                    ui64 seed)
             : Config(config)
         {
-            ui64 maxSeedCount = 512 * 256;
+            NCudaLib::TDistributedObject<ui64> maxSeedCount =  CreateDistributedObject<ui64>(256 * 256);
 
-            auto mapping = suggestedSeedsMapping.Transform([&](const TSlice& slice) -> ui64 {
-                return std::min(maxSeedCount,
-                                NHelpers::CeilDivide(slice.Size(), 256) *
-                                    256);
-            });
-
+            auto mapping = CreateMapping<TMapping>(maxSeedCount);
             Seeds.Reset(mapping);
 
             TRandom random(seed);
-            WriteSeedsPointwise(Seeds, random);
+            GenerateSeedsPointwise(Seeds, random);
         }
 
         TBootstrap& Bootstrap(TCudaBuffer<float, TMapping>& weights) {
@@ -54,19 +53,65 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        TCudaBuffer<float, TMapping> BootstrapedWeights(const TMapping& mapping) {
+        TCudaBuffer<float, TMapping> BootstrappedWeights(const TMapping& mapping) {
             TCudaBuffer<float, TMapping> weights = TCudaBuffer<float, TMapping>::Create(mapping);
             FillBuffer(weights, 1.0f);
             Bootstrap(weights);
             return weights;
         }
 
+
+        void BootstrapAndFilter(TCudaBuffer<float, TMapping>& der,
+                                TCudaBuffer<float, TMapping>& weights,
+                                TCudaBuffer<ui32, TMapping>& indices) {
+
+            if (Config.GetBootstrapType() != EBootstrapType::No) {
+                auto tmp = BootstrappedWeights(der.GetMapping());
+
+                MultiplyVector(der, tmp);
+                MultiplyVector(weights, tmp);
+
+                //TODO(noxoomo): check it and uncomment
+                if (AreZeroWeightsAfterBootstrap(Config.GetBootstrapType())) {
+                    TCudaBuffer<ui32, TMapping> tmpIndices;
+                    tmpIndices.Reset(tmp.GetMapping());
+                    MakeSequence(tmpIndices);
+                    RadixSort(tmp, tmpIndices, true);
+
+                    auto nzSizes = NonZeroSizes(tmp);
+                    TVector<ui32> nzSizesMaster;
+                    nzSizes.Read(nzSizesMaster);
+
+                    auto nzMapping = nzSizes.GetMapping().Transform([&](const TSlice& slice) {
+                        CB_ENSURE(slice.Size() == 1);
+                        return nzSizesMaster[slice.Left];
+                    });
+
+
+                    tmpIndices.Reset(nzMapping);
+
+                    tmp.Copy(der);
+                    der.Reset(nzMapping);
+                    Gather(der, tmp, tmpIndices);
+
+                    tmp.Copy(weights);
+                    weights.Reset(nzMapping);
+                    Gather(weights, tmp, tmpIndices);
+
+                    auto tmpUi32 = tmp.template ReinterpretCast<ui32>();
+                    tmpUi32.Copy(indices);
+                    indices.Reset(nzMapping);
+                    Gather(indices, tmpUi32, tmpIndices);
+                }
+            }
+        }
+
     private:
         const NCatboostOptions::TBootstrapConfig& Config;
         TCudaBuffer<ui64, TMapping> Seeds;
 
-        inline void WriteSeedsPointwise(TCudaBuffer<ui64, TMapping>& seeds,
-                                        TRandom& random) const {
+        inline void GenerateSeedsPointwise(TCudaBuffer<ui64, TMapping>& seeds,
+                                           TRandom& random) const {
             TVector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());
             for (ui32 i = 0; i < seeds.GetObjectsSlice().Size(); ++i) {
                 seedsCpu[i] = random.NextUniformL();

@@ -2,37 +2,37 @@
 
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 
 #include <util/generic/map.h>
 #include <util/generic/hash.h>
 #include <util/generic/set.h>
 
 namespace NCatboostCuda {
+
     /*
- * TreeCtrs dataSet are cached based on baseTensor, from which they we generated
- * If we don't have enough gpu-ram, then cache in batchs (for one baseTensor generate several dataSets with ctrs)
- * TreeCtrs dataSets always for catFeature i stores all ctrs with this catFeature - perFeatures batch instead of perCtr
- *
- */
+     * TreeCtrs dataSet are cached based on baseTensor, from which they we generated
+    * If we don't have enough gpu-ram, then cache in batchs (for one baseTensor generate several dataSets with ctrs)
+    * TreeCtrs dataSets always for catFeature i stores all ctrs with this catFeature - perFeatures batch instead of perCtr
+    */
     class TTreeCtrDataSet: public TGuidHolder {
     public:
-        using TGpuDataSet = TGpuBinarizedDataSet<THalfByteFeatureGridPolicy, TSingleDevPoolLayout>;
-        using TFeaturesMapping = typename TSingleDevPoolLayout::TFeaturesMapping;
-        using TSampleMapping = typename TSingleDevPoolLayout::TSampleMapping;
+        using TCompressedIndex = TSharedCompressedIndex<TSingleDevLayout>;
+        using TFeaturesMapping = typename TSingleDevLayout::TFeaturesMapping;
+        using TSamplesMapping = typename TSingleDevLayout::TSamplesMapping;
         using TVec = TCudaBuffer<float, TFeaturesMapping>;
-        using TCompressedIndexMapping = typename TGpuDataSet::TCompressedIndexMapping;
+        using TCompressedIndexMapping = typename TSingleDevLayout::TCompressedIndexMapping;
 
     public:
+
         template <class TUi32>
         TTreeCtrDataSet(const TBinarizedFeaturesManager& featuresManager,
                         const TFeatureTensor& baseTensor,
-                        const TCudaBuffer<TUi32, TSampleMapping>& baseTensorIndices)
+                        const TCudaBuffer<TUi32, TSamplesMapping>& baseTensorIndices)
             : FeaturesManager(featuresManager)
             , BaseFeatureTensor(baseTensor)
             , BaseTensorIndices(baseTensorIndices.ConstCopyView())
-            , CacheHolder(new TScopedCacheHolder)
-        {
+            , CacheHolder(new TScopedCacheHolder) {
         }
 
         const TVector<TCtr>& GetCtrs() const {
@@ -48,21 +48,22 @@ namespace NCatboostCuda {
             return *CacheHolder;
         }
 
-        bool HasDataSet() const {
-            return BinarizedDataSet != nullptr;
+        bool HasCompressedIndex() const {
+            return CompressedIndex != nullptr && CompressedIndex->GetStorage().GetObjectsSlice().Size();
         }
 
-        const TGpuDataSet& GetDataSet() const {
-            CB_ENSURE(BinarizedDataSet != nullptr);
-            return *BinarizedDataSet;
+        const TCompressedIndex::TCompressedDataSet& GetCompressedDataSet() const {
+            CB_ENSURE(CompressedIndex != nullptr);
+            return CompressedIndex->GetDataSet(0);
         }
+
+        ui32 GetFeatureCount() const {
+            return Ctrs.size();
+        }
+
 
         ui32 GetDeviceId() const {
             return BaseTensorIndices.GetMapping().GetDeviceId();
-        }
-
-        bool HasCompressedIndex() const {
-            return BinarizedDataSet != nullptr && (BinarizedDataSet->GetCompressedIndex().GetObjectsSlice().Size() > 0);
         }
 
         ui32 GetCompressedIndexPermutationKey() const {
@@ -92,7 +93,7 @@ namespace NCatboostCuda {
             return BaseFeatureTensor;
         }
 
-        const TCudaBuffer<const ui32, TSampleMapping>& GetBaseTensorIndices() const {
+        const TCudaBuffer<const ui32, TSamplesMapping>& GetBaseTensorIndices() const {
             return BaseTensorIndices;
         }
 
@@ -110,6 +111,18 @@ namespace NCatboostCuda {
 
         const THashMap<TFeatureTensor, TVector<TCtrConfig>>& GetCtrConfigs() const {
             return CtrConfigs;
+        }
+
+        //not the best place btw
+        ui32 GetMaxFeaturesPerInt() const {
+            if (MaxBorderCount <= TCompressedIndexHelper<EFeaturesGroupingPolicy::BinaryFeatures>::MaxFolds()) {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::BinaryFeatures>::FeaturesPerInt();
+            } else if (MaxBorderCount <= TCompressedIndexHelper<EFeaturesGroupingPolicy::HalfByteFeatures>::MaxFolds()) {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::HalfByteFeatures>::FeaturesPerInt();
+            } else {
+                CB_ENSURE(MaxBorderCount <= TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::MaxFolds());
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::FeaturesPerInt();
+            }
         }
 
     private:
@@ -152,9 +165,9 @@ namespace NCatboostCuda {
                     const ui32 idx = static_cast<const ui32>(InverseCtrIndex.size());
                     InverseCtrIndex[ctr] = idx;
                     Ctrs.push_back(ctr);
-                    CB_ENSURE(FeaturesManager.GetCtrBinarization(ctr).BorderCount <= 15,
-                              "Error: maximum tree-ctrs border count is compile-time constant and currently set to 15 for optimal performance");
-                    const ui32 bordersSize = 1 + FeaturesManager.GetCtrBinarization(ctr).BorderCount;
+                    const auto borderCount = FeaturesManager.GetCtrBinarization(ctr).BorderCount;
+                    MaxBorderCount = Max<ui32>(MaxBorderCount, borderCount);
+                    const ui32 bordersSize = 1 + borderCount;
                     const ui32 offset = static_cast<const ui32>(CtrBorderSlices.size() ? CtrBorderSlices.back().Right
                                                                                        : 0);
                     const TSlice bordersSlice = TSlice(offset, offset + bordersSize);
@@ -166,8 +179,7 @@ namespace NCatboostCuda {
 
             auto bordersMapping = featuresMapping.Transform([&](TSlice deviceSlice) {
                 ui32 size = 0;
-                for (ui32 feature = static_cast<ui32>(deviceSlice.Left);
-                     feature < deviceSlice.Right; ++feature) {
+                for (ui32 feature = static_cast<ui32>(deviceSlice.Left); feature < deviceSlice.Right; ++feature) {
                     size += CtrBorderSlices[feature].Size();
                 }
                 return size;
@@ -217,7 +229,7 @@ namespace NCatboostCuda {
         const TBinarizedFeaturesManager& FeaturesManager;
 
         TFeatureTensor BaseFeatureTensor;
-        TCudaBuffer<const ui32, TSampleMapping> BaseTensorIndices;
+        TCudaBuffer<const ui32, TSamplesMapping> BaseTensorIndices;
         TSet<ui32> CatFeatures;
 
         THashMap<TCtr, ui32> InverseCtrIndex;
@@ -227,11 +239,11 @@ namespace NCatboostCuda {
         TVector<bool> AreCtrBordersComputed;
         THashMap<TFeatureTensor, TVector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
 
-        THolder<TGpuDataSet> BinarizedDataSet;
+        THolder<TCompressedIndex> CompressedIndex;
         THolder<TScopedCacheHolder> CacheHolder;
-        TCompressedIndexMapping CompresssedIndexMapping;
 
         ui32 PermutationKey = 0;
+        ui64 MaxBorderCount = 0;
 
         friend class TTreeCtrDataSetBuilder;
 

@@ -124,6 +124,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "min_fold_size", &boostingOptionsRef, &seenKeys);
         CopyOption(plainOptions, "permutation_count", &boostingOptionsRef, &seenKeys);
         CopyOption(plainOptions, "boosting_type", &boostingOptionsRef, &seenKeys);
+        CopyOption(plainOptions, "data_partition", &boostingOptionsRef, &seenKeys);
 
         auto& odConfig = boostingOptionsRef["od_config"];
         odConfig.SetType(NJson::JSON_MAP);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/cuda/targets/kernel/pointwise_targets.cuh>
 #include <catboost/cuda/cuda_util/algorithm.h>
@@ -29,22 +29,30 @@ namespace NCatboostCuda {
             Y_UNUSED(targetOptions);
         }
 
+        TCrossEntropy(const TDataSet& dataSet,
+                      TRandom& random,
+                      const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            Y_UNUSED(targetOptions);
+        }
+
         TCrossEntropy(const TCrossEntropy& target,
                       const TSlice& slice)
             : TParent(target,
                       slice) {
         }
 
+        TCrossEntropy(const TCrossEntropy& target)
+                : TParent(target) {
+        }
+
         template <class TLayout>
         TCrossEntropy(const TCrossEntropy<TLayout, TDataSet>& basedOn,
-                      TCudaBuffer<const float, TMapping>&& target,
-                      TCudaBuffer<const float, TMapping>&& weights,
-                      TCudaBuffer<const ui32, TMapping>&& indices)
+                      TTarget<TMapping>&& target)
             : TParent(basedOn.GetDataSet(),
                       basedOn.GetRandom(),
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices)) {
+                      std::move(target)) {
         }
 
         TCrossEntropy(TCrossEntropy&& other)
@@ -54,14 +62,13 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-            Approximate(GetTarget(),
-                        GetWeights(),
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
                         point,
                         &tmp,
                         nullptr,
@@ -86,17 +93,32 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
+                        TVec& weightedDer,
                         TVec& weights,
                         ui32 stream = 0) const {
-            Approximate(GetTarget(),
-                        GetWeights(),
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
                         point,
                         nullptr,
-                        &dst,
+                        &weightedDer,
                         nullptr,
                         stream);
-            weights.Copy(GetWeights(), stream);
+            weights.Copy(GetTarget().GetWeights(), stream);
+        }
+
+
+        void NewtonAt(const TConstVec& point,
+                      TVec& weightedDer,
+                      TVec& weightedDer2,
+                      ui32 stream = 0) const {
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
+                        point,
+                        nullptr,
+                        &weightedDer,
+                        &weightedDer2,
+                        stream);
+            weightedDer2.Copy(GetTarget().GetWeights(), stream);
         }
 
         void Approximate(const TConstVec& target,
@@ -150,10 +172,20 @@ namespace NCatboostCuda {
                       random,
                       slice,
                       targetOptions)
-            , Border(NCatboostOptions::GetLogLossBorder(targetOptions))
-        {
+            , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
         }
+
+        TLogloss(const TDataSet& dataSet,
+                 TRandom& random,
+                 const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random,
+                          targetOptions)
+                  , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
+        }
+
 
         TLogloss(const TLogloss& target,
                  const TSlice& slice)
@@ -163,15 +195,16 @@ namespace NCatboostCuda {
         {
         }
 
+        TLogloss(const TLogloss& target)
+                : TParent(target)
+                  , Border(target.GetBorder()) {
+        }
+
         template <class TLayout>
         TLogloss(const TLogloss<TLayout, TDataSet>& basedOn,
-                 TCudaBuffer<const float, TMapping>&& target,
-                 TCudaBuffer<const float, TMapping>&& weights,
-                 TCudaBuffer<const ui32, TMapping>&& indices)
+                 TTarget<TMapping>&& target)
             : TParent(basedOn,
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices))
+                      std::move(target))
             , Border(basedOn.GetBorder())
         {
         }

@@ -425,7 +425,7 @@ namespace NKernel
 #endif
     __global__ void ComputeSplitPropertiesNBImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
-            const float* __restrict__ target, const float* __restrict__ weight, int dsSize,
+            const float* __restrict__ target, const float* __restrict__ weight,
             const ui32* __restrict__ indices,
             const TDataPartition* __restrict__ partition,
             float* __restrict__ binSums,
@@ -436,7 +436,7 @@ namespace NKernel
 
 
         feature += (blockIdx.x / M) * 4;
-        cindex += feature->Offset * ((size_t) dsSize);
+        cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 4, 4);
 
         __shared__ float counters[32 * BLOCK_SIZE];
@@ -569,7 +569,7 @@ namespace NKernel
 #endif
     __global__ void ComputeSplitPropertiesBImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
-            const float* __restrict__ target, const float* __restrict__ weight, int dsSize,
+            const float* __restrict__ target, const float* __restrict__ weight,
             const ui32* __restrict__ indices,
             const TDataPartition* __restrict__  partition, float* __restrict__ binSums, int totalFeatureCount)
     {
@@ -578,7 +578,7 @@ namespace NKernel
         helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
 
         feature += (blockIdx.x / M) * 32;
-        cindex += feature->Offset * ((size_t) dsSize);
+        cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 32, 32);
 
         __shared__ float counters[16 * BLOCK_SIZE];
@@ -656,7 +656,7 @@ namespace NKernel
     template<int BLOCK_SIZE,
             int BLOCKS_PER_FEATURE_COUNT>
     inline void RunComputeHist2NonBinaryKernel(const TCFeature* nbFeatures, int nbCount,
-                                               const ui32* cindex, int dsSize,
+                                               const ui32* cindex,
                                                const float* target, const float* weight, const ui32* indices,
                                                const TDataPartition* partition,
                                                float* binSums, const int binFeatureCount,
@@ -667,37 +667,34 @@ namespace NKernel
 
         if (fullPass)
         {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, true,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target, weight, dsSize,
+            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                    nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else
         {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, false,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target, weight, dsSize,
+            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, false, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+                    nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
         }
 
     }
 
-    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize)
-    {
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize) {
         ui32 multiplier = 1;
         while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 4) * multiplier < TArchProps::SMCount()) &&
-               ((dsSize / multiplier) > 10000) && (multiplier < 64))
-        {
+               ((dsSize / multiplier) > 10000) && (multiplier < 64)) {
             multiplier *= 2;
         }
         return multiplier;
     }
 
     void ComputeHist2NonBinary(const TCFeature* nbFeatures, int nbCount,
-                               const ui32* cindex, int dsSize,
-                               const float* target, const float* weight, const ui32* indices,
+                               const ui32* cindex,
+                               const float* target, const float* weight,
+                               const ui32* indices, ui32 size,
                                const TDataPartition* partition, ui32 partCount, ui32 foldCount,
                                float* binSums, const int binFeatureCount,
                                bool fullPass,
@@ -712,31 +709,30 @@ namespace NKernel
             numBlocks.y = histPartCount;
             numBlocks.z = foldCount;
             const int blockSize = 384;
-            const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, dsSize), 64);
+            const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
             numBlocks.x *= multiplier;
 
-            if (multiplier == 1)
-            {
-                RunComputeHist2NonBinaryKernel<blockSize, 1>(nbFeatures, nbCount, cindex, dsSize, target, weight,
-                                                             indices,
-                                                             partition, binSums, binFeatureCount, fullPass, stream,
-                                                             numBlocks);
+            #define COMPUTE(k)\
+             RunComputeHist2NonBinaryKernel<blockSize, k>(nbFeatures, nbCount, cindex,  target, weight,  indices, \
+                                                          partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            if (multiplier == 1) {
+                COMPUTE(1)
             } else if (multiplier == 2) {
-                RunComputeHist2NonBinaryKernel<blockSize, 2>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+                COMPUTE(2)
             } else if (multiplier == 4) {
-                RunComputeHist2NonBinaryKernel<blockSize, 4>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+                COMPUTE(4)
             } else if (multiplier == 8) {
-                RunComputeHist2NonBinaryKernel<blockSize, 8>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+                COMPUTE(8)
             } else if (multiplier == 16) {
-                RunComputeHist2NonBinaryKernel<blockSize, 16>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+                COMPUTE(16)
             } else if (multiplier == 32) {
-                RunComputeHist2NonBinaryKernel<blockSize, 32>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+                COMPUTE(32)
             } else if (multiplier == 64) {
-                RunComputeHist2NonBinaryKernel<blockSize, 64>(nbFeatures, nbCount, cindex, dsSize, target, weight, indices, partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
-            } else
-            {
+                COMPUTE(64)
+            } else {
                 exit(1);
             }
+            #undef COMPUTE
 
             const int scanBlockSize = 256;
             dim3 scanBlocks;
@@ -744,9 +740,8 @@ namespace NKernel
             scanBlocks.y = histPartCount;
             scanBlocks.z = foldCount;
             const int scanOffset = fullPass ? 0 : ((partCount / 2) * binFeatureCount * 2) * foldCount;
-            ScanHistogramsImpl<scanBlockSize,
-                    2> << < scanBlocks, scanBlockSize, 0, stream >> > (nbFeatures, nbCount, binFeatureCount, binSums +
-                                                                                                             scanOffset);
+            ScanHistogramsImpl<scanBlockSize, 2> << < scanBlocks, scanBlockSize, 0, stream >> > (nbFeatures, nbCount, binFeatureCount, binSums +
+                                                                                                 scanOffset);
             if (!fullPass)
             {
                 UpdatePointwiseHistograms(binSums, binFeatureCount, partCount, foldCount, 2, partition, stream);
@@ -756,7 +751,7 @@ namespace NKernel
 
     template<int BLOCK_SIZE, int BLOCKS_PER_FEATURE_COUNT>
     void RunComputeHist2BinaryKernel(const TCFeature* bFeatures, int bCount,
-                                     const ui32* cindex, int dsSize,
+                                     const ui32* cindex,
                                      const float* target, const float* weight, const ui32* indices,
                                      const TDataPartition* partition,
                                      float* binSums, bool fullPass,
@@ -767,26 +762,24 @@ namespace NKernel
         {
             ComputeSplitPropertiesBImpl < BLOCK_SIZE, true,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    bFeatures, bCount, cindex, target, weight, dsSize,
-                            indices, partition, binSums, bCount
+                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, bCount
             );
         } else
         {
             ComputeSplitPropertiesBImpl < BLOCK_SIZE, false,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    bFeatures, bCount, cindex, target, weight, dsSize,
-                            indices, partition, binSums, bCount
+                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, bCount
             );
         }
     };
 
     void ComputeHist2Binary(const TCFeature* bFeatures, int bCount,
-                            const ui32* cindex, int dsSize,
-                            const float* target, const float* weight, const ui32* indices,
+                            const ui32* cindex,
+                            const float* target, const float* weight,
+                            const ui32* indices, ui32 size,
                             const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
                             float* binSums, bool fullPass,
-                            TCudaStream stream)
-    {
+                            TCudaStream stream) {
         dim3 numBlocks;
         numBlocks.x = (bCount + 31) / 32;
         const int histCount = fullPass ? partsCount : partsCount / 2;
@@ -795,44 +788,41 @@ namespace NKernel
         numBlocks.z = foldCount;
 
         const int blockSize = 768;
-        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, dsSize), 64);
+        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
 
         if (bCount)
         {
 
+            #define COMPUTE(k)  \
+            RunComputeHist2BinaryKernel<blockSize, k>(bFeatures, bCount, cindex, target, weight, indices, \
+                                                      partition, binSums, fullPass, stream, numBlocks); \
+
             if (multiplier == 1)
             {
-                RunComputeHist2BinaryKernel<blockSize, 1>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                          partition, binSums, fullPass, stream, numBlocks);
+                COMPUTE(1)
             } else if (multiplier == 2)
             {
-                RunComputeHist2BinaryKernel<blockSize, 2>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                          partition, binSums, fullPass, stream, numBlocks);
+                COMPUTE(2)
             } else if (multiplier == 4)
             {
-                RunComputeHist2BinaryKernel<blockSize, 4>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                          partition, binSums, fullPass, stream, numBlocks);
+                COMPUTE(4)
             } else if (multiplier == 8)
             {
-                RunComputeHist2BinaryKernel<blockSize, 8>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                          partition, binSums, fullPass, stream, numBlocks);
+                COMPUTE(8);
             } else if (multiplier == 16)
             {
-                RunComputeHist2BinaryKernel<blockSize, 16>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                           partition, binSums, fullPass, stream, numBlocks);
+                COMPUTE(16)
             } else if (multiplier == 32)
             {
-                RunComputeHist2BinaryKernel<blockSize, 32>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                           partition, binSums, fullPass, stream, numBlocks);
-            } else if (multiplier == 64)
-            {
-                RunComputeHist2BinaryKernel<blockSize, 64>(bFeatures, bCount, cindex, dsSize, target, weight, indices,
-                                                           partition, binSums, fullPass, stream, numBlocks);
-            } else
-            {
+                COMPUTE(32)
+            } else if (multiplier == 64) {
+                COMPUTE(64)
+            } else {
                 exit(1);
             }
+
+            #undef COMPUTE
 
             if (!fullPass)
             {
@@ -850,7 +840,7 @@ namespace NKernel
 #endif
     __global__ void ComputeSplitPropertiesHalfByteImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
-            const float* __restrict__ target, const float* __restrict__ weight, int dsSize,
+            const float* __restrict__ target, const float* __restrict__ weight,
             const ui32* __restrict__ indices,
             const TDataPartition* __restrict__ partition,
             float* __restrict__ binSums,
@@ -862,7 +852,7 @@ namespace NKernel
         helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
 
         feature += (blockIdx.x / M) * 8;
-        cindex += feature->Offset * ((size_t) dsSize);
+        cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 8, 8);
 
 //
@@ -933,7 +923,7 @@ namespace NKernel
     template<int BLOCK_SIZE,
             int BLOCKS_PER_FEATURE_COUNT>
     inline void RunComputeHist2HalfByteKernel(const TCFeature* nbFeatures, int nbCount,
-                                              const ui32* cindex, int dsSize,
+                                              const ui32* cindex,
                                               const float* target, const float* weight, const ui32* indices,
                                               const TDataPartition* partition,
                                               float* binSums, const int binFeatureCount,
@@ -946,7 +936,7 @@ namespace NKernel
         {
             ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, true,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target, weight, dsSize,
+                    nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
 
@@ -954,15 +944,16 @@ namespace NKernel
         {
             ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, false,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target, weight, dsSize,
+                    nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount);
         }
 
     }
 
     void ComputeHist2HalfByte(const TCFeature* halfByteFeatures, int halfByteFeaturesCount,
-                              const ui32* cindex, int dsSize,
+                              const ui32* cindex,
                               const float* target, const float* weight, const ui32* indices,
+                              ui32 size,
                               const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
                               float* binSums, const int binFeatureCount,
                               bool fullPass,
@@ -975,62 +966,38 @@ namespace NKernel
         numBlocks.z = foldCount;
 
         const int blockSize = 768;
-        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, dsSize), 64);
+        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
 
         if (halfByteFeaturesCount)
         {
 
-            if (multiplier == 1)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 1>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                            target,
-                                                            weight, indices, partition, binSums, binFeatureCount,
-                                                            fullPass,
-                                                            stream, numBlocks);
-            } else if (multiplier == 2)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 2>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                            target,
-                                                            weight, indices, partition, binSums, binFeatureCount,
-                                                            fullPass,
-                                                            stream, numBlocks);
-            } else if (multiplier == 4)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 4>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                            target,
-                                                            weight, indices, partition, binSums, binFeatureCount,
-                                                            fullPass,
-                                                            stream, numBlocks);
-            } else if (multiplier == 8)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 8>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                            target,
-                                                            weight, indices, partition, binSums, binFeatureCount,
-                                                            fullPass,
-                                                            stream, numBlocks);
-            } else if (multiplier == 16)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 16>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                             target, weight, indices, partition, binSums,
-                                                             binFeatureCount,
-                                                             fullPass, stream, numBlocks);
-            } else if (multiplier == 32)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 32>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                             target, weight, indices, partition, binSums,
-                                                             binFeatureCount,
-                                                             fullPass, stream, numBlocks);
-            } else if (multiplier == 64)
-            {
-                RunComputeHist2HalfByteKernel<blockSize, 64>(halfByteFeatures, halfByteFeaturesCount, cindex, dsSize,
-                                                             target, weight, indices, partition, binSums,
-                                                             binFeatureCount,
-                                                             fullPass, stream, numBlocks);
-            } else
-            {
+            #define COMPUTE(k)\
+            RunComputeHist2HalfByteKernel<blockSize, k>(halfByteFeatures, halfByteFeaturesCount, cindex,\
+                                                        target,\
+                                                        weight, indices, partition, binSums, binFeatureCount,\
+                                                        fullPass,\
+                                                        stream, numBlocks);
+
+            if (multiplier == 1) {
+                COMPUTE(1)
+            } else if (multiplier == 2) {
+                COMPUTE(2)
+            } else if (multiplier == 4) {
+                COMPUTE(4)
+            } else if (multiplier == 8) {
+                COMPUTE(8)
+            } else if (multiplier == 16) {
+                COMPUTE(16)
+            } else if (multiplier == 32) {
+                COMPUTE(32)
+            } else if (multiplier == 64) {
+                COMPUTE(64)
+            } else {
                 exit(1);
             }
+
+            #undef COMPUTE
 
             const int scanBlockSize = 256;
             dim3 scanBlocks;
@@ -1042,8 +1009,7 @@ namespace NKernel
                                                           (halfByteFeatures, halfByteFeaturesCount, binFeatureCount,
                                                                   binSums + scanOffset);
 
-            if (!fullPass)
-            {
+            if (!fullPass) {
                 UpdatePointwiseHistograms(binSums, binFeatureCount, partsCount, foldCount, 2, partition, stream);
             }
         }
@@ -1072,5 +1038,4 @@ namespace NKernel
         const ui32 numBlocks = CeilDivide(size, blockSize);
         UpdateBinsImpl << < numBlocks, blockSize, 0, stream >> > (dstBins, bins, docIndices, size, loadBit, foldBits);
     }
-
 }

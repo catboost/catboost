@@ -1,6 +1,6 @@
 #include "load_data.h"
-
 #include <catboost/libs/helpers/permutation.h>
+
 
 namespace NCatboostCuda {
     void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
@@ -56,6 +56,7 @@ namespace NCatboostCuda {
             DataProvider.QueryIds.resize(0);
         }
 
+        //TODO(noxoomo): it's not safe here, if we change order with shuffle everything'll go wrong
         if (Pairs.size()) {
             //they are local, so we don't need shuffle
             CB_ENSURE(hasQueryIds, "Error: for GPU pairwise learning you should provide query id column. Query ids will be used to split data between devices and for dynamic boosting learning scheme.");
@@ -64,6 +65,7 @@ namespace NCatboostCuda {
 
         if (ShuffleFlag) {
             if (hasQueryIds) {
+                //should not change order inside query for pairs consistency
                 QueryConsistentShuffle(Seed, 1, DataProvider.QueryIds, &DataProvider.Order);
             } else {
                 Shuffle(Seed, 1, DataProvider.Targets.size(), &DataProvider.Order);
@@ -72,14 +74,7 @@ namespace NCatboostCuda {
         }
 
         if (ShuffleFlag || !DataProvider.Timestamp.empty()) {
-            ApplyPermutation(DataProvider.Order, DataProvider.Weights);
-            for (auto& baseline : DataProvider.Baseline) {
-                ApplyPermutation(DataProvider.Order, baseline);
-            }
-            ApplyPermutation(DataProvider.Order, DataProvider.Targets);
-            ApplyPermutation(DataProvider.Order, DataProvider.QueryIds);
-            ApplyPermutation(DataProvider.Order, DataProvider.SubgroupIds);
-            ApplyPermutation(DataProvider.Order, DataProvider.DocIds);
+            DataProvider.ApplyOrderToMetaColumns();
         }
 
         TVector<TString> featureNames;

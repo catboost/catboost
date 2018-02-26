@@ -52,13 +52,35 @@ namespace NCatboostCuda {
                                              const TDataProvider* test,
                                              const TBinarizedFeaturesManager& featuresManager,
                                              NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-        const bool storeCatFeaturesInPinnedMemory = catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
-        if (storeCatFeaturesInPinnedMemory) {
-            ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices, NCudaLib::GetDevicesProvider().GetDeviceCount()).size();
-            ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test, featuresManager, devCount);
-            ui64 currentSize = catBoostOptions.SystemOptions->PinnedMemorySize;
-            if (currentSize < cpuFeaturesSize) {
-                catBoostOptions.SystemOptions->PinnedMemorySize = cpuFeaturesSize;
+        const bool needFeatureCombinations = (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1)
+                                             && (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel);
+
+        if (needFeatureCombinations) {
+            const bool storeCatFeaturesInPinnedMemory = catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage ==
+                                                        EGpuCatFeaturesStorage::CpuPinnedMemory;
+            if (storeCatFeaturesInPinnedMemory) {
+                ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices,
+                                                            NCudaLib::GetDevicesProvider().GetDeviceCount()).size();
+                ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test,
+                                                                                                   featuresManager,
+                                                                                                   devCount);
+                ui64 currentSize = catBoostOptions.SystemOptions->PinnedMemorySize;
+                if (currentSize < cpuFeaturesSize) {
+                    catBoostOptions.SystemOptions->PinnedMemorySize = cpuFeaturesSize;
+                }
+            }
+        }
+    }
+
+    inline void UpdateDataPartitionType(const TBinarizedFeaturesManager& featuresManager,
+                                         NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+        if (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1 && featuresManager.GetCatFeatureIds().size()) {
+            return;
+        } else {
+            if (catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain) {
+                if (catBoostOptions.BoostingOptions->DataPartitionType.NotSet()) {
+                    catBoostOptions.BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
+                }
             }
         }
     }
@@ -250,7 +272,6 @@ namespace NCatboostCuda {
 
         TVector<ui64> indices(learnPool.Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
-
         UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &catBoostOptions.BoostingOptions->BoostingType);
 
         ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
@@ -258,6 +279,11 @@ namespace NCatboostCuda {
         if (minTimestamp != maxTimestamp) {
             indices = CreateOrderByKey(learnPool.Docs.Timestamp);
             catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
+        }
+
+        const ui32 numThreads =  catBoostOptions.SystemOptions->NumThreads;
+        if (NPar::LocalExecutor().GetThreadCount() < (int)numThreads) {
+            NPar::LocalExecutor().RunAdditionalThreads(numThreads - NPar::LocalExecutor().GetThreadCount());
         }
 
         bool hasQueries = false;
@@ -278,10 +304,7 @@ namespace NCatboostCuda {
         } else {
             dataProvider.SetHasTimeFlag(true);
         }
-        const auto& systemOptions = catBoostOptions.SystemOptions.Get();
-        const auto numThreads = systemOptions.NumThreads;
-        NPar::TLocalExecutor localExecutor;
-        localExecutor.RunAdditionalThreads(numThreads - 1);
+        auto& localExecutor = NPar::LocalExecutor();
         ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
         auto permutationGuard = Finally([&] { ::ApplyPermutation(indices, &learnPool, &localExecutor); });
 
@@ -305,9 +328,11 @@ namespace NCatboostCuda {
                 .Finish(numThreads);
         }
 
-        UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
+        UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
+        UpdateDataPartitionType(featuresManager, catBoostOptions);
+        UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
 
         auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
@@ -337,9 +362,12 @@ namespace NCatboostCuda {
         TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 
         const int numThreads = catBoostOptions.SystemOptions->NumThreads;
+        if (NPar::LocalExecutor().GetThreadCount() < numThreads) {
+            NPar::LocalExecutor().RunAdditionalThreads(numThreads - NPar::LocalExecutor().GetThreadCount());
+        }
+
         TVector<TTargetClassifier> targetClassifiers;
         {
-            NPar::LocalExecutor().RunAdditionalThreads(numThreads - 1);
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
 
@@ -347,7 +375,6 @@ namespace NCatboostCuda {
             THolder<TDataProvider> testProvider;
 
             {
-                MATRIXNET_INFO_LOG << "Loading data..." << Endl;
 
                 TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                          dataProvider,
@@ -366,10 +393,10 @@ namespace NCatboostCuda {
                 dataProviderBuilder
                     .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
-                NPar::TLocalExecutor localExecutor;
-                localExecutor.RunAdditionalThreads(numThreads - 1);
 
                 {
+                    MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
+                    auto start = Now();
                     ReadPool(poolLoadOptions.CdFile,
                              poolLoadOptions.LearnFile,
                              poolLoadOptions.PairsFile,
@@ -377,12 +404,13 @@ namespace NCatboostCuda {
                              poolLoadOptions.Delimiter,
                              poolLoadOptions.HasHeader,
                              catBoostOptions.DataProcessingOptions->ClassNames,
-                             &localExecutor,
+                             &NPar::LocalExecutor(),
                              &dataProviderBuilder);
+                    MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
 
                 if (poolLoadOptions.TestFile) {
-                    MATRIXNET_INFO_LOG << "Loading test..." << Endl;
+                    MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
                                                      *testProvider,
@@ -400,16 +428,18 @@ namespace NCatboostCuda {
                              poolLoadOptions.Delimiter,
                              poolLoadOptions.HasHeader,
                              catBoostOptions.DataProcessingOptions->ClassNames,
-                             &localExecutor,
+                             &NPar::LocalExecutor(),
                              &testBuilder);
                 }
             }
 
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
-            UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
             UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
             EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
             UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
+            UpdateDataPartitionType(featuresManager, catBoostOptions);
+            UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
+
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);

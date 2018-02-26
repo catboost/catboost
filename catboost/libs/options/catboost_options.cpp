@@ -99,6 +99,10 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
                 treeConfig.LeavesEstimationIterations = defaultGradientIterations;
                 break;
             }
+            case ELeavesEstimation::Simple: {
+                treeConfig.LeavesEstimationIterations = 1;
+                break;
+            }
             default: {
                 ythrow TCatboostException() << "Unknown estimation type "
                                             << method;
@@ -241,7 +245,6 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
             CB_ENSURE(borderType == EBorderSelectionType::Uniform || borderType == EBorderSelectionType::Median,
                       "Error: GPU supports Median and Uniform combinations-ctr binarization only");
 
-            CB_ENSURE(ctr.CtrBinarization->BorderCount <= GetMaxTreeCtrBinarizationForGpu(), "Error: max combinations-ctr binarization for GPU is " << GetMaxTreeCtrBinarizationForGpu());
             CB_ENSURE(ctr.PriorEstimation == EPriorEstimation::No, "Error: prior estimation is not available for combinations-ctr");
         } else {
             switch (ctrType) {

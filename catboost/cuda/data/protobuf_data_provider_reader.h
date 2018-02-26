@@ -14,77 +14,69 @@
 #include <util/generic/map.h>
 
 namespace NCatboostCuda {
+
     class TCatBoostProtoPoolReader {
     public:
-        TDataProvider Read(TIFStream& input) {
-            TDataProvider dataProvider;
-            NCompressedPool::TPoolStructure poolStructure;
-            ReadMessage(input, poolStructure);
 
-            ReadFloatColumn(input, dataProvider.Targets);
-
-            if (poolStructure.GetDocIdColumn()) {
-                ReadUnsignedIntColumn(input, dataProvider.DocIds);
+        template <class TContainer>
+        TCatBoostProtoPoolReader& AddIgnoredFeatures(const TContainer& container) {
+            for (const auto& f : container) {
+                IgnoreFeatures.insert(f);
             }
-
-            if (poolStructure.GetQueryIdColumn()) {
-                ReadUnsignedIntColumn(input, dataProvider.QueryIds);
-            }
-
-            if (poolStructure.GetWeightColumn()) {
-                ReadFloatColumn(input, dataProvider.Weights);
-            } else {
-                dataProvider.Weights.resize(dataProvider.Targets.size());
-                std::fill(dataProvider.Weights.begin(), dataProvider.Weights.begin(), 1.0f);
-            }
-
-            dataProvider.Baseline.resize(poolStructure.GetBaselineColumn());
-            for (ui32 i = 0; i < poolStructure.GetBaselineColumn(); ++i) {
-                ReadFloatColumn(input, dataProvider.Baseline[i]);
-            }
-
-            for (ui32 feature = 0; feature < poolStructure.GetFeatureCount(); ++feature) {
-                AddFeatureColumn(input, dataProvider.Features, poolStructure.GetDocCount());
-            }
-
-            dataProvider.BuildIndicesRemap();
-            if (FeaturesManager.GetTargetBorders().size() == 0) {
-                FeaturesManager.SetTargetBorders(TBordersBuilder(*GridBuilderFactory,
-                                                                 dataProvider.GetTargets())(
-                    FeaturesManager.GetTargetBinarizationDescription()));
-            }
-
-            return dataProvider;
+            return *this;
         }
+
+        TCatBoostProtoPoolReader& SetClassesWeights(const TVector<float>& classesWeights) {
+            ClassesWeights = classesWeights;
+            return *this;
+        }
+
+
+        TCatBoostProtoPoolReader& SetShuffleSeed(ui64 seed = 0) {
+            Seed = seed;
+            return *this;
+        }
+
+        void SetPairs(const TVector<TPair>& pairs) {
+            Pairs = pairs;
+        }
+
+        TDataProvider Read(TIFStream& input);
 
         inline TDataProvider Read(const TString& filename) {
             TIFStream input(filename);
             return Read(input);
         }
 
-        TCatBoostProtoPoolReader& SetBinarizer(THolder<IFactory<IGridBuilder>>
 
-                                                   && gridBuilderFactory) {
-            GridBuilderFactory = std::move(gridBuilderFactory);
-            return *this;
-        }
-
-        explicit TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager)
+        explicit TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager,
+                                          bool hasTime)
             : FeaturesManager(featuresManager)
-        {
+            , HasTime(hasTime) {
         }
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
+        TSet<ui32> IgnoreFeatures;
+        TVector<float> ClassesWeights;
+        TVector<TPair> Pairs;
 
-        void AddFeatureColumn(TIFStream& input, TVector<TFeatureColumnPtr>& features, ui32 docCount);
+        bool HasTime = false;
+        ui64 Seed = 0;
+
+
+        void AddFeatureColumn(TIFStream& input,
+                              ui32 docCount,
+                              const TVector<ui64>* order,
+                              TVector<TFeatureColumnPtr>* nzColumns,
+                              TVector<TString>* featureNames,
+                              TSet<int>* catFeatureIds);
 
         template <class T>
         static inline TVector<T> FromProtoToVector(const ::google::protobuf::RepeatedField<T>& data) {
             return TVector<T>(data.begin(), data.end());
         }
 
-        THolder<IFactory<IGridBuilder>> GridBuilderFactory;
         NCompressedPool::TFeatureColumn FeatureColumn;
     };
 

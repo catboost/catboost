@@ -31,9 +31,11 @@ namespace NCudaLib {
                 return 1;
             }
 
+            #ifndef USE_MPI
             if (TFromBuffer::PtrType() != EPtrType::CudaDevice) {
                 return 1;
             }
+            #endif
 
             const auto& stats = GetMemoryCopyPerformance<TFromBuffer::PtrType(), TToBuffer::PtrType()>();
 
@@ -52,9 +54,6 @@ namespace NCudaLib {
             }
             //magic const. works better then theoretical result
             latency *= 4;
-#if defined(USE_MPI)
-
-#endif
 
             ui64 blockCount = floor(sqrt(bandwidth * dataSize * (devices.size() + 1) / latency));
             return blockCount < 1 ? 1 : blockCount;
@@ -310,4 +309,6 @@ namespace NCudaLib {
         worker.SetCompressFlag(compress)
             .Run();
     };
+
+
 }

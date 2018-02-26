@@ -34,7 +34,41 @@ namespace NCatboostCuda {
         void AddToHessianDiag(ui32 x, float val) {
             Hessian[x] += val;
         }
+
+        double GradientNorm() const {
+            const auto& gradient = Gradient;
+            double gradNorm = 0;
+
+            for (ui32 leaf = 0; leaf < gradient.size(); ++leaf) {
+                const double grad = gradient[leaf];
+                gradNorm += grad * grad;
+            }
+            return sqrt(gradNorm);
+        }
     };
+
+    inline void AddRidgeRegularization(double lambda,
+                                       TPointwiseDescentPoint& pointInfo,
+                                       bool tohessianOnly = true) {
+        if (!tohessianOnly) {
+            double hingeLoss = 0;
+            {
+                for (const auto& val : pointInfo.Point) {
+                    hingeLoss += val * val;
+                }
+                hingeLoss *= lambda / 2;
+            }
+            pointInfo.Value -= hingeLoss;
+        }
+
+        for (ui32 i = 0; i < pointInfo.Gradient.size(); ++i) {
+            pointInfo.AddToHessianDiag(i, static_cast<float>(lambda));
+            if (!tohessianOnly) {
+                pointInfo.Gradient[i] -= lambda * pointInfo.Point[i];
+            }
+        }
+    }
+
 
     class TSimpleStepEstimator {
     private:
@@ -179,7 +213,7 @@ namespace NCatboostCuda {
 
             {
                 const auto& pointInfo = estimator.GetCurrentPoint();
-                double gradNorm = DerCalcer.GradientNorm(pointInfo);
+                double gradNorm = pointInfo.GradientNorm();
                 MATRIXNET_INFO_LOG
                     << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
             }
@@ -209,7 +243,7 @@ namespace NCatboostCuda {
                                                    nextPointInfo.Value,
                                                    nextPointInfo.Gradient))
                     {
-                        double gradNorm = DerCalcer.GradientNorm(nextPointInfo);
+                        double gradNorm = nextPointInfo.GradientNorm();
 
                         MATRIXNET_INFO_LOG
                             << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointInfo.Value

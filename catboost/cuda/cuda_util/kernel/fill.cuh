@@ -8,7 +8,7 @@ template <typename T>
 void FillBuffer(T* buffer, T value, ui64 size, TCudaStream stream);
 
 template <typename T>
-void MakeSequence(T* buffer, ui64 size, TCudaStream stream);
+void MakeSequence(T offset, T* buffer, ui64 size, TCudaStream stream);
 
 template <typename T>
 void InversePermutation(const T* buffer, T* dst, ui64 size, TCudaStream stream);

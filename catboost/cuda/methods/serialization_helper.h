@@ -10,6 +10,19 @@
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
+
+    inline TString GpuProgressLabel() {
+        return ToString<ETaskType>(ETaskType::GPU);
+    }
+
+    //TODO(noxoomo): vector of external serializers/deserializers instead of task options. we should correctly restore overffitting-detector state, best iteration, etc
+    struct TSnapshotMeta {
+        TString Path;
+        TString TaskOptions;
+        ui64 SaveIntervalSeconds;
+    };
+
+
     template <class TModel>
     class TFeatureIdsRemaper;
 

@@ -64,19 +64,19 @@ __global__ void UniformBootstrapImpl(const float sampleRate, ui64* seeds, ui32 s
 
 void PoissonBootstrap(const float lambda, ui64* seeds, ui32 seedsSize, float* weights, ui32 weighsSize, TCudaStream stream) {
     const ui32 blockSize = 256;
-    const ui32 numBlocks = CeilDivide(seedsSize, blockSize);
+    const ui32 numBlocks = min(CeilDivide(seedsSize, blockSize), CeilDivide(weighsSize, blockSize));
     PoissonBootstrapImpl<<<numBlocks, blockSize, 0, stream>>>(lambda, seeds, seedsSize, weights, weighsSize);
 }
 
 void UniformBootstrap(const float sampleRate, ui64* seeds, ui32 seedSize, float* weights, ui32 size, TCudaStream stream) {
     const ui32 blockSize = 256;
-    const ui32 numBlocks = CeilDivide(seedSize, blockSize);
+    const ui32 numBlocks =  min(CeilDivide(seedSize, blockSize), CeilDivide(size, blockSize));
     UniformBootstrapImpl<<<numBlocks, blockSize, 0 , stream>>>(sampleRate, seeds, seedSize, weights, size);
 }
 
 void BayesianBootstrap(ui64* seeds, ui32 seedSize, float* weights, ui32 size, float temperature, TCudaStream stream) {
     const ui32 blockSize = 256;
-    const ui32 numBlocks =CeilDivide(seedSize, blockSize);
+    const ui32 numBlocks =  min(CeilDivide(seedSize, blockSize), CeilDivide(size, blockSize));
 //    GammaBootstrapImpl<<<numBlocks, blockSize, 0 , stream>>>(1.0f, 1.0f, seeds, seedSize, weights, size);
     BayesianBootstrapImpl<<<numBlocks, blockSize, 0 , stream>>>(seeds, seedSize, weights, size, temperature);
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/libs/options/loss_description.h>
@@ -23,26 +23,17 @@ namespace NCatboostCuda {
             : TParent(dataSet,
                       random,
                       slice) {
-            Type = targetOptions.GetLossFunction();
-            switch (targetOptions.GetLossFunction()) {
-                case ELossFunction::Poisson:
-                case ELossFunction::MAPE: {
-                    break;
-                }
-                case ELossFunction::MAE: {
-                    Alpha = 0.5;
-                    break;
-                }
-                case ELossFunction::Quantile:
-                case ELossFunction::LogLinQuantile: {
-                    Alpha = NCatboostOptions::GetAlpha(targetOptions);
-                    break;
-                }
-                default: {
-                    ythrow TCatboostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
-                }
-            }
-            MetricName = ::ToString(targetOptions);
+            Init(targetOptions);
+        }
+
+
+        TPointwiseTargetsImpl(const TDataSet& dataSet,
+                              TRandom& random,
+                              const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            Init(targetOptions);
+
         }
 
         TPointwiseTargetsImpl(const TPointwiseTargetsImpl& target,
@@ -55,16 +46,20 @@ namespace NCatboostCuda {
         {
         }
 
+
+        TPointwiseTargetsImpl(const TPointwiseTargetsImpl& target)
+                : TParent(target)
+                  , Type(target.GetType())
+                  , Alpha(target.GetAlpha())
+                  , MetricName(target.TargetName()) {
+        }
+
         template <class TLayout>
         TPointwiseTargetsImpl(const TPointwiseTargetsImpl<TLayout, TDataSet>& basedOn,
-                              TCudaBuffer<const float, TMapping>&& target,
-                              TCudaBuffer<const float, TMapping>&& weights,
-                              TCudaBuffer<const ui32, TMapping>&& indices)
+                              TTarget<TMapping>&& target)
             : TParent(basedOn.GetDataSet(),
                       basedOn.GetRandom(),
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices))
+                      std::move(target))
             , Type(basedOn.GetType())
             , Alpha(basedOn.GetAlpha())
             , MetricName(basedOn.TargetName())
@@ -81,14 +76,13 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-            Approximate(GetTarget(),
-                        GetWeights(),
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
                         point,
                         &tmp,
                         nullptr,
@@ -114,17 +108,31 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
-                        TVec& weights,
+                        TVec& weightedDer,
+                        TVec& weightedDer2,
                         ui32 stream = 0) const {
-            Approximate(GetTarget(),
-                        GetWeights(),
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
                         point,
                         nullptr,
-                        &dst,
+                        &weightedDer,
                         nullptr,
                         stream);
-            weights.Copy(GetWeights());
+            weightedDer2.Copy(GetTarget().GetWeights());
+        }
+
+        void NewtonAt(const TConstVec& point,
+                      TVec& weightedDer,
+                      TVec& weightedDer2,
+                      ui32 stream = 0) const {
+
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
+                        point,
+                        nullptr,
+                        &weightedDer,
+                        &weightedDer2,
+                        stream);
         }
 
         void Approximate(const TConstVec& target,
@@ -152,7 +160,29 @@ namespace NCatboostCuda {
         double GetAlpha() const {
             return Alpha;
         }
-
+    private:
+        void Init(const NCatboostOptions::TLossDescription& targetOptions) {
+            Type = targetOptions.GetLossFunction();
+            switch (targetOptions.GetLossFunction()) {
+                case ELossFunction::Poisson:
+                case ELossFunction::MAPE: {
+                    break;
+                }
+                case ELossFunction::MAE: {
+                    Alpha = 0.5;
+                    break;
+                }
+                case ELossFunction::Quantile:
+                case ELossFunction::LogLinQuantile: {
+                    Alpha = NCatboostOptions::GetAlpha(targetOptions);
+                    break;
+                }
+                default: {
+                    ythrow TCatboostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
+                }
+            }
+            MetricName = ToString(targetOptions);
+        }
     private:
         ELossFunction Type = ELossFunction::Custom;
         double Alpha = 0;

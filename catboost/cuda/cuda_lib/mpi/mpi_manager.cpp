@@ -7,9 +7,13 @@
 #include <library/blockcodecs/codecs.h>
 
 namespace NCudaLib {
+#if defined(WRITE_MPI_MESSAGE_LOG)
+    TOperationsLogger::TOperationsLogger() {
+        Out = new TOFStream("mpi_messages.log");
+    }
+#endif
     void TMpiManager::Start(int* argc, char*** argv) {
         int providedLevel;
-
         int threadLevel = MPI_THREAD_MULTIPLE;
 
         MPI_SAFE_CALL(MPI_Init_thread(argc, argv, threadLevel, &providedLevel));
@@ -68,6 +72,11 @@ namespace NCudaLib {
             NCudaLib::GetDevicesProvider().FreeDevices();
         }
         MPI_SAFE_CALL(MPI_Finalize());
+    }
+
+
+    TMpiLock& GetMpiLock() {
+        return GetMpiManager().GetLock();
     }
 }
 

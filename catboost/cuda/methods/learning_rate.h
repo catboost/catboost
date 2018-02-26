@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCatboostCuda {
+
     class TLearningRate {
     public:
         explicit TLearningRate(double rate)

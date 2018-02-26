@@ -14,7 +14,7 @@ SRCS(
     qrmse.cpp
     qsoftmax.cpp
     cross_entropy.cpp
-    target_base.cpp
+    target_func.cpp
     yeti_rank.cpp
     GLOBAL kernel.cpp
 )

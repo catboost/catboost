@@ -71,6 +71,7 @@ namespace NCatboostCuda {
         }
     };
 
+
     class TCompressedValuesHolderImpl: public IFeatureValuesHolder {
     public:
         TCompressedValuesHolderImpl(EFeatureValuesType type,
@@ -89,8 +90,9 @@ namespace NCatboostCuda {
             return IndexHelper.Extract(Values, docId);
         }
 
-        TVector<ui32> ExtractValues() const {
-            TVector<ui32> dst;
+        template <class T = ui32>
+        TVector<T> ExtractValues() const {
+            TVector<T> dst;
             dst.clear();
             dst.resize(GetSize());
 
@@ -100,6 +102,16 @@ namespace NCatboostCuda {
 
             return dst;
         }
+
+        const TVector<ui64>& GetCompressedValues() const {
+            return Values;
+
+        }
+
+        ui32 GetBitsPerKey() const {
+            return IndexHelper.GetBitsPerKey();
+        }
+
 
     private:
         TVector<ui64> Values;

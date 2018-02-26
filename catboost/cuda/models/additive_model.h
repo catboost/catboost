@@ -1,7 +1,7 @@
 #pragma once
 
-#include "oblivious_model_progress.h"
 #include <ostream>
+
 namespace NCatboostCuda {
     template <class TInner>
     class TAdditiveModel {
@@ -11,8 +11,7 @@ namespace NCatboostCuda {
         TAdditiveModel() {
         }
 
-        virtual ~TAdditiveModel() {
-        }
+        TAdditiveModel(const TAdditiveModel& other) = default;
 
         template <class TDataSet, class TCursor>
         void Append(const TDataSet& ds,

@@ -11,6 +11,7 @@ SRCS(
     test_cuda_buffer.cpp
     test_cuda_manager.cpp
     test_reduce.cpp
+    test_all_reduce.cpp
     test_serialization.cpp
 )
 ENDIF()

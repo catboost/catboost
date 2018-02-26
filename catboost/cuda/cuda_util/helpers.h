@@ -94,7 +94,7 @@ inline ui64 DumpHash(const TBuffer& data, TString message) {
 
 template <class TBuffer>
 inline ui64 GetHash(const TBuffer& data) {
-    using T = typename TBuffer::TValueType;
+    using T = std::remove_const_t<typename TBuffer::TValueType>;
     TVector<T> res;
     data.CreateReader().Read(res);
     return VecCityHash(res);

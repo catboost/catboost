@@ -157,20 +157,31 @@ namespace NCatboostCuda {
             }
         }
 
+        inline void ApplyOrderToMetaColumns() {
+            ApplyPermutation(Order, Targets);
+            ApplyPermutation(Order, Weights);
+            for (auto& baseline : Baseline) {
+                ApplyPermutation(Order, baseline);
+            }
+            ApplyPermutation(Order, QueryIds);
+            ApplyPermutation(Order, SubgroupIds);
+            ApplyPermutation(Order, DocIds);
+            ApplyPermutation(Order, Timestamp);
+        }
     private:
         TVector<TFeatureColumnPtr> Features;
-
         TVector<ui64> Order;
-        TVector<ui32> QueryIds;
-        TVector<ui32> SubgroupIds;
-        THashMap<ui32, TVector<TPair>> QueryPairs;
 
-        TVector<ui32> DocIds;
         TVector<float> Targets;
         TVector<float> Weights;
         TVector<TVector<float>> Baseline;
 
+        TVector<ui32> QueryIds;
+        TVector<ui32> SubgroupIds;
+        TVector<ui32> DocIds;
         TVector<ui64> Timestamp;
+
+        THashMap<ui32, TVector<TPair>> QueryPairs;
 
         TMap<ui32, ui32> IndicesToLocalIndicesRemap;
 

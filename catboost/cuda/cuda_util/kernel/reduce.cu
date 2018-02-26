@@ -294,8 +294,13 @@ namespace NKernel {
         }
     }
 
+    #define REDUCE(Type) \
+    template  cudaError_t Reduce<Type>(const Type* input, Type* output, ui32 size, EOperatorType type, TCubKernelContext& context, TCudaStream stream);
 
-    template  cudaError_t Reduce<float>(const float* input, float* output, ui32 size, EOperatorType type, TCubKernelContext& context, TCudaStream stream);
+    REDUCE(float)
+    REDUCE(ui32)
+    REDUCE(int)
+
 
     template  cudaError_t SegmentedReduce<float>(const float* input, ui32 size, const ui32* offsets, ui32 numSegments, float* output,
                                                  EOperatorType type,

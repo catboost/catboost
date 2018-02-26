@@ -1,7 +1,7 @@
 #pragma once
 
 #include "quality_metric_helpers.h"
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -26,21 +26,31 @@ namespace NCatboostCuda {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryRMSE);
         }
 
+
+        TQueryRMSE(const TDataSet& dataSet,
+                   TRandom& random,
+                   const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryRMSE);
+        }
+
         TQueryRMSE(const TQueryRMSE& target,
                    const TSlice& slice)
             : TParent(target,
                       slice) {
         }
 
+        TQueryRMSE(const TQueryRMSE& target)
+                : TParent(target) {
+        }
+
+
         template <class TLayout>
         TQueryRMSE(const TQueryRMSE<TLayout, TDataSet>& basedOn,
-                   TCudaBuffer<const float, TMapping>&& target,
-                   TCudaBuffer<const float, TMapping>&& weights,
-                   TCudaBuffer<const ui32, TMapping>&& indices)
+                   TTarget<TMapping>&& target)
             : TParent(basedOn,
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices)) {
+                      std::move(target)) {
         }
 
         TQueryRMSE(TQueryRMSE&& other)
@@ -50,7 +60,6 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             const double weight = GetTotalWeight();
@@ -75,16 +84,24 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
+                        TVec& weightedDer,
                         TVec& weights,
                         ui32 stream = 0) const {
             ApproximateForPermutation(point,
                                       nullptr,
                                       nullptr,
-                                      &dst,
+                                      &weightedDer,
                                       nullptr,
                                       stream);
-            weights.Copy(GetWeights(), stream);
+            weights.Copy(GetTarget().GetWeights(), stream);
+        }
+
+        void NewtonAt(const TConstVec& point,
+                      TVec& weightedDer,
+                      TVec& weightedDer2,
+                      ui32 stream = 0) const {
+            //TODO(noxoomo): add der2 adjust for qrmse-like targets
+            return GradientAt(point, weightedDer, weightedDer2, stream);
         }
 
         void ApproximateForPermutation(const TConstVec& point,
@@ -97,8 +114,8 @@ namespace NCatboostCuda {
             ApproximateQueryRmse(samplesGrouping.GetSizes(),
                                  samplesGrouping.GetBiasedOffsets(),
                                  samplesGrouping.GetOffsetsBias(),
-                                 GetTarget(),
-                                 GetWeights(),
+                                 GetTarget().GetTargets(),
+                                 GetTarget().GetWeights(),
                                  point,
                                  indices,
                                  value,

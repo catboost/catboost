@@ -1,22 +1,24 @@
 #pragma once
 
-#include "bootstrap.h"
-#include "helpers.h"
 
 #include <catboost/cuda/models/add_model.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/models/add_bin_values.h>
-#include <catboost/cuda/targets/target_base.h>
+#include <catboost/cuda/targets/target_func.h>
+#include <catboost/cuda/methods/helpers.h>
 
 namespace NCatboostCuda {
-    template <class TDataSet>
-    class TAddModelValue<TObliviousTreeModel, TDataSet> {
+
+    template <NCudaLib::EPtrType CatFeatureStorageType>
+    class TAddModelValue<TObliviousTreeModel, TFeatureParallelDataSet<CatFeatureStorageType>> {
     public:
+        using TDataSet = TFeatureParallelDataSet<CatFeatureStorageType>;
+
         TAddModelValue(TScopedCacheHolder& cacheHolder,
                        const TBinarizedFeaturesManager& featuresManager,
                        const TObliviousTreeStructure& modelStructure)
@@ -44,10 +46,10 @@ namespace NCatboostCuda {
             auto gpuValues = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(model.GetValues().size()));
             gpuValues.Write(model.GetValues());
 
-            AddBinModelValues<NCudaLib::TMirrorMapping>(cursor,
-                                                        gpuValues,
+            AddBinModelValues<NCudaLib::TMirrorMapping>(gpuValues,
                                                         bins,
-                                                        indices /*read indices*/);
+                                                        indices /*read indices*/,
+                                                        cursor);
 
             return *this;
         }
@@ -99,10 +101,10 @@ namespace NCatboostCuda {
                                          *task.DataSet,
                                          ModelStructure);
 
-            AddBinModelValues<NCudaLib::TMirrorMapping>(*task.Cursor,
-                                                        values,
+            AddBinModelValues<NCudaLib::TMirrorMapping>(values,
                                                         bins,
                                                         task.Indices /*read indices*/,
+                                                        *task.Cursor,
                                                         stream
 
             );

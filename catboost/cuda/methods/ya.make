@@ -9,10 +9,10 @@ SRCS(
     kernel/pointwise_scores.cu
     histograms_helper.cpp
     GLOBAL pointwise_kernels.cpp
-    oblivious_tree.cpp
+    dynamic_boosting.cpp
+    feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_leaves_estimator.cpp
-    boosting.cpp
     boosting_listeners.cpp
     bootstrap.cpp
     tree_ctrs.cpp

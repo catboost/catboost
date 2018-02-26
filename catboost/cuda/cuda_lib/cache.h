@@ -97,10 +97,10 @@ public:
 
     template <class TScope, class TKey, class TBuilder>
     auto Cache(const TScope& scope,
-               TKey key,
+               const TKey& key,
                TBuilder&& builder) -> decltype(GetCachePtr<TScope, TKey, decltype(builder())>(scope)->Value(key)) {
         using TValue = decltype(builder());
-        CacheOnly(scope, key, std::move(builder));
+        CacheOnly(scope, key, std::forward<TBuilder>(builder));
         return GetCachePtr<TScope, TKey, TValue>(scope)->Value(key);
     }
 };

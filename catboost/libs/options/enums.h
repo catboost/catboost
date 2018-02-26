@@ -32,6 +32,11 @@ enum EBoostingType {
     Plain
 };
 
+enum class EDataPartitionType {
+    FeatureParallel,
+    DocParallel
+};
+
 enum class ELoadUnimplementedPolicy {
     SkipWithWarning,
     Exception,
@@ -40,12 +45,19 @@ enum class ELoadUnimplementedPolicy {
 
 enum class ELeavesEstimation {
     Gradient,
-    Newton
+    Newton,
+    //Use optimal leaves from structure search for model
+    Simple
 };
 
 enum class EScoreFunction {
     SolarL2,
-    Correlation
+    Correlation,
+    NewtonL2,
+    NewtonCorrelation,
+    LOOL2,
+    SatL2,
+    L2
 };
 
 enum class EBootstrapType {

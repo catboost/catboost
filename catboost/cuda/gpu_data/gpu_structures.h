@@ -3,6 +3,8 @@
 #include <util/system/types.h>
 
 #ifndef __NVCC__
+
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <util/ysaveload.h>
 #endif
 //struct to make bin-feature from ui32 feature
@@ -12,25 +14,47 @@ struct TCBinFeature {
     ui32 BinId;
 };
 
+
+
 struct TCFeature {
-    //ui32 line
-    ui32 Offset;
+    //how to get features
+    //ui64 cindex offset
+    ui64 Offset = static_cast<ui64>(-1);
     //offset and mask in ui32
-    ui32 Mask;
-    ui32 Shift;
-    //local fold idx
-    ui32 FirstFoldIndex;
+    ui32 Mask = 0;
+    ui32 Shift = 0;
+    //where and how to write histograms
+    //local fold idx (index of first fold for grid on device)
+    ui32 FirstFoldIndex = 0;
     //fold count
-    ui32 Folds;
-    //global index (not feature-id, index in grid only)
-    ui32 Index;
-    bool OneHotFeature;
+    ui32 Folds  = 0;
+//    global index (not feature-id, index in grid only)
+//    ui32 Index;
+    bool OneHotFeature = false;
 };
 
+
+
 struct TBestSplitProperties {
-    ui32 FeatureId;
-    ui32 BinId;
-    float Score;
+    ui32 FeatureId = 0;
+    ui32 BinId = 0;
+    float Score = 0;
+
+    bool operator<(const TBestSplitProperties& other) {
+        if (Score < other.Score) {
+            return true;
+        } else if (Score == other.Score) {
+            if (FeatureId < other.FeatureId) {
+                return true;
+            } else if (FeatureId == other.FeatureId) {
+                return BinId < other.BinId;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 };
 
 struct TPartitionStatistics {
@@ -63,4 +87,17 @@ struct TPartitionStatistics {
 
 #ifndef __NVCC__
 Y_DECLARE_PODTYPE(TCFeature);
+
+
+namespace NCudaLib {
+    namespace NHelpers {
+        template<>
+        class TEmptyObjectsHelper<TCFeature> {
+        public:
+            static inline bool IsEmpty(const TCFeature& val) {
+                return val.Offset == static_cast<ui64>(-1);
+            }
+        };
+    }
+}
 #endif

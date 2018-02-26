@@ -4,8 +4,30 @@
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
-
 namespace NKernel {
+
+    __global__ void WriteCompressedIndexImpl(TCFeature feature, const ui8* bins, ui32 docCount, ui32* cindex) {
+
+        cindex += feature.Offset;
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i  < docCount) {
+            const ui32 bin = (((ui32)bins[i]) & feature.Mask) << feature.Shift;
+            cindex[i] = cindex[i] | bin;
+            i += blockDim.x * gridDim.x;
+        }
+    }
+
+    void WriteCompressedIndex(TCFeature feature,
+                              const ui8* bins, ui32 docCount,
+                              ui32* cindex,
+                              TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = (docCount + blockSize - 1) / blockSize;
+
+        WriteCompressedIndexImpl<< < numBlocks, blockSize, 0, stream >> > (feature, bins, docCount, cindex);
+    }
+
 
 
     template <bool ATOMIC_UPDATE, int BLOCK_SIZE, int DOCS_PER_THREAD>
@@ -21,7 +43,7 @@ namespace NKernel {
         __syncthreads();
         const int bordersCount = static_cast<int>(sharedBorders[0]);
         __syncthreads();
-        dst += feature.Offset * (ui64) docCount;
+        dst += feature.Offset;
 
         if (threadIdx.x < bordersCount) {
             sharedBorders[threadIdx.x] = LdgWithFallback(borders, threadIdx.x + 1);
@@ -62,14 +84,12 @@ namespace NKernel {
         {
             const int idx = i + j * BLOCK_SIZE;
 
-            if (idx < docCount)
-            {
+            if (idx < docCount) {
 
                 if (ATOMIC_UPDATE)
                 {
                     atomicOr(dst + idx, (index[j] & feature.Mask) << feature.Shift);
-                } else
-                {
+                } else {
                     ui32 bin = dst[idx];
                     bin |= (index[j] & feature.Mask) << feature.Shift;
                     dst[idx] = bin;

@@ -8,6 +8,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/reduce_scatter.h>
 #include <util/generic/ymath.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 
 using namespace NCudaLib;
 
@@ -15,7 +16,12 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
     const bool performanceOnly = false;
     const int tries = 20;
 
-    void TestReduce(const size_t partSize = 64 * 64, const size_t partCountBase = 2000, bool performanceOnly = false, bool compress = false) {
+    void TestReduce(const size_t partSize = 64 * 64,
+                    const size_t partCountBase = 2000,
+                    bool performanceOnly = false,
+                    bool compress = false,
+                    bool reduceSingle=false
+    ) {
         TRandom rand(0);
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         auto& profiler = GetProfiler();
@@ -34,6 +40,11 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             //            auto singleMapping = TDeviceMapping<MT_SINGLE>::Create(0, partCount * partSize * TCudaManager::GetDeviceCount());
 
             auto afterReduceMapping = TStripeMapping::SplitBetweenDevices(partCount, partSize);
+            if (reduceSingle) {
+                TMappingBuilder<TStripeMapping> builder;
+                builder.SetSizeAt(0, partCount);
+                afterReduceMapping = builder.Build(partSize);
+            }
 
             auto data = TStripeBuffer<float>::Create(beforeReduceMapping);
 
@@ -52,6 +63,9 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             TReducer<decltype(data)> reducer;
             {
                 TString label = compress ? "ReduceCompressed" : "Reduce";
+                if (reduceSingle) {
+                    label += " (to single)";
+                }
                 auto guard = profiler.Profile(label);
                 reducer(data, afterReduceMapping, compress);
             }
@@ -66,6 +80,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             }
         }
     }
+
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4x4) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -83,53 +98,83 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
 #endif
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4x20000) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(4, 20000, performanceOnly);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(4, 20000, performanceOnly, false, true);
         }
     }
 
 #if defined(USE_MPI)
     SIMPLE_UNIT_TEST(TestReduceOnAll4x20000Compressed) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
-            TestReduce(4, 20000, performanceOnly);
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(4, 20000, performanceOnly, true);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(4, 20000, performanceOnly, true, true);
         }
     }
 #endif
 
     SIMPLE_UNIT_TEST(TestReduceOnAll8) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto sopCudaManagerGuard = StartCudaManager();
             TestReduce(8, 20000, performanceOnly);
+        }
+        {
+            auto sopCudaManagerGuard = StartCudaManager();
+            TestReduce(8, 20000, performanceOnly, false, true);
         }
     }
 
+
     SIMPLE_UNIT_TEST(TestReduceOnAll128) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(128, 20000, performanceOnly);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(128, 20000, performanceOnly, false, true);
         }
     }
 
     SIMPLE_UNIT_TEST(TestReduceOnAll256) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(256, 20000, performanceOnly);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(256, 20000, performanceOnly, false, true);
         }
     }
 
+
     SIMPLE_UNIT_TEST(TestReduceOnAll512) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(512, 20000, performanceOnly);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(512, 20000, performanceOnly, false, true);
         }
     }
 
     SIMPLE_UNIT_TEST(TestReduceOnAll4096) {
-        auto stopCudaManagerGuard = StartCudaManager();
         {
+            auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(64 * 64, 20000, performanceOnly);
+        }
+        {
+            auto stopCudaManagerGuard = StartCudaManager();
+            TestReduce(64 * 64, 20000, performanceOnly, false, true);
         }
     }
 
@@ -168,5 +213,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             TestReduce(64 * 64, 20000, performanceOnly, true);
         }
     }
+
 #endif
 }

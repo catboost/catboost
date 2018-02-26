@@ -7,6 +7,7 @@
 #include <library/grid_creator/binarization.h>
 
 namespace NCatboostOptions {
+
     struct TDataProcessingOptions {
         explicit TDataProcessingOptions(ETaskType type)
             : IgnoredFeatures("ignored_features", TVector<int>())

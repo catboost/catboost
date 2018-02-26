@@ -14,19 +14,20 @@ namespace NCatboostCuda {
         ui32 Index;
         ui32 BlockSize;
 
-    protected:
+    public:
         TDataPermutation(const TDataProvider& dataProvider,
                          ui32 index,
                          ui32 blockSize)
-            : DataProvider(&dataProvider)
-            , Index(index)
-            , BlockSize(blockSize)
+                : DataProvider(&dataProvider)
+                  , Index(index)
+                  , BlockSize(blockSize)
         {
         }
 
-        friend TDataPermutation GetPermutation(const TDataProvider& dataProvider, ui32 permutationId, ui32 blockSize);
+        TDataPermutation(const TDataPermutation& other) = default;
+        TDataPermutation(TDataPermutation&& other) = default;
 
-    public:
+
         void FillOrder(TVector<ui32>& order) const {
             if (Index != IdentityPermutationId()) {
                 const auto seed = 1664525 * GetPermutationId() + 1013904223 + BlockSize;
@@ -77,7 +78,7 @@ namespace NCatboostCuda {
             dst.Write(order);
         }
 
-        bool IsIdentity() {
+        bool IsIdentity() const {
             return Index == IdentityPermutationId();
         }
 
@@ -101,4 +102,13 @@ namespace NCatboostCuda {
                                 permutationId,
                                 blockSize);
     }
+
+
+    inline TDataPermutation GetIdentityPermutation(const TDataProvider& dataProvider) {
+        return GetPermutation(dataProvider,
+                              TDataPermutation::IdentityPermutationId(),
+                              1);
+    }
+
+
 }

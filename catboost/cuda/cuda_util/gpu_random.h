@@ -79,6 +79,28 @@ namespace NKernelHost {
             NKernel::UniformRand(Seeds.Get(), Result.Size(), Result.Get(), stream.GetStream());
         }
     };
+
+
+    class TGenerateSeeds : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<ui64> Seeds;
+        ui64 BaseSeed;
+    public:
+        TGenerateSeeds() = default;
+
+        TGenerateSeeds(TCudaBufferPtr<ui64> seeds,
+                       ui64 baseSeed)
+                : Seeds(seeds)
+                , BaseSeed(baseSeed)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Seeds, BaseSeed);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::GenerateSeeds(BaseSeed, Seeds.Get(), Seeds.Size(), stream.GetStream());
+        }
+    };
 }
 
 template <class TMapping>
@@ -98,4 +120,12 @@ template <class TMapping>
 inline void UniformRand(TCudaBuffer<ui64, TMapping>& seeds, TCudaBuffer<float, TMapping>& result, ui64 streamId = 0) {
     using TKernel = NKernelHost::TUniformRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
+}
+
+
+template <class TMapping>
+inline void GenerateSeeds(const NCudaLib::TDistributedObject<ui64>& baseSeed,
+                          TCudaBuffer<ui64, TMapping>& seeds, ui64 streamId = 0) {
+    using TKernel = NKernelHost::TGenerateSeeds;
+    LaunchKernels<TKernel>(seeds.NonEmptyDevices(), streamId, seeds, baseSeed);
 }

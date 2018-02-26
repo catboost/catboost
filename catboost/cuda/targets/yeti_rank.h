@@ -1,7 +1,7 @@
 #pragma once
 
 #include "quality_metric_helpers.h"
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -24,36 +24,36 @@ namespace NCatboostCuda {
             : TParent(dataSet,
                       random,
                       slice) {
-            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
-            const auto& options = targetOptions.GetLossParams();
+            Init(targetOptions);
+        }
 
-            if (options.has("PermutationCount")) {
-                PermutationCount = FromString<ui32>(options.at("PermutationCount"));
-            }
-            const auto& grouping = TParent::GetSamplesGrouping();
-            for (ui32 qid = 0; qid < grouping.GetQueryCount(); ++qid) {
-                const auto querySize = grouping.GetQuerySize(qid);
-                CB_ENSURE(querySize <= 1023, "Error: max query size supported on GPU is 1023, got " << querySize);
-            }
+        TYetiRank(const TDataSet& dataSet,
+                  TRandom& random,
+                  const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            Init(targetOptions);
+
         }
 
         TYetiRank(const TYetiRank& target,
                   const TSlice& slice)
             : TParent(target,
                       slice)
-            , PermutationCount(target.GetPermutationCount())
-        {
+            , PermutationCount(target.GetPermutationCount()) {
+        }
+
+
+        TYetiRank(const TYetiRank& target)
+                : TParent(target)
+                  , PermutationCount(target.GetPermutationCount()) {
         }
 
         template <class TLayout>
         TYetiRank(const TYetiRank<TLayout, TDataSet>& basedOn,
-                  TCudaBuffer<const float, TMapping>&& target,
-                  TCudaBuffer<const float, TMapping>&& weights,
-                  TCudaBuffer<const ui32, TMapping>&& indices)
+                  TTarget<TMapping>&& target)
             : TParent(basedOn,
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices))
+                      std::move(target))
             , PermutationCount(basedOn.GetPermutationCount())
         {
         }
@@ -66,17 +66,18 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             TVector<float> pointCpu;
             point.Read(pointCpu);
+            const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
             if (TargetCpu.size() == 0) {
-                GetTarget().Read(TargetCpu);
+                GetTarget().GetTargets().Read(TargetCpu);
+                samplesGrouping.GetBiasedOffsets().Read(QueryOffsets);
+                samplesGrouping.GetSizes().Read(QuerySizes);
             }
 
-            const auto& samplesGrouping = TParent::GetSamplesGrouping();
             const ui32 queryCount = samplesGrouping.GetQueryCount();
 
             TPFoundCalcer calcer;
@@ -100,13 +101,27 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
+                        TVec& weightedDer,
                         TVec& weights,
                         ui32 stream = 0) const {
             ApproximateForPermutation(point,
                                       nullptr,
                                       nullptr,
-                                      &dst,
+                                      &weightedDer,
+                                      &weights,
+                                      stream);
+        }
+
+
+        //For YetiRank Newton approximation is meaningless
+        void NewtonAt(const TConstVec& point,
+                      TVec& weightedDer,
+                      TVec& weights,
+                      ui32 stream = 0) const {
+            ApproximateForPermutation(point,
+                                      nullptr,
+                                      nullptr,
+                                      &weightedDer,
                                       &weights,
                                       stream);
         }
@@ -115,20 +130,21 @@ namespace NCatboostCuda {
                                        const TBuffer<ui32>* indices,
                                        TVec* value,
                                        TVec* der,
-                                       TVec* der2,
+                                       TVec* weights,
                                        ui32 stream = 0) const {
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
-            ApproximateYetiRank(TParent::GetRandom().NextUniformL(), PermutationCount,
+            ApproximateYetiRank(TParent::GetRandom().NextUniformL(),
+                                PermutationCount,
                                 samplesGrouping.GetSizes(),
                                 samplesGrouping.GetBiasedOffsets(),
                                 samplesGrouping.GetOffsetsBias(),
-                                GetTarget(),
+                                GetTarget().GetTargets(),
                                 point,
                                 indices,
                                 value,
                                 der,
-                                der2,
+                                weights,
                                 stream);
         }
 
@@ -140,12 +156,30 @@ namespace NCatboostCuda {
             return "YetiRank";
         }
 
+        //TODO(noxoomo): rename it. not dynamic boosting/ctrs permutations :) how many queries we'll generate
         ui32 GetPermutationCount() const {
             return PermutationCount;
         }
+    private:
+        void Init(const NCatboostOptions::TLossDescription& targetOptions) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
+            const auto& options = targetOptions.GetLossParams();
 
+            if (options.has("PermutationCount")) {
+                PermutationCount = FromString<ui32>(options.at("PermutationCount"));
+            }
+            const auto& grouping = TParent::GetSamplesGrouping();
+            for (ui32 qid = 0; qid < grouping.GetQueryCount(); ++qid) {
+                const auto querySize = grouping.GetQuerySize(qid);
+                CB_ENSURE(querySize <= 1023, "Error: max query size supported on GPU is 1023, got " << querySize);
+            }
+        }
     private:
         mutable TVector<float> TargetCpu;
+
+        mutable TVector<ui32> QueryOffsets;
+        mutable TVector<ui32> QuerySizes;
+
         ui32 PermutationCount = 10;
     };
 

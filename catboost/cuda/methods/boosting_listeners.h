@@ -1,12 +1,12 @@
 #pragma once
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
-#include <catboost/cuda/targets/target_base.h>
+#include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/targets/mse.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/models/additive_model.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <util/stream/format.h>
 
 namespace NCatboostCuda {
@@ -26,9 +26,9 @@ namespace NCatboostCuda {
             Y_UNUSED(point);
         }
 
-        virtual void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
-                                    const TTarget& target,
-                                    const TConstVec& point) = 0;
+        virtual void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
+                            const TTarget& target,
+                            const TConstVec& point) = 0;
     };
 
     template <class TTarget, class TWeakModel>
@@ -66,7 +66,7 @@ namespace NCatboostCuda {
             OdDetector = odDetector;
         }
 
-        void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
+        void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
                             const TConstVec& point) override {
             if (OutputPath && Out == nullptr) {
@@ -122,7 +122,7 @@ namespace NCatboostCuda {
         {
         }
 
-        void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
+        void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
                             const TConstVec& point) override {
             Y_UNUSED(newEnsemble);
@@ -160,7 +160,7 @@ namespace NCatboostCuda {
             FirstIteration = model.Size();
         }
 
-        void UpdateEnsemble(const TAdditiveModel<TWeakModel>& newEnsemble,
+        void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
                             const TTarget& target,
                             const TConstVec& point) override {
             Y_UNUSED(target);

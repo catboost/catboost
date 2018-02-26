@@ -4,23 +4,22 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
+#include <catboost/cuda/gpu_data/grid_policy.h>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/methods/kernel/pointwise_hist2.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
 #include <catboost/libs/options/enums.h>
 #include <catboost/cuda/utils/compression_helpers.h>
-#include <catboost/cuda/gpu_data/binarized_dataset.h>
 
 namespace NKernelHost {
-    template <class TGridPolicy>
+    template <NCatboostCuda::EFeaturesGroupingPolicy>
     class TComputeHistKernel;
 
     template <>
-    class TComputeHistKernel<NCatboostCuda::TBinaryFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> BFeatures;
         TCudaBufferPtr<const ui32> Cindex;
-        ui32 DsSize;
         TCudaBufferPtr<const float> Target;
         TCudaBufferPtr<const float> Weight;
         TCudaBufferPtr<const ui32> Indices;
@@ -36,7 +35,6 @@ namespace NKernelHost {
 
         TComputeHistKernel(TCudaBufferPtr<const TCFeature> bFeatures,
                            TCudaBufferPtr<const ui32> cindex,
-                           ui32 dsSize,
                            TCudaBufferPtr<const float> target,
                            TCudaBufferPtr<const float> weight,
                            TCudaBufferPtr<const ui32> indices,
@@ -48,7 +46,6 @@ namespace NKernelHost {
                            bool fullPass)
             : BFeatures(bFeatures)
             , Cindex(cindex)
-            , DsSize(dsSize)
             , Target(target)
             , Weight(weight)
             , Indices(indices)
@@ -63,25 +60,24 @@ namespace NKernelHost {
         }
 
         Y_SAVELOAD_DEFINE(BFeatures, Cindex,
-                          Target, Weight, DsSize, Indices,
+                          Target, Weight,  Indices,
                           Partition, PartsCount, FoldCount,
                           BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2Binary(BFeatures.Get(), static_cast<int>(BFeatures.Size()),
-                                        Cindex.Get(), DsSize,
-                                        Target.Get(), Weight.Get(), Indices.Get(),
+                                        Cindex.Get(),
+                                        Target.Get(), Weight.Get(), Indices.Get(), Indices.Size(),
                                         Partition.Get(), PartsCount, FoldCount, BinSums.Get(), FullPass,
                                         stream.GetStream());
         }
     };
 
     template <>
-    class TComputeHistKernel<NCatboostCuda::TByteFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::EFeaturesGroupingPolicy::OneByteFeatures>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> NbFeatures;
         TCudaBufferPtr<const ui32> Cindex;
-        int DsSize;
         TCudaBufferPtr<const float> Target;
         TCudaBufferPtr<const float> Weight;
         TCudaBufferPtr<const ui32> Indices;
@@ -97,13 +93,12 @@ namespace NKernelHost {
         TComputeHistKernel() = default;
 
         TComputeHistKernel(TCudaBufferPtr<const TCFeature> nbFeatures,
-                           TCudaBufferPtr<const ui32> cindex, ui32 dsSize,
+                           TCudaBufferPtr<const ui32> cindex,
                            TCudaBufferPtr<const float> target, TCudaBufferPtr<const float> weight, TCudaBufferPtr<const ui32> indices,
                            TCudaBufferPtr<const TDataPartition> partition, ui32 partCount, ui32 foldCount,
                            TCudaBufferPtr<float> binSums, const ui32 binFeatureCount, bool fullPass)
             : NbFeatures(nbFeatures)
             , Cindex(cindex)
-            , DsSize(dsSize)
             , Target(target)
             , Weight(weight)
             , Indices(indices)
@@ -116,16 +111,21 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(NbFeatures, Cindex,
-                          Target, Weight,
-                          DsSize, Indices,
+        Y_SAVELOAD_DEFINE(NbFeatures,
+                          Cindex,
+                          Target,
+                          Weight,
+                          Indices,
                           Partition, PartCount, FoldCount,
                           BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2NonBinary(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
-                                           Cindex.Get(), DsSize,
-                                           Target.Get(), Weight.Get(), Indices.Get(), Partition.Get(),
+                                           Cindex.Get(),
+                                           Target.Get(),
+                                           Weight.Get(),
+                                           Indices.Get(), Indices.Size(),
+                                           Partition.Get(),
                                            PartCount, FoldCount,
                                            BinSums.Get(), BinFeatureCount,
                                            FullPass,
@@ -134,11 +134,10 @@ namespace NKernelHost {
     };
 
     template <>
-    class TComputeHistKernel<NCatboostCuda::THalfByteFeatureGridPolicy>: public TStatelessKernel {
+    class TComputeHistKernel<NCatboostCuda::EFeaturesGroupingPolicy::HalfByteFeatures>: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> NbFeatures;
         TCudaBufferPtr<const ui32> Cindex;
-        int DsSize;
         TCudaBufferPtr<const float> Target;
         TCudaBufferPtr<const float> Weight;
         TCudaBufferPtr<const ui32> Indices;
@@ -154,13 +153,12 @@ namespace NKernelHost {
         TComputeHistKernel() = default;
 
         TComputeHistKernel(TCudaBufferPtr<const TCFeature> nbFeatures,
-                           TCudaBufferPtr<const ui32> cindex, ui32 dsSize,
+                           TCudaBufferPtr<const ui32> cindex,
                            TCudaBufferPtr<const float> target, TCudaBufferPtr<const float> weight, TCudaBufferPtr<const ui32> indices,
                            TCudaBufferPtr<const TDataPartition> partition, ui32 partCount, ui32 foldCount,
                            TCudaBufferPtr<float> binSums, const ui32 binFeatureCount, bool fullPass)
             : NbFeatures(nbFeatures)
             , Cindex(cindex)
-            , DsSize(dsSize)
             , Target(target)
             , Weight(weight)
             , Indices(indices)
@@ -173,12 +171,12 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight, DsSize, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight,  Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2HalfByte(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
-                                          Cindex.Get(), DsSize,
-                                          Target.Get(), Weight.Get(), Indices.Get(), Partition.Get(),
+                                          Cindex.Get(),
+                                          Target.Get(), Weight.Get(), Indices.Get(),  Indices.Size(),Partition.Get(),
                                           PartCount, FoldCount,
                                           BinSums.Get(), BinFeatureCount,
                                           FullPass,
@@ -288,7 +286,7 @@ namespace NKernelHost {
         bool Normalize;
         double ScoreStdDev;
         ui64 Seed;
-
+        bool GatheredByLeaves;
     public:
         TFindOptimalSplitKernel() = default;
 
@@ -301,7 +299,9 @@ namespace NKernelHost {
                                 double l2,
                                 bool normalize,
                                 double scoreStdDev,
-                                ui64 seed)
+                                ui64 seed,
+                                bool gatheredByLeaves
+        )
             : BinaryFeatures(binaryFeatures)
             , Splits(splits)
             , Parts(parts)
@@ -312,10 +312,11 @@ namespace NKernelHost {
             , Normalize(normalize)
             , ScoreStdDev(scoreStdDev)
             , Seed(seed)
+            , GatheredByLeaves(gatheredByLeaves)
         {
         }
 
-        Y_SAVELOAD_DEFINE(BinaryFeatures, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed);
+        Y_SAVELOAD_DEFINE(BinaryFeatures, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed, GatheredByLeaves);
 
         void Run(const TCudaStream& stream) const {
             const ui32 foldBits = IntLog2(FoldCount);
@@ -331,36 +332,45 @@ namespace NKernelHost {
                                       static_cast<ui32>(Result.Size()),
                                       ScoreFunction,
                                       L2, Normalize,
-                                      ScoreStdDev, Seed,
+                                      ScoreStdDev,
+                                      Seed,
+                                      GatheredByLeaves,
                                       stream.GetStream());
         }
     };
 }
 
-template <class TGpuDataSet,
-          class TTargetsMapping>
+template <NCatboostCuda::EFeaturesGroupingPolicy Policy,
+          class TGpuDataSet,
+          class TTargetsMapping,
+          class TFloat,
+          class TUi32,
+          class TMaybeConstPartition>
 inline void ComputeHistogram2(const TGpuDataSet& dataSet,
-                              const TCudaBuffer<float, TTargetsMapping>& targets,
-                              const TCudaBuffer<float, TTargetsMapping>& weights,
-                              const TCudaBuffer<ui32, TTargetsMapping>& indices,
-                              const TCudaBuffer<TDataPartition, TTargetsMapping>& dataPartitions,
+                              const TCudaBuffer<TFloat, TTargetsMapping>& targets,
+                              const TCudaBuffer<TFloat, TTargetsMapping>& weights,
+                              const TCudaBuffer<TUi32, TTargetsMapping>& indices,
+                              const TCudaBuffer<TMaybeConstPartition, TTargetsMapping>& dataPartitions,
                               ui32 partCount,
                               ui32 foldCount,
-                              TCudaBuffer<float, typename TGpuDataSet::TFeaturesMapping>& histograms,
+                              TCudaBuffer<float, typename TGpuDataSet::THistogramsMapping>& histograms,
                               bool fullPass,
                               ui32 stream) {
-    using TPolicy = typename TGpuDataSet::TGridPolicy;
-    using TKernel = NKernelHost::TComputeHistKernel<TPolicy>;
+    using TKernel = NKernelHost::TComputeHistKernel<Policy>;
 
-    LaunchKernels<TKernel>(dataSet.GetGrid().NonEmptyDevices(), stream,
-                           dataSet.GetGrid(),
+    const auto& grid = dataSet.GetGrid(Policy);
+    LaunchKernels<TKernel>(grid.NonEmptyDevices(),
+                           stream,
+                           grid,
                            dataSet.GetCompressedIndex(),
-                           dataSet.GetDataSetSize(),
-                           targets, weights, indices, dataPartitions,
+                           targets,
+                           weights,
+                           indices,
+                           dataPartitions,
                            partCount,
                            foldCount,
                            histograms,
-                           dataSet.GetBinFeatureCount(),
+                           dataSet.GetBinFeatureCount(Policy),
                            fullPass);
 }
 
@@ -395,9 +405,13 @@ inline void FindOptimalSplit(const TCudaBuffer<TCBinFeature, TFeaturesMapping>& 
                              bool normalize,
                              double scoreStdDev,
                              ui64 seed,
+                             bool gatheredByLeaves,
                              ui32 stream = 0) {
+    if (foldCount > 1) {
+        CB_ENSURE(!gatheredByLeaves, "Best split search for gathered by leaves splits is not implemented yet");
+    }
     using TKernel = NKernelHost::TFindOptimalSplitKernel;
-    LaunchKernels<TKernel>(features.NonEmptyDevices(), stream, features, histograms, partStats, foldCount, scores, scoreFunction, l2, normalize, scoreStdDev, seed);
+    LaunchKernels<TKernel>(features.NonEmptyDevices(), stream, features, histograms, partStats, foldCount, scores, scoreFunction, l2, normalize, scoreStdDev, seed, gatheredByLeaves);
 }
 
 template <class TFeaturesMapping, class TUi32>

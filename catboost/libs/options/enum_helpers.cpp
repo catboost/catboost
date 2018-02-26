@@ -3,16 +3,6 @@
 
 #include <util/string/cast.h>
 
-bool IsSupportedOnGpu(ELossFunction lossFunction) {
-    switch (lossFunction) {
-        case ELossFunction::RMSE:
-        case ELossFunction::Logloss:
-        case ELossFunction::CrossEntropy:
-            return true;
-        default:
-            return false;
-    }
-}
 
 bool IsClassificationLoss(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::Logloss ||
@@ -50,4 +40,33 @@ bool IsQuerywiseError(ELossFunction lossFunction) {
 
 bool IsPlainMode(EBoostingType boostingType) {
     return (boostingType == EBoostingType::Plain);
+}
+
+bool IsSecondOrderScoreFunction(EScoreFunction function) {
+    switch (function) {
+        case EScoreFunction::NewtonL2:
+        case EScoreFunction::NewtonCorrelation: {
+            return true;
+        }
+        case EScoreFunction::Correlation:
+        case EScoreFunction::SolarL2:
+        case EScoreFunction::LOOL2:
+        case EScoreFunction::L2: {
+            return false;
+        }
+        default: {
+            ythrow TCatboostException() << "Unknown score function " << function;
+        }
+    }
+    Y_UNREACHABLE();
+}
+
+bool AreZeroWeightsAfterBootstrap(EBootstrapType type) {
+    switch (type) {
+        case EBootstrapType::Bernoulli:
+        case EBootstrapType::Poisson:
+            return true;
+        default:
+            return false;
+    }
 }

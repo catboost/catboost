@@ -292,6 +292,14 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["boosting_type"] = boostingType;
         });
 
+    parser
+            .AddLongOption("data-partition")
+            .RequiredArgument("Split")
+            .Help("Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best performance you could set it to Plain.")
+            .Handler1T<TString>([plainJsonPtr](const TString& type) {
+                (*plainJsonPtr)["data_partition"] = type;
+            });
+
     parser.AddLongOption("od-pval",
                          "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
         .RequiredArgument("float")

@@ -2,6 +2,7 @@
 
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+#include <catboost/cuda/gpu_data/gpu_structures.h>
 
 
 namespace NKernel {
@@ -53,6 +54,128 @@ namespace NKernel {
         const ui32 elementsPerThreads = 10;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize * elementsPerThreads);
         AddBinModelValueImpl<blockSize, elementsPerThreads> << <numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursor);
+    }
+
+
+
+    __global__ void AddObliviousTreeImpl(const TCFeature* features, const ui8* bins, const float* leaves, ui32 depth,
+                                         const ui32* cindex,
+                                         const ui32* readIndices,
+                                         const ui32* writeIndices,
+                                         float* cursor,
+                                         ui32 size) {
+
+        ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+        __shared__ ui32 masksLocal[32];
+        __shared__ ui32 valuesLocal[32];
+        __shared__ ui64 offsetsLocal[32];
+        __shared__ ui32 takeEqual[32];
+
+        if (threadIdx.x < depth) {
+            const int level = threadIdx.x;
+            TCFeature feature = features[level];
+            const ui32 value =(ui32)(bins[level]) << feature.Shift;
+            const ui32 mask = feature.Mask << feature.Shift;
+
+            masksLocal[level] = mask;
+            valuesLocal[level] = value;
+            takeEqual[level] = feature.OneHotFeature;
+            offsetsLocal[level] = feature.Offset;
+        }
+        __syncthreads();
+
+        while (tid < size) {
+            ui32 bin = 0;
+            const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
+
+            #pragma unroll 8
+            for (ui32 level = 0; level < depth; ++level) {
+                const ui32 value = valuesLocal[level];
+                const ui32 mask = masksLocal[level];
+                const ui32 featureVal = __ldg((cindex + offsetsLocal[level]) + loadIdx) & mask;
+                const ui32 split = (takeEqual[level] ? (featureVal == value) : featureVal > value);
+                bin |= split << level;
+            }
+            const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
+            cursor[writeIdx] += __ldg(leaves + bin);
+            tid += blockDim.x  * gridDim.x;
+        }
+    }
+
+
+    __global__ void ComputeObliviousTreeBinsImpl(const TCFeature* features, const ui8* bins,  ui32 depth,
+                                                 const ui32* cindex,
+                                                 const ui32* readIndices,
+                                                 const ui32* writeIndices,
+                                                 ui32* cursor,
+                                                 ui32 size) {
+
+        ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+        __shared__ ui32 masksLocal[32];
+        __shared__ ui32 valuesLocal[32];
+        __shared__ ui64 offsetsLocal[32];
+        __shared__ ui32 takeEqual[32];
+
+        if (threadIdx.x < depth) {
+            const int level = threadIdx.x;
+            TCFeature feature = features[level];
+            const ui32 value =(ui32)(bins[level]) << feature.Shift;
+            const ui32 mask = feature.Mask << feature.Shift;
+
+            masksLocal[level] = mask;
+            valuesLocal[level] = value;
+            takeEqual[level] = feature.OneHotFeature;
+            offsetsLocal[level] = feature.Offset;
+        }
+        __syncthreads();
+
+        while (tid < size) {
+            ui32 bin = 0;
+            const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
+
+            #pragma unroll 8
+            for (ui32 level = 0; level < depth; ++level) {
+                const ui32 value = valuesLocal[level];
+                const ui32 mask = masksLocal[level];
+                const ui32 featureVal = __ldg(cindex + offsetsLocal[level] + loadIdx) & mask;
+                const ui32 split = (takeEqual[level] ? (featureVal == value) : featureVal > value);
+                bin |= split << level;
+            }
+            const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
+            cursor[writeIdx] = bin;
+            tid += blockDim.x  * gridDim.x;
+        }
+    }
+
+
+    //doc parallel routines
+    void AddObliviousTree(const TCFeature* features, const ui8* bins, const float* leaves, ui32 depth,
+                          const ui32* cindex,
+                          const ui32* readIndices,
+                          const ui32* writeIndices,
+                          float* cursor,
+                          ui32 size,
+                          TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
+        AddObliviousTreeImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, leaves, depth, cindex, readIndices, writeIndices, cursor, size);
+    }
+
+
+    void ComputeObliviousTreeBins(const TCFeature* features, const ui8* bins, ui32 depth,
+                                  const ui32* cindex,
+                                  const ui32* readIndices,
+                                  const ui32* writeIndices,
+                                  ui32* cursor,
+                                  ui32 size,
+                                  TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
+       ComputeObliviousTreeBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
     }
 
 }

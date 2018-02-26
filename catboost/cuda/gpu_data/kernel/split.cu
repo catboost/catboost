@@ -2,11 +2,11 @@
 
 #include <catboost/cuda/cuda_util/kernel/compression.cuh>
 #include <catboost/cuda/cuda_util/kernel/compression_helper.cuh>
+#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 
 namespace NKernel {
 
     struct TBinSplitLoader {
-
         const ui32* CompressedIndex;
         const ui32* Indices;
         ui32 Value;
@@ -75,7 +75,7 @@ namespace NKernel {
 
     template <int BLOCK_SIZE>
     __global__ void WriteCompressedSplitImpl(TCFeature feature, ui32 binIdx,
-                                             const ui32* compressedIndex, ui32 dataSetSize,
+                                             const ui32* compressedIndex,
                                              const ui32* indices, int size,
                                              ui64* compressedBits)
     {
@@ -89,7 +89,7 @@ namespace NKernel {
         size -= helper.KeysPerBlock() * blockIdx.x;
 
         compressedBits += BLOCK_SIZE * blockIdx.x;
-        compressedIndex += feature.Offset  * ((size_t)dataSetSize);
+        compressedIndex += feature.Offset;
 
         const ui32 value = binIdx << feature.Shift;
         const ui32 mask = feature.Mask << feature.Shift;
@@ -136,7 +136,7 @@ namespace NKernel {
     }
 
     void WriteCompressedSplit(TCFeature feature, ui32 binIdx,
-                              const ui32* compressedIndex, ui32 dataSetSize,
+                              const ui32* compressedIndex,
                               const ui32* indices, int size,
                               ui64* compressedBits,
                               TCudaStream stream) {
@@ -146,7 +146,7 @@ namespace NKernel {
 
         if (numBlocks) {
             WriteCompressedSplitImpl<blockSize> << < numBlocks, blockSize, 0, stream >> >(feature, binIdx, compressedIndex,
-                    dataSetSize, indices, size, compressedBits);
+                    indices, size, compressedBits);
         }
     }
 
@@ -172,6 +172,48 @@ namespace NKernel {
 
         if (numBlocks) {
             UpdateBinsImpl<blockSize> << < numBlocks, blockSize, 0, stream >> >(compressedBits, depth, bins, size);
+        }
+    }
+
+
+    __global__ void UpdateBinsFromCompressedIndexImpl(const ui32* compressedIndex,
+                                                      const ui32* indices,
+                                                      const int size,
+                                                      const TCFeature feature,
+                                                      const ui32 binIdx,
+                                                      const ui32 depth,
+                                                      ui32* bins)
+    {
+
+        compressedIndex += feature.Offset;
+        int i =  blockIdx.x * blockDim.x + threadIdx.x;
+
+        const ui32 value = binIdx << feature.Shift;
+        const ui32 mask = feature.Mask << feature.Shift;
+
+        while (i < size) {
+            const ui32 idx = indices ? __ldg(indices + i) : i;
+            const ui32 featureVal = __ldg(compressedIndex + idx) & mask;
+            const ui32 split = (feature.OneHotFeature ? (featureVal == value) : featureVal > value);
+            bins[i] |= split << depth;
+            i += blockDim.x * gridDim.x;
+        }
+    }
+
+    void UpdateBinsFromCompressedIndex(const ui32* compressedIndex,
+                                       const ui32* indices,
+                                       const int size,
+                                       const TCFeature feature,
+                                       const ui32 binIdx,
+                                       const ui32 depth,
+                                       ui32* bins,
+                                       TCudaStream stream) {
+
+        constexpr int blockSize = 256;
+        const int numBlocks = min(CeilDivide(size, blockSize), TArchProps::MaxBlockCount());
+
+        if (numBlocks) {
+            UpdateBinsFromCompressedIndexImpl << < numBlocks, blockSize, 0, stream >> >(compressedIndex, indices, size, feature, binIdx, depth, bins);
         }
     }
 

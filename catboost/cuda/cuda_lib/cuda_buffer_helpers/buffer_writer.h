@@ -64,6 +64,8 @@ namespace NCudaLib {
             return *this;
         }
 
+
+        //TODO(noxoomo): compressed write support
         void Write() {
             const auto& mapping = Dst->GetMapping();
             for (auto dev : Dst->NonEmptyDevices()) {
@@ -80,6 +82,7 @@ namespace NCudaLib {
                         ui64 readOffset = mapping.MemoryOffset(intersection);
                         CB_ENSURE(readOffset >= SrcOffset);
                         readOffset -= SrcOffset;
+                        Y_ASSERT(writeSize <= SrcMaxSize);
                         CB_ENSURE(writeSize <= SrcMaxSize);
 
                         WriteDone.push_back(TDataCopier::AsyncWrite(Src + readOffset + columnOffset,
@@ -103,5 +106,9 @@ namespace NCudaLib {
             }
         }
     };
+
+
+
+
 
 }

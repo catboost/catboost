@@ -107,7 +107,7 @@ namespace NCudaLib {
         struct TRemoteHostReduce {
             NKernelHost::TCudaBufferPtr<T> Source;
             NKernelHost::TCudaBufferPtr<T> Dest;
-            int Tag = 0;
+            int Tag = -1;
             bool IsSendTask = false;
             bool Compress = false;
 
@@ -146,7 +146,7 @@ namespace NCudaLib {
 #if defined(USE_MPI)
 
             TReduceOperator<T> op;
-            op.BlockSize = 1024 * 1024 / sizeof(T);
+            op.BlockSize = 4 * 1024 * 1024 / sizeof(T);
 
             for (ui32 remoteTask = 0; remoteTask < RemoteReduces.size(); ++remoteTask) {
                 const TRemoteHostReduce& task = RemoteReduces[remoteTask];
@@ -155,9 +155,11 @@ namespace NCudaLib {
 
                 if (task.IsSendTask) {
                     const ui64 size = task.Source.Size();
-                    context->RunningStagedTasks.push_back(BlockedSendTask(task.Source.Get(), size,
+                    context->RunningStagedTasks.push_back(BlockedSendTask(task.Source.Get(),
+                                                                          size,
                                                                           op.GetBlockSize(size),
-                                                                          dest.GetDeviceId().HostId, task.Tag,
+                                                                          dest.GetDeviceId().HostId,
+                                                                          task.Tag,
                                                                           memoryManager,
                                                                           task.Compress));
                 } else {
@@ -165,7 +167,8 @@ namespace NCudaLib {
                     const ui64 size = task.Source.Size();
                     context->RunningStagedTasks.push_back(MakeHolder<TTask>(task.Dest.Get(), size,
                                                                             op,
-                                                                            source.GetDeviceId().HostId, task.Tag,
+                                                                            source.GetDeviceId().HostId,
+                                                                            task.Tag,
                                                                             memoryManager,
                                                                             task.Compress));
                 }
@@ -400,7 +403,8 @@ namespace NCudaLib {
 
                     workingDevs.AddDevice(task.ReadDevice);
                     workingDevs.AddDevice(task.WriteDevice);
-                    streamSectionLauncher.Group(task.ReadDevice, task.WriteDevice);
+                    streamSectionLauncher.Group(task.ReadDevice,
+                                                task.WriteDevice);
 
                     const bool isInterHostReduce = manager.GetDeviceId(task.ReadDevice).HostId != manager.GetDeviceId(task.WriteDevice).HostId;
                     if (isInterHostReduce) {
@@ -435,11 +439,10 @@ namespace NCudaLib {
 
                 streamSectionLauncher.LaunchTask(workingDevs.Build(), [&](ui32 dev) {
                     return std::move(kernels[dev]);
-                },
-                                                 Stream);
+                }, Stream);
             }
 
-            auto localShifts = manager.CreateDistributedObject<TSlice>();
+            auto localShifts = manager.CreateDistributedObject<TSlice>(TSlice(0, 0));
             for (auto dev : resultMapping.NonEmptyDevices()) {
                 auto slice = resultMapping.DeviceSlice(dev);
                 localShifts.Set(dev, slice);

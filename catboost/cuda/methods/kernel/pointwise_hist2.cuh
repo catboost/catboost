@@ -15,23 +15,23 @@ namespace NKernel {
 
     void ComputeHist2Binary(const TCFeature* bFeatures,
                             int bCount,
-                            const ui32* cindex, int dsSize,
-                            const float* target, const float* weight, const ui32* indices,
+                            const ui32* cindex,
+                            const float* target, const float* weight, const ui32* indices,ui32 size,
                             const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
                             float* binSums, bool fullPass,
                             TCudaStream stream);
 
     void ComputeHist2NonBinary(const TCFeature* nbFeatures, int nbCount,
-                               const ui32* cindex, int dsSize,
-                               const float* target, const float* weight, const ui32* indices,
+                               const ui32* cindex,
+                               const float* target, const float* weight, const ui32* indices, ui32 size,
                                const TDataPartition* partition, ui32 partCount, ui32 foldCount,
                                float* binSums, const int binFeatureCount,
                                bool fullPass,
                                TCudaStream stream);
 
     void ComputeHist2HalfByte(const TCFeature* halfByteFeatures, int halfByteFeaturesCount,
-                              const ui32* cindex, int dsSize,
-                              const float* target, const float* weight,  const ui32* indices,
+                              const ui32* cindex,
+                              const float* target, const float* weight,  const ui32* indices, ui32 size,
                               const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
                               float* binSums, const int binFeatureCount,
                               bool fullPass,

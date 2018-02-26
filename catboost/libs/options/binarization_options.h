@@ -7,7 +7,7 @@
 
 namespace NCatboostOptions {
     struct TBinarizationOptions {
-        explicit TBinarizationOptions(const EBorderSelectionType borderSelectionType = EBorderSelectionType::MinEntropy,
+        explicit TBinarizationOptions(const EBorderSelectionType borderSelectionType = EBorderSelectionType::GreedyLogSum,
                                       const ui32 discretization = 32,
                                       ENanMode nanMode = ENanMode::Forbidden)
             : BorderSelectionType("border_type", borderSelectionType)

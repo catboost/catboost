@@ -14,4 +14,9 @@ namespace NKernel {
                               bool atomicUpdate,
                               TCudaStream stream);
 
+    void WriteCompressedIndex(TCFeature feature,
+                              const ui8* bins, ui32 docCount,
+                              ui32* cindex,
+                              TCudaStream stream);
+
 }

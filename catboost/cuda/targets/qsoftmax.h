@@ -1,7 +1,7 @@
 #pragma once
 
 #include "quality_metric_helpers.h"
-#include "target_base.h"
+#include "target_func.h"
 #include "kernel.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -26,21 +26,29 @@ namespace NCatboostCuda {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QuerySoftMax);
         }
 
+        TQuerySoftMax(const TDataSet& dataSet,
+                      TRandom& random,
+                      const NCatboostOptions::TLossDescription& targetOptions)
+                : TParent(dataSet,
+                          random) {
+            CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QuerySoftMax);
+        }
+
         TQuerySoftMax(const TQuerySoftMax& target,
                       const TSlice& slice)
             : TParent(target,
                       slice) {
         }
 
+        TQuerySoftMax(const TQuerySoftMax& target)
+                : TParent(target) {
+        }
+
         template <class TLayout>
         TQuerySoftMax(const TQuerySoftMax<TLayout, TDataSet>& basedOn,
-                      TCudaBuffer<const float, TMapping>&& target,
-                      TCudaBuffer<const float, TMapping>&& weights,
-                      TCudaBuffer<const ui32, TMapping>&& indices)
+                      TTarget<TMapping>&& target)
             : TParent(basedOn,
-                      std::move(target),
-                      std::move(weights),
-                      std::move(indices)) {
+                      std::move(target)) {
         }
 
         TQuerySoftMax(TQuerySoftMax&& other)
@@ -50,7 +58,6 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
-        using TParent::GetWeights;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
             const double weight = GetTotalWeightedTarget();
@@ -75,16 +82,29 @@ namespace NCatboostCuda {
         }
 
         void GradientAt(const TConstVec& point,
-                        TVec& dst,
+                        TVec& weightedDer,
                         TVec& weights,
                         ui32 stream = 0) const {
             ApproximateForPermutation(point,
                                       nullptr,
                                       nullptr,
-                                      &dst,
+                                      &weightedDer,
                                       nullptr,
                                       stream);
-            weights.Copy(GetWeights(), stream);
+            weights.Copy(GetTarget().GetWeights(), stream);
+        }
+
+
+        void NewtonAt(const TConstVec& point,
+                      TVec& weightedDer,
+                      TVec& weightedDer2,
+                      ui32 stream = 0) const {
+            ApproximateForPermutation(point,
+                                      nullptr,
+                                      nullptr,
+                                      &weightedDer,
+                                      &weightedDer2,
+                                      stream);
         }
 
         void ApproximateForPermutation(const TConstVec& point,
@@ -97,8 +117,8 @@ namespace NCatboostCuda {
             ApproximateQuerySoftMax(samplesGrouping.GetSizes(),
                                     samplesGrouping.GetBiasedOffsets(),
                                     samplesGrouping.GetOffsetsBias(),
-                                    GetTarget(),
-                                    GetWeights(),
+                                    GetTarget().GetTargets(),
+                                    GetTarget().GetWeights(),
                                     point,
                                     indices,
                                     value,
@@ -117,8 +137,8 @@ namespace NCatboostCuda {
 
         inline double GetTotalWeightedTarget() const {
             if (TotalWeightedTarget <= 0) {
-                TotalWeightedTarget = DotProduct(TTargetBase<TMapping, TDataSet>::Target,
-                                                 TTargetBase<TMapping, TDataSet>::Weights);
+                TotalWeightedTarget = DotProduct(GetTarget().GetTargets(),
+                                                 GetTarget().GetWeights());
                 if (TotalWeightedTarget <= 0) {
                     ythrow TCatboostException() << "Observation targets and weights should be greater or equal zero. Total weighted target should be greater, than zero";
                 }

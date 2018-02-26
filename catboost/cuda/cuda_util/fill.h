@@ -33,20 +33,23 @@ namespace NKernelHost {
     class TMakeSequenceKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<T> Buffer;
-
+        T Offset;
     public:
         TMakeSequenceKernel() = default;
 
-        TMakeSequenceKernel(TCudaBufferPtr<T> ptr)
+        TMakeSequenceKernel(TCudaBufferPtr<T> ptr,
+                            T offset = 0
+        )
             : Buffer(ptr)
+            , Offset(offset)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Buffer);
+        Y_SAVELOAD_DEFINE(Buffer, Offset);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Buffer.ObjectCount() == Buffer.Size(), "MakeSequence expects single-object buffer " << Buffer.ObjectCount() << " " << Buffer.Size() << " " << Buffer.GetColumnCount() << " " << Buffer.ColumnSize());
-            NKernel::MakeSequence(Buffer.Get(), Buffer.Size(), stream.GetStream());
+            NKernel::MakeSequence(Offset, Buffer.Get(), Buffer.Size(), stream.GetStream());
         }
     };
 
@@ -86,6 +89,14 @@ template <typename T, class TMapping>
 inline void MakeSequence(TCudaBuffer<T, TMapping>& buffer, ui32 stream = 0) {
     using TKernel = NKernelHost::TMakeSequenceKernel<T>;
     LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer);
+}
+
+template <typename T, class TMapping>
+inline void MakeSequenceWithOffset(TCudaBuffer<T, TMapping>& buffer,
+                                   const NCudaLib::TDistributedObject<T>& offset,
+                                   ui32 stream = 0) {
+    using TKernel = NKernelHost::TMakeSequenceKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);
 }
 
 template <class TUi32, class TMapping>

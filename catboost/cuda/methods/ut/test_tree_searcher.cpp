@@ -1,11 +1,12 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <library/unittest/registar.h>
 #include <catboost/cuda/utils/cpu_random.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
-#include <catboost/cuda/data/grid_creator.h>
 #include <catboost/cuda/data/load_data.h>
-#include <catboost/cuda/gpu_data/fold_based_dataset_builder.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
+#include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/methods/histograms_helper.h>
 #include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
@@ -14,95 +15,110 @@ using namespace std;
 using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
-    template <class TGridPolicy>
-    void inline CalcRefSums(const TGpuBinarizedDataSet<TGridPolicy>* dataSet,
-                            const TMirrorBuffer<float>& approx,
-                            const TMirrorBuffer<float>& wts,
-                            const TMirrorBuffer<ui32>& indices,
-                            const TMirrorBuffer<const TDataPartition>& partitioning,
-                            ui32 depth, ui32 foldCount,
-                            TVector<float>* sums1,
-                            TVector<float>* sums2) {
-        TVector<float> targets, weights;
-        TVector<ui32> inds;
 
-        TVector<TDataPartition> parts;
-        partitioning.Read(parts);
 
-        TVector<ui32> cindex;
+    template <class TLayout,
+              EFeaturesGroupingPolicy Policy>
+    void inline CalcRefSums(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
+                            const TCudaBuffer<float, typename TLayout::TSamplesMapping>& tgts,
+                            const TCudaBuffer<float, typename TLayout::TSamplesMapping>& wts,
+                            const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
+                            const TCudaBuffer<const TDataPartition, typename TLayout::TSamplesMapping>& partitioning,
+                            ui32 depth,
+                            ui32 foldCount,
+                            TVector<float>* refSums,
+                            TVector<float>* refWeights) {
+
         ui32 numLeaves = 1 << depth;
         ui32 bitsPerFold = IntLog2(foldCount);
         ui32 foldsStripe = 1 << bitsPerFold;
 
-        approx.Read(targets);
-        wts.Read(weights);
-        indices.Read(inds);
-        partitioning.Read(parts);
+        refSums->clear();
+        refWeights->clear();
 
-        sums1->resize(dataSet->GetHostBinaryFeatures().size() * numLeaves * foldCount);
-        sums2->resize(dataSet->GetHostBinaryFeatures().size() * numLeaves * foldCount);
+        refSums->resize(dataSet->GetBinFeatures(Policy).size() * numLeaves * foldCount);
+        refWeights->resize(dataSet->GetBinFeatures(Policy).size() * numLeaves * foldCount);
 
-        TVector<float>& binSums = *sums1;
-        TVector<float>& binWeights = *sums2;
+        TVector<float>& binSums = *refSums;
+        TVector<float>& binWeights = *refWeights;
 
-        const auto& featuresMapping = dataSet->GetGrid().GetMapping();
-        const auto& grid = dataSet->GetHostFeatures();
 
-        ui32 binFeatureIdx = 0;
+        const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
+        const auto foldOffset = cpuGrid.ComputeFoldOffsets();
+
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
-            TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
+            TSlice docSlice = tgts.GetMapping().DeviceSlice(dev);
 
             TVector<ui32> compressedIndex;
             dataSet->GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
-            const ui32 dsSize = dataSet->GetDataSetSize().At(dev);
+            const ui32 docsOnDevice = docSlice.Size();
 
-            for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
-                const TCFeature& feature = grid[f];
-                const ui32* cindexPtr = &compressedIndex[feature.Offset * dsSize];
+            TVector<TDataPartition> parts;
+            partitioning.DeviceView(dev).Read(parts);
+
+            for (ui32 f = 0; f < cpuGrid.FeatureIds.size(); ++f) {
+                ui32 featureId = cpuGrid.FeatureIds[f];
+                if (dataSet->GetTCFeature(featureId).IsEmpty(dev)) {
+                    continue;
+                }
+                if (docsOnDevice == 0) {
+                    continue;
+                }
+
+                TVector<ui32> inds;
+                TVector<float> targets;
+                TVector<float> weights;
+
+                tgts.DeviceView(dev).Read(targets);
+                wts.DeviceView(dev).Read(weights);
+                indices.DeviceView(dev).Read(inds);
+
+                TCFeature feature = dataSet->GetTCFeature(featureId).At(dev);
+                const ui32* cindexPtr = &compressedIndex[feature.Offset];
 
                 const ui32 numParts = numLeaves * foldCount;
 
-                for (ui32 leaf = 0; leaf < numLeaves; leaf++) {
+                for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {
                     for (ui32 fold = 0; fold < foldCount; ++fold) {
                         const auto& part = parts[leaf * foldsStripe + fold];
 
-                        TVector<double> s1(feature.Folds + 1, 0.0f);
-                        TVector<double> s2(feature.Folds + 1, 0.0f);
+                        TVector<double> featureBinSums(feature.Folds + 1, 0.0f);
+                        TVector<double> featureBinWeights(feature.Folds + 1, 0.0f);
 
                         for (ui32 i = 0; i < part.Size; i++) {
                             ui32 idx = inds[part.Offset + i];
-                            UNIT_ASSERT(idx < dsSize);
-                            UNIT_ASSERT((feature.Offset * dsSize + idx) < compressedIndex.size());
+                            UNIT_ASSERT(idx < docsOnDevice);
+                            UNIT_ASSERT((feature.Offset + idx) < compressedIndex.size());
                             ui32 ci = cindexPtr[idx];
 
-                            if (((ci >> feature.Shift) & feature.Mask) > s1.size()) {
-                                Cout << "Feature  " << f << " " << dev << " " << dataSet->FeatureCount() << " " << Endl;
+                            if (((ci >> feature.Shift) & feature.Mask) > featureBinSums.size()) {
+                                Cout << "Feature  " << f << " " << dev << " " << Endl;
                                 Cout << "Feature offset  " << feature.Offset << Endl;
                                 Cout << "Bug " << part.Offset << " " << i << Endl;
                                 Cout << feature.Folds << Endl;
-                                Cout << feature.Index << " " << feature.FirstFoldIndex << Endl;
+                                Cout << feature.FirstFoldIndex << Endl;
                                 Cout << ((ci) >> feature.Shift)
                                      << " " << ((ci >> feature.Shift) & feature.Mask) << " " << ci
                                      << " " << feature.Mask << " " << feature.Shift << Endl;
                                 UNIT_ASSERT(false);
                             }
 
-                            s1[(ci >> feature.Shift) & feature.Mask] += targets[part.Offset + i];
-                            s2[(ci >> feature.Shift) & feature.Mask] += weights[part.Offset + i];
+                            featureBinSums[(ci >> feature.Shift) & feature.Mask] += targets[part.Offset + i];
+                            featureBinWeights[(ci >> feature.Shift) & feature.Mask] += weights[part.Offset + i];
                         }
 
                         if (!feature.OneHotFeature) {
                             for (ui32 i = 1; i < feature.Folds; i++) {
-                                s1[i] += s1[i - 1];
-                                s2[i] += s2[i - 1];
+                                featureBinSums[i] += featureBinSums[i - 1];
+                                featureBinWeights[i] += featureBinWeights[i - 1];
                             }
                         }
 
                         for (ui32 i = 0; i < feature.Folds; i++) {
-                            const ui32 offset = (binFeatureIdx + i) * numParts + leaf * foldCount + fold;
-                            binSums[offset] = s1[i];
-                            binWeights[offset] = s2[i];
+                            const ui32 offset = (foldOffset.at(featureId) + i) * numParts + leaf * foldCount + fold;
+                            binSums[offset] += featureBinSums[i];
+                            binWeights[offset] += featureBinWeights[i];
                         }
                     }
 
@@ -111,65 +127,71 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                         UNIT_ASSERT_VALUES_EQUAL(part.Size, 0);
                     }
                 }
-                binFeatureIdx += feature.Folds;
             }
         }
     }
 
-    template <class TGridPolicy>
-    inline void CheckResults(const TGpuBinarizedDataSet<TGridPolicy>* dataSet,
-                             const TMirrorBuffer<float>& approx,
-                             const TMirrorBuffer<float>& wts,
-                             const TMirrorBuffer<ui32>& indices,
-                             const TMirrorBuffer<const TDataPartition>& partitioning,
+    template <class TLayout,
+            EFeaturesGroupingPolicy Policy>
+    inline void CheckResults(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
+                             const TCudaBuffer<float, typename TLayout::TSamplesMapping>& approx,
+                             const TCudaBuffer<float,  typename TLayout::TSamplesMapping>& wts,
+                             const TCudaBuffer<ui32,  typename TLayout::TSamplesMapping>& indices,
+                             const TCudaBuffer<const TDataPartition,  typename TLayout::TSamplesMapping>& partitioning,
                              ui32 depth, ui32 foldCount,
                              const TVector<float>& props) {
         TVector<float> refSums, refWts;
-        CalcRefSums<TGridPolicy>(dataSet, approx, wts, indices, partitioning, depth, foldCount, &refSums, &refWts);
+        CalcRefSums<TLayout, Policy>(dataSet, approx, wts, indices, partitioning, depth, foldCount, &refSums, &refWts);
 
         const ui32 leavesCount = static_cast<const ui32>(1 << depth);
         const ui32 partCount = leavesCount * foldCount;
 
-        auto& binaryFeatures = dataSet->GetHostBinaryFeatures();
+        auto& binaryFeatures = dataSet->GetBinFeatures(Policy);
 
-        ui32 currentDevice = 0;
-        ui32 deviceOffset = 0;
+//        ui32 currentDevice = 0;
+//        ui32 deviceOffset = 0;
+
+        const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
+        const auto foldOffsets = cpuGrid.ComputeFoldOffsets();
+
+
         for (ui32 i = 0; i < binaryFeatures.size(); i++) {
             auto& binFeature = binaryFeatures[i];
-            auto& feature = dataSet->GetHostFeatures()[binFeature.FeatureId];
 
-            if (!dataSet->GetBinaryFeatures().GetMapping().DeviceSlice(currentDevice).Contains(i)) {
-                deviceOffset = dataSet->GetBinaryFeatures().GetMapping().DeviceSlice(currentDevice).Right * partCount * 2;
-                ++currentDevice;
-            }
+            const ui32 firstFold = foldOffsets.at(binFeature.FeatureId);
 
             for (ui32 leaf = 0; leaf < leavesCount; leaf++) {
                 for (ui32 fold = 0; fold < foldCount; ++fold) {
                     {
-                        double x = props[deviceOffset + ((feature.FirstFoldIndex + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2];
-                        double refX = refWts[i * partCount + leaf * foldCount + fold];
-                        if (std::abs(x - refX) > 1e-6) {
-                            ui32 bitsPerFold = IntLog2(foldCount);
-                            ui32 foldsStripe = 1 << bitsPerFold;
-
-                            TVector<TDataPartition> parts;
-                            partitioning.Read(parts);
-                            Cout << deviceOffset << "  " << depth << Endl;
-                            Cout << parts[leaf * foldsStripe + fold].Offset << " " << parts[leaf * foldsStripe + fold].Size << Endl;
-                            Cout << i << " " << leaf << " " << fold << " " << x << " " << refX << Endl;
-                            Cout << i * partCount + leaf * foldCount + fold << " " << leavesCount << " " << foldCount << Endl;
-                            Cout << feature.Offset << " " << feature.Folds << " " << feature.Index << " " << feature.FirstFoldIndex << Endl;
-
-                            for (ui32 i = 0; i < Min<ui32>(40, refWts.size()); ++i) {
-                                Cout << refWts[i] << " ";
-                            }
-                            Cout << Endl;
+                        double x = 0;
+                        for (ui32 offset = ((firstFold + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2; offset < props.size(); offset += 2 * refWts.size()) {
+                            x += props[offset];
                         }
-
-                        UNIT_ASSERT_DOUBLES_EQUAL(x, refX, 1e-6);
+                        double refX = refWts[i * partCount + leaf * foldCount + fold];
+//                        if (std::abs(x - refX) > 1e-6) {
+//                            ui32 bitsPerFold = IntLog2(foldCount);
+//                            ui32 foldsStripe = 1 << bitsPerFold;
+//
+////                            TVector<TDataPartition> parts;
+////                            partitioning.Read(parts);
+////                            Cout << deviceOffset << "  " << depth << Endl;
+////                            Cout << parts[leaf * foldsStripe + fold].Offset << " " << parts[leaf * foldsStripe + fold].Size << Endl;
+////                            Cout << i << " " << leaf << " " << fold << " " << x << " " << refX << Endl;
+////                            Cout << i * partCount + leaf * foldCount + fold << " " << leavesCount << " " << foldCount << Endl;
+////                            Cout << feature.Offset << " " << feature.Folds << " " << feature.Index << " " << feature.FirstFoldIndex << Endl;
+//
+////                            for (ui32 i = 0; i < Min<ui32>(40, refWts.size()); ++i) {
+////                                Cout << refWts[i] << " ";
+////                            }
+//                            Cout << Endl;
+//                        }
+                        UNIT_ASSERT_DOUBLES_EQUAL_C(x, refX, 1e-6, leaf << " " << fold << " " << i << " "<< binFeature.FeatureId << " " << binFeature.BinId << " " << Policy);
                     }
                     {
-                        double x = props[deviceOffset + ((feature.FirstFoldIndex + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2 + 1];
+                        double x = 0;
+                        for (ui32 offset =((firstFold + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2 + 1; offset < props.size(); offset += 2 * refWts.size()) {
+                            x += props[offset];
+                        }
                         double refX = refSums[i * partCount + leaf * foldCount + fold];
 
                         UNIT_ASSERT_DOUBLES_EQUAL(x, refX, 1e-6);
@@ -179,11 +201,11 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
     }
 
-    TOptimizationSubsets CreateSubsets(ui32 maxDepth,
-                                       TL2Target & src,
-                                       ui32 foldCount,
-                                       TVector<ui32> & bins) {
-        TOptimizationSubsets subsets;
+    TOptimizationSubsets<NCudaLib::TMirrorMapping> CreateSubsets(ui32 maxDepth,
+                                                                 TL2Target<NCudaLib::TMirrorMapping> & src,
+                                                                 ui32 foldCount,
+                                                                 TVector<ui32>& bins) {
+        TOptimizationSubsets<NCudaLib::TMirrorMapping> subsets;
         subsets.Bins = TMirrorBuffer<ui32>::CopyMapping(src.WeightedTarget);
         subsets.Bins.Write(bins);
 
@@ -196,12 +218,12 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         ui32 maxPartCount = 1 << (subsets.FoldBits + maxDepth);
         subsets.Partitions = TMirrorBuffer<TDataPartition>::Create(NCudaLib::TMirrorMapping(maxPartCount));
-        subsets.Src = &src;
-        subsets.Update();
+        UpdateSubsetsStats(src, &subsets);
 
         {
             TVector<TDataPartition> initParts;
-            subsets.CurrentPartsView().Read(initParts);
+            auto currentParts = TSubsetsHelper<NCudaLib::TMirrorMapping>::CurrentPartsView(subsets);
+            currentParts.Read(initParts);
             ui32 cursor = 0;
             for (ui32 i = 0; i < initParts.size(); ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(cursor, initParts[i].Offset);
@@ -213,14 +235,14 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         return subsets;
     }
 
-    TL2Target CreateTestTarget(ui32 size) {
+    template <class TMapping>
+    TL2Target<TMapping> CreateTestTarget(TMapping mapping, ui32 size) {
         TRandom rand(100500);
 
-        TL2Target target;
-        auto mapping = NCudaLib::TMirrorMapping(size);
+        TL2Target<TMapping> target;
 
-        target.Weights = TMirrorBuffer<float>::Create(mapping);
-        target.WeightedTarget = TMirrorBuffer<float>::Create(mapping);
+        target.Weights.Reset(mapping);
+        target.WeightedTarget.Reset(mapping);
 
         {
             TVector<float> relev(size);
@@ -247,82 +269,82 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         return target;
     }
 
-    void CheckStats(const TOptimizationSubsets& subsets,
+    template <class TMapping>
+    void CheckStats(const TOptimizationSubsets<TMapping>& subsets,
                     const TVector<float>& gatheredTarget,
                     const TVector<float>& gatheredWeights,
-                    const TMirrorBuffer<const TPartitionStatistics>& partStats) {
-        TVector<TPartitionStatistics> cpuStat;
-        partStats.Read(cpuStat);
+                    const TCudaBuffer<TPartitionStatistics, TMapping>& partStats) {
 
-        TVector<TDataPartition> cpuParts;
-        subsets.CurrentPartsView().Read(cpuParts);
+        auto currentParts = TSubsetsHelper<TMapping>::CurrentPartsView(subsets);
 
-        {
-            for (ui32 partId = 0; partId < cpuParts.size(); ++partId) {
-                auto& part = cpuParts[partId];
+        for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
+            TVector<TPartitionStatistics> cpuStat;
+            partStats.DeviceView(dev).Read(cpuStat);
 
-                double sum = 0;
-                double weight = 0;
+            TVector<TDataPartition> cpuParts;
+            auto devSlice = subsets.Indices.GetMapping().DeviceSlice(dev);
+            auto devParts = currentParts.DeviceView(dev);
+            devParts.Read(cpuParts);
+//            currentParts.Read(cpuParts);
 
-                for (ui32 i = 0; i < part.Size; ++i) {
-                    sum += gatheredTarget[part.Offset + i];
-                    weight += gatheredWeights[part.Offset + i];
+            {
+                for (ui32 partId = 0; partId < cpuParts.size(); ++partId) {
+                    auto& part = cpuParts[partId];
+
+                    double sum = 0;
+                    double weight = 0;
+
+                    for (ui32 i = 0; i < part.Size; ++i) {
+                        sum += gatheredTarget[devSlice.Left + part.Offset + i];
+                        weight += gatheredWeights[devSlice.Left + part.Offset + i];
+                    }
+
+                    UNIT_ASSERT_DOUBLES_EQUAL_C(cpuStat[partId].Weight, weight, 1e-5, "PartCount " << cpuParts.size() << " device " << dev);
+                    UNIT_ASSERT_DOUBLES_EQUAL(cpuStat[partId].Sum, sum, 1e-5);
                 }
-
-                UNIT_ASSERT_DOUBLES_EQUAL(cpuStat[partId].Sum, sum, 1e-5);
-                UNIT_ASSERT_DOUBLES_EQUAL(cpuStat[partId].Weight, weight, 1e-5);
             }
         }
     }
 
-    void CheckResultsForGpuFeatures(const TGpuFeatures<>& features,
-                                    TGpuFeaturesScoreCalcer<>& calcer,
-                                    const TMirrorBuffer<const TDataPartition>& partitionStats,
-                                    const TMirrorBuffer<float>& weightedTarget,
-                                    const TMirrorBuffer<float>& weights,
-                                    const TMirrorBuffer<ui32>& indices,
-                                    ui32 depth,
-                                    ui32 foldCount) {
+    template <class TLayout = TFeatureParallelLayout>
+    void CheckResultsForCompressedDataSet(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet& features,
+                                          TScoresCalcerOnCompressedDataSet<TLayout>& calcer,
+                                          const TCudaBuffer<const TDataPartition, typename TLayout::TSamplesMapping>& partitionStats,
+                                          const TCudaBuffer<float, typename TLayout::TSamplesMapping>& weightedTarget,
+                                          const TCudaBuffer<float, typename TLayout::TSamplesMapping>& weights,
+                                          const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
+                                          ui32 depth,
+                                          ui32 foldCount) {
+
+        #define CHECK_RESULT(Policy)                       \
+            auto histogram = scoreHelper.ReadHistograms(); \
+            CheckResults<TLayout, Policy>(&features,       \
+                                          weightedTarget,  \
+                                          weights,         \
+                                          indices,         \
+                                          partitionStats,  \
+                                          depth,           \
+                                          foldCount,       \
+                                          histogram);
+
         if (calcer.HasBinaryFeatureHelper()) {
             auto& scoreHelper = calcer.GetBinaryFeatureHelper();
-            auto histogram = scoreHelper.ReadHistograms();
-
-            CheckResults(&features.GetBinaryFeatures(),
-                         weightedTarget, weights,
-                         indices,
-                         partitionStats,
-                         depth,
-                         foldCount,
-                         histogram);
-        }
+            CHECK_RESULT(EFeaturesGroupingPolicy::BinaryFeatures)
+        };
         if (calcer.HasByteFeatureHelper()) {
             auto& scoreHelper = calcer.GetByteFeatureHelper();
-            auto histogram = scoreHelper.ReadHistograms();
-
-            CheckResults(&features.GetFeatures(),
-                         weightedTarget, weights,
-                         indices,
-                         partitionStats,
-                         depth,
-                         foldCount,
-                         histogram);
+            CHECK_RESULT(EFeaturesGroupingPolicy::OneByteFeatures)
         }
         if (calcer.HasHalfByteFeatureHelper()) {
             auto& scoreHelper = calcer.GetHalfByteFeatureHelper();
-            auto histogram = scoreHelper.ReadHistograms();
-
-            CheckResults(&features.GetHalfByteFeatures(),
-                         weightedTarget, weights,
-                         indices,
-                         partitionStats,
-                         depth,
-                         foldCount,
-                         histogram);
+            CHECK_RESULT(EFeaturesGroupingPolicy::HalfByteFeatures)
         }
+
+        #undef CHECK_RESULT
     }
 
-    void TestPointwiseHistogramForDataSet(const TDataSet<>& dataSet,
-                                          const TBinarizedFeaturesManager& featuresManager) {
+    void TestPointwiseHistogramForFeatureParallelDataSet(const TFeatureParallelDataSet<>& dataSet,
+                                                         const TBinarizedFeaturesManager& featuresManager) {
         TRandom rand(10);
         const ui32 dsSize = dataSet.GetIndices().GetObjectsSlice().Size();
 
@@ -352,29 +374,30 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
 
         ui32 targetSize = totalSize;
-        TL2Target target = CreateTestTarget(targetSize);
+        TL2Target<NCudaLib::TMirrorMapping> target = CreateTestTarget(dataSet.GetIndices().GetMapping(),
+                                                                      targetSize);
 
         auto indices = TMirrorBuffer<ui32>::CopyMapping(target.WeightedTarget);
         indices.Write(learnIndices);
-        TOptimizationSubsets subsets = CreateSubsets(maxDepth, target, foldCount, foldBins);
+        TOptimizationSubsets<NCudaLib::TMirrorMapping> subsets = CreateSubsets(maxDepth, target, foldCount, foldBins);
 
         TScopedCacheHolder cache;
 
         TMirrorBuffer<ui32> docBins = TMirrorBuffer<ui32>::CopyMapping(dataSet.GetIndices());
 
-        TTreeUpdater<TDataSet<>> treeUpdater(cache,
-                                             featuresManager,
-                                             dataSet.GetCtrTargets(),
-                                             dataSet,
-                                             docBins);
+        TTreeUpdater<TFeatureParallelDataSet<>> treeUpdater(cache,
+                                                            featuresManager,
+                                                            dataSet.GetCtrTargets(),
+                                                            dataSet,
+                                                            docBins);
 
         TVector<float> gatheredTarget;
         TVector<float> gatheredWeights;
 
-        subsets.GatheredTarget.WeightedTarget.Read(gatheredTarget);
-        subsets.GatheredTarget.Weights.Read(gatheredWeights);
+        subsets.WeightedTarget.Read(gatheredTarget);
+        subsets.Weights.Read(gatheredWeights);
 
-        auto partitionStats = subsets.ComputePartitionStats();
+        auto& partitionStats = subsets.PartitionStats;
         CheckStats(subsets, gatheredTarget, gatheredWeights, partitionStats);
 
         auto observationIndices = TMirrorBuffer<ui32>::CopyMapping(subsets.Indices);
@@ -383,18 +406,31 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         NCatboostOptions::TObliviousTreeLearnerOptions treeConfig(ETaskType::GPU);
         treeConfig.MaxDepth = maxDepth;
 
-        TGpuFeaturesScoreCalcer<> featuresScoreCalcer(dataSet.GetFeatures(), treeConfig, foldCount, true);
-        TGpuFeaturesScoreCalcer<> simpleCtrScoreCalcer(dataSet.GetPermutationFeatures(), treeConfig, foldCount, true);
+        THolder<TScoresCalcerOnCompressedDataSet<>> featuresScoreCalcer;
+        if (dataSet.HasFeatures()) {
+            featuresScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(dataSet.GetFeatures(),
+                                                                         treeConfig,
+                                                                         foldCount,
+                                                                         true);
+        }
+
+
+        THolder<TScoresCalcerOnCompressedDataSet<>> simpleCtrScoreCalcer;
+        if (dataSet.HasPermutationDependentFeatures()) {
+            simpleCtrScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(dataSet.GetPermutationFeatures(),
+                                                                          treeConfig,
+                                                                          foldCount,
+                                                                          true);
+        }
 
         TObliviousTreeStructure result;
 
         for (ui32 depth = 0; depth < maxDepth; ++depth) {
             //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
             //best score stage
-            partitionStats = subsets.ComputePartitionStats();
             {
-                subsets.GatheredTarget.WeightedTarget.Read(gatheredTarget);
-                subsets.GatheredTarget.Weights.Read(gatheredWeights);
+                subsets.WeightedTarget.Read(gatheredTarget);
+                subsets.Weights.Read(gatheredWeights);
                 CheckStats(subsets, gatheredTarget, gatheredWeights, partitionStats);
             }
 
@@ -415,38 +451,50 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             manager.WaitComplete();
 
             {
-                featuresScoreCalcer.SubmitCompute(subsets, observationIndices);
-                simpleCtrScoreCalcer.SubmitCompute(subsets, directObservationIndices);
+                if (featuresScoreCalcer) {
+                    featuresScoreCalcer->SubmitCompute(subsets, observationIndices);
+                }
+                if (simpleCtrScoreCalcer) {
+                    simpleCtrScoreCalcer->SubmitCompute(subsets, directObservationIndices);
+                }
             }
             manager.WaitComplete();
+            auto currentParts = TSubsetsHelper<NCudaLib::TMirrorMapping>::CurrentPartsView(subsets);
+            if (featuresScoreCalcer) {
+                CheckResultsForCompressedDataSet(dataSet.GetFeatures(),
+                                                 *featuresScoreCalcer,
+                                                 currentParts,
+                                                 subsets.WeightedTarget,
+                                                 subsets.Weights,
+                                                 observationIndices,
+                                                 depth,
+                                                 foldCount);
+            }
 
-            CheckResultsForGpuFeatures(dataSet.GetFeatures(),
-                                       featuresScoreCalcer,
-                                       subsets.CurrentPartsView(),
-                                       subsets.GatheredTarget.WeightedTarget,
-                                       subsets.GatheredTarget.Weights,
-                                       observationIndices,
-                                       depth,
-                                       foldCount);
-
-            CheckResultsForGpuFeatures(dataSet.GetPermutationFeatures(),
-                                       simpleCtrScoreCalcer,
-                                       subsets.CurrentPartsView(),
-                                       subsets.GatheredTarget.WeightedTarget,
-                                       subsets.GatheredTarget.Weights,
-                                       directObservationIndices,
-                                       depth,
-                                       foldCount);
+            if (simpleCtrScoreCalcer) {
+                CheckResultsForCompressedDataSet(dataSet.GetPermutationFeatures(),
+                                                 *simpleCtrScoreCalcer,
+                                                 currentParts,
+                                                 subsets.WeightedTarget,
+                                                 subsets.Weights,
+                                                 directObservationIndices,
+                                                 depth,
+                                                 foldCount);
+            }
 
             {
-                featuresScoreCalcer.ComputeOptimalSplit(partitionStats);
-                simpleCtrScoreCalcer.ComputeOptimalSplit(partitionStats);
+                if (featuresScoreCalcer) {
+                    featuresScoreCalcer->ComputeOptimalSplit(partitionStats);
+                }
+                if (simpleCtrScoreCalcer) {
+                    simpleCtrScoreCalcer->ComputeOptimalSplit(partitionStats);
+                }
             }
 
             TBinarySplit bestSplit;
             {
                 //                const TGpuBinarizedDataSet<TByteFeatureGridPolicy>& byteFeatures
-                auto featureIds = dataSet.GetFeatures().ComputeAllFeatureIds();
+                auto featureIds = dataSet.GetFeatures().GetFeatures();
                 //                TVector<TCFeature> features = byteFeatures.GetHostFeatures();
                 auto localIdx = rand.NextUniformL() % featureIds.size();
                 bestSplit.FeatureId = featureIds[localIdx];
@@ -455,8 +503,157 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
                 treeUpdater.AddSplit(bestSplit);
 
-                subsets.Split(docBins,
-                              observationIndices);
+                TSubsetsHelper<NCudaLib::TMirrorMapping>::Split(target,
+                                                                docBins,
+                                                                observationIndices,
+                                                                &subsets
+                );
+            }
+        }
+    }
+
+
+//
+    void TestPointwiseHistogramForDocParallelDataSet(const TDocParallelDataSet& dataSet,
+                                                     const TBinarizedFeaturesManager& featuresManager) {
+        TRandom rand(10);
+        auto samplesMapping = dataSet.GetSamplesMapping();
+
+        TStripeBuffer<ui32> indices;
+        indices.Reset(dataSet.GetSamplesMapping());
+        MakeSequence(indices);
+
+        const ui32 maxDepth = 10;
+        TVector<ui32> foldSizes;
+
+        TVector<ui32> learnIndices;
+        {
+            indices.Read(learnIndices);
+        }
+
+        ui32 targetSize = samplesMapping.GetObjectsSlice().Size();
+        TL2Target<NCudaLib::TStripeMapping> target = CreateTestTarget(samplesMapping,
+                                                                      targetSize);
+
+        using THelper = TSubsetsHelper<NCudaLib::TStripeMapping>;
+        auto subsets = THelper::CreateSubsets(maxDepth,
+                                              target);
+
+        TVector<float> gatheredTarget;
+        TVector<float> gatheredWeights;
+
+        subsets.WeightedTarget.Read(gatheredTarget);
+        subsets.Weights.Read(gatheredWeights);
+
+        auto& partitionStats = subsets.PartitionStats;
+        CheckStats(subsets, gatheredTarget, gatheredWeights, partitionStats);
+
+        auto docs = TStripeBuffer<ui32>::CopyMapping(subsets.Indices);
+
+        NCatboostOptions::TObliviousTreeLearnerOptions treeConfig(ETaskType::GPU);
+        treeConfig.MaxDepth = maxDepth;
+
+        using TScoreCalcer = TScoresCalcerOnCompressedDataSet<TDocParallelLayout>;
+        THolder<TScoreCalcer> featuresScoreCalcer;
+        THolder<TScoreCalcer> simpleCtrScoreCalcer;
+
+        if (dataSet.HasFeatures()) {
+            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
+                                                   treeConfig,
+                                                   1,
+                                                   true);
+        }
+
+
+        if (dataSet.HasPermutationDependentFeatures()) {
+            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
+                                                    treeConfig,
+                                                    1,
+                                                    true);
+        }
+
+        TObliviousTreeStructure result;
+
+        for (ui32 depth = 0; depth < maxDepth; ++depth) {
+            //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
+            //best score stage
+            {
+                subsets.WeightedTarget.Read(gatheredTarget);
+                subsets.Weights.Read(gatheredWeights);
+                CheckStats(subsets, gatheredTarget, gatheredWeights, partitionStats);
+            }
+
+            //gather doc-ids by leaves
+            {
+                Gather(docs, indices, subsets.Indices);
+            }
+            auto& manager = NCudaLib::GetCudaManager();
+
+            manager.WaitComplete();
+
+            {
+                if (featuresScoreCalcer) {
+                    featuresScoreCalcer->SubmitCompute(subsets,
+                                                       docs);
+                }
+                if (simpleCtrScoreCalcer) {
+                    simpleCtrScoreCalcer->SubmitCompute(subsets,
+                                                        docs);
+                }
+            }
+            manager.WaitComplete();
+            auto currentParts = THelper::CurrentPartsView(subsets);
+
+            TMirrorBuffer<TPartitionStatistics> reducedPartsStats;
+            NCudaLib::AllReduceThroughMaster(subsets.PartitionStats, reducedPartsStats);
+
+            if (featuresScoreCalcer) {
+                CheckResultsForCompressedDataSet(dataSet.GetFeatures(),
+                                                 *featuresScoreCalcer,
+                                                 currentParts,
+                                                 subsets.WeightedTarget,
+                                                 subsets.Weights,
+                                                 docs,
+                                                 depth,
+                                                 1);
+            }
+
+            if (simpleCtrScoreCalcer) {
+                CheckResultsForCompressedDataSet(dataSet.GetPermutationFeatures(),
+                                                 *simpleCtrScoreCalcer,
+                                                 currentParts,
+                                                 subsets.WeightedTarget,
+                                                 subsets.Weights,
+                                                 docs,
+                                                 depth,
+                                                 1);
+            }
+
+            {
+                if (featuresScoreCalcer) {
+                    featuresScoreCalcer->ComputeOptimalSplit(reducedPartsStats);
+                }
+                if (simpleCtrScoreCalcer) {
+                    simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartsStats);
+                }
+            }
+
+
+            TBinarySplit bestSplit;
+            {
+                auto featureIds = dataSet.GetFeatures().GetFeatures();
+                auto localIdx = rand.NextUniformL() % featureIds.size();
+                bestSplit.FeatureId = featureIds[localIdx];
+                bestSplit.BinIdx = featuresManager.GetBinCount(bestSplit.FeatureId) / 2;
+                bestSplit.SplitType = featuresManager.IsCat(localIdx) ? EBinSplitType::TakeBin : EBinSplitType::TakeGreater;
+            }
+            {
+                TSubsetsHelper<NCudaLib::TStripeMapping>::Split(target,
+                                                                dataSet.GetCompressedIndex().GetStorage(),
+                                                                docs,
+                                                                dataSet.GetTCFeature(bestSplit.FeatureId),
+                                                                bestSplit.BinIdx,
+                                                                &subsets);
             }
         }
     }
@@ -464,7 +661,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     void TestPointwiseHist(ui32 binarization,
                            ui32 oneHotLimit,
                            ui32 permutationCount) {
-        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum,
+                                                                 binarization);
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.MaxTensorComplexity = 3;
         catFeatureParams.OneHotMaxSize = oneHotLimit;
@@ -496,18 +694,67 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                       dataProvider,
-                                                       nullptr,
-                                                       false);
+        TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
+                                                                      dataProvider,
+                                                                      nullptr,
+                                                                      1);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
-            TestPointwiseHistogramForDataSet(dataSet.GetDataSetForPermutation(i), featuresManager);
+            TestPointwiseHistogramForFeatureParallelDataSet(dataSet.GetDataSetForPermutation(i),
+                                                            featuresManager);
         }
     }
 
-    void RunTest(ui32 seed, ui32 oneHotLimit) {
+    void TestPointwiseHistDocParallel(ui32 binarization,
+                                      ui32 oneHotLimit,
+                                      ui32 permutationCount) {
+        NCatboostOptions::TBinarizationOptions floatBinarization(EBorderSelectionType::GreedyLogSum,
+                                                                 binarization);
+        NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
+        catFeatureParams.MaxTensorComplexity = 3;
+        catFeatureParams.OneHotMaxSize = oneHotLimit;
+        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
+
+        TDataProvider dataProvider;
+        TOnCpuGridBuilderFactory gridBuilderFactory;
+        TDataProviderBuilder dataProviderBuilder(featuresManager,
+                                                 dataProvider);
+
+        ReadPool("test-pool.txt.cd",
+                 "test-pool.txt",
+                 "",
+                 16,
+                 true,
+                 dataProviderBuilder.SetShuffleFlag(false));
+
+        {
+            NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+            NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
+
+            TVector<TVector<float>> prior = {{0.5, 1.0}};
+            NCatboostOptions::TCtrDescription bucketsCtr(ECtrType::Buckets, prior, bucketsBinarization);
+            NCatboostOptions::TCtrDescription freqCtr(ECtrType::FeatureFreq, prior, freqBinarization);
+            catFeatureParams.AddSimpleCtrDescription(bucketsCtr);
+            catFeatureParams.AddSimpleCtrDescription(freqCtr);
+
+            catFeatureParams.AddTreeCtrDescription(bucketsCtr);
+            catFeatureParams.AddTreeCtrDescription(freqCtr);
+        }
+
+        TDocParallelDataSetBuilder dataSetsHolderBuilder(featuresManager,
+                                                         dataProvider,
+                                                         nullptr);
+
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+
+        for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
+            TestPointwiseHistogramForDocParallelDataSet(dataSet.GetDataSetForPermutation(i),
+                                                        featuresManager);
+        }
+    }
+
+    void RunTests(ui32 seed, ui32 oneHotLimit, bool featureParallel = true) {
         TRandom random(seed);
         TBinarizedPool pool;
 
@@ -522,18 +769,31 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                     SavePoolToFile(pool, "test-pool.txt");
                     SavePoolCDToFile("test-pool.txt.cd", numCatFeatures);
 
-                    TestPointwiseHist(bin, oneHotLimit, 8);
+                    if (featureParallel) {
+                        TestPointwiseHist(bin, oneHotLimit, 4);
+                    } else {
+                        TestPointwiseHistDocParallel(bin, oneHotLimit, 4);
+                    }
                 }
             }
         }
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherWithoutOneHot) {
-        RunTest(0, 0);
+    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithoutOneHot) {
+        RunTests(0, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherWitOneHot) {
-        RunTest(0, 6);
+    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithOneHot) {
+        RunTests(0, 6);
+    }
+
+
+    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithoutOneHot) {
+        RunTests(0, 0, false);
+    }
+
+    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithOneHot) {
+        RunTests(0, 6, false);
     }
     //
 }

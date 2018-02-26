@@ -2,29 +2,36 @@
 
 #include "train.h"
 
-#include <catboost/cuda/methods/boosting.h>
-#include <catboost/cuda/methods/oblivious_tree.h>
+#include <catboost/cuda/methods/dynamic_boosting.h>
+#include <catboost/cuda/methods/feature_parallel_pointwise_oblivious_tree.h>
 #include <catboost/cuda/cuda_lib/cuda_base.h>
+#include <catboost/cuda/methods/doc_parallel_pointwise_oblivious_tree.h>
+#include <catboost/cuda/methods/doc_parallel_boosting.h>
 
 namespace NCatboostCuda {
-    template <template <class TMapping, class> class TTargetTemplate, NCudaLib::EPtrType CatFeaturesStoragePtrType>
-    inline THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
-                                                              const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                                              const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                              const TDataProvider& learn,
-                                                              const TDataProvider* test,
-                                                              TRandom& random) {
-        using TTaskDataSet = TDataSet<CatFeaturesStoragePtrType>;
-        using TTarget = TTargetTemplate<NCudaLib::TMirrorMapping, TTaskDataSet>;
+    template <class TBoosting>
+    inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
+                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                                         const TDataProvider& learn,
+                                                                         const TDataProvider* test,
+                                                                         TRandom& random) {
+
+        using TWeakLearner = typename TBoosting::TWeakLearner;
+        using TWeakModel = typename TBoosting::TWeakModel;
+        using TObjective = typename TBoosting::TObjective;
 
         const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
-        TObliviousTree tree(featureManager, catBoostOptions.ObliviousTreeOptions.Get(), catBoostOptions.RandomSeed, zeroAverage);
+        TWeakLearner weak(featureManager,
+                          catBoostOptions,
+                          zeroAverage);
+
         const auto& boostingOptions = catBoostOptions.BoostingOptions.Get();
-        TDynamicBoosting<TTargetTemplate, TObliviousTree, CatFeaturesStoragePtrType> boosting(featureManager,
-                                                                                              boostingOptions,
-                                                                                              catBoostOptions.LossFunctionDescription,
-                                                                                              random,
-                                                                                              tree);
+        TBoosting boosting(featureManager,
+                           boostingOptions,
+                           catBoostOptions.LossFunctionDescription,
+                           random,
+                           weak);
 
         if (outputOptions.SaveSnapshot()) {
             NJson::TJsonValue options;
@@ -32,10 +39,11 @@ namespace NCatboostCuda {
             auto optionsStr = ToString<NJson::TJsonValue>(options);
             boosting.SaveSnapshot(outputOptions.CreateSnapshotFullPath(), optionsStr, outputOptions.GetSnapshotSaveInterval());
         }
-        boosting.SetDataProvider(learn, test);
+        boosting.SetDataProvider(learn,
+                                 test);
 
-        using TMetricPrinter = TMetricLogger<TTarget, TObliviousTreeModel>;
-        TIterationLogger<TTarget, TObliviousTreeModel> iterationPrinter(":\t");
+        using TMetricPrinter = TMetricLogger<TObjective, TWeakModel>;
+        TIterationLogger<TObjective, TWeakModel> iterationPrinter(":\t");
 
         THolder<IOverfittingDetector> overfitDetector;
         boosting.RegisterLearnListener(iterationPrinter);
@@ -43,6 +51,7 @@ namespace NCatboostCuda {
         THolder<TMetricPrinter> learnPrinter;
         THolder<TMetricPrinter> testPrinter;
 
+        //TODO(noxoomo): to new CPU logger
         {
             THolder<TOFStream> metaOutPtr;
             const bool allowWriteFiles = outputOptions.AllowWriteFiles();
@@ -70,7 +79,7 @@ namespace NCatboostCuda {
 
                     const auto& odOptions = boostingOptions.OverfittingDetector;
                     if (odOptions->AutoStopPValue > 0) {
-                        overfitDetector = CreateOverfittingDetector(odOptions, !TTarget::IsMinOptimal(), true);
+                        overfitDetector = CreateOverfittingDetector(odOptions, !TObjective::IsMinOptimal(), true);
                         testPrinter->RegisterOdDetector(overfitDetector.Get());
                     }
                 }
@@ -94,9 +103,9 @@ namespace NCatboostCuda {
             boosting.AddOverfitDetector(*overfitDetector);
         }
 
-        TTimeWriter<TTarget, TObliviousTreeModel> timeWriter(boostingOptions.IterationCount,
-                                                             outputOptions.CreateTimeLeftLogFullPath(),
-                                                             "\n");
+        TTimeWriter<TObjective, TObliviousTreeModel> timeWriter(boostingOptions.IterationCount,
+                                                                outputOptions.CreateTimeLeftLogFullPath(),
+                                                                 "\n");
         if (testPrinter) {
             boosting.RegisterTestListener(timeWriter);
         } else {
@@ -128,10 +137,24 @@ namespace NCatboostCuda {
                                                        const TDataProvider* test,
                                                        TRandom& random,
                                                        bool storeCatFeaturesInPinnedMemory) {
-        if (storeCatFeaturesInPinnedMemory) {
-            return Train<TTargetTemplate, NCudaLib::EPtrType::CudaHost>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+
+        if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
+            using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
+            #define TRAIN_FEATURE_PARALLEL(PtrType) \
+        using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner, PtrType>; \
+        return Train<TBoosting>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+
+            if (storeCatFeaturesInPinnedMemory) {
+                TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaHost)
+            } else {
+                TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaDevice)
+            }
+            #undef TRAIN_FEATURE_PARALLEL
+
         } else {
-            return Train<TTargetTemplate, NCudaLib::EPtrType::CudaDevice>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+            using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
+            return Train<TDocParallelBoosting>(featureManager, catBoostOptions, outputOptions,
+                                               learn, test, random);
         }
     };
 
@@ -144,6 +167,8 @@ namespace NCatboostCuda {
                                                                         const TDataProvider* test,
                                                                         TRandom& random,
                                                                         bool storeInPinnedMemory) const {
+
+
             return Train<TTargetTemplate>(featuresManager,
                                           catBoostOptions,
                                           outputOptions,

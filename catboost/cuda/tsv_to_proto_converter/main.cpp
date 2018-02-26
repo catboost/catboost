@@ -66,13 +66,26 @@ void ParseCommandLine(int argc, const char** argv, TPoolConvertConfig& settings)
         .RequiredArgument()
         .StoreResult(&settings.NumThreads);
 
+    parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
+            .RequiredArgument("int")
+            .Handler1T<int>([&](int count) {
+                settings.FloatBinarization.BorderCount = count;
+            });
+
+    parser.AddLongOption("feature-border-type",
+                         "Should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum")
+            .RequiredArgument("border-type")
+            .Handler1T<TString>([&](const TString& type) {
+                settings.FloatBinarization.BorderSelectionType = FromString<EBorderSelectionType>(type);
+            });
+
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 }
 
 int DoMain(int argc, const char** argv) {
     TPoolConvertConfig config;
     ParseCommandLine(argc, argv, config);
-
+    SetLogingLevel(ELoggingLevel::Debug);
     NPar::LocalExecutor().RunAdditionalThreads(config.NumThreads);
     TOnCpuGridBuilderFactory gridBuilderFactory;
 

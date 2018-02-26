@@ -81,6 +81,39 @@ namespace NKernelHost {
                                           stream.GetStream());
         }
     };
+
+
+    template <NCudaLib::EPtrType Type>
+    class TWriteCompressedIndexKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui8, Type> Bins;
+        TCFeature Feature;
+        TCudaBufferPtr<ui32> Dst;
+
+    public:
+        TWriteCompressedIndexKernel() = default;
+
+        TWriteCompressedIndexKernel(TCudaBufferPtr<const ui8, Type> bins,
+                                    TCFeature feature,
+                                    TCudaBufferPtr<ui32> cindex)
+                : Bins(bins)
+                , Feature(feature)
+                , Dst(cindex)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Bins, Feature, Dst);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(Feature.Mask != 0);
+            CB_ENSURE(Feature.Offset != (ui64)(-1));
+            NKernel::WriteCompressedIndex(Feature,
+                                          Bins.Get(),
+                                          Bins.Size(),
+                                          Dst.Get(),
+                                          stream.GetStream());
+        }
+    };
 }
 
 template <class TFloat, class TMapping>
@@ -94,11 +127,23 @@ inline void ComputeBordersOnDevice(const TCudaBuffer<TFloat, TMapping>& feature,
 template <class TValuesFloatType, class TBordersFloatType, class TUi32, class TMapping>
 inline void BinarizeOnDevice(const TCudaBuffer<TValuesFloatType, TMapping>& featureValues,
                              const TCudaBuffer<TBordersFloatType, TMapping>& borders,
-                             TCFeature feature,
+                             const NCudaLib::TDistributedObject<TCFeature>& feature,
                              TCudaBuffer<ui32, TMapping>& dst,
                              bool atomicUpdate,
                              const TCudaBuffer<TUi32, TMapping>* gatherIndices,
                              ui32 stream = 0) {
     using TKernel = NKernelHost::TBinarizeFloatFeatureKernel;
     LaunchKernels<TKernel>(featureValues.NonEmptyDevices(), stream, featureValues, borders, feature, gatherIndices, dst, atomicUpdate);
+};
+
+
+template <class TUi32,
+          class TBinsBuffer,
+          class TMapping>
+inline void WriteCompressedFeature(const NCudaLib::TDistributedObject<TCFeature>& feature,
+                                   const TBinsBuffer& bins,
+                                   TCudaBuffer<TUi32, TMapping>& cindex,
+                                   ui32 stream = 0) {
+    using TKernel = NKernelHost::TWriteCompressedIndexKernel<TBinsBuffer::PtrType()>;
+    LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, feature, cindex);
 };

@@ -5,7 +5,7 @@ namespace NKernel {
     struct TZeroWeightFilter {
 
         __device__ ui32 operator()(float w) {
-            return w != 0;
+            return abs(w) > 1e-20f;
         }
     };
 
@@ -17,9 +17,9 @@ namespace NKernel {
         Filter filter;
         if (i < size) {
             result[i] = filter(weights[i]);
-            weights[i] != 0 ? 0 : 1;
         }
     }
+
 
     void Filter(const float* weights, const ui32 size, ui32* result, TCudaStream stream) {
         if (size > 0) {

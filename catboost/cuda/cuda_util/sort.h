@@ -157,14 +157,15 @@ namespace NKernelHost {
 }
 
 template <typename K, class TMapping>
-inline void RadixSort(TCudaBuffer<K, TMapping>& keys, bool compareGreater = false, ui64 stream = 0) {
+inline void RadixSort(TCudaBuffer<K, TMapping>& keys, bool compareGreater = false, ui32 stream = 0) {
     using TKernel = NKernelHost::TRadixSortKernel<K, char>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, compareGreater);
 }
 
 template <typename K, typename V, class TMapping>
-inline void RadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,
-                      bool compareGreater = false, ui64 stream = 0) {
+inline void RadixSort(TCudaBuffer<K, TMapping>& keys,
+                      TCudaBuffer<V, TMapping>& values,
+                      bool compareGreater = false, ui32 stream = 0) {
     using TKernel = NKernelHost::TRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater);
 }

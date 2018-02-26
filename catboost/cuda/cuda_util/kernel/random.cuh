@@ -15,4 +15,6 @@ namespace NKernel {
 
     void BetaRand(ui64* seeds, const float* alphas, const float* betas,
                   ui32 size, float* result, TCudaStream stream);
+
+    void GenerateSeeds(ui64 baseSeed, ui64* seeds, ui64 size, TCudaStream stream);
 }

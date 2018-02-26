@@ -3,8 +3,6 @@
 #include "enums.h"
 #include <util/generic/string.h>
 
-bool IsSupportedOnGpu(ELossFunction lossFunction);
-
 bool IsClassificationLoss(ELossFunction lossFunction);
 
 bool IsClassificationLoss(const TString& lossDescription);
@@ -16,3 +14,8 @@ bool IsPairwiseError(ELossFunction lossFunction);
 bool IsQuerywiseError(ELossFunction lossFunction);
 
 bool IsPlainMode(EBoostingType boostingType);
+
+bool IsSecondOrderScoreFunction(EScoreFunction scoreFunction);
+
+bool AreZeroWeightsAfterBootstrap(EBootstrapType type);
+

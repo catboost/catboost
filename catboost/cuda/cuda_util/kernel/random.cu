@@ -104,4 +104,33 @@ namespace NKernel {
         BetaRandImpl<<<numBlocks, blockSize, 0, stream>>>(seeds, alphas, betas, size, result);
     }
 
+
+    __global__ void GenerateSeedsImpl(ui64 baseSeed, ui64* seeds, ui64 size) {
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i < size) {
+            ui32 baseSeed1 = (baseSeed >> 32);
+            ui32 baseSeed2 = (baseSeed & 0xFFFFFF);
+            ui32 tmp1 = 134775813 * i + 1664525 * baseSeed1 + 69069 *  baseSeed2 + 1013904225;
+            ui32 tmp2 = 1664525 * (baseSeed1 + 134775813  * baseSeed2 + i + 1) + 1013904223;
+            for (int j = 0; j < 4 + (threadIdx.x % 8); ++j) {
+                tmp1 = AdvanceSeed32(&tmp1);
+                tmp2 = AdvanceSeed32(&tmp2);
+            }
+            //no math here, just stupid heuristics
+            ui64 s = (((ui64)tmp1) << 32) | tmp2;
+            seeds[i] = AdvanceSeed(&s, blockIdx.x);
+            i += gridDim.x * blockDim.x;
+        }
+    }
+
+    void GenerateSeeds(ui64 baseSeed, ui64* seeds, ui64 size, TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((size + blockSize - 1) / blockSize,
+                                   (ui64)TArchProps::MaxBlockCount());
+        GenerateSeedsImpl<<<numBlocks, blockSize, 0, stream>>>(baseSeed, seeds, size);
+
+    }
+
+
 }

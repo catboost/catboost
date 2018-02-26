@@ -9,6 +9,7 @@
 
 namespace NCatboostCuda {
     //stores expression for binarized features calculations and mapping from this expression to unique ids
+    //WARNING: not thread-safe
     class TBinarizedFeaturesManager {
     public:
         explicit TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
@@ -61,22 +62,15 @@ namespace NCatboostCuda {
             return Borders.at(id);
         }
 
-        template <class TBuilder>
-        TVector<float> GetOrBuildCtrBorders(const TCtr& ctr,
-                                            TBuilder&& gridBuilder) {
-            ui32 ctrId;
-
-            if (!KnownCtrs.has(ctr)) {
-                ctrId = AddCtr(ctr);
-            } else {
-                ctrId = GetId(ctr);
-            }
-
-            if (!Borders.has(ctrId)) {
-                Borders[ctrId] = gridBuilder();
-            }
-            return Borders[ctrId];
+        bool HasBorders(ui32 featureId) const {
+            return Borders.has(featureId);
         }
+
+        void SetBorders(ui32 featureId, TVector<float> borders) {
+            CB_ENSURE(!HasBorders(featureId));
+            Borders[featureId] = std::move(borders);
+        }
+
 
         bool IsFloat(ui32 featureId) const {
             if (FeatureManagerIdToDataProviderId.has(featureId)) {
@@ -106,17 +100,18 @@ namespace NCatboostCuda {
 
         bool UseForOneHotEncoding(ui32 featureId) const {
             CB_ENSURE(IsCat(featureId));
-            return GetUniqueValues(featureId) <= CatFeatureOptions.OneHotMaxSize;
+            const ui32 uniqueValues = GetUniqueValues(featureId);
+            return (uniqueValues > 1) && uniqueValues <= CatFeatureOptions.OneHotMaxSize;
         }
 
         bool UseForCtr(ui32 featureId) const {
             CB_ENSURE(IsCat(featureId));
-            return GetUniqueValues(featureId) > CatFeatureOptions.OneHotMaxSize;
+            return GetUniqueValues(featureId) > Max<ui32>(1u, CatFeatureOptions.OneHotMaxSize);
         }
 
         bool UseForTreeCtr(ui32 featureId) const {
             CB_ENSURE(IsCat(featureId));
-            return GetUniqueValues(featureId) > CatFeatureOptions.OneHotMaxSize &&
+            return GetUniqueValues(featureId) > Max<ui32>(1u, CatFeatureOptions.OneHotMaxSize) &&
                    (CatFeatureOptions.MaxTensorComplexity > 1);
         }
 
@@ -346,6 +341,17 @@ namespace NCatboostCuda {
             return TVector<ui32>(resultIds.begin(), resultIds.end());
         }
 
+        TVector<ui32> GetAllSimpleCtrs() const {
+            TVector<ui32> ids;
+            for (auto& knownCtr : KnownCtrs) {
+                const TCtr& ctr = knownCtr.first;
+                if (ctr.IsSimple()) {
+                    ids.push_back(knownCtr.second);
+                }
+            }
+            return ids;
+        }
+
         TVector<ui32> CreateCombinationCtrForType(ECtrType type) {
             TSet<ui32> resultIds;
 
@@ -434,7 +440,7 @@ namespace NCatboostCuda {
             TVector<ui32> featureIds;
 
             for (const auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
-                if (GetBinCount(feature.second)) {
+                if (GetBinCount(feature.second) > 1) {
                     featureIds.push_back(feature.second);
                 }
             }
@@ -593,6 +599,7 @@ namespace NCatboostCuda {
             CB_ENSURE(IsCat(featureId));
             return CatFeaturesPerfectHash.GetUniqueValues(featureId);
         }
+
 
         ui32 RequestNewId() {
             return Cursor++;

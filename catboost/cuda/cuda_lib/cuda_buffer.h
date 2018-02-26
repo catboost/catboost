@@ -495,7 +495,7 @@ namespace NCudaLib {
 
         {
             TSlice firstDevSlice = srcMapping.DeviceSlice(0);
-            CB_ENSURE(slice.Size() < firstDevSlice.Size());
+            CB_ENSURE(slice.Size() <= firstDevSlice.Size());
 
             ui32 cursor = 0;
             for (ui32 dev = 0; dev < devCount; ++dev) {
@@ -521,4 +521,61 @@ namespace NCudaLib {
 
         return parallelViewBuffer;
     }
+
+
+
+
+    template <class T>
+    class TStripeVectorBuilder {
+    public:
+
+        TStripeVectorBuilder() {
+            Data.resize(NCudaLib::GetCudaManager().GetDeviceCount());
+        }
+
+        void Add(const NCudaLib::TDistributedObject<T>& entry) {
+
+            for (ui32 i = 0; i < Data.size(); ++i) {
+                Data[i].push_back(entry.At(i));
+            }
+        }
+
+        template <NCudaLib::EPtrType Type>
+        void Build(NCudaLib::TCudaBuffer<T, TStripeMapping, Type>& dst, ui32 stream = 0) {
+
+            TMappingBuilder<NCudaLib::TStripeMapping> builder;
+            TVector<T> flatData;
+            flatData.reserve(Data.size() * Data[0].size());
+            for (ui32 dev = 0; dev < Data.size(); ++dev) {
+                builder.SetSizeAt(dev, Data[dev].size());
+                for (const auto& entry : Data[dev]) {
+                    flatData.push_back(entry);
+                }
+            }
+
+            dst.Reset(builder.Build());
+            dst.Write(flatData, stream);
+        }
+
+    private:
+        TVector<TVector<T> > Data;
+    };
+
+
+    template <bool IsConst>
+    struct TMaybeConstView;
+
+    template <>
+    struct TMaybeConstView<true> {
+        template <class T, class TMapping>
+        using TBuffer = TCudaBuffer<const T, TMapping>;
+    };
+
+    template <>
+    struct TMaybeConstView<false> {
+        template <class T, class TMapping>
+        using TBuffer = TCudaBuffer<T, TMapping>;
+    };
+
+
 }

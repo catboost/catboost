@@ -33,6 +33,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetFeatureCount(ui32 devId) const {
+            CB_ENSURE(devId < DeviceFeatures.size(), "Error: " << GetFeatureCount() << " " << DeviceFeatures.size() << "/" << devId);
             return static_cast<ui32>(DeviceFeatures[devId].size());
         }
 

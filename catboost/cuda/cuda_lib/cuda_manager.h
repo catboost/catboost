@@ -29,7 +29,7 @@ namespace NCudaLib {
         template <class T>
         class TEmptyObjectsHelper {
         public:
-            static inline bool IsEmpty(T& val) {
+            static inline bool IsEmpty(const T& val) {
                 return val == 0;
             }
         };
@@ -44,20 +44,27 @@ namespace NCudaLib {
         TDistributedObject& operator=(TDistributedObject&& other) = default;
         TDistributedObject& operator=(const TDistributedObject& other) = default;
 
-        T At(ui64 devId) const {
+        T At(ui32 devId) const {
             return Data[devId];
         }
 
-        void Set(ui64 devId, T t) {
+        void Set(ui32 devId, T t) {
             Data[devId] = t;
         }
 
-        bool IsEmpty(ui64 devId) const {
+        bool IsEmpty(ui32 devId) const {
             return NHelpers::TEmptyObjectsHelper<T>::IsEmpty(At(devId));
         }
 
         ui64 DeviceCount() const {
             return Data.size();
+        }
+
+        TDistributedObject& operator+=(const TDistributedObject& other) {
+            for (ui32 dev = 0; dev < Data.size(); ++dev) {
+                Data[dev] += other.Data[dev];
+            }
+            return *this;
         }
 
         void Fill(const T& value) {
@@ -245,6 +252,22 @@ namespace NCudaLib {
             return GetState().Devices.size();
         }
 
+        TVector<ui32> GetDevices(bool onlyLocalIfHasAny = true) const {
+            TVector<ui32> devices;
+            for (auto& dev : DevicesList) {
+                if (onlyLocalIfHasAny && GetState().Devices[dev]->IsRemoteDevice()) {
+                    continue;
+                }
+                devices.push_back(dev);
+            }
+            if (devices.size() == 0) {
+                for (auto& dev : DevicesList) {
+                    devices.push_back(dev);
+                }
+            }
+            return devices;
+        }
+
         TDevicesList GetActiveDevices() const {
             return DevicesList;
         }
@@ -323,6 +346,13 @@ namespace NCudaLib {
         template <class T>
         TDistributedObject<T> CreateDistributedObject() {
             return TDistributedObject<T>(GetDeviceCount());
+        }
+
+        template <class T>
+        TDistributedObject<T> CreateDistributedObject(T defaultValue) {
+            auto object = TDistributedObject<T>(GetDeviceCount());
+            object.Fill(defaultValue);
+            return object;
         }
 
         template <class T, EPtrType Type>
@@ -437,7 +467,17 @@ namespace NCudaLib {
     public:
         using TRemoteObject = T;
 
-        static TRemoteObject At(ui64 devId, const TDistributedObject<T>& object) {
+        static TRemoteObject At(ui32 devId, const TDistributedObject<T>& object) {
+            return object.At(devId);
+        }
+    };
+
+    template <class T>
+    class TDeviceObjectExtractor<const TDistributedObject<T>> {
+    public:
+        using TRemoteObject = T;
+
+        static TRemoteObject At(ui32 devId, const TDistributedObject<T>& object) {
             return object.At(devId);
         }
     };
@@ -556,4 +596,17 @@ void RunSlave();
 
 inline ui64 GetDeviceCount() {
     return NCudaLib::GetCudaManager().GetDeviceCount();
+}
+
+
+template <class T>
+inline NCudaLib::TDistributedObject<T> CreateDistributedObject() {
+    auto object = NCudaLib::GetCudaManager().CreateDistributedObject<T>();
+    return object;
+}
+
+template <class T>
+inline NCudaLib::TDistributedObject<T> CreateDistributedObject(T defaultValue) {
+    auto object = NCudaLib::GetCudaManager().CreateDistributedObject<T>(defaultValue);
+    return object;
 }
