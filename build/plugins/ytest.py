@@ -108,6 +108,12 @@ def validate_test(kw):
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
+    if "ya:force_distbuild" in tags:
+        invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'cpu')]
+        if invalid_requirements_for_distbuild:
+            errors.append('Invalid requirement for distbuild mode (tag ya:force_distbuild): {}'.format(', '.join(invalid_requirements_for_distbuild)))
+            has_fatal_error = True
+
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
 
     if size not in size_timeout:
