@@ -54,7 +54,7 @@ void CalcFinalCtrs(
     const ECtrType ctrType,
     const TProjection& projection,
     const TTrainData& data,
-    const TVector<int>& learnPermutation,
+    const TVector<size_t>& learnPermutation,
     const TVector<int>& permutedTargetClass,
     int targetClassesCount,
     ui64 ctrLeafCountLimit,

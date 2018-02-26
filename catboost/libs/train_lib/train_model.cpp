@@ -131,25 +131,18 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         errorTracker.AddError(errorsHistory[i][0], i, &valuesToLog);
     }
 
-    TFold* fold;
-    if (!ctx->LearnProgress.Folds.empty()) {
-        fold = &ctx->LearnProgress.Folds[0]; // assume that all folds have the same shape
-    } else {
-        fold = &ctx->LearnProgress.AveragingFold;
-    }
-
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
-        ctx->SmallestSplitSideDocs.Create(*fold);
-        const int approxDimension = fold->GetApproxDimension();
-        const int bodyTailCount = fold->BodyTailArr.ysize();
+        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds);
         ctx->PrevTreeLevelStats.Create(
+            ctx->LearnProgress.Folds,
             CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
-            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth),
-            approxDimension,
-            bodyTailCount
+            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
         );
     }
-    ctx->SampledDocs.Create(*fold, GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)); // TODO(espetrov): create only if sample rate < 1
+    ctx->SampledDocs.Create(
+        ctx->LearnProgress.Folds,
+        GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
+    ); // TODO(espetrov): create only if sample rate < 1
 
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();
@@ -501,8 +494,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         const auto& cvParams = loadOptions.CvParams;
         if (cvParams.FoldCount != 0) {
-            CB_ENSURE(loadOptions.TestFile.empty(), "Test file is not supported in cross-validation mode");
-            CB_ENSURE(loadOptions.PairsFile.empty() && loadOptions.TestPairsFile.empty(), "Pairs are not supported in cross-validation mode");
+            CB_ENSURE(loadOptions.TestFile.empty() && loadOptions.TestPairsFile.empty(), "Test file is not supported in cross-validation mode");
             Y_VERIFY(cvParams.FoldIdx != -1);
 
             BuildCvPools(

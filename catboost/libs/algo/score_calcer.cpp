@@ -103,34 +103,34 @@ template<typename TBucketIndexType, typename TFullIndexType>
 static void SetSingleIndex(const TCalcScoreFold& fold,
                            const TStatsIndexer& indexer,
                            const TVector<TBucketIndexType>& bucketIndex,
-                           const int* docPermutation,
+                           const size_t* docPermutation,
                            TVector<TFullIndexType>* singleIdx) {
-    const int docCount = fold.GetDocCount();
-    const int permBlockSize = fold.PermutationBlockSize;
+    const size_t docCount = fold.GetDocCount();
+    const size_t permBlockSize = fold.PermutationBlockSize;
     const TIndexType* indices = GetDataPtr(fold.Indices);
 
     singleIdx->yresize(docCount);
     if (docPermutation == nullptr || permBlockSize == docCount) {
-        for (int doc = 0; doc < docCount; ++doc) {
+        for (size_t doc = 0; doc < docCount; ++doc) {
             (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[doc]);
         }
     } else if (permBlockSize > 1) {
-        const int blockCount = (docCount + permBlockSize - 1) / permBlockSize;
+        const size_t blockCount = (docCount + permBlockSize - 1) / permBlockSize;
         Y_ASSERT(docPermutation[0] / permBlockSize + 1 == blockCount || docPermutation[0] + permBlockSize - 1 == docPermutation[permBlockSize - 1]);
-        int blockStart = 0;
+        size_t blockStart = 0;
         while (blockStart < docCount) {
-            const int blockIdx = docPermutation[blockStart] / permBlockSize;
-            const int nextBlockStart = blockStart + (blockIdx + 1 == blockCount ? docCount - blockIdx * permBlockSize : permBlockSize);
-            const int originalBlockIdx = docPermutation[blockStart];
-            for (int doc = blockStart; doc < nextBlockStart; ++doc) {
-                const int originalDocIdx = originalBlockIdx + doc - blockStart;
+            const size_t blockIdx = docPermutation[blockStart] / permBlockSize;
+            const size_t nextBlockStart = blockStart + (blockIdx + 1 == blockCount ? docCount - blockIdx * permBlockSize : permBlockSize);
+            const size_t originalBlockIdx = docPermutation[blockStart];
+            for (size_t doc = blockStart; doc < nextBlockStart; ++doc) {
+                const size_t originalDocIdx = originalBlockIdx + doc - blockStart;
                 (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
             }
             blockStart = nextBlockStart;
         }
     } else {
-        for (int doc = 0; doc < docCount; ++doc) {
-            const int originalDocIdx = docPermutation[doc];
+        for (size_t doc = 0; doc < docCount; ++doc) {
+            const size_t originalDocIdx = docPermutation[doc];
             (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
         }
     }
@@ -151,14 +151,14 @@ static void BuildSingleIndex(const TCalcScoreFold& fold,
                              TVector<TFullIndexType>* singleIdx) {
     if (split.Type == ESplitType::OnlineCtr) {
         const TCtr& ctr = split.Ctr;
-        const int* docSubset = GetDataPtr(fold.IndexInFold);
+        const size_t* docSubset = GetDataPtr(fold.IndexInFold);
         SetSingleIndex(fold, indexer, GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx], docSubset, singleIdx);
     } else if (split.Type == ESplitType::FloatFeature) {
-        const int* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(fold, indexer, af.FloatHistograms[split.FeatureIdx], learnPermutation, singleIdx);
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        const int* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(fold, indexer, af.CatFeaturesRemapped[split.FeatureIdx], learnPermutation, singleIdx);
     }
 }

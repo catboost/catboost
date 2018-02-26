@@ -79,3 +79,22 @@ TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int partC
     }
     return result;
 }
+
+void SplitPairs(
+    const TVector<TPair>& pairs,
+    int testDocsBegin,
+    int testDocsEnd,
+    TVector<TPair>* learnPairs,
+    TVector<TPair>* testPairs
+) {
+    for (const auto& pair : pairs) {
+        bool isWinnerInTest = testDocsBegin <= pair.WinnerId && pair.WinnerId < testDocsEnd;
+        bool isLoserInTest = testDocsBegin <= pair.LoserId && pair.LoserId < testDocsEnd;
+        CB_ENSURE(isWinnerInTest == isLoserInTest);
+        if (isWinnerInTest) {
+            testPairs->emplace_back(pair.WinnerId, pair.LoserId, pair.Weight);
+        } else {
+            learnPairs->emplace_back(pair.WinnerId, pair.LoserId, pair.Weight);
+        }
+    }
+}

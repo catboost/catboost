@@ -28,7 +28,7 @@ static void InitFromBaseline(
     const int beginIdx,
     const int endIdx,
     const TVector<TVector<double>>& baseline,
-    const TVector<int>& learnPermutation,
+    const TVector<size_t>& learnPermutation,
     bool storeExpApproxes,
     TVector<TVector<double>>* approx
 ) {
@@ -97,7 +97,7 @@ TFold BuildDynamicFold(
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     TVector<int> queryIndices;
     if (!data.QueryId.empty()) {
@@ -163,7 +163,7 @@ TFold BuildPlainFold(
         ff.AssignPermuted(data.Weights, &ff.LearnWeights);
     }
 
-    TVector<int> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     if (shuffle) {
         TVector<ui32> queriesId;

@@ -11,6 +11,7 @@
 #include <numeric>
 
 void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor);
+void ApplyPermutationToPairs(const TVector<ui64>& permutation, TVector<TPair>* pairs);
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key);
 
 template<typename IndexType>

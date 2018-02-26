@@ -727,6 +727,28 @@ def test_cv_for_query():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_cv_for_pairs():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train_small3'),
+        '--learn-pairs', data_file('querywise', 'train_small3.pairs'),
+        '--column-description', data_file('querywise', 'train_full3.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '-X', '2/7',
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_empty_eval():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

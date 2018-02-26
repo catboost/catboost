@@ -63,13 +63,15 @@ static void PrepareFolds(
     }
 
     TVector<TVector<size_t>> docsInTest;
+    TVector<std::pair<size_t, size_t>> testDocsStartEndIndices;
     if (cvParams.Stratified) {
+        CB_ENSURE(!IsQuerywiseError(lossDescription.GetLossFunction()), "Stratified CV isn't supported for querywise errors");
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
     } else {
-        auto startEnd = hasQuery
+        testDocsStartEndIndices = hasQuery
             ? Split(pool.Docs.GetDocCount(), pool.Docs.QueryId, cvParams.FoldCount)
             : Split(pool.Docs.GetDocCount(), cvParams.FoldCount);
-        docsInTest = GetSplittedDocs(startEnd);
+        docsInTest = GetSplittedDocs(testDocsStartEndIndices);
     }
 
     const int docCount = pool.Docs.GetDocCount();
@@ -102,15 +104,25 @@ static void PrepareFolds(
         }
         if (hasQuery) {
             fold.QueryId.reserve(pool.Docs.GetDocCount());
-            for (size_t idx = 0; idx < docIndices.size(); ++idx) {
-                fold.QueryId.push_back(pool.Docs.QueryId[docIndices[idx]]);
+            for (auto idx : docIndices) {
+                fold.QueryId.push_back(pool.Docs.QueryId[idx]);
             }
         }
+
+        if (!pool.Pairs.empty()) {
+            TVector<TPair> testPairs;
+            int testDocsBegin = testDocsStartEndIndices[foldIdx].first;
+            int testDocsEnd = testDocsStartEndIndices[foldIdx].second;
+            SplitPairs(pool.Pairs, testDocsBegin, testDocsEnd, &fold.Pairs, &testPairs);
+            fold.LearnPairsCount = fold.Pairs.ysize();
+            fold.Pairs.insert(fold.Pairs.end(), testPairs.begin(), testPairs.end());
+            ApplyPermutationToPairs(InvertPermutation(docIndices), &fold.Pairs);
+        }
+
         UpdateQueriesInfo(fold.QueryId, 0, fold.LearnSampleCount, &fold.QueryInfo);
         fold.LearnQueryCount = fold.QueryInfo.ysize();
         UpdateQueriesInfo(fold.QueryId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
         UpdateQueriesPairs(fold.Pairs, 0, fold.Pairs.ysize(), /*invertedPermutation=*/{}, &fold.QueryInfo);
-        fold.LearnPairsCount = fold.Pairs.ysize();
 
         const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
         PreprocessAndCheck(lossDescription, fold.LearnSampleCount, fold.QueryId, fold.Pairs, classWeights, &fold.Weights, &fold.Target);
@@ -257,25 +269,19 @@ void CrossValidate(
         contexts[foldIdx]->InitData(folds[foldIdx]);
 
         TLearnContext& ctx = *contexts[foldIdx];
-        TFold* learnFold;
-        if (!ctx.LearnProgress.Folds.empty()) {
-            learnFold = &ctx.LearnProgress.Folds[0];
-        } else {
-            learnFold = &ctx.LearnProgress.AveragingFold;
-        }
         const TTrainData& data = folds[foldIdx];
         if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
-            ctx.SmallestSplitSideDocs.Create(*learnFold); // assume that all folds have the same shape
-            const int approxDimension = learnFold->GetApproxDimension();
-            const int bodyTailCount = learnFold->BodyTailArr.ysize();
+            ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds);
             ctx.PrevTreeLevelStats.Create(
+                ctx.LearnProgress.Folds,
                 CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
-                static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth),
-                approxDimension,
-                bodyTailCount
+                static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth)
             );
         }
-        ctx.SampledDocs.Create(*learnFold, GetBernoulliSampleRate(ctx.Params.ObliviousTreeOptions->BootstrapConfig)); // TODO(espetrov): create only if sample rate < 1
+        ctx.SampledDocs.Create(
+            ctx.LearnProgress.Folds,
+            GetBernoulliSampleRate(ctx.Params.ObliviousTreeOptions->BootstrapConfig)
+        ); // TODO(espetrov): create only if sample rate < 1
     }
 
     EMetricBestValue bestValueType;

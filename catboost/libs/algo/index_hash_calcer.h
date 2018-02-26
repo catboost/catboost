@@ -19,7 +19,7 @@
 inline void CalcHashes(const TProjection& proj,
                        const TAllFeatures& af,
                        size_t sampleCount,
-                       const TVector<int>& learnPermutation,
+                       const TVector<size_t>& learnPermutation,
                        bool calculateExactCatHashes,
                        TVector<ui64>* res) {
     TVector<ui64>& hashArr = *res;

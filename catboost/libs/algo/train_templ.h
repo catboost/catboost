@@ -179,7 +179,7 @@ void UpdateAveragingFold(
 
     const int tailFinish = bt.TailFinish;
     const int learnSampleCount = data.LearnSampleCount;
-    const int* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
+    const size_t* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
     const TIndexType* indicesData = indices.data();
     for (int dim = 0; dim < approxDimension; ++dim) {
         const double* expTreeValuesData = expTreeValues[dim].data();

@@ -34,7 +34,7 @@ TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int 
     return queriesInfoForDocs;
 }
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, int begin, int end, const TVector<int>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesPairs(const TVector<TPair>& pairs, int begin, int end, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
     if (begin == end) {
         return;
     }

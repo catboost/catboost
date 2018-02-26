@@ -31,7 +31,7 @@ static inline const TVector<int>& GetRemappedCatFeatures(const TSplit& split, co
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
-void BuildIndicesKernel(const int* permutation, const TCount* histogram, TCount value, int level, TIndexType* indices) {
+void BuildIndicesKernel(const size_t* permutation, const TCount* histogram, TCount value, int level, TIndexType* indices) {
     Y_ASSERT(vectorWidth == 4);
     const int perm0 = permutation[0];
     const int perm1 = permutation[1];
@@ -59,7 +59,7 @@ void OfflineCtrBlock(const NPar::TLocalExecutor::TExecRangeParams& params,
                      TCount value,
                      int level,
                      TIndexType* indices) {
-    const int* permutation = fold.LearnPermutation.data();
+    const size_t* permutation = fold.LearnPermutation.data();
     const int blockStart = blockIdx * params.GetBlockSize();
     const int nextBlockStart = Min<ui64>(blockStart + params.GetBlockSize(), params.LastId);
     constexpr int vectorWidth = 4;

@@ -30,6 +30,14 @@ static inline float GetBernoulliSampleRate(const NCatboostOptions::TOption<NCatb
     return 1.0f;
 }
 
+static inline int GetMaxBodyTailCount(const TVector<TFold>& folds) {
+    int maxBodyTailCount = 0;
+    for (const auto& fold : folds) {
+        maxBodyTailCount = Max(maxBodyTailCount, fold.BodyTailArr.ysize());
+    }
+    return maxBodyTailCount;
+}
+
 struct TBucketStats {
     double SumWeightedDelta;
     double SumWeight;
@@ -68,7 +76,9 @@ struct TBucketStatsCache {
     TAdaptiveLock Lock;
     THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
     THolder<TMemoryPool> MemoryPool;
-    inline void Create(int bucketCount, int depth, int approxDimension, int bodyTailCount) {
+    inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
+        int approxDimension = folds[0].GetApproxDimension();
+        int bodyTailCount = GetMaxBodyTailCount(folds);
         InitialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * approxDimension * bodyTailCount;
         Y_ASSERT(InitialSize > 0);
         MemoryPool = new TMemoryPool(InitialSize);
@@ -122,15 +132,15 @@ struct TCalcScoreFold {
         void CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor);
     };
     TUnsizedVector<TIndexType> Indices;
-    TUnsizedVector<int> LearnPermutation;
-    TUnsizedVector<int> IndexInFold;
+    TUnsizedVector<size_t> LearnPermutation;
+    TUnsizedVector<size_t> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
     TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
-    void Create(const TFold& fold, float sampleRate = 1.0f);
+    void Create(const TVector<TFold>& folds, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
     void Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);

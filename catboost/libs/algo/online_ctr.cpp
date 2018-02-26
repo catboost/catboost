@@ -457,7 +457,7 @@ void CalcFinalCtrsImpl(
 }
 
 void CalcFinalCtrs(const ECtrType ctrType, const TProjection& projection, const TTrainData& data,
-                   const TVector<int>& learnPermutation, const TVector<int>& permutedTargetClass,
+                   const TVector<size_t>& learnPermutation, const TVector<int>& permutedTargetClass,
                    int targetClassesCount, ui64 ctrLeafCountLimit, bool storeAllSimpleCtr,
                    ECounterCalc counterCalcMethod, TCtrValueTable* result) {
     ui64 sampleCount = data.LearnSampleCount;

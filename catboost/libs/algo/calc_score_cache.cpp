@@ -56,11 +56,30 @@ void TCalcScoreFold::TVectorSlicing::CreateByControl(const NPar::TLocalExecutor:
     Total = offset;
 }
 
+static int GetMaxBodyFinish(const TVector<TFold>& folds, int bodyTailIdx) {
+    int maxBodyFinish = 0;
+    for (const auto& fold : folds) {
+        if (bodyTailIdx < fold.BodyTailArr.ysize()) {
+            maxBodyFinish = Max(maxBodyFinish, fold.BodyTailArr[bodyTailIdx].BodyFinish);
+        }
+    }
+    return maxBodyFinish;
+}
 
-void TCalcScoreFold::Create(const TFold& fold, float sampleRate) {
+static int GetMaxTailFinish(const TVector<TFold>& folds, int bodyTailIdx) {
+    int maxTailFinish = 0;
+    for (const auto& fold : folds) {
+        if (bodyTailIdx < fold.BodyTailArr.ysize()) {
+            maxTailFinish = Max(maxTailFinish, fold.BodyTailArr[bodyTailIdx].TailFinish);
+        }
+    }
+    return maxTailFinish;
+}
+
+void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
     BernoulliSampleRate = sampleRate;
     Y_ASSERT(BernoulliSampleRate > 0.0f && BernoulliSampleRate <= 1.0f);
-    DocCount = fold.LearnPermutation.ysize();
+    DocCount = folds[0].LearnPermutation.ysize();
     Y_ASSERT(DocCount > 0);
     Indices.yresize(DocCount);
     LearnPermutation.yresize(DocCount);
@@ -68,19 +87,21 @@ void TCalcScoreFold::Create(const TFold& fold, float sampleRate) {
     LearnWeights.yresize(DocCount);
     SampleWeights.yresize(DocCount);
     Control.yresize(DocCount);
-    BodyTailCount = fold.BodyTailArr.ysize();
+    BodyTailCount = GetMaxBodyTailCount(folds);
     Y_ASSERT(BodyTailCount > 0);
     BodyTailArr.yresize(BodyTailCount);
-    ApproxDimension = fold.GetApproxDimension();
+    ApproxDimension = folds[0].GetApproxDimension();
     Y_ASSERT(ApproxDimension > 0);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
         BodyTailArr[bodyTailIdx].Derivatives.yresize(ApproxDimension);
         BodyTailArr[bodyTailIdx].WeightedDer.yresize(ApproxDimension);
         for (int dimIdx = 0; dimIdx < ApproxDimension; ++dimIdx) {
-            Y_ASSERT(fold.BodyTailArr[bodyTailIdx].BodyFinish > 0);
-            BodyTailArr[bodyTailIdx].Derivatives[dimIdx].yresize(fold.BodyTailArr[bodyTailIdx].BodyFinish);
-            Y_ASSERT(fold.BodyTailArr[bodyTailIdx].TailFinish > 0);
-            BodyTailArr[bodyTailIdx].WeightedDer[dimIdx].yresize(fold.BodyTailArr[bodyTailIdx].TailFinish);
+            int bodyFinish = GetMaxBodyFinish(folds, bodyTailIdx);
+            Y_ASSERT(bodyFinish > 0);
+            BodyTailArr[bodyTailIdx].Derivatives[dimIdx].yresize(bodyFinish);
+            int tailFinish = GetMaxTailFinish(folds, bodyTailIdx);
+            Y_ASSERT(tailFinish > 0);
+            BodyTailArr[bodyTailIdx].WeightedDer[dimIdx].yresize(tailFinish);
         }
     }
 }
@@ -115,7 +136,7 @@ template<typename TFoldType>
 void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock) {
     int ignored;
     const auto srcControlRef = srcBlock.GetConstRef(Control);
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<int>, dstBlock.GetRef(LearnPermutation), &ignored);
+    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<size_t>, dstBlock.GetRef(LearnPermutation), &ignored);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnWeights), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
@@ -156,7 +177,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
         const auto dstBlock = dstBlocks.Slices[blockIdx];
         const TIndexType splitWeight = 1 << (curDepth - 1);
         SetElements(srcControlRef, srcBlock.GetConstRef(TVector<TIndexType>()), [=](const TIndexType*, size_t i) { return srcIndicesRef[i] | splitWeight; }, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<int>, dstBlock.GetRef(IndexInFold), &ignored);
+        SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<size_t>, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     PermutationBlockSize = FoldPermutationBlockSizeNotSet;
@@ -175,13 +196,14 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
 
     DocCount = dstBlocks.Total;
     ClearBodyTail();
+    BodyTailCount = fold.BodyTailArr.ysize();
     localExecutor->ExecRange([&](int blockIdx) {
         const auto srcBlock = srcBlocks.Slices[blockIdx];
         const auto srcControlRef = srcBlock.GetConstRef(Control);
         const auto dstBlock = dstBlocks.Slices[blockIdx];
         int ignored;
         SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<int>()), [=](const int*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
+        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     PermutationBlockSize = BernoulliSampleRate == 1.0f ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet;

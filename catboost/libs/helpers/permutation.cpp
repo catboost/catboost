@@ -18,6 +18,13 @@ static inline void ApplyPermutation(const TVector<ui64>& permutation, TVector<TD
     }
 }
 
+void ApplyPermutationToPairs(const TVector<ui64>& permutation, TVector<TPair>* pairs) {
+    for (auto& pair : *pairs) {
+        pair.WinnerId = permutation[pair.WinnerId];
+        pair.LoserId = permutation[pair.LoserId];
+    }
+}
+
 void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor) {
     Y_VERIFY(pool->Docs.GetDocCount() == 0 || permutation.size() == pool->Docs.GetDocCount());
 
@@ -37,10 +44,7 @@ void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLoca
         ApplyPermutation(permutation, &pool->Docs.QueryId);
     }
 
-    for (auto& pair : pool->Pairs) {
-        pair.WinnerId = permutation[pair.WinnerId];
-        pair.LoserId = permutation[pair.LoserId];
-    }
+    ApplyPermutationToPairs(permutation, &pool->Pairs);
 }
 
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key) {

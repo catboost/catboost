@@ -27,6 +27,10 @@ QUERY_TRAIN_FILE = data_file('querywise_pool', 'train_full3')
 QUERY_TEST_FILE = data_file('querywise_pool', 'test3')
 QUERY_CD_FILE = data_file('querywise_pool', 'train_full3.cd')
 
+QUERYWISE_TRAIN_FILE = data_file('querywise', 'train_small3')
+QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train_small3.pairs')
+QUERYWISE_CD_FILE = data_file('querywise', 'train_full3.cd')
+
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.coreml'
 PREDS_PATH = 'predictions.npy'
@@ -590,6 +594,17 @@ def test_cv_query():
 
     prev_value = results["train-QueryRMSE-mean"][0]
     for value in results["train-QueryRMSE-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+
+
+def test_cv_pairs():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    results = cv(pool, {"iterations": 5, "random_seed": 8, "loss_function": "PairLogit"})
+    assert "train-PairLogit-mean" in results
+
+    prev_value = results["train-PairLogit-mean"][0]
+    for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
 

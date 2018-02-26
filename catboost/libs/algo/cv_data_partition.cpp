@@ -3,6 +3,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/data_split.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/logging/logging.h>
@@ -37,6 +38,8 @@ void BuildCvPools(
     foldIdx = foldIdx % foldCount;
     TDocumentStorage allDocs;
     allDocs.Swap(learnPool->Docs);
+    TVector<TPair> allPairs;
+    allPairs.swap(learnPool->Pairs);
     const size_t docCount = allDocs.GetDocCount();
 
     bool hasQueryId = !allDocs.QueryId.empty();
@@ -68,19 +71,25 @@ void BuildCvPools(
     size_t learnIdx = 0;
     size_t testIdx = 0;
 
+    TVector<ui64> learnPermutation(docCount), testPermutation(docCount);
     for (int i = 1; i < foldEndIndices.ysize(); ++i) {
         if (i == foldIdx + 1) {
             for (int docIdx = foldEndIndices[i - 1]; docIdx < foldEndIndices[i]; ++docIdx) {
                 testPool->Docs.AssignDoc(testIdx, allDocs, docIdx);
+                testPermutation[testIdx] = docIdx;
                 ++testIdx;
             }
         } else {
             for (int docIdx = foldEndIndices[i - 1]; docIdx < foldEndIndices[i]; ++docIdx) {
                 learnPool->Docs.AssignDoc(learnIdx, allDocs, docIdx);
+                learnPermutation[learnIdx] = docIdx;
                 ++learnIdx;
             }
         }
     }
+    SplitPairs(allPairs, foldEndIndices[foldIdx], foldEndIndices[foldIdx + 1], &learnPool->Pairs, &testPool->Pairs);
+    ApplyPermutationToPairs(InvertPermutation(learnPermutation), &learnPool->Pairs);
+    ApplyPermutationToPairs(InvertPermutation(testPermutation), &testPool->Pairs);
 
     if (reverseCv) {
         learnPool->Docs.Swap(testPool->Docs);

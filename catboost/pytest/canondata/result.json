@@ -303,6 +303,12 @@
             "uri": "file://test.test_cv/test.eval"
         }
     ],
+    "test.test_cv_for_pairs": [
+        {
+            "checksum": "cf9000a6114eb79dc289015edd0bfb0b",
+            "uri": "file://test.test_cv_for_pairs/test.eval"
+        }
+    ],
     "test.test_cv_for_query": [
         {
             "checksum": "51ba95427f721cd2efe8864d80783823",
