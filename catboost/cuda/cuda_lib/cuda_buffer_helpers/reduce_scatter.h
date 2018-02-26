@@ -439,7 +439,8 @@ namespace NCudaLib {
 
                 streamSectionLauncher.LaunchTask(workingDevs.Build(), [&](ui32 dev) {
                     return std::move(kernels[dev]);
-                }, Stream);
+                },
+                                                 Stream);
             }
 
             auto localShifts = manager.CreateDistributedObject<TSlice>(TSlice(0, 0));

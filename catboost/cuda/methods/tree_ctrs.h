@@ -19,9 +19,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
-
-
     class TTreeCtrDataSetBuilder {
     public:
         using TVec = TCudaBuffer<float, NCudaLib::TSingleMapping>;
@@ -74,7 +71,6 @@ namespace NCatboostCuda {
         //damn proxy for learn set one-hots
         class TBinarizationInfoProvider {
         public:
-
             ui32 GetFoldsCount(ui32 featureId) const {
                 return FeaturesManager.GetCtrBinarization(Ctrs[featureId]).BorderCount;
             }
@@ -85,15 +81,15 @@ namespace NCatboostCuda {
 
             TBinarizationInfoProvider(const TVector<TCtr>& ctrs,
                                       const TBinarizedFeaturesManager& featuresManager)
-                    : Ctrs(ctrs)
-                    , FeaturesManager(featuresManager) {
-
+                : Ctrs(ctrs)
+                , FeaturesManager(featuresManager)
+            {
             }
+
         private:
             const TVector<TCtr>& Ctrs;
             const TBinarizedFeaturesManager& FeaturesManager;
         };
-
 
         THolder<TCompressedIndex> CreateCompressedIndex(NCudaLib::TSingleMapping docsMapping) {
             THolder<TCompressedIndex> dataSet = MakeHolder<TCompressedIndex>();
@@ -414,7 +410,6 @@ namespace NCatboostCuda {
                                                !LevelBasedCompressedIndex);
 
                 NCudaLib::GetCudaManager().WaitComplete();
-
 
                 TTensorBuilder batchFeatureTensorBuilder(FeaturesManager,
                                                          DataSet.GetCatFeatures(),

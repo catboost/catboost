@@ -15,12 +15,10 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-
     //just meta for printing/debugging
     struct TDataSetDescription {
         TString Name = "";
     };
-
 
     /*
      * Shared compressed index allows for fast GPU-tree apply in doc-parallel mode
@@ -30,10 +28,10 @@ namespace NCatboostCuda {
     public:
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
-        using TCompressedIndexMapping =  typename TLayoutPolicy::TCompressedIndexMapping;
+        using TCompressedIndexMapping = typename TLayoutPolicy::TCompressedIndexMapping;
         using TPolicyBlock = TGpuFeaturesBlockDescription<TFeaturesMapping, TSamplesMapping>;
 
-        class TCompressedDataSet : public TGuidHolder {
+        class TCompressedDataSet: public TGuidHolder {
         public:
             using THistogramsMapping = typename TLayoutPolicy::TFeaturesMapping;
 
@@ -41,10 +39,11 @@ namespace NCatboostCuda {
                                const TSamplesMapping& samplesMapping,
                                TCudaBuffer<ui32, TCompressedIndexMapping>& storage,
                                TVector<ui32> featureIds)
-            : Description(description)
-            , Storage(&storage)
-            , SamplesMapping(samplesMapping)
-            , FeatureIds(std::move(featureIds)) {
+                : Description(description)
+                , Storage(&storage)
+                , SamplesMapping(samplesMapping)
+                , FeatureIds(std::move(featureIds))
+            {
             }
 
             bool HasFeature(ui32 featureId) const {
@@ -68,7 +67,6 @@ namespace NCatboostCuda {
             const THistogramsMapping& GetHistogramsMapping(EFeaturesGroupingPolicy policy) const {
                 return PolicyBlocks.at(policy)->HistogramsMapping;
             }
-
 
             const THistogramsMapping& GetBestSplitStatsMapping(EFeaturesGroupingPolicy policy) const {
                 return PolicyBlocks.at(policy)->BinFeaturesForBestSplits.GetMapping();
@@ -157,7 +155,7 @@ namespace NCatboostCuda {
             }
 
             void PrintInfo() const {
-                MATRIXNET_DEBUG_LOG << "Compressed DataSet "  << Description.Name << " with features #" << FeatureIds.size() << " features" << Endl;
+                MATRIXNET_DEBUG_LOG << "Compressed DataSet " << Description.Name << " with features #" << FeatureIds.size() << " features" << Endl;
 
                 for (const auto& entry : PolicyBlocks) {
                     EFeaturesGroupingPolicy policy = entry.first;
@@ -224,10 +222,7 @@ namespace NCatboostCuda {
         friend class TTreeCtrDataSetBuilder;
     };
 
-
-   template <class TLayoutPolicy = TFeatureParallelLayout>
-   using TCompressedDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
-
-
+    template <class TLayoutPolicy = TFeatureParallelLayout>
+    using TCompressedDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
 
 }

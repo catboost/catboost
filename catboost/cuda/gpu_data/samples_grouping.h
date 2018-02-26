@@ -7,7 +7,6 @@
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
-
     class IQueriesGrouping {
     public:
         virtual ~IQueriesGrouping() {

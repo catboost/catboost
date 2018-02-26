@@ -1,7 +1,6 @@
 #include "load_data.h"
 #include <catboost/libs/helpers/permutation.h>
 
-
 namespace NCatboostCuda {
     void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
         Cursor = DataProvider.Targets.size();

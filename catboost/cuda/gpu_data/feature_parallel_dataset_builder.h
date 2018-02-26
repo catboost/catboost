@@ -13,8 +13,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
-
     //Test dataset will be linked on first permutation (direct indexing)
     template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TFeatureParallelDataSetHoldersBuilder {
@@ -28,7 +26,8 @@ namespace NCatboostCuda {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , LinkedTest(linkedTest)
-            , DataProviderPermutationBlockSize(blockSize) {
+            , DataProviderPermutationBlockSize(blockSize)
+        {
         }
 
         inline TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType> BuildDataSet(const ui32 permutationCount) {
@@ -43,11 +42,10 @@ namespace NCatboostCuda {
                                                        LinkedTest);
             auto& ctrsTarget = *dataSetsHolder.CtrTargets;
 
-
             {
                 dataSetsHolder.LearnCatFeaturesDataSet = new TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>();
                 BuildCompressedCatFeatures(DataProvider,
-                                          *dataSetsHolder.LearnCatFeaturesDataSet);
+                                           *dataSetsHolder.LearnCatFeaturesDataSet);
 
                 if (LinkedTest) {
                     dataSetsHolder.TestCatFeaturesDataSet = new TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>();
@@ -111,7 +109,6 @@ namespace NCatboostCuda {
                     Gather(weights, dataSetsHolder.DirectWeights, indices);
                 }
 
-
                 dataSetsHolder.PermutationDataSets[permutationId] = new TFeatureParallelDataSet<CatFeaturesStoragePtrType>(DataProvider,
                                                                                                                            dataSetsHolder.CompressedIndex,
                                                                                                                            permutationIndependentScope,
@@ -125,16 +122,13 @@ namespace NCatboostCuda {
                                                                                                                            std::move(permutation));
             }
 
-
             if (LinkedTest != nullptr) {
                 BuildTestTargetAndIndices(dataSetsHolder, ctrsTarget);
             }
 
-
             auto allFeatures = GetLearnFeatureIds(FeaturesManager);
             TVector<ui32> permutationIndependent;
             TVector<ui32> permutationDependent;
-
 
             {
                 SplitByPermutationDependence(FeaturesManager,
@@ -143,7 +137,6 @@ namespace NCatboostCuda {
                                              &permutationIndependent,
                                              &permutationDependent);
             }
-
 
             auto learnMapping = dataSetsHolder.PermutationDataSets[0]->GetSamplesMapping();
 
@@ -155,9 +148,8 @@ namespace NCatboostCuda {
                                                                                                      learnMapping,
                                                                                                      permutationIndependent);
 
-
             for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
-                auto& dataSet =  *dataSetsHolder.PermutationDataSets[permutationId];
+                auto& dataSet = *dataSetsHolder.PermutationDataSets[permutationId];
                 if (permutationDependent.size()) {
                     const auto& permutation = dataSet.GetCtrsEstimationPermutation();
                     TVector<ui32> gatherIndices;
@@ -224,7 +216,6 @@ namespace NCatboostCuda {
                 ctrsWriter.Write(permutationIndependent);
             }
 
-
             if (permutationDependent.size()) {
                 for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
                     auto& ds = *dataSetsHolder.PermutationDataSets[permutationId];
@@ -236,8 +227,8 @@ namespace NCatboostCuda {
                     {
                         const TDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                         const TMirrorBuffer<const ui32>* testIndices = (permutationId == 0 && linkedTest)
-                                                                 ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
-                                                                 : nullptr;
+                                                                           ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
+                                                                           : nullptr;
 
                         TBatchedBinarizedCtrsCalcer ctrsCalcer(FeaturesManager,
                                                                ctrsTarget,
@@ -246,7 +237,6 @@ namespace NCatboostCuda {
                                                                linkedTest,
                                                                testIndices);
 
-
                         TСtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
                                                                        compressedIndexBuilder,
                                                                        ctrsCalcer,
@@ -254,7 +244,7 @@ namespace NCatboostCuda {
                                                                        testDataSetId);
                         ctrsWriter.Write(permutationDependent);
                     }
-                    MATRIXNET_INFO_LOG << "Ctr computation for permutation #" << permutationId << " is finished"  << Endl;
+                    MATRIXNET_INFO_LOG << "Ctr computation for permutation #" << permutationId << " is finished" << Endl;
                 }
             }
             compressedIndexBuilder.Finish();
@@ -263,11 +253,8 @@ namespace NCatboostCuda {
         }
 
     private:
-
-
         void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
                                        const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget) {
-
             const auto testMapping = NCudaLib::TMirrorMapping(ctrsTarget.TestSlice.Size());
 
             TMirrorBuffer<ui32> indices;
@@ -279,7 +266,6 @@ namespace NCatboostCuda {
             targets.Write(LinkedTest->GetTargets());
             auto weights = TMirrorBuffer<float>::CopyMapping(indices);
             weights.Write(LinkedTest->GetWeights());
-
 
             dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet<CatFeaturesStoragePtrType>(*LinkedTest,
                                                                                                     dataSetsHolder.CompressedIndex,
@@ -295,10 +281,8 @@ namespace NCatboostCuda {
 
             );
 
-
             dataSetsHolder.TestDataSet->LinkedHistoryForCtrs = dataSetsHolder.PermutationDataSets[0].Get();
         }
-
 
         void BuildCompressedCatFeatures(const TDataProvider& dataProvider,
                                         TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& dataset) {
@@ -313,12 +297,10 @@ namespace NCatboostCuda {
             builder.Finish();
         }
 
-
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
         const TDataProvider* LinkedTest;
         ui32 DataProviderPermutationBlockSize = 1;
-
     };
 }

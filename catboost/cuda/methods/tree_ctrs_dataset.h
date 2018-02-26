@@ -9,7 +9,6 @@
 #include <util/generic/set.h>
 
 namespace NCatboostCuda {
-
     /*
      * TreeCtrs dataSet are cached based on baseTensor, from which they we generated
     * If we don't have enough gpu-ram, then cache in batchs (for one baseTensor generate several dataSets with ctrs)
@@ -24,7 +23,6 @@ namespace NCatboostCuda {
         using TCompressedIndexMapping = typename TSingleDevLayout::TCompressedIndexMapping;
 
     public:
-
         template <class TUi32>
         TTreeCtrDataSet(const TBinarizedFeaturesManager& featuresManager,
                         const TFeatureTensor& baseTensor,
@@ -32,7 +30,8 @@ namespace NCatboostCuda {
             : FeaturesManager(featuresManager)
             , BaseFeatureTensor(baseTensor)
             , BaseTensorIndices(baseTensorIndices.ConstCopyView())
-            , CacheHolder(new TScopedCacheHolder) {
+            , CacheHolder(new TScopedCacheHolder)
+        {
         }
 
         const TVector<TCtr>& GetCtrs() const {
@@ -60,7 +59,6 @@ namespace NCatboostCuda {
         ui32 GetFeatureCount() const {
             return Ctrs.size();
         }
-
 
         ui32 GetDeviceId() const {
             return BaseTensorIndices.GetMapping().GetDeviceId();

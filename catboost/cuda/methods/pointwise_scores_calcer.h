@@ -7,7 +7,6 @@
 #include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
-
     template <EFeaturesGroupingPolicy Policy,
               class TLayoutPolicy>
     inline THolder<TScoreHelper<Policy, TLayoutPolicy>> CreateScoreHelper(const TCompressedDataSet<TLayoutPolicy>& dataSet,
@@ -33,9 +32,9 @@ namespace NCatboostCuda {
                                          const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                          ui32 foldCount,
                                          bool requestStream = false)
-                : Features(features)
-                , TreeConfig(treeConfig)
-                , FoldCount(foldCount)
+            : Features(features)
+            , TreeConfig(treeConfig)
+            , FoldCount(foldCount)
         {
             if (Features.GetGridSize(EFeaturesGroupingPolicy::BinaryFeatures)) {
                 BinaryFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::BinaryFeatures, TLayoutPolicy>(Features,
@@ -44,16 +43,16 @@ namespace NCatboostCuda {
                                                                                                                 requestStream);
             }
             if (Features.GetGridSize(EFeaturesGroupingPolicy::HalfByteFeatures)) {
-                HalfByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy >(Features,
-                                                                                                                     foldCount,
-                                                                                                                     TreeConfig,
-                                                                                                                     requestStream);
+                HalfByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>(Features,
+                                                                                                                    foldCount,
+                                                                                                                    TreeConfig,
+                                                                                                                    requestStream);
             }
             if (Features.GetGridSize(EFeaturesGroupingPolicy::OneByteFeatures)) {
-                ByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy >(Features,
-                                                                                                                foldCount,
-                                                                                                                TreeConfig,
-                                                                                                                requestStream);
+                ByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>(Features,
+                                                                                                               foldCount,
+                                                                                                               TreeConfig,
+                                                                                                               requestStream);
             }
         }
 
@@ -140,6 +139,5 @@ namespace NCatboostCuda {
         THolder<TScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>> HalfByteFeatureHelper;
         THolder<TScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>> ByteFeatureHelper;
     };
-
 
 }

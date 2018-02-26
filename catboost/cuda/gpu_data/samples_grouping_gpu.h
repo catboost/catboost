@@ -95,7 +95,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        template<class>
+        template <class>
         friend class TGpuSamplesGroupingHelper;
 
         const IQueriesGrouping* Grouping;
@@ -110,10 +110,8 @@ namespace NCatboostCuda {
         NCudaLib::TCudaBuffer<const float, TMapping> PairsWeights;
     };
 
-
-    template<class>
+    template <class>
     class TGpuSamplesGroupingHelper;
-
 
     template <>
     class TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping> {
@@ -165,9 +163,8 @@ namespace NCatboostCuda {
             return samplesGrouping;
         }
 
-
         static inline TGpuSamplesGrouping<NCudaLib::TMirrorMapping> SliceGrouping(const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& grouping,
-                                                                                   const TSlice& localSlice) {
+                                                                                  const TSlice& localSlice) {
             CB_ENSURE(localSlice.Size() <= grouping.CurrentDocsSlice.Size());
             TSlice globalSlice;
             globalSlice.Left = localSlice.Left + grouping.CurrentDocsSlice.Left;
@@ -193,8 +190,8 @@ namespace NCatboostCuda {
             groupsSlice.Left = firstGroupId - groupOffset;
             groupsSlice.Right = lastGroupId - groupOffset;
             CB_ENSURE(grouping.Offsets.GetObjectsSlice() == TSlice(0, grouping.Grouping->GetQueryId(
-                    grouping.CurrentDocsSlice.Right) -
-                                                                      groupOffset));
+                                                                          grouping.CurrentDocsSlice.Right) -
+                                                                          groupOffset));
 
             TGpuSamplesGrouping<NCudaLib::TMirrorMapping> sliceGrouping(grouping.Grouping,
                                                                         globalSlice,
@@ -270,8 +267,6 @@ namespace NCatboostCuda {
         }
     };
 
-
-
     template <>
     class TGpuSamplesGroupingHelper<NCudaLib::TStripeMapping> {
     public:
@@ -281,7 +276,6 @@ namespace NCatboostCuda {
             const NCudaLib::TStripeMapping& samplesMapping = dataSet.GetSamplesMapping();
             const ui32 groupCount = samplesMapping.GetObjectsSlice().Size();
             TGpuSamplesGrouping<NCudaLib::TStripeMapping> samplesGrouping;
-
 
             TVector<ui32> offsets(groupCount);
             TVector<ui32> sizes(groupCount);
@@ -341,7 +335,6 @@ namespace NCatboostCuda {
             }
             return samplesGrouping;
         }
-
     };
 
     template <class TDataSet>

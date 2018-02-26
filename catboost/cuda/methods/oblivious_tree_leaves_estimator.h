@@ -17,7 +17,6 @@
 #include <catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h>
 
 namespace NCatboostCuda {
-
     struct TLeavesEstimationConfig {
         bool UseNewton = true;
         double Lambda = 1.0; //l2 reg
@@ -34,18 +33,16 @@ namespace NCatboostCuda {
                                 bool normalize,
                                 bool addRidgeToTargetFunction,
                                 bool zeroAverage)
-                : UseNewton(useNewton)
-                , Lambda(lambda)
-                , Iterations(iterations)
-                , MinLeafWeight(minLeafWeight)
-                , IsNormalize(normalize)
-                , AddRidgeToTargetFunction(addRidgeToTargetFunction)
-                , MakeZeroAverage(zeroAverage) {
-
+            : UseNewton(useNewton)
+            , Lambda(lambda)
+            , Iterations(iterations)
+            , MinLeafWeight(minLeafWeight)
+            , IsNormalize(normalize)
+            , AddRidgeToTargetFunction(addRidgeToTargetFunction)
+            , MakeZeroAverage(zeroAverage)
+        {
         }
-
     };
-
 
     /*
      * Oblivious tree batch estimator
@@ -53,6 +50,7 @@ namespace NCatboostCuda {
     class TObliviousTreeLeavesEstimator {
     public:
         using TDescentPoint = TPointwiseDescentPoint;
+
     private:
         TVector<TEstimationTaskHelper> TaskHelpers;
         TVector<TSlice> TaskSlices;
@@ -100,7 +98,7 @@ namespace NCatboostCuda {
             auto projectDerGuard = profiler.Profile("Compute values and derivatives");
 
             const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
-//            const ui32 leavesCount = Structure.LeavesCount();
+            //            const ui32 leavesCount = Structure.LeavesCount();
             const ui32 streamCount = Min<ui32>(taskCount, 8);
             RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
                 TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
@@ -163,7 +161,7 @@ namespace NCatboostCuda {
             }
 
             const ui32 totalLeavesCount = TaskSlices.back().Right;
-//            const ui32 leavesCount = Structure.LeavesCount();
+            //            const ui32 leavesCount = Structure.LeavesCount();
             point.Gradient.resize(TaskSlices.back().Right);
             point.Hessian.resize(TaskSlices.back().Right);
 
@@ -184,14 +182,13 @@ namespace NCatboostCuda {
                 NormalizeDerivatives(point.Hessian);
             }
 
-           AddRidgeRegularization(LeavesEstimationConfig.Lambda, point);
+            AddRidgeRegularization(LeavesEstimationConfig.Lambda, point);
         }
 
         void WriteWeights(TVector<float>& dst) {
             dst.resize(LeafWeights.size());
             Copy(LeafWeights.begin(), LeafWeights.end(), dst.begin());
         }
-
 
         void CreatePartStats() {
             const ui32 taskCount = TaskHelpers.size();
@@ -239,7 +236,6 @@ namespace NCatboostCuda {
                   class TBacktrackingStepEstimator>
         friend class TNewtonLikeWalker;
 
-
         inline TEstimationTaskHelper& NextTask(TObliviousTreeModel& model) {
             CB_ENSURE(TaskHelpers.size() == WriteDst.size());
             CB_ENSURE(TaskHelpers.size() == TaskSlices.size());
@@ -255,11 +251,13 @@ namespace NCatboostCuda {
             TaskSlices.push_back(taskSlice);
             return TaskHelpers.back();
         }
+
     public:
         TObliviousTreeLeavesEstimator(const TBinarizedFeaturesManager& featuresManager,
                                       const TLeavesEstimationConfig& config)
             : FeaturesManager(featuresManager)
-            , LeavesEstimationConfig(config) {
+            , LeavesEstimationConfig(config)
+        {
         }
 
         template <class TTarget>
@@ -299,7 +297,6 @@ namespace NCatboostCuda {
             return *this;
         }
 
-
         template <class TTarget>
         TObliviousTreeLeavesEstimator& AddEstimationTask(TTarget&& target,
                                                          TStripeBuffer<const float>&& current,
@@ -310,7 +307,7 @@ namespace NCatboostCuda {
 
             task.Bins = target.template CreateGpuBuffer<ui32>();
             {
-                auto guard  = NCudaLib::GetCudaManager().GetProfiler().Profile("Compute bins doc-parallel");
+                auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Compute bins doc-parallel");
                 ComputeBinsForModel(dst->GetStructure(),
                                     target.GetDataSet(),
                                     &task.Bins);

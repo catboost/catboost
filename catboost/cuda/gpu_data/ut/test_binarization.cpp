@@ -11,14 +11,12 @@ using namespace std;
 using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
-
     template <class TCompressedDataSet>
     void CheckDataSet(const TCompressedDataSet& dataSet,
                       const TBinarizedFeaturesManager& featuresManager,
                       const TDataPermutation& ctrsPermutation,
                       const TDataProvider& dataProvider,
                       const TDataPermutation* onGpuPermutation = nullptr) {
-
         auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(),
                                                  +dataProvider.GetTargets(),
                                                  ENanMode::Forbidden,
@@ -54,19 +52,19 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         auto features = dataSet.GetFeatures();
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
-//            TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
+            //            TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
             TVector<ui32> compressedIndex;
             dataSet.GetCompressedIndex().DeviceView(dev).Read(compressedIndex);
 
             for (ui32 f = 0; f < dataSet.GetFeatureCount(); ++f) {
-                auto featureId =  features[f];
+                auto featureId = features[f];
                 auto cudaFeature = dataSet.GetTCFeature(featureId);
                 if (cudaFeature.IsEmpty(dev)) {
                     continue;
                 }
                 auto feature = cudaFeature.At(dev);
-//                const ui32 featureId = dataSet.GetFeatureId(f);
+                //                const ui32 featureId = dataSet.GetFeatureId(f);
                 TSlice docsSlice = dataSet.GetSamplesMapping().DeviceSlice(dev);
 
                 TVector<ui32> bins;
@@ -123,19 +121,20 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                     bins.resize(ctrOrderedBins.size());
                     for (ui32 i = 0; i < ctrOrderedBins.size(); ++i) {
                         bins[i] = ctrOrderedBins[ctrToDirectIndices[i]];
-//                       ctrOrderedBins[i] = bins[ctrsEstimationPermutation[i]]
+                        //                       ctrOrderedBins[i] = bins[ctrsEstimationPermutation[i]]
                     }
                 }
 
-//                TCFeature feature = dataSet.GetFeatureByGlobalId(featureId);
-                UNIT_ASSERT_C((binarization - 1) <= feature.Folds, "Feature #" << featureId << " " << binarization << " / " << feature.Folds );
+                //                TCFeature feature = dataSet.GetFeatureByGlobalId(featureId);
+                UNIT_ASSERT_C((binarization - 1) <= feature.Folds, "Feature #" << featureId << " " << binarization << " / " << feature.Folds);
                 UNIT_ASSERT_C(feature.Mask != 0, "Feature mask should not be zero");
 
                 for (ui32 i = 0; i < docsSlice.Size(); ++i) {
                     const ui32 readIdx = gatherBinIndices[i + docsSlice.Left];
                     UNIT_ASSERT_VALUES_EQUAL_C(bins[readIdx],
-                                              (compressedIndex[feature.Offset + i] >> feature.Shift) & feature.Mask,
-                                              i << " " << docsSlice << " " << " offset " << feature.Offset << " shift " << feature.Shift << " mask " << feature.Mask << " fid " << featureId<< " (" << f << ")" );
+                                               (compressedIndex[feature.Offset + i] >> feature.Shift) & feature.Mask,
+                                               i << " " << docsSlice << " "
+                                                 << " offset " << feature.Offset << " shift " << feature.Shift << " mask " << feature.Mask << " fid " << featureId << " (" << f << ")");
                 }
             }
         }
@@ -147,26 +146,21 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                                  const TDataPermutation& ctrsPermutation,
                                  const TDataProvider& dataProvider,
                                  const bool onlyPermutationDependent = false,
-                                 const TDataPermutation* onGpuPermutation = nullptr
-    ) {
+                                 const TDataPermutation* onGpuPermutation = nullptr) {
         if (dataSet.HasFeatures() && !onlyPermutationDependent) {
             CheckDataSet(dataSet.GetFeatures(),
                          featuresManager,
                          ctrsPermutation,
                          dataProvider,
-                         onGpuPermutation
-            );
+                         onGpuPermutation);
         }
 
-
-        if(dataSet.HasPermutationDependentFeatures()) {
-
+        if (dataSet.HasPermutationDependentFeatures()) {
             CheckDataSet(dataSet.GetPermutationFeatures(),
                          featuresManager,
                          ctrsPermutation,
                          dataProvider,
-                         onGpuPermutation
-            );
+                         onGpuPermutation);
         }
     }
 
@@ -208,10 +202,9 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
 
         using TCompressedIndex = TSharedCompressedIndex<TLayout>;
         TCompressedIndex compressedIndex;
-//        TFoldBa
+        //        TFoldBa
         TSet<ui32> referenceFeatures;
         {
-
             TSharedCompressedIndexBuilder<TLayout> builder(compressedIndex);
             TBinarizationInfoProvider binarizationInfoProvider(binarizedFeaturesManager,
                                                                &dataProvider);
@@ -255,8 +248,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                      binarizedFeaturesManager,
                      permutation,
                      dataProvider,
-                     &permutation
-        );
+                     &permutation);
     }
 
     template <class TMapping>
@@ -360,7 +352,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
 
         TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                       dataProvider);
+                                                                      dataProvider);
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
         {
@@ -376,7 +368,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             CheckIndices(dataProvider, dataSet);
         }
 
-
         for (ui32 permutation = 0; permutation < dataSet.PermutationsCount(); ++permutation) {
             //
             const auto& dataSetForPermutation = dataSet.GetDataSetForPermutation(permutation);
@@ -385,20 +376,16 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             }
             CB_ENSURE(dataSetForPermutation.HasFeatures());
 
-
             CheckPermutationDataSet(dataSetForPermutation,
                                     featuresManager,
                                     dataSet.GetPermutation(permutation),
                                     dataProvider,
                                     permutation > 0,
-                                    &dataSet.GetPermutation(permutation)
-            );
+                                    &dataSet.GetPermutation(permutation));
         }
     }
 
-
-
-//
+    //
     void TestDocParallelDataSetBuilder(ui32 binarization,
                                        ui32 permutationCount,
                                        ui32 bucketsCtrBinarization = 32,
@@ -471,19 +458,18 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                                     dataSetForPermutation.GetCtrsEstimationPermutation(),
                                     dataProvider,
                                     permutation > 0,
-                                    &loadBalancingPermutation
-            );
+                                    &loadBalancingPermutation);
         }
     }
 
-//
+    //
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexBinary) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(2, 0);
         }
     }
-//
+    //
     SIMPLE_UNIT_TEST(TestCreateCompressedHalfByte) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -504,7 +490,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             TestCompressedIndexBuilder(32, 1);
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndexDocParallel) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -547,7 +532,6 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
             TestDatasetHolderBuilder(32, 4, 1, 64);
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
         auto stopCudaManagerGuard = StartCudaManager();

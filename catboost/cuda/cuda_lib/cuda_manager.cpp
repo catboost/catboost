@@ -141,7 +141,6 @@ TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDevice
     CB_ENSURE(GetMpiManager().IsMaster(), "Error: can't run cudaManager on slave");
 #endif
 
-
     auto& manager = NCudaLib::GetCudaManager();
     manager.Start(requestConfig);
     manager.WaitComplete();

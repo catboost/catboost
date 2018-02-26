@@ -29,8 +29,8 @@ namespace NCatboostCuda {
         TPairLogit(const TDataSet& dataSet,
                    TRandom& random,
                    const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             Init(targetOptions);
         }
 
@@ -41,7 +41,8 @@ namespace NCatboostCuda {
         }
 
         TPairLogit(const TPairLogit& target)
-                : TParent(target) {
+            : TParent(target)
+        {
         }
 
         template <class TLayout>
@@ -94,11 +95,10 @@ namespace NCatboostCuda {
             weights.Copy(GetTarget().GetWeights());
         }
 
-
         void NewtonAt(const TConstVec& point,
-                        TVec& weightedDer,
-                        TVec& weightedDer2,
-                        ui32 stream = 0) const {
+                      TVec& weightedDer,
+                      TVec& weightedDer2,
+                      ui32 stream = 0) const {
             ApproximateForPermutation(point,
                                       nullptr,
                                       nullptr,
@@ -144,6 +144,7 @@ namespace NCatboostCuda {
                             weights);
             TParent::Target.Weights = weights.ConstCopyView();
         }
+
     private:
         inline double GetPairsTotalWeight() const {
             if (PairsTotalWeight <= 0) {

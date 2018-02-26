@@ -38,8 +38,6 @@ inline void NonZeroFilter(const TCudaBuffer<float, TMapping>& weights,
     LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status);
 }
 
-
-
 template <class TMapping>
 inline TCudaBuffer<ui32, TMapping> NonZeroSizes(const TCudaBuffer<float, TMapping>& weights,
                                                 ui32 stream = 0) {

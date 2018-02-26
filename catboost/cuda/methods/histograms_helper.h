@@ -14,23 +14,24 @@
 bool IsReduceCompressed();
 
 namespace NCatboostCuda {
-
-    template<EFeaturesGroupingPolicy Policy,
-            class TLayoutPolicy = TFeatureParallelLayout>
+    template <EFeaturesGroupingPolicy Policy,
+              class TLayoutPolicy = TFeatureParallelLayout>
     class TComputeHistogramsHelper: public TMoveOnly {
     public:
         using TGpuDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
+
     public:
         TComputeHistogramsHelper(const TGpuDataSet& dataSet,
                                  ui32 foldCount,
                                  ui32 maxDepth,
                                  TComputationStream& stream)
-                : DataSet(&dataSet)
-                , Stream(stream)
-                , FoldCount(foldCount)
-                , MaxDepth(maxDepth) {
+            : DataSet(&dataSet)
+            , Stream(stream)
+            , FoldCount(foldCount)
+            , MaxDepth(maxDepth)
+        {
         }
 
         template <bool IsConst, class TUi32>
@@ -55,7 +56,6 @@ namespace NCatboostCuda {
             }
 
             if (DataSet->GetGridSize(Policy)) {
-
                 auto& profiler = NCudaLib::GetProfiler();
                 auto guard = profiler.Profile(TStringBuilder() << "Compute histograms (" << Policy << ") for  #" << DataSet->GetGridSize(Policy)
                                                                << " features, depth " << CurrentBit);
@@ -84,7 +84,6 @@ namespace NCatboostCuda {
             return Histograms;
         };
 
-
         void GatherHistogramsByLeaves(TCudaBuffer<float, TFeaturesMapping>& gatheredHistogramsByLeaves, ui32 streamId) const {
             if (streamId != Stream.GetId()) {
                 EnsureHistCompute();
@@ -104,7 +103,6 @@ namespace NCatboostCuda {
                                         streamId);
             }
         }
-
 
         TVector<float> ReadHistograms() const {
             TVector<float> dst;
@@ -149,6 +147,7 @@ namespace NCatboostCuda {
             Histograms.Reset(histMapping);
             FillBuffer(Histograms, 0.0f, Stream);
         }
+
     private:
         const TGpuDataSet* DataSet = nullptr;
         TComputationStream& Stream;
@@ -161,13 +160,14 @@ namespace NCatboostCuda {
         TCudaBuffer<float, TFeaturesMapping> Histograms;
     };
 
-    template<EFeaturesGroupingPolicy Policy,
-            class TLayoutPolicy = TFeatureParallelLayout>
+    template <EFeaturesGroupingPolicy Policy,
+              class TLayoutPolicy = TFeatureParallelLayout>
     class TFindBestSplitsHelper: public TMoveOnly {
     public:
         using TGpuDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
+
     public:
         TFindBestSplitsHelper(const TGpuDataSet& dataSet,
                               ui32 foldCount,
@@ -176,13 +176,14 @@ namespace NCatboostCuda {
                               double l2 = 1.0,
                               bool normalize = false,
                               ui32 stream = 0)
-                : DataSet(&dataSet)
-                , Stream(stream)
-                , FoldCount(foldCount)
-                , MaxDepth(maxDepth)
-                , ScoreFunction(score)
-                , L2(l2)
-                , Normalize(normalize) {
+            : DataSet(&dataSet)
+            , Stream(stream)
+            , FoldCount(foldCount)
+            , MaxDepth(maxDepth)
+            , ScoreFunction(score)
+            , L2(l2)
+            , Normalize(normalize)
+        {
             if (DataSet->GetGridSize(Policy)) {
                 const ui64 blockCount = 32;
                 auto bestScoresMapping = dataSet.GetBestSplitStatsMapping(Policy).Transform([&](const TSlice& histograms) -> ui64 {
@@ -237,13 +238,13 @@ namespace NCatboostCuda {
         TCudaBuffer<TBestSplitProperties, TFeaturesMapping> BestScores;
     };
 
-
-    template<EFeaturesGroupingPolicy Policy>
+    template <EFeaturesGroupingPolicy Policy>
     class TFindBestSplitsHelper<Policy, TDocParallelLayout>: public TMoveOnly {
     public:
         using TGpuDataSet = typename TSharedCompressedIndex<TDocParallelLayout>::TCompressedDataSet;
         using TFeaturesMapping = typename TFeatureParallelLayout::TFeaturesMapping;
         using TSamplesMapping = typename TFeatureParallelLayout::TSamplesMapping;
+
     public:
         TFindBestSplitsHelper(const TGpuDataSet& dataSet,
                               ui32 foldCount,
@@ -252,13 +253,14 @@ namespace NCatboostCuda {
                               double l2 = 1.0,
                               bool normalize = false,
                               ui32 stream = 0)
-                : DataSet(&dataSet)
-                  , Stream(stream)
-                  , FoldCount(foldCount)
-                  , MaxDepth(maxDepth)
-                  , ScoreFunction(score)
-                  , L2(l2)
-                  , Normalize(normalize) {
+            : DataSet(&dataSet)
+            , Stream(stream)
+            , FoldCount(foldCount)
+            , MaxDepth(maxDepth)
+            , ScoreFunction(score)
+            , L2(l2)
+            , Normalize(normalize)
+        {
             const ui64 blockCount = 32;
             if (DataSet->GetGridSize(Policy)) {
                 auto bestScoresMapping = DataSet->GetBinFeaturesForBestSplits(Policy).GetMapping().Transform([&](const TSlice& histograms) -> ui64 {
@@ -278,7 +280,6 @@ namespace NCatboostCuda {
                                                    TComputeHistogramsHelper<Policy, TDocParallelLayout>& histHelper,
                                                    double scoreStdDev = 0,
                                                    ui64 seed = 0) {
-
             auto& profiler = NCudaLib::GetProfiler();
             if (DataSet->GetGridSize(Policy)) {
                 const ui32 leavesCount = reducedStats.GetObjectsSlice().Size();
@@ -317,7 +318,7 @@ namespace NCatboostCuda {
                     }
 
                     auto guard = profiler.Profile(
-                            TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
+                        TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                     FindOptimalSplit(binFeatures,
                                      ReducedHistograms,
                                      reducedStats,
@@ -358,14 +359,14 @@ namespace NCatboostCuda {
         TCudaBuffer<float, TFeaturesMapping> ReducedHistograms;
     };
 
-
-    template<EFeaturesGroupingPolicy Policy,
-            class TLayoutPolicy = TFeatureParallelLayout>
+    template <EFeaturesGroupingPolicy Policy,
+              class TLayoutPolicy = TFeatureParallelLayout>
     class TScoreHelper: public TMoveOnly {
     public:
         using TGpuDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
+
     public:
         TScoreHelper(const TGpuDataSet& dataSet,
                      ui32 foldCount,
@@ -374,11 +375,11 @@ namespace NCatboostCuda {
                      double l2 = 1.0,
                      bool normalize = false,
                      bool requestStream = true)
-                : Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream()
-                                         : NCudaLib::GetCudaManager().DefaultStream())
-        , ComputeHistogramsHelper(dataSet, foldCount, maxDepth, Stream)
-        , FindBestSplitsHelper(dataSet, foldCount, maxDepth, score, l2, normalize, Stream.GetId()) {
-
+            : Stream(requestStream ? NCudaLib::GetCudaManager().RequestStream()
+                                   : NCudaLib::GetCudaManager().DefaultStream())
+            , ComputeHistogramsHelper(dataSet, foldCount, maxDepth, Stream)
+            , FindBestSplitsHelper(dataSet, foldCount, maxDepth, score, l2, normalize, Stream.GetId())
+        {
         }
 
         template <bool IsConst, class TUi32>
@@ -409,7 +410,6 @@ namespace NCatboostCuda {
         const TCudaBuffer<float, TFeaturesMapping>& GetHistograms() const {
             return ComputeHistogramsHelper.GetHistograms();
         }
-
 
     private:
         NCudaLib::TCudaManager::TComputationStream Stream;

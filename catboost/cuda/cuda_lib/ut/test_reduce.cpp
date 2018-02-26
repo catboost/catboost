@@ -20,8 +20,7 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
                     const size_t partCountBase = 2000,
                     bool performanceOnly = false,
                     bool compress = false,
-                    bool reduceSingle=false
-    ) {
+                    bool reduceSingle = false) {
         TRandom rand(0);
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         auto& profiler = GetProfiler();
@@ -81,7 +80,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         }
     }
 
-
     SIMPLE_UNIT_TEST(TestReduceOnAll4x4) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -132,7 +130,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
         }
     }
 
-
     SIMPLE_UNIT_TEST(TestReduceOnAll128) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
@@ -154,7 +151,6 @@ SIMPLE_UNIT_TEST_SUITE(TStripeReduceTest) {
             TestReduce(256, 20000, performanceOnly, false, true);
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestReduceOnAll512) {
         {

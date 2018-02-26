@@ -5,7 +5,6 @@
 #include <catboost/cuda/cuda_util/dot_product.h>
 
 namespace NCatboostCuda {
-
     template <class TTarget>
     inline double ComputeStdDev(TTarget& target) {
         DivideVector(target.WeightedTarget, target.Weights);
@@ -23,7 +22,6 @@ namespace NCatboostCuda {
 
     template <class TTarget>
     inline double ComputeScoreStdDev(double modelLengthMult, double randomStrength, TTarget& target) {
-
         if (modelLengthMult * randomStrength) {
             double stdDev = ComputeStdDev(target);
             return modelLengthMult * stdDev * randomStrength;

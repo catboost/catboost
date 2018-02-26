@@ -27,11 +27,12 @@ namespace NKernelHost {
                                 TCudaBufferPtr<float> cursor,
                                 TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
                                 TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
-                : BinValues(binValues)
-                  , Bins(bins)
-                  , ReadIndices(readIndices)
-                  , WriteIndices(writeIndices)
-                  , Cursor(cursor) {
+            : BinValues(binValues)
+            , Bins(bins)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
+            , Cursor(cursor)
+        {
         }
 
         Y_SAVELOAD_DEFINE(BinValues, Bins, ReadIndices, WriteIndices, Cursor);
@@ -48,7 +49,6 @@ namespace NKernelHost {
                                       stream.GetStream());
         }
     };
-
 
     class TAddObliviousTreeKernel: public TStatelessKernel {
     private:
@@ -70,13 +70,14 @@ namespace NKernelHost {
                                 TCudaBufferPtr<float> cursor,
                                 TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
                                 TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
-                : Features(features)
-                  , Bins(bins)
-                  , Leaves(leaves)
-                  , DataSet(index)
-                  , Cursor(cursor)
-                  , ReadIndices(readIndices)
-                  , WriteIndices(writeIndices) {
+            : Features(features)
+            , Bins(bins)
+            , Leaves(leaves)
+            , DataSet(index)
+            , Cursor(cursor)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
+        {
         }
 
         Y_SAVELOAD_DEFINE(Features, Bins, Leaves, DataSet, Cursor, ReadIndices, WriteIndices);
@@ -84,10 +85,9 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));
             CB_ENSURE(Bins.Size() == Features.Size());
-            NKernel::AddObliviousTree(Features.Get(), Bins.Get(), Leaves.Get(), (ui32) Bins.Size(), DataSet.Get(),
+            NKernel::AddObliviousTree(Features.Get(), Bins.Get(), Leaves.Get(), (ui32)Bins.Size(), DataSet.Get(),
                                       ReadIndices.Get(), WriteIndices.Get(), Cursor.Get(), Cursor.Size(),
                                       stream.GetStream());
-
         }
     };
 
@@ -109,12 +109,13 @@ namespace NKernelHost {
                                                 TCudaBufferPtr<ui32> cursor,
                                                 TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
                                                 TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
-                : Features(features)
-                  , Bins(bins)
-                  , DataSet(index)
-                  , Cursor(cursor)
-                  , ReadIndices(readIndices)
-                  , WriteIndices(writeIndices) {
+            : Features(features)
+            , Bins(bins)
+            , DataSet(index)
+            , Cursor(cursor)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
+        {
         }
 
         Y_SAVELOAD_DEFINE(Features, Bins, DataSet, Cursor, ReadIndices, WriteIndices);
@@ -124,14 +125,13 @@ namespace NKernelHost {
             CB_ENSURE(Bins.Size() == Features.Size());
             NKernel::ComputeObliviousTreeBins(Features.Get(),
                                               Bins.Get(),
-                                              (ui32) Bins.Size(),
+                                              (ui32)Bins.Size(),
                                               DataSet.Get(),
                                               ReadIndices.Get(),
                                               WriteIndices.Get(),
                                               Cursor.Get(),
                                               Cursor.Size(),
                                               stream.GetStream());
-
         }
     };
 }
@@ -155,8 +155,6 @@ inline void AddBinModelValues(const TCudaBuffer<float, NCudaLib::TMirrorMapping>
     LaunchKernels<TKernel>(cursor.NonEmptyDevices(), stream, leafValues, bins, cursor);
 }
 
-
-
 template <class TUi32>
 inline void AddObliviousTree(const TCudaBuffer<TUi32, NCudaLib::TStripeMapping>& dataSet,
                              const TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping>& features,
@@ -167,8 +165,6 @@ inline void AddObliviousTree(const TCudaBuffer<TUi32, NCudaLib::TStripeMapping>&
     using TKernel = NKernelHost::TAddObliviousTreeKernel;
     LaunchKernels<TKernel>(cursor.NonEmptyDevices(), stream, features, bins, leaves, dataSet, cursor);
 }
-
-
 
 template <class TUi32>
 inline void ComputeObliviousTreeLeaves(const TCudaBuffer<TUi32, NCudaLib::TStripeMapping>& dataSet,

@@ -15,8 +15,6 @@ using namespace std;
 using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
-
-
     template <class TLayout,
               EFeaturesGroupingPolicy Policy>
     void inline CalcRefSums(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
@@ -28,7 +26,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             ui32 foldCount,
                             TVector<float>* refSums,
                             TVector<float>* refWeights) {
-
         ui32 numLeaves = 1 << depth;
         ui32 bitsPerFold = IntLog2(foldCount);
         ui32 foldsStripe = 1 << bitsPerFold;
@@ -42,10 +39,8 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         TVector<float>& binSums = *refSums;
         TVector<float>& binWeights = *refWeights;
 
-
         const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
         const auto foldOffset = cpuGrid.ComputeFoldOffsets();
-
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
             TSlice docSlice = tgts.GetMapping().DeviceSlice(dev);
@@ -132,12 +127,12 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     }
 
     template <class TLayout,
-            EFeaturesGroupingPolicy Policy>
+              EFeaturesGroupingPolicy Policy>
     inline void CheckResults(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
                              const TCudaBuffer<float, typename TLayout::TSamplesMapping>& approx,
-                             const TCudaBuffer<float,  typename TLayout::TSamplesMapping>& wts,
-                             const TCudaBuffer<ui32,  typename TLayout::TSamplesMapping>& indices,
-                             const TCudaBuffer<const TDataPartition,  typename TLayout::TSamplesMapping>& partitioning,
+                             const TCudaBuffer<float, typename TLayout::TSamplesMapping>& wts,
+                             const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
+                             const TCudaBuffer<const TDataPartition, typename TLayout::TSamplesMapping>& partitioning,
                              ui32 depth, ui32 foldCount,
                              const TVector<float>& props) {
         TVector<float> refSums, refWts;
@@ -148,12 +143,11 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         auto& binaryFeatures = dataSet->GetBinFeatures(Policy);
 
-//        ui32 currentDevice = 0;
-//        ui32 deviceOffset = 0;
+        //        ui32 currentDevice = 0;
+        //        ui32 deviceOffset = 0;
 
         const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
         const auto foldOffsets = cpuGrid.ComputeFoldOffsets();
-
 
         for (ui32 i = 0; i < binaryFeatures.size(); i++) {
             auto& binFeature = binaryFeatures[i];
@@ -168,28 +162,28 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             x += props[offset];
                         }
                         double refX = refWts[i * partCount + leaf * foldCount + fold];
-//                        if (std::abs(x - refX) > 1e-6) {
-//                            ui32 bitsPerFold = IntLog2(foldCount);
-//                            ui32 foldsStripe = 1 << bitsPerFold;
-//
-////                            TVector<TDataPartition> parts;
-////                            partitioning.Read(parts);
-////                            Cout << deviceOffset << "  " << depth << Endl;
-////                            Cout << parts[leaf * foldsStripe + fold].Offset << " " << parts[leaf * foldsStripe + fold].Size << Endl;
-////                            Cout << i << " " << leaf << " " << fold << " " << x << " " << refX << Endl;
-////                            Cout << i * partCount + leaf * foldCount + fold << " " << leavesCount << " " << foldCount << Endl;
-////                            Cout << feature.Offset << " " << feature.Folds << " " << feature.Index << " " << feature.FirstFoldIndex << Endl;
-//
-////                            for (ui32 i = 0; i < Min<ui32>(40, refWts.size()); ++i) {
-////                                Cout << refWts[i] << " ";
-////                            }
-//                            Cout << Endl;
-//                        }
-                        UNIT_ASSERT_DOUBLES_EQUAL_C(x, refX, 1e-6, leaf << " " << fold << " " << i << " "<< binFeature.FeatureId << " " << binFeature.BinId << " " << Policy);
+                        //                        if (std::abs(x - refX) > 1e-6) {
+                        //                            ui32 bitsPerFold = IntLog2(foldCount);
+                        //                            ui32 foldsStripe = 1 << bitsPerFold;
+                        //
+                        ////                            TVector<TDataPartition> parts;
+                        ////                            partitioning.Read(parts);
+                        ////                            Cout << deviceOffset << "  " << depth << Endl;
+                        ////                            Cout << parts[leaf * foldsStripe + fold].Offset << " " << parts[leaf * foldsStripe + fold].Size << Endl;
+                        ////                            Cout << i << " " << leaf << " " << fold << " " << x << " " << refX << Endl;
+                        ////                            Cout << i * partCount + leaf * foldCount + fold << " " << leavesCount << " " << foldCount << Endl;
+                        ////                            Cout << feature.Offset << " " << feature.Folds << " " << feature.Index << " " << feature.FirstFoldIndex << Endl;
+                        //
+                        ////                            for (ui32 i = 0; i < Min<ui32>(40, refWts.size()); ++i) {
+                        ////                                Cout << refWts[i] << " ";
+                        ////                            }
+                        //                            Cout << Endl;
+                        //                        }
+                        UNIT_ASSERT_DOUBLES_EQUAL_C(x, refX, 1e-6, leaf << " " << fold << " " << i << " " << binFeature.FeatureId << " " << binFeature.BinId << " " << Policy);
                     }
                     {
                         double x = 0;
-                        for (ui32 offset =((firstFold + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2 + 1; offset < props.size(); offset += 2 * refWts.size()) {
+                        for (ui32 offset = ((firstFold + binFeature.BinId) * partCount + leaf * foldCount + fold) * 2 + 1; offset < props.size(); offset += 2 * refWts.size()) {
                             x += props[offset];
                         }
                         double refX = refSums[i * partCount + leaf * foldCount + fold];
@@ -204,7 +198,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     TOptimizationSubsets<NCudaLib::TMirrorMapping> CreateSubsets(ui32 maxDepth,
                                                                  TL2Target<NCudaLib::TMirrorMapping> & src,
                                                                  ui32 foldCount,
-                                                                 TVector<ui32>& bins) {
+                                                                 TVector<ui32> & bins) {
         TOptimizationSubsets<NCudaLib::TMirrorMapping> subsets;
         subsets.Bins = TMirrorBuffer<ui32>::CopyMapping(src.WeightedTarget);
         subsets.Bins.Write(bins);
@@ -274,7 +268,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                     const TVector<float>& gatheredTarget,
                     const TVector<float>& gatheredWeights,
                     const TCudaBuffer<TPartitionStatistics, TMapping>& partStats) {
-
         auto currentParts = TSubsetsHelper<TMapping>::CurrentPartsView(subsets);
 
         for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
@@ -285,7 +278,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             auto devSlice = subsets.Indices.GetMapping().DeviceSlice(dev);
             auto devParts = currentParts.DeviceView(dev);
             devParts.Read(cpuParts);
-//            currentParts.Read(cpuParts);
+            //            currentParts.Read(cpuParts);
 
             {
                 for (ui32 partId = 0; partId < cpuParts.size(); ++partId) {
@@ -315,17 +308,16 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                           const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
                                           ui32 depth,
                                           ui32 foldCount) {
-
-        #define CHECK_RESULT(Policy)                       \
-            auto histogram = scoreHelper.ReadHistograms(); \
-            CheckResults<TLayout, Policy>(&features,       \
-                                          weightedTarget,  \
-                                          weights,         \
-                                          indices,         \
-                                          partitionStats,  \
-                                          depth,           \
-                                          foldCount,       \
-                                          histogram);
+#define CHECK_RESULT(Policy)                       \
+    auto histogram = scoreHelper.ReadHistograms(); \
+    CheckResults<TLayout, Policy>(&features,       \
+                                  weightedTarget,  \
+                                  weights,         \
+                                  indices,         \
+                                  partitionStats,  \
+                                  depth,           \
+                                  foldCount,       \
+                                  histogram);
 
         if (calcer.HasBinaryFeatureHelper()) {
             auto& scoreHelper = calcer.GetBinaryFeatureHelper();
@@ -340,7 +332,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             CHECK_RESULT(EFeaturesGroupingPolicy::HalfByteFeatures)
         }
 
-        #undef CHECK_RESULT
+#undef CHECK_RESULT
     }
 
     void TestPointwiseHistogramForFeatureParallelDataSet(const TFeatureParallelDataSet<>& dataSet,
@@ -413,7 +405,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                                                          foldCount,
                                                                          true);
         }
-
 
         THolder<TScoresCalcerOnCompressedDataSet<>> simpleCtrScoreCalcer;
         if (dataSet.HasPermutationDependentFeatures()) {
@@ -506,14 +497,12 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                 TSubsetsHelper<NCudaLib::TMirrorMapping>::Split(target,
                                                                 docBins,
                                                                 observationIndices,
-                                                                &subsets
-                );
+                                                                &subsets);
             }
         }
     }
 
-
-//
+    //
     void TestPointwiseHistogramForDocParallelDataSet(const TDocParallelDataSet& dataSet,
                                                      const TBinarizedFeaturesManager& featuresManager) {
         TRandom rand(10);
@@ -563,7 +552,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                                    1,
                                                    true);
         }
-
 
         if (dataSet.HasPermutationDependentFeatures()) {
             simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
@@ -637,7 +625,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                     simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartsStats);
                 }
             }
-
 
             TBinarySplit bestSplit;
             {
@@ -786,7 +773,6 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithOneHot) {
         RunTests(0, 6);
     }
-
 
     SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithoutOneHot) {
         RunTests(0, 0, false);

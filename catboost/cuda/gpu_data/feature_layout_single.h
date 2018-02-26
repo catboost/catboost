@@ -12,7 +12,6 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-
     //cuda-manager has 1 active device (mainly for child managers) and we use it
     struct TSingleDevLayout {
         using TFeaturesMapping = NCudaLib::TSingleMapping;
@@ -39,14 +38,12 @@ namespace NCatboostCuda {
             return NCudaLib::TSingleMapping(GetActiveDevice(), featureCount);
         }
 
-
         template <EFeaturesGroupingPolicy Policy,
                   class TFeaturesBinarizationDescription>
         static THolder<TFeaturesBlock> CreateFeaturesBlock(TVector<ui32> featureIds,
-                                                          const TFeaturesBinarizationDescription& info,
-                                                          const NCudaLib::TSingleMapping& docsMapping,
-                                                          const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
-
+                                                           const TFeaturesBinarizationDescription& info,
+                                                           const NCudaLib::TSingleMapping& docsMapping,
+                                                           const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
             THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
 
@@ -90,7 +87,6 @@ namespace NCatboostCuda {
 
             result.BinFeaturesForBestSplits.Reset(result.HistogramsMapping);
             result.BinFeaturesForBestSplits.Write(result.BinFeatures);
-
 
             return resultHolder;
         }

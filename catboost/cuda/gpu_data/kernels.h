@@ -82,7 +82,6 @@ namespace NKernelHost {
         }
     };
 
-
     template <NCudaLib::EPtrType Type>
     class TWriteCompressedIndexKernel: public TStatelessKernel {
     private:
@@ -96,9 +95,9 @@ namespace NKernelHost {
         TWriteCompressedIndexKernel(TCudaBufferPtr<const ui8, Type> bins,
                                     TCFeature feature,
                                     TCudaBufferPtr<ui32> cindex)
-                : Bins(bins)
-                , Feature(feature)
-                , Dst(cindex)
+            : Bins(bins)
+            , Feature(feature)
+            , Dst(cindex)
         {
         }
 
@@ -135,7 +134,6 @@ inline void BinarizeOnDevice(const TCudaBuffer<TValuesFloatType, TMapping>& feat
     using TKernel = NKernelHost::TBinarizeFloatFeatureKernel;
     LaunchKernels<TKernel>(featureValues.NonEmptyDevices(), stream, featureValues, borders, feature, gatherIndices, dst, atomicUpdate);
 };
-
 
 template <class TUi32,
           class TBinsBuffer,

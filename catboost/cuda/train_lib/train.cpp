@@ -52,15 +52,15 @@ namespace NCatboostCuda {
                                              const TDataProvider* test,
                                              const TBinarizedFeaturesManager& featuresManager,
                                              NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-        const bool needFeatureCombinations = (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1)
-                                             && (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel);
+        const bool needFeatureCombinations = (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1) && (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel);
 
         if (needFeatureCombinations) {
             const bool storeCatFeaturesInPinnedMemory = catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage ==
                                                         EGpuCatFeaturesStorage::CpuPinnedMemory;
             if (storeCatFeaturesInPinnedMemory) {
                 ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices,
-                                                            NCudaLib::GetDevicesProvider().GetDeviceCount()).size();
+                                                            NCudaLib::GetDevicesProvider().GetDeviceCount())
+                                    .size();
                 ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test,
                                                                                                    featuresManager,
                                                                                                    devCount);
@@ -73,7 +73,7 @@ namespace NCatboostCuda {
     }
 
     inline void UpdateDataPartitionType(const TBinarizedFeaturesManager& featuresManager,
-                                         NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+                                        NCatboostOptions::TCatBoostOptions& catBoostOptions) {
         if (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1 && featuresManager.GetCatFeatureIds().size()) {
             return;
         } else {
@@ -281,7 +281,7 @@ namespace NCatboostCuda {
             catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
         }
 
-        const ui32 numThreads =  catBoostOptions.SystemOptions->NumThreads;
+        const ui32 numThreads = catBoostOptions.SystemOptions->NumThreads;
         if (NPar::LocalExecutor().GetThreadCount() < (int)numThreads) {
             NPar::LocalExecutor().RunAdditionalThreads(numThreads - NPar::LocalExecutor().GetThreadCount());
         }
@@ -375,7 +375,6 @@ namespace NCatboostCuda {
             THolder<TDataProvider> testProvider;
 
             {
-
                 TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                          dataProvider,
                                                          false,
@@ -392,7 +391,6 @@ namespace NCatboostCuda {
                 }
                 dataProviderBuilder
                     .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
-
 
                 {
                     MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
@@ -439,7 +437,6 @@ namespace NCatboostCuda {
             UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
             UpdateDataPartitionType(featuresManager, catBoostOptions);
             UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
-
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);

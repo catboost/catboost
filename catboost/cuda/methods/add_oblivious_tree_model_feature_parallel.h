@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <catboost/cuda/models/add_model.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -13,7 +12,6 @@
 #include <catboost/cuda/methods/helpers.h>
 
 namespace NCatboostCuda {
-
     template <NCudaLib::EPtrType CatFeatureStorageType>
     class TAddModelValue<TObliviousTreeModel, TFeatureParallelDataSet<CatFeatureStorageType>> {
     public:

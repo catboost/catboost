@@ -522,19 +522,14 @@ namespace NCudaLib {
         return parallelViewBuffer;
     }
 
-
-
-
     template <class T>
     class TStripeVectorBuilder {
     public:
-
         TStripeVectorBuilder() {
             Data.resize(NCudaLib::GetCudaManager().GetDeviceCount());
         }
 
         void Add(const NCudaLib::TDistributedObject<T>& entry) {
-
             for (ui32 i = 0; i < Data.size(); ++i) {
                 Data[i].push_back(entry.At(i));
             }
@@ -542,7 +537,6 @@ namespace NCudaLib {
 
         template <NCudaLib::EPtrType Type>
         void Build(NCudaLib::TCudaBuffer<T, TStripeMapping, Type>& dst, ui32 stream = 0) {
-
             TMappingBuilder<NCudaLib::TStripeMapping> builder;
             TVector<T> flatData;
             flatData.reserve(Data.size() * Data[0].size());
@@ -558,9 +552,8 @@ namespace NCudaLib {
         }
 
     private:
-        TVector<TVector<T> > Data;
+        TVector<TVector<T>> Data;
     };
-
 
     template <bool IsConst>
     struct TMaybeConstView;
@@ -576,6 +569,5 @@ namespace NCudaLib {
         template <class T, class TMapping>
         using TBuffer = TCudaBuffer<T, TMapping>;
     };
-
 
 }

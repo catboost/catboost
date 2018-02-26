@@ -56,7 +56,6 @@ namespace NCudaLib {
         }
 
         void TryDefragment() {
-
         }
 
         template <typename T = char>

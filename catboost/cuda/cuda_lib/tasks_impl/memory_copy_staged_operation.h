@@ -133,9 +133,9 @@ namespace NCudaLib {
                     const ui64 size = Min<ui64>(Size - readOffset, State.BlockSize);
                     const ui32 receiveSize = UseCompression ? sizeof(T) * State.ReservedSize : sizeof(T) * size;
                     State.ReadDoneEvent = State.Manager->ReadAsync((char*)State.ReadBuffer.Get(),
-                                                                    receiveSize,
-                                                                    RemoteHost,
-                                                                    Tag);
+                                                                   receiveSize,
+                                                                   RemoteHost,
+                                                                   Tag);
                     State.WorkingBufferSize = size;
                 }
 

@@ -6,7 +6,6 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCudaLib {
-
     template <class TImpl>
     class TFixedSizeMappingBase {
     private:
@@ -295,7 +294,7 @@ namespace NCudaLib {
     class TMappingBuilder;
 
     template <>
-    class TMappingBuilder<TStripeMapping>{
+    class TMappingBuilder<TStripeMapping> {
     public:
         TMappingBuilder() {
             DeviceSizes.resize(NCudaLib::GetCudaManager().GetDeviceCount(), 0);
@@ -311,16 +310,17 @@ namespace NCudaLib {
             ui64 offset = 0;
             for (ui32 dev = 0; dev < DeviceSizes.size(); ++dev) {
                 slices.push_back(TSlice(offset, offset + DeviceSizes[dev]));
-                offset +=  DeviceSizes[dev];
+                offset += DeviceSizes[dev];
             }
             return TStripeMapping(std::move(slices), objectSize);
         }
+
     private:
         TVector<ui64> DeviceSizes;
     };
 
     template <>
-    class TMappingBuilder<TMirrorMapping>{
+    class TMappingBuilder<TMirrorMapping> {
     public:
         TMappingBuilder() {
             DeviceSizes.resize(NCudaLib::GetCudaManager().GetDeviceCount(), 0);
@@ -337,13 +337,13 @@ namespace NCudaLib {
             }
             return TMirrorMapping(DeviceSizes[0], objectSize);
         }
+
     private:
         TVector<ui64> DeviceSizes;
     };
 
-
     template <>
-    class TMappingBuilder<TSingleMapping>{
+    class TMappingBuilder<TSingleMapping> {
     public:
         TMappingBuilder() {
             DeviceSizes.resize(NCudaLib::GetCudaManager().GetDeviceCount(), 0);
@@ -366,12 +366,12 @@ namespace NCudaLib {
             CB_ENSURE(nonZeroDevices <= 1);
             return TSingleMapping(nonZeroId, DeviceSizes[nonZeroId]);
         }
+
     private:
         TVector<ui64> DeviceSizes;
     };
 
 }
-
 
 template <class TMapping, class T>
 TMapping CreateMapping(const NCudaLib::TDistributedObject<T>& sizes) {

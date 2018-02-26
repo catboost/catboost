@@ -30,23 +30,23 @@ namespace NCatboostCuda {
         TYetiRank(const TDataSet& dataSet,
                   TRandom& random,
                   const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             Init(targetOptions);
-
         }
 
         TYetiRank(const TYetiRank& target,
                   const TSlice& slice)
             : TParent(target,
                       slice)
-            , PermutationCount(target.GetPermutationCount()) {
+            , PermutationCount(target.GetPermutationCount())
+        {
         }
 
-
         TYetiRank(const TYetiRank& target)
-                : TParent(target)
-                  , PermutationCount(target.GetPermutationCount()) {
+            : TParent(target)
+            , PermutationCount(target.GetPermutationCount())
+        {
         }
 
         template <class TLayout>
@@ -112,7 +112,6 @@ namespace NCatboostCuda {
                                       stream);
         }
 
-
         //For YetiRank Newton approximation is meaningless
         void NewtonAt(const TConstVec& point,
                       TVec& weightedDer,
@@ -160,6 +159,7 @@ namespace NCatboostCuda {
         ui32 GetPermutationCount() const {
             return PermutationCount;
         }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
@@ -174,6 +174,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(querySize <= 1023, "Error: max query size supported on GPU is 1023, got " << querySize);
             }
         }
+
     private:
         mutable TVector<float> TargetCpu;
 

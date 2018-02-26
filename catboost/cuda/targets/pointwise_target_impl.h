@@ -26,14 +26,12 @@ namespace NCatboostCuda {
             Init(targetOptions);
         }
 
-
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TRandom& random,
                               const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             Init(targetOptions);
-
         }
 
         TPointwiseTargetsImpl(const TPointwiseTargetsImpl& target,
@@ -46,12 +44,12 @@ namespace NCatboostCuda {
         {
         }
 
-
         TPointwiseTargetsImpl(const TPointwiseTargetsImpl& target)
-                : TParent(target)
-                  , Type(target.GetType())
-                  , Alpha(target.GetAlpha())
-                  , MetricName(target.TargetName()) {
+            : TParent(target)
+            , Type(target.GetType())
+            , Alpha(target.GetAlpha())
+            , MetricName(target.TargetName())
+        {
         }
 
         template <class TLayout>
@@ -125,7 +123,6 @@ namespace NCatboostCuda {
                       TVec& weightedDer,
                       TVec& weightedDer2,
                       ui32 stream = 0) const {
-
             Approximate(GetTarget().GetTargets(),
                         GetTarget().GetWeights(),
                         point,
@@ -160,6 +157,7 @@ namespace NCatboostCuda {
         double GetAlpha() const {
             return Alpha;
         }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             Type = targetOptions.GetLossFunction();
@@ -183,6 +181,7 @@ namespace NCatboostCuda {
             }
             MetricName = ToString(targetOptions);
         }
+
     private:
         ELossFunction Type = ELossFunction::Custom;
         double Alpha = 0;

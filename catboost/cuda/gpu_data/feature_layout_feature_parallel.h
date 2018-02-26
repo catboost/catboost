@@ -13,7 +13,6 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-
     struct TFeatureParallelLayout {
         using TFeaturesMapping = NCudaLib::TStripeMapping;
         using TSamplesMapping = NCudaLib::TMirrorMapping;
@@ -33,11 +32,11 @@ namespace NCatboostCuda {
         }
 
         template <EFeaturesGroupingPolicy Policy,
-                class TFeaturesBinarizationDescription>
+                  class TFeaturesBinarizationDescription>
         static THolder<TFeaturesBlock> CreateFeaturesBlock(TVector<ui32>& featureIds,
-                                                          const TFeaturesBinarizationDescription& info,
-                                                          const NCudaLib::TMirrorMapping& docsMapping,
-                                                          const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
+                                                           const TFeaturesBinarizationDescription& info,
+                                                           const NCudaLib::TMirrorMapping& docsMapping,
+                                                           const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
             auto layout = CreateLayout(featureIds.size());
 
             if (Policy == EFeaturesGroupingPolicy::OneByteFeatures) {
@@ -49,7 +48,7 @@ namespace NCatboostCuda {
                     std::sort(featureIds.begin() + devSlice.Left, featureIds.begin() + devSlice.Right,
                               [&](ui32 left, ui32 right) -> bool {
                                   return info.GetFoldsCount(left) < info.GetFoldsCount(right);
-                    });
+                              });
                 }
             }
 
@@ -96,7 +95,6 @@ namespace NCatboostCuda {
 
             return resultHolder;
         }
-
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
                                            const TVector<ui8>& bins,

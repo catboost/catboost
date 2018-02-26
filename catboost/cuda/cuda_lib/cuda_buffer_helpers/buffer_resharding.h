@@ -31,11 +31,11 @@ namespace NCudaLib {
                 return 1;
             }
 
-            #ifndef USE_MPI
+#ifndef USE_MPI
             if (TFromBuffer::PtrType() != EPtrType::CudaDevice) {
                 return 1;
             }
-            #endif
+#endif
 
             const auto& stats = GetMemoryCopyPerformance<TFromBuffer::PtrType(), TToBuffer::PtrType()>();
 
@@ -309,6 +309,5 @@ namespace NCudaLib {
         worker.SetCompressFlag(compress)
             .Run();
     };
-
 
 }

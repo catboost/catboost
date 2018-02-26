@@ -12,8 +12,6 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-
-
     struct TDocParallelLayout {
         using TFeaturesMapping = NCudaLib::TStripeMapping;
         using TSamplesMapping = NCudaLib::TStripeMapping;
@@ -36,9 +34,9 @@ namespace NCatboostCuda {
         template <EFeaturesGroupingPolicy Policy,
                   class TFeaturesBinarizationDescription>
         static THolder<TFeaturesBlock> CreateFeaturesBlock(TVector<ui32> featureIds,
-                                                          const TFeaturesBinarizationDescription& info,
-                                                          const NCudaLib::TStripeMapping& docsMapping,
-                                                          const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
+                                                           const TFeaturesBinarizationDescription& info,
+                                                           const NCudaLib::TStripeMapping& docsMapping,
+                                                           const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
             if (Policy == EFeaturesGroupingPolicy::OneByteFeatures) {
                 TRandom rand(0);
                 Shuffle(featureIds.begin(), featureIds.end(), rand);
@@ -95,7 +93,6 @@ namespace NCatboostCuda {
             return resultHolder;
         }
 
-
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
                                            const TVector<ui8>& bins,
                                            const NCudaLib::TStripeMapping& docsMapping,
@@ -104,9 +101,6 @@ namespace NCatboostCuda {
             tmp.Write(bins);
             WriteCompressedFeature(feature, tmp, *compressedIndex);
         }
-
     };
 
-
-};
-
+}

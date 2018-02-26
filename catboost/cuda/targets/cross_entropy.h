@@ -32,8 +32,8 @@ namespace NCatboostCuda {
         TCrossEntropy(const TDataSet& dataSet,
                       TRandom& random,
                       const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             Y_UNUSED(targetOptions);
         }
 
@@ -44,7 +44,8 @@ namespace NCatboostCuda {
         }
 
         TCrossEntropy(const TCrossEntropy& target)
-                : TParent(target) {
+            : TParent(target)
+        {
         }
 
         template <class TLayout>
@@ -105,7 +106,6 @@ namespace NCatboostCuda {
                         stream);
             weights.Copy(GetTarget().GetWeights(), stream);
         }
-
 
         void NewtonAt(const TConstVec& point,
                       TVec& weightedDer,
@@ -172,20 +172,21 @@ namespace NCatboostCuda {
                       random,
                       slice,
                       targetOptions)
-            , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
+            , Border(NCatboostOptions::GetLogLossBorder(targetOptions))
+        {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
         }
 
         TLogloss(const TDataSet& dataSet,
                  TRandom& random,
                  const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random,
-                          targetOptions)
-                  , Border(NCatboostOptions::GetLogLossBorder(targetOptions)) {
+            : TParent(dataSet,
+                      random,
+                      targetOptions)
+            , Border(NCatboostOptions::GetLogLossBorder(targetOptions))
+        {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Logloss);
         }
-
 
         TLogloss(const TLogloss& target,
                  const TSlice& slice)
@@ -196,8 +197,9 @@ namespace NCatboostCuda {
         }
 
         TLogloss(const TLogloss& target)
-                : TParent(target)
-                  , Border(target.GetBorder()) {
+            : TParent(target)
+            , Border(target.GetBorder())
+        {
         }
 
         template <class TLayout>

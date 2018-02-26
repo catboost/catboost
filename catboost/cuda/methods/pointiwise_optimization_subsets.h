@@ -6,11 +6,8 @@
 #include <catboost/cuda/gpu_data/splitter.h>
 
 namespace NCatboostCuda {
-
     template <class>
     struct TSubsetsHelper;
-
-
 
     template <class TMapping = NCudaLib::TMirrorMapping,
               bool IsConst = false>
@@ -46,7 +43,6 @@ namespace NCatboostCuda {
         };
 
     private:
-
         template <class>
         friend struct TSubsetsHelper;
     };
@@ -70,9 +66,8 @@ namespace NCatboostCuda {
                              subsets.Weights);
     }
 
-    template<>
+    template <>
     struct TSubsetsHelper<NCudaLib::TMirrorMapping> {
-
         template <class TTarget>
         static void Split(const TTarget& sourceTarget,
                           const TCudaBuffer<ui32, NCudaLib::TMirrorMapping>& nextLevelDocBins,
@@ -94,7 +89,6 @@ namespace NCatboostCuda {
                                subsets);
         }
 
-
         static TMirrorBuffer<TDataPartition> CurrentPartsView(TOptimizationSubsets<NCudaLib::TMirrorMapping, false>& subsets) {
             auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));
             return subsets.Partitions.SliceView(currentSlice);
@@ -105,14 +99,10 @@ namespace NCatboostCuda {
             auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));
             return subsets.Partitions.SliceView(currentSlice);
         }
-
-
     };
 
-
-    template<>
+    template <>
     struct TSubsetsHelper<NCudaLib::TStripeMapping> {
-
         template <class TL2>
         static void Split(const TL2& sourceTarget,
                           const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& cindex,
@@ -139,7 +129,6 @@ namespace NCatboostCuda {
             UpdateSubsetsStats(sourceTarget,
                                subsets);
         }
-
 
         static TStripeBuffer<const TDataPartition> CurrentPartsView(const TOptimizationSubsets<NCudaLib::TStripeMapping>& subsets) {
             auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));

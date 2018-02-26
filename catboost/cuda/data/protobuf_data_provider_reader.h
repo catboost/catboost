@@ -14,10 +14,8 @@
 #include <util/generic/map.h>
 
 namespace NCatboostCuda {
-
     class TCatBoostProtoPoolReader {
     public:
-
         template <class TContainer>
         TCatBoostProtoPoolReader& AddIgnoredFeatures(const TContainer& container) {
             for (const auto& f : container) {
@@ -30,7 +28,6 @@ namespace NCatboostCuda {
             ClassesWeights = classesWeights;
             return *this;
         }
-
 
         TCatBoostProtoPoolReader& SetShuffleSeed(ui64 seed = 0) {
             Seed = seed;
@@ -48,11 +45,11 @@ namespace NCatboostCuda {
             return Read(input);
         }
 
-
         explicit TCatBoostProtoPoolReader(TBinarizedFeaturesManager& featuresManager,
                                           bool hasTime)
             : FeaturesManager(featuresManager)
-            , HasTime(hasTime) {
+            , HasTime(hasTime)
+        {
         }
 
     private:
@@ -63,7 +60,6 @@ namespace NCatboostCuda {
 
         bool HasTime = false;
         ui64 Seed = 0;
-
 
         void AddFeatureColumn(TIFStream& input,
                               ui32 docCount,

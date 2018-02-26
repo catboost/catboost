@@ -19,8 +19,6 @@
 #include <catboost/libs/helpers/interrupt.h>
 
 namespace NCatboostCuda {
-
-
     template <template <class TMapping, class> class TTargetTemplate,
               class TWeakLearner_,
               NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
@@ -126,9 +124,9 @@ namespace NCatboostCuda {
             ui32 permutationBlockSize = GetPermutationBlockSize(DataProvider->GetSampleCount());
 
             TFeatureParallelDataSetHoldersBuilder<CatFeaturesStoragePtrType> dataSetsHolderBuilder(FeaturesManager,
-                                                                                    *DataProvider,
-                                                                                    TestDataProvider,
-                                                                                    permutationBlockSize);
+                                                                                                   *DataProvider,
+                                                                                                   TestDataProvider,
+                                                                                                   permutationBlockSize);
 
             const auto permutationCount = DataProvider->HasTime() ? 1 : Config.PermutationCount;
             return dataSetsHolderBuilder.BuildDataSet(permutationCount);
@@ -143,7 +141,7 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TFeatureParallelDataSet<CatFeaturesStoragePtrType>& dataSet) const {
-            auto slice =  dataSet.GetSamplesMapping().GetObjectsSlice();
+            auto slice = dataSet.GetSamplesMapping().GetObjectsSlice();
             CB_ENSURE(slice.Size());
             return new TObjective(dataSet,
                                   Random,
@@ -280,15 +278,15 @@ namespace NCatboostCuda {
                                     const auto& fold = taskFolds[foldId];
 
                                     TShiftedTargetSlice<TObjective> learnTarget(taskTarget,
-                                                                             fold.EstimateSamples,
-                                                                             cursor.Get(learnPermutationId,
-                                                                                        foldId)
-                                                                                 .SliceView(fold.EstimateSamples));
+                                                                                fold.EstimateSamples,
+                                                                                cursor.Get(learnPermutationId,
+                                                                                           foldId)
+                                                                                    .SliceView(fold.EstimateSamples));
 
                                     TShiftedTargetSlice<TObjective> validateTarget(taskTarget,
-                                                                                fold.QualityEvaluateSamples,
-                                                                                cursor.Get(learnPermutationId, foldId)
-                                                                                    .SliceView(fold.QualityEvaluateSamples));
+                                                                                   fold.QualityEvaluateSamples,
+                                                                                   cursor.Get(learnPermutationId, foldId)
+                                                                                       .SliceView(fold.QualityEvaluateSamples));
 
                                     optimizer.AddTask(std::move(learnTarget),
                                                       std::move(validateTarget));
@@ -425,8 +423,8 @@ namespace NCatboostCuda {
 
                         for (auto& listener : LearnListeners) {
                             listener->Invoke(*result,
-                                                     target.GetTarget(estimationPermutation),
-                                                     cursor.Estimation);
+                                             target.GetTarget(estimationPermutation),
+                                             cursor.Estimation);
                         }
                     }
 
@@ -435,8 +433,8 @@ namespace NCatboostCuda {
 
                         for (auto& listener : TestListeners) {
                             listener->Invoke(*result,
-                                                     *testTarget,
-                                                     *testCursor);
+                                             *testTarget,
+                                             *testCursor);
                         }
                     }
 
@@ -604,7 +602,5 @@ namespace NCatboostCuda {
                 resultModel.Get());
             return resultModel;
         }
-
-
     };
 }

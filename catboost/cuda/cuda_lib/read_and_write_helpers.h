@@ -43,10 +43,9 @@ inline void Write(const TVector<TVector<TVector<T>>>& src,
     }
 };
 
-
 template <class T,
-        class TMapping,
-        NCudaLib::EPtrType Type>
+          class TMapping,
+          NCudaLib::EPtrType Type>
 void ThroughHostBroadcast(const TVector<T>& values,
                           NCudaLib::TCudaBuffer<T, TMapping, Type>& dst,
                           ui32 stream = 0,

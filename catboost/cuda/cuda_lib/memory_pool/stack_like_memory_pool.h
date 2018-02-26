@@ -290,7 +290,7 @@ namespace NCudaLib {
                 if (needDefragment) {
                     TryDefragment();
                 }
-                if (LastBlock->Size  < adjustedMemoryRequestSize) {
+                if (LastBlock->Size < adjustedMemoryRequestSize) {
                     ythrow TOutOfMemoryError() << "Error: Out of memory. Requested " << requestedBlockSize / MB << "; Free "
                                                << (LastBlock->Size) / MB;
                 }

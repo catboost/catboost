@@ -12,7 +12,6 @@
 #include <util/system/env.h>
 
 namespace NCatboostCuda {
-
     struct TDocParallelSplit {
         TDataPermutation Permutation;
         //wrt samples permutation
@@ -21,8 +20,8 @@ namespace NCatboostCuda {
 
         explicit TDocParallelSplit(const TDataProvider& dataProvider,
                                    const TDataPermutation& permutation)
-        : Permutation(permutation) {
-
+            : Permutation(permutation)
+        {
             if (dataProvider.HasQueries()) {
                 auto permutedQids = Permutation.Gather(dataProvider.GetQueryIds());
                 auto samplesGrouping = MakeHolder<TQueriesGrouping>(std::move(permutedQids),
@@ -43,12 +42,11 @@ namespace NCatboostCuda {
         }
     };
 
-
     class TDocParallelDataSet: public TDataSetBase<TDocParallelLayout> {
     public:
         using TParent = TDataSetBase<TDocParallelLayout>;
         using TLayout = TDocParallelLayout;
-        using TCompressedIndex =  typename TParent::TCompressedIndex;
+        using TCompressedIndex = typename TParent::TCompressedIndex;
         using TCompressedDataSet = typename TParent::TCompressedDataSet;
         using TDocsMapping = typename TDocParallelLayout::TSamplesMapping;
 
@@ -60,21 +58,21 @@ namespace NCatboostCuda {
         const TDataPermutation& GetLoadBalancingPermutation() const {
             return LoadBalancingPermutation;
         }
-    private:
 
+    private:
         TDocParallelDataSet(const TDataProvider& dataProvider,
                             TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                             const TDataPermutation& ctrsEstimationPermutation,
                             const TDataPermutation& loadBalancingPermutation,
                             TAtomicSharedPtr<IQueriesGrouping> grouping,
                             TTarget<NCudaLib::TStripeMapping>&& target)
-                : TDataSetBase<TDocParallelLayout>(dataProvider,
-                                                   compressedIndex,
-                                                   ctrsEstimationPermutation,
-                                                   std::move(target))
-        , SamplesGrouping(grouping)
-        , LoadBalancingPermutation(loadBalancingPermutation) {
-
+            : TDataSetBase<TDocParallelLayout>(dataProvider,
+                                               compressedIndex,
+                                               ctrsEstimationPermutation,
+                                               std::move(target))
+            , SamplesGrouping(grouping)
+            , LoadBalancingPermutation(loadBalancingPermutation)
+        {
         }
 
     private:
@@ -83,12 +81,10 @@ namespace NCatboostCuda {
         friend class TDocParallelDataSetBuilder;
     };
 
-
     class TDocParallelDataSetsHolder: public TGuidHolder {
     public:
         using TCompressedIndex = TSharedCompressedIndex<TDocParallelLayout>;
         using TCompressedDataSet = typename TCompressedIndex::TCompressedDataSet;
-
 
         const TDocParallelDataSet& GetDataSetForPermutation(ui32 permutationId) const {
             const auto* dataSetPtr = PermutationDataSets.at(permutationId).Get();
@@ -115,7 +111,6 @@ namespace NCatboostCuda {
             return (const ui32)PermutationDataSets.size();
         }
 
-
         const TDataPermutation& GetCtrEstimationPermutation(ui32 permutationId) const {
             return PermutationDataSets[permutationId]->GetCtrsEstimationPermutation();
         }
@@ -134,11 +129,12 @@ namespace NCatboostCuda {
         TDocParallelDataSetsHolder(const TDataProvider& dataProvider,
                                    const TBinarizedFeaturesManager& featuresManager,
                                    const TDataProvider* testProvider = nullptr)
-                : DataProvider(&dataProvider)
-                , TestDataProvider(testProvider)
-                , FeaturesManager(&featuresManager)  {
+            : DataProvider(&dataProvider)
+            , TestDataProvider(testProvider)
+            , FeaturesManager(&featuresManager)
+        {
             CompressedIndex = new TCompressedIndex();
-//            const ui32 loadBalancingPermutationId = 42;
+            //            const ui32 loadBalancingPermutationId = 42;
             const ui32 loadBalancingPermutationId = FromString<ui32>(GetEnv("CB_LOAD_BALANCE_PERMUTATION", "42"));
 
             LearnDocPerDevicesSplit = new TDocParallelSplit(*DataProvider,
@@ -146,8 +142,8 @@ namespace NCatboostCuda {
                                                                            loadBalancingPermutationId));
             if (TestDataProvider) {
                 TestDocPerDevicesSplit = new TDocParallelSplit(*TestDataProvider,
-                                                                GetPermutation(*TestDataProvider,
-                                                                               loadBalancingPermutationId));
+                                                               GetPermutation(*TestDataProvider,
+                                                                              loadBalancingPermutationId));
             }
         }
 
@@ -175,7 +171,6 @@ namespace NCatboostCuda {
 
         TVector<THolder<TDocParallelDataSet>> PermutationDataSets;
         THolder<TDocParallelDataSet> TestDataSet;
-
 
         THolder<TDocParallelSplit> LearnDocPerDevicesSplit;
         THolder<TDocParallelSplit> TestDocPerDevicesSplit;

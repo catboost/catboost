@@ -6,8 +6,6 @@
 #include <catboost/cuda/models/oblivious_model.h>
 
 namespace NCatboostCuda {
-
-
     struct TEstimationTaskHelper {
         THolder<IPermutationDerCalcer> DerCalcer;
 
@@ -21,12 +19,10 @@ namespace NCatboostCuda {
         TStripeBuffer<float> TmpValue;
         TStripeBuffer<float> TmpDer2;
 
-
         TEstimationTaskHelper() = default;
 
         void MoveToPoint(const TMirrorBuffer<float>& point,
                          ui32 stream = 0) {
-
             Cursor.Copy(Baseline, stream);
 
             AddBinModelValues(point,
@@ -35,13 +31,13 @@ namespace NCatboostCuda {
                               stream);
         }
 
-        template<NCudaLib::EPtrType Type>
+        template <NCudaLib::EPtrType Type>
         void ProjectWeights(TCudaBuffer<float, NCudaLib::TStripeMapping, Type>& weightsDst,
                             ui32 streamId = 0) {
             SegmentedReduceVector(DerCalcer->GetWeights(streamId), Offsets, weightsDst, EOperatorType::Sum, streamId);
         }
 
-        template<NCudaLib::EPtrType PtrType>
+        template <NCudaLib::EPtrType PtrType>
         void Project(TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* value,
                      TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* der,
                      TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* der2,

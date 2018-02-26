@@ -10,7 +10,6 @@
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
-
     inline TString GpuProgressLabel() {
         return ToString<ETaskType>(ETaskType::GPU);
     }
@@ -21,7 +20,6 @@ namespace NCatboostCuda {
         TString TaskOptions;
         ui64 SaveIntervalSeconds;
     };
-
 
     template <class TModel>
     class TFeatureIdsRemaper;

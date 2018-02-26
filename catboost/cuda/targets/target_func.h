@@ -16,12 +16,10 @@
     using TConstVec = TBuffer<const float>;
 
 namespace NCatboostCuda {
-
     enum ETargetType {
         Pointwise,
         Querywise
     };
-
 
     /*
      * Target is objective function for samples subset from one dataset
@@ -46,9 +44,10 @@ namespace NCatboostCuda {
 
         TTargetFunc(const TDataSet& dataSet,
                     TRandom& random)
-                : Target(dataSet.GetTarget())
-                  , DataSet(&dataSet)
-                  , Random(&random) {
+            : Target(dataSet.GetTarget())
+            , DataSet(&dataSet)
+            , Random(&random)
+        {
         }
 
         TTargetFunc(const TDataSet& dataSet,
@@ -64,15 +63,16 @@ namespace NCatboostCuda {
                     const TSlice& slice)
             : Target(SliceTarget(target.GetTarget(), slice))
             , DataSet(&target.GetDataSet())
-            , Random(target.Random) {
+            , Random(target.Random)
+        {
         }
 
         TTargetFunc(const TTargetFunc& target)
-                : Target(target.GetTarget())
-                , DataSet(&target.GetDataSet())
-                , Random(target.Random) {
+            : Target(target.GetTarget())
+            , DataSet(&target.GetDataSet())
+            , Random(target.Random)
+        {
         }
-
 
         TTargetFunc(TTargetFunc&& other) = default;
 
@@ -111,6 +111,7 @@ namespace NCatboostCuda {
 
     protected:
         TTarget<TMapping> Target;
+
     private:
         const TDataSet* DataSet;
         TRandom* Random;
@@ -131,10 +132,10 @@ namespace NCatboostCuda {
         {
         }
 
-
         TPointwiseTarget(const TDataSet& dataSet,
                          TRandom& random)
-                : TTargetFunc<TMapping, TDataSet>(dataSet, random) {
+            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
+        {
         }
 
         TPointwiseTarget(const TDataSet& dataSet,
@@ -147,11 +148,13 @@ namespace NCatboostCuda {
 
         TPointwiseTarget(const TPointwiseTarget& target,
                          const TSlice& slice)
-            : TTargetFunc<TMapping, TDataSet>(target, slice) {
+            : TTargetFunc<TMapping, TDataSet>(target, slice)
+        {
         }
 
         TPointwiseTarget(const TPointwiseTarget& target)
-                : TTargetFunc<TMapping, TDataSet>(target) {
+            : TTargetFunc<TMapping, TDataSet>(target)
+        {
         }
 
         TPointwiseTarget(TPointwiseTarget&& other) = default;
@@ -172,14 +175,16 @@ namespace NCatboostCuda {
                          TRandom& random,
                          const TSlice& slice)
             : TTargetFunc<TMapping, TDataSet>(dataSet, random, slice)
-            , SamplesGrouping(CreateGpuGrouping(dataSet, slice)) {
+            , SamplesGrouping(CreateGpuGrouping(dataSet, slice))
+        {
         }
 
         //for template costructs are generated on use. So will fail in compile time with wrong types :)
         TQuerywiseTarget(const TDataSet& dataSet,
                          TRandom& random)
-                : TTargetFunc<TMapping, TDataSet>(dataSet, random)
-                , SamplesGrouping(CreateGpuGrouping(dataSet)) {
+            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
+            , SamplesGrouping(CreateGpuGrouping(dataSet))
+        {
         }
 
         //to make stripe target from mirror one
@@ -192,7 +197,6 @@ namespace NCatboostCuda {
                                                  TParent::GetTarget().GetIndices())) {
         }
 
-
         TQuerywiseTarget(const TQuerywiseTarget& target,
                          const TSlice& slice)
             : TTargetFunc<TMapping, TDataSet>(target, slice)
@@ -201,9 +205,9 @@ namespace NCatboostCuda {
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target)
-        : TTargetFunc<TMapping, TDataSet>(target)
-        , SamplesGrouping(target.GetSamplesGrouping().CopyView()) {
-
+            : TTargetFunc<TMapping, TDataSet>(target)
+            , SamplesGrouping(target.GetSamplesGrouping().CopyView())
+        {
         }
 
         TQuerywiseTarget(TQuerywiseTarget&& other) = default;
@@ -252,14 +256,11 @@ namespace NCatboostCuda {
         return TTarget(src, slice);
     }
 
-
-
     template <class TTargetFunc>
     class TShiftedTargetSlice: public TMoveOnly {
     public:
-        using TMapping = typename  TTargetFunc::TMapping;
+        using TMapping = typename TTargetFunc::TMapping;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
-
 
         //for dynamic feature parallel boosting
         TShiftedTargetSlice(const TTargetFunc& target,
@@ -272,12 +273,12 @@ namespace NCatboostCuda {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
-
         //doc parallel stipped objective
         TShiftedTargetSlice(const TTargetFunc& target,
                             TConstVec&& shift)
-                : Parent(target)
-                , Shift(std::move(shift)) {
+            : Parent(target)
+            , Shift(std::move(shift))
+        {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
@@ -308,11 +309,10 @@ namespace NCatboostCuda {
         TRandom& GetRandom() const {
             return Parent.GetRandom();
         }
+
     private:
         TTargetFunc Parent;
         TConstVec Shift;
     };
-
-
 
 }

@@ -26,12 +26,11 @@ namespace NCatboostCuda {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryRMSE);
         }
 
-
         TQueryRMSE(const TDataSet& dataSet,
                    TRandom& random,
                    const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryRMSE);
         }
 
@@ -42,9 +41,9 @@ namespace NCatboostCuda {
         }
 
         TQueryRMSE(const TQueryRMSE& target)
-                : TParent(target) {
+            : TParent(target)
+        {
         }
-
 
         template <class TLayout>
         TQueryRMSE(const TQueryRMSE<TLayout, TDataSet>& basedOn,

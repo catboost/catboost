@@ -14,8 +14,6 @@ struct TCBinFeature {
     ui32 BinId;
 };
 
-
-
 struct TCFeature {
     //how to get features
     //ui64 cindex offset
@@ -27,13 +25,11 @@ struct TCFeature {
     //local fold idx (index of first fold for grid on device)
     ui32 FirstFoldIndex = 0;
     //fold count
-    ui32 Folds  = 0;
-//    global index (not feature-id, index in grid only)
-//    ui32 Index;
+    ui32 Folds = 0;
+    //    global index (not feature-id, index in grid only)
+    //    ui32 Index;
     bool OneHotFeature = false;
 };
-
-
 
 struct TBestSplitProperties {
     ui32 FeatureId = 0;
@@ -88,10 +84,9 @@ struct TPartitionStatistics {
 #ifndef __NVCC__
 Y_DECLARE_PODTYPE(TCFeature);
 
-
 namespace NCudaLib {
     namespace NHelpers {
-        template<>
+        template <>
         class TEmptyObjectsHelper<TCFeature> {
         public:
             static inline bool IsEmpty(const TCFeature& val) {

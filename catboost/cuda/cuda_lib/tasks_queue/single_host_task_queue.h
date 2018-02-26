@@ -28,7 +28,7 @@ namespace NCudaLib {
 
             auto fastWaitInterval = TDuration::Seconds(1);
             auto startTime = TInstant::Now();
-            while ((TInstant::Now() - startTime) <  fastWaitInterval) {
+            while ((TInstant::Now() - startTime) < fastWaitInterval) {
                 SchedYield();
                 if (!InputTaskQueue.IsEmpty()) {
                     return;

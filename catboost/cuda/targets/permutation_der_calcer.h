@@ -2,11 +2,9 @@
 
 #include "target_func.h"
 namespace NCatboostCuda {
-
     template <class TTarget,
-            ETargetType TargetType = TTarget::TargetType()>
+              ETargetType TargetType = TTarget::TargetType()>
     class TPermutationDerCalcer;
-
 
     class IPermutationDerCalcer {
     public:
@@ -14,7 +12,6 @@ namespace NCatboostCuda {
         using TConstVec = TCudaBuffer<const float, NCudaLib::TStripeMapping>;
 
         virtual ~IPermutationDerCalcer() {
-
         }
 
         virtual void ApproximateAt(const TVec& point,
@@ -23,8 +20,7 @@ namespace NCatboostCuda {
                                    TVec* der2,
                                    ui32 stream = 0) const = 0;
 
-        virtual TConstVec GetWeights(ui32 streamId) const  = 0;
-
+        virtual TConstVec GetWeights(ui32 streamId) const = 0;
     };
 
     //for pointwise target we could compute derivatives for any permutation of docs and for leaves estimation it's faster to reorder targets
@@ -39,7 +35,8 @@ namespace NCatboostCuda {
 
         TPermutationDerCalcer(TTargetFunc&& target,
                               const TBuffer<const ui32>& indices)
-                : Parent(new TTargetFunc(std::move(target))) {
+            : Parent(new TTargetFunc(std::move(target)))
+        {
             Target = TVec::CopyMapping(indices);
             Gather(Target, Parent->GetTarget().GetTargets(), indices);
 
@@ -77,7 +74,6 @@ namespace NCatboostCuda {
         TVec Weights;
     };
 
-
     //der calcer specialization for non-pointwise target (like pairwise/querywise)
     //Querywise targets can't compute permutated derivatives directly (cause we have query grouping)
     template <class TTarget>
@@ -90,7 +86,8 @@ namespace NCatboostCuda {
 
         TPermutationDerCalcer(TTarget&& target,
                               TBuffer<const ui32>&& indices)
-            : Parent(new TTarget(std::move(target))) {
+            : Parent(new TTarget(std::move(target)))
+        {
             Indices = std::move(indices);
             InverseIndices.Reset(Indices.GetMapping());
             InversePermutation(Indices, InverseIndices);
@@ -130,6 +127,5 @@ namespace NCatboostCuda {
         return new TPermutationDerCalcer<TTarget, TTarget::TargetType()>(std::move(target),
                                                                          std::move(indices));
     }
-
 
 }

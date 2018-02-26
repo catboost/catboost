@@ -17,15 +17,14 @@
 #include <catboost/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
-
     class TFeatureParallelPointwiseObliviousTree {
     public:
         using TResultModel = TObliviousTreeModel;
         using TWeakModelStructure = TObliviousTreeStructure;
 
         TFeatureParallelPointwiseObliviousTree(TBinarizedFeaturesManager& featuresManager,
-                       const NCatboostOptions::TCatBoostOptions& config,
-                       bool makeZeroAverage = false)
+                                               const NCatboostOptions::TCatBoostOptions& config,
+                                               bool makeZeroAverage = false)
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
             , RandomSeed(config.RandomSeed)
@@ -35,8 +34,8 @@ namespace NCatboostCuda {
 
         template <class TDataSet>
         TFeatureParallelPointwiseObliviousTree& CacheStructure(TScopedCacheHolder& cacheHolder,
-                                       const TObliviousTreeStructure& model,
-                                       const TDataSet& dataSet) {
+                                                               const TObliviousTreeStructure& model,
+                                                               const TDataSet& dataSet) {
             const auto& bins = GetBinsForModel(cacheHolder, FeaturesManager, dataSet, model);
             Y_UNUSED(bins);
             return *this;
@@ -45,7 +44,7 @@ namespace NCatboostCuda {
         template <class TTarget,
                   class TDataSet>
         TFeatureParallelObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(TScopedCacheHolder& cache,
-                                                                           const TDataSet& dataSet) {
+                                                                                         const TDataSet& dataSet) {
             if (Bootstrap == nullptr) {
                 const NCatboostOptions::TBootstrapConfig& bootstrapConfig = TreeConfig.BootstrapConfig;
                 Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(bootstrapConfig,
@@ -54,10 +53,10 @@ namespace NCatboostCuda {
             CB_ENSURE(Bootstrap);
 
             return TFeatureParallelObliviousTreeSearcher<TTarget, TDataSet>(cache,
-                                                             FeaturesManager,
-                                                             dataSet,
-                                                             *Bootstrap,
-                                                             TreeConfig);
+                                                                            FeaturesManager,
+                                                                            dataSet,
+                                                                            *Bootstrap,
+                                                                            TreeConfig);
         }
 
         TObliviousTreeLeavesEstimator CreateEstimator() {

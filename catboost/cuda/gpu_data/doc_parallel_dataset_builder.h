@@ -13,8 +13,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
-
     class TDocParallelDataSetBuilder {
     public:
         using TDataSetLayout = TDocParallelLayout;
@@ -22,9 +20,10 @@ namespace NCatboostCuda {
         TDocParallelDataSetBuilder(TBinarizedFeaturesManager& featuresManager,
                                    const TDataProvider& dataProvider,
                                    const TDataProvider* linkedTest = nullptr)
-                : FeaturesManager(featuresManager)
-                  , DataProvider(dataProvider)
-                  , LinkedTest(linkedTest){
+            : FeaturesManager(featuresManager)
+            , DataProvider(dataProvider)
+            , LinkedTest(linkedTest)
+        {
         }
 
         inline TDocParallelDataSetsHolder BuildDataSet(const ui32 permutationCount) {
@@ -38,10 +37,9 @@ namespace NCatboostCuda {
                                              DataProvider,
                                              LinkedTest);
 
-
             dataSetsHolder.PermutationDataSets.resize(permutationCount);
 
-//
+            //
             TDataPermutation learnLoadBalancingPermutation = dataSetsHolder.LearnDocPerDevicesSplit->Permutation;
 
             TCudaBuffer<float, NCudaLib::TStripeMapping> targets;
@@ -50,10 +48,8 @@ namespace NCatboostCuda {
             targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
             weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-
             targets.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetTargets()));
             weights.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetWeights()));
-
 
             for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
                 dataSetsHolder.PermutationDataSets[permutationId] = new TDocParallelDataSet(DataProvider,
@@ -62,12 +58,10 @@ namespace NCatboostCuda {
                                                                                             learnLoadBalancingPermutation,
                                                                                             dataSetsHolder.LearnDocPerDevicesSplit->SamplesGrouping,
                                                                                             TTarget<NCudaLib::TStripeMapping>(targets.ConstCopyView(),
-                                                                                                                              weights.ConstCopyView())
-                );
+                                                                                                                              weights.ConstCopyView()));
             }
 
             if (LinkedTest != nullptr) {
-
                 TCudaBuffer<float, NCudaLib::TStripeMapping> testTargets;
                 TCudaBuffer<float, NCudaLib::TStripeMapping> testWeights;
 
@@ -85,8 +79,7 @@ namespace NCatboostCuda {
                                                                      testLoadBalancingPermutation,
                                                                      dataSetsHolder.TestDocPerDevicesSplit->SamplesGrouping,
                                                                      TTarget<NCudaLib::TStripeMapping>(testTargets.ConstCopyView(),
-                                                                                                       testWeights.ConstCopyView())
-                );
+                                                                                                       testWeights.ConstCopyView()));
             }
 
             auto allFeatures = GetLearnFeatureIds(FeaturesManager);
@@ -100,7 +93,6 @@ namespace NCatboostCuda {
                                              &permutationDependent);
             }
 
-
             auto learnMapping = targets.GetMapping();
             TAtomicSharedPtr<TVector<ui32>> learnGatherIndices = new TVector<ui32>;
             learnLoadBalancingPermutation.FillOrder(*learnGatherIndices);
@@ -109,27 +101,23 @@ namespace NCatboostCuda {
                                                             &DataProvider);
 
             const ui32 permutationIndependentCompressedDataSetId = compressedIndexBuilder.AddDataSet(
-                    learnBinarizationInfo,
-                    {"Learn permutation independent features"},
-                    learnMapping,
-                    permutationIndependent,
-                    learnGatherIndices);
-
+                learnBinarizationInfo,
+                {"Learn permutation independent features"},
+                learnMapping,
+                permutationIndependent,
+                learnGatherIndices);
 
             for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
                 auto& dataSet = *dataSetsHolder.PermutationDataSets[permutationId];
 
                 if (permutationDependent.size()) {
-
-
                     TDataSetDescription description;
                     description.Name = TStringBuilder() << "Learn permutation dependent features #" << permutationId;
                     dataSet.PermutationDependentFeatures = compressedIndexBuilder.AddDataSet(learnBinarizationInfo,
                                                                                              description,
                                                                                              learnMapping,
                                                                                              permutationDependent,
-                                                                                             learnGatherIndices
-                    );
+                                                                                             learnGatherIndices);
                 }
                 dataSet.PermutationIndependentFeatures = permutationIndependentCompressedDataSetId;
             }
@@ -200,7 +188,6 @@ namespace NCatboostCuda {
                 ctrsWriter.Write(permutationIndependent);
             }
 
-
             if (permutationDependent.size()) {
                 for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
                     auto& ds = *dataSetsHolder.PermutationDataSets[permutationId];
@@ -210,8 +197,8 @@ namespace NCatboostCuda {
                     {
                         const TDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                         const TMirrorBuffer<ui32>* testIndicesPtr = (permutationId == 0 && linkedTest)
-                                                                 ? &testIndices
-                                                                 : nullptr;
+                                                                        ? &testIndices
+                                                                        : nullptr;
 
                         TBatchedBinarizedCtrsCalcer ctrsCalcer(FeaturesManager,
                                                                *ctrsTarget,
@@ -219,7 +206,6 @@ namespace NCatboostCuda {
                                                                ctrEstimationOrder,
                                                                linkedTest,
                                                                testIndicesPtr);
-
 
                         TСtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                                    compressedIndexBuilder,
@@ -240,6 +226,5 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager& FeaturesManager;
         const TDataProvider& DataProvider;
         const TDataProvider* LinkedTest;
-
     };
 }

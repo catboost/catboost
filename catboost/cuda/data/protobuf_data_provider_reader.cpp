@@ -16,8 +16,7 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
                                                 const TVector<ui64>* order,
                                                 TVector<TFeatureColumnPtr>* nzColumns,
                                                 TVector<TString>* featureNames,
-                                                TSet<int>* catFeatureIds
-) {
+                                                TSet<int>* catFeatureIds) {
     ReadMessage(input, FeatureColumn);
     const auto& featureDescription = FeatureColumn.GetFeatureDescription();
     auto description = featureDescription;
@@ -97,97 +96,92 @@ void TCatBoostProtoPoolReader::AddFeatureColumn(TIFStream& input,
     }
 }
 
-
 TDataProvider TCatBoostProtoPoolReader::Read(TIFStream& input) {
-        TDataProvider dataProvider;
-        NCompressedPool::TPoolStructure poolStructure;
-        ReadMessage(input, poolStructure);
+    TDataProvider dataProvider;
+    NCompressedPool::TPoolStructure poolStructure;
+    ReadMessage(input, poolStructure);
 
-        ReadFloatColumn(input, dataProvider.Targets);
+    ReadFloatColumn(input, dataProvider.Targets);
 
-        if (poolStructure.GetWeightColumn()) {
-            ReadFloatColumn(input, dataProvider.Weights);
+    if (poolStructure.GetWeightColumn()) {
+        ReadFloatColumn(input, dataProvider.Weights);
+    } else {
+        dataProvider.Weights.resize(dataProvider.Targets.size());
+        std::fill(dataProvider.Weights.begin(), dataProvider.Weights.begin(), 1.0f);
+    }
+
+    if (poolStructure.GetDocIdColumn()) {
+        ReadUnsignedIntColumn(input, dataProvider.DocIds);
+    }
+
+    if (poolStructure.GetTimestampColumn()) {
+        ReadUnsignedInt64Column(input, dataProvider.Timestamp);
+    }
+
+    if (poolStructure.GetGroupIdColumn()) {
+        ReadUnsignedIntColumn(input, dataProvider.QueryIds);
+    }
+    if (poolStructure.GetSubgroupIdColumn()) {
+        ReadUnsignedIntColumn(input, dataProvider.SubgroupIds);
+    }
+
+    dataProvider.Baseline.resize(poolStructure.GetBaselineColumn());
+
+    for (ui32 i = 0; i < poolStructure.GetBaselineColumn(); ++i) {
+        ReadFloatColumn(input, dataProvider.Baseline[i]);
+    }
+
+    dataProvider.Order.resize(dataProvider.Targets.size());
+    std::iota(dataProvider.Order.begin(),
+              dataProvider.Order.end(), 0);
+
+    const bool hasQueryIds = poolStructure.GetGroupIdColumn();
+
+    if (Pairs.size()) {
+        //they are local, so we don't need shuffle
+        CB_ENSURE(hasQueryIds, "Error: for GPU pairwise learning you should provide query id column. Query ids will be used to split data between devices and for dynamic boosting learning scheme.");
+        dataProvider.FillQueryPairs(Pairs);
+    }
+
+    bool needGather = true;
+    if (!AreEqualTo<ui64>(dataProvider.Timestamp, 0)) {
+        dataProvider.Order = CreateOrderByKey(dataProvider.Timestamp);
+    } else if (!HasTime) {
+        if (hasQueryIds) {
+            QueryConsistentShuffle(Seed, 1, dataProvider.QueryIds, &dataProvider.Order);
         } else {
-            dataProvider.Weights.resize(dataProvider.Targets.size());
-            std::fill(dataProvider.Weights.begin(), dataProvider.Weights.begin(), 1.0f);
+            Shuffle(Seed, 1, dataProvider.Targets.size(), &dataProvider.Order);
         }
+        dataProvider.SetShuffleSeed(Seed);
+    } else {
+        needGather = false;
+    }
+    if (needGather) {
+        dataProvider.ApplyOrderToMetaColumns();
+    }
 
-        if (poolStructure.GetDocIdColumn()) {
-            ReadUnsignedIntColumn(input, dataProvider.DocIds);
-        }
+    for (ui32 feature = 0; feature < poolStructure.GetFeatureCount(); ++feature) {
+        AddFeatureColumn(input,
+                         poolStructure.GetDocCount(),
+                         needGather ? &dataProvider.Order : nullptr,
+                         &dataProvider.Features,
+                         &dataProvider.FeatureNames,
+                         &dataProvider.CatFeatureIds);
+    }
 
-        if (poolStructure.GetTimestampColumn()) {
-            ReadUnsignedInt64Column(input, dataProvider.Timestamp);
-        }
+    if (FeaturesManager.GetTargetBorders().size() == 0) {
+        TOnCpuGridBuilderFactory gridBuilderFactory;
+        FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
+                                                         dataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
+    }
 
-        if (poolStructure.GetGroupIdColumn()) {
-            ReadUnsignedIntColumn(input, dataProvider.QueryIds);
-        }
-        if (poolStructure.GetSubgroupIdColumn()) {
-            ReadUnsignedIntColumn(input, dataProvider.SubgroupIds);
-        }
+    dataProvider.BuildIndicesRemap();
 
-
-        dataProvider.Baseline.resize(poolStructure.GetBaselineColumn());
-
-        for (ui32 i = 0; i < poolStructure.GetBaselineColumn(); ++i) {
-            ReadFloatColumn(input, dataProvider.Baseline[i]);
-        }
-
-        dataProvider.Order.resize(dataProvider.Targets.size());
-        std::iota(dataProvider.Order.begin(),
-                  dataProvider.Order.end(), 0);
-
-        const bool hasQueryIds = poolStructure.GetGroupIdColumn();
-
-        if (Pairs.size()) {
-            //they are local, so we don't need shuffle
-            CB_ENSURE(hasQueryIds, "Error: for GPU pairwise learning you should provide query id column. Query ids will be used to split data between devices and for dynamic boosting learning scheme.");
-            dataProvider.FillQueryPairs(Pairs);
-        }
-
-
-        bool needGather = true;
-        if (!AreEqualTo<ui64>(dataProvider.Timestamp, 0)) {
-            dataProvider.Order = CreateOrderByKey(dataProvider.Timestamp);
-        } else if (!HasTime) {
-            if (hasQueryIds) {
-                QueryConsistentShuffle(Seed, 1, dataProvider.QueryIds, &dataProvider.Order);
-            } else {
-                Shuffle(Seed, 1, dataProvider.Targets.size(), &dataProvider.Order);
-            }
-            dataProvider.SetShuffleSeed(Seed);
-        } else {
-            needGather = false;
-        }
-        if (needGather) {
-            dataProvider.ApplyOrderToMetaColumns();
-        }
-
-        for (ui32 feature = 0; feature < poolStructure.GetFeatureCount(); ++feature) {
-            AddFeatureColumn(input,
-                             poolStructure.GetDocCount(),
-                             needGather ? &dataProvider.Order : nullptr,
-                             &dataProvider.Features,
-                             &dataProvider.FeatureNames,
-                             &dataProvider.CatFeatureIds
-            );
-        }
-
-        if (FeaturesManager.GetTargetBorders().size() == 0) {
-            TOnCpuGridBuilderFactory gridBuilderFactory;
-            FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             dataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
-        }
-
-
-        dataProvider.BuildIndicesRemap();
-
-        if (ClassesWeights.size()) {
-            Reweight(dataProvider.Targets, ClassesWeights, &dataProvider.Weights);
-        }
-        if (dataProvider.CatFeatureIds.size()) {
-            ythrow TCatboostException() << "Error: load catFeatures from protobuf is unfinished yet";
-        }
-        return dataProvider;
+    if (ClassesWeights.size()) {
+        Reweight(dataProvider.Targets, ClassesWeights, &dataProvider.Weights);
+    }
+    if (dataProvider.CatFeatureIds.size()) {
+        ythrow TCatboostException() << "Error: load catFeatures from protobuf is unfinished yet";
+    }
+    return dataProvider;
 }

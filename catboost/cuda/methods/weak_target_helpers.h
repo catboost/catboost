@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
@@ -9,15 +8,11 @@
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 namespace NCatboostCuda {
-
     template <class TMapping = NCudaLib::TMirrorMapping>
     struct TL2Target {
         TCudaBuffer<float, TMapping> WeightedTarget;
         TCudaBuffer<float, TMapping> Weights;
     };
-
-
-
 
     template <class TMapping>
     inline void GatherTarget(TCudaBuffer<float, TMapping>& weightedTarget,
@@ -49,6 +44,5 @@ namespace NCatboostCuda {
         }
         return minScr;
     }
-
 
 }

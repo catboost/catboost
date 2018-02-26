@@ -15,7 +15,6 @@
 #include <catboost/cuda/gpu_data/batch_binarized_ctr_calcer.h>
 
 namespace NCatboostCuda {
-
     class TTreeCtrDataSetMemoryUsageEstimator {
     public:
         TTreeCtrDataSetMemoryUsageEstimator(const TBinarizedFeaturesManager& featuresManager,

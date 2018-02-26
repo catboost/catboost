@@ -18,15 +18,14 @@ namespace NCatboostCuda {
         TDataPermutation(const TDataProvider& dataProvider,
                          ui32 index,
                          ui32 blockSize)
-                : DataProvider(&dataProvider)
-                  , Index(index)
-                  , BlockSize(blockSize)
+            : DataProvider(&dataProvider)
+            , Index(index)
+            , BlockSize(blockSize)
         {
         }
 
         TDataPermutation(const TDataPermutation& other) = default;
         TDataPermutation(TDataPermutation&& other) = default;
-
 
         void FillOrder(TVector<ui32>& order) const {
             if (Index != IdentityPermutationId()) {
@@ -103,12 +102,10 @@ namespace NCatboostCuda {
                                 blockSize);
     }
 
-
     inline TDataPermutation GetIdentityPermutation(const TDataProvider& dataProvider) {
         return GetPermutation(dataProvider,
                               TDataPermutation::IdentityPermutationId(),
                               1);
     }
-
 
 }

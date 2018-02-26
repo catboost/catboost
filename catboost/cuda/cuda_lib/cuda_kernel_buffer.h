@@ -171,9 +171,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount, DeviceId);
     };
 
-
-
-    template <class T, EPtrType PtrType= EPtrType::CudaDevice>
+    template <class T, EPtrType PtrType = EPtrType::CudaDevice>
     using TCudaBufferPtr = TDeviceBuffer<T, TFixedSizesObjectsMeta, PtrType>;
 
     template <class T, class TObjectsMeta = TFixedSizesObjectsMeta>

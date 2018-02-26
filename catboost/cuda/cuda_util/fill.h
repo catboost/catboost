@@ -34,12 +34,12 @@ namespace NKernelHost {
     private:
         TCudaBufferPtr<T> Buffer;
         T Offset;
+
     public:
         TMakeSequenceKernel() = default;
 
         TMakeSequenceKernel(TCudaBufferPtr<T> ptr,
-                            T offset = 0
-        )
+                            T offset = 0)
             : Buffer(ptr)
             , Offset(offset)
         {

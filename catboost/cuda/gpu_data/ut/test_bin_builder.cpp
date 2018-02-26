@@ -218,7 +218,7 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         }
 
         TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                       dataProvider);
+                                                                      dataProvider);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
@@ -291,8 +291,8 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
 
                 {
                     TTreeUpdater<TFeatureParallelDataSet<>> treeBuilder(cacheHolder, featuresManager,
-                                                         dataSet.GetCtrTargets(), ds,
-                                                         bins);
+                                                                        dataSet.GetCtrTargets(), ds,
+                                                                        bins);
                     TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);
 

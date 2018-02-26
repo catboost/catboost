@@ -16,7 +16,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
     template <class TCtrVisitor>
     class TCtrFromTensorCalcer {
     public:
@@ -25,9 +24,9 @@ namespace NCatboostCuda {
         TCtrFromTensorCalcer(TCtrVisitor& ctrVisitor,
                              const THashMap<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
                              const TCtrTargets<TMapping>& ctrTargets)
-                : Target(ctrTargets)
-                  , CtrConfigs(ctrConfigs)
-                  , CtrVisitor(ctrVisitor)
+            : Target(ctrTargets)
+            , CtrConfigs(ctrConfigs)
+            , CtrVisitor(ctrVisitor)
         {
         }
 

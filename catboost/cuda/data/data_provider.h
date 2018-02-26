@@ -4,7 +4,6 @@
 #include <util/generic/yexception.h>
 
 namespace NCatboostCuda {
-
     template <class T>
     inline bool AreEqualTo(const TVector<T>& entries, const T& value) {
         for (auto& entry : entries) {
@@ -14,7 +13,6 @@ namespace NCatboostCuda {
         }
         return true;
     }
-
 
     class TDataProvider: public TMoveOnly {
     public:
@@ -168,6 +166,7 @@ namespace NCatboostCuda {
             ApplyPermutation(Order, DocIds);
             ApplyPermutation(Order, Timestamp);
         }
+
     private:
         TVector<TFeatureColumnPtr> Features;
         TVector<ui64> Order;

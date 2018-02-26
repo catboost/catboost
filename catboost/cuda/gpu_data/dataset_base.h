@@ -12,35 +12,34 @@
 #include <catboost/cuda/data/permutation.h>
 
 namespace NCatboostCuda {
-
-
-    template<class TSamplesMapping>
+    template <class TSamplesMapping>
     class TTarget {
     public:
         explicit TTarget(NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& targets,
-                          NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights)
-                : Targets(std::move(targets))
-                , Weights(std::move(weights))
-                , HasIndicesFlag(false)
-                , IndicesOffsets(CreateDistributedObject<ui32>(0)){
+                         NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights)
+            : Targets(std::move(targets))
+            , Weights(std::move(weights))
+            , HasIndicesFlag(false)
+            , IndicesOffsets(CreateDistributedObject<ui32>(0))
+        {
         }
-
 
         explicit TTarget(NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& targets,
                          NCudaLib::TCudaBuffer<const float, TSamplesMapping>&& weights,
                          NCudaLib::TCudaBuffer<const ui32, TSamplesMapping>&& indices)
-                : Targets(std::move(targets))
-                , Weights(std::move(weights))
-                , Indices(std::move(indices))
-                  , HasIndicesFlag(true)
-                  , IndicesOffsets(CreateDistributedObject<ui32>(0)) {
-
+            : Targets(std::move(targets))
+            , Weights(std::move(weights))
+            , Indices(std::move(indices))
+            , HasIndicesFlag(true)
+            , IndicesOffsets(CreateDistributedObject<ui32>(0))
+        {
         }
 
         TTarget(const TTarget& other)
-                : Targets(other.Targets.ConstCopyView())
-                , Weights(other.Weights.ConstCopyView())
-                , IndicesOffsets(CreateDistributedObject<ui32>(0)) {
+            : Targets(other.Targets.ConstCopyView())
+            , Weights(other.Weights.ConstCopyView())
+            , IndicesOffsets(CreateDistributedObject<ui32>(0))
+        {
             if (other.HasIndicesFlag) {
                 HasIndicesFlag = true;
                 Indices = other.Indices.ConstCopyView();
@@ -84,18 +83,20 @@ namespace NCatboostCuda {
         const TSamplesMapping& GetSamplesMapping() const {
             return Targets.GetMapping();
         }
+
     private:
         template <class>
         friend class TTargetHelper;
 
-        template<class, class>
+        template <class, class>
         friend class TPairLogit;
+
     private:
         TCudaBuffer<const float, TSamplesMapping> Targets;
         TCudaBuffer<const float, TSamplesMapping> Weights;
         TCudaBuffer<const ui32, TSamplesMapping> Indices;
 
-        bool HasIndicesFlag  = false;
+        bool HasIndicesFlag = false;
         NCudaLib::TDistributedObject<ui32> IndicesOffsets;
     };
 
@@ -107,40 +108,33 @@ namespace NCatboostCuda {
     public:
         static TTarget<NCudaLib::TMirrorMapping> Slice(const TTarget<NCudaLib::TMirrorMapping>& target,
                                                        const TSlice& slice) {
-
             if (target.HasIndicesFlag) {
                 return TTarget<NCudaLib::TMirrorMapping>(target.Targets.SliceView(slice),
                                                          target.Weights.SliceView(slice),
                                                          target.Indices.SliceView(slice));
             } else {
-
-                auto result =  TTarget<NCudaLib::TMirrorMapping>(target.Targets.SliceView(slice),
-                                                                 target.Weights.SliceView(slice));
+                auto result = TTarget<NCudaLib::TMirrorMapping>(target.Targets.SliceView(slice),
+                                                                target.Weights.SliceView(slice));
 
                 auto offsets = CreateDistributedObject<ui32>(0u);
                 for (ui32 dev = 0; dev < target.IndicesOffsets.DeviceCount(); ++dev) {
                     ui32 devOffset = slice.Left + target.IndicesOffsets.At(dev);
                     offsets.Set(dev, devOffset);
                 }
-                result.IndicesOffsets=  offsets;
+                result.IndicesOffsets = offsets;
                 return result;
             }
         }
 
-
-
-
         static TTarget<NCudaLib::TStripeMapping> StripeView(const TTarget<NCudaLib::TMirrorMapping>& target,
                                                             const NCudaLib::TStripeMapping& stripeMapping) {
-
             if (target.HasIndicesFlag) {
                 return TTarget<NCudaLib::TStripeMapping>(NCudaLib::StripeView(target.Targets, stripeMapping),
                                                          NCudaLib::StripeView(target.Weights, stripeMapping),
                                                          NCudaLib::StripeView(target.Indices, stripeMapping));
             } else {
-
-                auto result =  TTarget<NCudaLib::TStripeMapping>(NCudaLib::StripeView(target.Targets, stripeMapping),
-                                                                 NCudaLib::StripeView(target.Weights, stripeMapping));
+                auto result = TTarget<NCudaLib::TStripeMapping>(NCudaLib::StripeView(target.Targets, stripeMapping),
+                                                                NCudaLib::StripeView(target.Weights, stripeMapping));
 
                 auto offsets = CreateDistributedObject<ui32>(0u);
                 for (ui32 dev = 0; dev < target.IndicesOffsets.DeviceCount(); ++dev) {
@@ -148,19 +142,18 @@ namespace NCatboostCuda {
                     ui32 devOffset = devSlice.Left + target.IndicesOffsets.At(dev);
                     offsets.Set(dev, devOffset);
                 }
-                result.IndicesOffsets=  offsets;
+                result.IndicesOffsets = offsets;
                 return result;
             }
         }
     };
-
 
     template <class TMapping>
     inline TTarget<TMapping> SliceTarget(const TTarget<TMapping>& target, const TSlice slice) {
         return TTargetHelper<TMapping>::Slice(target, slice);
     }
 
-    template<class TLayout>
+    template <class TLayout>
     class TDataSetBase {
     public:
         using TSamplesMapping = typename TLayout::TSamplesMapping;
@@ -190,7 +183,6 @@ namespace NCatboostCuda {
             return CompressedIndex->GetDataSet(PermutationDependentFeatures);
         }
 
-
         bool HasFeature(ui32 featureId) const {
             if (HasFeatures() && GetFeatures().HasFeature(featureId)) {
                 return true;
@@ -200,7 +192,6 @@ namespace NCatboostCuda {
                 return false;
             }
         }
-
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
             CB_ENSURE(HasFeature(featureId));
@@ -226,7 +217,6 @@ namespace NCatboostCuda {
             Y_UNREACHABLE();
         }
 
-
         const TDataProvider& GetDataProvider() const {
             return DataProvider;
         }
@@ -247,10 +237,11 @@ namespace NCatboostCuda {
                      TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                      const TDataPermutation& ctrPermutation,
                      TTarget<TSamplesMapping>&& target)
-                : TargetsBuffer(std::move(target))
-                , DataProvider(dataProvider)
-                , CompressedIndex(compressedIndex)
-                , CtrsEstimationPermutation(ctrPermutation) {
+            : TargetsBuffer(std::move(target))
+            , DataProvider(dataProvider)
+            , CompressedIndex(compressedIndex)
+            , CtrsEstimationPermutation(ctrPermutation)
+        {
         }
 
     private:
@@ -265,13 +256,10 @@ namespace NCatboostCuda {
         ui32 PermutationDependentFeatures = -1;
         ui32 PermutationIndependentFeatures = -1;
 
-
-        template<NCudaLib::EPtrType CatFeatureStoragePtrType>
-        friend
-        class TFeatureParallelDataSetHoldersBuilder;
+        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
+        friend class TFeatureParallelDataSetHoldersBuilder;
 
         friend class TDocParallelDataSetBuilder;
     };
-
 
 }

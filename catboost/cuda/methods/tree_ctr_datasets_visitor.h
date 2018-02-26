@@ -9,8 +9,7 @@
 #include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
-
-class TTreeCtrDataSetVisitor {
+    class TTreeCtrDataSetVisitor {
     public:
         using TFeatureScoresHelper = TScoresCalcerOnCompressedDataSet<TSingleDevLayout>;
 

@@ -9,7 +9,6 @@
 #include <util/generic/map.h>
 
 namespace NCudaLib {
-
     class THardwareLocalityHelper {
     public:
         THardwareLocalityHelper();
@@ -18,7 +17,7 @@ namespace NCudaLib {
 
         ~THardwareLocalityHelper() {
             hwloc_topology_destroy(Context);
-            HasContext= false;
+            HasContext = false;
         }
 
     private:

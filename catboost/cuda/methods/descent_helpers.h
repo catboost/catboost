@@ -69,7 +69,6 @@ namespace NCatboostCuda {
         }
     }
 
-
     class TSimpleStepEstimator {
     private:
         double FunctionValue;

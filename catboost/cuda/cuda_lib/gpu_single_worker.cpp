@@ -155,10 +155,10 @@ namespace NCudaLib {
     void TGpuOneDeviceWorker::Run() {
         Stopped = false;
         SetDevice(LocalDeviceId);
-        #if defined(WITH_HWLOC)
+#if defined(WITH_HWLOC)
         auto& localityHelper = HardwareLocalityHelper();
         localityHelper.BindThreadForDevice(LocalDeviceId);
-        #endif
+#endif
 
         CreateNewComputationStream();
         SetDefaultStream(Streams[0]->GetStream());

@@ -76,7 +76,7 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
                     TVector<float> tmp;
                     data.Read(tmp);
                     for (ui32 i = 0; i < reducedDataCpu.size(); ++i) {
-                        UNIT_ASSERT_DOUBLES_EQUAL_C((float) reducedDataCpu[i], tmp[i], 1e-5, " stripped");
+                        UNIT_ASSERT_DOUBLES_EQUAL_C((float)reducedDataCpu[i], tmp[i], 1e-5, " stripped");
                     }
                 }
                 for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
@@ -90,15 +90,12 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-
-
     SIMPLE_UNIT_TEST(TestAllReduce) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(1, 64, performanceOnly);
         }
     }
-
 
     SIMPLE_UNIT_TEST(TestAllReduceLatency) {
         for (ui32 i = 10; i <= 10000000; i *= 10) {
@@ -111,7 +108,8 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
 
     SIMPLE_UNIT_TEST(TestAllReduceLatencyThroughHost) {
         for (ui32 i = 10; i <= 10000000; i *= 10) {
-            auto stopCudaManagerGuard = StartCudaManager();{
+            auto stopCudaManagerGuard = StartCudaManager();
+            {
                 TestAllReduce(1, i, performanceOnly, false, true);
             }
         }
@@ -124,10 +122,7 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-
-
-
-    #if defined(USE_MPI)
+#if defined(USE_MPI)
     SIMPLE_UNIT_TEST(TestAllReduce256Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -135,12 +130,11 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-
     SIMPLE_UNIT_TEST(TestAllReduce4096Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(64 * 64, 20000, performanceOnly, true);
         }
     }
-    #endif
+#endif
 }

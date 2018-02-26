@@ -23,10 +23,8 @@
 #include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
-
-
-    template<class TTarget,
-             class TDataSet>
+    template <class TTarget,
+              class TDataSet>
     class TDocParallelObliviousTreeSearcher {
     public:
         using TVec = typename TTarget::TVec;
@@ -37,16 +35,15 @@ namespace NCatboostCuda {
                                           const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions,
                                           TBootstrap<NCudaLib::TStripeMapping>& bootstrap,
                                           double randomStrengthMult)
-                : FeaturesManager(featuresManager)
-                , TreeConfig(learnerOptions)
-                , Bootstrap(bootstrap)
-                , ModelLengthMultiplier(randomStrengthMult) {
+            : FeaturesManager(featuresManager)
+            , TreeConfig(learnerOptions)
+            , Bootstrap(bootstrap)
+            , ModelLengthMultiplier(randomStrengthMult)
+        {
         }
-
 
         TObliviousTreeModel Fit(const TDataSet& dataSet,
                                 const TTarget& objective) {
-
             auto& random = objective.GetRandom();
 
             TWeakTarget target;
@@ -64,8 +61,6 @@ namespace NCatboostCuda {
             auto subsets = TSubsetsHelper<NCudaLib::TStripeMapping>::CreateSubsets(TreeConfig.MaxDepth,
                                                                                    target);
 
-
-
             using TScoreCalcer = TScoresCalcerOnCompressedDataSet<TDocParallelLayout>;
             using TScoreCalcerPtr = THolder<TScoreCalcer>;
             TScoreCalcerPtr featuresScoreCalcer;
@@ -82,13 +77,11 @@ namespace NCatboostCuda {
                                                         TreeConfig,
                                                         1,
                                                         true);
-
             }
 
             TObliviousTreeStructure structure;
             TVector<float> leaves;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
-
 
             for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
                 {
@@ -99,7 +92,7 @@ namespace NCatboostCuda {
                 TMirrorBuffer<TPartitionStatistics> reducedPartStats;
                 NCudaLib::AllReduceThroughMaster(partitionsStatsStriped, reducedPartStats);
                 //all reduce through master will implicitly sync
-//                manager.WaitComplete();
+                //                manager.WaitComplete();
 
                 TBinarySplit bestSplit;
                 {
@@ -140,7 +133,6 @@ namespace NCatboostCuda {
                     bestSplitProp = TakeBest(bestSplitProp, simpleCtrScoreCalcer->ReadOptimalSplit());
                 }
 
-
                 CB_ENSURE(bestSplitProp.FeatureId != static_cast<ui32>(-1),
                           TStringBuilder() << "Error: something went wrong, best split is NaN with score"
                                            << bestSplitProp.Score);
@@ -163,7 +155,6 @@ namespace NCatboostCuda {
                                                                     dataSet.GetTCFeature(bestSplit.FeatureId),
                                                                     bestSplit.BinIdx,
                                                                     &subsets);
-
                 }
                 structure.Splits.push_back(bestSplit);
 
@@ -180,13 +171,11 @@ namespace NCatboostCuda {
         }
 
     private:
-
         TVector<float> ReadAndEstimateLeaves(const TCudaBuffer<TPartitionStatistics, NCudaLib::TMirrorMapping>& parts) {
             TVector<TPartitionStatistics> statCpu;
             parts.Read(statCpu);
             return EstimateLeaves(statCpu);
         }
-
 
         TVector<float> EstimateLeaves(const TVector<TPartitionStatistics>& statCpu) {
             TVector<float> result;
@@ -196,7 +185,6 @@ namespace NCatboostCuda {
             }
             return result;
         }
-
 
         void ComputeWeakTarget(const TTarget& objective,
                                double* scoreStdDev,
@@ -223,15 +211,13 @@ namespace NCatboostCuda {
 
             indices->Reset(target->WeightedTarget.GetMapping());
             MakeSequence(*indices);
-//            objective.GetTarget().WriteIndices(*indices);
+            //            objective.GetTarget().WriteIndices(*indices);
             {
                 auto bootstrapGuard = profiler.Profile("Bootstrap target");
                 Bootstrap.BootstrapAndFilter(target->WeightedTarget,
                                              target->Weights,
                                              *indices);
             }
-
-
         }
 
     private:

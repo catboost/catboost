@@ -9,9 +9,7 @@
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
-
 namespace NCatboostCuda {
-
     /*
      * Warning: this class doesn't guarantee optimal performance
      * Preprocessing stage is not critical and we have some gpu/cpu-memory tradeoff with some possible duplicate copies
@@ -31,12 +29,12 @@ namespace NCatboostCuda {
                                     const TMirrorBuffer<TUi32>& ctrPermutation,
                                     const TDataProvider* linkedTest,
                                     const TMirrorBuffer<TUi32>* testIndices)
-        : FeaturesManager(featuresManager)
-        , CtrTargets(ctrTargets)
-        , DataProvider(dataProvider)
-        , LearnIndices(ctrPermutation.ConstCopyView())
-        , LinkedTest(linkedTest) {
-
+            : FeaturesManager(featuresManager)
+            , CtrTargets(ctrTargets)
+            , DataProvider(dataProvider)
+            , LearnIndices(ctrPermutation.ConstCopyView())
+            , LinkedTest(linkedTest)
+        {
             if (LinkedTest) {
                 CB_ENSURE(testIndices);
                 TestIndices = testIndices->ConstCopyView();
@@ -46,7 +44,6 @@ namespace NCatboostCuda {
         void ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
                                   TVector<TBinarizedCtr>* learnCtrs,
                                   TVector<TBinarizedCtr>* testCtrs) {
-
             THashMap<TFeatureTensor, TVector<ui32>> groupedByTensorFeatures;
             //from ctrs[i] to i
             TMap<ui32, ui32> inverseIndex;
@@ -74,14 +71,13 @@ namespace NCatboostCuda {
 
             TAdaptiveLock lock;
 
-
             NCudaLib::RunPerDeviceSubtasks([&](ui32 devId) {
                 auto ctrSingleDevTargetView = DeviceView(CtrTargets, devId);
 
                 while (true) {
                     TFeatureTensor featureTensor;
 
-                    with_lock(lock) {
+                    with_lock (lock) {
                         if (featureTensors.size()) {
                             featureTensor = featureTensors.back();
                             featureTensors.pop_back();
@@ -97,11 +93,10 @@ namespace NCatboostCuda {
                         const ui32 featureId = FeaturesManager.GetId(ctr);
                         auto binarizationDescription = FeaturesManager.GetBinarizationDescription(ctr);
 
-
                         TVector<float> borders;
                         bool hasBorders = false;
 
-                        with_lock(lock) {
+                        with_lock (lock) {
                             if (FeaturesManager.HasBorders(featureId)) {
                                 borders = FeaturesManager.GetBorders(featureId);
                                 hasBorders = true;
@@ -118,11 +113,11 @@ namespace NCatboostCuda {
                                                stream);
 
                             borders = gridBuilderFactory
-                                    .Create(binarizationDescription.BorderSelectionType)
-                                    ->BuildBorders(sortedFeatureCpu,
-                                                   binarizationDescription.BorderCount);
+                                          .Create(binarizationDescription.BorderSelectionType)
+                                          ->BuildBorders(sortedFeatureCpu,
+                                                         binarizationDescription.BorderCount);
 
-                            with_lock(lock) {
+                            with_lock (lock) {
                                 if (FeaturesManager.HasBorders(featureId)) {
                                     borders = FeaturesManager.GetBorders(featureId);
                                 } else {
@@ -133,10 +128,10 @@ namespace NCatboostCuda {
 
                         TVector<float> ctrValues;
                         floatCtr
-                                .CreateReader()
-                                .SetCustomReadingStream(stream)
-                                .SetReadSlice(CtrTargets.LearnSlice)
-                                .Read(ctrValues);
+                            .CreateReader()
+                            .SetCustomReadingStream(stream)
+                            .SetReadSlice(CtrTargets.LearnSlice)
+                            .Read(ctrValues);
 
                         ui32 writeIndex = inverseIndex[featureId];
                         auto& dst = (*learnCtrs)[writeIndex];
@@ -146,25 +141,24 @@ namespace NCatboostCuda {
                                                              ENanMode::Forbidden,
                                                              borders);
 
-                        dst.BinCount = borders.size() + 1;;
-
+                        dst.BinCount = borders.size() + 1;
+                        ;
 
                         if (LinkedTest) {
                             auto& testDst = (*testCtrs)[writeIndex];
                             TVector<float> testCtrValues;
                             floatCtr.CreateReader()
-                                    .SetCustomReadingStream(stream)
-                                    .SetReadSlice(CtrTargets.TestSlice)
-                                    .Read(testCtrValues);
+                                .SetCustomReadingStream(stream)
+                                .SetReadSlice(CtrTargets.TestSlice)
+                                .Read(testCtrValues);
 
                             testDst.BinarizedCtr = BinarizeLine<ui8>(~testCtrValues,
                                                                      testCtrValues.size(),
                                                                      ENanMode::Forbidden,
                                                                      borders);
-                            testDst.BinCount = borders.size()  + 1;
+                            testDst.BinCount = borders.size() + 1;
                         }
                     };
-
 
                     using TCtrHelper = TCalcCtrHelper<NCudaLib::TSingleMapping>;
                     THolder<TCtrHelper> ctrHelper;
@@ -178,16 +172,14 @@ namespace NCatboostCuda {
                         ctrHelper->UseFullDataForCatFeatureStats(isFeatureFreqOnFullSet);
                     }
 
-
-
                     auto grouppedConfigs = CreateGrouppedConfigs(groupedByTensorFeatures[featureTensor]);
                     for (auto& group : grouppedConfigs) {
                         ctrHelper->VisitEqualUpToPriorCtrs(group, ctrVisitor);
                     }
                 }
-            }, false /* only local, TODO(noxoomo) test infiniband and enable if gives profit*/);
+            },
+                                           false /* only local, TODO(noxoomo) test infiniband and enable if gives profit*/);
         }
-
 
     private:
         TVector<TVector<TCtrConfig>> CreateGrouppedConfigs(const TVector<ui32>& ctrIds) {
@@ -226,8 +218,8 @@ namespace NCatboostCuda {
                 }
 
                 ctrBinBuilder
-                        .SetIndices(learnIndices,
-                                    LinkedTest ? &testIndices : nullptr);
+                    .SetIndices(learnIndices,
+                                LinkedTest ? &testIndices : nullptr);
             }
 
             for (const ui32 feature : tensor.GetCatFeatures()) {

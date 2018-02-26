@@ -29,8 +29,8 @@ namespace NCatboostCuda {
         TQuerySoftMax(const TDataSet& dataSet,
                       TRandom& random,
                       const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QuerySoftMax);
         }
 
@@ -41,7 +41,8 @@ namespace NCatboostCuda {
         }
 
         TQuerySoftMax(const TQuerySoftMax& target)
-                : TParent(target) {
+            : TParent(target)
+        {
         }
 
         template <class TLayout>
@@ -94,7 +95,6 @@ namespace NCatboostCuda {
             weights.Copy(GetTarget().GetWeights(), stream);
         }
 
-
         void NewtonAt(const TConstVec& point,
                       TVec& weightedDer,
                       TVec& weightedDer2,
@@ -145,6 +145,7 @@ namespace NCatboostCuda {
             }
             return TotalWeightedTarget;
         }
+
     private:
         mutable double TotalWeightedTarget = 0;
     };

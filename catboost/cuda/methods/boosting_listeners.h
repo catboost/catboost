@@ -67,8 +67,8 @@ namespace NCatboostCuda {
         }
 
         void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
-                            const TTarget& target,
-                            const TConstVec& point) override {
+                    const TTarget& target,
+                    const TConstVec& point) override {
             if (OutputPath && Out == nullptr) {
                 Out.Reset(new TOFStream(OutputPath));
                 (*Out) << "iter\t" << target.TargetName() << Endl;
@@ -123,8 +123,8 @@ namespace NCatboostCuda {
         }
 
         void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
-                            const TTarget& target,
-                            const TConstVec& point) override {
+                    const TTarget& target,
+                    const TConstVec& point) override {
             Y_UNUSED(newEnsemble);
             Y_UNUSED(target);
             Y_UNUSED(point);
@@ -161,8 +161,8 @@ namespace NCatboostCuda {
         }
 
         void Invoke(const TAdditiveModel<TWeakModel>& newEnsemble,
-                            const TTarget& target,
-                            const TConstVec& point) override {
+                    const TTarget& target,
+                    const TConstVec& point) override {
             Y_UNUSED(target);
             Y_UNUSED(point);
             const ui32 passedIterations = newEnsemble.Size();

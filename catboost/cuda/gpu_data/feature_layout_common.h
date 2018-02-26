@@ -11,17 +11,15 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-
     //damn proxy for learn set one-hots
     class TBinarizationInfoProvider {
     public:
-
         ui32 GetFoldsCount(ui32 featureId) const {
             const ui32 binCount = Manager->GetBinCount(featureId);
             if (DataProvider && binCount && IsOneHot(featureId)) {
                 ui32 dataProviderId = Manager->GetDataProviderId(featureId);
                 ui32 count = dynamic_cast<const ICatFeatureValuesHolder&>(DataProvider->GetFeatureById(dataProviderId)).GetUniqueValues();
-                return  count > 2 ? count : count - 1;
+                return count > 2 ? count : count - 1;
             }
             return binCount ? binCount - 1 : 0;
         }
@@ -32,16 +30,15 @@ namespace NCatboostCuda {
 
         explicit TBinarizationInfoProvider(const TBinarizedFeaturesManager& manager,
                                            const TDataProvider* provider = nullptr)
-                : Manager(&manager)
-                , DataProvider(provider) {
-
+            : Manager(&manager)
+            , DataProvider(provider)
+        {
         }
+
     private:
         const TBinarizedFeaturesManager* Manager;
         const TDataProvider* DataProvider;
     };
-
-
 
     struct TCpuGrid {
         TVector<ui32> FeatureIds;
@@ -52,7 +49,8 @@ namespace NCatboostCuda {
         template <class TFeaturesBinarizationDescription>
         TCpuGrid(const TFeaturesBinarizationDescription& info,
                  const TVector<ui32>& features)
-        : FeatureIds(features) {
+            : FeatureIds(features)
+        {
             Folds.reserve(features.size());
             IsOneHot.reserve(features.size());
             for (ui32 i = 0; i < features.size(); ++i) {
@@ -89,9 +87,9 @@ namespace NCatboostCuda {
 
     class TCudaFeaturesHelper {
     public:
-
         TCudaFeaturesHelper(const TCpuGrid& grid)
-                : Grid(grid) {
+            : Grid(grid)
+        {
         }
 
         TVector<TCBinFeature> BuildBinaryFeatures(const TSlice& featuresSlice) const {
@@ -126,27 +124,24 @@ namespace NCatboostCuda {
                                ui64 loadOffset,
                                ui64 docCount,
                                TVector<TCFeature>* features) const {
-
             using THelper = TCompressedIndexHelper<Policy>;
             const ui32 featuresPerInt = THelper::FeaturesPerInt();
             const ui32 mask = THelper::Mask();
             const ui32 maxFolds = THelper::MaxFolds();
 
-
             ui32 foldOffset = 0;
             for (ui32 i = 0; i < featuresSlice.Size(); ++i) {
                 const ui32 feature = featuresSlice.Left + i;
                 const ui32 shift = THelper::Shift(i);
-                const ui64 cindexOffset = loadOffset + (i / featuresPerInt) *  docCount;
+                const ui64 cindexOffset = loadOffset + (i / featuresPerInt) * docCount;
                 const ui32 foldCount = Grid.Folds[feature];
                 CB_ENSURE(foldCount <= maxFolds, TStringBuilder() << "Fold count " << foldCount << " max folds " << maxFolds << " (" << Policy << ")");
-                TCFeature cudaFeature  = {cindexOffset,
-                                          mask,
-                                          shift,
-                                          foldOffset,
-                                          foldCount,
-                                          Grid.IsOneHot[feature]
-                };
+                TCFeature cudaFeature = {cindexOffset,
+                                         mask,
+                                         shift,
+                                         foldOffset,
+                                         foldCount,
+                                         Grid.IsOneHot[feature]};
                 foldOffset += foldCount;
                 (*features).push_back(cudaFeature);
             }
@@ -159,11 +154,9 @@ namespace NCatboostCuda {
             return size;
         }
 
-
     private:
         const TCpuGrid& Grid;
     };
-
 
     //block of compressed features for one policy
     //what features we have and hot to access one
@@ -188,10 +181,9 @@ namespace NCatboostCuda {
         TCudaBuffer<TCBinFeature, TFeaturesMapping> BinFeaturesForBestSplits;
 
         explicit TGpuFeaturesBlockDescription(TCpuGrid&& grid)
-        : Grid(std::move(grid)) {
-
+            : Grid(std::move(grid))
+        {
         }
-
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
             CB_ENSURE(Grid.InverseFeatures.has(featureId));
@@ -201,6 +193,5 @@ namespace NCatboostCuda {
 
     template <class TPoolLayout>
     struct TCudaFeaturesLayoutHelper;
-
 
 }

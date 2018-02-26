@@ -8,7 +8,6 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 
 namespace NCatboostCuda {
-
     inline TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
                                                    const TVector<float>& targets) {
         CB_ENSURE(featuresManager.HasTargetBinarization(),
@@ -44,15 +43,14 @@ namespace NCatboostCuda {
                                              TVector<ui32>* permutationIndependent,
                                              TVector<ui32>* permutationDependent) {
         if (permutationCount == 1) {
-//            shortcut
+            //            shortcut
             (*permutationIndependent) = features;
             return;
         }
         permutationDependent->clear();
         permutationIndependent->clear();
         for (const auto& feature : features) {
-            const bool needPermutationFlag = featuresManager.IsCtr(feature)
-                                             && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            const bool needPermutationFlag = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
             if (needPermutationFlag) {
                 permutationDependent->push_back(feature);
             } else {
@@ -60,7 +58,6 @@ namespace NCatboostCuda {
             }
         }
     }
-
 
     inline THolder<TCtrTargets<NCudaLib::TMirrorMapping>> BuildCtrTarget(const TBinarizedFeaturesManager& featuresManager,
                                                                          const TDataProvider& dataProvider,
@@ -102,7 +99,6 @@ namespace NCatboostCuda {
         CB_ENSURE(ctrsTarget.IsTrivialWeights());
         return ctrsTargetPtr;
     }
-
 
     inline TVector<ui32> GetLearnFeatureIds(TBinarizedFeaturesManager& featuresManager) {
         TSet<ui32> featureIdsSet;
@@ -151,7 +147,7 @@ namespace NCatboostCuda {
                         break;
                     }
                 }
-                if (!hasUnknownFeatures ) {
+                if (!hasUnknownFeatures) {
                     combinationCtrIds.insert(ctrFeatureId);
                 }
             }
@@ -159,7 +155,6 @@ namespace NCatboostCuda {
         featureIdsSet.insert(combinationCtrIds.begin(), combinationCtrIds.end());
         return TVector<ui32>(featureIdsSet.begin(), featureIdsSet.end());
     }
-
 
     //filter features and write float and one-hotones for selected dataSetId
     template <class TLayoutPolicy = TFeatureParallelLayout>
@@ -169,10 +164,11 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const TDataProvider& dataProvider,
                                       const ui32 dataSetId)
-        : FeaturesManager(featuresManager)
-        , DataProvider(dataProvider)
-        , DataSetId(dataSetId)
-        , IndexBuilder(indexBuilder) {
+            : FeaturesManager(featuresManager)
+            , DataProvider(dataProvider)
+            , DataSetId(dataSetId)
+            , IndexBuilder(indexBuilder)
+        {
         }
 
         void Write(const TVector<ui32>& featureIds) {
@@ -194,7 +190,8 @@ namespace NCatboostCuda {
         void WriteFloatFeature(const ui32 feature,
                                const TDataProvider& dataProvider) {
             const auto featureId = FeaturesManager.GetDataProviderId(feature);
-            CB_ENSURE(dataProvider.HasFeatureId(featureId), TStringBuilder() << "Feature " << featureId << " (" << featureId << ")" << " is empty");
+            CB_ENSURE(dataProvider.HasFeatureId(featureId), TStringBuilder() << "Feature " << featureId << " (" << featureId << ")"
+                                                                             << " is empty");
             const auto& featureStorage = dataProvider.GetFeatureById(featureId);
 
             if (featureStorage.GetType() == EFeatureValuesType::BinarizedFloat) {
@@ -258,11 +255,12 @@ namespace NCatboostCuda {
                     TBatchedBinarizedCtrsCalcer& binarizedCtrCalcer,
                     ui32 dataSetId,
                     ui32 testSetId = -1)
-                : FeaturesManager(featuresManager)
-                , IndexBuilder(indexBuilder)
-                , CtrCalcer(binarizedCtrCalcer)
-                , DataSetId(dataSetId)
-                , TestDataSetId(testSetId) {
+            : FeaturesManager(featuresManager)
+            , IndexBuilder(indexBuilder)
+            , CtrCalcer(binarizedCtrCalcer)
+            , DataSetId(dataSetId)
+            , TestDataSetId(testSetId)
+        {
         }
 
         void Write(const TVector<ui32>& featureIds) {
@@ -290,7 +288,6 @@ namespace NCatboostCuda {
                                                featureId,
                                                testCtrs[i].BinCount,
                                                testCtrs[i].BinarizedCtr);
-
                         }
                     }
                     CheckInterrupted(); // check after long-lasting operation
@@ -299,7 +296,6 @@ namespace NCatboostCuda {
         }
 
     private:
-
         TVector<ui32> TakeCtrs(const TVector<ui32>& featureIds) {
             TVector<ui32> ctrs;
             for (auto feature : featureIds) {
@@ -319,7 +315,7 @@ namespace NCatboostCuda {
                 byTensorGroups[FeaturesManager.GetCtr(feature).FeatureTensor].push_back(feature);
             }
 
-            TVector<TVector<ui32> > batchGroups;
+            TVector<TVector<ui32>> batchGroups;
             ui32 tensorCount = deviceCount;
 
             for (auto& group : byTensorGroups) {
@@ -348,7 +344,5 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         ui32 TestDataSetId = -1;
     };
-
-
 
 }

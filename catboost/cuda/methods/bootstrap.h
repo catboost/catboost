@@ -20,7 +20,7 @@ namespace NCatboostCuda {
                    ui64 seed)
             : Config(config)
         {
-            NCudaLib::TDistributedObject<ui64> maxSeedCount =  CreateDistributedObject<ui64>(256 * 256);
+            NCudaLib::TDistributedObject<ui64> maxSeedCount = CreateDistributedObject<ui64>(256 * 256);
 
             auto mapping = CreateMapping<TMapping>(maxSeedCount);
             Seeds.Reset(mapping);
@@ -60,11 +60,9 @@ namespace NCatboostCuda {
             return weights;
         }
 
-
         void BootstrapAndFilter(TCudaBuffer<float, TMapping>& der,
                                 TCudaBuffer<float, TMapping>& weights,
                                 TCudaBuffer<ui32, TMapping>& indices) {
-
             if (Config.GetBootstrapType() != EBootstrapType::No) {
                 auto tmp = BootstrappedWeights(der.GetMapping());
 
@@ -86,7 +84,6 @@ namespace NCatboostCuda {
                         CB_ENSURE(slice.Size() == 1);
                         return nzSizesMaster[slice.Left];
                     });
-
 
                     tmpIndices.Reset(nzMapping);
 

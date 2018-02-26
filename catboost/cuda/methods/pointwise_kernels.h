@@ -60,7 +60,7 @@ namespace NKernelHost {
         }
 
         Y_SAVELOAD_DEFINE(BFeatures, Cindex,
-                          Target, Weight,  Indices,
+                          Target, Weight, Indices,
                           Partition, PartsCount, FoldCount,
                           BinSums, BinFeatureCount, FullPass);
 
@@ -171,12 +171,12 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight,  Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
+        Y_SAVELOAD_DEFINE(NbFeatures, Cindex, Target, Weight, Indices, Partition, PartCount, FoldCount, BinSums, BinFeatureCount, FullPass);
 
         void Run(const TCudaStream& stream) const {
             NKernel::ComputeHist2HalfByte(NbFeatures.Get(), static_cast<int>(NbFeatures.Size()),
                                           Cindex.Get(),
-                                          Target.Get(), Weight.Get(), Indices.Get(),  Indices.Size(),Partition.Get(),
+                                          Target.Get(), Weight.Get(), Indices.Get(), Indices.Size(), Partition.Get(),
                                           PartCount, FoldCount,
                                           BinSums.Get(), BinFeatureCount,
                                           FullPass,
@@ -287,6 +287,7 @@ namespace NKernelHost {
         double ScoreStdDev;
         ui64 Seed;
         bool GatheredByLeaves;
+
     public:
         TFindOptimalSplitKernel() = default;
 
@@ -300,8 +301,7 @@ namespace NKernelHost {
                                 bool normalize,
                                 double scoreStdDev,
                                 ui64 seed,
-                                bool gatheredByLeaves
-        )
+                                bool gatheredByLeaves)
             : BinaryFeatures(binaryFeatures)
             , Splits(splits)
             , Parts(parts)

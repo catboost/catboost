@@ -17,7 +17,6 @@
 #include <util/stream/file.h>
 
 namespace NCudaLib {
-
     //Don't change to adaptive lock, will SIGNIFICANTLY drop performance
     //change to fakeMutex after OpenMPI correctly supports infiniband + multiple thread
     //or MVAPICH2 adds support to ipv6
@@ -25,7 +24,7 @@ namespace NCudaLib {
     TMpiLock& GetMpiLock();
 
 #define MPI_SAFE_CALL(cmd)                                                    \
-    with_lock(GetMpiLock())  {                                                \
+    with_lock (GetMpiLock()) {                                                \
         int mpiErrNo = (cmd);                                                 \
         if (MPI_SUCCESS != mpiErrNo) {                                        \
             char msg[MPI_MAX_ERROR_STRING];                                   \
@@ -45,6 +44,7 @@ namespace NCudaLib {
         void Write(TString message) {
             (*Out) << TInstant::Now().SecondsFloat() << ":\t" << message << Endl;
         }
+
     private:
         THolder<TOFStream> Out;
     };
@@ -68,14 +68,14 @@ namespace NCudaLib {
                 if (!Flag) {
                     CB_ENSURE(*Request != MPI_REQUEST_NULL);
                     MPI_SAFE_CALL(MPI_Test(Request.Get(), &Flag, &Status));
-                    #if defined(WRITE_MPI_MESSAGE_LOGS)
+#if defined(WRITE_MPI_MESSAGE_LOGS)
                     if (Flag) {
                         Logger().Write(Msg);
                     } else if ((Now() - StartTime).Seconds() > TDuration::Seconds(20).Seconds()) {
                         Logger().Write("Can't finish " + Msg);
                         StartTime = TInstant::Max();
                     }
-                    #endif
+#endif
                 }
                 return static_cast<bool>(Flag);
             }
@@ -83,7 +83,7 @@ namespace NCudaLib {
             void WaitComplete() const {
                 CB_ENSURE(Flag != -1);
                 if (!Flag) {
-//                    MPI_SAFE_CALL(MPI_Wait(&Request, &Status));
+                    //                    MPI_SAFE_CALL(MPI_Wait(&Request, &Status));
                     Wait(TDuration::Max());
                     Flag = true;
                 }
@@ -153,13 +153,15 @@ namespace NCudaLib {
             TMpiRequest(THolder<MPI_Request>&& request, TString msg)
                 : Flag(0)
                 , Request(std::move(request))
-                , Msg(msg) {
+                , Msg(msg)
+            {
                 IsComplete();
             }
 #endif
             TMpiRequest(THolder<MPI_Request>&& request)
-                    : Flag(0)
-                    , Request(std::move(request)) {
+                : Flag(0)
+                , Request(std::move(request))
+            {
             }
 
             void Clear() {
@@ -196,9 +198,11 @@ namespace NCudaLib {
 #if defined(WRITE_MPI_MESSAGE_LOG)
             Logger().Write(TStringBuilder() << "After IRecv with tag " << tag << " from " << sourceRank << " size " << dataSize);
 #endif
-            return {std::move(request)
+            return {
+                std::move(request)
 #if defined(WRITE_MPI_MESSAGE_LOG)
-                    , TStringBuilder() << "Finished IRecv with tag " << tag << " from " << sourceRank << " size " << dataSize
+                    ,
+                    TStringBuilder() << "Finished IRecv with tag " << tag << " from " << sourceRank << " size " << dataSize
 #endif
             };
         }
@@ -217,9 +221,11 @@ namespace NCudaLib {
 #if defined(WRITE_MPI_MESSAGE_LOG)
             Logger().Write(TStringBuilder() << "After ISend with tag " << tag << " to " << destRank << " size " << dataSize);
 #endif
-            return {std::move(request)
+            return {
+                std::move(request)
 #if defined(WRITE_MPI_MESSAGE_LOG)
-            , TStringBuilder() << "Finished ISend with tag " << tag << " to " << destRank << " size " << dataSize
+                    ,
+                    TStringBuilder() << "Finished ISend with tag " << tag << " to " << destRank << " size " << dataSize
 #endif
             };
         }
@@ -275,7 +281,7 @@ namespace NCudaLib {
             Y_ASSERT(size < (int)BufferSize);
             Y_ASSERT(size);
 #if defined(WRITE_MPI_MESSAGE_LOG)
-            Logger().Write(TStringBuilder() << "Before SendTask with tag " <<  GetTaskTag(deviceId) << " to " << deviceId.HostId << " size " << size);
+            Logger().Write(TStringBuilder() << "Before SendTask with tag " << GetTaskTag(deviceId) << " to " << deviceId.HostId << " size " << size);
 #endif
             if (UseBSendForTasks) {
                 MPI_SAFE_CALL(MPI_Bsend(task.Data(), size, MPI_CHAR,
@@ -285,7 +291,7 @@ namespace NCudaLib {
                                        deviceId.HostId, GetTaskTag(deviceId), Communicator));
             }
 #if defined(WRITE_MPI_MESSAGE_LOG)
-            Logger().Write(TStringBuilder() << "After SendTask with tag " <<  GetTaskTag(deviceId) << " to " << deviceId.HostId << " size " << size);
+            Logger().Write(TStringBuilder() << "After SendTask with tag " << GetTaskTag(deviceId) << " to " << deviceId.HostId << " size " << size);
 #endif
         }
 
@@ -395,6 +401,7 @@ namespace NCudaLib {
         TMpiLock& GetLock() {
             return Lock;
         }
+
     private:
         TMpiLock Lock;
         MPI_Comm Communicator;

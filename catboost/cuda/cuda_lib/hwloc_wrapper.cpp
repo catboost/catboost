@@ -7,10 +7,9 @@
 #include <util/generic/set.h>
 
 namespace NCudaLib {
-
     struct THwlocSet {
         THwlocSet() {
-            Set  = hwloc_bitmap_alloc();
+            Set = hwloc_bitmap_alloc();
         }
 
         ~THwlocSet() {
@@ -22,7 +21,6 @@ namespace NCudaLib {
         }
 
         hwloc_bitmap_t Set;
-
     };
 
     THardwareLocalityHelper::THardwareLocalityHelper() {
@@ -49,12 +47,12 @@ namespace NCudaLib {
 
         errCode = hwloc_set_cpubind(Context, deviceCpu.Set, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT);
         if (errCode == -1) {
-            MATRIXNET_ERROR_LOG << "Can't bind thread for " << deviceId << " with err " << errno  << Endl;
+            MATRIXNET_ERROR_LOG << "Can't bind thread for " << deviceId << " with err " << errno << Endl;
         }
 
-        errCode = hwloc_set_membind_nodeset(Context, numaNode.Set, HWLOC_MEMBIND_BIND,  HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT);
+        errCode = hwloc_set_membind_nodeset(Context, numaNode.Set, HWLOC_MEMBIND_BIND, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT);
         if (errCode == -1) {
-            MATRIXNET_ERROR_LOG << "Can't bind memory for " << deviceId << " with err " << errno  << Endl;
+            MATRIXNET_ERROR_LOG << "Can't bind memory for " << deviceId << " with err " << errno << Endl;
         }
     }
 }

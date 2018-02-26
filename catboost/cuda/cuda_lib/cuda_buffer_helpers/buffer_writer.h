@@ -64,7 +64,6 @@ namespace NCudaLib {
             return *this;
         }
 
-
         //TODO(noxoomo): compressed write support
         void Write() {
             const auto& mapping = Dst->GetMapping();
@@ -106,9 +105,5 @@ namespace NCudaLib {
             }
         }
     };
-
-
-
-
 
 }

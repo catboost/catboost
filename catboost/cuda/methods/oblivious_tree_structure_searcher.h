@@ -20,8 +20,6 @@
 #include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
-
-
     template <class TTarget,
               class TDataSet>
     class TFeatureParallelObliviousTreeSearcher {
@@ -29,10 +27,10 @@ namespace NCatboostCuda {
         using TVec = typename TTarget::TVec;
 
         TFeatureParallelObliviousTreeSearcher(TScopedCacheHolder& cache,
-                               TBinarizedFeaturesManager& featuresManager,
-                               const TDataSet& dataSet,
-                               TBootstrap<NCudaLib::TMirrorMapping>& bootstrap,
-                               const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions)
+                                              TBinarizedFeaturesManager& featuresManager,
+                                              const TDataSet& dataSet,
+                                              TBootstrap<NCudaLib::TMirrorMapping>& bootstrap,
+                                              const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions)
             : ScopedCache(cache)
             , FeaturesManager(featuresManager)
             , DataSet(dataSet)
@@ -43,7 +41,7 @@ namespace NCatboostCuda {
         }
 
         TFeatureParallelObliviousTreeSearcher& AddTask(TTarget&& learnTarget,
-                                                 TTarget&& testTarget) {
+                                                       TTarget&& testTarget) {
             CB_ENSURE(SingleTaskTarget == nullptr, "We can't mix learn/test splits and full estimation");
             FoldBasedTasks.push_back(std::move(TOptimizationTask(std::move(learnTarget),
                                                                  std::move(testTarget))));
@@ -107,19 +105,17 @@ namespace NCatboostCuda {
             TScoreCaclerPtr simpleCtrScoreCalcer;
 
             if (DataSet.HasFeatures()) {
-                featuresScoreCalcer =  new TScoresCalcerOnCompressedDataSet<>(DataSet.GetFeatures(),
-                                                                              TreeConfig,
-                                                                              foldCount,
-                                                                              true);
+                featuresScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(DataSet.GetFeatures(),
+                                                                             TreeConfig,
+                                                                             foldCount,
+                                                                             true);
             }
             if (DataSet.HasPermutationDependentFeatures()) {
                 simpleCtrScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(DataSet.GetPermutationFeatures(),
                                                                               TreeConfig,
                                                                               foldCount,
                                                                               true);
-
             }
-
 
             TObliviousTreeStructure result;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -211,8 +207,8 @@ namespace NCatboostCuda {
                                                                  subsets);
 
                         ctrDataSetVisitor.SetBestScore(bestSplitProp.Score)
-                                         .SetScoreStdDevAndSeed(ScoreStdDev,
-                                                                GetRandom().NextUniformL());
+                            .SetScoreStdDevAndSeed(ScoreStdDev,
+                                                   GetRandom().NextUniformL());
                         TMirrorBuffer<ui32> inverseIndices;
 
                         for (auto permutation : ctrDataSetsHelper.GetUsedPermutations()) {
@@ -525,7 +521,7 @@ namespace NCatboostCuda {
                                                        streams[(2 * i + 1) % streamCount].GetId());
                     } else {
                         task.LearnTarget.NewtonAtZero(learnTarget, learnWeights,
-                                                        streams[(2 * i) % streamCount].GetId());
+                                                      streams[(2 * i) % streamCount].GetId());
                         task.TestTarget.NewtonAtZero(testTarget, testWeights,
                                                      streams[(2 * i + 1) % streamCount].GetId());
                     }

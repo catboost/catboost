@@ -9,8 +9,6 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
-
-
     template <class TLayoutPolicy = TFeatureParallelLayout>
     class TSharedCompressedIndexBuilder: public TNonCopyable {
     public:
@@ -19,9 +17,9 @@ namespace NCatboostCuda {
         using TIndex = TSharedCompressedIndex<TLayoutPolicy>;
 
         TSharedCompressedIndexBuilder(TIndex& compressedIndex)
-        : CompressedIndex(compressedIndex) {
+            : CompressedIndex(compressedIndex)
+        {
         }
-
 
         template <EFeaturesGroupingPolicy Policy,
                   class TFeaturesBinarizationDescription>
@@ -29,7 +27,6 @@ namespace NCatboostCuda {
                                   const TVector<ui32>& features,
                                   TVector<ui32>* policyFeatures,
                                   TVector<ui32>* restFeatures) {
-
             policyFeatures->clear();
             restFeatures->clear();
 
@@ -45,9 +42,8 @@ namespace NCatboostCuda {
 
         using TDataSet = typename TIndex::TCompressedDataSet;
 
-
         template <class TFeaturesBinarizationDescription,
-                   EFeaturesGroupingPolicy Policy>
+                  EFeaturesGroupingPolicy Policy>
         static TVector<ui32> ProceedPolicy(const TFeaturesBinarizationDescription& featuresInfo,
                                            const TSamplesMapping& samplesMapping,
                                            const TVector<ui32>& features,
@@ -62,12 +58,12 @@ namespace NCatboostCuda {
                                   &restFeatures);
 
             if (policyFeatures.size()) {
-                ds.PolicyBlocks[Policy] =  TCudaFeaturesLayoutHelper<TLayoutPolicy>::template CreateFeaturesBlock<Policy>(policyFeatures,
-                                                                                                                          featuresInfo,
-                                                                                                                          samplesMapping,
-                                                                                                                          *compressedIndexOffsets);
+                ds.PolicyBlocks[Policy] = TCudaFeaturesLayoutHelper<TLayoutPolicy>::template CreateFeaturesBlock<Policy>(policyFeatures,
+                                                                                                                         featuresInfo,
+                                                                                                                         samplesMapping,
+                                                                                                                         *compressedIndexOffsets);
                 for (const ui32 f : policyFeatures) {
-                   ds.FeaturePolicy[f] = Policy;
+                    ds.FeaturePolicy[f] = Policy;
                 }
                 (*compressedIndexOffsets) += ds.PolicyBlocks[Policy]->CIndexSizes;
             }
@@ -76,7 +72,7 @@ namespace NCatboostCuda {
 
         template <class TFeaturesBinarizationDescription>
         static inline TVector<ui32> FilterZeroFeatures(const TFeaturesBinarizationDescription& featuresInfo,
-                                                const TVector<ui32>& featureIds) {
+                                                       const TVector<ui32>& featureIds) {
             TVector<ui32> result;
             for (auto f : featureIds) {
                 if (featuresInfo.GetFoldsCount(f) != 0) {
@@ -92,7 +88,6 @@ namespace NCatboostCuda {
                                                 const TSamplesMapping& samplesMapping,
                                                 const TVector<ui32>& featureIds,
                                                 TIndex* dst) {
-
             const ui32 blockId = dst->DataSets.size();
             TVector<ui32> restFeatures = FilterZeroFeatures(featuresInfo,
                                                             featureIds);
@@ -103,17 +98,14 @@ namespace NCatboostCuda {
                                                  featureIds));
             auto& ds = *dst->DataSets.back();
 
-
             auto compressedIndexOffsets = dst->ComputeCompressedIndexSizes();
 
-            #define POLICY_BLOCK(Policy)                                                                                                                      \
-            restFeatures = ProceedPolicy<TFeaturesBinarizationDescription, Policy>(featuresInfo, samplesMapping, restFeatures, &ds, &compressedIndexOffsets);
-
+#define POLICY_BLOCK(Policy) \
+    restFeatures = ProceedPolicy<TFeaturesBinarizationDescription, Policy>(featuresInfo, samplesMapping, restFeatures, &ds, &compressedIndexOffsets);
 
             POLICY_BLOCK(EFeaturesGroupingPolicy::BinaryFeatures)
             POLICY_BLOCK(EFeaturesGroupingPolicy::HalfByteFeatures)
             POLICY_BLOCK(EFeaturesGroupingPolicy::OneByteFeatures)
-
 
             CB_ENSURE(restFeatures.size() == 0, "Error: can't proceed some features");
             return blockId;
@@ -125,7 +117,6 @@ namespace NCatboostCuda {
             index->FlatStorage.Reset(CreateMapping<TMapping>(compressedIndexSizes));
             FillBuffer(index->FlatStorage, static_cast<ui32>(0));
         }
-
 
         ui32 AddDataSet(const TBinarizationInfoProvider& featuresInfo,
                         const TDataSetDescription& description,
@@ -144,7 +135,6 @@ namespace NCatboostCuda {
             return blockId;
         }
 
-
         TSharedCompressedIndexBuilder& PrepareToWrite() {
             StartWrite = Now();
             ResetStorage(&CompressedIndex);
@@ -158,23 +148,23 @@ namespace NCatboostCuda {
                                              const ui32 binCount,
                                              const TVector<TBinType>& bins) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
-            CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " " << " total dataSets " << GatherIndex.size());
+            CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
+                                                                                      << " total dataSets " << GatherIndex.size());
             auto& dataSet = *CompressedIndex.DataSets[dataSetId];
 
             const auto& docsMapping = dataSet.SamplesMapping;
-            const NCudaLib::TDistributedObject<TCFeature>& feature =  dataSet.GetTCFeature(featureId);
+            const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
             CB_ENSURE(bins.size() == docsMapping.GetObjectsSlice().Size());
             CB_ENSURE(binCount > 1, "Feature is empty");
             for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
                 if (!feature.IsEmpty(dev)) {
                     const ui32 folds = feature.At(dev).Folds;
-                    CB_ENSURE(binCount <= (folds + 1), "There are #" <<  folds + 1 << " but need at least " << binCount << " to store feature");
+                    CB_ENSURE(binCount <= (folds + 1), "There are #" << folds + 1 << " but need at least " << binCount << " to store feature");
                 }
             }
             CB_ENSURE(!SeenFeatures[dataSetId].has(featureId), "Error: can't write feature twice");
 
             TVector<ui8> writeBins(bins.size());
-
 
             if (GatherIndex[dataSetId]) {
                 NPar::ParallelFor(0, bins.size(), [&](ui32 i) {
@@ -211,7 +201,7 @@ namespace NCatboostCuda {
                 MATRIXNET_DEBUG_LOG << "Compressed index dataSet " << description.Name << Endl;
                 ds.PrintInfo();
                 for (ui32 f : ds.GetFeatures()) {
-                    CB_ENSURE(SeenFeatures[dataSetId].count(f), "Unseen feature #"  << f << " in dataset " << description.Name);
+                    CB_ENSURE(SeenFeatures[dataSetId].count(f), "Unseen feature #" << f << " in dataset " << description.Name);
                 }
             }
 

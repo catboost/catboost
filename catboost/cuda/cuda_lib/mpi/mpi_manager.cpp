@@ -74,7 +74,6 @@ namespace NCudaLib {
         MPI_SAFE_CALL(MPI_Finalize());
     }
 
-
     TMpiLock& GetMpiLock() {
         return GetMpiManager().GetLock();
     }

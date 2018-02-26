@@ -71,7 +71,6 @@ namespace NCatboostCuda {
             Borders[featureId] = std::move(borders);
         }
 
-
         bool IsFloat(ui32 featureId) const {
             if (FeatureManagerIdToDataProviderId.has(featureId)) {
                 return DataProviderFloatFeatureIdToFeatureManagerId.has(FeatureManagerIdToDataProviderId.at(featureId));
@@ -599,7 +598,6 @@ namespace NCatboostCuda {
             CB_ENSURE(IsCat(featureId));
             return CatFeaturesPerfectHash.GetUniqueValues(featureId);
         }
-
 
         ui32 RequestNewId() {
             return Cursor++;

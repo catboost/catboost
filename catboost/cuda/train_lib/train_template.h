@@ -16,7 +16,6 @@ namespace NCatboostCuda {
                                                                          const TDataProvider& learn,
                                                                          const TDataProvider* test,
                                                                          TRandom& random) {
-
         using TWeakLearner = typename TBoosting::TWeakLearner;
         using TWeakModel = typename TBoosting::TWeakModel;
         using TObjective = typename TBoosting::TObjective;
@@ -105,7 +104,7 @@ namespace NCatboostCuda {
 
         TTimeWriter<TObjective, TObliviousTreeModel> timeWriter(boostingOptions.IterationCount,
                                                                 outputOptions.CreateTimeLeftLogFullPath(),
-                                                                 "\n");
+                                                                "\n");
         if (testPrinter) {
             boosting.RegisterTestListener(timeWriter);
         } else {
@@ -137,19 +136,18 @@ namespace NCatboostCuda {
                                                        const TDataProvider* test,
                                                        TRandom& random,
                                                        bool storeCatFeaturesInPinnedMemory) {
-
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
-            #define TRAIN_FEATURE_PARALLEL(PtrType) \
-        using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner, PtrType>; \
-        return Train<TBoosting>(featureManager, catBoostOptions, outputOptions, learn, test, random);
+#define TRAIN_FEATURE_PARALLEL(PtrType)                                                        \
+    using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner, PtrType>; \
+    return Train<TBoosting>(featureManager, catBoostOptions, outputOptions, learn, test, random);
 
             if (storeCatFeaturesInPinnedMemory) {
                 TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaHost)
             } else {
                 TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaDevice)
             }
-            #undef TRAIN_FEATURE_PARALLEL
+#undef TRAIN_FEATURE_PARALLEL
 
         } else {
             using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
@@ -167,8 +165,6 @@ namespace NCatboostCuda {
                                                                         const TDataProvider* test,
                                                                         TRandom& random,
                                                                         bool storeInPinnedMemory) const {
-
-
             return Train<TTargetTemplate>(featuresManager,
                                           catBoostOptions,
                                           outputOptions,

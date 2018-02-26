@@ -598,7 +598,6 @@ inline ui64 GetDeviceCount() {
     return NCudaLib::GetCudaManager().GetDeviceCount();
 }
 
-
 template <class T>
 inline NCudaLib::TDistributedObject<T> CreateDistributedObject() {
     auto object = NCudaLib::GetCudaManager().CreateDistributedObject<T>();

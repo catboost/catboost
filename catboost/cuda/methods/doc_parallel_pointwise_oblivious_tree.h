@@ -15,8 +15,6 @@
 #include <catboost/cuda/targets/target_func.h>
 
 namespace NCatboostCuda {
-
-
     class TDocParallelObliviousTree {
     public:
         using TResultModel = TObliviousTreeModel;
@@ -29,7 +27,8 @@ namespace NCatboostCuda {
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
             , Seed(config.RandomSeed)
-            , MakeZeroAverage(makeZeroAverage) {
+            , MakeZeroAverage(makeZeroAverage)
+        {
         }
 
         bool NeedEstimation() const {
@@ -37,7 +36,7 @@ namespace NCatboostCuda {
         }
 
         template <class TTarget,
-                 class TDataSet>
+                  class TDataSet>
         TDocParallelObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(double mult) {
             if (Bootstrap == nullptr) {
                 Bootstrap.Reset(new TBootstrap<NCudaLib::TStripeMapping>(TreeConfig.BootstrapConfig, Seed));
@@ -48,7 +47,6 @@ namespace NCatboostCuda {
                                                                         *Bootstrap,
                                                                         mult);
         }
-
 
         TObliviousTreeLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
@@ -61,7 +59,6 @@ namespace NCatboostCuda {
                                                                          TreeConfig.AddRidgeToTargetFunctionFlag,
                                                                          MakeZeroAverage));
         }
-
 
         template <class TDataSet>
         TAddModelValue<TObliviousTreeModel, TDataSet> CreateAddModelValue(bool useStreams = false) {

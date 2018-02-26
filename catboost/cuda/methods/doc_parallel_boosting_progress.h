@@ -7,8 +7,6 @@
 #include <catboost/cuda/cuda_lib/read_and_write_helpers.h>
 
 namespace NCatboostCuda {
-
-
     template <class TModel>
     struct TBoostingProgress {
         TVector<TModel> Models;

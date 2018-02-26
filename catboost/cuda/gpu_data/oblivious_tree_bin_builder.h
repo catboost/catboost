@@ -15,7 +15,6 @@
 #include <catboost/cuda/data/helpers.h>
 
 namespace NCatboostCuda {
-
     class IBinarySplitProvider {
     public:
         virtual ~IBinarySplitProvider() = default;
@@ -241,7 +240,7 @@ namespace NCatboostCuda {
             });
         }
 
-//        template <class TBinarizedDataSet>
+        //        template <class TBinarizedDataSet>
         TMirrorBuffer<ui64> BuildMirrorSplitForDataSet(const TCompressedDataSet<>& ds,
                                                        const TBinarySplit& split,
                                                        const TMirrorBuffer<ui32>* readIndices = nullptr) const {

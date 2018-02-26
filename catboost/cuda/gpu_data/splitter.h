@@ -96,10 +96,9 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             NKernel::UpdateBins(CompressedBits.Get(), Depth, Bins.Get(),
-                               static_cast<int>(Bins.Size()), stream.GetStream());
+                                static_cast<int>(Bins.Size()), stream.GetStream());
         }
     };
-
 
     class TUpdateBinsFromCompressedIndexKernel: public TStatelessKernel {
     private:
@@ -116,14 +115,15 @@ namespace NKernelHost {
         TUpdateBinsFromCompressedIndexKernel(TCudaBufferPtr<const ui32> cindex,
                                              TCudaBufferPtr<const ui32> indices,
                                              TCFeature feature, ui32 bin,
-                                             ui32  depth,
+                                             ui32 depth,
                                              TCudaBufferPtr<ui32> bins)
-        : Index(cindex)
-        , Indices(indices)
-        , Feature(feature)
-        , BinIdx(bin)
-        , Depth(depth)
-        , Bins(bins) {
+            : Index(cindex)
+            , Indices(indices)
+            , Feature(feature)
+            , BinIdx(bin)
+            , Depth(depth)
+            , Bins(bins)
+        {
         }
 
         Y_SAVELOAD_DEFINE(Index, Indices, Feature, BinIdx, Depth, Bins);
@@ -170,8 +170,6 @@ inline void UpdateBinFromCompressedBits(const TCudaBuffer<ui64, TMapping>& compr
     using TKernel = NKernelHost::TUpdateBinsKernel;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), streamId, compressedBits, depth, dst);
 }
-
-
 
 inline void UpdateBinFromCompressedIndex(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& cindex,
                                          const NCudaLib::TDistributedObject<TCFeature>& feature, ui32 bin,

@@ -3,62 +3,59 @@
 #include <util/system/types.h>
 
 namespace NCatboostCuda {
-
     enum EFeaturesGroupingPolicy {
         BinaryFeatures,
         HalfByteFeatures,
         OneByteFeatures
     };
 
-
     template <EFeaturesGroupingPolicy>
     struct TBitsPerFeature;
 
-    template<EFeaturesGroupingPolicy>
+    template <EFeaturesGroupingPolicy>
     struct TFeaturesPerByte;
 
-    template<>
+    template <>
     struct TBitsPerFeature<EFeaturesGroupingPolicy::BinaryFeatures> {
         static constexpr ui32 BitsPerFeature() {
             return 1u;
         }
     };
 
-    template<>
+    template <>
     struct TBitsPerFeature<EFeaturesGroupingPolicy::HalfByteFeatures> {
         static constexpr ui32 BitsPerFeature() {
             return 4u;
         }
     };
 
-    template<>
+    template <>
     struct TBitsPerFeature<EFeaturesGroupingPolicy::OneByteFeatures> {
         static constexpr ui32 BitsPerFeature() {
             return 8u;
         }
     };
 
-    template<>
+    template <>
     struct TFeaturesPerByte<EFeaturesGroupingPolicy::OneByteFeatures> {
         static constexpr ui32 FeaturesPerByte() {
             return 1u;
         }
     };
 
-    template<>
+    template <>
     struct TFeaturesPerByte<EFeaturesGroupingPolicy::HalfByteFeatures> {
         static constexpr ui32 FeaturesPerByte() {
             return 2u;
         }
     };
 
-    template<>
+    template <>
     struct TFeaturesPerByte<EFeaturesGroupingPolicy::BinaryFeatures> {
         static constexpr ui32 FeaturesPerByte() {
             return 8u;
         }
     };
-
 
     template <EFeaturesGroupingPolicy Policy>
     class TCompressedIndexHelper {

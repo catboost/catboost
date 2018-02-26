@@ -12,8 +12,8 @@
 namespace NCatboostCuda {
     inline TBestSplitProperties TakeBest(TBestSplitProperties first, TBestSplitProperties second) {
         return first < second
-                    ? first
-                    : second;
+                   ? first
+                   : second;
     }
 
     inline TBestSplitProperties TakeBest(TBestSplitProperties first,
@@ -24,7 +24,6 @@ namespace NCatboostCuda {
 
     inline TBinarySplit ToSplit(const TBinarizedFeaturesManager& manager,
                                 const TBestSplitProperties& props) {
-
         TBinarySplit bestSplit;
         bestSplit.FeatureId = props.FeatureId;
         bestSplit.BinIdx = props.BinId;
@@ -38,7 +37,6 @@ namespace NCatboostCuda {
         }
         return bestSplit;
     }
-
 
     inline bool HasPermutationDependentSplit(const TObliviousTreeStructure& structure,
                                              const TBinarizedFeaturesManager& featuresManager) {
@@ -109,12 +107,10 @@ namespace NCatboostCuda {
         });
     }
 
-
     inline void PrintBestScore(const TBinarizedFeaturesManager& featuresManager,
                                const TBinarySplit& bestSplit,
                                double score,
                                ui32 depth) {
-
         TString splitTypeMessage;
 
         if (bestSplit.SplitType == EBinSplitType::TakeBin) {
@@ -124,16 +120,15 @@ namespace NCatboostCuda {
         }
 
         MATRIXNET_INFO_LOG
-        << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
-        << splitTypeMessage << ")"
-        << " with score " << score;
+            << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
+            << splitTypeMessage << ")"
+            << " with score " << score;
         if (featuresManager.IsCtr(bestSplit.FeatureId)) {
             MATRIXNET_INFO_LOG
-            << " tensor : " << featuresManager.GetCtr(bestSplit.FeatureId).FeatureTensor << "  (ctr type "
-            << featuresManager.GetCtr(bestSplit.FeatureId).Configuration.Type << ")";
+                << " tensor : " << featuresManager.GetCtr(bestSplit.FeatureId).FeatureTensor << "  (ctr type "
+                << featuresManager.GetCtr(bestSplit.FeatureId).Configuration.Type << ")";
         }
         MATRIXNET_INFO_LOG << Endl;
     }
-
 
 }

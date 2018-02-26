@@ -30,11 +30,10 @@ namespace NCatboostCuda {
         TL2(const TDataSet& dataSet,
             TRandom& random,
             const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::RMSE);
         }
-
 
         TL2(const TL2& target,
             const TSlice& slice)
@@ -43,7 +42,8 @@ namespace NCatboostCuda {
         }
 
         TL2(const TL2& target)
-            : TParent(target) {
+            : TParent(target)
+        {
         }
 
         template <class TLayout>
@@ -55,7 +55,8 @@ namespace NCatboostCuda {
         }
 
         TL2(TL2&& other)
-            : TParent(std::move(other)) {
+            : TParent(std::move(other))
+        {
         }
 
         using TParent::GetTarget;
@@ -96,9 +97,9 @@ namespace NCatboostCuda {
         }
 
         void NewtonAt(const TConstVec& point,
-                        TVec& dst,
-                        TVec& weightederDer2,
-                        ui32 stream = 0) const {
+                      TVec& dst,
+                      TVec& weightederDer2,
+                      ui32 stream = 0) const {
             return GradientAt(point, dst, weightederDer2, stream);
         }
 

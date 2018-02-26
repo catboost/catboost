@@ -24,7 +24,6 @@
 #include <catboost/libs/options/binarization_options.h>
 
 namespace NCatboostCuda {
-
     template <class T, template <class U> class TField>
     inline void VectorToProto(const TVector<T>& src, TField<T>* dst) {
         *dst = TField<T>(src.begin(), src.end());
@@ -118,7 +117,6 @@ namespace NCatboostCuda {
         }
 
         TVector<THolder<TTempFile>> Columns;
-
 
         TString TempDir;
         const TVector<TColumn>& ColumnsDescription;

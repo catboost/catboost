@@ -10,7 +10,6 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
     template <>
     class TAddModelValue<TObliviousTreeModel, TDocParallelDataSet> {
     public:
@@ -45,7 +44,7 @@ namespace NCatboostCuda {
             LeavesSlices.push_back(leavesSlice);
 
             TSlice featuresSlice = FeaturesSlices.size() ? FeaturesSlices.back() : TSlice(0, 0);
-            featuresSlice.Left = featuresSlice .Right;
+            featuresSlice.Left = featuresSlice.Right;
             featuresSlice.Right += modelSplits.size();
             FeaturesSlices.push_back(featuresSlice);
 
@@ -70,7 +69,6 @@ namespace NCatboostCuda {
         }
 
         void Proceed() {
-
             TMirrorBuffer<float> leaves;
             TMirrorBuffer<ui8> bins;
             TStripeBuffer<TCFeature> features;
@@ -109,7 +107,6 @@ namespace NCatboostCuda {
         }
 
     private:
-
         void Append(ui32 taskId,
                     const TStripeBuffer<TCFeature>& features,
                     const TMirrorBuffer<ui8>& bins,
@@ -130,10 +127,7 @@ namespace NCatboostCuda {
         TVector<float> CpuLeaves;
         TVector<ui8> FeatureBins;
         NCudaLib::TStripeVectorBuilder<TCFeature> FeaturesBuilder;
-
     };
-
-
 
     template <>
     class TComputeLeaves<TObliviousTreeModel, TDocParallelDataSet> {
@@ -184,7 +178,6 @@ namespace NCatboostCuda {
         }
 
         void Proceed() {
-
             TMirrorBuffer<ui8> bins;
             TStripeBuffer<TCFeature> features;
             FeaturesBuilder.Build(features);
@@ -215,11 +208,10 @@ namespace NCatboostCuda {
         }
 
     private:
-
         void Compute(ui32 taskId,
-                    const TStripeBuffer<TCFeature>& features,
-                    const TMirrorBuffer<ui8>& bins,
-                    ui32 stream) {
+                     const TStripeBuffer<TCFeature>& features,
+                     const TMirrorBuffer<ui8>& bins,
+                     ui32 stream) {
             auto& cursor = *Cursors[taskId];
             ComputeObliviousTreeLeaves(CompressedIndex->GetStorage(),
                                        features,
@@ -237,7 +229,6 @@ namespace NCatboostCuda {
         TVector<ui8> FeatureBins;
         NCudaLib::TStripeVectorBuilder<TCFeature> FeaturesBuilder;
     };
-
 
     inline void ComputeBinsForModel(const TObliviousTreeStructure& structure,
                                     const TDocParallelDataSet& dataSet,
