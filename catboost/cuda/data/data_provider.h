@@ -4,6 +4,18 @@
 #include <util/generic/yexception.h>
 
 namespace NCatboostCuda {
+
+    template <class T>
+    inline bool AreEqualTo(const TVector<T>& entries, const T& value) {
+        for (auto& entry : entries) {
+            if (entry != value) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     class TDataProvider: public TMoveOnly {
     public:
         explicit TDataProvider()
@@ -57,7 +69,7 @@ namespace NCatboostCuda {
             return Targets.size();
         }
 
-        TDataProvider const* Get() const {
+        const TDataProvider* Get() const {
             if (IsEmpty()) {
                 return nullptr;
             }
@@ -70,6 +82,10 @@ namespace NCatboostCuda {
 
         const TVector<float>& GetWeights() const {
             return Weights;
+        }
+
+        bool IsTrivialWeights() const {
+            return AreEqualTo(Weights, 1.0f);
         }
 
         bool HasQueries() const {

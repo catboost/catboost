@@ -45,7 +45,7 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void Start(const TPoolColumnsMetaInfo& metaInfo, int /*docCount*/) override {
+        void Start(const TPoolColumnsMetaInfo& metaInfo, int docCount) override {
             DataProvider.Features.clear();
 
             DataProvider.Baseline.clear();
@@ -55,6 +55,11 @@ namespace NCatboostCuda {
             IsDone = false;
             FeatureValues.clear();
             FeatureValues.resize(metaInfo.FactorCount);
+            for (ui32 i = 0; i < metaInfo.FactorCount; ++i) {
+                if (!IgnoreFeatures.has(i)) {
+                    FeatureValues[i].reserve(docCount);
+                }
+            }
 
             CatFeatureIds = TSet<int>(metaInfo.CatFeatureIds.begin(), metaInfo.CatFeatureIds.end());
         }

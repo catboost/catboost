@@ -67,6 +67,16 @@ public:
     inline bool has(const K& key) const {
         return this->find(key) != this->end();
     }
+
+    V& at(const K& __k) {
+        Y_ASSERT(has(__k));
+        return TBase::at(__k);
+    }
+
+    const V& at(const K& __k) const {
+        Y_ASSERT(has(__k));
+        return TBase::at(__k);
+    }
 };
 
 template <class K, class V, class Less, class A>
@@ -133,4 +143,6 @@ public:
     inline bool has(const K& key) const {
         return this->find(key) != this->end();
     }
+
+
 };

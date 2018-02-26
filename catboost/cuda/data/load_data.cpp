@@ -46,7 +46,7 @@ namespace NCatboostCuda {
         std::iota(DataProvider.Order.begin(),
                   DataProvider.Order.end(), 0);
 
-        if (!DataProvider.Timestamp.empty()) {
+        if (!AreEqualTo<ui64>(DataProvider.Timestamp, 0)) {
             ShuffleFlag = false;
             DataProvider.Order = CreateOrderByKey(DataProvider.Timestamp);
         }
