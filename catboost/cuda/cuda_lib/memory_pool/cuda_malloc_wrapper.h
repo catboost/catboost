@@ -55,6 +55,10 @@ namespace NCudaLib {
             return freeBytes;
         }
 
+        void TryDefragment() {
+
+        }
+
         template <typename T = char>
         TMemoryBlock<T>* Create(ui64 size) {
             return new TMemoryBlock<T>(size);
