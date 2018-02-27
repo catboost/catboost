@@ -72,10 +72,10 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
     __asm__ volatile("rdtscp\n\t"
                      : "=A"(x)::"%ecx");
     return x;
-#elif defined(__clang__) && !defined(_arm64_)
-    return __builtin_readcyclecounter();
 #elif defined(_darwin_)
     return mach_absolute_time();
+#elif defined(__clang__) && !defined(_arm64_)
+    return __builtin_readcyclecounter();
 #elif defined(_arm32_)
     return MicroSeconds();
 #elif defined(_arm64_)
