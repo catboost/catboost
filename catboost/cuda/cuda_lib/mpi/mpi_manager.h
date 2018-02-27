@@ -17,9 +17,8 @@
 #include <util/stream/file.h>
 
 namespace NCudaLib {
-    //Don't change to adaptive lock, will SIGNIFICANTLY drop performance
-    //change to fakeMutex after OpenMPI correctly supports infiniband + multiple thread
-    //or MVAPICH2 adds support to ipv6
+    //TODO(noxoomo): check different locks. By design MPI should be able to work with multiple threads, but
+    //existing implementation could work bad if MPI is accessed from multiple threads
     using TMpiLock = TFakeMutex;
     TMpiLock& GetMpiLock();
 
@@ -63,8 +62,7 @@ namespace NCudaLib {
         class TMpiRequest: public TMoveOnly {
         public:
             bool IsComplete() const {
-                Y_ASSERT(Flag != -1);
-                CB_ENSURE(Flag != -1);
+                Y_VERIFY(Flag != -1);
                 if (!Flag) {
                     CB_ENSURE(*Request != MPI_REQUEST_NULL);
                     MPI_SAFE_CALL(MPI_Test(Request.Get(), &Flag, &Status));
@@ -83,14 +81,13 @@ namespace NCudaLib {
             void WaitComplete() const {
                 CB_ENSURE(Flag != -1);
                 if (!Flag) {
-                    //                    MPI_SAFE_CALL(MPI_Wait(&Request, &Status));
                     Wait(TDuration::Max());
                     Flag = true;
                 }
             }
 
             ui64 ReceivedBytes() const {
-                CB_ENSURE(Flag != -1 && Flag != 0);
+                CB_ENSURE(Flag != -1 && Flag != 0, "Wait for request first");
                 int result;
                 MPI_SAFE_CALL(MPI_Get_count(&Status, MPI_CHAR, &result));
                 return static_cast<ui64>(result);
@@ -103,7 +100,7 @@ namespace NCudaLib {
             }
 
             void Abort() {
-                CB_ENSURE(Flag != -1);
+                Y_VERIFY(Flag != -1);
                 if (!Flag) {
                     MPI_SAFE_CALL(MPI_Cancel(Request.Get()));
                     Flag = -1;
