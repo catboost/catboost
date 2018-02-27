@@ -8,7 +8,6 @@
 #include <util/generic/utility.h>
 #include <util/thread/singleton.h>
 
-
 struct TCtrCalcer {
     template <typename T>
     T* Alloc(size_t count) {
@@ -258,6 +257,8 @@ void ComputeOnlineCTRs(const TTrainData& data,
     const TCtrHelper& ctrHelper = ctx->CtrsHelper;
     const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
     dst->Feature.resize(ctrInfo.size());
+    size_t learnSampleCount = fold.LearnPermutation.size();
+    size_t totalSampleCount = fold.EffectiveDocCount;
 
     using THashArr = TVector<ui64>;
     using TRehashHash = TDenseHash<ui64, ui32>;
@@ -266,42 +267,39 @@ void ComputeOnlineCTRs(const TTrainData& data,
     TVector<ui64>& hashArr = tlsHashArr.Get();
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
-        Clear(&hashArr, fold.EffectiveDocCount);
+        Clear(&hashArr, totalSampleCount);
         const int* featureValues = data.AllFeatures.CatFeaturesRemapped[proj.CatFeatures[0]].data();
         const auto* permutation = fold.LearnPermutation.data();
-        for (size_t i = 0; i < fold.LearnPermutation.size(); ++i) {
+        for (size_t i = 0; i < learnSampleCount; ++i) {
             hashArr[i] = ((ui64)featureValues[permutation[i]]) + 1;
         }
-        for (size_t i = fold.LearnPermutation.size(); i < fold.EffectiveDocCount; ++i) {
+        for (size_t i = learnSampleCount; i < totalSampleCount; ++i) {
             hashArr[i] = ((ui64)featureValues[i]) + 1;
         }
         rehashHashTlsVal.Get().MakeEmpty(data.AllFeatures.OneHotValues[proj.CatFeatures[0]].size());
     } else {
-        CalcHashes(proj, data.AllFeatures, fold.EffectiveDocCount, fold.LearnPermutation, false, &hashArr);
+        CalcHashes(proj, data.AllFeatures, totalSampleCount, fold.LearnPermutation, false, &hashArr);
         size_t approxBucketsCount = 1;
         for (auto cf : proj.CatFeatures) {
             approxBucketsCount *= data.AllFeatures.OneHotValues[cf].size();
-            if (approxBucketsCount > fold.LearnPermutation.size()) {
+            if (approxBucketsCount > learnSampleCount) {
                 break;
             }
         }
-        rehashHashTlsVal.Get().MakeEmpty(Min(fold.LearnPermutation.size(), approxBucketsCount));
+        rehashHashTlsVal.Get().MakeEmpty(Min(learnSampleCount, approxBucketsCount));
     }
     ui64 topSize = ctx->Params.CatFeatureParams->CtrLeafCountLimit;
     if (proj.IsSingleCatFeature() && ctx->Params.CatFeatureParams->StoreAllSimpleCtrs) {
         topSize = Max<ui64>();
     }
-    auto leafCount = ReindexHash(
-        fold.LearnPermutation.size(),
-        topSize,
-        &hashArr,
-        rehashHashTlsVal.GetPtr());
-    dst->FeatureValueCount = leafCount.second;
+    ComputeReindexHash(topSize, rehashHashTlsVal.GetPtr(), hashArr.begin(), hashArr.begin() + learnSampleCount);
+    auto leafCount = UpdateReindexHash(rehashHashTlsVal.GetPtr(), hashArr.begin() + learnSampleCount, hashArr.end());
+    dst->FeatureValueCount = leafCount;
 
     TVector<int> counterCTRTotal;
     int counterCTRDenominator = 0;
     if (AnyOf(ctrInfo.begin(), ctrInfo.begin() + dst->Feature.ysize(), [] (const auto& info) { return info.Type == ECtrType::Counter; })) {
-        counterCTRTotal.resize(leafCount.second);
+        counterCTRTotal.resize(leafCount);
         const int sampleCount = ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full ? hashArr.ysize() : data.LearnSampleCount;
         CountOnlineCTRTotal(hashArr, sampleCount, &counterCTRTotal);
         counterCTRDenominator = *MaxElement(counterCTRTotal.begin(), counterCTRTotal.end());
@@ -327,7 +325,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
             CalcOnlineCTRSimple(
                 data,
                 hashArr,
-                leafCount.second,
+                leafCount,
                 fold.LearnTargetClass[classifierId],
                 priors,
                 ctrBorderCount,
@@ -337,7 +335,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
             CalcOnlineCTRMean(
                 data,
                 hashArr,
-                leafCount.second,
+                leafCount,
                 fold.LearnTargetClass[classifierId],
                 targetClassesCount - 1,
                 priors,
@@ -349,7 +347,7 @@ void ComputeOnlineCTRs(const TTrainData& data,
             CalcOnlineCTRClasses(
                 data,
                 hashArr,
-                leafCount.second,
+                leafCount,
                 fold.LearnTargetClass[classifierId],
                 targetClassesCount,
                 GetTargetBorderCount(ctrInfo[ctrIdx], targetClassesCount),
@@ -408,11 +406,8 @@ void CalcFinalCtrsImpl(
     TCtrValueTable* result
 ) {
     TDenseHash<ui64, ui32> tmpHash;
-    auto leafCount = ReindexHash(
-        learnSampleCount,
-        ctrLeafCountLimit,
-        hashArr,
-        &tmpHash).first;
+    ComputeReindexHash(ctrLeafCountLimit, &tmpHash, hashArr->begin(), hashArr->begin() + learnSampleCount);
+    auto leafCount = UpdateReindexHash(&tmpHash, hashArr->begin() + learnSampleCount, hashArr->end());
     auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
     for (const auto& kv : tmpHash) {
         hashIndexBuilder.SetIndex(kv.Key(), kv.Value());
