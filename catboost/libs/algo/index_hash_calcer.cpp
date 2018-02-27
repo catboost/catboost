@@ -1,15 +1,15 @@
 #include "index_hash_calcer.h"
 
-std::pair<size_t, size_t> ReindexHash(size_t learnSize,
-                                      ui64 topSize,
-                                      TVector<ui64>* hashVecPtr,
-                                      TDenseHash<ui64, ui32>* reindexHashPtr) {
-    auto& hashArr = *hashVecPtr;
+/// Compute reindexHash and reindex hash values in range [begin,end).
+size_t ComputeReindexHash(ui64 topSize,
+                          TDenseHash<ui64, ui32>* reindexHashPtr,
+                          ui64* begin,
+                          ui64* end) {
     auto& reindexHash = *reindexHashPtr;
-
-    bool earlyReindexing = topSize > learnSize;
+    auto* hashArr = begin;
+    size_t learnSize = end - begin;
     ui32 counter = 0;
-    if (earlyReindexing) {
+    if (topSize > learnSize) {
         bool isInserted = false;
         for (size_t i = 0; i < learnSize; ++i) {
             auto& v = reindexHash.GetMutable(hashArr[i], &isInserted);
@@ -22,11 +22,8 @@ std::pair<size_t, size_t> ReindexHash(size_t learnSize,
         for (size_t i = 0; i < learnSize; ++i) {
             ++reindexHash.GetMutable(hashArr[i]);
         }
-    }
-    size_t learnNumLeaves = 0;
-    size_t totalNumLeaves = 0;
-    if (reindexHash.Size() <= topSize) {
-        if (!earlyReindexing) {
+
+        if (reindexHash.Size() <= topSize) {
             for (auto& it : reindexHash) {
                 it.Value() = counter;
                 ++counter;
@@ -34,47 +31,57 @@ std::pair<size_t, size_t> ReindexHash(size_t learnSize,
             for (size_t i = 0; i < learnSize; ++i) {
                 hashArr[i] = reindexHash.Get(hashArr[i]);
             }
-        }
-        learnNumLeaves = reindexHash.Size();
+        } else {
+            // Limit reindexHash to topSize buckets
+            using TFreqPair = std::pair<ui64, ui32>;
+            TVector<TFreqPair> freqValList;
 
-        auto fullLen = hashArr.size();
-        for (size_t i = learnSize; i < fullLen; ++i) {
-            bool isInserted = false;
-            auto& hashVal = reindexHash.GetMutable(hashArr[i], &isInserted);
-            if (isInserted) {
-                hashVal = counter;
-                hashArr[i] = counter;
-                ++counter;
-            } else {
-                hashArr[i] = hashVal;
+            freqValList.reserve(reindexHash.Size());
+            for (const auto& it : reindexHash) {
+                freqValList.emplace_back(it.Key(), it.Value());
             }
-        }
-        totalNumLeaves = reindexHash.Size();
-    } else {
-        using TFreqPair = std::pair<ui64, ui32>;
-        TVector<TFreqPair> freqValList;
-
-        freqValList.reserve(reindexHash.Size());
-        for (const auto& it : reindexHash) {
-            freqValList.emplace_back(it.Key(), it.Value());
-        }
-        reindexHash.MakeEmpty();
-        std::nth_element(freqValList.begin(), freqValList.begin() + topSize, freqValList.end(),
+            std::nth_element(freqValList.begin(), freqValList.begin() + topSize, freqValList.end(),
                          [](const TFreqPair& a, const TFreqPair& b) {
                              return a.second > b.second;
                          });
-        for (ui32 i = 0; i < topSize; ++i) {
-            reindexHash.GetMutable(freqValList[i].first) = i;
-        }
-        for (auto& hash : hashArr) {
-            auto it = reindexHash.Find(hash);
-            if (it != reindexHash.end()) {
-                hash = it.Value();
-            } else {
-                hash = topSize;
+
+            reindexHash.MakeEmpty();
+            for (ui32 i = 0; i < topSize; ++i) {
+                reindexHash.GetMutable(freqValList[i].first) = i;
             }
+            UseReindexHash(reindexHash, begin, end);
         }
-        learnNumLeaves = totalNumLeaves = topSize + 1;
     }
-    return {learnNumLeaves, totalNumLeaves};
+    return reindexHash.Size();
 }
+
+/// Update reindexHash and reindex hash values in range [begin,end).
+size_t UpdateReindexHash(TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end) {
+    auto& reindexHash = *reindexHashPtr;
+    ui32 counter = reindexHash.Size();
+    for (ui64* hash = begin; hash != end; ++hash) {
+        bool isInserted = false;
+        auto& hashVal = reindexHash.GetMutable(*hash, &isInserted);
+        if (isInserted) {
+            hashVal = counter;
+            *hash = counter;
+            ++counter;
+        } else {
+            *hash = hashVal;
+        }
+    }
+    return reindexHash.Size();
+}
+
+/// Use reindexHash to reindex hash values in range [begin,end).
+void UseReindexHash(const TDenseHash<ui64, ui32>& reindexHash, ui64* begin, ui64* end) {
+    for (ui64* hash = begin; hash != end; ++hash) {
+       auto it = reindexHash.Find(*hash);
+       if (it != reindexHash.end()) {
+           *hash = it.Value();
+       } else {
+           *hash = reindexHash.Size();
+       }
+    }
+}
+

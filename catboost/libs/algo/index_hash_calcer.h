@@ -77,11 +77,18 @@ inline void CalcHashes(const TProjection& proj,
     }
 }
 
+/// Compute reindexHash and reindex hash values in range [begin,end).
+/// After reindex, hash values belong to [0, reindexHash.Size()].
+/// If reindexHash would become larger than topSize, keep only topSize most
+/// frequent mappings and map other hash values to value reindexHash.Size().
+/// @return the size of reindexHash.
+size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end);
 
-/**
- *  Function for calculation of zero based bucket numbers for given hash values array.
- *  if number of unique values in hashVecPtr is greater than topSize and topSize + trashMask + 1 > learnSize
- *  only topSize hash values would be reindexed directly, rest will be remapped into single bin
- *  Function returns pair of (number of leaves for learn, number of leaves for test)
-*/
-std::pair<size_t, size_t> ReindexHash(size_t learnSize, ui64 topSize, TVector<ui64>* hashVecPtr, TDenseHash<ui64, ui32>* reindexHashPtr);
+/// Update reindexHash and reindex hash values in range [begin,end).
+/// If a hash value is not present in reindexHash, then update reindexHash for that value.
+/// @return the size of updated reindexHash.
+size_t UpdateReindexHash(TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end);
+
+/// Use reindexHash to reindex hash values in range [begin,end).
+/// If a hash value is not present in reindexHash, map it to reindexHash.Size().
+void UseReindexHash(const TDenseHash<ui64, ui32>& reindexHash, ui64* begin, ui64* end);
