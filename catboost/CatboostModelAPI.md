@@ -22,6 +22,7 @@ You can build this library with command
 ```bash
 ya make -r catboost/libs/model_interface/ 
 ```
+You can load your catboost model from file or initialize it from buffer in memory.
 
 ### C API
 We provide really simple model api in catboost/libs/model_interface. Just link ```libcatboostmodel.(so|dll|dylib)``` and use methods from model_calcer_wrapper.h file.
@@ -57,6 +58,8 @@ std::vector<float> floatFeatures(100);
 std::vector<std::string> catFeatures = {"one", "two", "three"};
 std::cout << calcer.Calc(floatFeatures, catFeatures) << std::endl;
 ```
+ModelCalcerWrapper also has a constructor from a memory buffer.
+
 ## C++ header-only evaluator
 **Not recommended to use**. This variant is the simplest way to integrate model evaluation code into your C++ application, but have lots limitations:
 * Only valid for models with float features only.
