@@ -77,12 +77,24 @@ class Platform(object):
         return self.os == Platform.Linux
 
     @property
+    def is_linux_x86_64(self):
+        return self.is_linux and self.is_x86_64
+
+    @property
     def is_macos(self):
         return self.os == Platform.MacOS
 
     @property
+    def is_macos_x86_64(self):
+        return self.is_macos and self.is_x86_64
+
+    @property
     def is_windows(self):
         return self.os == Platform.Windows
+
+    @property
+    def is_windows_x86_64(self):
+        return self.is_windows and self.is_x86_64
 
     @property
     def is_freebsd(self):
@@ -355,11 +367,30 @@ def preset(key, default=None):
 
 
 def is_positive(key):
-    return preset(key, '').lower() in ('yes', 'true', 'on')
+    return is_positive_str(preset(key, ''))
+
+
+def is_positive_str(s):
+    return s.lower() in ('yes', 'true', 'on', '1')
 
 
 def is_negative(key):
-    return preset(key, '').lower() in ('no', 'false', 'off')
+    return is_negative_str(preset(key, ''))
+
+
+def is_negative_str(s):
+    return s.lower() in ('no', 'false', 'off', '0')
+
+
+def to_bool(s, default=None):
+    if isinstance(s, basestring):
+        if is_positive_str(s):
+            return True
+        if is_negative_str(s):
+            return False
+    if default is None:
+        raise ConfigureError('{} is not a bool value'.format(s))
+    return default
 
 
 def select(selectors, default=None):
@@ -583,6 +614,7 @@ class Build(object):
 
         cuda = Cuda(self)
         cuda.print_variables()
+        cuda.print_cu_source_cmd()
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
@@ -1999,6 +2031,48 @@ class Perl(object):
             start = match.end()
 
 
+class Setting(object):
+    def __init__(self, key, auto=None, convert=None):
+        self.key = key
+
+        self.auto = auto
+        self.convert = convert
+
+        self.preset = preset(key)
+        self.from_user = self.preset is not None
+
+        self._value = Setting._NO_VALUE
+
+    @property
+    def value(self):
+        if self._value is Setting._NO_VALUE:
+            self._value = self.preset
+
+            if not self.from_user:
+                if self.auto is not None:
+                    if callable(self.auto):
+                        self._value = self.auto()
+                    else:
+                        self._value = self.auto
+            else:
+                if self.convert is not None:
+                    self._value = self.convert(self._value)
+
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if self.from_user:
+            raise ConfigureError('Variable {key} already set by user to {old}. Can not change it\'s value to {new}'.format(key=self.key, old=self._value, new=value))
+        self._value = value
+
+    def emit(self):
+        if not self.from_user and self.value is not None:
+            emit(self.key, self.value)
+
+    _NO_VALUE = object()
+
+
 class Cuda(object):
     def __init__(self, build):
         """
@@ -2006,77 +2080,114 @@ class Cuda(object):
         """
         self.build = build
 
+        self.have_cuda = Setting('HAVE_CUDA', auto=self._have_cuda_auto, convert=to_bool)
+
+        self.cuda_root = Setting('CUDA_ROOT')
+        self.cuda_version = Setting('CUDA_VERSION', auto='8.0')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
+        self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self._use_arcadia_cuda_auto, convert=to_bool)
+        self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
+        self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self._cuda_host_compiler_auto)
+        self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
+
+        self.nvcc_flags = []
+
+        if self.have_cuda.value:
+            if self.cuda_host_compiler.value is not None:
+                self.nvcc_flags.append('--compiler-bindir=$CUDA_HOST_COMPILER')
+
+            if self.use_arcadia_cuda.value:
+                self.cuda_root.value = '$CUDA_RESOURCE_GLOBAL'
+
+                # TODO(somov): Эта настройка должна приезжать сюда автоматически из другого места
+                target = self.build.target
+                if target.is_linux:
+                    if target.is_x86_64:
+                        if self.build.tc.is_clang:
+                            os_sdk_root = '${OS_SDK_ROOT}' if self.build.tc.version_at_least(4, 0) else ''
+                            self.nvcc_flags.append('-I{}/usr/include/x86_64-linux-gnu'.format(os_sdk_root))
+
     def print_variables(self):
-        have_cuda = is_positive('HAVE_CUDA') or self._have_cuda()
+        self.have_cuda.emit()
+        if not self.have_cuda.value:
+            return
 
-        if preset('HAVE_CUDA') is None:
-            emit('HAVE_CUDA', have_cuda)
-
-        use_arcadia_cuda = preset('CUDA_ROOT') is None
-        emit('_USE_ARCADIA_CUDA', use_arcadia_cuda)
-
-        nvcc_flags = []
-
-        if use_arcadia_cuda:
-            emit('CUDA_ROOT', '$CUDA_RESOURCE_GLOBAL')
-
-            cuda_compiler = self.get_cuda_compiler()
-            if cuda_compiler is not None:
-                nvcc_flags.append('--compiler-bindir={}'.format(cuda_compiler))
-
-            target = self.build.target
-            if target.is_linux:
-                if target.is_x86_64:
-                    if self.build.tc.is_clang:
-                        os_sdk_root = '{OS_SDK_ROOT}' if self.build.tc.version_at_least(4, 0) else ''
-                        nvcc_flags.append('-I${}/usr/include/x86_64-linux-gnu'.format(os_sdk_root))
+        self.cuda_root.emit()
+        self.cuda_version.emit()
+        self.use_arcadia_cuda.emit()
+        self.cuda_use_clang.emit()
+        self.cuda_host_compiler.emit()
+        self.cuda_nvcc_flags.emit()
 
         emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
+        emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
 
-        if preset('CUDA_NVCC_FLAGS') is None:
-            emit('CUDA_NVCC_FLAGS')
+    def print_cu_source_cmd(self):
+        old = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC.o} -I$ARCADIA_ROOT --cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+        new = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM $GCC_COMPILE_FLAGS $CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
-        nvcc_flags.append('$CUDA_NVCC_FLAGS')
-        emit('NVCC_FLAGS', nvcc_flags)
+        cmd = new if self.cuda_use_clang.value else old
 
-    def get_cuda_compiler(self):
+        emit_big('''
+            macro _SRC("cu", SRC, SRCFLAGS...) {
+                .CMD=%s
+                .PEERDIR=contrib/libs/nvidia/cudalib
+            }
+        ''' % cmd)
+
+    def _have_cuda_auto(self):
+        if self.cuda_root.from_user:
+            return True
+        if self.use_arcadia_cuda.value:
+            return True
+        return False
+
+    def _use_arcadia_cuda_auto(self):
+        if self.cuda_root.from_user:
+            return False
+        if self._have_cuda_in_arcadia():
+            return True
+        return False
+
+    def _have_cuda_in_arcadia(self):
+        host = self.build.host
         target = self.build.target
 
-        user_compiler = preset('CUDA_COMPILER')
-        if user_compiler is not None:
-            return user_compiler
-
-        if target.is_linux:
-            if target.is_x86_64:
-                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/g++-4.9'
-            elif target.is_aarch64:
-                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'
-
-        elif target.is_macos:
-            if target.is_x86_64:
-                return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
-
-        return None
-
-    def _have_cuda(self):
-        if preset('CUDA_ROOT') is not None:
-            return True
-        if is_negative('USE_ARCADIA_CUDA'):
+        if self.cuda_version.value not in ('8.0', '9.1'):
             return False
+
+        if host.is_linux_x86_64:
+            if target.is_linux_x86_64:
+                return True
+            if self.cuda_version.value == '8.0' and target.is_aarch64:
+                return True
+
+        if host.is_macos_x86_64 and target.is_macos_x86_64:
+            return True
+
+        return False
+
+    def _cuda_host_compiler_auto(self):
+        if not self.use_arcadia_cuda.value or self.cuda_use_clang.value:
+            return None
+
+        version = self.cuda_version.value
 
         host = self.build.host
         target = self.build.target
 
-        if host.is_linux and host.is_x86_64:
-            if target.is_linux:
-                return target.is_x86_64 or target.is_aarch64
+        if version == '8.0':
+            if target.is_linux and target.is_aarch64:
+                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'
 
-        if host.is_macos and host.is_x86_64:
-            if target.is_macos:
-                return target.is_x86_64
+        if version in ('8.0', '9.1'):
+            if host.is_linux_x86_64 and target.is_linux_x86_64:
+                gcc_version = '6.1' if version == '9.1' else '4.9'
+                return '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/gcc/bin/g++-{}'.format(gcc_version)
+            if host.is_macos_x86_64 and target.is_macos_x86_64:
+                return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
 
-        return False
+        return None
 
 
 class Yasm(object):
