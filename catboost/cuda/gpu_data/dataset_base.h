@@ -53,10 +53,11 @@ namespace NCatboostCuda {
 
         void WriteIndices(NCudaLib::TCudaBuffer<ui32, TSamplesMapping>& dst,
                           ui32 stream = 0) const {
-            if (!HasIndicesFlag) {
+            if (HasIndicesFlag) {
                 CB_ENSURE(dst.GetObjectsSlice() == Targets.GetObjectsSlice());
                 dst.Copy(Indices, stream);
             } else {
+                dst.Reset(Targets.GetMapping());
                 MakeSequenceWithOffset(dst,
                                        IndicesOffsets,
                                        stream);
@@ -143,6 +144,7 @@ namespace NCatboostCuda {
                     offsets.Set(dev, devOffset);
                 }
                 result.IndicesOffsets = offsets;
+                result.HasIndicesFlag = true;
                 return result;
             }
         }

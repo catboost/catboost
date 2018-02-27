@@ -210,8 +210,7 @@ namespace NCatboostCuda {
                                                 *target);
 
             indices->Reset(target->WeightedTarget.GetMapping());
-            MakeSequence(*indices);
-            //            objective.GetTarget().WriteIndices(*indices);
+            objective.GetTarget().WriteIndices(*indices);
             {
                 auto bootstrapGuard = profiler.Profile("Bootstrap target");
                 Bootstrap.BootstrapAndFilter(target->WeightedTarget,
