@@ -294,8 +294,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser
             .AddLongOption("data-partition")
-            .RequiredArgument("Split")
-            .Help("Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best performance you could set it to Plain.")
+            .RequiredArgument("PartitionType")
+            .Help("Sets method to split learn samples between multiple workers (GPU only currently). Posible values FeatureParallel, DocParallel. Default depends on learning mode and dataset.")
             .Handler1T<TString>([plainJsonPtr](const TString& type) {
                 (*plainJsonPtr)["data_partition"] = type;
             });
