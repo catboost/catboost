@@ -170,8 +170,6 @@ SIMPLE_UNIT_TEST_SUITE(TCastTest) {
         TFloat f = 42.0; // make it far from proper
         auto res = TryFromString<TFloat>(str, f);
 
-        //Cerr << str << " " << res << " " << f << Endl;
-
         UNIT_ASSERT_VALUES_EQUAL(res, false);
         UNIT_ASSERT_DOUBLES_EQUAL(f, 42.0, eps); // check value was not trashed
         UNIT_ASSERT_EXCEPTION(f = FromString<TFloat>(str), TFromStringException);
@@ -430,6 +428,18 @@ SIMPLE_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault(s4, def2), def2);
         UNIT_CHECK_GENERATED_EXCEPTION(FromString<size_t>(s4), yexception);
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault<size_t>(s4), size_t());
+    }
+
+    SIMPLE_UNIT_TEST(TestBool) {
+        // True cases
+        UNIT_ASSERT_VALUES_EQUAL(FromString<bool>("yes"), true);
+        UNIT_ASSERT_VALUES_EQUAL(FromString<bool>("1"), true);
+        // False cases
+        UNIT_ASSERT_VALUES_EQUAL(FromString<bool>("no"), false);
+        UNIT_ASSERT_VALUES_EQUAL(FromString<bool>("0"), false);
+        // Strange cases
+        UNIT_ASSERT_EXCEPTION(FromString<bool>(""), yexception);
+        UNIT_ASSERT_EXCEPTION(FromString<bool>("something"), yexception);
     }
 
     SIMPLE_UNIT_TEST(TestAutoDetectType) {
