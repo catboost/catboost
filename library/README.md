@@ -1,5 +1,5 @@
 `library` - is a folder with a flat[1] list of libraries. Each library should
-confirm to the following set of criteria:
+conform to the following set of criteria:
 
 1.  It's an application[2] library.
 
