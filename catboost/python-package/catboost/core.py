@@ -444,6 +444,7 @@ class Pool(_PoolBase):
             self._check_feature_names(feature_names, features_count)
         self._init_pool(data_matrix, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
 
+
 def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description):
     train_pool = None
     if isinstance(X, Pool):
