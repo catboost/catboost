@@ -91,8 +91,6 @@ struct TSplit : public TSplitCandidate {
     TSplit() = default;
     int BinBorder = 0;
 
-
-
     inline void Save(IOutputStream* s) const {
         ::SaveMany(s, static_cast<const TSplitCandidate&>(*this), BinBorder);
     }

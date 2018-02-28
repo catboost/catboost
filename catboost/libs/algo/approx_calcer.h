@@ -128,6 +128,9 @@ void CalcApproxDersRange(
 
     TVector<TVector<TDer1Der2>> blockBucketDers(blockParams.GetBlockCount(), TVector<TDer1Der2>(leafCount, TDer1Der2{/*Der1*/0.0, /*Der2*/0.0}));
     TVector<TDer1Der2>* blockBucketDersData = blockBucketDers.data();
+    // TODO(espetrov): Do not calculate sumWeights for Newton.
+    // TODO(espetrov): Calculate sumWeights only on first iteration for Gradient, because on next iteration it is the same.
+    // Check speedup on flights dataset.
     TVector<TVector<double>> blockBucketSumWeights(blockParams.GetBlockCount(), TVector<double>(leafCount, 0));
     TVector<double>* blockBucketSumWeightsData = blockBucketSumWeights.data();
 
