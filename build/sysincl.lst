@@ -550,6 +550,7 @@ sys/joystick.h
 sys/kbio.h
 sys/kdb.h
 sys/kenv.h
+sys/kern_control.h
 sys/kernel.h
 sys/kerneldump.h
 sys/khelp.h
@@ -586,6 +587,7 @@ sys/module.h
 sys/module_khelp.h
 sys/mount.h
 sys/mouse.h
+sys/mpctl.h
 sys/mpt_ioctl.h
 sys/mqueue.h
 sys/msg.h
@@ -660,6 +662,7 @@ sys/stddef.h
 sys/stdint.h
 sys/sun_disklabel.h
 sys/sx.h
+sys/sys_domain.h
 sys/syscall.h
 sys/syscallsubr.h
 sys/sysctl.h
@@ -824,8 +827,9 @@ arpa/nameser.h
 arpa/nameser_compat.h
 arpa/telnet.h
 arpa/tftp.h
-asm/sigcontext.h
 asm/byteorder.h
+asm/fpu.h
+asm/sigcontext.h
 assert.h
 autosprintf.h
 byteswap.h
@@ -863,6 +867,7 @@ glob.h
 gnu-versions.h
 grp.h
 gshadow.h
+i386/fpu_control.h
 iconv.h
 ieee754.h
 ifaddrs.h
@@ -878,23 +883,28 @@ libintl.h
 libio.h
 limits.h
 link.h
+linux/can.h
+linux/can/bcm.h
+linux/can/raw.h
 linux/capability.h
-linux/xattr.h
+linux/errqueue.h
 linux/fiemap.h
+linux/filter.h
 linux/fs.h
 linux/futex.h
+linux/icmp.h
+linux/if_alg.h
 linux/limits.h
 linux/magic.h
 linux/netlink.h
+linux/random.h
 linux/rtnetlink.h
 linux/sockios.h
 linux/tipc.h
 linux/types.h
 linux/unistd.h
 linux/version.h
-linux/errqueue.h
-linux/icmp.h
-linux/filter.h
+linux/xattr.h
 locale.h
 malloc.h
 math.h
@@ -4039,6 +4049,7 @@ PictUtils.h
 Processes.h
 QDOffscreen.h
 QuickDraw.h
+SystemConfiguration/SystemConfiguration.h
 TargetConditionals.h
 TextUtils.h
 Types.h
@@ -4134,6 +4145,7 @@ new_mem.h
 #endif
 #if defined(__sgi)
 sgidefs.h
+sigfpe.h
 standards.h
 #endif
 #if defined(__sgi) && CONTRIB
