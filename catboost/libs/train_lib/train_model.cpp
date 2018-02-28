@@ -42,6 +42,68 @@ void ShrinkModel(int itCount, TLearnProgress* progress) {
     progress->TreeStruct.resize(itCount);
 }
 
+static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
+    return Min<int>(options.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
+}
+
+static void LoadPools(
+    const NCatboostOptions::TPoolLoadParams& loadOptions,
+    int threadCount,
+    const TVector<TString>& classNames,
+    TProfileInfo* profile,
+    TPool* learnPool,
+    TPool* testPool) {
+
+    loadOptions.Validate();
+
+    const bool verbose = false;
+    if (!loadOptions.LearnFile.empty()) {
+        ReadPool(
+            loadOptions.CdFile,
+            loadOptions.LearnFile,
+            loadOptions.PairsFile,
+            threadCount,
+            verbose,
+            loadOptions.Delimiter,
+            loadOptions.HasHeader,
+            classNames,
+            learnPool
+        );
+        profile->AddOperation("Build learn pool");
+    }
+
+    if (!loadOptions.TestFile.empty()) {
+        ReadPool(
+            loadOptions.CdFile,
+            loadOptions.TestFile,
+            loadOptions.TestPairsFile,
+            threadCount,
+            verbose,
+            loadOptions.Delimiter,
+            loadOptions.HasHeader,
+            classNames,
+            testPool
+        );
+        profile->AddOperation("Build test pool");
+    }
+    const auto& cvParams = loadOptions.CvParams;
+    if (cvParams.FoldCount != 0) {
+        CB_ENSURE(loadOptions.TestFile.empty(), "Test file is not supported in cross-validation mode");
+        Y_VERIFY(cvParams.FoldIdx != -1);
+
+        BuildCvPools(
+            cvParams.FoldIdx,
+            cvParams.FoldCount,
+            cvParams.Inverted,
+            cvParams.RandSeed,
+            threadCount,
+            learnPool,
+            testPool
+        );
+        profile->AddOperation("Build cv pools");
+    }
+}
+
 void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
 
@@ -448,65 +510,16 @@ class TCPUModelTrainer : public IModelTrainer {
         THPTimer runTimer;
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
         catBoostOptions.Load(trainJson);
-        int threadCount = Min<int>(catBoostOptions.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
 
-        bool verbose = false;
-        TVector<TString> classNames;
+        int threadCount = GetThreadCount(catBoostOptions);
 
         TProfileInfo profile;
-
-        TPool learnPool;
-        if (!loadOptions.LearnFile.empty()) {
-            ReadPool(
-                loadOptions.CdFile,
-                loadOptions.LearnFile,
-                loadOptions.PairsFile,
-                threadCount,
-                verbose,
-                loadOptions.Delimiter,
-                loadOptions.HasHeader,
-                catBoostOptions.DataProcessingOptions->ClassNames,
-                &learnPool
-            );
-            profile.AddOperation("Build learn pool");
-        }
-
-        TPool testPool;
-        if (!loadOptions.TestFile.empty()) {
-            ReadPool(
-                loadOptions.CdFile,
-                loadOptions.TestFile,
-                loadOptions.TestPairsFile,
-                threadCount,
-                verbose,
-                loadOptions.Delimiter,
-                loadOptions.HasHeader,
-                catBoostOptions.DataProcessingOptions->ClassNames,
-                &testPool
-            );
-            profile.AddOperation("Build test pool");
-        }
+        TPool learnPool, testPool;
+        LoadPools(loadOptions, threadCount, catBoostOptions.DataProcessingOptions->ClassNames, &profile, &learnPool, &testPool);
 
         const auto evalFileName = outputOptions.CreateEvalFullPath();
         if (!evalFileName.empty() && !loadOptions.TestFile.empty()) {
             ValidateColumnOutput(outputOptions.GetOutputColumns(), learnPool, loadOptions.CvParams.FoldCount > 0);
-        }
-
-        const auto& cvParams = loadOptions.CvParams;
-        if (cvParams.FoldCount != 0) {
-            CB_ENSURE(loadOptions.TestFile.empty() && loadOptions.TestPairsFile.empty(), "Test file is not supported in cross-validation mode");
-            Y_VERIFY(cvParams.FoldIdx != -1);
-
-            BuildCvPools(
-                cvParams.FoldIdx,
-                cvParams.FoldCount,
-                cvParams.Inverted,
-                cvParams.RandSeed,
-                threadCount,
-                &learnPool,
-                &testPool
-            );
-            profile.AddOperation("Build cv pools");
         }
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();

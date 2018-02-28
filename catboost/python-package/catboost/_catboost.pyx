@@ -823,9 +823,10 @@ cdef class _CatBoost:
         del self.__model
         del self.__test_eval
 
-    cpdef _train(self, _PoolBase train_pool, _PoolBase test_pool, dict params):
+    cpdef _train(self, _PoolBase train_pool, _PoolBase test_pool, dict params, allow_clear_pool):
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
+        cdef bool_t allowClearPool = allow_clear_pool
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -835,7 +836,7 @@ cdef class _CatBoost:
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dereference(train_pool.__pool),
-                    False,
+                    allowClearPool,
                     dereference(test_pool.__pool),
                     TString(<const char*>""),
                     self.__model,
@@ -1042,8 +1043,8 @@ class _CatBoostBase(object):
     def copy(self):
         return self.__copy__()
 
-    def _train(self, train_pool, test_pool, params):
-        self._object._train(train_pool, test_pool, params)
+    def _train(self, train_pool, test_pool, params, allow_clear_pool):
+        self._object._train(train_pool, test_pool, params, allow_clear_pool)
         setattr(self, '_is_fitted', True)
         setattr(self, '_random_seed', self._object._get_random_seed())
 

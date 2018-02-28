@@ -102,10 +102,10 @@ class Pool(_PoolBase):
 
         column_description : string, optional (default=None)
             ColumnsDescription parameter.
-            There are several columns description types: Target, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
+            There are several columns description types: Label, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
             All columns are Num as default, it's not necessary to specify
-            this type of columns. Default Target column index is 0 (zero).
-            If None, Target column is 0 (zero) as default, all data columns are Num as default.
+            this type of columns. Default Label column index is 0 (zero).
+            If None, Label column is 0 (zero) as default, all data columns are Num as default.
             If string, giving the path to the file with ColumnsDescription in column_description format.
 
         pairs : list or numpy.array or pandas.DataFrame or string
@@ -444,6 +444,24 @@ class Pool(_PoolBase):
             self._check_feature_names(feature_names, features_count)
         self._init_pool(data_matrix, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
 
+def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description):
+    train_pool = None
+    if isinstance(X, Pool):
+        train_pool = X
+        if any(v is not None for v in [cat_features, sample_weight, group_id, pairs_weight, baseline]):
+            raise CatboostError("cat_features, sample_weight, group_id, pairs_weight, baseline should have the None type when X has Pool type.")
+        if X.get_label() is None:
+            raise CatboostError("Label in X has not initialized.")
+        if y is not None:
+            raise CatboostError("Wrong initializing y: X is Pool object, y must be initialized inside Pool.")
+    elif isinstance(X, STRING_TYPES):
+            train_pool = Pool(data=X, pairs=pairs, column_description=column_description)
+    else:
+        if y is None:
+            raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
+        train_pool = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
+                 pairs_weight=pairs_weight, baseline=baseline)
+    return train_pool
 
 class CatBoost(_CatBoostBase):
     """
@@ -601,7 +619,8 @@ class CatBoost(_CatBoostBase):
             if os.path.exists(path):
                 os.remove(path)
 
-    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot):
+
+    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
         calc_feature_importance = True
@@ -623,28 +642,27 @@ class CatBoost(_CatBoostBase):
             params['logging_level'] = logging_level
         if use_best_model is not None:
             params['use_best_model'] = use_best_model
-        if isinstance(X, Pool):
-            if any(v is not None for v in [cat_features, sample_weight, group_id, pairs_weight, baseline]):
-                raise CatboostError("cat_features, sample_weight, group_id, pairs_weight, baseline should have the None type when X has Pool type.")
-            if X.get_label() is None:
-                raise CatboostError("Label in X has not initialized.")
-            if y is not None:
-                raise CatboostError("Wrong initializing y in fit(): X is Pool object, y must be initialized inside Pool.")
-        else:
-            if y is None:
-                raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
-            X = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
-                     pairs_weight=pairs_weight, baseline=baseline)
+
+        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
+        if train_pool.is_empty_:
+            raise CatboostError("X is empty.")
+
+        if column_description is not None and not isinstance(X, STRING_TYPES) and not isinstance(eval_set, STRING_TYPES):
+            raise CatboostError("column_description should be None if X and eval_set are not strings.")
+
+        allow_clear_pool = not isinstance(X, Pool)
+
         if eval_set is None:
             if self.get_param('use_best_model'):
                 raise CatboostError("For use param {'use_best_model': True} need initialize 'eval_set'.")
             eval_set = Pool(None)
         elif not isinstance(eval_set, Pool):
-            if len(eval_set) != 2:
-                raise CatboostError("Invalid eval_set shape={}: must be (X, y).".format(np.shape(eval_set)))
-            eval_set = Pool(eval_set[0], eval_set[1], cat_features=cat_features)
-        if X.is_empty_:
-            raise CatboostError("X is empty.")
+            if isinstance(eval_set, STRING_TYPES):
+                eval_set = Pool(eval_set, column_description=column_description)
+            else:
+                if len(eval_set) != 2:
+                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or filename.".format(np.shape(eval_set)))
+                eval_set = Pool(eval_set[0], eval_set[1], cat_features=cat_features)
 
         if plot:
             train_dir = self.get_param('train_dir') or '.'
@@ -658,13 +676,15 @@ class CatBoost(_CatBoostBase):
                 warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
                 raise ImportError(str(e))
         with log_fixup():
-            self._train(X, eval_set, params)
+            self._train(train_pool, eval_set, params, allow_clear_pool)
         if calc_feature_importance:
-            setattr(self, "_feature_importance", self.get_feature_importance(X))
+            if allow_clear_pool:
+                train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
+            setattr(self, "_feature_importance", self.get_feature_importance(train_pool))
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, pairs_weight=None,
-            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False):
+            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
         """
         Fit the CatBoost model.
 
@@ -728,7 +748,7 @@ class CatBoost(_CatBoostBase):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot)
+        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1426,7 +1446,7 @@ class CatBoostClassifier(CatBoost):
     def classes_(self):
         return getattr(self, "_classes", None)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False):
+    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
         """
         Fit the CatBoost model.
 
@@ -1471,7 +1491,7 @@ class CatBoostClassifier(CatBoost):
         -------
         model : CatBoost
         """
-        self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot)
+        self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
         if y is not None:
             setattr(self, "_classes", np.unique(y))
         else:
@@ -1736,7 +1756,7 @@ class CatBoostRegressor(CatBoost):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False):
+    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
         """
         Fit the CatBoost model.
 
@@ -1781,7 +1801,7 @@ class CatBoostRegressor(CatBoost):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot)
+        return self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
