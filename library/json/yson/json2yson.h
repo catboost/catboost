@@ -168,4 +168,6 @@ namespace NJson2Yson {
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
     void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue);
     void ConvertYson2Json(IInputStream* inputStream, IOutputStream* outputStream);
+
+    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue);
 }
