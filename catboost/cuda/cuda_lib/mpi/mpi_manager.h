@@ -17,9 +17,8 @@
 #include <util/stream/file.h>
 
 namespace NCudaLib {
-    //TODO(noxoomo): check different locks. By design MPI should be able to work with multiple threads, but
-    //existing implementation could work bad if MPI is accessed from multiple threads
-    using TMpiLock = TMutex;
+    //TODO(noxoomo): check different locks performance
+    using TMpiLock = TFakeMutex;
     TMpiLock& GetMpiLock();
 
 #define MPI_SAFE_CALL(cmd)                                                    \
