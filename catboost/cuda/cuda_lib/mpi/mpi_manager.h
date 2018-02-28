@@ -19,7 +19,7 @@
 namespace NCudaLib {
     //TODO(noxoomo): check different locks. By design MPI should be able to work with multiple threads, but
     //existing implementation could work bad if MPI is accessed from multiple threads
-    using TMpiLock = TFakeMutex;
+    using TMpiLock = TMutex;
     TMpiLock& GetMpiLock();
 
 #define MPI_SAFE_CALL(cmd)                                                    \
@@ -157,8 +157,8 @@ namespace NCudaLib {
 #endif
             TMpiRequest(THolder<MPI_Request>&& request)
                 : Flag(0)
-                , Request(std::move(request))
-            {
+                , Request(std::move(request)) {
+                IsComplete();
             }
 
             void Clear() {
