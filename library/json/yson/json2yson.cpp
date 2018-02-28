@@ -65,4 +65,9 @@ namespace NJson2Yson {
         NYT::TYsonParser ysonParser(&writer, inputStream, NYT::YT_NODE);
         ysonParser.Parse();
     }
+
+    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue) {
+        TMemoryInput inputStream(str);
+        DeserializeYsonAsJsonValue(&inputStream, outputValue);
+    }
 }
