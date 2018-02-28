@@ -2,6 +2,7 @@ import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
 import os
+import imp
 from collections import Iterable, Sequence, Mapping, MutableMapping
 import warnings
 import numpy as np
@@ -24,13 +25,29 @@ except ImportError:
     class Series(object):
         pass
 
-try:
-    from catboost.gpu._catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
-except ImportError:
+
+def get_so_paths(dir_name):
+    dir_name = os.path.join(os.path.dirname(__file__), dir_name)
+    list_dir = os.listdir(dir_name) if os.path.isdir(dir_name) else []
+    return [os.path.join(dir_name, so_name) for so_name in list_dir if so_name.split('.')[-1] in ['so', 'pyd']]
+
+so_paths = get_so_paths('./gpu') + get_so_paths('./')
+for so_path in so_paths:
     try:
-        from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+        _catboost = imp.load_dynamic('_catboost', so_path)
+        _PoolBase = _catboost._PoolBase
+        _CatBoostBase = _catboost._CatBoostBase
+        _MetricCalcerBase = _catboost._MetricCalcerBase
+        _cv = _catboost._cv
+        _set_logger = _catboost._set_logger
+        _reset_logger = _catboost._reset_logger
+        _configure_malloc = _catboost._configure_malloc
+        CatboostError = _catboost.CatboostError
+        break
     except ImportError:
-        from ._catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+        pass
+else:
+    from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
 
 from contextlib import contextmanager
 
