@@ -179,6 +179,17 @@ def test_raw_predict_equals_to_model_predict():
     assert all(model.get_test_eval() == pred)
 
 
+def test_fit_from_file():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    model.fit(train_pool)
+    predictions1 = model.predict(train_pool)
+
+    model.fit(TRAIN_FILE, column_description=CD_FILE)
+    predictions2 = model.predict(train_pool)
+    assert all(predictions1 == predictions2)
+
+
 def test_coreml_import_export():
     train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
     test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
