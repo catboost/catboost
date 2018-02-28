@@ -1,3 +1,4 @@
+#include <util/random/shuffle.h>
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/utils/cpu_random.h>
 #include <library/unittest/registar.h>
@@ -146,7 +147,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
                 dstGather.resize(size);
                 dstScatter.resize(size);
                 std::iota(index.begin(), index.end(), 0);
-                std::random_shuffle(index.begin(), index.end(), rand);
+                Shuffle(index.begin(), index.end(), rand);
 
                 for (ui64 i = 0; i < size; ++i) {
                     src.push_back((float)rand.NextUniform());

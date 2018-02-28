@@ -1,3 +1,4 @@
+#include <util/random/shuffle.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/segmented_scan.h>
@@ -216,7 +217,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 for (ui32 i = 0; i < indicesCpu.size(); ++i) {
                     indicesCpu[i] = i;
                 };
-                std::random_shuffle(indicesCpu.begin(), indicesCpu.end(), rand);
+                Shuffle(indicesCpu.begin(), indicesCpu.end(), rand);
                 for (ui32 i = 0; i < indicesCpu.size(); ++i) {
                     indicesCpu[i] |= ((rand.NextUniform() < p ? 1 : 0) << 31);
                 }

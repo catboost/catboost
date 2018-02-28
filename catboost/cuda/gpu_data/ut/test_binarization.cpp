@@ -1,3 +1,4 @@
+#include <util/random/shuffle.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
@@ -220,7 +221,7 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
                     features.push_back(catFeature);
                 }
             }
-            std::random_shuffle(features.begin(), features.end());
+            Shuffle(features.begin(), features.end());
             referenceFeatures = TSet<ui32>(features.begin(), features.end());
             ui32 id = builder.AddDataSet(binarizationInfoProvider,
                                          desc,

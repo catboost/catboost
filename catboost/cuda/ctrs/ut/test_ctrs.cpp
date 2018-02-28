@@ -1,3 +1,4 @@
+#include <util/random/shuffle.h>
 #include "calc_ctr_cpu.h"
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
@@ -59,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                     std::iota(cpuIndices.begin(), cpuIndices.end(), 0);
                     indices.Write(cpuIndices);
 
-                    std::random_shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
+                    Shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
                     indices.SliceView(learnSlice).Write(cpuIndices);
                 }
 
@@ -159,7 +160,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                     std::iota(cpuIndices.begin(), cpuIndices.end(), 0);
                     indices.Write(cpuIndices);
 
-                    std::random_shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
+                    Shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
                     indices.SliceView(learnSlice).Write(cpuIndices);
                 }
 
@@ -248,7 +249,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
                     std::iota(cpuIndices.begin(), cpuIndices.end(), 0);
                     indices.Write(cpuIndices);
 
-                    std::random_shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
+                    Shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
                     indices.SliceView(learnSlice).Write(cpuIndices);
                 }
 

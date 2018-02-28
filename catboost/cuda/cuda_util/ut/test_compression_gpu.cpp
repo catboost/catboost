@@ -1,3 +1,4 @@
+#include <util/random/shuffle.h>
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <library/unittest/registar.h>
 #include <iostream>
@@ -75,7 +76,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
                         }
                         map.push_back(idx);
                     }
-                    std::random_shuffle(map.begin(), map.end(), rand);
+                    Shuffle(map.begin(), map.end(), rand);
 
                     auto vecGpu = TMirrorBuffer<ui32>::Create(TMirrorMapping(vec.size()));
                     auto mapGpu = TMirrorBuffer<ui32>::Create(TMirrorMapping(vec.size()));
