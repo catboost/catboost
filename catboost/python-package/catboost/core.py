@@ -699,6 +699,9 @@ class CatBoost(_CatBoostBase):
             if allow_clear_pool:
                 train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
             setattr(self, "_feature_importance", self.get_feature_importance(train_pool))
+
+        if self._is_classification_loss(params['loss_function']):
+            setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, pairs_weight=None,
@@ -1515,10 +1518,6 @@ class CatBoostClassifier(CatBoost):
         model : CatBoost
         """
         self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
-        if y is not None:
-            setattr(self, "_classes", np.unique(y))
-        else:
-            setattr(self, "_classes", np.unique(X.get_label()))
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
