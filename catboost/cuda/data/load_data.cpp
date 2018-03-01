@@ -14,6 +14,7 @@ namespace NCatboostCuda {
 
         for (ui32 i = Cursor; i < DataProvider.QueryIds.size(); ++i) {
             DataProvider.QueryIds[i] = i;
+            DataProvider.SubgroupIds[i] = i;
         }
 
         for (auto& baseline : DataProvider.Baseline) {
