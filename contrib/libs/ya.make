@@ -25,6 +25,7 @@ RECURSE(
     openssl/apps
     openssl/dynamic
     platform
+    platform/python
     protobuf
     protobuf/python
     protobuf/python/test
