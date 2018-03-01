@@ -708,8 +708,8 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix.
+        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series or string.
+            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
@@ -1347,6 +1347,10 @@ class CatBoostClassifier(CatBoost):
     devices : string, [default=None], GPU devices to use.
         Format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
 
+    bootstrap_type : string, Bayesian, Bernoulli, Poisson.
+        Default bootstrap is Bayesian.
+        Poisson bootstrap is supported only on GPU.
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -1426,6 +1430,7 @@ class CatBoostClassifier(CatBoost):
         task_type=None,
         device_config=None,
         devices=None,
+        bootstrap_type=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -1471,7 +1476,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix.
+            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
@@ -1745,6 +1750,7 @@ class CatBoostRegressor(CatBoost):
         task_type=None,
         device_config=None,
         devices=None,
+        bootstrap_type=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -1781,7 +1787,7 @@ class CatBoostRegressor(CatBoost):
         Parameters
         ----------
         X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix.
+            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
