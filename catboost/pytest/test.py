@@ -1337,11 +1337,17 @@ def test_calc_no_target():
 
 def test_classification_progress_restore():
     def run_catboost(iters, model_path, eval_path, additional_params=None):
+        import random
+        import shutil
+        import string
+        letters = string.ascii_lowercase
+        train_random_name = ''.join(random.choice(letters) for i in xrange(8))
+        shutil.copy(data_file('adult', 'train_small'), train_random_name)
         cmd = [
             CATBOOST_PATH,
             'fit',
             '--loss-function', 'Logloss',
-            '-f', data_file('adult', 'train_small'),
+            '-f', train_random_name,
             '-t', data_file('adult', 'test_small'),
             '--column-description', data_file('adult', 'train.cd'),
             '-i', str(iters),
