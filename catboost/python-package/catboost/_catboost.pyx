@@ -1130,7 +1130,7 @@ class _CatBoostBase(object):
         self._init_params[key] = value
 
     def _is_classification_loss(self, loss_function):
-        return IsClassificationLoss(to_binary_str(loss_function))
+        return isinstance(loss_function, str) and IsClassificationLoss(to_binary_str(loss_function))
 
     @property
     def tree_count_(self):
