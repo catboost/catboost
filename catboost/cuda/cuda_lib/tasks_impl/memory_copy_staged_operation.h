@@ -41,7 +41,7 @@ namespace NCudaLib {
             NCudaLib::TMpiManager* Manager = nullptr;
 
             NCudaLib::TCudaEventPtr OperatorDoneEvent;
-            NCudaLib::TMpiRequest ReadDoneEvent;
+            NCudaLib::TMpiRequestPtr ReadDoneEvent;
 
             bool IsRemoteCopyComplete = true;
             bool IsOperatorComplete = true;
@@ -107,7 +107,7 @@ namespace NCudaLib {
             }
 
             if (!State.IsRemoteCopyComplete) {
-                State.IsRemoteCopyComplete = State.ReadDoneEvent.IsComplete();
+                State.IsRemoteCopyComplete = State.ReadDoneEvent->IsComplete();
             }
             if (!State.IsOperatorComplete) {
                 State.IsOperatorComplete = State.OperatorDoneEvent->IsComplete();
@@ -116,7 +116,7 @@ namespace NCudaLib {
             if (State.IsRemoteCopyComplete && State.IsOperatorComplete) {
                 if (UseCompression && (sizeof(T) * State.WorkingBufferSize > State.Manager->GetMinCompressSize())) {
                     auto codec = State.Manager->GetCodec();
-                    TStringBuf data((char*)State.ReadBuffer.Get(), State.ReadDoneEvent.ReceivedBytes());
+                    TStringBuf data((char*)State.ReadBuffer.Get(), State.ReadDoneEvent->ReceivedBytes());
                     const ui64 size = codec->Decompress(data, (void*)State.DecompressBuffer.Get());
                     CB_ENSURE(size == sizeof(T) * State.WorkingBufferSize, "error: decompress size should equal to buffer size");
                     using std::swap;
@@ -180,7 +180,7 @@ namespace NCudaLib {
 
             NCudaLib::TCudaEventPtr OperatorDoneEvent;
             ui64 OperatorWorkingBufferSize = 0;
-            NCudaLib::TMpiRequest WriteDoneEvent;
+            NCudaLib::TMpiRequestPtr WriteDoneEvent;
 
             bool IsRemoteCopyComplete = true;
             bool IsOperatorComplete = true;
@@ -224,8 +224,8 @@ namespace NCudaLib {
 
         bool Exec(const TCudaStream& stream) final {
             if (State.Offset >= Size) {
-                Y_ASSERT(State.WriteDoneEvent.IsCreated());
-                return State.WriteDoneEvent.IsComplete();
+                Y_ASSERT(State.WriteDoneEvent);
+                return State.WriteDoneEvent->IsComplete();
             }
 
             if (State.IsFirst) {
@@ -239,7 +239,7 @@ namespace NCudaLib {
             }
 
             if (!State.IsRemoteCopyComplete) {
-                State.IsRemoteCopyComplete = State.WriteDoneEvent.IsComplete();
+                State.IsRemoteCopyComplete = State.WriteDoneEvent->IsComplete();
             }
             if (!State.IsOperatorComplete) {
                 State.IsOperatorComplete = State.OperatorDoneEvent->IsComplete();
@@ -278,7 +278,7 @@ namespace NCudaLib {
                 State.Offset += State.BlockSize;
             }
             if (State.Offset >= Size) {
-                return State.WriteDoneEvent.IsComplete();
+                return State.WriteDoneEvent->IsComplete();
             } else {
                 return false;
             }
@@ -313,7 +313,7 @@ namespace NCudaLib {
         int Tag = -1;
 
         struct {
-            TVector<TMpiRequest> Requests;
+            TVector<TMpiRequestPtr> Requests;
             ui64 BlockSize = 0;
             bool AreRequestsCreated = false;
         } State;

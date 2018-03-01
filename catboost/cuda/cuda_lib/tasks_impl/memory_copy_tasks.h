@@ -320,7 +320,7 @@ namespace NCudaLib {
             auto& manager = GetMpiManager();
             int tag = manager.NextCommunicationTag();
             auto task = MakeHolder<TMasterInterHostMemcpy>(ptr, readSize, tag, EMemcpyTaskType::Read, stream);
-            TVector<TMpiRequest> requests;
+            TVector<TMpiRequestPtr> requests;
             manager.ReadAsync(dst, readSize, GetMasterToDeviceBlockSize(ptr.Type), device->GetHostId(), tag, &requests);
             device->AddTask(std::move(task));
             return MakeHolder<TRemoteDeviceRequest>(std::move(requests));
@@ -340,7 +340,7 @@ namespace NCudaLib {
             auto& manager = GetMpiManager();
             int tag = manager.NextCommunicationTag();
             auto task = MakeHolder<TMasterInterHostMemcpy>(ptr, writeSize, tag, EMemcpyTaskType::Write, stream);
-            TVector<TMpiRequest> requests;
+            TVector<TMpiRequestPtr> requests;
             manager.WriteAsync(src, writeSize, GetMasterToDeviceBlockSize(ptr.Type), device->GetHostId(), tag, &requests);
             device->AddTask(std::move(task));
             return MakeHolder<TRemoteDeviceRequest>(std::move(requests));

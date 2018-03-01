@@ -17,11 +17,11 @@ namespace NCudaLib {
     class TMpiFuture: public IDeviceFuture<T>, public TMoveOnly {
     public:
         bool Has() final {
-            return Request.IsComplete();
+            return Request->IsComplete();
         }
 
         void Wait() final {
-            Request.WaitComplete();
+            Request->WaitComplete();
         }
 
         const T& Get() final {
@@ -30,7 +30,7 @@ namespace NCudaLib {
             }
 
             if (NeedDeserialization) {
-                CB_ENSURE(Data.Size() >= Request.ReceivedBytes(), "Error: too big message size. Can't allocate enough memory in advance");
+                CB_ENSURE(Data.Size() >= Request->ReceivedBytes(), "Error: too big message size. Can't allocate enough memory in advance");
                 TBufferInput in(Data);
                 ::Load(&in, Result);
                 NeedDeserialization = false;
@@ -62,7 +62,7 @@ namespace NCudaLib {
         friend class TMpiPromise;
 
     private:
-        TMpiManager::TMpiRequest Request;
+        TMpiManager::TMpiRequestPtr Request;
         TBuffer Data;
         bool NeedDeserialization = true;
         T Result;
@@ -124,11 +124,11 @@ namespace NCudaLib {
 
     class TRemoteDeviceRequest: public IDeviceRequest {
     public:
-        TRemoteDeviceRequest(TMpiRequest&& request) {
+        TRemoteDeviceRequest(TMpiRequestPtr&& request) {
             Requests.push_back(std::move(request));
         }
 
-        TRemoteDeviceRequest(TVector<TMpiRequest>&& requests)
+        TRemoteDeviceRequest(TVector<TMpiRequestPtr>&& requests)
             : Requests(std::move(requests))
         {
         }
@@ -138,7 +138,7 @@ namespace NCudaLib {
         }
 
     private:
-        TVector<TMpiRequest> Requests;
+        TVector<TMpiRequestPtr> Requests;
     };
 
 #endif

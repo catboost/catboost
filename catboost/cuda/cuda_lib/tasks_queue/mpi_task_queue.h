@@ -49,9 +49,9 @@ namespace NCudaLib {
 
             while (true) {
                 for (ui32 i = 0; i < TaskQueues.size(); ++i) {
-                    if (Requests[i].IsComplete()) {
+                    if (Requests[i]->IsComplete()) {
                         const TBuffer& taskData = TaskBuffer[i];
-                        const ui32 dataSize = Requests[i].ReceivedBytes();
+                        const ui32 dataSize = Requests[i]->ReceivedBytes();
 
                         Y_ASSERT(dataSize > 0);
                         TBuffer task;
@@ -67,10 +67,10 @@ namespace NCudaLib {
                 }
             }
 
-            for (TMpiRequest& request : Requests) {
-                if (request.IsCreated()) {
-                    Y_VERIFY(!request.IsComplete());
-                    request.Abort();
+            for (TMpiRequestPtr& request : Requests) {
+                if (request) {
+                    Y_VERIFY(!request->IsComplete());
+                    request->Abort();
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace NCudaLib {
     private:
         void ReceiveNextTaskAsync(ui32 i) {
             TSerializedTask& buffer = TaskBuffer[i];
-            Y_ASSERT(!Requests[i].IsCreated() || (Requests[i].IsCreated() && Requests[i].IsComplete()));
+            Y_ASSERT(Requests[i] == nullptr || (Requests[i]) && Requests[i]->IsComplete());
             Requests[i] = Manager.ReadAsync(buffer.Data(),
                                             static_cast<int>(buffer.Size()),
                                             Manager.GetMasterId(),
@@ -89,7 +89,7 @@ namespace NCudaLib {
         TMpiManager& Manager;
         TVector<TSerializedTask> TaskBuffer;
         TVector<TSingleHostTaskQueue*> TaskQueues;
-        TVector<TMpiRequest> Requests;
+        TVector<TMpiRequestPtr> Requests;
         TVector<TDeviceId> DeviceIds;
         TVector<ui64> TaskCount;
     };
@@ -124,7 +124,8 @@ namespace NCudaLib {
             TSerializedTask serializedTask;
             TBufferOutput out(serializedTask);
             TTaskSerializer::SaveCommand(task, &out);
-            Manager.SendTask(serializedTask, DeviceId);
+            Manager.SendTask(DeviceId,
+                             std::move(serializedTask));
         }
     };
 
