@@ -426,7 +426,7 @@ public:
         UNIT_ASSERT_EQUAL(TStringType::Join(Data._12(), TStringType(Data._345()), Data._6()), Data._123456());
         UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data._12()), TStringType(Data._345()), Data._6()), Data._123456());
         UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), Data.b(), TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
-        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), 'b', TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
+        UNIT_ASSERT_EQUAL(TStringType::Join(TStringType(Data.a()), static_cast<typename TStringType::char_type>('b'), TStringType(Data.cd()), TStringType(Data.e()), Data.fg(), TStringType(Data.h())), Data.abcdefgh());
     }
 
     void TestCopy() {

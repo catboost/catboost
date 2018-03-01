@@ -937,8 +937,8 @@ private:
         CopyAll(p + s.Length, r...);
     }
 
-    template <typename... R>
-    static void CopyAll(TCharType* p, const TCharType s, const R&... r) {
+    template <typename... R, class TNextCharType, typename = std::enable_if_t<std::is_same<TCharType, TNextCharType>::value>>
+    static void CopyAll(TCharType* p, const TNextCharType s, const R&... r) {
         p[0] = s;
         CopyAll(p + 1, r...);
     }
