@@ -700,7 +700,7 @@ class CatBoost(_CatBoostBase):
                 train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
             setattr(self, "_feature_importance", self.get_feature_importance(train_pool))
 
-        if self._is_classification_loss(params['loss_function']):
+        if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
