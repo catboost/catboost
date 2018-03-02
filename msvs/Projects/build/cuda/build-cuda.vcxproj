@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{6A572681-D04A-51FF-5E85-183AAAF3B1FF}</ProjectGUID>
+    <ProjectGUID>{2B3A11A1-3302-EA3C-4933-FD6C802962AE}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>libs-nvidia-cudalib</ProjectName>
+    <ProjectName>build-cuda</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -30,10 +30,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>libs-nvidia-cudalib</TargetName>
+    <TargetName>build-cuda</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\nvidia\cudalib\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\6A572681-D04A-51FF-5E85-183AAAF3B1FF\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\build\cuda\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2B3A11A1-3302-EA3C-4933-FD6C802962AE\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
