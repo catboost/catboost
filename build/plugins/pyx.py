@@ -5,7 +5,7 @@ import _common
 import _import_wrapper as iw
 
 
-INCLUDE_PATTERN = re.compile('include *"([^"]+)"')
+INCLUDE_PATTERN = re.compile('(include *"([^"]+)")|(include *\'([^\']+)\')')
 CIMPORT_PATTERN = re.compile('cimport +([^#]+)')
 FROM_CIMPORT_PATTERN = re.compile('from +(\S+) +cimport +([^#]+)')
 INDUCED_PATTERN = re.compile('cdef +extern +from +["\']<?([^">]+)>?["\']')
@@ -94,8 +94,9 @@ class PyxParser(object):
             line = line.lstrip()
             incl = INCLUDE_PATTERN.match(line)
             if incl:
-                if incl.group(1):
-                    includes.append(incl.group(1))
+                incl_value = incl.group(2) or incl.group(4)
+                if incl_value:
+                    includes.append(incl_value)
             else:
                 ind = INDUCED_PATTERN.match(line)
                 if ind and ind.group(1):
