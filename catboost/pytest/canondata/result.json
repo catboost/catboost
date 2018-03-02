@@ -427,6 +427,12 @@
             "uri": "file://test.test_ignored_features/test.eval"
         }
     ],
+    "test.test_input_file_with_tab_in_the_end_of_line": [
+        {
+            "checksum": "1955ef12f93bb4c7330aaf56ece263b5",
+            "uri": "file://test.test_input_file_with_tab_in_the_end_of_line/test.eval"
+        }
+    ],
     "test.test_inverted_cv": [
         {
             "checksum": "db4c0b158ecb9642c680985536b2927c",
