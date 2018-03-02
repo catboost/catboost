@@ -92,3 +92,13 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+def stable_uniq(it):
+    seen = set()
+    res = []
+    for e in it:
+        if e not in seen:
+            res.append(e)
+            seen.add(e)
+    return res
