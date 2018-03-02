@@ -13,7 +13,7 @@ SRCS(
 )
 
 PEERDIR(
-    contrib/libs/nvidia/cudalib
+    build/cuda
     catboost/cuda/cuda_lib
     catboost/libs/ctr_description
     catboost/cuda/cuda_util

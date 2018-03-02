@@ -2131,7 +2131,7 @@ class Cuda(object):
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
                 .CMD=%s
-                .PEERDIR=contrib/libs/nvidia/cudalib
+                .PEERDIR=build/cuda
             }
         ''' % cmd)
 
