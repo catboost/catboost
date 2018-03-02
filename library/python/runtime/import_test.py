@@ -136,6 +136,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.handlers.logbook",
         "raven.utils.testutils",
 
+        "sklearn.utils.*",
+
         "subvertpy.ra_svn",  # can only be imported after subvertpy.ra
         "superfcgi.*",
 
