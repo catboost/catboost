@@ -6,7 +6,7 @@
 
 #include <util/system/fs.h>
 #include <util/stream/file.h>
-#include <util/string/split.h>
+#include <util/string/iterator.h>
 
 template <class TStr>
 TVector<TPair> ReadPairs(const TStr& fileName, int docCount) {
@@ -48,9 +48,7 @@ inline int ReadColumnsCount(const TStr& poolFile, char fieldDelimiter = '\t') {
     TIFStream reader(poolFile.c_str());
     TString line;
     CB_ENSURE(reader.ReadLine(line), "pool can't be empty");
-    TVector<TStringBuf> words;
-    SplitRangeTo<const char, TVector<TStringBuf>>(~line, ~line + line.size(), fieldDelimiter, &words);
-    return words.ysize();
+    return StringSplitter(line).Split(fieldDelimiter).Count();
 }
 
 template <class TStr>
