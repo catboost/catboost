@@ -44,8 +44,8 @@ namespace NKernel {
 
         if (der2 && i < pairCount) {
             const float scale = p * (1.0f - p);
-            atomicAdd(der2 + firstDst, w);
-            atomicAdd(der2 + secondDst, w);
+            atomicAdd(der2 + firstDst, w * scale);
+            atomicAdd(der2 + secondDst, w * scale);
         }
 
         if (functionValue) {
