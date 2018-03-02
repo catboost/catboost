@@ -3,6 +3,7 @@
 LIBRARY()
 
 PY_SRCS(
+    fortran.py
     flatc.py
     pyx.py
     swig.py

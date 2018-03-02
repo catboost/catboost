@@ -13,6 +13,7 @@ TEST_SRCS(
     test_pyx.py
     test_xs.py
     test_td.py
+    test_fortran.py
     test_flatc.py
 )
 

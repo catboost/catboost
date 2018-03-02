@@ -6,6 +6,8 @@ def test_include_parser():
 include "arc_lang.pxi"
   include "new.pxi"
 
+include 'parameters.pxi'
+
 cdef extern from "util/generic/string.h":
     ctypedef string TString
 
@@ -41,6 +43,7 @@ cimport xlibrary as xl, some.path.ylibrary as yl, other.zlibrary as zl
     assert includes == pyx.PyxParser.get_perm_includes() + [
         'arc_lang.pxi',
         'new.pxi',
+        'parameters.pxi',
         'cares.pxd',
         'util/generic/maybe.pxd',
         'some/name1.pxd',
