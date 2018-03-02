@@ -255,26 +255,6 @@ def test_nan_mode(nan_mode):
     return [local_canonical_file(output_eval_path)]
 
 
-def test_input_file_with_tab_in_the_end_of_line():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '-f', data_file('adult_with_tab', 'train_small'),
-        '--column-description', data_file('adult_with_tab', 'train.cd'),
-        '-i', '1',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
-        '--nan-mode', 'Forbidden'
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(output_eval_path)]
-
-
 def test_nan_mode_forbidden():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
