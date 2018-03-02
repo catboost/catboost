@@ -131,7 +131,7 @@ namespace NKernel {
         __forceinline__ __device__ void NextFeature(TCBinFeature bf) {
             FeatureId = bf.FeatureId;
             Score = 0;
-            DenumSqr = 0;
+            DenumSqr = 1e-20f;
         }
 
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
@@ -143,7 +143,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ float GetScore() {
-            float score = DenumSqr > 0 ? -Score / sqrt(DenumSqr) : FLT_MAX;
+            float score = DenumSqr > 1e-15f ? -Score / sqrt(DenumSqr) : FLT_MAX;
             if (ScoreStdDev) {
                 ui64 seed = GlobalSeed + FeatureId;
                 AdvanceSeed(&seed, 4);
@@ -361,7 +361,7 @@ namespace NKernel {
                 TPartitionStatistics part = LdgWithFallback(parts, helper.GetDataPartitionOffset(leaf, 0));
 
                 float weightLeft = histLoader.LoadWeight(leaf);
-                float weightRight = static_cast<float>(part.Weight < weightLeft ? 0 : part.Weight - weightLeft);
+                float weightRight = max(part.Weight - weightLeft, 0.0f);
 
                 float sumLeft = histLoader.LoadSum(leaf);
                 float sumRight = static_cast<float>(part.Sum - sumLeft);
@@ -470,7 +470,7 @@ namespace NKernel {
                 }
             }
 
-            score = denumSqr > 0 ? -score / sqrt(denumSqr) : FLT_MAX;
+            score = denumSqr > 1e-15f ? -score / sqrt(denumSqr) : FLT_MAX;
             float tmp = score;
             if (scoreStdDev) {
                 ui64 seed = globalSeed + bf[i + tid].FeatureId;
