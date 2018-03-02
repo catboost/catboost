@@ -393,9 +393,10 @@ void TPoolReader::ProcessBlock() {
                         if (IsNan(token)) {
                             val = std::numeric_limits<float>::quiet_NaN();
                         } else {
-                            CB_ENSURE(token.length() != 0, "empty values not supported");
+                            CB_ENSURE(token.length() != 0, "Empty values for Num type columns are not supported (row: " <<
+                                LinesRead + lineIdx + 1 << ", column: " << tokenCount + 1 << ").");
                             CB_ENSURE(false, "Factor " << token << " in column " << tokenCount + 1 << " and row " << LinesRead + lineIdx + 1 <<
-                                      " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
+                                " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
                         }
                     }
                     features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
