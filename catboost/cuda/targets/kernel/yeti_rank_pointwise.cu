@@ -263,7 +263,7 @@ namespace NKernel
         FillBuffer(weightDst, 0.0f, size, stream);
         FillBuffer(qidCursor, 0, 1, stream);
 
-        int cudaSeed = seed;
+        int cudaSeed = seed + (seed >> 32);
 
         YetiRankGradientImpl<blockSize><<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed,
                 bootstrapIter, queryOffsets,
