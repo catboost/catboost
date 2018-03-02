@@ -375,15 +375,15 @@ void TPoolReader::ProcessBlock() {
         features.yresize(PoolMetaInfo.FactorCount);
 
         int tokenCount = 0;
-        TStringBuf token;
-        TStringBuf words(ParseBuffer[lineIdx]);
-        while (words.NextTok(FieldDelimiter, token)) {
+        TVector<TStringBuf> tokens = StringSplitter(ParseBuffer[lineIdx]).Split(FieldDelimiter).ToList<TStringBuf>();
+        for (const auto& token : tokens) {
             switch (ColumnsDescription[tokenCount].Type) {
                 case EColumn::Categ: {
                     if (IsNan(token)) {
-                        token = "nan";
+                        features[featureId] = PoolBuilder.GetCatFeatureValue("nan");
+                    } else {
+                        features[featureId] = PoolBuilder.GetCatFeatureValue(token);
                     }
-                    features[featureId] = PoolBuilder.GetCatFeatureValue(token);
                     ++featureId;
                     break;
                 }
