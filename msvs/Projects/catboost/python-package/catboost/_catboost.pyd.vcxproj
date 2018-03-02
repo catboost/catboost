@@ -109,6 +109,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\cuda\build-cuda.vcxproj">
+      <Project>2B3A11A1-3302-EA3C-4933-FD6C802962AE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
       <Project>25AC1B6D-6F5F-550C-B8D7-D7E344784C2E</Project>
     </ProjectReference>
@@ -252,9 +255,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nvidia\cudalib\libs-nvidia-cudalib.vcxproj">
-      <Project>6A572681-D04A-51FF-5E85-183AAAF3B1FF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>

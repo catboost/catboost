@@ -87,6 +87,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\cuda\build-cuda.vcxproj">
+      <Project>2B3A11A1-3302-EA3C-4933-FD6C802962AE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\catboost-cuda-cuda_lib.vcxproj">
       <Project>8F0089E7-CD22-2D41-938B-A9A7A3319AE7</Project>
     </ProjectReference>
@@ -158,9 +161,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nvidia\cudalib\libs-nvidia-cudalib.vcxproj">
-      <Project>6A572681-D04A-51FF-5E85-183AAAF3B1FF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>9CDB08FB-219D-3356-E006-1AC8AECC636E</Project>
