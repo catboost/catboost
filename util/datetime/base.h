@@ -144,7 +144,7 @@ public:
     }
 
 protected:
-    TValue Value_;
+    TValue Value_; // microseconds count
 };
 
 namespace NDateTimeHelpers {
