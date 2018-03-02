@@ -1,3 +1,30 @@
+# Release 0.6.3
+## Speedups
+- 12% speedup for training
+
+## Breaking changes
+- `boosting_type` parameter value `Dynamic` renamed to `Ordered`.
+- Data visualisation functionality in Jupyter Notebook is required ipywidgets 7.x+ now.
+- `query_id` parameter renamed to `group_id` in Python and R wrappers.
+- cv returns value in pandas.DataFrame by default if Pandas installed. See new parameter [`as_pandas`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_cv-docpage/).
+
+## Major Features And Improvements
+- In column description column name `Target` is changed to `Label`. It will still work with previous name, but it is recommended to use the new one.
+- New accuracy measure Symmetric mean absolute percentage error (SMAPE or sMAPE) added.
+- `eval-metrics` mode added into cmdline version. Metrics can be calculated for a given dataset using a previously [trained model](https://tech.yandex.com/catboost/doc/dg/concepts/cli-reference_eval-metrics-docpage/).
+- New classification metric `CtrFactor` is [added](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/).
+- Load CatBoost model from memory. You can load your CatBoost model from file or initialize it from buffer [in memory](https://github.com/catboost/catboost/blob/master/catboost/CatboostModelAPI.md).
+
+## Bug Fixes and Other Changes
+- CatBoost build with make file. Now it’s possible to build CPU version of CatBoost under Linux with [make file](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#make-install). 
+- JSON output data format is [changed](https://api-trunk-d-guitarman-d-tech2.dev1f.tech.yandex.com:5555/catboost/doc/dg/concepts/output-data_training-log-docpage/).
+
+## Thanks to our Contributors
+This release contains contributions from newbfg, lakshayg and CatBoost team.
+
+We are grateful to all who filed issues or helped resolve them, asked and answered questions.
+
+
 # Release 0.6.2
 ## Major Features And Improvements
 - **BETA** version of distributed mulit-host GPU via MPI training
