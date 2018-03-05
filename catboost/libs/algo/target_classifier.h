@@ -9,7 +9,6 @@
 #include <library/grid_creator/binarization.h>
 
 TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
-                                        int learnSampleCount,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,

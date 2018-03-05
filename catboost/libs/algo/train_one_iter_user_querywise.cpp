@@ -7,4 +7,4 @@ inline TUserDefinedQuerywiseError BuildError<TUserDefinedQuerywiseError>(const N
 }
 }
 
-template void TrainOneIter<TUserDefinedQuerywiseError>(const TTrainData&, TLearnContext*);
+template void TrainOneIter<TUserDefinedQuerywiseError>(const TTrainData&, const TTrainData*, TLearnContext*);

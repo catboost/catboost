@@ -17,9 +17,12 @@ struct TAllFeatures {
     TVector<TVector<int>> CatFeaturesRemapped; // [featureIdx][doc]
     TVector<TVector<int>> OneHotValues; // [featureIdx][valueIdx]
     TVector<bool> IsOneHot;
+    size_t GetDocCount() const;
 };
 
-const int LearnNotSet = -1;
+inline int GetDocCount(const TAllFeatures& allFeatures) {
+    return static_cast<int>(allFeatures.GetDocCount());
+}
 
 void PrepareAllFeaturesFromPermutedDocs(const TVector<size_t>& docIndices,
                                         const THashSet<int>& categFeatures,
@@ -43,3 +46,49 @@ void PrepareAllFeatures(const THashSet<int>& categFeatures,
                         NPar::TLocalExecutor& localExecutor,
                         TDocumentStorage* docStorage,
                         TAllFeatures* allFeatures);
+
+/// Binarize data from `learnDocStorage` into `learnFeatures`.
+/// One-hot encode categorial features if represented by fewer than `oneHotMaxSize` values.
+/// @param categFeatures - Indices of cat-features
+/// @param floatFeatures - Borders for binarization
+/// @param ignoredFeatures - Make empty binarized slots for these features
+/// @param ignoreRedundantCatFeatures - Make empty binarized slots if all cat-values are same
+/// @param oneHotMaxSize - Limit on the number of cat-values for one-hot encoding
+/// @param nanMode - Select interpretation of NaN values of float features
+/// @param clearPool - Discard features from `learnDocStorage` right after binarization
+/// @param localExecutor - Thread provider
+/// @param select - Indices of samples in `learnDocStorage` to binarize (empty == all)
+/// @param learnDocStorage - Discardable raw features
+/// @param learnFeatures - Destination for binarization
+void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
+                             const TVector<TFloatFeature>& floatFeatures,
+                             const TVector<int>& ignoredFeatures,
+                             bool ignoreRedundantCatFeatures,
+                             size_t oneHotMaxSize,
+                             ENanMode nanMode,
+                             bool clearPool,
+                             NPar::TLocalExecutor& localExecutor,
+                             const TVector<size_t>& select,
+                             TDocumentStorage* learnDocStorage,
+                             TAllFeatures* learnFeatures);
+
+/// Binarize data from `docStorage` into `testFeatures`.
+/// Align feature processing to that of `learnFeatures`.
+/// @param categFeatures - Indices of cat-features
+/// @param floatFeatures - Borders for binarization
+/// @param learnFeatures - Binarized learn features for reference
+/// @param nanMode - Select interpretation of NaN values of float features
+/// @param clearPool - Discard features from `testDocStorage` right after binarization
+/// @param localExecutor - Thread provider
+/// @param select - Indices of samples in `testDocStorage` to binarize (empty == all)
+/// @param testDocStorage - Discardable raw features
+/// @param testFeatures - Destination for binarization
+void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
+                            const TVector<TFloatFeature>& floatFeatures,
+                            const TAllFeatures& learnFeatures,
+                            ENanMode nanMode,
+                            bool clearPool,
+                            NPar::TLocalExecutor& localExecutor,
+                            const TVector<size_t>& select,
+                            TDocumentStorage* testDocStorage,
+                            TAllFeatures* testFeatures);

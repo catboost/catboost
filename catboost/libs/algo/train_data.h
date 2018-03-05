@@ -26,3 +26,6 @@ public:
         return QueryInfo.ysize();
     }
 };
+
+template <typename T> T Concat(const T& a, const T& b);
+template <typename T> TVector<T> Concat(const TVector<T>& a, const TVector<T>& b);

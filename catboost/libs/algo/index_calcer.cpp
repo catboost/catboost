@@ -151,7 +151,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,
                                  const TTrainData& data,
                                  NPar::TLocalExecutor* localExecutor) {
-                                 TVector<TIndexType> indices(fold.EffectiveDocCount);
+    TVector<TIndexType> indices(fold.EffectiveDocCount);
     TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
     for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
         const auto& split = tree.Splits[splitIdx];
@@ -214,18 +214,6 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
     }, 0, tailBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     return indices;
-}
-
-int GetDocCount(const TAllFeatures& features) {
-    for (int i = 0; i < features.FloatHistograms.ysize(); ++i) {
-        if (!features.FloatHistograms[i].empty())
-            return features.FloatHistograms[i].ysize();
-    }
-    for (int i = 0; i < features.CatFeaturesRemapped.ysize(); ++i) {
-        if (!features.CatFeaturesRemapped[i].empty())
-            return features.CatFeaturesRemapped[i].ysize();
-    }
-    return 0;
 }
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {

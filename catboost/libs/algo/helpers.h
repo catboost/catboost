@@ -22,3 +22,15 @@ void CalcErrors(
     bool hasTest,
     TLearnContext* ctx
 );
+
+namespace {
+    template <typename T>
+    struct TMinMax {
+        T Min;
+        T Max;
+        TMinMax(const TVector<T>& v) {
+            Min = *MinElement(v.begin(), v.end());
+            Max = *MaxElement(v.begin(), v.end());
+        }
+    };
+}
