@@ -6442,6 +6442,8 @@ $(BUILD_ROOT)/catboost/libs/algo/train.cpp.o\
 
 $(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o\
         ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/algo/target_classifier.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
