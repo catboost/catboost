@@ -7,6 +7,7 @@
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
 #include <util/system/mutex.h>
+#include <util/system/env.h>
 
 #ifdef _darwin_
 #include <sys/types.h>
@@ -22,9 +23,9 @@ const char* DIR_SEPARATORS = "/";
 #endif
 
 TString GetArcadiaTestsData() {
-    const char* envPath = getenv("ARCADIA_TESTS_DATA_DIR");
-    if (envPath != nullptr) {
-        return TString(envPath);
+    TString envPath = GetEnv("ARCADIA_TESTS_DATA_DIR");
+    if (envPath) {
+        return envPath;
     }
 
     const char* workDir = getcwd(nullptr, 0);
