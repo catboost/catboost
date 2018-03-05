@@ -6,7 +6,7 @@
 #include <cstring>
 #include <cstdarg>
 
-#include <signal.h>
+#include <csignal>
 
 #if defined(_unix_)
 #include <unistd.h>
