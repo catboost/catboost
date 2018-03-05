@@ -14,10 +14,13 @@
 - `eval-metrics` mode added into cmdline version. Metrics can be calculated for a given dataset using a previously [trained model](https://tech.yandex.com/catboost/doc/dg/concepts/cli-reference_eval-metrics-docpage/).
 - New classification metric `CtrFactor` is [added](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/).
 - Load CatBoost model from memory. You can load your CatBoost model from file or initialize it from buffer [in memory](https://github.com/catboost/catboost/blob/master/catboost/CatboostModelAPI.md).
+- Now you can run `fit` function using file with dataset: `fit(train_path, eval_set=eval_path, column_description=cd_file)`. This will reduce memory consumption by up to two times.
 
 ## Bug Fixes and Other Changes
 - CatBoost build with make file. Now it’s possible to build CPU version of CatBoost under Linux with [make file](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#make-install). 
 - JSON output data format is [changed](https://api-trunk-d-guitarman-d-tech2.dev1f.tech.yandex.com:5555/catboost/doc/dg/concepts/output-data_training-log-docpage/).
+- Python whl binaries with CUDA 9.1 support for Linux OS published into the release assets.
+- Added `bootstrap_type` parameter to `CatBoostClassifier` and `Regressor` (issue #263).
 
 ## Thanks to our Contributors
 This release contains contributions from newbfg, lakshayg and CatBoost team.
