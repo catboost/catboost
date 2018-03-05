@@ -25,7 +25,7 @@
     == non-option forces getopt to return 1 and to place non-option into optarg
 
  2. shortopts begins with '+'   :=> REQUIRE_ORDER
-    getenv(_POSIX_OPTION_ORDER) :=> REQUIRE_ORDER
+    GetEnv(_POSIX_OPTION_ORDER) :=> REQUIRE_ORDER
     == 1st non-option forces getopt to return EOF
 
  3. default            :=> PERMUTE
