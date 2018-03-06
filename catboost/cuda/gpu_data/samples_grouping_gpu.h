@@ -320,7 +320,7 @@ namespace NCatboostCuda {
                     const auto& pairsWeights = pointwiseSamplesGrouping->GetQueryPairWeights();
 
                     NCudaLib::TStripeMapping pairsMapping = queriesMapping.Transform([&](const TSlice& groupsSlice) -> ui64 {
-                        return pointwiseSamplesGrouping->GetQueryPairOffset(groupsSlice.Right) - pointwiseSamplesGrouping->GetQueryPairOffset(groupsSlice.Right);
+                        return pointwiseSamplesGrouping->GetQueryPairOffset(groupsSlice.Right) - pointwiseSamplesGrouping->GetQueryPairOffset(groupsSlice.Left);
                     });
 
                     auto pairsGpu = TStripeBuffer<uint2>::Create(pairsMapping);
