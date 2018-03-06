@@ -2,21 +2,28 @@
 
 #include <catboost/libs/metrics/metric.h>
 
-// TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
-static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds, int begin, int end) {
-    THashSet<ui32> queryGroupIds;
-    ui32 lastId = queryIds.empty() ? 0 : queryIds[0];
-    for (int i = begin; i < end; ++i) {
-        ui32 id = queryIds[i];
-        if (id != lastId) {
-            if (queryGroupIds.has(id)) {
-                return false;
-            }
-            queryGroupIds.insert(lastId);
-            lastId = id;
-        }
+static int CountGroups(const TVector<ui32>& queryIds) {
+    if (queryIds.empty()) {
+        return 0;
     }
-    return true;
+    int result = 1;
+    ui32 id = queryIds[0];
+    for (int i = 1; i < queryIds.ysize(); ++i) {
+       if (queryIds[i] != id) {
+           result++;
+           id = queryIds[i];
+       }
+    }
+    return result;
+}
+
+static bool AreQueriesGrouped(const TVector<ui32>& queryIds) {
+    int groupCount = CountGroups(queryIds);
+
+    auto queryIdsCopy = queryIds;
+    Sort(queryIdsCopy.begin(), queryIdsCopy.end());
+    int sortedGroupCount = CountGroups(queryIdsCopy);
+    return groupCount == sortedGroupCount;
 }
 
 static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<TPair>& pairs) {
@@ -106,15 +113,15 @@ void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescriptio
 
     bool hasQuery = !queryId.empty();
     if (hasQuery) {
-        bool isGroupIdCorrect = IsCorrectQueryIdsFormat(queryId, 0, learnSampleCount);
+        bool isGroupIdCorrect = AreQueriesGrouped(queryId);
         if (learnSampleCount < target->ysize()) {
             isGroupIdCorrect &= queryId[learnSampleCount - 1] != queryId[learnSampleCount];
         }
-        CB_ENSURE(isGroupIdCorrect, "If GroupId is provided then train Pool & Test Pool should be grouped by GroupId and should have different GroupId");
+        CB_ENSURE(isGroupIdCorrect, "Train and eval group ids should have distinct group ids. And group ids in train and eval should be grouped.");
     }
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(!queryId.empty(), "You should provide QueryId for Pairwise Errors." );
-        CB_ENSURE(ArePairsGroupedByQuery(queryId, pairs), "Pairs should have same QueryId");
+        CB_ENSURE(!queryId.empty(), "You should provide GroupId for Pairwise Errors." );
+        CB_ENSURE(ArePairsGroupedByQuery(queryId, pairs), "Two objects in a pair should have same GroupId");
     }
 
 }
