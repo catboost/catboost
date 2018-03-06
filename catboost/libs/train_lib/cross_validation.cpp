@@ -266,7 +266,7 @@ void CrossValidate(
     PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &folds);
 
     for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
-        contexts[foldIdx]->InitContext(folds[foldIdx], nullptr);
+        contexts[foldIdx]->InitData(folds[foldIdx]);
 
         TLearnContext& ctx = *contexts[foldIdx];
         const TTrainData& data = folds[foldIdx];
@@ -340,7 +340,7 @@ void CrossValidate(
         profile.StartNextIteration();
 
         for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
-            TrainOneIteration(folds[foldIdx], nullptr, contexts[foldIdx].Get());
+            TrainOneIteration(folds[foldIdx], contexts[foldIdx].Get());
             CalcErrors(folds[foldIdx], metrics, /*hasTrain=*/true, /*hasTest=*/true, contexts[foldIdx].Get());
         }
 

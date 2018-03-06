@@ -40,6 +40,14 @@ void ComputeOnlineCTRs(const TTrainData& data,
                        TLearnContext* ctx,
                        TOnlineCTR* dst);
 
+struct TCalcOnlineCTRsBatchTask {
+    TProjection Projection;
+    TFold* Fold;
+    TOnlineCTR* Ctr;
+};
+
+void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
+
 class TCtrValueTable;
 
 void CalcFinalCtrs(

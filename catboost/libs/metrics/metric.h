@@ -13,6 +13,8 @@
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/metric_options.h>
 
 inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;

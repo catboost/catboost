@@ -104,24 +104,25 @@ void TLearnContext::OutputMeta() {
     }
 }
 
-void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* testData) {
+void TLearnContext::InitData(const TTrainData& data) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    //const auto sampleCount = data.GetSampleCount();
+    const auto sampleCount = data.GetSampleCount();
     const int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
     LearnProgress.Folds.reserve(foldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 
-    CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
-                             Layout,
-                             learnData.Target,
-                             lossFunction,
-                             ObjectiveDescriptor);
+    CtrsHelper.Init(Params.CatFeatureParams,
+                    Layout,
+                    data.Target,
+                    static_cast<ui32>(data.LearnSampleCount),
+                    lossFunction,
+                    ObjectiveDescriptor);
 
     //Todo(noxoomo): check and init
     const auto& boostingOptions = Params.BoostingOptions.Get();
     ui32 foldPermutationBlockSize = boostingOptions.PermutationBlockSize;
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
-        foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
+        foldPermutationBlockSize = DefaultFoldPermutationBlockSize(data.LearnSampleCount);
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params);
 
@@ -129,8 +130,7 @@ void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* t
         for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 BuildPlainFold(
-                    learnData,
-                    testData,
+                    data,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
                     foldPermutationBlockSize,
@@ -144,7 +144,7 @@ void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* t
         for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 BuildDynamicFold(
-                    learnData,
+                    data,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
                     foldPermutationBlockSize,
@@ -157,9 +157,8 @@ void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* t
         }
     }
 
-    LearnProgress.AveragingFold = BuildAveragingFold(
-        learnData,
-        testData,
+    LearnProgress.AveragingFold = BuildPlainFold(
+        data,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),
         /*permuteBlockSize=*/1,
@@ -167,9 +166,6 @@ void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* t
         storeExpApproxes,
         Rand
     );
-
-    const auto& data = testData ? Concat(learnData, *testData) : learnData;
-    const auto sampleCount = data.GetSampleCount();
 
     LearnProgress.AvrgApprox.resize(LearnProgress.ApproxDimension, TVector<double>(sampleCount));
     if (!data.Baseline.empty()) {

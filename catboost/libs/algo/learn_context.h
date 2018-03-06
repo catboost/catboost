@@ -118,7 +118,7 @@ public:
     }
 
     void OutputMeta();
-    void InitContext(const TTrainData& data, const TTrainData* testData);
+    void InitData(const TTrainData& data);
     void SaveProgress();
     bool TryLoadProgress();
 

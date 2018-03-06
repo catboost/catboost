@@ -201,9 +201,7 @@ void UpdateAveragingFold(
 }
 
 template <typename TError>
-void TrainOneIter(const TTrainData& learnData, const TTrainData* testData, TLearnContext* ctx) {
-    //const auto& data = testData && testData->GetSampleCount() ? Concat(learnData, *testData) : learnData;
-    const auto& data = learnData; Y_UNUSED(testData);
+void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     TProfileInfo& profile = ctx->Profile;
 
@@ -267,17 +265,7 @@ void TrainOneIter(const TTrainData& learnData, const TTrainData* testData, TLear
             TVector<TFold*> allFolds = trainFolds;
             allFolds.push_back(&ctx->LearnProgress.AveragingFold);
 
-            struct TLocalJobData {
-                const TTrainData* Data;
-                TProjection Projection;
-                TFold* Fold;
-                TOnlineCTR* Ctr;
-                void DoTask(TLearnContext* ctx) {
-                    ComputeOnlineCTRs(*Data, *Fold, Projection, ctx, Ctr);
-                }
-            };
-
-            TVector<TLocalJobData> parallelJobsData;
+            TVector<TCalcOnlineCTRsBatchTask> parallelJobsData;
             THashSet<TProjection> seenProjections;
             for (const auto& split : bestSplitTree.Splits) {
                 if (split.Type != ESplitType::OnlineCtr) {
@@ -290,16 +278,12 @@ void TrainOneIter(const TTrainData& learnData, const TTrainData* testData, TLear
                 }
                 for (auto* foldPtr : allFolds) {
                     if (!foldPtr->GetCtrs(proj).has(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
-                        parallelJobsData.emplace_back(TLocalJobData{ &data, proj, foldPtr, &foldPtr->GetCtrRef(proj) });
+                        parallelJobsData.emplace_back(TCalcOnlineCTRsBatchTask{ proj, foldPtr, &foldPtr->GetCtrRef(proj) });
                     }
                 }
                 seenProjections.insert(proj);
             }
-
-            ctx->LocalExecutor.ExecRange([&](int taskId){
-                parallelJobsData[taskId].DoTask(ctx);
-            }, 0, parallelJobsData.size(), NPar::TLocalExecutor::WAIT_COMPLETE);
-
+            CalcOnlineCTRsBatch(parallelJobsData, data, ctx);
         }
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation

@@ -22,6 +22,8 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
                           const TTrainData& data,
                           NPar::TLocalExecutor* localExecutor);
 
+int GetDocCount(const TAllFeatures& features);
+
 struct TFullModel;
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool);

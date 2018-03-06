@@ -9,4 +9,4 @@ inline TCustomError BuildError<TCustomError>(const NCatboostOptions::TCatBoostOp
 }
 }
 
-template void TrainOneIter<TCustomError>(const TTrainData&, const TTrainData*, TLearnContext*);
+template void TrainOneIter<TCustomError>(const TTrainData&, TLearnContext*);

@@ -15,19 +15,4 @@ void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescriptio
                         TVector<float>* weights,
                         TVector<float>* target);
 
-/// Preprocess targets and weights of the `data` as required by loss.
-void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
-                const TVector<float>& classWeights,
-                TTrainData& data);
-
-TTrainData BuildTrainData(const TPool& pool);
-
-/// Check consistency of the data with each other and with loss.
-void CheckConsistency1(ELossFunction lossFunction,
-                       const TTrainData& learnData,
-                       const TTrainData& testData);
-
-/// Check consistency of the data with each other and with loss, after Preprocess.
-void CheckConsistency2(const NCatboostOptions::TLossDescription& lossDescription,
-                       const TTrainData& learnData,
-                       const TTrainData& testData);
+TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& train, const TPool& test);

@@ -7,4 +7,4 @@ inline TUserDefinedPerObjectError BuildError<TUserDefinedPerObjectError>(const N
 }
 }
 
-template void TrainOneIter<TUserDefinedPerObjectError>(const TTrainData&, const TTrainData*, TLearnContext*);
+template void TrainOneIter<TUserDefinedPerObjectError>(const TTrainData&, TLearnContext*);

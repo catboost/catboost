@@ -27,11 +27,11 @@ inline int GetTargetBorderCount(const TCtrInfo& ctrInfo, ui32 targetClassesCount
 
 class TCtrHelper {
 public:
-    void InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-                       const TFeaturesLayout& layout,
-                       const TVector<float>& target,
-                       ELossFunction loss,
-                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
+    void Init(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+              const TFeaturesLayout& layout,
+              const TVector<float>& target, ui32 sampleCount,
+              ELossFunction loss,
+              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
 
     const TVector<TCtrInfo>& GetCtrInfo(const TProjection& projection) const {
         if (projection.IsSingleCatFeature()) {

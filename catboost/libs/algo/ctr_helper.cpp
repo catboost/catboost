@@ -31,9 +31,10 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
     return ctrInfo;
 }
 
-void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+void TCtrHelper::Init(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
                       const TFeaturesLayout& layout,
                       const TVector<float>& target,
+                      ui32 sampleCount,
                       ELossFunction loss,
                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
     using TCtrsDescription = TVector<NCatboostOptions::TCtrDescription>;
@@ -77,6 +78,7 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
         ui32 id = targetClassifier.second;
         const NCatboostOptions::TBinarizationOptions& binarizationOption = targetClassifier.first;
         TargetClassifiers[id] = BuildTargetClassifier(target,
+                                                      sampleCount,
                                                       loss,
                                                       objectiveDescriptor,
                                                       binarizationOption.BorderCount,

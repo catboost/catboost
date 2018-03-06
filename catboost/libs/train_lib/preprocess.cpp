@@ -1,6 +1,5 @@
 #include "preprocess.h"
 
-#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/metrics/metric.h>
 
 // TODO(nikitxskv): Is this a bottleneck? switch to vector+unique vs vector+sort+unique?
@@ -18,10 +17,6 @@ static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds, int begin, in
         }
     }
     return true;
-}
-
-static bool IsCorrectQueryIdsFormat(const TVector<ui32>& queryIds) {
-    return IsCorrectQueryIdsFormat(queryIds, 0, queryIds.size());
 }
 
 static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<TPair>& pairs) {
@@ -51,8 +46,8 @@ void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossF
 
 static void CheckBaseline(ELossFunction lossFunction,
                    const TVector<TVector<double>>& trainBaseline,
-                   const TVector<TVector<double>>& testBaseline) {
-    size_t testDocs = testBaseline.size() ? testBaseline[0].size() : 0;
+                   const TVector<TVector<double>>& testBaseline,
+                   int testDocs) {
     bool trainHasBaseline = trainBaseline.ysize() != 0;
     bool testHasBaseline = trainHasBaseline;
     if (testDocs != 0) {
@@ -124,67 +119,29 @@ void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescriptio
 
 }
 
-void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
-                const TVector<float>& classWeights,
-                TTrainData& data) {
-    if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
-        PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &data.Target);
+TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& learnPool, const TPool& testPool) {
+    TTrainData trainData;
+    trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
+    trainData.Target.reserve(learnPool.Docs.GetDocCount() + testPool.Docs.GetDocCount());
+    trainData.Pairs.reserve(learnPool.Pairs.size() + testPool.Pairs.size());
+    trainData.Pairs.insert(trainData.Pairs.end(), learnPool.Pairs.begin(), learnPool.Pairs.end());
+    trainData.Pairs.insert(trainData.Pairs.end(), testPool.Pairs.begin(), testPool.Pairs.end());
+    for (int pairInd = learnPool.Pairs.ysize(); pairInd < trainData.Pairs.ysize(); ++pairInd) {
+        trainData.Pairs[pairInd].WinnerId += trainData.LearnSampleCount;
+        trainData.Pairs[pairInd].LoserId += trainData.LearnSampleCount;
     }
+    trainData.Target = learnPool.Docs.Target;
+    trainData.Weights = learnPool.Docs.Weight;
+    trainData.QueryId = learnPool.Docs.QueryId;
+    trainData.Baseline = learnPool.Docs.Baseline;
+    trainData.Target.insert(trainData.Target.end(), testPool.Docs.Target.begin(), testPool.Docs.Target.end());
+    trainData.Weights.insert(trainData.Weights.end(), testPool.Docs.Weight.begin(), testPool.Docs.Weight.end());
+    trainData.QueryId.insert(trainData.QueryId.end(), testPool.Docs.QueryId.begin(), testPool.Docs.QueryId.end());
 
-    if (!classWeights.empty()) {
-        // TODO(annaveronika): check class weight not negative.
-        int dataSize = data.Target.ysize();
-        for (int i = 0; i < dataSize; ++i) {
-            CB_ENSURE(data.Target[i] < classWeights.ysize(), "class " + ToString(data.Target[i]) + " is missing in class weights");
-            data.Weights[i] *= classWeights[data.Target[i]];
-        }
+    CheckBaseline(lossFunction, learnPool.Docs.Baseline, testPool.Docs.Baseline, testPool.Docs.GetDocCount());
+
+    for (int dim = 0; dim < testPool.Docs.GetBaselineDimension(); ++dim) {
+        trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
     }
-}
-
-TTrainData BuildTrainData(const TPool& pool) {
-    TTrainData data;
-    data.Target = pool.Docs.Target;
-    data.Weights = pool.Docs.Weight;
-    data.QueryId = pool.Docs.QueryId;
-    data.Baseline = pool.Docs.Baseline;
-    data.Pairs = pool.Pairs;
-    return data;
-}
-
-void CheckConsistency1(ELossFunction lossFunction,
-                       const TTrainData& learnData,
-                       const TTrainData& testData) {
-    CheckBaseline(lossFunction, learnData.Baseline, testData.Baseline);
-}
-
-void CheckConsistency2(const NCatboostOptions::TLossDescription& lossDescription,
-                       const TTrainData& learnData,
-                       const TTrainData& testData) {
-    CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
-
-    TMinMax<float> weight(learnData.Weights);
-    CB_ENSURE(weight.Min >= 0, "Has negative weight: " + ToString(weight.Min));
-    CB_ENSURE(weight.Max > 0, "All weights are 0");
-
-    if (lossDescription.GetLossFunction() == ELossFunction::PairLogit) {
-        CB_ENSURE(weight.Min == weight.Max, "Pairwise loss doesn't support document weights");
-    }
-
-    CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction());
-
-    bool learnHasQuery = !learnData.QueryId.empty();
-    bool testHasQuery = !testData.QueryId.empty();
-    CB_ENSURE(learnHasQuery == testHasQuery, "If GroupId is provided then both train and test pool should be grouped by GroupId");
-
-    if (learnHasQuery) {
-        CB_ENSURE(IsCorrectQueryIdsFormat(learnData.QueryId), "Train pool should be grouped by GroupId");
-        CB_ENSURE(IsCorrectQueryIdsFormat(testData.QueryId), "Test pool should be grouped by GroupId");
-        CB_ENSURE(learnData.QueryId.back() != testData.QueryId.front(), " Train and test pools should have different GroupId");
-    }
-
-    if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors." );
-        CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");
-        CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");
-    }
+    return trainData;
 }
