@@ -26,10 +26,9 @@ namespace NKernel {
     }
 
 
-
     template <class T>
     __host__ __device__ __forceinline__ T ZeroAwareDivide(const T& left, const T& right, bool skipZeroes) {
-        return (skipZeroes && (left < 1e-15f && left > -1e-15f)) ? 0 :  left  / right;
+        return (skipZeroes && (left < 1e-15f && left > -1e-15f)) ? 0 :  left  / (right + ((T)1e-15f));
     }
 
     template <>
