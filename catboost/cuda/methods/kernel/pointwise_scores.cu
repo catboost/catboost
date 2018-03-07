@@ -14,8 +14,7 @@ namespace NKernel {
 
     class TSolarScoreCalcer {
     public:
-        __device__ TSolarScoreCalcer(float lambda)
-        : Lambda(lambda) {
+        __host__ __device__ TSolarScoreCalcer(float) {
         }
 
         __forceinline__ __device__ void NextFeature(TCBinFeature) {
@@ -23,7 +22,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
-            Score += (weight > 0 ? (-sum * sum) * (1 + 2 * log(weight + 1.0)) / (weight + Lambda) : 0);
+            Score += (weight > 1e-20f ? (-sum * sum) * (1 + 2 * log(weight + 1.0)) / weight : 0);
         }
 
         __forceinline__ __device__ double GetScore() {
@@ -38,8 +37,7 @@ namespace NKernel {
 
     class TL2ScoreCalcer {
     public:
-        __host__ __device__ TL2ScoreCalcer(float lambda)
-                : Lambda(lambda + 1e-9f) {
+        __host__ __device__ TL2ScoreCalcer(float) {
 
         }
 
@@ -48,7 +46,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
-            Score += (weight > 0 ? (-sum * sum) / (weight + Lambda) : 0);
+            Score += (weight > 1e-20f ? (-sum * sum) / weight : 0);
         }
 
         __forceinline__ __device__ double GetScore() {
@@ -56,14 +54,12 @@ namespace NKernel {
         }
 
     private:
-        float Lambda;
         float Score = 0;
     };
 
     class TLOOL2ScoreCalcer {
     public:
-        __host__ __device__ TLOOL2ScoreCalcer(float lambda)
-                : Lambda(lambda + 1e-9f) {
+        __host__ __device__ TLOOL2ScoreCalcer(float) {
 
         }
 
@@ -74,7 +70,7 @@ namespace NKernel {
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
             float adjust = weight > 1 ? weight / (weight - 1) : 0;
             adjust = adjust * adjust;
-            Score += (weight > 0 ? adjust * (-sum * sum) / (weight + Lambda) : 0);
+            Score += (weight > 0 ? adjust * (-sum * sum) / weight : 0);
         }
 
         __forceinline__ __device__ double GetScore() {
@@ -82,14 +78,12 @@ namespace NKernel {
         }
 
     private:
-        float Lambda;
         float Score = 0;
     };
 
     class TSatL2ScoreCalcer {
     public:
-        __host__ __device__ TSatL2ScoreCalcer(float lambda)
-        : Lambda(lambda + 1e-9f) {
+        __host__ __device__ TSatL2ScoreCalcer(float) {
 
         }
 
@@ -99,7 +93,7 @@ namespace NKernel {
 
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
             float adjust = weight > 2 ? weight * (weight - 2)/(weight * weight - 3 * weight + 1) : 0;
-            Score += (weight > 0 ? adjust * ((-sum * sum) / (weight + Lambda))  : 0);
+            Score += (weight > 0 ? adjust * ((-sum * sum) / weight)  : 0);
         }
 
         __forceinline__ __device__ double GetScore() {
@@ -107,7 +101,6 @@ namespace NKernel {
         }
 
     private:
-        float Lambda = 0;
         float Score = 0;
     };
 
@@ -121,9 +114,9 @@ namespace NKernel {
                                                     ui64 globalSeed
         )
                 : Lambda(lambda)
-                  , Normalize(normalize)
-                  , ScoreStdDev(scoreStdDev)
-                  , GlobalSeed(globalSeed) {
+                , Normalize(normalize)
+                , ScoreStdDev(scoreStdDev)
+                , GlobalSeed(globalSeed) {
 
         }
 
@@ -179,7 +172,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-        TPartOffsetsHelper helper(foldCount);
+        TPointwisePartOffsetsHelper helper(foldCount);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -273,7 +266,7 @@ namespace NKernel {
     class TDirectHistLoader {
     public:
         __forceinline__ __device__ TDirectHistLoader(const float* binSums,
-                                     TPartOffsetsHelper& helper,
+                                     TPointwisePartOffsetsHelper& helper,
                                      int binFeatureId,
                                      int /* leaf count*/,
                                      int binFeatureCount)
@@ -292,7 +285,7 @@ namespace NKernel {
         }
     private:
         const float* BinSums;
-        TPartOffsetsHelper& Helper;
+        TPointwisePartOffsetsHelper& Helper;
         int BinFeatureCount;
     };
 
@@ -300,7 +293,7 @@ namespace NKernel {
     class TGatheredByLeavesHistLoader {
     public:
         __forceinline__ __device__ TGatheredByLeavesHistLoader(const float* binSums,
-                                                               TPartOffsetsHelper&,
+                                                               TPointwisePartOffsetsHelper&,
                                                                int binFeatureId,
                                                                int leafCount,
                                                                int /*binFeatureCount*/)
@@ -343,7 +336,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-        TPartOffsetsHelper helper(1);
+        TPointwisePartOffsetsHelper helper(1);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
