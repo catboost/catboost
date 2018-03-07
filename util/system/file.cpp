@@ -689,7 +689,7 @@ public:
             if (reallyRead < 0)
                 ythrow TFileError() << "can not read data from " << FileName_.Quote();
 
-            if (reallyRead == 0) // file exausted
+            if (reallyRead == 0) // file exhausted
                 break;
 
             buf += reallyRead;
