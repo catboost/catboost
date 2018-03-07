@@ -383,10 +383,8 @@ def onadd_check(unit, *args):
     check_type = flat_args[0]
     test_dir = unit.resolve(os.path.join(unit.path()))
 
-    if check_type == "PEP8":
-        script_rel_path = "py.lint.pep8"
-    elif check_type in ["PYFLAKES", "PY_FLAKES"]:
-        script_rel_path = "py.lint.flakes"
+    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES"]:
+        script_rel_path = "py.lint.pylint"
     elif check_type == "JAVA_STYLE":
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")
