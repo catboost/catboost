@@ -191,14 +191,13 @@ namespace NCatboostCuda {
 
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
-            MATRIXNET_DEBUG_LOG << "Compressed index written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
+            MATRIXNET_INFO_LOG << "Compressed index written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
 
             const ui32 blockCount = SeenFeatures.size();
 
             for (ui32 dataSetId = 0; dataSetId < blockCount; ++dataSetId) {
                 auto& ds = *CompressedIndex.DataSets[dataSetId];
                 const TDataSetDescription& description = ds.Description;
-                MATRIXNET_DEBUG_LOG << "Compressed index dataSet " << description.Name << Endl;
                 ds.PrintInfo();
                 for (ui32 f : ds.GetFeatures()) {
                     CB_ENSURE(SeenFeatures[dataSetId].count(f), "Unseen feature #" << f << " in dataset " << description.Name);
