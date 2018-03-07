@@ -6,11 +6,12 @@
 
 namespace NCatboostCuda {
     template <class TTarget>
-    inline double ComputeStdDev(TTarget& target) {
-        DivideVector(target.WeightedTarget, target.Weights);
-        const double sum2 = DotProduct(target.WeightedTarget, target.WeightedTarget, &target.Weights);
+    inline double ComputeStdDev(const TTarget& target) {
+        auto tmp = decltype(target.WeightedTarget)::CopyMapping(target.WeightedTarget);
+        tmp.Copy(target.WeightedTarget);
+        DivideVector(tmp, target.Weights);
+        const double sum2 = DotProduct(tmp, tmp, &target.Weights);
         const double count = target.WeightedTarget.GetObjectsSlice().Size();
-        MultiplyVector(target.WeightedTarget, target.Weights);
         return sqrt(sum2 / (count + 1e-100));
     }
 
