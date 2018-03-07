@@ -52,9 +52,12 @@ public:
     typedef K TKey;
 public:
     template<class TDerivedProduct>
-    void Register (const TKey& key) {
+    void Register (const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator = nullptr) {
+        if (!creator)
+            creator = new TFactoryObjectCreator<TProduct, TDerivedProduct, TArgs...>;
+
         TWriteGuard guard(CreatorsLock);
-        if (!Creators.insert(typename ICreators::value_type(key, new TFactoryObjectCreator<TProduct, TDerivedProduct, TArgs...>)).second)
+        if (!Creators.insert(typename ICreators::value_type(key, creator)).second)
             ythrow yexception() << "Product with key " << key << " already registered";
     }
 
@@ -125,11 +128,13 @@ public:
     template<class Product>
     class TRegistrator {
     public:
-        TRegistrator(const TKey& key) {
-            Singleton< TObjectFactory<TProduct, TKey> >()->template Register<Product>(key);
+        TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, void>* creator = nullptr) {
+            Singleton< TObjectFactory<TProduct, TKey> >()->template Register<Product>(key, creator);
         }
-        TRegistrator() {
-            Singleton< TObjectFactory<TProduct, TKey> >()->template Register<Product>(Product::GetTypeName());
+
+        TRegistrator()
+            : TRegistrator(Product::GetTypeName())
+        {
         }
     };
 };
@@ -159,12 +164,13 @@ public:
     template<class Product>
     class TRegistrator {
     public:
-        TRegistrator(const TKey& key) {
-            Singleton< TParametrizedObjectFactory<TProduct, TKey, TArgs...> >()->template Register<Product>(key);
+        TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator = nullptr) {
+            Singleton< TParametrizedObjectFactory<TProduct, TKey, TArgs...> >()->template Register<Product>(key, creator);
         }
 
-        TRegistrator() {
-            Singleton< TParametrizedObjectFactory<TProduct, TKey, TArgs...> >()->template Register<Product>(Product::GetTypeName());
+        TRegistrator()
+            : TRegistrator(Product::GetTypeName())
+        {
         }
     };
 };

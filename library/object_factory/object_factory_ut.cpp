@@ -52,20 +52,34 @@ private:
     const TArgument Argument;
 };
 
-using TTestFactory = TParametrizedObjectFactory<ICommonInterface, TString, TString, float, TArgument>;
+struct TDirectOrderCreator: public IFactoryObjectCreator<ICommonInterface, const TString&, float, TArgument&> {
+    ICommonInterface* Create(const TString& provider, float& factor, TArgument& argument) const override {
+        ++CallsCounter;
+        return new TDirectOrder(provider, factor, argument);
+    }
 
-static TTestFactory::TRegistrator<TDirectOrder> Direct("direct");
+    static int CallsCounter;
+};
+int TDirectOrderCreator::CallsCounter = 0;
+
+using TTestFactory = TParametrizedObjectFactory<ICommonInterface, TString, const TString&, float, TArgument&>;
+
+static TTestFactory::TRegistrator<TDirectOrder> Direct("direct", new TDirectOrderCreator);
 static TTestFactory::TRegistrator<TInverseOrder> Inverse("inverse");
 
 SIMPLE_UNIT_TEST_SUITE(TestObjectFactory) {
     SIMPLE_UNIT_TEST(TestParametrized) {
-        THolder<ICommonInterface> direct(TTestFactory::Construct("direct", "prov", 0.42, { "Name", nullptr }));
-        THolder<ICommonInterface> inverse(TTestFactory::Construct("inverse", "prov2", 1, { "Fake", nullptr }));
+        TArgument directArg{ "Name", nullptr };
+        TArgument inverseArg{ "Fake", nullptr };
+        THolder<ICommonInterface> direct(TTestFactory::Construct("direct", "prov", 0.42, directArg));
+        THolder<ICommonInterface> inverse(TTestFactory::Construct("inverse", "prov2", 1, inverseArg));
 
         UNIT_ASSERT(!!direct);
         UNIT_ASSERT(!!inverse);
 
         UNIT_ASSERT(direct->GetValue() == "prov0.42Name");
         UNIT_ASSERT(inverse->GetValue() == "Fake1prov2");
+
+        UNIT_ASSERT_EQUAL(TDirectOrderCreator::CallsCounter, 1);
     }
 }
