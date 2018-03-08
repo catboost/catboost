@@ -119,18 +119,25 @@ namespace NCatboostCuda {
         return config;
     }
 
-    inline void CheckForSnapshotAndReloadOptions(const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                 NCatboostOptions::TCatBoostOptions* options) {
+    inline THolder<NCatboostOptions::TCatBoostOptions> TryToLoadSnapshotOptionsAndUpdateSeed(const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                                                             NCatboostOptions::TCatBoostOptions* options) {
         auto snapshotFullPath = outputOptions.CreateSnapshotFullPath();
         if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFullPath)) {
             if (GetFileLength(snapshotFullPath) == 0) {
                 MATRIXNET_WARNING_LOG << "Empty snapshot file. Something is wrong" << Endl;
+                return nullptr;
             } else {
-                TString jsonOptions;
+                TString jsonOptionsStr;
                 TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(snapshotFullPath, [&](TIFStream* in) {
-                    ::Load(in, jsonOptions);
+                    ::Load(in, jsonOptionsStr);
                 });
-                options->Load(jsonOptions);
+
+                auto progressOptions = MakeHolder<NCatboostOptions::TCatBoostOptions>(options->GetTaskType());
+                NJson::TJsonValue progressOptionsJson;
+                NJson::ReadJsonTree(jsonOptionsStr, &progressOptionsJson);
+                progressOptions->Load(progressOptionsJson);
+                options->RandomSeed = progressOptions->RandomSeed;
+                return progressOptions;
             }
         }
     }
@@ -204,6 +211,26 @@ namespace NCatboostCuda {
         });
     }
 
+    static void SetDataDependentDefaults(const THolder<NCatboostOptions::TCatBoostOptions>& snapshotOptions,
+                                         const TDataProvider& dataProvider,
+                                         const THolder<TDataProvider>& testProvider,
+                                         NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                         TBinarizedFeaturesManager& featuresManager) {
+
+        UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
+                                 &catBoostOptions.BoostingOptions->BoostingType);
+
+        UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
+        if (snapshotOptions.Get() == nullptr) {
+            EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
+        } else {
+            catBoostOptions.CatFeatureParams = snapshotOptions->CatFeatureParams;
+        }
+        UpdateDataPartitionType(featuresManager, catBoostOptions);
+        UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
+    }
+
+
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                      const TDataProvider& dataProvider,
@@ -262,7 +289,9 @@ namespace NCatboostCuda {
         TString outputModelPath = outputOptions.CreateResultModelFullPath();
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         catBoostOptions.Load(params);
-        CheckForSnapshotAndReloadOptions(outputOptions, &catBoostOptions);
+        THolder<TCatboostOptions> snapshotOptions = TryToLoadSnapshotOptionsAndUpdateSeed(outputOptions,
+                                                                                          &catBoostOptions);
+        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
         SetLogingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
@@ -272,7 +301,6 @@ namespace NCatboostCuda {
 
         TVector<ui64> indices(learnPool.Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
-        UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &catBoostOptions.BoostingOptions->BoostingType);
 
         ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
         ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
@@ -328,11 +356,12 @@ namespace NCatboostCuda {
                 .Finish(numThreads);
         }
 
-        UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
-        EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
-        UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
-        UpdateDataPartitionType(featuresManager, catBoostOptions);
-        UpdatePinnedMemorySizeOption(dataProvider, testData.Get(), featuresManager, catBoostOptions);
+        SetDataDependentDefaults(snapshotOptions,
+                                 dataProvider,
+                                 testData,
+                                 catBoostOptions,
+                                 featuresManager);
+
 
         auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
@@ -356,7 +385,9 @@ namespace NCatboostCuda {
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     const NJson::TJsonValue& jsonOptions) {
         auto catBoostOptions = NCatboostOptions::LoadOptions(jsonOptions);
-        CheckForSnapshotAndReloadOptions(outputOptions, &catBoostOptions);
+        auto snapshotOptions = TryToLoadSnapshotOptionsAndUpdateSeed(outputOptions, &catBoostOptions);
+        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
+
         SetLogingLevel(catBoostOptions.LoggingLevel);
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
         TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
@@ -432,11 +463,7 @@ namespace NCatboostCuda {
             }
 
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
-            UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
-            EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
-            UpdateBoostingTypeOption(dataProvider.GetSampleCount(), &catBoostOptions.BoostingOptions->BoostingType);
-            UpdateDataPartitionType(featuresManager, catBoostOptions);
-            UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
+            SetDataDependentDefaults(snapshotOptions, dataProvider, testProvider, catBoostOptions, featuresManager);
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);
@@ -453,5 +480,7 @@ namespace NCatboostCuda {
                       numThreads,
                       resultModelPath);
     }
+
+
 
 }
