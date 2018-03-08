@@ -150,7 +150,7 @@ namespace NCatboostCuda {
                     borders = BuildBorders(floatValues, floatFeature->GetId(), config);
                 }
                 if (borders.ysize() == 0) {
-                    MATRIXNET_INFO_LOG << "Float Feature #" << featureId << " is empty" << Endl;
+                    MATRIXNET_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                     return;
                 }
 
@@ -178,7 +178,7 @@ namespace NCatboostCuda {
         for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId) {
             if (CatFeatureIds.has(featureId)) {
                 if (featureColumns[featureId] == nullptr && (!IsTest)) {
-                    MATRIXNET_INFO_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
+                    MATRIXNET_DEBUG_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                 }
             } else {
                 if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId)) {
