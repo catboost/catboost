@@ -107,7 +107,7 @@ class ExternalDataInfo(object):
 
     @property
     def path(self):
-        assert "://" in self.uri, self.uri
+        assert self.uri.count("://") == 1, self.uri
         _, path = self.uri.split("://")
         return path
 
