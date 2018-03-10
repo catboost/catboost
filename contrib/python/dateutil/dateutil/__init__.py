@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-__version__ = "2.3"
+from ._version import VERSION as __version__

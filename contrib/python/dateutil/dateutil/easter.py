@@ -33,9 +33,9 @@ def easter(year, method=EASTER_WESTERN):
 
     These methods are represented by the constants:
 
-    EASTER_JULIAN   = 1
-    EASTER_ORTHODOX = 2
-    EASTER_WESTERN  = 3
+    * ``EASTER_JULIAN   = 1``
+    * ``EASTER_ORTHODOX = 2``
+    * ``EASTER_WESTERN  = 3``
 
     The default method is method 3.
 
