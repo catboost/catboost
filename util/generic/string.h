@@ -191,11 +191,6 @@ public:
 
     inline TCharType back() const noexcept {
         Y_ASSERT(!this->empty());
-
-        if (empty()) {
-            return 0;
-        }
-
         return Ptr()[Len() - 1];
     }
 
