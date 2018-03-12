@@ -443,8 +443,6 @@ namespace NKernel
         const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &counters[0]);
         __syncthreads();
 
-
-
         //CatBoost always use direct loads on first pass of histograms calculation and for this step 64-bits loads are almost x2 faster
         #if __CUDA_ARCH__ > 350
         const bool use64BitLoad =  FULL_PASS;// float2 for target/indices/weights
@@ -456,11 +454,11 @@ namespace NKernel
             if (maxBinCount <= 32) {
                 DECLARE_PASS(0, 0, M, use64BitLoad);
             } else if (maxBinCount <= 64) {
-                DECLARE_PASS(0, 1, M, false);
+                DECLARE_PASS(0, 1, M, use64BitLoad);
             } else if (maxBinCount <= 128) {
-                DECLARE_PASS(0, 2, M, false);
+                DECLARE_PASS(0, 2, M, use64BitLoad);
             } else {
-                DECLARE_PASS(1, 2, M, false);
+                DECLARE_PASS(1, 2, M, use64BitLoad);
             }
         }
     }
