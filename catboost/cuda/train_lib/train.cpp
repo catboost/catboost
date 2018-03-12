@@ -139,6 +139,8 @@ namespace NCatboostCuda {
                 options->RandomSeed = progressOptions->RandomSeed;
                 return progressOptions;
             }
+        } else {
+            return nullptr;
         }
     }
 
