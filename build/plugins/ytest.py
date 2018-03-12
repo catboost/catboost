@@ -309,6 +309,7 @@ def onadd_ytest(unit, *args):
         'BUILD-FOLDER-PATH': strip_roots(unit.path()),
         'BINARY-PATH': strip_roots(os.path.join(unit.path(), unit.filename())),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
+        'TEST-RECIPES': base64.b64encode(unit.get('RECIPE_COMMAND_VALUE') or ''),
         'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + (unit.get(['__test_data']) or '').split(' ') + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
@@ -704,6 +705,10 @@ def onsetup_pytest_bin(unit, *args):
         unit.onno_platform()
         unit.onadd_pytest_script(["PY_TEST"])
 
+def onuse_recipe(unit, *args):
+    recipe_cmd = unit.get(["RECIPE_COMMAND_VALUE"]) or ''
+    recipe_cmd += "\n" + subprocess.list2cmdline(args)
+    unit.set(["RECIPE_COMMAND_VALUE", recipe_cmd])
 
 def onrun(unit, *args):
     exectest_cmd = unit.get(["EXECTEST_COMMAND_VALUE"]) or ''
