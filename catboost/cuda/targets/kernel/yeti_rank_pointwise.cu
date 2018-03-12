@@ -36,7 +36,8 @@ namespace NKernel
                                                  const float* __restrict__ approx, const float* __restrict__ relev,
                                                  const int* __restrict__ qids, int size,
                                                  float* approxes,
-                                                 float* __restrict__ targetDst, float*  __restrict__ weightDst) {
+                                                 volatile float* __restrict__ targetDst,
+                                                 volatile float*  __restrict__ weightDst) {
 
         const int N = 4;
         ui32 srcIndex[N]; //contains offset and qid of point
@@ -50,8 +51,7 @@ namespace NKernel
                 int* queryIds = (int*) approxes;
                 const int firstQid = __ldg(qids);
 
-                for (int k = 0; k < N; k++)
-                {
+                for (int k = 0; k < N; k++) {
                     int offset = threadIdx.x + k * BLOCK_SIZE;
                     int qid = offset < size ? qids[offset] : qids[size - 1] + 1;
                     qid -= firstQid;
@@ -66,8 +66,7 @@ namespace NKernel
                 queryOffsets[threadIdx.x] = size;
                 __syncthreads();
 
-                for (int k = 0; k < N; k++)
-                {
+                for (int k = 0; k < N; k++) {
                     const int offset = threadIdx.x + k * BLOCK_SIZE; //point id
                     if (!offset || queryIds[offset] != queryIds[offset - 1])
                     {
@@ -78,8 +77,7 @@ namespace NKernel
 
                 __syncthreads();
 
-                for (int k = 0; k < N; k++)
-                {
+                for (int k = 0; k < N; k++) {
                     const int offset = threadIdx.x + k * BLOCK_SIZE; //point id
                     int qid = queryIds[offset];
 
@@ -120,8 +118,7 @@ namespace NKernel
 
             //now key[k] is idx of document on position (threadIdx.x + k * BLOCK_SIZE - queryOffset) in query key[k] >> 10
 
-            for (int k = 0; k < N; k++)
-            {
+            for (int k = 0; k < N; k++) {
                 const int offset = threadIdx.x + k * BLOCK_SIZE;
                 indices[offset] = idx[k] & 1023;
             }
@@ -156,6 +153,7 @@ namespace NKernel
                     weightDst[idx2] += pairWeight;
                     targetDst[idx2] += -ll;
                 }
+                __syncthreads();
             }
 
             __syncthreads();
