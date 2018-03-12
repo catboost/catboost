@@ -25,6 +25,7 @@ static void GenerateRandomWeights(int learnSampleCount,
                                   TFold* fold) {
     const float baggingTemperature = ctx->Params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
     if (baggingTemperature == 0) {
+        Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
         return;
     }
 
@@ -47,11 +48,6 @@ static void CalcWeightedData(int learnSampleCount,
                                 TLearnContext* ctx,
                                 TFold* fold) {
     TFold& ff = *fold;
-    if (!ff.LearnWeights.empty()) {
-        for (int i = 0; i < learnSampleCount; ++i) {
-            ff.SampleWeights[i] *= ff.LearnWeights[i];
-        }
-    }
 
     const int approxDimension = ff.GetApproxDimension();
     for (TFold::TBodyTail& bt : ff.BodyTailArr) {
@@ -60,13 +56,19 @@ static void CalcWeightedData(int learnSampleCount,
             begin = bt.BodyFinish;
         }
         for (int dim = 0; dim < approxDimension; ++dim) {
-            double* weightedDerData = bt.WeightedDer[dim].data();
-            const double* derData = bt.Derivatives[dim].data();
+            const double* weightedDerivativesData = bt.WeightedDerivatives[dim].data();
+            double* sampleWeightedDerivativesData = bt.SampleWeightedDerivatives[dim].data();
             const float* sampleWeightsData = ff.SampleWeights.data();
             ctx->LocalExecutor.ExecRange([=](int z) {
-                weightedDerData[z] = derData[z] * sampleWeightsData[z];
+                sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
             }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)
              , NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
+    }
+
+    if (!ff.LearnWeights.empty()) {
+        for (int i = 0; i < learnSampleCount; ++i) {
+            ff.SampleWeights[i] *= ff.LearnWeights[i];
         }
     }
 }
@@ -270,8 +272,8 @@ static void AddTreeCtrs(const TTrainData& data,
 static double CalcScoreStDev(const TFold& ff) {
     double sum2 = 0, totalSum2Count = 0;
     for (const TFold::TBodyTail& bt : ff.BodyTailArr) {
-        for (int dim = 0; dim < bt.Derivatives.ysize(); ++dim) {
-            sum2 += DotProduct(bt.Derivatives[dim].data() + bt.BodyFinish, bt.Derivatives[dim].data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish);
+        for (int dim = 0; dim < bt.WeightedDerivatives.ysize(); ++dim) {
+            sum2 += DotProduct(bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish);
         }
         totalSum2Count += bt.TailFinish - bt.BodyFinish;
     }
@@ -332,11 +334,13 @@ static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstr
                TLearnContext* ctx) {
     switch (samplingConfig->GetBootstrapType()) {
         case EBootstrapType::Bernoulli:
+            Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
             break;
         case EBootstrapType::Bayesian:
             GenerateRandomWeights(learnSampleCount, ctx, fold);
             break;
         case EBootstrapType::No:
+            Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
             break;
         default:
             CB_ENSURE(false, "Not supported bootstrap type on CPU: " << samplingConfig->GetBootstrapType());

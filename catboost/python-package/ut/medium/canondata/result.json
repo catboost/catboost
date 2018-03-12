@@ -1,6 +1,6 @@
 {
     "test.test_class_weights": {
-        "checksum": "ab7f2f6d464a4c4ea0102318e86001fe",
+        "checksum": "78264d2a4ad131c8f7ac7d8f32cc1950",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
@@ -32,7 +32,7 @@
         "uri": "file://test.test_feature_importance/feature_importance.npy"
     },
     "test.test_fit_data": {
-        "checksum": "6254aef8597589d4f394599f43de71d8",
+        "checksum": "acddb1de69f8648314e3b2617207279d",
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
@@ -52,7 +52,7 @@
         "uri": "file://test.test_multiclass/predictions.npy"
     },
     "test.test_non_ones_weight": {
-        "checksum": "b6e3065b6cc11a01257ea366daeb64ab",
+        "checksum": "e54b47e687e376d659431794bc760835",
         "uri": "file://test.test_non_ones_weight/model.bin"
     },
     "test.test_ntree_limit": {

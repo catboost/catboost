@@ -237,7 +237,7 @@ void TrainOneIter(const TTrainData& data, TLearnContext* ctx) {
                 bt.TailFinish,
                 bt.TailQueryFinish,
                 ctx,
-                &bt.Derivatives
+                &bt.WeightedDerivatives
             );
         }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         profile.AddOperation("Calc derivatives");

@@ -583,6 +583,28 @@ def test_weights():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_weights_no_bootstrap():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult_weight', 'train_weight'),
+        '-t', data_file('adult_weight', 'test_weight'),
+        '--column-description', data_file('adult_weight', 'train.cd'),
+        '--bootstrap-type', 'No',
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_weights_gradient():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

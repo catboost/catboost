@@ -21,9 +21,9 @@
 struct TFold {
     struct TBodyTail {
         TVector<TVector<double>> Approx;
-        TVector<TVector<double>> Derivatives;
+        TVector<TVector<double>> WeightedDerivatives;
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
-        TVector<TVector<double>> WeightedDer;
+        TVector<TVector<double>> SampleWeightedDerivatives;
 
         int BodyQueryFinish = 0;
         int TailQueryFinish = 0;

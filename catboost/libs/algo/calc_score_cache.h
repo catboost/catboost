@@ -97,8 +97,8 @@ struct TCalcScoreFold {
     };
 
     struct TBodyTail {
-        TUnsizedVector<TUnsizedVector<double>> Derivatives;
-        TUnsizedVector<TUnsizedVector<double>> WeightedDer;
+        TUnsizedVector<TUnsizedVector<double>> WeightedDerivatives;
+        TUnsizedVector<TUnsizedVector<double>> SampleWeightedDerivatives;
 
         TAtomic BodyFinish = 0;
         TAtomic TailFinish = 0;

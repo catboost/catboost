@@ -159,25 +159,25 @@
     ],
     "test.test_class_weight_logloss": [
         {
-            "checksum": "edc33c06dd9fb1237d8e5c05b7ae799b",
+            "checksum": "9e14b46ae67e88820e893ea2642293c5",
             "uri": "file://test.test_class_weight_logloss/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "80336b45b4787ec67f943b78bbfd51b1",
+            "checksum": "859825de4870fcb4caccf92ce002bd5e",
             "uri": "file://test.test_class_weight_multiclass_MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[MultiClass]": [
         {
-            "checksum": "f75e4b43153cb6f686e60738f47b6bb3",
+            "checksum": "4bee97d5a9ab84feb6e824c135bee4cd",
             "uri": "file://test.test_class_weight_multiclass_MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class": [
         {
-            "checksum": "31db8f85069709730cc64ab3a5ae16af",
+            "checksum": "4b59f0e9dcad3ce8f813033fcf032b4c",
             "uri": "file://test.test_class_weight_with_lost_class/test.eval"
         }
     ],
@@ -921,19 +921,25 @@
     },
     "test.test_weights": [
         {
-            "checksum": "10ac84e51fa801448b84e148d7648571",
+            "checksum": "0456a29c8b2a020046fd0b7b2f374c53",
             "uri": "file://test.test_weights/test.eval"
         }
     ],
     "test.test_weights_gradient": [
         {
-            "checksum": "5a55a723f3154f9f25c09d7e0bf8e065",
+            "checksum": "93253222e94955a020e085bd14753c34",
             "uri": "file://test.test_weights_gradient/test.eval"
+        }
+    ],
+    "test.test_weights_no_bootstrap": [
+        {
+            "checksum": "39d30a196c395b6b3fdce181e308face",
+            "uri": "file://test.test_weights_no_bootstrap/test.eval"
         }
     ],
     "test.test_weights_output": [
         {
-            "checksum": "d11e559e8313c2d16064eb45228a884a",
+            "checksum": "604ec0fa8138e98dc6218eb1e58e4155",
             "uri": "file://test.test_weights_output/test.eval"
         }
     ]

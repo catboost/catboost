@@ -230,10 +230,10 @@ static TVector<double> CalcScoreImpl(const TIsCaching& isCaching,
 
             const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
             if (isPlainMode) {
-                UpdateWeighted(singleIdx, GetDataPtr(bt.WeightedDer[dim]), GetDataPtr(fold.SampleWeights), 0, bt.TailFinish, stats);
+                UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), GetDataPtr(fold.SampleWeights), 0, bt.TailFinish, stats);
             } else {
-                UpdateDeltaCount(singleIdx, GetDataPtr(bt.Derivatives[dim]), GetDataPtr(fold.LearnWeights), bt.BodyFinish, stats);
-                UpdateWeighted(singleIdx, GetDataPtr(bt.WeightedDer[dim]), GetDataPtr(fold.SampleWeights), bt.BodyFinish, bt.TailFinish, stats);
+                UpdateDeltaCount(singleIdx, GetDataPtr(bt.WeightedDerivatives[dim]), GetDataPtr(fold.LearnWeights), bt.BodyFinish, stats);
+                UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), GetDataPtr(fold.SampleWeights), bt.BodyFinish, bt.TailFinish, stats);
             }
 
             if (isCaching) {

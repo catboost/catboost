@@ -93,15 +93,15 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
     ApproxDimension = folds[0].GetApproxDimension();
     Y_ASSERT(ApproxDimension > 0);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
-        BodyTailArr[bodyTailIdx].Derivatives.yresize(ApproxDimension);
-        BodyTailArr[bodyTailIdx].WeightedDer.yresize(ApproxDimension);
+        BodyTailArr[bodyTailIdx].WeightedDerivatives.yresize(ApproxDimension);
+        BodyTailArr[bodyTailIdx].SampleWeightedDerivatives.yresize(ApproxDimension);
         for (int dimIdx = 0; dimIdx < ApproxDimension; ++dimIdx) {
             int bodyFinish = GetMaxBodyFinish(folds, bodyTailIdx);
             Y_ASSERT(bodyFinish > 0);
-            BodyTailArr[bodyTailIdx].Derivatives[dimIdx].yresize(bodyFinish);
+            BodyTailArr[bodyTailIdx].WeightedDerivatives[dimIdx].yresize(bodyFinish);
             int tailFinish = GetMaxTailFinish(folds, bodyTailIdx);
             Y_ASSERT(tailFinish > 0);
-            BodyTailArr[bodyTailIdx].WeightedDer[dimIdx].yresize(tailFinish);
+            BodyTailArr[bodyTailIdx].SampleWeightedDerivatives[dimIdx].yresize(tailFinish);
         }
     }
 }
@@ -147,8 +147,8 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
         int bodyCount = 0;
         int tailCount = 0;
         for (int dim = 0; dim < ApproxDimension; ++dim) {
-            SetElements(srcControlRef, srcBodyBlock.GetConstRef(srcBodyTail.Derivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.Derivatives[dim]), &bodyCount);
-            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.WeightedDer[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.WeightedDer[dim]), &tailCount);
+            SetElements(srcControlRef, srcBodyBlock.GetConstRef(srcBodyTail.WeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.WeightedDerivatives[dim]), &bodyCount);
+            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.SampleWeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.SampleWeightedDerivatives[dim]), &tailCount);
         }
         AtomicAdd(dstBodyTail.BodyFinish, bodyCount); // these atomics may take up to 2-3% of iteration time
         AtomicAdd(dstBodyTail.TailFinish, tailCount);

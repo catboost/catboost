@@ -129,8 +129,8 @@ TFold BuildDynamicFold(
         if (!data.Baseline.empty()) {
             InitFromBaseline(leftPartLen, bt.TailFinish, data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
         }
-        bt.Derivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
-        bt.WeightedDer.resize(approxDimension, TVector<double>(bt.TailFinish));
+        bt.WeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
+        bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
         ff.BodyTailArr.emplace_back(std::move(bt));
         leftPartLen = bt.TailFinish;
     }
@@ -186,8 +186,8 @@ TFold BuildPlainFold(
     bt.TailQueryFinish = data.LearnQueryCount;
 
     bt.Approx.resize(approxDimension, TVector<double>(data.GetSampleCount(), GetNeutralApprox(storeExpApproxes)));
-    bt.Derivatives.resize(approxDimension, TVector<double>(data.GetSampleCount()));
-    bt.WeightedDer.resize(approxDimension, TVector<double>(data.GetSampleCount()));
+    bt.WeightedDerivatives.resize(approxDimension, TVector<double>(data.GetSampleCount()));
+    bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(data.GetSampleCount()));
     if (!data.Baseline.empty()) {
         InitFromBaseline(0, data.GetSampleCount(), data.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }
