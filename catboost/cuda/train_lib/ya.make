@@ -1,6 +1,5 @@
 LIBRARY()
 
-NO_WERROR()
 
 
 
