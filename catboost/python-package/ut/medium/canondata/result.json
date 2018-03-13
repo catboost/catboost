@@ -12,7 +12,7 @@
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_coreml_import_export": {
-        "checksum": "9531719233dc3f9a1830d61c97f64017",
+        "checksum": "c113e1bca8b3c5e2416c219c9395395c",
         "uri": "file://test.test_coreml_import_export/model.coreml"
     },
     "test.test_cv_logging": {

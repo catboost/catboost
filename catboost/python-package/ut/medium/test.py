@@ -23,13 +23,10 @@ CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 
-QUERY_TRAIN_FILE = data_file('querywise_pool', 'train_full3')
-QUERY_TEST_FILE = data_file('querywise_pool', 'test3')
-QUERY_CD_FILE = data_file('querywise_pool', 'train_full3.cd')
-
-QUERYWISE_TRAIN_FILE = data_file('querywise', 'train_small3')
-QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train_small3.pairs')
-QUERYWISE_CD_FILE = data_file('querywise', 'train_full3.cd')
+QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
+QUERYWISE_TEST_FILE = data_file('querywise', 'test')
+QUERYWISE_CD_FILE = data_file('querywise', 'train.cd')
+QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.coreml'
@@ -191,8 +188,8 @@ def test_fit_from_file():
 
 
 def test_coreml_import_export():
-    train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
-    test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8})
     model.fit(train_pool)
     model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
@@ -258,19 +255,19 @@ def test_multiclass():
 
 
 def test_querywise():
-    train_pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
-    test_pool = Pool(QUERY_TEST_FILE, column_description=QUERY_CD_FILE)
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 8})
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_table(QUERY_TRAIN_FILE, delimiter='\t', header=None)
-    train_query_id = df.loc[:, 1]
-    train_target = df.loc[:, 0]
-    train_data = df.drop([0, 1], axis=1).astype(str)
+    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_query_id = df.loc[:, 0]
+    train_target = df.loc[:, 1]
+    train_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
 
-    df = read_table(QUERY_TEST_FILE, delimiter='\t', header=None)
-    test_data = df.drop([0, 1], axis=1).astype(str)
+    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
 
     model.fit(train_data, train_target, group_id=train_query_id)
     pred2 = model.predict(test_data)
@@ -599,7 +596,7 @@ def test_cv():
 
 
 def test_cv_query():
-    pool = Pool(QUERY_TRAIN_FILE, column_description=QUERY_CD_FILE)
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "QueryRMSE"})
     assert "train-QueryRMSE-mean" in results
 
