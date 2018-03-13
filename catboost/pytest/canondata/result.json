@@ -359,13 +359,13 @@
     ],
     "test.test_const_feature[Ordered]": [
         {
-            "checksum": "cd65248267a2e12eac8d4562ebb0d9d9",
+            "checksum": "64757c98085448c928b125dcbd2e2971",
             "uri": "file://test.test_const_feature_Ordered_/test.eval"
         }
     ],
     "test.test_const_feature[Plain]": [
         {
-            "checksum": "98b1f04619f0ee608d9fafb48e9d6a07",
+            "checksum": "50ad13175728726201498846db847114",
             "uri": "file://test.test_const_feature_Plain_/test.eval"
         }
     ],
@@ -479,41 +479,41 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "5f9e81ab37e6e5e853c8f2b0db46c706",
+            "checksum": "8ad77b1f31440df15e4782094e397798",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "5f9e81ab37e6e5e853c8f2b0db46c706",
+            "checksum": "8ad77b1f31440df15e4782094e397798",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-RMSE,MAE]": [
         {
-            "checksum": "1123c924bab9de739b581388a54c5e2d",
+            "checksum": "46a74756a236a35cc2ccc17bdc026344",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "1123c924bab9de739b581388a54c5e2d",
+            "checksum": "46a74756a236a35cc2ccc17bdc026344",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "f03a232713e5cc6988f4ee33b8b738e2",
+            "checksum": "022e814285b16b41befadfb17e67800e",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "f03a232713e5cc6988f4ee33b8b738e2",
+            "checksum": "022e814285b16b41befadfb17e67800e",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-RMSE,MAE]": [
         {
-            "checksum": "adecbe5909dbc59459fcb5ee27d28963",
+            "checksum": "cb3c478c6a603775eeddd1a4f4effd8f",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "adecbe5909dbc59459fcb5ee27d28963",
+            "checksum": "cb3c478c6a603775eeddd1a4f4effd8f",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -603,13 +603,13 @@
     ],
     "test.test_cv_for_pairs[Ordered]": [
         {
-            "checksum": "cf9000a6114eb79dc289015edd0bfb0b",
+            "checksum": "e2bc2743338e4640908f79e34b257fed",
             "uri": "file://test.test_cv_for_pairs_Ordered_/test.eval"
         }
     ],
     "test.test_cv_for_pairs[Plain]": [
         {
-            "checksum": "de89dad2fa016f7f0e15ab1c5118bfa1",
+            "checksum": "a666ffd5404bf5ca685ad0d7d0a8571d",
             "uri": "file://test.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
@@ -1195,47 +1195,47 @@
     ],
     "test.test_pairlogit[Ordered]": [
         {
-            "checksum": "3296eb15e2bc63c8a36b50dbcd0ac626",
+            "checksum": "8885460e10ee3407908109145dc605c3",
             "uri": "file://test.test_pairlogit_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "3c1c4ecb5961a7b4b3aa6bdb3a522635",
+            "checksum": "dafa419f5000d5e189eeee0c3665a5b0",
             "uri": "file://test.test_pairlogit_Ordered_/test_error.tsv"
         },
         {
-            "checksum": "b56a93bae81cece1c2b0f42ee6aab37e",
+            "checksum": "b915b29acb9f2e1f5c5f2907a35788f8",
             "uri": "file://test.test_pairlogit_Ordered_/test.eval"
         }
     ],
     "test.test_pairlogit[Plain]": [
         {
-            "checksum": "9fad7c062d469e6ddb110203526380dc",
+            "checksum": "7445d7ddcd94dc1677497d8481931e6f",
             "uri": "file://test.test_pairlogit_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "f348045d4b232837db27ed50be1ca0ab",
+            "checksum": "fe36e6fbd3e4b0be12c84cfea03e1671",
             "uri": "file://test.test_pairlogit_Plain_/test_error.tsv"
         },
         {
-            "checksum": "b4f99349a797688ebd90e6526356d3f8",
+            "checksum": "9b0ccc0db72567254e60dad5b0e7a118",
             "uri": "file://test.test_pairlogit_Plain_/test.eval"
         }
     ],
     "test.test_pairlogit_approx_on_full_history": [
         {
-            "checksum": "fd42a4a0bbe28886ff44346cd4ce7b4f",
+            "checksum": "fa17add3c39ba625665d3e410d96b5e5",
             "uri": "file://test.test_pairlogit_approx_on_full_history/test.eval"
         }
     ],
     "test.test_pairlogit_no_target[Ordered]": [
         {
-            "checksum": "b78557cc82a4298ebf93ecc4ba994cc7",
+            "checksum": "8760179e6613ac6adf781bc3a3451521",
             "uri": "file://test.test_pairlogit_no_target_Ordered_/test.eval"
         }
     ],
     "test.test_pairlogit_no_target[Plain]": [
         {
-            "checksum": "846bb2e25d979f3335d22e99dcb0567d",
+            "checksum": "cb8cca87c9dc22320b694eaaf81db558",
             "uri": "file://test.test_pairlogit_no_target_Plain_/test.eval"
         }
     ],
@@ -1513,25 +1513,25 @@
     ],
     "test.test_quantile_targets[Ordered-LogLinQuantile]": [
         {
-            "checksum": "e274925d3fc32e9901a8db5b12947e48",
+            "checksum": "05356ce68b2d6625b5a500b6c19019fa",
             "uri": "file://test.test_quantile_targets_Ordered-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Ordered-Quantile]": [
         {
-            "checksum": "56d010e84a0de18972807e8f4b9ef8a4",
+            "checksum": "9d99f1c0b9b66c47d453241000c9645b",
             "uri": "file://test.test_quantile_targets_Ordered-Quantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Plain-LogLinQuantile]": [
         {
-            "checksum": "f07a37d2d0cac2910c773aa8ccffc415",
+            "checksum": "55a29e00d28487e72b27437defc40922",
             "uri": "file://test.test_quantile_targets_Plain-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Plain-Quantile]": [
         {
-            "checksum": "1dacf7f160544f0acd040744cbf58d6d",
+            "checksum": "f5341ccc628a12967f69e4d0897b1bcb",
             "uri": "file://test.test_quantile_targets_Plain-Quantile_/test.eval"
         }
     ],
@@ -1677,13 +1677,13 @@
     ],
     "test.test_rmse_on_qwise_pool[Ordered]": [
         {
-            "checksum": "cc467fd6bf8feee16bd89091dcafdca5",
+            "checksum": "fc9b7905daf99c6ac3a05c74e4be31b6",
             "uri": "file://test.test_rmse_on_qwise_pool_Ordered_/test.eval"
         }
     ],
     "test.test_rmse_on_qwise_pool[Plain]": [
         {
-            "checksum": "2020768d64636c45f408c20eedf0bb79",
+            "checksum": "ba07ab4932a9a16e008d8904b1767dc4",
             "uri": "file://test.test_rmse_on_qwise_pool_Plain_/test.eval"
         }
     ],
@@ -1851,7 +1851,7 @@
     ],
     "test.test_without_cat_features[Ordered]": [
         {
-            "checksum": "b54b7a2f651516a1f2eafe29398ae630",
+            "checksum": "356867629369fadbd5052e94482dc2d7",
             "uri": "file://test.test_without_cat_features_Ordered_/test.eval"
         }
     ],
