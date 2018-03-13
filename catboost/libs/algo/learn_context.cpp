@@ -104,10 +104,22 @@ void TLearnContext::OutputMeta() {
     }
 }
 
+static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
+    for (int i = 0; i < allFeatures.CatFeaturesRemapped.ysize(); ++i) {
+        if (!allFeatures.IsOneHot[i] && !allFeatures.CatFeaturesRemapped[i].empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void TLearnContext::InitData(const TTrainData& data) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     const auto sampleCount = data.GetSampleCount();
-    const int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
+    int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
+    if (IsCategoricalFeaturesEmpty(data.AllFeatures)) {
+        foldCount = 1;
+    }
     LearnProgress.Folds.reserve(foldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 

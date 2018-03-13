@@ -384,7 +384,6 @@ class TCPUModelTrainer : public IModelTrainer {
         ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(trainData.AllFeatures);
 
         ctx.OutputMeta();
-        ctx.InitData(trainData);
 
         GenerateBorders(learnPool, &ctx, &ctx.LearnProgress.FloatFeatures);
 
@@ -412,6 +411,8 @@ class TCPUModelTrainer : public IModelTrainer {
             &learnPool.Docs,
             &trainData.AllFeatures
         );
+
+        ctx.InitData(trainData);
 
         if (allowClearPool) {
             learnPool.Docs.Clear();
