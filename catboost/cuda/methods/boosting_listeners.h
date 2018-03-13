@@ -170,11 +170,11 @@ namespace NCatboostCuda {
             auto passedTime = (Now() - StartTime).GetValue();
             auto remainingTime = passedTime * (TotalIterations - passedIterations) / (passedIterations - FirstIteration);
 
-            Output << newEnsemble.Size() - 1 << "\t" << TDuration(remainingTime).MilliSeconds() << "\t"
-                   << TDuration(passedTime).MilliSeconds() << Endl;
+            Output << newEnsemble.Size() - 1 << "\t" << TDuration::MicroSeconds(remainingTime).MilliSeconds() << "\t"
+                   << TDuration::MicroSeconds(passedTime).MilliSeconds() << Endl;
 
-            MATRIXNET_NOTICE_LOG << "total: " << HumanReadable(TDuration(passedTime));
-            MATRIXNET_NOTICE_LOG << "\tremaining: " << HumanReadable(TDuration(remainingTime));
+            MATRIXNET_NOTICE_LOG << "total: " << HumanReadable(TDuration::MicroSeconds(passedTime));
+            MATRIXNET_NOTICE_LOG << "\tremaining: " << HumanReadable(TDuration::MicroSeconds(remainingTime));
             MATRIXNET_NOTICE_LOG << NoticeLogSuffix;
         }
 
