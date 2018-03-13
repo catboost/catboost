@@ -47,7 +47,7 @@ namespace NCatboostCuda {
                     TSlice devSlice = layout.DeviceSlice(dev);
                     std::sort(featureIds.begin() + devSlice.Left, featureIds.begin() + devSlice.Right,
                               [&](ui32 left, ui32 right) -> bool {
-                                  return info.GetFoldsCount(left) < info.GetFoldsCount(right);
+                                  return info.GetGroupingLevel(left) < info.GetGroupingLevel(right);
                               });
                 }
             }

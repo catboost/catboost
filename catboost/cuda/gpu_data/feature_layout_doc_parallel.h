@@ -42,7 +42,7 @@ namespace NCatboostCuda {
                 Shuffle(featureIds.begin(), featureIds.end(), rand);
 
                 std::sort(featureIds.begin(), featureIds.end(), [&](ui32 left, ui32 right) -> bool {
-                    return info.GetFoldsCount(left) < info.GetFoldsCount(right);
+                    return info.GetGroupingLevel(left) < info.GetGroupingLevel(right);
                 });
             }
             THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
@@ -74,6 +74,8 @@ namespace NCatboostCuda {
                     result.CudaFeaturesHost[i].Set(dev, features[dev * featureCount + i]);
                 }
             };
+
+
             CB_ENSURE(features.size() == GetDeviceCount() * featureCount);
             result.CudaFeaturesDevice.Reset(layout);
             result.CudaFeaturesDevice.Write(features);

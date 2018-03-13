@@ -24,6 +24,28 @@ namespace NCatboostCuda {
             return binCount ? binCount - 1 : 0;
         }
 
+        double GetGroupingLevel(ui32 featureId) const {
+            const ui32 binCount = Manager->GetBinCount(featureId);
+
+            //binCount <= 128 does not use atomics and
+            // should be groupped by binarization level for best performance
+            if (binCount <= 128 || Manager->IsCtr(featureId)) {
+                return binCount * 1.0 / 256;
+            }
+
+            //for features with binCount > 128 heuristic to group most sparse
+            //features together as this'll increase register cache hit
+            //and reduce atomic conflicts
+            if (DataProvider && !Manager->IsCtr(featureId)) {
+                const ui32 dataProviderId = Manager->GetDataProviderId(featureId);
+                if (!DataProvider->HasFeatureId(dataProviderId)) {
+                    return 2.0;
+                }
+                return 1.0 + dynamic_cast<const TCompressedValuesHolderImpl&>(DataProvider->GetFeatureById(dataProviderId)).SparsityLevel();
+            }
+            return 2.0;
+        }
+
         bool IsOneHot(ui32 featureId) const {
             return Manager->IsCat(featureId);
         }

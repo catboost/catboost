@@ -10,123 +10,507 @@
 namespace NKernel
 {
 
-    template<int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int BLOCK_SIZE>
-    struct TPointHist
-    {
-        volatile float* __restrict__ Buffer;
-        int BlockId;
+    template<int OUTER_HIST_BITS_COUNT,
+             int INNER_HIST_BITS_COUNT,
+             int BLOCK_SIZE>
+    struct TPointHist {
+        float* __restrict__ Buffer;
 
-        __forceinline__ __device__ int SliceOffset()
-        {
-            const int warpOffset = 1024 * (threadIdx.x / 32);
+        float mostRecentStat1[4];
+        float mostRecentStat2[4];
+        uchar mostRecentBin[4];
+
+        __forceinline__ __device__ int SliceOffset() {
+
+            const int maxBlocks = BLOCK_SIZE * 32 / (1024 << OUTER_HIST_BITS_COUNT);
+            static_assert(OUTER_HIST_BITS_COUNT <= 2, "Error: assume 12 warps, so limited by 128-bin histogram per warp");
+
+            const int warpId = (threadIdx.x / 32) % maxBlocks;
+            const int warpOffset = (1024 << OUTER_HIST_BITS_COUNT) * warpId;
             const int blocks = 4 >> INNER_HIST_BITS_COUNT;
             const int innerHistStart = (threadIdx.x & ((blocks - 1) << (INNER_HIST_BITS_COUNT + 3)));
             return warpOffset + innerHistStart;
         }
 
-        __forceinline__ __device__ TPointHist(float* buff)
-        {
+        __forceinline__ __device__ TPointHist(float* buff) {
 
             const int HIST_SIZE = 32 * BLOCK_SIZE;
 
             #pragma unroll 8
-            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE)
-            {
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
                 buff[i] = 0;
             }
 
             Buffer = buff + SliceOffset();
-            BlockId = (threadIdx.x / 32) & ((1 << OUTER_HIST_BITS_COUNT) - 1);
-
 
             __syncthreads();
+            #pragma unroll
+            for (int f = 0; f < 4; ++f) {
+                mostRecentBin[f] = 0;
+                mostRecentStat1[f] = 0;
+                mostRecentStat2[f] = 0;
+            }
         }
 
-        __device__ void AddPoint(ui32 ci, const float t, const float w)
-        {
+        __forceinline__ __device__ void Add(float val, float* dst) {
+            if (OUTER_HIST_BITS_COUNT  > 0 || INNER_HIST_BITS_COUNT > 0) {
+                atomicAdd(dst, val);
+            } else {
+                dst[0] += val;
+            }
+        }
+
+        __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w) {
             const bool flag = threadIdx.x & 1;
 
+            const float stat1 = flag ? t : w;
+            const float stat2 = flag ? w : t;
 
-#pragma unroll
-            for (int i = 0; i < 4; i++)
-            {
-                short f = (threadIdx.x + (i << 1)) & 6;
-                short bin = bfe(ci, 24 - (f << 2), 8);
-                bool pass = (bin >> (5 + INNER_HIST_BITS_COUNT)) == BlockId;
-                int offset0 = f + flag;
-                int offset1 = f + !flag;
+            #pragma unroll
+            for (int i = 0; i < 4; i++) {
+                const short f = ((i + threadIdx.x / 2) & 3);
+                const uchar bin = bfe(ci, 24 - (f << 3), 8);
 
-                const int mask = (1 << INNER_HIST_BITS_COUNT) - 1;
+                if (bin != mostRecentBin[i]) {
+                    const bool pass = (mostRecentBin[i] >> (5 + INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT)) == 0;
+                    if (pass) {
+                        int offset = 2 * f;
+                        const uchar mask = (1 << INNER_HIST_BITS_COUNT) - 1;
+                        offset += 8 * (mostRecentBin[i] & mask);
+                        offset += 32 * ((mostRecentBin[i] >> INNER_HIST_BITS_COUNT));
 
-                const int tmp = (((bin >> INNER_HIST_BITS_COUNT) & 31) << 5) + 8 * (bin & mask);
-                offset0 += tmp;
-                offset1 += tmp;
-
-                if (INNER_HIST_BITS_COUNT > 0)
-                {
-#pragma unroll
-                    for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k)
-                    {
-                        if (((threadIdx.x >> 3) & ((1 << INNER_HIST_BITS_COUNT) - 1)) == k)
-                        {
-                            Buffer[offset0] += (flag ? t : w) * pass;
-                            Buffer[offset1] += (flag ? w : t) * pass;
-                        }
+                        offset += flag;
+                        Add(mostRecentStat1[i], Buffer + offset);
+                        offset = flag ? offset - 1 : offset + 1;
+                        Add(mostRecentStat2[i], Buffer + offset);
                     }
-                } else {
-                    Buffer[offset0] += (flag ? t : w) * pass;
-                    Buffer[offset1] += (flag ? w : t) * pass;
+
+                    mostRecentBin[i] = bin;
+                    mostRecentStat1[i] = 0;
+                    mostRecentStat2[i] = 0;
+                }
+
+                {
+                    mostRecentStat1[i] += stat1;
+                    mostRecentStat2[i] += stat2;
                 }
             }
         }
 
+
         //After reduce we store histograms by blocks: 256 floats (4 x 2 x 32)
         // for first 32 bins; than 256 floats for second 32 bins, etc
-        __forceinline__ __device__ void Reduce()
-        {
+        __forceinline__ __device__ void Reduce() {
+            {
+                const bool flag = threadIdx.x & 1;
+                #pragma unroll
+                for (int i = 0; i < 4; i++) {
+                    const short f = ((i + threadIdx.x / 2) & 3);
+                    const bool pass = (mostRecentBin[i] >> (5 + INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT)) == 0;
+                    if (pass) {
+                        int offset = 2 * f;
+                        const uchar mask = (1 << INNER_HIST_BITS_COUNT) - 1;
+                        offset += 8 * (mostRecentBin[i] & mask);
+                        offset += 32 * ((mostRecentBin[i] >> INNER_HIST_BITS_COUNT));
+
+                        Add(mostRecentStat1[i], Buffer + offset + flag);
+                        Add(mostRecentStat2[i], Buffer + offset + !flag);
+                    }
+                }
+            }
+
 
             Buffer -= SliceOffset();
-            const int warpCount = BLOCK_SIZE >> 5;
-            const int innerHistCount = 4 >> INNER_HIST_BITS_COUNT;
-            const int warpHistCount = warpCount >> OUTER_HIST_BITS_COUNT;
-            const int fold = (threadIdx.x >> 3) & 31;
+            __syncthreads();
 
-            const int mask = (1 << INNER_HIST_BITS_COUNT) - 1;
-            const int binOffset = ((fold >> INNER_HIST_BITS_COUNT) << 5) + 8 * (fold & mask);
-            const int offset = (threadIdx.x & 7) + binOffset;
-
-
-            const float* __restrict__ buffer = const_cast<float*>(Buffer);
-
-#pragma unroll
-            for (int outerBits = 0; outerBits < 1 << (OUTER_HIST_BITS_COUNT); ++outerBits)
             {
-#pragma unroll
-                for (int innerBits = 0; innerBits < (1 << (INNER_HIST_BITS_COUNT)); ++innerBits)
-                {
-                    float sum = 0.0f;
-                    const int innerOffset = innerBits << (10 - INNER_HIST_BITS_COUNT);
-                    const int tmp = innerOffset + offset;
+                const int warpHistSize = 1024 << OUTER_HIST_BITS_COUNT;
+                const int maxBlocks = BLOCK_SIZE * 32 / (1024 << OUTER_HIST_BITS_COUNT);
 
-                    {
+                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                    float sum = 0;
+//                    12 iterations at 32-bin
+                    #pragma unroll maxBlocks
+                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                        sum += Buffer[i];
+                    }
+                    Buffer[warpHistSize + start] = sum;
+                }
+            }
 
-#pragma unroll
-                        for (int hist = 0; hist < warpHistCount; ++hist)
-                        {
-                            const int warpOffset = ((hist << OUTER_HIST_BITS_COUNT) + outerBits) * 1024;
-                            const int tmp2 = tmp + warpOffset;
-#pragma unroll
-                            for (int inWarpHist = 0; inWarpHist < innerHistCount; ++inWarpHist)
-                            {
-                                sum += buffer[tmp2 + (inWarpHist << (3 + INNER_HIST_BITS_COUNT))];
-                            }
+            __syncthreads();
+
+            if (threadIdx.x < 256) {
+                const int w = threadIdx.x & 1;
+
+                float sum[4];
+
+                const int maxFoldCount = (1 << (5 + INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT));
+                for (int fold = (threadIdx.x >> 1); fold < maxFoldCount; fold += 128) {
+
+                    #pragma unroll
+                    for (int f = 0; f < 4; ++f) {
+                        sum[f] = 0;
+                    }
+
+                    const int innerHistCount = 4 >> INNER_HIST_BITS_COUNT;
+                    const int lowBitMask = (1 << INNER_HIST_BITS_COUNT) - 1;
+                    const float* __restrict__ src = Buffer
+                                                    + (1024 << OUTER_HIST_BITS_COUNT)  //warpHistSize
+                                                    + 8 * (fold & lowBitMask)
+                                                    + 32 * (fold >> INNER_HIST_BITS_COUNT)
+                                                    + w;
+
+                    #pragma unroll
+                    for (int inWarpHist = 0; inWarpHist < innerHistCount; ++inWarpHist) {
+                        #pragma unroll
+                        for (int f = 0; f < 4; ++f) {
+                            sum[f] += src[2 * f + (inWarpHist << (3 + INNER_HIST_BITS_COUNT))];
                         }
                     }
-                    __syncthreads();
 
-                    if (threadIdx.x < 256)
-                    {
-                        Buffer[threadIdx.x + 256 * (innerBits | (outerBits << INNER_HIST_BITS_COUNT))] = sum;
+                    #pragma unroll
+                    for (int f = 0; f < 4; ++f) {
+                        Buffer[2 * (maxFoldCount * f + fold) + w] = sum[f];
+                    }
+                }
+            }
+            __syncthreads();
+        }
+    };
+
+
+    template<int BLOCK_SIZE>
+    struct TPointHist<0, 0, BLOCK_SIZE> {
+        float* __restrict__ Buffer;
+
+        __forceinline__ __device__ int SliceOffset() {
+            const int warpId = (threadIdx.x / 32);
+            const int warpOffset = 1024 * warpId;
+            const int blocks = 4;
+            const int innerHistStart = (threadIdx.x & ((blocks - 1) << 3));
+            return warpOffset + innerHistStart;
+        }
+
+        __forceinline__ __device__ TPointHist(float* buff) {
+
+            const int HIST_SIZE = 32 * BLOCK_SIZE;
+
+            #pragma unroll 8
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+                buff[i] = 0;
+            }
+
+            Buffer = buff + SliceOffset();
+            __syncthreads();
+        }
+
+        __forceinline__ __device__ void Add(float val, float* dst) {
+            dst[0] += val;
+        }
+
+        __forceinline__ __device__ void AddPoint(ui32 ci,
+                                                 const float t,
+                                                 const float w) {
+            const bool flag = threadIdx.x & 1;
+
+            const float stat1 = flag ? t : w;
+            const float stat2 = flag ? w : t;
+
+            #pragma unroll
+            for (int i = 0; i < 4; i++) {
+                const short f = ((i + threadIdx.x / 2) & 3);
+                const uchar bin = bfe(ci, 24 - (f << 3), 8);
+                const bool pass = bin != 32;
+                int offset = 2 * f;
+                offset += 32 * (bin & 31);
+                Buffer[offset + flag] += pass * stat1;
+                Buffer[offset + !flag] += pass * stat2;
+            }
+        }
+
+
+        //After reduce we store histograms by blocks: 256 floats (4 x 2 x 32)
+        // for first 32 bins; than 256 floats for second 32 bins, etc
+        __forceinline__ __device__ void Reduce() {
+            Buffer -= SliceOffset();
+            __syncthreads();
+
+            {
+                const int warpHistSize = 1024;
+
+                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                    float sum = 0;
+//                    12 iterations at 32-bin
+                    #pragma unroll 12
+                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                        sum += Buffer[i];
+                    }
+                    Buffer[warpHistSize + start] = sum;
+                }
+            }
+
+            __syncthreads();
+
+            if (threadIdx.x < 256) {
+                const int w = threadIdx.x & 1;
+                const int f = threadIdx.x / 64;
+                float sum = 0.0f;
+                const int fold = (threadIdx.x >> 1) & 31;
+                const int maxFoldCount = 32;
+
+                if (fold < maxFoldCount) {
+                    const int innerHistCount = 4;
+                    const float* __restrict__ src = Buffer
+                                                    + 1024  //warpHistSize
+                                                    + 32 * fold
+                                                    + w;
+
+                    #pragma unroll
+                    for (int inWarpHist = 0; inWarpHist < innerHistCount; ++inWarpHist) {
+                        sum += src[2 * f + (inWarpHist << 3)];
+                    }
+
+                    Buffer[2 * (maxFoldCount * f + fold) + w] = sum;
+                }
+            }
+            __syncthreads();
+        }
+    };
+
+
+    template<int BLOCK_SIZE>
+    struct TPointHist<0, 1, BLOCK_SIZE> {
+        volatile float* __restrict__ Buffer;
+
+        __forceinline__ __device__ int SliceOffset() {
+            const int warpId = (threadIdx.x / 32);
+            const int warpOffset = 1024 * warpId;
+            const int blocks = 2;
+            const int innerHistStart = (threadIdx.x & ((blocks - 1) << 4));
+            return warpOffset + innerHistStart;
+        }
+
+        __forceinline__ __device__ TPointHist(float* buff) {
+
+            const int HIST_SIZE = 32 * BLOCK_SIZE;
+
+            #pragma unroll 8
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+                buff[i] = 0;
+            }
+
+            Buffer = buff + SliceOffset();
+            __syncthreads();
+        }
+
+
+        __forceinline__ __device__ void AddPoint(ui32 ci,
+                                                 const float t,
+                                                 const float w) {
+            const bool flag = threadIdx.x & 1;
+
+            const float stat1 = flag ? t : w;
+            const float stat2 = flag ? w : t;
+
+            #pragma unroll
+            for (int i = 0; i < 4; i++) {
+                const short f = ((i + threadIdx.x / 2) & 3);
+                const uchar bin = bfe(ci, 24 - (f << 3), 8);
+                const bool pass = bin != 64;
+                int offset = 2 * f;
+                offset += 16 * (bin & 62) + 8 * (bin & 1);
+
+                const bool writeFirstFlag = threadIdx.x & 8;
+
+                const float val1 = pass * stat1;
+
+                offset += flag;
+
+                if (writeFirstFlag) {
+                    Buffer[offset] += val1;
+                }
+
+                if (!writeFirstFlag) {
+                    Buffer[offset] += val1;
+                }
+
+                const float val2 = pass * stat2;
+
+//                offset -= flag;
+//                offset += !flag;
+                offset = flag ? offset - 1 : offset + 1;
+
+                if (writeFirstFlag) {
+                    Buffer[offset] += val2;
+                }
+
+                if (!writeFirstFlag) {
+                    Buffer[offset] += val2;
+                }
+            }
+        }
+
+
+        //After reduce we store histograms by blocks: 256 floats (4 x 2 x 32)
+        // for first 32 bins; than 256 floats for second 32 bins, etc
+        __forceinline__ __device__ void Reduce() {
+
+            Buffer -= SliceOffset();
+            __syncthreads();
+
+            {
+                const int warpHistSize = 1024;
+
+                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                    float sum = 0;
+//                    12 iterations at 32-bin
+                    #pragma unroll 12
+                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                        sum += Buffer[i];
+                    }
+                    Buffer[warpHistSize + start] = sum;
+                }
+            }
+
+            __syncthreads();
+
+            if (threadIdx.x < 256) {
+                const int w = threadIdx.x & 1;
+                const int f = threadIdx.x / 64;
+                float sum0 = 0.0f;
+                float sum1 = 0.0f;
+                const int fold0 = (threadIdx.x >> 1) & 31;
+
+                const int maxFoldCount = 64;
+
+                {
+                    const int innerHistCount = 2;
+                    const volatile float* __restrict__ src = Buffer
+                                                    + 1024  //warpHistSize
+                                                    + 8 * (fold0 & 1)
+                                                    + 32 * (fold0 >> 1)
+                                                    + w;
+
+                    #pragma unroll
+                    for (int inWarpHist = 0; inWarpHist < innerHistCount; ++inWarpHist) {
+                        sum0 += src[2 * f + (inWarpHist << 4)];
+                        sum1 += src[2 * f + (inWarpHist << 4) + 512];
+                    }
+
+                    Buffer[2 * (maxFoldCount * f + fold0) + w] = sum0;
+                    Buffer[2 * (maxFoldCount * f + fold0 + 32) + w] = sum1;
+                }
+            }
+            __syncthreads();
+        }
+    };
+
+
+    template<int BLOCK_SIZE>
+    struct TPointHist<0, 2, BLOCK_SIZE> {
+        volatile float* __restrict__ Buffer;
+
+        __forceinline__ __device__ int SliceOffset() {
+            const int warpId = (threadIdx.x / 32);
+            const int warpOffset = 1024 * warpId;
+            return warpOffset;
+        }
+
+        __forceinline__ __device__ TPointHist(float* buff) {
+            const int HIST_SIZE = 32 * BLOCK_SIZE;
+
+            #pragma unroll 8
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+                buff[i] = 0;
+            }
+
+            Buffer = buff + SliceOffset();
+            __syncthreads();
+        }
+
+
+        __forceinline__ __device__ void AddPoint(ui32 ci,
+                                                 const float t,
+                                                 const float w) {
+            const bool flag = threadIdx.x & 1;
+
+            const float stat1 = flag ? t : w;
+            const float stat2 = flag ? w : t;
+
+            #pragma unroll
+            for (int i = 0; i < 4; i++) {
+                const short f = ((i + threadIdx.x / 2) & 3);
+                const int bin = bfe(ci, 24 - (f << 3), 8);
+                const bool pass = bin != 128;
+                int offset = 2 * f;
+                offset += 8 * (bin & 127);
+//
+                const int writeTime = (threadIdx.x >> 3) & 3;
+
+                const float val1 = pass * stat1;
+                offset += flag;
+
+                #pragma unroll
+                for (int k = 0; k < 4; ++k) {
+                    if (k == writeTime) {
+                        Buffer[offset] += val1;
+                    }
+                }
+
+                const float val2 = pass * stat2;
+                offset = flag ? offset - 1 : offset + 1;
+
+                #pragma unroll
+                for (int k = 0; k < 4; ++k) {
+                    if (k == writeTime) {
+                        Buffer[offset] += val2;
+                    }
+                }
+            }
+        }
+
+
+        //After reduce we store histograms by blocks: 256 floats (4 x 2 x 32)
+        // for first 32 bins; than 256 floats for second 32 bins, etc
+        __forceinline__ __device__ void Reduce() {
+
+            Buffer -= SliceOffset();
+            __syncthreads();
+
+            {
+                const int warpHistSize = 1024;
+
+                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                    float sum = 0;
+//                    12 iterations at 32-bin
+                    #pragma unroll 12
+                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                        sum += Buffer[i];
+                    }
+                    Buffer[warpHistSize + start] = sum;
+                }
+            }
+
+            __syncthreads();
+
+            if (threadIdx.x < 256) {
+                const int w = threadIdx.x & 1;
+                const int f = threadIdx.x / 64;
+                const int fold0 = (threadIdx.x >> 1) & 31;
+
+                const int maxFoldCount = 128;
+
+                {
+                    const volatile float* __restrict__ src = Buffer
+                                                             + 1024  //warpHistSize
+                                                             + 2 * f
+                                                             + w;
+
+                    #pragma unroll
+                    for (int k = 0; k < 4; ++k) {
+                        int fold = fold0 + 32 * k;
+                        Buffer[2 * (maxFoldCount * f + fold) + w] = src[8 * fold];
                     }
                 }
             }
@@ -136,11 +520,9 @@ namespace NKernel
 
 
     template<int STRIPE_SIZE, int OUTER_UNROLL, int N, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
-    __forceinline__ __device__ void ComputeHistogram(
-            const ui32* __restrict__ indices,
-            int offset, int dsSize,
-            const float* __restrict__ target, const float* __restrict__ weight,
-            const ui32* __restrict__ cindex, float* __restrict__ result) {
+    __forceinline__ __device__ void ComputeHistogram(const ui32* __restrict__ indices, int offset, int dsSize,
+                                                     const float* __restrict__ target, const float* __restrict__ weight,
+                                                     const ui32* __restrict__ cindex, float* __restrict__ result) {
 
         weight += offset;
         target += offset;
@@ -165,12 +547,10 @@ namespace NKernel
             indices += i;
 
 #pragma unroll OUTER_UNROLL
-            for (int j = 0; j < blocked_iteration_count; ++j)
-            {
+            for (int j = 0; j < blocked_iteration_count; ++j) {
                 ui32 local_index[N];
 #pragma unroll
-                for (int k = 0; k < N; k++)
-                {
+                for (int k = 0; k < N; k++) {
                     local_index[k] = __ldg(indices + stripe * k);
                 }
 
@@ -179,16 +559,14 @@ namespace NKernel
                 float local_wt[N];
 
 #pragma unroll
-                for (int k = 0; k < N; ++k)
-                {
+                for (int k = 0; k < N; ++k) {
                     local_ci[k] = __ldg(cindex + local_index[k]);
                     local_w[k] = __ldg(weight + stripe * k);
                     local_wt[k] = __ldg(target + stripe * k);
                 }
 
 #pragma unroll
-                for (int k = 0; k < N; ++k)
-                {
+                for (int k = 0; k < N; ++k) {
                     hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
                 }
 
@@ -198,8 +576,7 @@ namespace NKernel
                 weight += stripe * N;
             }
 
-            for (int k = blocked_iteration_count * N; k < iteration_count; ++k)
-            {
+            for (int k = blocked_iteration_count * N; k < iteration_count; ++k) {
                 const int index = __ldg(indices);
                 ui32 ci = __ldg(cindex + index);
                 float w = __ldg(weight);
@@ -232,8 +609,7 @@ namespace NKernel
 
         THist hist(result);
 
-        if (dsSize)
-        {
+        if (dsSize) {
             //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
             {
                 int lastId = min(dsSize, 128 - (offset & 127));
@@ -338,13 +714,12 @@ namespace NKernel
     {
 
         using THist = TPointHist<OUTER_HIST_BITS_COUNT, INNER_HIST_BITS_COUNT, BLOCK_SIZE>;
-        const int stripeSize = (BLOCK_SIZE >> OUTER_HIST_BITS_COUNT);
-        const int histBlockCount = 1 << OUTER_HIST_BITS_COUNT;
+        const int stripeSize = BLOCK_SIZE;
+        const int histBlockCount = 1;
 
 
 
-       if (USE_64_BIT_LOAD)
-       {
+       if (USE_64_BIT_LOAD) {
            #if __CUDA_ARCH__ < 300
            const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 4 : 2;
            const int OUTER_UNROLL = 2;
@@ -353,7 +728,7 @@ namespace NKernel
            const int OUTER_UNROLL = 2;
            #else
            const int INNER_UNROLL = 1;
-           const int OUTER_UNROLL =  (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 4 : 1;
+           const int OUTER_UNROLL =  (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) <= 2 ? 4 : 2;
            #endif
            const int size = partition->Size;
            const int offset = partition->Offset;
@@ -362,8 +737,7 @@ namespace NKernel
                                                                                                        weight,
                                                                                                        cindex,
                                                                                                        smem);
-       }
-       else {
+       } else {
            #if __CUDA_ARCH__ < 300
            const int INNER_UNROLL = (INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT) == 0 ? 4 : 2;
            const int OUTER_UNROLL = 2;
@@ -372,7 +746,7 @@ namespace NKernel
            const int OUTER_UNROLL = 2;
            #else
            const int INNER_UNROLL = 1;
-           const int OUTER_UNROLL = 1;
+           const int OUTER_UNROLL = 2;
            #endif
            ComputeHistogram<stripeSize, OUTER_UNROLL, INNER_UNROLL, histBlockCount, BLOCKS_PER_FEATURE, THist>(indices,
                                                                                                                partition->Offset,
@@ -384,26 +758,24 @@ namespace NKernel
        }
         __syncthreads();
 
-        int fid = (threadIdx.x / 64);
-        int fold = (threadIdx.x / 2) & 31;
+        const int maxFoldCount = (1 << (5 + INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT));
 
-        #pragma unroll
-        for (int upperBits = 0; upperBits < (1 << (OUTER_HIST_BITS_COUNT + INNER_HIST_BITS_COUNT)); ++upperBits)
-        {
-            const int binOffset = upperBits << 5;
+        const int fid = (threadIdx.x / 64);
+        const int w = threadIdx.x & 1;
 
-            if (fid < fCount && fold < min((int) feature[fid].Folds - binOffset, 32))
-            {
-                int w = threadIdx.x & 1;
-                const float val = smem[fold * 8 + 2 * fid + w + 256 * upperBits];
-                if (abs(val) > 1e-20f)
-                {
-                    if (BLOCKS_PER_FEATURE > 1)
-                    {
-                        atomicAdd(binSumsForPart + (feature[fid].FirstFoldIndex + fold + binOffset) * 2 + w, val);
-                    } else
-                    {
-                        WriteThrough(binSumsForPart + (feature[fid].FirstFoldIndex + fold + binOffset) * 2 + w, val);
+        const int featureFolds =  fid < fCount ? feature[fid].Folds : 0;
+        const int featureOffset = fid * maxFoldCount * 2 + w;
+
+        for (int fold = (threadIdx.x / 2) & 31; fold < featureFolds; fold += 32) {
+
+            if (fid < fCount) {
+                const float val = smem[featureOffset + 2 * fold];
+
+                if (abs(val) > 1e-20f) {
+                    if (BLOCKS_PER_FEATURE > 1) {
+                        atomicAdd(binSumsForPart + (feature[fid].FirstFoldIndex + fold) * 2 + w, val);
+                    } else {
+                        WriteThrough(binSumsForPart + (feature[fid].FirstFoldIndex + fold) * 2 + w, val);
                     }
                 }
             }
@@ -458,29 +830,25 @@ namespace NKernel
             } else if (maxBinCount <= 128) {
                 DECLARE_PASS(0, 2, M, use64BitLoad);
             } else {
-                DECLARE_PASS(1, 2, M, use64BitLoad);
+                DECLARE_PASS(2, 1, M, use64BitLoad);
             }
         }
     }
 
 
     template<int BLOCK_SIZE>
-    struct TPointHistHalfByte
-    {
+    struct TPointHistHalfByte {
         volatile float* Buffer;
 
-        __forceinline__ __device__ int SliceOffset()
-        {
+        __forceinline__ __device__ int SliceOffset() {
             const int warpOffset = 512 * (threadIdx.x / 32);
             const int innerHistStart = threadIdx.x & 16;
             return warpOffset + innerHistStart;
         }
 
-        __forceinline__ __device__ TPointHistHalfByte(float* buff)
-        {
+        __forceinline__ __device__ TPointHistHalfByte(float* buff) {
             const int HIST_SIZE = 16 * BLOCK_SIZE;
-            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE)
-            {
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
                 buff[i] = 0;
             }
             __syncthreads();
@@ -507,8 +875,7 @@ namespace NKernel
             }
         }
 
-        __device__ void Reduce()
-        {
+        __device__ void Reduce() {
             Buffer -= SliceOffset();
             const int warpCount = BLOCK_SIZE >> 5;
 
@@ -549,8 +916,7 @@ namespace NKernel
 
             __syncthreads();
 
-            if (threadIdx.x < 256)
-            {
+            if (threadIdx.x < 256) {
                 Buffer[threadIdx.x] = sum;
             }
 
@@ -611,12 +977,7 @@ namespace NKernel
                 const int OUTER_UNROLL = 1;
                 #endif
 
-                ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (
-                        indices,
-                                partition->Offset, partition->Size,
-                                target, weight,
-                                cindex,
-                                &counters[0]);
+                ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
             }
 
             ui32 w = threadIdx.x & 1;
@@ -637,8 +998,7 @@ namespace NKernel
                     }
                 }
 
-                if (abs(sum) > 1e-20f)
-                {
+                if (abs(sum) > 1e-20f) {
                     if (M > 1)
                     {
                         atomicAdd(binSums + (feature[fid].FirstFoldIndex) * 2 + w, sum);

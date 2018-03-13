@@ -81,8 +81,27 @@ namespace NCatboostCuda {
                                     TString featureName = "")
             : IFeatureValuesHolder(type, featureId, size, std::move(featureName))
             , Values(std::move(data))
-            , IndexHelper(bitsPerKey)
-        {
+            , IndexHelper(bitsPerKey) {
+
+            if (bitsPerKey <= 8) {
+                TVector<ui64> freq(1 << bitsPerKey);
+                auto values = ExtractValues<ui32>();
+                ui64 total = 0;
+                for (auto bin : values) {
+                    freq[bin]++;
+                    ++total;
+                }
+                MostFreqBinProb = 0.0;
+                ui32 MostFreqBin = 0;
+
+                for (ui32 i = 0; i < freq.size(); ++i) {
+                    double binFreq = freq[i] * 1.0 / total;
+                    if (binFreq > MostFreqBinProb) {
+                        MostFreqBinProb = binFreq;
+                        MostFreqBin = i;
+                    }
+                }
+            }
         }
 
         ui32 GetValue(ui32 docId) const {
@@ -110,9 +129,21 @@ namespace NCatboostCuda {
             return IndexHelper.GetBitsPerKey();
         }
 
+
+        double SparsityLevel() const {
+            return 1.0 - MostFreqBinProb;
+        }
+
+       ui32 MostFrequentFold() const {
+            return MostFreqBin;
+        }
+
+
     private:
         TVector<ui64> Values;
         TIndexHelper<ui64> IndexHelper;
+        double MostFreqBinProb = 0.0;
+        ui32 MostFreqBin = 0;
     };
 
     class TBinarizedFloatValuesHolder: public TCompressedValuesHolderImpl {
@@ -130,8 +161,9 @@ namespace NCatboostCuda {
                                           std::move(data),
                                           std::move(featureName))
             , Borders(borders)
-            , NanMode(nanMode)
-        {
+            , NanMode(nanMode) {
+
+
         }
 
         ui32 BinCount() const {

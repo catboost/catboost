@@ -75,6 +75,10 @@ namespace NCatboostCuda {
                 return FeaturesManager.GetCtrBinarization(Ctrs[featureId]).BorderCount;
             }
 
+            double GetGroupingLevel(ui32 featureId) const {
+                return GetFoldsCount(featureId) * 1.0 / 256;
+            }
+
             bool IsOneHot(ui32) const {
                 return false;
             }
