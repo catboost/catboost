@@ -64,14 +64,14 @@ class TestRequirements(Enum):
 
 
 class TestRequirementsConstants(Enum):
-    AllCpu = 'all'
+    All = 'all'
     AllCpuValue = 56
     MinCpu = 1
     MinRam = 1
 
     @classmethod
     def is_all_cpu(cls, value):
-        return value == cls.AllCpu
+        return value == cls.All
 
     @classmethod
     def get_cpu_value(cls, value):
@@ -126,7 +126,7 @@ class TestSize(Enum):
             # TestRequirements.Ram: 16,
         },
         Large: {
-            TestRequirements.Cpu: TestRequirementsConstants.AllCpu,
+            TestRequirements.Cpu: TestRequirementsConstants.All,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 32,
         },

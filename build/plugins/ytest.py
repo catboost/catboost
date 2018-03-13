@@ -83,21 +83,19 @@ def validate_test(kw):
                     continue
             # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
             elif is_fat and req_name in ('ram', 'cpu'):
-                if req_name == 'cpu':
-                    if req_value.strip() == 'all':
-                        pass
-                    elif mr.resolve_value(req_value) is None:
-                        errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
-                        continue
-                elif req_name == 'ram':
-                    if not mr.resolve_value(req_value.lower()):
-                        errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
-                        continue
+                if req_value.strip() == 'all':
+                    pass
+                elif mr.resolve_value(req_value) is None:
+                    errors.append("Cannot convert [[imp]]{}[[rst]]: [[imp]]{}[[rst]] to the proper requirement value".format(req_name, req_value))
+                    continue
             elif req_name == 'ram':
-                ram_errors = reqs.check_ram(mr.resolve_value(req_value), size)
-                errors += ram_errors
-                if ram_errors:
-                    req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Ram))
+                if req_value.strip() == 'all':
+                    pass
+                else:
+                    ram_errors = reqs.check_ram(mr.resolve_value(req_value), size)
+                    errors += ram_errors
+                    if ram_errors:
+                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Ram))
             elif req_name == 'cpu':
                 # XXX
                 # errors += reqs.check_cpu(mr.resolve_value(req_value), size)

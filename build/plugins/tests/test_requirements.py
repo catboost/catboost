@@ -14,12 +14,12 @@ class TestRequirements(object):
         assert not requirements.check_cpu(1, test_size)
         assert not requirements.check_cpu(3, test_size)
         assert requirements.check_cpu(1000, test_size)
-        if max_cpu != consts.TestRequirementsConstants.AllCpu:
+        if max_cpu != consts.TestRequirementsConstants.All:
             assert requirements.check_cpu(max_cpu + 1, test_size)
             assert requirements.check_cpu(max_cpu + 4, test_size)
-            assert requirements.check_cpu(consts.TestRequirementsConstants.AllCpu, test_size)
+            assert requirements.check_cpu(consts.TestRequirementsConstants.All, test_size)
         else:
-            assert not requirements.check_cpu(consts.TestRequirementsConstants.AllCpu, test_size)
+            assert not requirements.check_cpu(consts.TestRequirementsConstants.All, test_size)
 
     @pytest.mark.parametrize('test_size', consts.TestSize.sizes())
     def test_ram(self, test_size):
