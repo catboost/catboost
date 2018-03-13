@@ -63,6 +63,8 @@ namespace NCatboostOptions {
                     CB_ENSURE(BoostingType == EBoostingType::Plain, "Can't use ordered boosting in doc-parallel mode");
                 }
             }
+
+            CB_ENSURE(!(ApproxOnFullHistory.Get() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
         }
 
         TOption<float> LearningRate;
