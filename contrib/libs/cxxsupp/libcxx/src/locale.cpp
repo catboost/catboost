@@ -4671,7 +4671,7 @@ static
 string*
 init_am_pm()
 {
-    static string am_pm[24];
+    static string am_pm[2];
     am_pm[0]  = "AM";
     am_pm[1]  = "PM";
     return am_pm;
@@ -4681,7 +4681,7 @@ static
 wstring*
 init_wam_pm()
 {
-    static wstring am_pm[24];
+    static wstring am_pm[2];
     am_pm[0]  = L"AM";
     am_pm[1]  = L"PM";
     return am_pm;

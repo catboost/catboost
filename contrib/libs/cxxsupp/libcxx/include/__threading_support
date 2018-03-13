@@ -28,9 +28,6 @@
 #if defined(_LIBCPP_HAS_THREAD_API_PTHREAD)
 # include <pthread.h>
 # include <sched.h>
-#elif defined(_LIBCPP_HAS_THREAD_API_WIN32)
-#include <time.h>
-#include <cstdint>
 #endif
 
 _LIBCPP_PUSH_MACROS
@@ -81,52 +78,37 @@ typedef pthread_key_t __libcpp_tls_key;
 #define _LIBCPP_TLS_DESTRUCTOR_CC
 #else
 // Mutex
-// SRWLOCK
-struct __libcpp_mutex_t {
-  void* __unknown;
-};
-#define _LIBCPP_MUTEX_INITIALIZER __libcpp_mutex_t{nullptr}
+typedef void* __libcpp_mutex_t;
+#define _LIBCPP_MUTEX_INITIALIZER 0
 
-// CRITICAL_SECTION
-#ifdef _WIN64
-struct __libcpp_recursive_mutex_t {
-  uint64_t __unknown[5];
-};
+#if defined(_M_IX86) || defined(__i386__) || defined(_M_ARM) || defined(__arm__)
+typedef void* __libcpp_recursive_mutex_t[6];
+#elif defined(_M_AMD64) || defined(__x86_64__) || defined(_M_ARM64) || defined(__aarch64__)
+typedef void* __libcpp_recursive_mutex_t[5];
 #else
-struct __libcpp_recursive_mutex_t {
-  uint32_t __unknown[6];
-};
+# error Unsupported architecture
 #endif
 
 // Condition Variable
-// CONDITION_VARIABLE
-struct __libcpp_condvar_t {
-  void* __unknown;
-};
-#define _LIBCPP_CONDVAR_INITIALIZER __libcpp_condvar_t{nullptr}
+typedef void* __libcpp_condvar_t;
+#define _LIBCPP_CONDVAR_INITIALIZER 0
 
 // Execute Once
-// INIT_ONCE
-struct __libcpp_exec_once_flag {
-  void* __unknown;
-};
-#define _LIBCPP_EXEC_ONCE_INITIALIZER __libcpp_exec_once_flag{nullptr}
+typedef void* __libcpp_exec_once_flag;
+#define _LIBCPP_EXEC_ONCE_INITIALIZER 0
 
 // Thread ID
-// DWORD
-typedef uint32_t __libcpp_thread_id;
+typedef long __libcpp_thread_id;
 
 // Thread
 #define _LIBCPP_NULL_THREAD 0U
 
-// HANDLE
-typedef uintptr_t __libcpp_thread_t;
+typedef void* __libcpp_thread_t;
 
 // Thread Local Storage
-// DWORD
-typedef uint32_t __libcpp_tls_key;
+typedef long __libcpp_tls_key;
 
-#define _LIBCPP_TLS_DESTRUCTOR_CC __stdcall //WINAPI
+#define _LIBCPP_TLS_DESTRUCTOR_CC __stdcall
 #endif
 
 // Mutex
@@ -223,10 +205,9 @@ void *__libcpp_tls_get(__libcpp_tls_key __key);
 _LIBCPP_THREAD_ABI_VISIBILITY
 int __libcpp_tls_set(__libcpp_tls_key __key, void *__p);
 
-#if !defined(_LIBCPP_HAS_THREAD_LIBRARY_EXTERNAL) || \
-    defined(_LIBCPP_BUILDING_THREAD_LIBRARY_EXTERNAL)
-
-#if defined(_LIBCPP_HAS_THREAD_API_PTHREAD)
+#if (!defined(_LIBCPP_HAS_THREAD_LIBRARY_EXTERNAL) || \
+     defined(_LIBCPP_BUILDING_THREAD_LIBRARY_EXTERNAL)) && \
+    defined(_LIBCPP_HAS_THREAD_API_PTHREAD)
 
 int __libcpp_recursive_mutex_init(__libcpp_recursive_mutex_t *__m)
 {
@@ -411,12 +392,6 @@ int __libcpp_tls_set(__libcpp_tls_key __key, void *__p)
 {
     return pthread_setspecific(__key, __p);
 }
-
-#elif defined(_LIBCPP_HAS_THREAD_API_WIN32)
-
-// Implementation is in threading_support_win32.cpp
-
-#endif // _LIBCPP_HAS_THREAD_API_PTHREAD
 
 #endif // !_LIBCPP_HAS_THREAD_LIBRARY_EXTERNAL || _LIBCPP_BUILDING_THREAD_LIBRARY_EXTERNAL
 

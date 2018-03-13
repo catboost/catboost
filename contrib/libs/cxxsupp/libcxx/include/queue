@@ -289,7 +289,7 @@ public:
     void push(value_type&& __v)      {c.push_back(_VSTD::move(__v));}
     template <class... _Args>
         _LIBCPP_INLINE_VISIBILITY
-        reference emplace(_Args&&... __args)
+        decltype(auto) emplace(_Args&&... __args)
             { return c.emplace_back(_VSTD::forward<_Args>(__args)...);}
 #endif  // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY

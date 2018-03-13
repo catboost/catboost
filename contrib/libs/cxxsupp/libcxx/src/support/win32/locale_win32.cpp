@@ -11,6 +11,8 @@
 #include <locale>
 #include <cstdarg> // va_start, va_end
 
+int __libcpp_vasprintf(char **sptr, const char *__restrict fmt, va_list ap);
+
 using std::__libcpp_locale_guard;
 
 // FIXME: base currently unused. Needs manual work to construct the new locale
@@ -100,31 +102,10 @@ int asprintf_l( char **ret, locale_t loc, const char *format, ... )
     va_end(ap);
     return result;
 }
-
-// Adaptation of vasprintf from support.cpp
-// Like sprintf, but when return value >= 0 it returns
-// a pointer to a malloc'd string in *sptr.
-// If return >= 0, use free to delete *sptr.
 int vasprintf_l( char **sptr, locale_t loc, const char *__restrict format, va_list ap )
 {
-    *sptr = NULL;
-    // Query the count required.
-    int count = _vsnprintf_l( NULL, 0, format, loc, ap );
-    if (count < 0)
-        return count;
-    size_t buffer_size = static_cast<size_t>(count) + 1;
-    char* p = static_cast<char*>(malloc(buffer_size));
-    if ( ! p )
-        return -1;
-    // If we haven't used exactly what was required, something is wrong.
-    // Maybe bug in vsnprintf. Report the error and return.
-    if (_vsnprintf_l(p, buffer_size, format, loc, ap) != count) {
-        free(p);
-        return -1;
-    }
-    // All good. This is returning memory to the caller not freeing it.
-    *sptr = p;
-    return count;
+    __libcpp_locale_guard __current(loc);
+    return __libcpp_vasprintf( sptr, format, ap );
 }
 
 #if !defined(_LIBCPP_MSVCRT)

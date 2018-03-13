@@ -18,7 +18,7 @@ namespace std
 {
 
 struct allocator_arg_t { };
-constexpr allocator_arg_t allocator_arg = allocator_arg_t();
+inline constexpr allocator_arg_t allocator_arg = allocator_arg_t();
 
 template <class T, class Alloc> struct uses_allocator;
 
@@ -630,6 +630,9 @@ template<class T>
 template <class T> struct hash;
 template <class T, class D> struct hash<unique_ptr<T, D> >;
 template <class T> struct hash<shared_ptr<T> >;
+
+template <class T, class Alloc>
+  inline constexpr bool uses_allocator_v = uses_allocator<T, Alloc>::value;
 
 // Pointer safety
 enum class pointer_safety { relaxed, preferred, strict };
@@ -1994,6 +1997,7 @@ public:
 };
 
 template <class _Tp>
+_LIBCPP_NO_CFI
 pair<_Tp*, ptrdiff_t>
 get_temporary_buffer(ptrdiff_t __n) _NOEXCEPT
 {
@@ -2005,7 +2009,38 @@ get_temporary_buffer(ptrdiff_t __n) _NOEXCEPT
         __n = __m;
     while (__n > 0)
     {
+#if !defined(_LIBCPP_HAS_NO_ALIGNED_ALLOCATION)
+#if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
+        if (std::alignment_of<_Tp>::value > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+#else
+        if (std::alignment_of<_Tp>::value >
+            std::alignment_of<std::max_align_t>::value)
+#endif
+        {
+            std::align_val_t __al =
+                std::align_val_t(std::alignment_of<_Tp>::value);
+            __r.first = static_cast<_Tp*>(::operator new(
+                __n * sizeof(_Tp), __al, nothrow));
+        } else {
+            __r.first = static_cast<_Tp*>(::operator new(
+                __n * sizeof(_Tp), nothrow));
+        }
+#else
+#if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
+        if (std::alignment_of<_Tp>::value > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+#else
+        if (std::alignment_of<_Tp>::value >
+            std::alignment_of<std::max_align_t>::value)
+#endif
+        {
+            // Since aligned operator new is unavailable, return an empty
+            // buffer rather than one with invalid alignment.
+            return __r;
+        }
+
         __r.first = static_cast<_Tp*>(::operator new(__n * sizeof(_Tp), nothrow));
+#endif
+
         if (__r.first)
         {
             __r.second = __n;
@@ -2018,7 +2053,23 @@ get_temporary_buffer(ptrdiff_t __n) _NOEXCEPT
 
 template <class _Tp>
 inline _LIBCPP_INLINE_VISIBILITY
-void return_temporary_buffer(_Tp* __p) _NOEXCEPT {::operator delete(__p);}
+void return_temporary_buffer(_Tp* __p) _NOEXCEPT
+{
+#if !defined(_LIBCPP_HAS_NO_ALIGNED_ALLOCATION)
+#if defined(__STDCPP_DEFAULT_NEW_ALIGNMENT__)
+    if (std::alignment_of<_Tp>::value > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+#else
+    if (std::alignment_of<_Tp>::value >
+        std::alignment_of<std::max_align_t>::value)
+#endif
+    {
+        std::align_val_t __al = std::align_val_t(std::alignment_of<_Tp>::value);
+        ::operator delete(__p, __al);
+        return;
+    }
+#endif
+    ::operator delete(__p);
+}
 
 #if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
 template <class _Tp>
@@ -4790,8 +4841,13 @@ inline _LIBCPP_INLINE_VISIBILITY
 bool
 operator<(const shared_ptr<_Tp>& __x, const shared_ptr<_Up>& __y) _NOEXCEPT
 {
+#if _LIBCPP_STD_VER <= 11
     typedef typename common_type<_Tp*, _Up*>::type _Vp;
     return less<_Vp>()(__x.get(), __y.get());
+#else
+    return less<>()(__x.get(), __y.get());
+#endif
+
 }
 
 template<class _Tp, class _Up>
@@ -5628,6 +5684,16 @@ struct __temp_value {
 
     ~__temp_value() { _Traits::destroy(__a, __addr()); }
     };
+#endif
+
+#if _LIBCPP_STD_VER > 14
+template<typename _Alloc, typename = void>
+struct __is_allocator : false_type {};
+
+template<typename _Alloc>
+struct __is_allocator<_Alloc,
+     void_t<typename _Alloc::value_type, decltype(_VSTD::declval<_Alloc&>().allocate(size_t{}))>>
+   : true_type {};
 #endif
 
 _LIBCPP_END_NAMESPACE_STD

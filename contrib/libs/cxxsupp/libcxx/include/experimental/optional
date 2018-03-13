@@ -531,9 +531,9 @@ public:
 _LIBCPP_AVAILABILITY_BAD_OPTIONAL_ACCESS
 #endif
 	constexpr void __throw_bad_optional_access() const
-    {
+	{
 #ifndef _LIBCPP_NO_EXCEPTIONS
-            throw bad_optional_access();
+        throw bad_optional_access();
 #else
         _VSTD::abort();
 #endif

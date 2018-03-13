@@ -493,14 +493,6 @@ module std [system] {
       header "experimental/algorithm"
       export *
     }
-    module any {
-      header "experimental/any"
-      export *
-    }
-    module chrono {
-      header "experimental/chrono"
-      export *
-    }
      module coroutine {
       requires coroutines
       header "experimental/coroutine"
@@ -542,20 +534,8 @@ module std [system] {
       header "experimental/memory_resource"
       export *
     }
-    module numeric {
-      header "experimental/numeric"
-      export *
-    }
-    module optional {
-      header "experimental/optional"
-      export *
-    }
     module propagate_const {
       header "experimental/propagate_const"
-      export *
-    }
-    module ratio {
-      header "experimental/ratio"
       export *
     }
     module regex {
@@ -568,18 +548,6 @@ module std [system] {
     }
     module string {
       header "experimental/string"
-      export *
-    }
-    module string_view {
-      header "experimental/string_view"
-      export *
-    }
-    module system_error {
-      header "experimental/system_error"
-      export *
-    }
-    module tuple {
-      header "experimental/tuple"
       export *
     }
     module type_traits {
