@@ -565,7 +565,11 @@ TMetricHolder TPFoundMetric::EvalSingleThread(
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         int queryBegin = queriesInfo[queryIndex].Begin;
         int queryEnd = queriesInfo[queryIndex].End;
-        calcer.AddQuery(target.data() + queryBegin, approx[0].data() + queryBegin, nullptr, queryEnd - queryBegin);
+        const ui32* subgroupIdData = nullptr;
+        if (!queriesInfo[queryIndex].SubgroupId.empty()) {
+            subgroupIdData = queriesInfo[queryIndex].SubgroupId.data();
+        }
+        calcer.AddQuery(target.data() + queryBegin, approx[0].data() + queryBegin, subgroupIdData, queryEnd - queryBegin);
     }
     return calcer.GetMetric();
 }

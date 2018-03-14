@@ -15,6 +15,7 @@ public:
     TVector<float> Target;
     TVector<float> Weights;
     TVector<ui32> QueryId;
+    TVector<ui32> SubgroupId;
     TVector<TQueryInfo> QueryInfo;
     TVector<TPair> Pairs;
 

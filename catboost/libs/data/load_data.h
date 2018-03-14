@@ -24,6 +24,7 @@ struct TPoolColumnsMetaInfo {
     bool HasDocIds = false;
     bool HasWeights = false;
     bool HasGroupIds = false;
+    bool HasSubgroupIds = false;
     bool HasTimestamp = false;
 };
 

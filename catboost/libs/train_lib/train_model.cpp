@@ -364,9 +364,9 @@ class TCPUModelTrainer : public IModelTrainer {
         if (hasQuerywiseMetric) {
             CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
         }
-        UpdateQueriesInfo(trainData.QueryId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
+        UpdateQueriesInfo(trainData.QueryId, trainData.SubgroupId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
         trainData.LearnQueryCount = trainData.QueryInfo.ysize();
-        UpdateQueriesInfo(trainData.QueryId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
+        UpdateQueriesInfo(trainData.QueryId, trainData.SubgroupId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
         UpdateQueriesPairs(trainData.Pairs, 0, trainData.Pairs.ysize(), /*invertedPermutation=*/{}, &trainData.QueryInfo);
         trainData.LearnPairsCount = learnPool.Pairs.ysize();
 
@@ -391,9 +391,10 @@ class TCPUModelTrainer : public IModelTrainer {
         const int factorsCount = learnPool.Docs.GetFactorsCount();
         const int approxDim = learnPool.Docs.GetBaselineDimension();
         bool hasQueryId = !learnPool.Docs.QueryId.empty();
+        bool hasSubgroupId = !learnPool.Docs.SubgroupId.empty();
         auto learnPoolGuard = Finally([&] {
             if (!allowClearPool) {
-                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId);
+                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId, hasSubgroupId);
             }
         });
 

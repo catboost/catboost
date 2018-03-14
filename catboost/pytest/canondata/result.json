@@ -1263,84 +1263,164 @@
             "uri": "file://test.test_permutation_block_Plain_/test.eval"
         }
     ],
-    "test.test_pfound[Ordered--1]": [
+    "test.test_pfound[train.cd-Ordered--1]": [
         {
             "checksum": "f3d76662c8d30c48a9149111bbe663f0",
-            "uri": "file://test.test_pfound_Ordered--1_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered--1_/learn_error.tsv"
         },
         {
             "checksum": "d1b660240d1ed912f5a38b60f3a9f265",
-            "uri": "file://test.test_pfound_Ordered--1_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered--1_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Ordered-10]": [
+    "test.test_pfound[train.cd-Ordered-10]": [
         {
             "checksum": "e6d7bd04c8beeb07da9c8ce891011aa7",
-            "uri": "file://test.test_pfound_Ordered-10_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-10_/learn_error.tsv"
         },
         {
             "checksum": "473901d90582ebf167954c0efa4db134",
-            "uri": "file://test.test_pfound_Ordered-10_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-10_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Ordered-2]": [
+    "test.test_pfound[train.cd-Ordered-2]": [
         {
             "checksum": "f0bd0ac18b5b32c0743ca9f7783a15e9",
-            "uri": "file://test.test_pfound_Ordered-2_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-2_/learn_error.tsv"
         },
         {
             "checksum": "0c99893b9fe00fa99c93fbf4878b3a05",
-            "uri": "file://test.test_pfound_Ordered-2_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-2_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Ordered-5]": [
+    "test.test_pfound[train.cd-Ordered-5]": [
         {
             "checksum": "95675a49700a93d3c267a34b98762904",
-            "uri": "file://test.test_pfound_Ordered-5_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-5_/learn_error.tsv"
         },
         {
             "checksum": "22678dfd1038621b827ef8cf496b403c",
-            "uri": "file://test.test_pfound_Ordered-5_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Ordered-5_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Plain--1]": [
+    "test.test_pfound[train.cd-Plain--1]": [
         {
             "checksum": "2cc848ebe8b9f993530b28657b5386ac",
-            "uri": "file://test.test_pfound_Plain--1_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain--1_/learn_error.tsv"
         },
         {
             "checksum": "8d34e9744b8ae5163a5144f1d7d23b1b",
-            "uri": "file://test.test_pfound_Plain--1_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain--1_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Plain-10]": [
+    "test.test_pfound[train.cd-Plain-10]": [
         {
             "checksum": "089e60051cb2f605db90be30b805ac94",
-            "uri": "file://test.test_pfound_Plain-10_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-10_/learn_error.tsv"
         },
         {
             "checksum": "2dc1532f4b740db00246b9304cf25dc2",
-            "uri": "file://test.test_pfound_Plain-10_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-10_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Plain-2]": [
+    "test.test_pfound[train.cd-Plain-2]": [
         {
             "checksum": "906b3f833c79f112857b2d07ddae7a26",
-            "uri": "file://test.test_pfound_Plain-2_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-2_/learn_error.tsv"
         },
         {
             "checksum": "d1cf179fecd31a29c95d2b314f8a52b4",
-            "uri": "file://test.test_pfound_Plain-2_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-2_/test_error.tsv"
         }
     ],
-    "test.test_pfound[Plain-5]": [
+    "test.test_pfound[train.cd-Plain-5]": [
         {
             "checksum": "7587457f2f2d25097a8c6784c1b88273",
-            "uri": "file://test.test_pfound_Plain-5_/learn_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-5_/learn_error.tsv"
         },
         {
             "checksum": "aaf97bc47c4c2530cb390925612a7e1f",
-            "uri": "file://test.test_pfound_Plain-5_/test_error.tsv"
+            "uri": "file://test.test_pfound_train.cd-Plain-5_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Ordered--1]": [
+        {
+            "checksum": "92e8d669289c1989ed5e60449161c732",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "56b7daeb6380f309119bd4622f5b32c3",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered--1_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Ordered-10]": [
+        {
+            "checksum": "dc55229d22258e76ad93500134dbf4dd",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "0f8643a7a9e6fbd5fd750a1f779e83d2",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-10_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Ordered-2]": [
+        {
+            "checksum": "aad585c2e28616e5e21ee7f949a7f658",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-2_/learn_error.tsv"
+        },
+        {
+            "checksum": "0c99893b9fe00fa99c93fbf4878b3a05",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-2_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Ordered-5]": [
+        {
+            "checksum": "730b8f93fa5e76947428ee55be4e5e88",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-5_/learn_error.tsv"
+        },
+        {
+            "checksum": "8a5130529eaac64bea535cceb3aea7c0",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered-5_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Plain--1]": [
+        {
+            "checksum": "45e44667219dd5d15844e07e92814c8f",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "990c1a00bbd1955896d0517e7a83a184",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain--1_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Plain-10]": [
+        {
+            "checksum": "7fdbaffb699e1ea176f26619bba70db7",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "1c49798ac1a7dcf6b8a713f9ae4df157",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-10_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Plain-2]": [
+        {
+            "checksum": "279355f7d1cf6c07a4de6f8326546c09",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-2_/learn_error.tsv"
+        },
+        {
+            "checksum": "5e3f6b5aee84cc33b15dcfd25b1891f3",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-2_/test_error.tsv"
+        }
+    ],
+    "test.test_pfound[train.cd.subgroup_id-Plain-5]": [
+        {
+            "checksum": "9e75b9146a9677af488f9acec26196f1",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-5_/learn_error.tsv"
+        },
+        {
+            "checksum": "d4c6eda56a823820508e05995684c937",
+            "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-5_/test_error.tsv"
         }
     ],
     "test.test_plain[Ordered]": [

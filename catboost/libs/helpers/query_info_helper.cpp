@@ -1,13 +1,17 @@
 #include "query_info_helper.h"
 #include "exception.h"
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int begin, int end, TVector<TQueryInfo>* queryInfo) {
     if (begin == end) {
         return;
     }
 
+    int docIdStart = begin, docIdEnd = end;
     if (queriesId.empty()) {
-        queryInfo->push_back({begin, end, {}});
+        queryInfo->emplace_back(docIdStart, docIdEnd);
+        if (!subgroupId.empty()) {
+            queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
+        }
         return;
     }
 
@@ -17,12 +21,22 @@ void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVect
         if (currentQueryId == queriesId[docId]) {
             ++currentQuerySize;
         } else {
-            queryInfo->push_back({docId - currentQuerySize, docId, {}});
+            docIdStart = docId - currentQuerySize;
+            docIdEnd = docId;
+            queryInfo->emplace_back(docIdStart, docIdEnd);
+            if (!subgroupId.empty()) {
+                queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
+            }
             currentQuerySize = 1;
             currentQueryId = queriesId[docId];
         }
     }
-    queryInfo->push_back({end - currentQuerySize, end, {}});
+    docIdStart = end - currentQuerySize;
+    docIdEnd = end;
+    queryInfo->emplace_back(docIdStart, docIdEnd);
+    if (!subgroupId.empty()) {
+        queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
+    }
 }
 
 TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount) {

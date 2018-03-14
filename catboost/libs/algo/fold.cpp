@@ -102,9 +102,12 @@ TFold BuildDynamicFold(
     TVector<int> queryIndices;
     if (!data.QueryId.empty()) {
         if (shuffle) {
-            TVector<ui32> queriesId;
+            TVector<ui32> queriesId, subgroupId;
             ff.AssignPermuted(data.QueryId, &queriesId);
-            UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
+            if (!data.SubgroupId.empty()) {
+                ff.AssignPermuted(data.SubgroupId, &subgroupId);
+            }
+            UpdateQueriesInfo(queriesId, subgroupId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
             UpdateQueriesPairs(data.Pairs, 0, data.LearnPairsCount, invertPermutation, &ff.LearnQueriesInfo);
         } else {
             ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);
@@ -166,11 +169,14 @@ TFold BuildPlainFold(
     TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     if (shuffle) {
-        TVector<ui32> queriesId;
+        TVector<ui32> queriesId, subgroupId;
         if (!data.QueryId.empty()) {
             ff.AssignPermuted(data.QueryId, &queriesId);
         }
-        UpdateQueriesInfo(queriesId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
+        if (!data.SubgroupId.empty()) {
+            ff.AssignPermuted(data.SubgroupId, &subgroupId);
+        }
+        UpdateQueriesInfo(queriesId, subgroupId, 0, data.LearnSampleCount, &ff.LearnQueriesInfo);
         UpdateQueriesPairs(data.Pairs, 0, data.LearnPairsCount, invertPermutation, &ff.LearnQueriesInfo);
     } else {
         ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), data.QueryInfo.begin(), data.QueryInfo.begin() + data.LearnQueryCount);

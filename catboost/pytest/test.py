@@ -104,7 +104,8 @@ def test_queryaverage(boosting_type):
 
 @pytest.mark.parametrize('top_size', [2, 5, 10, -1])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_pfound(top_size, boosting_type):
+@pytest.mark.parametrize('cd_file', ['train.cd', 'train.cd.subgroup_id'])
+def test_pfound(top_size, boosting_type, cd_file):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     cmd = (
@@ -113,7 +114,7 @@ def test_pfound(top_size, boosting_type):
         '--loss-function', 'QueryRMSE',
         '-f', data_file('querywise', 'train'),
         '-t', data_file('querywise', 'test'),
-        '--column-description', data_file('querywise', 'train.cd'),
+        '--column-description', data_file('querywise', cd_file),
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',

@@ -140,10 +140,12 @@ TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& learnPool, co
     trainData.Target = learnPool.Docs.Target;
     trainData.Weights = learnPool.Docs.Weight;
     trainData.QueryId = learnPool.Docs.QueryId;
+    trainData.SubgroupId = learnPool.Docs.SubgroupId;
     trainData.Baseline = learnPool.Docs.Baseline;
     trainData.Target.insert(trainData.Target.end(), testPool.Docs.Target.begin(), testPool.Docs.Target.end());
     trainData.Weights.insert(trainData.Weights.end(), testPool.Docs.Weight.begin(), testPool.Docs.Weight.end());
     trainData.QueryId.insert(trainData.QueryId.end(), testPool.Docs.QueryId.begin(), testPool.Docs.QueryId.end());
+    trainData.SubgroupId.insert(trainData.SubgroupId.end(), testPool.Docs.SubgroupId.begin(), testPool.Docs.SubgroupId.end());
 
     CheckBaseline(lossFunction, learnPool.Docs.Baseline, testPool.Docs.Baseline, testPool.Docs.GetDocCount());
 

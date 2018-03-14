@@ -15,6 +15,7 @@ struct TPoolMetaInfo {
     ui32 BaselineCount;
 
     bool HasGroupIds;
+    bool HasSubgroupIds;
     bool HasDocIds;
     bool HasWeights;
     bool HasTimestamp;
@@ -82,7 +83,9 @@ struct TDocumentStorage {
         if (!QueryId.empty()) {
             DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
         }
-        DoSwap(SubgroupId[doc1Idx], SubgroupId[doc2Idx]);
+        if (!SubgroupId.empty()) {
+            DoSwap(SubgroupId[doc1Idx], SubgroupId[doc2Idx]);
+        }
         DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
     }
 
@@ -101,11 +104,13 @@ struct TDocumentStorage {
         if (!sourceDocs.QueryId.empty()) {
             QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
         }
-        SubgroupId[destinationIdx] = sourceDocs.SubgroupId[sourceIdx];
+        if (!sourceDocs.SubgroupId.empty()) {
+            SubgroupId[destinationIdx] = sourceDocs.SubgroupId[sourceIdx];
+        }
         Timestamp[destinationIdx] = sourceDocs.Timestamp[sourceIdx];
     }
 
-    inline void Resize(int docCount, int featureCount, int approxDim = 0, bool hasQueryId = false) {
+    inline void Resize(int docCount, int featureCount, int approxDim = 0, bool hasQueryId = false, bool hasSubgroupId = false) {
         Factors.resize(featureCount);
         for (auto& factor : Factors) {
             factor.resize(docCount);
@@ -123,7 +128,9 @@ struct TDocumentStorage {
         if (hasQueryId) {
             QueryId.resize(docCount);
         }
-        SubgroupId.resize(docCount);
+        if (hasSubgroupId) {
+            SubgroupId.resize(docCount);
+        }
         Timestamp.resize(docCount);
     }
 
@@ -144,7 +151,6 @@ struct TDocumentStorage {
         Id.shrink_to_fit();
         QueryId.clear();
         QueryId.shrink_to_fit();
-
         SubgroupId.clear();
         SubgroupId.shrink_to_fit();
         Timestamp.clear();

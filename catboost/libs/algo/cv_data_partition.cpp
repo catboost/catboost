@@ -46,7 +46,7 @@ void BuildCvPools(
     TVector<int> queryIndices;
     TVector<TQueryInfo> queryInfo;
     if (hasQueryId) {
-        UpdateQueriesInfo(allDocs.QueryId, /*begin=*/0, docCount, &queryInfo);
+        UpdateQueriesInfo(allDocs.QueryId, allDocs.SubgroupId, /*begin=*/0, docCount, &queryInfo);
         queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
     }
 
@@ -65,8 +65,9 @@ void BuildCvPools(
     }
     int learnCount = docCount - testCount;
 
-    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
-    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId);
+    bool hasSubgroupId = !allDocs.SubgroupId.empty();
+    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
+    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
 
     size_t learnIdx = 0;
     size_t testIdx = 0;

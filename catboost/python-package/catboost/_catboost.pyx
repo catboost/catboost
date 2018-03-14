@@ -70,6 +70,7 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[float] Weight
         TVector[TString] Id
         TVector[uint32_t] QueryId
+        TVector[uint32_t] SubgroupId
         int GetBaselineDimension() except +ProcessException const
         int GetFactorsCount() except +ProcessException const
         size_t GetDocCount() except +ProcessException const
@@ -77,7 +78,7 @@ cdef extern from "catboost/libs/data/pool.h":
         void Swap(TDocumentStorage& other) except +ProcessException
         void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
         void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
-        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId) except +ProcessException
+        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId, bool_t hasSubgroupId) except +ProcessException
         void Clear() except +ProcessException
         void Append(const TDocumentStorage& documents) except +ProcessException
 
@@ -603,7 +604,8 @@ cdef class _PoolBase:
         if len(data) == 0:
             return
         cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
-        self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_group_id)
+        cdef bool_t has_subgroup_id = not self.__pool.Docs.SubgroupId.empty()
+        self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_group_id, has_subgroup_id)
         cdef TString factor_str
         cat_features = set(self.get_cat_feature_indices())
         for i in range(len(data)):
@@ -645,7 +647,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
         for i in range(rows):
             self.__pool.Docs.QueryId[i] = int(group_id[i])
 
@@ -658,7 +660,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]), False)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]), False, False)
         for i in range(rows):
             for j, value in enumerate(baseline[i]):
                 self.__pool.Docs.Baseline[j][i] = float(value)

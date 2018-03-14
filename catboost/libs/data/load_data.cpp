@@ -34,7 +34,7 @@ public:
         FactorCount = poolMetaInfo.FactorCount;
         BaselineCount = poolMetaInfo.BaselineCount;
 
-        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasGroupIds);
+        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasGroupIds, poolMetaInfo.HasSubgroupIds);
         Pool->CatFeatures = poolMetaInfo.CatFeatureIds;
 
         Pool->MetaInfo.ColumnsCount = poolMetaInfo.ColumnsCount;
@@ -42,6 +42,7 @@ public:
         Pool->MetaInfo.HasDocIds = poolMetaInfo.HasDocIds;
         Pool->MetaInfo.HasWeights = poolMetaInfo.HasWeights;
         Pool->MetaInfo.HasGroupIds = poolMetaInfo.HasGroupIds;
+        Pool->MetaInfo.HasSubgroupIds = poolMetaInfo.HasSubgroupIds;
         Pool->MetaInfo.HasTimestamp = poolMetaInfo.HasTimestamp;
     }
 
@@ -299,6 +300,10 @@ TPoolReader::TPoolReader(
     const ui32 groupIdColumns = CountColumns(ColumnsDescription, EColumn::GroupId);
     CB_ENSURE(groupIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
     PoolMetaInfo.HasGroupIds = (bool)groupIdColumns;
+
+    const ui32 subgroupIdColumns = CountColumns(ColumnsDescription, EColumn::SubgroupId);
+    CB_ENSURE(subgroupIdColumns <= 1, "Too many SubgroupId columns.");
+    PoolMetaInfo.HasSubgroupIds = (bool)subgroupIdColumns;
 
     const ui32 timestampColumns = CountColumns(ColumnsDescription, EColumn::Timestamp);
     CB_ENSURE(timestampColumns <= 1, "Too many Timestamp columns");

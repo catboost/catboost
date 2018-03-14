@@ -4,7 +4,7 @@
 
 #include <util/generic/vector.h>
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, int begin, int end, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int begin, int end, TVector<TQueryInfo>* queryInfo);
 
 TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
 

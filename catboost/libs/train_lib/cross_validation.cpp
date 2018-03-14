@@ -108,6 +108,12 @@ static void PrepareFolds(
                 fold.QueryId.push_back(pool.Docs.QueryId[idx]);
             }
         }
+        if (!pool.Docs.SubgroupId.empty()) {
+            fold.SubgroupId.reserve(pool.Docs.GetDocCount());
+            for (auto idx : docIndices) {
+                fold.SubgroupId.push_back(pool.Docs.SubgroupId[idx]);
+            }
+        }
 
         if (!pool.Pairs.empty()) {
             TVector<TPair> testPairs;
@@ -119,9 +125,9 @@ static void PrepareFolds(
             ApplyPermutationToPairs(InvertPermutation(docIndices), &fold.Pairs);
         }
 
-        UpdateQueriesInfo(fold.QueryId, 0, fold.LearnSampleCount, &fold.QueryInfo);
+        UpdateQueriesInfo(fold.QueryId, fold.SubgroupId, 0, fold.LearnSampleCount, &fold.QueryInfo);
         fold.LearnQueryCount = fold.QueryInfo.ysize();
-        UpdateQueriesInfo(fold.QueryId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
+        UpdateQueriesInfo(fold.QueryId, fold.SubgroupId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
         UpdateQueriesPairs(fold.Pairs, 0, fold.Pairs.ysize(), /*invertedPermutation=*/{}, &fold.QueryInfo);
 
         const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
