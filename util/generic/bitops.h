@@ -201,7 +201,7 @@ namespace NBitOps {
 }
 
 /**
- * Computes the next power of 2 higher or equal the the integer parameter `t`.
+ * Computes the next power of 2 higher or equal to the integer parameter `t`.
  * If `t` is a power of 2 will return `t`.
  * Result is undefined for `t == 0`.
  */
