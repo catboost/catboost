@@ -20,7 +20,6 @@ namespace NCatboostOptions {
             , ApproxOnFullHistory("approx_on_full_history", false, taskType)
             , MinFoldSize("min_fold_size", 100, taskType)
             , DataPartitionType("data_partition", EDataPartitionType::FeatureParallel, taskType)
-            , TaskType("task_type", taskType)
         {
         }
 
@@ -65,9 +64,7 @@ namespace NCatboostOptions {
                 }
             }
 
-            if (TaskType == ETaskType::CPU) {
-                CB_ENSURE(!(ApproxOnFullHistory.Get() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
-            }
+            CB_ENSURE(!(ApproxOnFullHistory.GetUnchecked() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
         }
 
         TOption<float> LearningRate;
@@ -81,7 +78,5 @@ namespace NCatboostOptions {
 
         TGpuOnlyOption<ui32> MinFoldSize;
         TGpuOnlyOption<EDataPartitionType> DataPartitionType;
-
-        TOption<ETaskType> TaskType;
     };
 }
