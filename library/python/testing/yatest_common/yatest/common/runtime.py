@@ -1,6 +1,7 @@
 import os
 import types
 import functools
+import json
 
 
 def _get_ya_config():
@@ -182,6 +183,13 @@ def cxx_compiler_path():
     Get path to the gdb
     """
     return os.environ.get("YA_CXX")
+
+
+def global_resources():
+    try:
+        return json.loads(os.environ.get("YA_GLOBAL_RESOURCES"))
+    except (TypeError, ValueError):
+        return {}
 
 
 def _register_core(name, binary_path, core_path, bt_path, pbt_path):
