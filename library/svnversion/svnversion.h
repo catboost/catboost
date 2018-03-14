@@ -24,6 +24,8 @@ extern "C" {
     const char* GetProgramBuildUser();
     const char* GetProgramBuildHost();
     const char* GetProgramBuildDate();
+    const char* GetVCS();
+    const char* GetBranch();
 #if defined(__cplusplus)
 }
 #endif

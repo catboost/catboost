@@ -111,6 +111,22 @@ extern "C" const char* GetProgramBuildDate() {
 #endif
 }
 
+extern "C" const char* GetVCS() {
+#if defined(VCS)
+    return VCS;
+#else
+    return "";
+#endif
+}
+
+extern "C" const char* GetBranch() {
+#if defined(BRANCH)
+    return BRANCH;
+#else
+    return "";
+#endif
+}
+
 extern "C" void PrintSvnVersionAndExitEx(int argc, char *argv[], const char *opts) {
     if (2 == argc) {
         for (TStringBuf all = opts, versionOpt; all.NextTok(';', versionOpt); ) {

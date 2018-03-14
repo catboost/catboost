@@ -55,4 +55,12 @@ public class SvnVersion {
     public static String getProgramBuildDate() {
         return SvnConstants.GetProperty("BUILD_DATE", "");
     }
+
+    public static String getVCS() {
+        return SvnConstants.GetProperty("VCS", "");
+    }
+
+    public static String getBranch() {
+        return SvnConstants.GetProperty("BRANCH", "");
+    }
 }
