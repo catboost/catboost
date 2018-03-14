@@ -340,10 +340,10 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
 
     template <class T>
     void TestTimeUnits() {
-        T withTime(1249571946000000L);
-        T onlyMinutes(1249571940000000L);
-        T onlyHours(1249570800000000L);
-        T onlyDays(1249516800000000L);
+        T withTime = T::MicroSeconds(1249571946000000L);
+        T onlyMinutes = T::MicroSeconds(1249571940000000L);
+        T onlyHours = T::MicroSeconds(1249570800000000L);
+        T onlyDays = T::MicroSeconds(1249516800000000L);
         ui64 minutes = 20826199;
         ui64 hours = 347103;
         ui64 days = 14462;
@@ -374,5 +374,22 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
     SIMPLE_UNIT_TEST(TestNoexceptConstruction) {
         UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(STRINGBUF("not a number"))), yexception);
         UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(STRINGBUF("not a number"))), yexception);
+    }
+
+    SIMPLE_UNIT_TEST(TestFromValueForTDuration) {
+        // check that FromValue creates the same TDuration
+        TDuration d1 = TDuration::MicroSeconds(12345);
+        TDuration d2 = TDuration::FromValue(d1.GetValue());
+
+        UNIT_ASSERT_VALUES_EQUAL(d1, d2);
+    }
+
+
+    SIMPLE_UNIT_TEST(TestFromValueForTInstant) {
+        // check that FromValue creates the same TInstant
+        TInstant i1 = TInstant::MicroSeconds(12345);
+        TInstant i2 = TInstant::FromValue(i1.GetValue());
+
+        UNIT_ASSERT_VALUES_EQUAL(i1, i2);
     }
 }
