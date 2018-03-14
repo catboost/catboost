@@ -45,9 +45,8 @@ namespace NKernel {
     }
 
     __forceinline__ __device__ float NextUniformFloat32(ui32* seed) {
-        ui32 v =  AdvanceSeed32(seed);
-        ui32 u =  AdvanceSeed32(seed);
-        return ((v << 16) + u) * 2.328306435996595e-10f;
+        ui32 v = AdvanceSeed32(seed);
+        return v * 2.328306435996595e-10f;
     }
 
     __forceinline__ __device__ float NextNormal(ui64* seed) {

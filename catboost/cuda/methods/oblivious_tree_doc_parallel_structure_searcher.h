@@ -180,7 +180,7 @@ namespace NCatboostCuda {
         TVector<float> EstimateLeaves(const TVector<TPartitionStatistics>& statCpu) {
             TVector<float> result;
             for (ui32 i = 0; i < statCpu.size(); ++i) {
-                const float mu = statCpu[i].Count > 1 ? statCpu[i].Sum / (statCpu[i].Weight + TreeConfig.L2Reg) : 0;
+                const float mu = statCpu[i].Count > 0 ? statCpu[i].Sum / (statCpu[i].Weight + TreeConfig.L2Reg) : 0;
                 result.push_back(mu);
             }
             return result;
