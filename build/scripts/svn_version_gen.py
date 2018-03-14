@@ -161,26 +161,31 @@ def get_hg_field(hg_info, field):
 
 
 def get_hg_dict(arc_root, python_cmd=[sys.executable]):
-    hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
-    info = {}
-    revision=None
-    if hg_info:
-        revision, branch = hg_info.strip().split(' ')
-        if revision.endswith('+'):
-            revision = revision[:-1]
-        info['rev'] = revision
-        info['branch'] = branch
-    hg_info = system_command_call(get_hg_info_cmd(arc_root, revision=revision, python_cmd=python_cmd))
-    if hg_info:
-        info['author'] = get_hg_field(hg_info, 'user')
-        info['date'] = get_hg_field(hg_info, 'date')
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(arc_root)
+        hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
+        info = {}
+        revision=None
+        if hg_info:
+            revision, branch = hg_info.strip().split(' ')
+            if revision.endswith('+'):
+                revision = revision[:-1]
+            info['hash'] = revision
+            info['branch'] = branch
+        hg_info = system_command_call(get_hg_info_cmd(arc_root, revision=revision, python_cmd=python_cmd))
+        if hg_info:
+            info['author'] = get_hg_field(hg_info, 'user')
+            info['date'] = get_hg_field(hg_info, 'date')
+    finally:
+        os.chdir(old_cwd)
     return info
 
 
 def get_hg_scm_data(info):
     scm_data = "Svn info:\n"
     scm_data += indent + "Branch: " + info['branch'] + "\n"
-    scm_data += indent + "Last Changed Rev: " + info['rev'] + "\n"
+    scm_data += indent + "Last Changed Rev: " + info['hash'] + "\n"
     scm_data += indent + "Last Changed Author: " + info['author'] + "\n"
     scm_data += indent + "Last Changed Date: " + info['date'] + "\n"
     return scm_data
@@ -338,6 +343,7 @@ def main(header, footer, line):
     print >>result, line("ARCADIA_SOURCE_PATH", arc_root)
     print >>result, line("ARCADIA_SOURCE_URL", rev_dict.get('url', ''))
     print >>result, line("ARCADIA_SOURCE_REVISION", rev_dict.get('rev', '-1'))
+    print >>result, line("ARCADIA_SOURCE_HG_HASH", rev_dict.get('hash', ''))
     print >>result, line("ARCADIA_SOURCE_LAST_CHANGE", rev_dict.get('lastchg', ''))
     print >>result, line("ARCADIA_SOURCE_LAST_AUTHOR", rev_dict.get('author', ''))
     print >>result, line("BUILD_USER", get_user())

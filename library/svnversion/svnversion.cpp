@@ -79,6 +79,14 @@ extern "C" int GetProgramSvnRevision() {
 #endif
 }
 
+extern "C" const char* GetProgramHgHash() {
+#if defined(ARCADIA_SOURCE_HG_HASH)
+    return ARCADIA_SOURCE_HG_HASH;
+#else
+    return "";
+#endif
+}
+
 extern "C" const char* GetProgramScmData() {
 #if defined(SCM_DATA)
     return SCM_DATA;

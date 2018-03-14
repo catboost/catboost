@@ -17,6 +17,7 @@ extern "C" {
     const char* GetArcadiaLastChange();  // "2902074"
     const char* GetArcadiaLastAuthor();  // "dieash"
     int GetProgramSvnRevision();         // 2902074
+    const char* GetProgramHgHash();
     void PrintSvnVersionAndExit(int argc, char *argv[]);
     void PrintSvnVersionAndExitEx(int argc, char *argv[], const char *opts);
     void PrintSvnVersionAndExit0();
