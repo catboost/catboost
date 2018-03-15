@@ -29,6 +29,22 @@ bool TCgiParameters::Erase(const TStringBuf name, size_t pos) {
     return false;
 }
 
+bool TCgiParameters::Erase(const TStringBuf name, const TStringBuf val) {
+    const auto pair = equal_range(name);
+
+    bool found = false;
+    for (auto it = pair.first; it != pair.second; ) {
+        if (val == it->second) {
+            it = erase(it);
+            found = true;
+        } else {
+            ++it;
+        }
+    }
+
+    return found;
+}
+
 size_t TCgiParameters::EraseAll(const TStringBuf name) {
     size_t num = 0;
 

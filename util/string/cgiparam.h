@@ -102,6 +102,7 @@ public:
     void JoinUnescaped(const TStringBuf key, char sep, TStringBuf val = TStringBuf());
 
     bool Erase(const TStringBuf name, size_t numOfValue = 0);
+    bool Erase(const TStringBuf name, const TStringBuf val);
 
     inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const {
         const_iterator it = Find(name, numOfValue);
