@@ -91,11 +91,11 @@ test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
 
   data_frame <- load_data_frame(pool_path, column_description_path)
   data_frame_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")],
-                                              as.double(data_frame$Target))
+                                              as.double(data_frame$Label))
   data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")])
 
   tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]),
-                                              as.double(data_frame$Target))
+                                              as.double(data_frame$Label))
   tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]))
 
   params <- list(iterations = 10,
