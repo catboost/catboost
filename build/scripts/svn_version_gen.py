@@ -143,14 +143,14 @@ def get_svn_scm_data(info):
     return scm_data
 
 
-def get_hg_info_cmd(arc_root, revision=None, python_cmd=[sys.executable]):
+def get_hg_info_cmd(arc_root, branch=None, python_cmd=[sys.executable]):
     ya_path = os.path.join(arc_root, 'ya')
     hg_cmd = python_cmd + [ya_path, '-v', '--no-report', 'tool', 'hg']
-    if not revision:
-        hg_cmd += ['identify', '--id', '--branch']
+    if not branch:
+        hg_cmd += ['branch']
     else:
-        hg_cmd += ['log', '-r', revision]
-    return hg_cmd + [arc_root]
+        hg_cmd += ['log', '-b', branch, '-l1']
+    return hg_cmd
 
 
 def get_hg_field(hg_info, field):
@@ -166,15 +166,12 @@ def get_hg_dict(arc_root, python_cmd=[sys.executable]):
         os.chdir(arc_root)
         hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
         info = {}
-        revision=None
         if hg_info:
-            revision, branch = hg_info.strip().split(' ')
-            if revision.endswith('+'):
-                revision = revision[:-1]
-            info['hash'] = revision
+            branch = hg_info.strip()
             info['branch'] = branch
-        hg_info = system_command_call(get_hg_info_cmd(arc_root, revision=revision, python_cmd=python_cmd))
+        hg_info = system_command_call(get_hg_info_cmd(arc_root, branch=branch, python_cmd=python_cmd))
         if hg_info:
+            info['hash'] = get_hg_field(hg_info, 'changeset')
             info['author'] = get_hg_field(hg_info, 'user')
             info['date'] = get_hg_field(hg_info, 'date')
     finally:
@@ -184,10 +181,10 @@ def get_hg_dict(arc_root, python_cmd=[sys.executable]):
 
 def get_hg_scm_data(info):
     scm_data = "Svn info:\n"
-    scm_data += indent + "Branch: " + info['branch'] + "\n"
-    scm_data += indent + "Last Changed Rev: " + info['hash'] + "\n"
-    scm_data += indent + "Last Changed Author: " + info['author'] + "\n"
-    scm_data += indent + "Last Changed Date: " + info['date'] + "\n"
+    scm_data += indent + "Branch: " + info.get('branch', '') + "\n"
+    scm_data += indent + "Last Changed Rev: " + info.get('hash', '') + "\n"
+    scm_data += indent + "Last Changed Author: " + info.get('author', '') + "\n"
+    scm_data += indent + "Last Changed Date: " + info.get('date', '') + "\n"
     return scm_data
 
 
