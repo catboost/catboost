@@ -36,7 +36,7 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "b8bd7175bc32415f9629522cbd251819",
+        "checksum": "f22c88c729a7f042d01555dca39a4ba0",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
@@ -60,7 +60,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "e9509557daec69aeaf070f51ec20594a",
+        "checksum": "86b9628ec165a7573027119a7e3ee553",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {

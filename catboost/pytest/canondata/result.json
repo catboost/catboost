@@ -401,7 +401,7 @@
     ],
     "test.test_crossentropy[Plain]": [
         {
-            "checksum": "472329513c2b054369efbd879c2b851b",
+            "checksum": "43caf6f5fcc13070762f2ec8c38a59f6",
             "uri": "file://test.test_crossentropy_Plain_/test.eval"
         }
     ],

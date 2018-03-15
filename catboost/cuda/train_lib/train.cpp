@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
@@ -217,10 +218,17 @@ namespace NCatboostCuda {
                                          const TDataProvider& dataProvider,
                                          const THolder<TDataProvider>& testProvider,
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                         NCatboostOptions::TOutputFilesOptions& outputOptions,
                                          TBinarizedFeaturesManager& featuresManager) {
 
         UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
                                  &catBoostOptions.BoostingOptions->BoostingType);
+
+        bool hasTestLabels = testProvider.Get() != nullptr;
+        if (hasTestLabels) {
+            hasTestLabels = !IsConst(testProvider->GetTargets());
+        }
+        UpdateUseBestModel(hasTestLabels, &outputOptions.UseBestModel);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         if (snapshotOptions.Get() == nullptr) {
@@ -358,14 +366,16 @@ namespace NCatboostCuda {
                 .Finish(numThreads);
         }
 
+        auto outputOptionsFinal = outputOptions;
         SetDataDependentDefaults(snapshotOptions,
                                  dataProvider,
                                  testData,
                                  catBoostOptions,
+                                 outputOptionsFinal,
                                  featuresManager);
 
 
-        auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testData.Get(), featuresManager);
+        auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
@@ -465,10 +475,11 @@ namespace NCatboostCuda {
             }
 
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
-            SetDataDependentDefaults(snapshotOptions, dataProvider, testProvider, catBoostOptions, featuresManager);
+            auto outputOptionsFinal = outputOptions;
+            SetDataDependentDefaults(snapshotOptions, dataProvider, testProvider, catBoostOptions, outputOptionsFinal, featuresManager);
 
             {
-                auto coreModel = TrainModel(catBoostOptions, outputOptions, dataProvider, testProvider.Get(), featuresManager);
+                auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager);
                 TOFStream modelOutput(coreModelPath);
                 coreModel.Save(&modelOutput);
             }
@@ -482,7 +493,4 @@ namespace NCatboostCuda {
                       numThreads,
                       resultModelPath);
     }
-
-
-
 }

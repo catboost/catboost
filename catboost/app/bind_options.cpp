@@ -184,10 +184,10 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["profile_log"] = name;
         });
 
-    parser.AddLongOption("use-best-model", "save all trees until best iteration on test")
-        .NoArgument()
-        .Handler0([plainJsonPtr]() {
-            (*plainJsonPtr)["use_best_model"] = true;
+    parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
+        .RequiredArgument("bool")
+        .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
+            (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
         });
 
     parser.AddLongOption("name", "name to be displayed in visualizator")

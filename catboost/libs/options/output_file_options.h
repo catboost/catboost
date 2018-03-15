@@ -10,7 +10,8 @@ namespace NCatboostOptions {
     class TOutputFilesOptions {
     public:
         explicit TOutputFilesOptions(ETaskType taskType)
-            : TrainDir("train_dir", "")
+            : UseBestModel("use_best_model", false)
+            , TrainDir("train_dir", "")
             , Name("name", "experiment")
             , MetaFile("meta", "meta.tsv")
             , JsonLogPath("json_log", "catboost_training.json")
@@ -22,7 +23,6 @@ namespace NCatboostOptions {
             , SnapshotPath("snapshot_file", "experiment.cbsnapshot")
             , SaveSnapshotFlag("save_snapshot", false)
             , AllowWriteFilesFlag("allow_writing_files", true)
-            , UseBestModel("use_best_model", false)
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
@@ -34,6 +34,8 @@ namespace NCatboostOptions {
         {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
+
+        TOption<bool> UseBestModel;
 
         const TString& GetTrainDir() const {
             return TrainDir.Get();
@@ -185,6 +187,7 @@ namespace NCatboostOptions {
             }
         }
 
+
     private:
         TString GetFullPath(const TString& fileName) const {
             if (fileName.empty()) {
@@ -213,7 +216,6 @@ namespace NCatboostOptions {
         TOption<TString> SnapshotPath;
         TOption<bool> SaveSnapshotFlag;
         TOption<bool> AllowWriteFilesFlag;
-        TOption<bool> UseBestModel;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
         TOption<int> MetricPeriod;

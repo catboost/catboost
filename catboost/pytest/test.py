@@ -27,6 +27,7 @@ def test_queryrmse(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -50,6 +51,7 @@ def test_pool_with_QueryId(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -73,6 +75,7 @@ def test_rmse_on_qwise_pool(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
@@ -96,6 +99,7 @@ def test_queryaverage(boosting_type):
         '--custom-metric', 'QueryAverage:top=2',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -122,6 +126,7 @@ def test_pfound(top_size, boosting_type, cd_file):
         '--custom-metric', 'PFound:top={}'.format(top_size),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -144,6 +149,7 @@ def test_queryrmse_approx_on_full_history():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -177,7 +183,8 @@ def test_pairlogit(boosting_type):
             '-m', output_model_path,
             '--eval-file', eval_path,
             '--learn-err-log', learn_error_path,
-            '--test-err-log', test_error_path
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
         ]
         yatest.common.execute(cmd)
 
@@ -211,6 +218,7 @@ def test_pairlogit_no_target(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -235,6 +243,7 @@ def test_pairlogit_approx_on_full_history():
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -252,6 +261,7 @@ def test_nan_mode(nan_mode, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '-f', data_file('adult_nan', 'train_small'),
         '-t', data_file('adult_nan', 'test_small'),
         '--column-description', data_file('adult_nan', 'train.cd'),
@@ -261,7 +271,7 @@ def test_nan_mode(nan_mode, boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--nan-mode', nan_mode
+        '--nan-mode', nan_mode,
     )
     yatest.common.execute(cmd)
 
@@ -284,7 +294,8 @@ def test_nan_mode_forbidden(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--nan-mode', 'Forbidden'
+        '--nan-mode', 'Forbidden',
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -298,6 +309,7 @@ def test_overfit_detector_iter(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -313,7 +325,7 @@ def test_overfit_detector_iter(boosting_type):
         '-w', '0.5',
         '--rsm', '1',
         '--od-type', 'Iter',
-        '--od-wait', '1'
+        '--od-wait', '1',
     )
     yatest.common.execute(cmd)
 
@@ -328,6 +340,7 @@ def test_overfit_detector_inc_to_dec(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -344,7 +357,7 @@ def test_overfit_detector_inc_to_dec(boosting_type):
         '--rsm', '1',
         '--od-pval', '0.5',
         '--od-type', 'IncToDec',
-        '--od-wait', '1'
+        '--od-wait', '1',
     )
     yatest.common.execute(cmd)
 
@@ -374,7 +387,7 @@ def test_shrink_model(boosting_type):
         '-w', '1',
         '--od-pval', '0.99',
         '--rsm', '1',
-        '--use-best-model'
+        '--use-best-model', 'true'
     )
     yatest.common.execute(cmd)
 
@@ -407,7 +420,8 @@ def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--leaf-estimation-method', leaf_estimation_method,
-        '--leaf-estimation-iterations', '2'
+        '--leaf-estimation-iterations', '2',
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
@@ -447,6 +461,7 @@ def test_doc_id(loss_function, boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -472,6 +487,7 @@ def test_apply_missing_vals(boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', model_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -530,7 +546,8 @@ def test_permutation_block(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--fold-permutation-block', '239'
+        '--fold-permutation-block', '239',
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -556,6 +573,7 @@ def test_ignored_features(boosting_type):
         '-m', output_model_path,
         '-I', '0:1:3:5-7',
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
@@ -579,6 +597,7 @@ def test_baseline(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 
@@ -604,6 +623,7 @@ def test_weights(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_weight', 'train_weight'),
         '-t', data_file('adult_weight', 'test_weight'),
@@ -627,6 +647,7 @@ def test_weights_no_bootstrap(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_weight', 'train_weight'),
         '-t', data_file('adult_weight', 'test_weight'),
@@ -651,6 +672,7 @@ def test_weights_gradient(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_weight', 'train_weight'),
         '-t', data_file('adult_weight', 'test_weight'),
@@ -675,6 +697,7 @@ def test_logloss_with_not_binarized_target(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_not_binarized', 'train_small'),
         '-t', data_file('adult_not_binarized', 'test_small'),
@@ -700,6 +723,7 @@ def test_all_targets(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -739,6 +763,7 @@ def test_cv(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -762,6 +787,7 @@ def test_inverted_cv(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -785,6 +811,7 @@ def test_cv_for_query(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'QueryRMSE',
         '-f', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
@@ -808,6 +835,7 @@ def test_cv_for_pairs(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'PairLogit',
         '-f', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
@@ -832,6 +860,7 @@ def test_empty_eval(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -854,6 +883,7 @@ def test_time(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -878,6 +908,7 @@ def test_gradient(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -902,6 +933,7 @@ def test_newton(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -926,6 +958,7 @@ def test_custom_priors(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -954,6 +987,7 @@ def test_ctr_buckets(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'MultiClass',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -978,6 +1012,7 @@ def test_fold_len_multiplier(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'MultiClass',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1006,6 +1041,7 @@ def test_fstr(fstr_type, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -1037,6 +1073,7 @@ def test_reproducibility():
         cmd = [
             CATBOOST_PATH,
             'fit',
+            '--use-best-model', 'false',
             '--loss-function', 'Logloss',
             '-f', data_file('adult', 'train_small'),
             '-t', data_file('adult', 'test_small'),
@@ -1069,6 +1106,7 @@ def test_feature_border_types(border_type, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1093,6 +1131,7 @@ def test_deep_tree_classification(depth, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1118,6 +1157,7 @@ def test_regularization(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1147,6 +1187,7 @@ def test_reg_targets(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult_crossentropy', 'train_proba'),
         '-t', data_file('adult_crossentropy', 'test_proba'),
@@ -1175,6 +1216,7 @@ def test_multi_targets(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('cloudness_small', 'train_small'),
         '-t', data_file('cloudness_small', 'test_small'),
@@ -1215,6 +1257,7 @@ def test_target_border(border_type, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file('adult_crossentropy', 'train_proba'),
         '-t', data_file('adult_crossentropy', 'test_proba'),
@@ -1244,6 +1287,7 @@ def test_counter_calc(counter_calc_method, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file('adult_crossentropy', 'train_proba'),
         '-t', data_file('adult_crossentropy', 'test_proba'),
@@ -1273,6 +1317,7 @@ def test_ctr_type(ctr_type, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file('adult_crossentropy', 'train_proba'),
         '-t', data_file('adult_crossentropy', 'test_proba'),
@@ -1299,6 +1344,7 @@ def test_custom_overfitting_detector_metric(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '--eval-metric', 'AUC',
         '-f', data_file('adult', 'train_small'),
@@ -1326,6 +1372,7 @@ def test_custom_loss_for_classification(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1352,6 +1399,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'MultiClass',
         '-f', data_file('cloudness_small', 'train_small'),
         '-t', data_file('cloudness_small', 'test_small'),
@@ -1378,6 +1426,7 @@ def test_calc_prediction_type(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -1425,6 +1474,7 @@ def test_calc_no_target(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1464,6 +1514,7 @@ def test_classification_progress_restore(boosting_type):
         cmd = [
             CATBOOST_PATH,
             'fit',
+            '--use-best-model', 'false',
             '--loss-function', 'Logloss',
             '-f', train_random_name,
             '-t', data_file('adult', 'test_small'),
@@ -1504,6 +1555,7 @@ def test_prediction_type(prediction_type, loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1530,6 +1582,7 @@ def test_const_feature(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file(pool, 'train_full3'),
         '-t', data_file(pool, 'test3'),
@@ -1559,6 +1612,7 @@ def test_quantile_targets(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function + ':alpha=0.9',
         '-f', data_file(pool, 'train_full3'),
         '-t', data_file(pool, 'test3'),
@@ -1590,6 +1644,7 @@ def test_custom_loss(custom_loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file(pool, 'train_full3'),
         '-t', data_file(pool, 'test3'),
@@ -1618,6 +1673,7 @@ def test_meta(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1643,6 +1699,7 @@ def test_train_dir():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file(pool, 'train_full3'),
         '-t', data_file(pool, 'test3'),
@@ -1670,6 +1727,7 @@ def test_feature_id_fstr(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -1702,6 +1760,7 @@ def test_class_names_logloss(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1728,6 +1787,7 @@ def test_class_names_multiclass(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('precipitation_small', 'train_small'),
         '-t', data_file('precipitation_small', 'test_small'),
@@ -1753,6 +1813,7 @@ def test_class_weight_logloss(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1779,6 +1840,7 @@ def test_class_weight_multiclass(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1804,6 +1866,7 @@ def test_params_from_file(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1829,6 +1892,7 @@ def test_lost_class(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'MultiClass',
         '-f', data_file('cloudness_lost_class', 'train_small'),
         '-t', data_file('cloudness_lost_class', 'test_small'),
@@ -1854,6 +1918,7 @@ def test_class_weight_with_lost_class(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'MultiClass',
         '-f', data_file('cloudness_lost_class', 'train_small'),
         '-t', data_file('cloudness_lost_class', 'test_small'),
@@ -1881,6 +1946,7 @@ def test_one_hot(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1920,6 +1986,7 @@ def test_random_strength(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1948,6 +2015,7 @@ def test_only_categorical_features(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -1977,6 +2045,7 @@ def test_weight_sampling_per_tree(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2003,6 +2072,7 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--allow-writing-files', 'false',
         '--used-ram-limit', '1024',
         '--loss-function', 'Logloss',
@@ -2031,6 +2101,7 @@ def test_subsample_per_tree(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2061,6 +2132,7 @@ def test_subsample_per_tree_level(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2090,6 +2162,7 @@ def test_bagging_per_tree_level(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2116,6 +2189,7 @@ def test_plain(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2142,6 +2216,7 @@ def test_bootstrap(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2171,6 +2246,7 @@ def test_json_logging():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2195,6 +2271,7 @@ def test_json_logging_metric_period():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
@@ -2219,6 +2296,7 @@ def test_output_columns_format():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
@@ -2252,6 +2330,7 @@ def test_eval_period():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
@@ -2283,6 +2362,7 @@ def test_weights_output():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_weight', 'train_weight'),
         '-t', data_file('adult_weight', 'test_weight'),
@@ -2306,6 +2386,7 @@ def test_baseline_output():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'Logloss',
         '-f', data_file('adult_weight', 'train_weight'),
         '-t', data_file('adult_weight', 'test_weight'),
@@ -2328,6 +2409,7 @@ def test_query_output():
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'QueryRMSE',
         '-f', data_file('querywise', 'train'),
         '-t', data_file('querywise', 'test'),
@@ -2351,6 +2433,7 @@ def test_without_cat_features(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
+        '--use-best-model', 'false',
         '--loss-function', 'RMSE',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
