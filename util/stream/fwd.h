@@ -39,6 +39,7 @@ class TTeeOutput;
 
 class TTempBufOutput;
 class TTempBufWrapperOutput;
+class TTempBufCuttingWrapperOutput;
 class TGrowingTempBufOutput;
 
 struct TEol;

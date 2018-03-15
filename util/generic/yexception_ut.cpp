@@ -10,6 +10,8 @@ static inline void Throw2DontMove() {
 
 #include <library/unittest/registar.h>
 
+#include <util/memory/tempbuf.h>
+#include <util/random/mersenne.h>
 #include <util/stream/output.h>
 #include <util/string/subst.h>
 
@@ -39,6 +41,7 @@ class TExceptionTest: public TTestBase {
     UNIT_TEST(TestBackTrace)
     UNIT_TEST(TestRethrowAppend)
     UNIT_TEST(TestMacroOverload)
+    UNIT_TEST(TestMessageCrop)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -216,6 +219,22 @@ private:
             Y_ENSURE(10 > 20, "exception message to search for");
         } catch (const yexception& e) {
             UNIT_ASSERT(e.AsStrBuf().Contains("exception message to search for"));
+        }
+    }
+
+    void TestMessageCrop() {
+        TTempBuf tmp;
+        size_t size = tmp.Size() * 1.5;
+        TString s;
+        s.reserve(size);
+        TMersenne<ui64> generator(42);
+        for (int j = 0; j < 50; ++j) {
+            for (size_t i = 0; i < size; ++i) {
+                s += static_cast<char>('a' + generator() % 26);
+            }
+            yexception e;
+            e << s;
+            UNIT_ASSERT_EQUAL(e.AsStrBuf(), s.substr(0, tmp.Size()));
         }
     }
 };

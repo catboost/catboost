@@ -27,7 +27,7 @@ namespace NPrivateException {
 
         template <class T>
         inline void Append(const T& t) {
-            TTempBufWrapperOutput tempBuf(Buf_);
+            TTempBufCuttingWrapperOutput tempBuf(Buf_);
             static_cast<IOutputStream&>(tempBuf) << t;
         }
 
