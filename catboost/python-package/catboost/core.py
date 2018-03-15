@@ -97,7 +97,7 @@ class Pool(_PoolBase):
     """
 
     def __init__(self, data, label=None, cat_features=None, column_description=None, pairs=None, delimiter='\t',
-                 has_header=False, weight=None, group_id=None, pairs_weight=None, baseline=None,
+                 has_header=False, weight=None, group_id=None, subgroup_id=None, pairs_weight=None, baseline=None,
                  feature_names=None, thread_count=-1):
         """
         Pool is a internal data structure that used by CatBoost.
@@ -148,6 +148,10 @@ class Pool(_PoolBase):
             group id for each instance.
             If not None, giving 1 dimensional array like data.
 
+        subgroup_id : list or numpy.array, optional (default=None)
+            subgroup id for each instance.
+            If not None, giving 1 dimensional array like data.
+
         pairs_weight : list or numpy.array, optional (default=None)
             Weight for each pair.
             If not None, giving 1 dimensional array like pairs.
@@ -170,11 +174,11 @@ class Pool(_PoolBase):
             if pairs is not None and isinstance(data, STRING_TYPES) != isinstance(pairs, STRING_TYPES):
                 raise CatboostError("Data and pairs should be the same types.")
             if isinstance(data, STRING_TYPES):
-                if any(v is not None for v in [cat_features, weight, group_id, pairs_weight, baseline, feature_names]):
-                    raise CatboostError("cat_features, weight, group_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
+                if any(v is not None for v in [cat_features, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names]):
+                    raise CatboostError("cat_features, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
                 self._read(data, column_description, pairs, delimiter, has_header, thread_count)
             else:
-                self._init(data, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
+                self._init(data, label, cat_features, pairs, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names)
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -337,6 +341,22 @@ class Pool(_PoolBase):
         if not isinstance(group_id[0], (INTEGER_TYPES)):
             raise CatboostError("Invalid group_id value type={}: must be 1 dimensional data with int types.".format(type(group_id[0])))
 
+    def _check_subgroup_id_type(self, subgroup_id):
+        """
+        Check type of subgroup_id parameter.
+        """
+        if not isinstance(subgroup_id, ARRAY_TYPES):
+            raise CatboostError("Invalid subgroup_id type={}: must be array like.".format(type(subgroup_id)))
+
+    def _check_subgroup_id_shape(self, subgroup_id, samples_count):
+        """
+        Check subgroup_id length.
+        """
+        if len(subgroup_id) != samples_count:
+            raise CatboostError("Length of subgroup_id={} and length of data={} are different.".format(len(subgroup_id), samples_count))
+        if not isinstance(subgroup_id[0], (INTEGER_TYPES)):
+            raise CatboostError("Invalid subgroup_id value type={}: must be 1 dimensional data with int types.".format(type(subgroup_id[0])))
+
     def _check_feature_names(self, feature_names, num_col=None):
         if num_col is None:
             num_col = self.num_col()
@@ -384,6 +404,13 @@ class Pool(_PoolBase):
         self._set_group_id(group_id)
         return self
 
+    def set_subgroup_id(self, subgroup_id):
+        self._check_subgroup_id_type(subgroup_id)
+        subgroup_id = self._if_pandas_to_numpy(subgroup_id)
+        self._check_subgroup_id_shape(subgroup_id, self.num_row())
+        self._set_subgroup_id(subgroup_id)
+        return self
+
     def set_pairs_weight(self, pairs_weight):
         self._check_weight_type(pairs_weight)
         pairs_weight = self._if_pandas_to_numpy(pairs_weight)
@@ -414,7 +441,7 @@ class Pool(_PoolBase):
             self._check_thread_count(thread_count)
             self._read_pool(pool_file, column_description, pairs, delimiter[0], has_header, thread_count)
 
-    def _init(self, data_matrix, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names):
+    def _init(self, data_matrix, label, cat_features, pairs, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names):
         """
         Initialize Pool from array like data.
         """
@@ -448,6 +475,10 @@ class Pool(_PoolBase):
             self._check_group_id_type(group_id)
             group_id = self._if_pandas_to_numpy(group_id)
             self._check_group_id_shape(group_id, samples_count)
+        if subgroup_id is not None:
+            self._check_subgroup_id_type(subgroup_id)
+            subgroup_id = self._if_pandas_to_numpy(subgroup_id)
+            self._check_subgroup_id_shape(subgroup_id, samples_count)
         if pairs_weight is not None:
             self._check_weight_type(pairs_weight)
             pairs_weight = self._if_pandas_to_numpy(pairs_weight)
@@ -459,15 +490,15 @@ class Pool(_PoolBase):
             self._check_baseline_shape(baseline, samples_count)
         if feature_names is not None:
             self._check_feature_names(feature_names, features_count)
-        self._init_pool(data_matrix, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names)
+        self._init_pool(data_matrix, label, cat_features, pairs, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names)
 
 
-def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description):
+def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, column_description):
     train_pool = None
     if isinstance(X, Pool):
         train_pool = X
-        if any(v is not None for v in [cat_features, sample_weight, group_id, pairs_weight, baseline]):
-            raise CatboostError("cat_features, sample_weight, group_id, pairs_weight, baseline should have the None type when X has Pool type.")
+        if any(v is not None for v in [cat_features, sample_weight, group_id, subgroup_id, pairs_weight, baseline]):
+            raise CatboostError("cat_features, sample_weight, group_id, subgroup_id, pairs_weight, baseline should have the None type when X has Pool type.")
         if X.get_label() is None:
             raise CatboostError("Label in X has not initialized.")
         if y is not None:
@@ -478,7 +509,7 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_
         if y is None:
             raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
-                 pairs_weight=pairs_weight, baseline=baseline)
+                 subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
 
 class CatBoost(_CatBoostBase):
@@ -638,7 +669,7 @@ class CatBoost(_CatBoostBase):
                 os.remove(path)
 
 
-    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description):
+    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
         calc_feature_importance = True
@@ -661,7 +692,7 @@ class CatBoost(_CatBoostBase):
         if use_best_model is not None:
             params['use_best_model'] = use_best_model
 
-        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
+        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, column_description)
         if train_pool.is_empty_:
             raise CatboostError("X is empty.")
 
@@ -697,14 +728,14 @@ class CatBoost(_CatBoostBase):
             self._train(train_pool, eval_set, params, allow_clear_pool)
         if calc_feature_importance:
             if allow_clear_pool:
-                train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, column_description)
+                train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, column_description)
             setattr(self, "_feature_importance", self.get_feature_importance(train_pool))
 
         if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
-    def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, pairs_weight=None,
+    def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, subgroup_id=None, pairs_weight=None,
             baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
         """
         Fit the CatBoost model.
@@ -734,6 +765,11 @@ class CatBoost(_CatBoostBase):
 
         group_id : list or numpy.array, optional (default=None)
             group id for each instance.
+            If not None, giving 1 dimensional array like data.
+            Use only if X is not Pool.
+
+        subgroup_id : list or numpy.array, optional (default=None)
+            subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
             Use only if X is not Pool.
 
@@ -769,7 +805,7 @@ class CatBoost(_CatBoostBase):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1517,7 +1553,7 @@ class CatBoostClassifier(CatBoost):
         -------
         model : CatBoost
         """
-        self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -1824,7 +1860,7 @@ class CatBoostRegressor(CatBoost):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, None, sample_weight, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        return self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """

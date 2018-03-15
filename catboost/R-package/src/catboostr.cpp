@@ -125,7 +125,8 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                                 SEXP catFeaturesParam,
                                 SEXP pairsParam,
                                 SEXP weightParam,
-                                SEXP queryIdParam,
+                                SEXP groupIdParam,
+                                SEXP subgroupIdParam,
                                 SEXP pairsWeightParam,
                                 SEXP baselineParam,
                                 SEXP featureNamesParam) {
@@ -143,7 +144,9 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
     }
     TPoolPtr poolPtr = std::make_unique<TPool>();
     poolPtr->CatFeatures = GetVectorFromSEXP<int>(catFeaturesParam);
-    poolPtr->Docs.Resize(dataRows, dataColumns, baselineColumns);
+    const bool hasGroup = groupIdParam != R_NilValue;
+    const bool hasSubgroup = subgroupIdParam != R_NilValue;
+    poolPtr->Docs.Resize(dataRows, dataColumns, baselineColumns, hasGroup, hasSubgroup);
     for (size_t i = 0; i < dataRows; ++i) {
         if (targetParam != R_NilValue) {
             poolPtr->Docs.Target[i] = static_cast<float>(REAL(targetParam)[i]);
@@ -151,8 +154,11 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         if (weightParam != R_NilValue) {
             poolPtr->Docs.Weight[i] = static_cast<float>(REAL(weightParam)[i]);
         }
-        if (queryIdParam != R_NilValue) {
-            poolPtr->Docs.QueryId[i] = static_cast<uint32_t>(INTEGER(queryIdParam)[i]);
+        if (hasGroup) {
+            poolPtr->Docs.QueryId[i] = static_cast<uint32_t>(INTEGER(groupIdParam)[i]);
+        }
+        if (hasSubgroup) {
+            poolPtr->Docs.SubgroupId[i] = static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]);
         }
         if (baselineParam != R_NilValue) {
             for (size_t j = 0; j < baselineColumns; ++j) {

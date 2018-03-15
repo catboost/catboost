@@ -572,7 +572,7 @@ cdef class _PoolBase:
         if len([target for target in self.__pool.Docs.Target]) > 1:
             self.has_label_ = True
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, pairs_weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names):
         if cat_features is not None:
             self._init_cat_features(cat_features)
         self._set_data(data)
@@ -589,6 +589,8 @@ cdef class _PoolBase:
             self._set_weight(weight)
         if group_id is not None:
             self._set_group_id(group_id)
+        if subgroup_id is not None:
+            self._set_subgroup_id(subgroup_id)
         if pairs_weight is not None:
             self._set_pairs_weight(pairs_weight)
         if feature_names is not None:
@@ -650,6 +652,17 @@ cdef class _PoolBase:
         self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
         for i in range(rows):
             self.__pool.Docs.QueryId[i] = int(group_id[i])
+
+    cpdef _set_subgroup_id(self, subgroup_id):
+        if subgroup_id is None:
+            self.__pool.Docs.SubgroupId.clear();
+
+        rows = self.num_row()
+        if rows == 0:
+            return
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), False, True)
+        for i in range(rows):
+            self.__pool.Docs.SubgroupId[i] = int(subgroup_id[i])
 
     cpdef _set_pairs_weight(self, pairs_weight):
         rows = self.num_pairs()
