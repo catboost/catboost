@@ -1,6 +1,7 @@
 #include "plot.h"
 
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/options/loss_description.h>
 
 #include <library/threading/local_executor/local_executor.h>
@@ -9,6 +10,7 @@ void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
                                         const TPool& pool,
                                         const TVector<float>& target,
                                         const TVector<float>& weights,
+                                        const TVector<TQueryInfo>& queriesInfo,
                                         ui32 plotLineIndex,
                                         ui32 modelIterationIndex) {
     const ui32 plotSize = plotLineIndex + 1;
@@ -23,7 +25,7 @@ void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
             MetricPlots[metricId].resize(plotSize);
         }
         if (Metrics[metricId]->IsAdditiveMetric()) {
-            MetricPlots[metricId][plotLineIndex].Add(ComputeMetric(*Metrics[metricId], pool, target, weights, cursor));
+            MetricPlots[metricId][plotLineIndex].Add(ComputeMetric(*Metrics[metricId], pool, target, weights, queriesInfo, cursor));
         } else {
             CB_ENSURE(Metrics[metricId]->GetErrorType() == EErrorType::PerObjectError, "Error: we don't support non-additive pairwise metrics currenty");
         }
@@ -47,25 +49,20 @@ TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
                                                 const TPool& pool,
                                                 const TVector<float>& target,
                                                 const TVector<float>& weights,
+                                                const TVector<TQueryInfo>& queriesInfo,
                                                 const TVector<TVector<double>>& approx) {
     ELossFunction lossFunction = ParseLossType(metric.GetDescription());
     CheckTarget(target, lossFunction);
 
     const auto docCount = static_cast<int>(target.size());
+    const auto queryCount = static_cast<int>(queriesInfo.size());
     if (metric.GetErrorType() == EErrorType::PerObjectError) {
-        return metric.Eval(approx,
-                           target,
-                           weights,
-                           {},
-                           0,
-                           docCount,
-                           Executor);
+        return metric.Eval(approx, target, weights, queriesInfo, 0, docCount, Executor);
+    } else if (metric.GetErrorType() == EErrorType::PairwiseError) {
+        return metric.EvalPairwise(approx, pool.Pairs, 0, docCount);
     } else {
-        CB_ENSURE(pool.Pairs.size());
-        return metric.EvalPairwise(approx,
-                                   pool.Pairs,
-                                   0,
-                                   docCount);
+        CB_ENSURE(metric.GetErrorType() == EErrorType::QuerywiseError);
+        return metric.Eval(approx, target, weights, queriesInfo, 0, queryCount, Executor);
     }
 }
 
@@ -92,9 +89,13 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
     TVector<TVector<double>> approxBuffer;
     TVector<TVector<double>> nextBatchApprox;
 
+    TVector<TQueryInfo> queriesInfo;
+    UpdateQueriesInfo(pool.Docs.QueryId, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
+    UpdateQueriesPairs(pool.Pairs, 0, pool.Pairs.ysize(), /*invertedPermutation=*/{}, &queriesInfo);
+
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
-        ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
+        ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
         modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
                                           (int)nextBatchStart,
                                           (int)nextBatchEnd,
@@ -103,7 +104,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
         currentIter = nextBatchEnd;
         ++idx;
     }
-    ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, idx, currentIter);
+    ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
     return *this;
 }
 

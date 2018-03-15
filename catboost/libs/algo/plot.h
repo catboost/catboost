@@ -110,6 +110,7 @@ private:
                         const TPool& pool,
                         const TVector<float>& target,
                         const TVector<float>& weights,
+                        const TVector<TQueryInfo>& queriesInfo,
                         ui32 plotLineIndex,
                         ui32 modelIterationIndex);
 
@@ -117,6 +118,7 @@ private:
                                const TPool& pool,
                                const TVector<float>& target,
                                const TVector<float>& weights,
+                               const TVector<TQueryInfo>& queriesInfo,
                                const TVector<TVector<double>>& approx);
 
     void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst);

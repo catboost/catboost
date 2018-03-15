@@ -714,3 +714,19 @@ def test_cv_with_not_binarized_target():
     pool = Pool(train_file, column_description=cd)
     cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
+def test_eval_metrics(loss_function):
+    train, test, cd, metric = TRAIN_FILE, TEST_FILE, CD_FILE, loss_function
+    if loss_function == 'QueryRMSE':
+        train, test, cd, metric = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'PFound'
+
+    train_pool = Pool(train, column_description=cd)
+    test_pool = Pool(test, column_description=cd)
+    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric})
+
+    model.fit(train_pool, eval_set=test_pool, use_best_model=False)
+    first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 8)
+    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric][1:], 8)
+    assert np.all(first_metrics == second_metrics)
