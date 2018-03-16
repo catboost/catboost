@@ -178,7 +178,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
         testData,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),
-        /*permuteBlockSize=*/1,
+        foldPermutationBlockSize,
         LearnProgress.ApproxDimension,
         storeExpApproxes,
         Rand
