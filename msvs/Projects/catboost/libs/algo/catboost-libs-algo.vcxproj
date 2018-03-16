@@ -120,6 +120,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
@@ -138,7 +139,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
   </ItemGroup>
