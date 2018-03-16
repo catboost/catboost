@@ -454,8 +454,8 @@ void CalcLeafValuesIterationSimple(
 
 template <typename TError>
 void CalcLeafValuesSimple(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TSplitTree& tree,
     const TError& error,
     const TFold& ff,
@@ -534,8 +534,8 @@ void CalcLeafValuesSimple(
 
 template <typename TError>
 void CalcLeafValues(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -554,8 +554,8 @@ void CalcLeafValues(
 // output is permuted (learnSampleCount samples are permuted by LearnPermutation, test is indexed directly)
 template <typename TError>
 void CalcApproxForLeafStruct(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,

@@ -3,8 +3,8 @@
 #include "learn_context.h"
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 
-using TTrainOneIterationFunc = std::function<void(const TTrainData& learnData,
-                                                  const TTrainData* testData,
+using TTrainOneIterationFunc = std::function<void(const TDataset& learnData,
+                                                  const TDataset* testData,
                                                   TLearnContext* ctx)>;
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction);

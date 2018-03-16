@@ -19,8 +19,8 @@ void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TInde
 
 TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,
-                                 const TTrainData& learnData,
-                                 const TTrainData* testData,
+                                 const TDataset& learnData,
+                                 const TDataset* testData,
                                  NPar::TLocalExecutor* localExecutor);
 
 struct TFullModel;

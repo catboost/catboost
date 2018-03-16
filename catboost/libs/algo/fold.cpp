@@ -1,5 +1,5 @@
 #include "fold.h"
-#include "train_data.h"
+#include "dataset.h"
 #include "helpers.h"
 
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -47,7 +47,7 @@ static void InitFromBaseline(
     }
 }
 
-static void ShuffleData(const TTrainData& learnData, int permuteBlockSize, TRestorableFastRng64& rand, TFold* fold) {
+static void ShuffleData(const TDataset& learnData, int permuteBlockSize, TRestorableFastRng64& rand, TFold* fold) {
     const int learnSampleCount = learnData.GetSampleCount();
     if (permuteBlockSize == 1 || !learnData.QueryId.empty()) {
         Shuffle(learnData.QueryId, rand, &fold->LearnPermutation);
@@ -72,7 +72,7 @@ static void ShuffleData(const TTrainData& learnData, int permuteBlockSize, TRest
 }
 
 TFold BuildDynamicFold(
-    const TTrainData& learnData,
+    const TDataset& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,
@@ -144,8 +144,8 @@ TFold BuildDynamicFold(
 }
 
 TFold BuildPlainFold(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,

@@ -96,10 +96,10 @@ private:
 };
 
 struct TRestorableFastRng64;
-class TTrainData;
+class TDataset;
 
 TFold BuildDynamicFold(
-    const TTrainData& learnData,
+    const TDataset& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,
@@ -110,8 +110,8 @@ TFold BuildDynamicFold(
 );
 
 TFold BuildPlainFold(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,

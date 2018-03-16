@@ -3,7 +3,7 @@
 #include "full_features.h"
 #include "projection.h"
 #include "target_classifier.h"
-#include "train_data.h"
+#include "dataset.h"
 
 
 struct TFold;
@@ -26,17 +26,17 @@ inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift,
 void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm);
 
 class TLearnContext;
-class TTrainData;
+class TDataset;
 
 
-void ComputeOnlineCTRs(const TTrainData& learnData,
-                       const TTrainData* testData,
+void ComputeOnlineCTRs(const TDataset& learnData,
+                       const TDataset* testData,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TFold* fold);
 
-void ComputeOnlineCTRs(const TTrainData& learnData,
-                       const TTrainData* testData,
+void ComputeOnlineCTRs(const TDataset& learnData,
+                       const TDataset* testData,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
@@ -47,8 +47,8 @@ class TCtrValueTable;
 void CalcFinalCtrs(
     const ECtrType ctrType,
     const TProjection& projection,
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TVector<size_t>& learnPermutation,
     const TVector<int>& permutedTargetClass,
     int targetClassesCount,

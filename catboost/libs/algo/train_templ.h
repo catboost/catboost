@@ -92,8 +92,8 @@ void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
 
 template <typename TError>
 void UpdateLearningFold(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TError& error,
     const TSplitTree& bestSplitTree,
     TFold* fold,
@@ -135,8 +135,8 @@ void UpdateLearningFold(
 
 template <typename TError>
 void UpdateAveragingFold(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TError& error,
     const TSplitTree& bestSplitTree,
     TLearnContext* ctx,
@@ -211,7 +211,7 @@ void UpdateAveragingFold(
 }
 
 template <typename TError>
-void TrainOneIter(const TTrainData& learnData, const TTrainData* testData, TLearnContext* ctx) {
+void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnContext* ctx) {
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     TProfileInfo& profile = ctx->Profile;
 
@@ -268,8 +268,8 @@ void TrainOneIter(const TTrainData& learnData, const TTrainData* testData, TLear
             allFolds.push_back(&ctx->LearnProgress.AveragingFold);
 
             struct TLocalJobData {
-                const TTrainData* LearnData;
-                const TTrainData* TestData;
+                const TDataset* LearnData;
+                const TDataset* TestData;
                 TProjection Projection;
                 TFold* Fold;
                 TOnlineCTR* Ctr;

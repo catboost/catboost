@@ -119,7 +119,7 @@ public:
     }
 
     void OutputMeta();
-    void InitContext(const TTrainData& learnData, const TTrainData* testData);
+    void InitContext(const TDataset& learnData, const TDataset* testData);
     void SaveProgress();
     bool TryLoadProgress();
 

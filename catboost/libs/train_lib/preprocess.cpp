@@ -79,7 +79,7 @@ static void CheckBaseline(ELossFunction lossFunction,
 
 void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
                 const TVector<float>& classWeights,
-                TTrainData& learnOrTestData) {
+                TDataset& learnOrTestData) {
     auto& data = learnOrTestData;
     if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
         PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &data.Target);
@@ -95,8 +95,8 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
     }
 }
 
-TTrainData BuildTrainData(const TPool& pool) {
-    TTrainData data;
+TDataset BuildTrainData(const TPool& pool) {
+    TDataset data;
     data.Target = pool.Docs.Target;
     data.Weights = pool.Docs.Weight;
     data.QueryId = pool.Docs.QueryId;
@@ -107,8 +107,8 @@ TTrainData BuildTrainData(const TPool& pool) {
 }
 
 void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
-                      const TTrainData& learnData,
-                     const TTrainData& testData) {
+                      const TDataset& learnData,
+                     const TDataset& testData) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
 
     CheckBaseline(lossDescription.GetLossFunction(), learnData.Baseline, testData.Baseline);

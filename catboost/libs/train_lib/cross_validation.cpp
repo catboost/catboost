@@ -52,7 +52,7 @@ static TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& te
 
 static void PopulateData(const TPool& pool,
                          const TVector<size_t>& indices,
-                         TTrainData* learnOrTestData) {
+                         TDataset* learnOrTestData) {
     auto& data = *learnOrTestData;
     const TDocumentStorage& docStorage = pool.Docs;
     data.Target.yresize(indices.size());
@@ -88,8 +88,8 @@ static void PrepareFolds(
     const TPool& pool,
     const TVector<THolder<TLearnContext>>& contexts,
     const TCrossValidationParams& cvParams,
-    TVector<TTrainData>* folds,
-    TVector<TTrainData>* testFolds
+    TVector<TDataset>* folds,
+    TVector<TDataset>* testFolds
 ) {
     bool hasQuery = !pool.Docs.QueryId.empty();
     if (hasQuery) {
@@ -118,8 +118,8 @@ static void PrepareFolds(
     TVector<size_t> docIndices;
     docIndices.reserve(docCount);
     for (size_t foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
-        TTrainData learnData;
-        TTrainData testData;
+        TDataset learnData;
+        TDataset testData;
 
         docIndices.clear();
         docIndices.insert(docIndices.end(), docsInTrain[foldIdx].begin(), docsInTrain[foldIdx].end());
@@ -291,8 +291,8 @@ void CrossValidate(
         contexts[i]->LearnProgress.FloatFeatures = floatFeatures;
     }
 
-    TVector<TTrainData> learnFolds;
-    TVector<TTrainData> testFolds;
+    TVector<TDataset> learnFolds;
+    TVector<TDataset> testFolds;
     PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &learnFolds, &testFolds);
 
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {

@@ -104,7 +104,7 @@ static void LoadPools(
     }
 }
 
-void Train(const TTrainData& learnData, const TTrainData& testData, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
+void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
 
     const int approxDimension = testMultiApprox->ysize();
@@ -348,8 +348,8 @@ class TCPUModelTrainer : public IModelTrainer {
 
 
         ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
-        TTrainData learnData = BuildTrainData(learnPool);
-        TTrainData testData = BuildTrainData(testPool);
+        TDataset learnData = BuildTrainData(learnPool);
+        TDataset testData = BuildTrainData(testPool);
 
         if (IsMultiClassError(lossFunction)) {
              ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
@@ -602,7 +602,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, modelPtr, evalResult);
 }
 
-void TrainOneIteration(const TTrainData& trainData, const TTrainData* testDataPtr, TLearnContext* ctx) {
+void TrainOneIteration(const TDataset& trainData, const TDataset* testDataPtr, TLearnContext* ctx) {
     SetLogingLevel(ctx->Params.LoggingLevel);
 
     TTrainOneIterationFunc trainFunc;

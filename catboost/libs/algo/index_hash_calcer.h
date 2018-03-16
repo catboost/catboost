@@ -1,7 +1,7 @@
 #pragma once
 
 #include "projection.h"
-#include "train_data.h"
+#include "dataset.h"
 
 #include <catboost/libs/helpers/clear_array.h>
 

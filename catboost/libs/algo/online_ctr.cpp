@@ -292,8 +292,8 @@ static inline void CountOnlineCTRTotal(const TVector<ui64>& hashArr, int sampleC
     }
 }
 
-void ComputeOnlineCTRs(const TTrainData& learnData,
-                       const TTrainData* testData,
+void ComputeOnlineCTRs(const TDataset& learnData,
+                       const TDataset* testData,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
@@ -421,8 +421,8 @@ void ComputeOnlineCTRs(const TTrainData& learnData,
     }
 }
 
-void ComputeOnlineCTRs(const TTrainData& learnData,
-                       const TTrainData* testData,
+void ComputeOnlineCTRs(const TDataset& learnData,
+                       const TDataset* testData,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TFold* fold) {
@@ -497,8 +497,8 @@ void CalcFinalCtrsImpl(
 
 void CalcFinalCtrs(const ECtrType ctrType,
                    const TProjection& projection,
-                   const TTrainData& learnData,
-                   const TTrainData* testData,
+                   const TDataset& learnData,
+                   const TDataset* testData,
                    const TVector<size_t>& learnPermutation,
                    const TVector<int>& permutedTargetClass,
                    int targetClassesCount,

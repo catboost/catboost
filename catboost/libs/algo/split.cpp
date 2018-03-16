@@ -5,7 +5,7 @@ const size_t TSplitCandidate::FloatFeatureBaseHash = 12321;
 const size_t TSplitCandidate::CtrBaseHash = 89321;
 const size_t TSplitCandidate::OneHotFeatureBaseHash = 517931;
 
-TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx, const TTrainData& learnData) const   {
+TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx, const TDataset& learnData) const   {
     TModelSplit split;
     split.Type = Type;
     if (Type == ESplitType::FloatFeature) {

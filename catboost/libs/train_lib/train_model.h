@@ -46,8 +46,8 @@ void TrainModel(
     TEvalResult* testResult);
 
 void TrainOneIteration(
-    const TTrainData& trainData,
-    const TTrainData* testData,
+    const TDataset& trainData,
+    const TDataset* testData,
     TLearnContext* ctx);
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

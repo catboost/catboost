@@ -5,7 +5,7 @@
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 
-class TTrainData {
+class TDataset {
 public:
     TAllFeatures AllFeatures;
     TVector<TVector<double>> Baseline;

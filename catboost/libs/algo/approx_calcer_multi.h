@@ -192,8 +192,8 @@ void CalcLeafValuesIterationMulti(
 
 template <typename TError>
 void CalcLeafValuesMulti(
-    const TTrainData& learnData,
-    const TTrainData* testData,
+    const TDataset& learnData,
+    const TDataset* testData,
     const TSplitTree& tree,
     const TError& error,
     const TFold& ff,

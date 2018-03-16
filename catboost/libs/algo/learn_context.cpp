@@ -113,7 +113,7 @@ static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
     return true;
 }
 
-void TLearnContext::InitContext(const TTrainData& learnData, const TTrainData* testData) {
+void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testData) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     //const auto sampleCount = data.GetSampleCount();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);

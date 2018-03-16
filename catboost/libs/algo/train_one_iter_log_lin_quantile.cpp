@@ -13,4 +13,4 @@ inline TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOpti
 }
 }
 
-template void TrainOneIter<TLogLinQuantileError>(const TTrainData&, const TTrainData*, TLearnContext*);
+template void TrainOneIter<TLogLinQuantileError>(const TDataset&, const TDataset*, TLearnContext*);

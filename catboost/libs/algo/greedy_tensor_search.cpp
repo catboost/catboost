@@ -95,7 +95,7 @@ struct TCandidatesInfoList {
 
 using TCandidateList = TVector<TCandidatesInfoList>;
 
-static void AddFloatFeatures(const TTrainData& learnData,
+static void AddFloatFeatures(const TDataset& learnData,
                              TLearnContext* ctx,
                              TBucketStatsCache* statsFromPrevTree,
                              TCandidateList* candList) {
@@ -115,7 +115,7 @@ static void AddFloatFeatures(const TTrainData& learnData,
     }
 }
 
-static void AddOneHotFeatures(const TTrainData& learnData,
+static void AddOneHotFeatures(const TDataset& learnData,
                               TLearnContext* ctx,
                               TBucketStatsCache* statsFromPrevTree,
                               TCandidateList* candList) {
@@ -185,7 +185,7 @@ static void DropStatsForProjection(const TFold& fold,
         }
     }
 }
-static void AddSimpleCtrs(const TTrainData& learnData,
+static void AddSimpleCtrs(const TDataset& learnData,
                           TFold* fold,
                           TLearnContext* ctx,
                           TBucketStatsCache* statsFromPrevTree,
@@ -208,7 +208,7 @@ static void AddSimpleCtrs(const TTrainData& learnData,
     }
 }
 
-static void AddTreeCtrs(const TTrainData& learnData,
+static void AddTreeCtrs(const TDataset& learnData,
                         const TSplitTree& currentTree,
                         TFold* fold,
                         TLearnContext* ctx,
@@ -349,8 +349,8 @@ static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstr
     ctx->SampledDocs.Sample(*fold, indices, &ctx->Rand, &ctx->LocalExecutor);
 }
 
-void GreedyTensorSearch(const TTrainData& learnData,
-                        const TTrainData* testData,
+void GreedyTensorSearch(const TDataset& learnData,
+                        const TDataset* testData,
                         const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
