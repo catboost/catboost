@@ -32,11 +32,11 @@
         "uri": "file://test.test_feature_importance/feature_importance.npy"
     },
     "test.test_fit_data": {
-        "checksum": "acddb1de69f8648314e3b2617207279d",
+        "checksum": "f07659551c35bd13719df072310d6221",
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "f22c88c729a7f042d01555dca39a4ba0",
+        "checksum": "15e6d08f1578b33a78663fd9e316615a",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
@@ -60,7 +60,7 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "86b9628ec165a7573027119a7e3ee553",
+        "checksum": "8a155465f35898959c07413a0b4669e6",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {

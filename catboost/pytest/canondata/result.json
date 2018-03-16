@@ -359,7 +359,7 @@
     ],
     "test.test_const_feature[Ordered]": [
         {
-            "checksum": "64757c98085448c928b125dcbd2e2971",
+            "checksum": "cd65248267a2e12eac8d4562ebb0d9d9",
             "uri": "file://test.test_const_feature_Ordered_/test.eval"
         }
     ],
@@ -479,21 +479,21 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "8ad77b1f31440df15e4782094e397798",
+            "checksum": "5f9e81ab37e6e5e853c8f2b0db46c706",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "8ad77b1f31440df15e4782094e397798",
+            "checksum": "5f9e81ab37e6e5e853c8f2b0db46c706",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-RMSE,MAE]": [
         {
-            "checksum": "46a74756a236a35cc2ccc17bdc026344",
+            "checksum": "1123c924bab9de739b581388a54c5e2d",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "46a74756a236a35cc2ccc17bdc026344",
+            "checksum": "1123c924bab9de739b581388a54c5e2d",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -603,7 +603,7 @@
     ],
     "test.test_cv_for_pairs[Ordered]": [
         {
-            "checksum": "e2bc2743338e4640908f79e34b257fed",
+            "checksum": "cf9000a6114eb79dc289015edd0bfb0b",
             "uri": "file://test.test_cv_for_pairs_Ordered_/test.eval"
         }
     ],
@@ -1195,15 +1195,15 @@
     ],
     "test.test_pairlogit[Ordered]": [
         {
-            "checksum": "8885460e10ee3407908109145dc605c3",
+            "checksum": "3296eb15e2bc63c8a36b50dbcd0ac626",
             "uri": "file://test.test_pairlogit_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "dafa419f5000d5e189eeee0c3665a5b0",
+            "checksum": "3c1c4ecb5961a7b4b3aa6bdb3a522635",
             "uri": "file://test.test_pairlogit_Ordered_/test_error.tsv"
         },
         {
-            "checksum": "b915b29acb9f2e1f5c5f2907a35788f8",
+            "checksum": "b56a93bae81cece1c2b0f42ee6aab37e",
             "uri": "file://test.test_pairlogit_Ordered_/test.eval"
         }
     ],
@@ -1223,13 +1223,13 @@
     ],
     "test.test_pairlogit_approx_on_full_history": [
         {
-            "checksum": "fa17add3c39ba625665d3e410d96b5e5",
+            "checksum": "fd42a4a0bbe28886ff44346cd4ce7b4f",
             "uri": "file://test.test_pairlogit_approx_on_full_history/test.eval"
         }
     ],
     "test.test_pairlogit_no_target[Ordered]": [
         {
-            "checksum": "8760179e6613ac6adf781bc3a3451521",
+            "checksum": "b78557cc82a4298ebf93ecc4ba994cc7",
             "uri": "file://test.test_pairlogit_no_target_Ordered_/test.eval"
         }
     ],
@@ -1593,13 +1593,13 @@
     ],
     "test.test_quantile_targets[Ordered-LogLinQuantile]": [
         {
-            "checksum": "05356ce68b2d6625b5a500b6c19019fa",
+            "checksum": "e274925d3fc32e9901a8db5b12947e48",
             "uri": "file://test.test_quantile_targets_Ordered-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Ordered-Quantile]": [
         {
-            "checksum": "9d99f1c0b9b66c47d453241000c9645b",
+            "checksum": "56d010e84a0de18972807e8f4b9ef8a4",
             "uri": "file://test.test_quantile_targets_Ordered-Quantile_/test.eval"
         }
     ],
@@ -1757,7 +1757,7 @@
     ],
     "test.test_rmse_on_qwise_pool[Ordered]": [
         {
-            "checksum": "fc9b7905daf99c6ac3a05c74e4be31b6",
+            "checksum": "cc467fd6bf8feee16bd89091dcafdca5",
             "uri": "file://test.test_rmse_on_qwise_pool_Ordered_/test.eval"
         }
     ],
@@ -1931,7 +1931,7 @@
     ],
     "test.test_without_cat_features[Ordered]": [
         {
-            "checksum": "356867629369fadbd5052e94482dc2d7",
+            "checksum": "b54b7a2f651516a1f2eafe29398ae630",
             "uri": "file://test.test_without_cat_features_Ordered_/test.eval"
         }
     ],

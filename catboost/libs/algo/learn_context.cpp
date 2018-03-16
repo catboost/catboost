@@ -117,7 +117,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     //const auto sampleCount = data.GetSampleCount();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
-    if (IsCategoricalFeaturesEmpty(learnData.AllFeatures)) {
+    if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && IsCategoricalFeaturesEmpty(learnData.AllFeatures)) {
         foldCount = 1;
     }
     LearnProgress.Folds.reserve(foldCount);
