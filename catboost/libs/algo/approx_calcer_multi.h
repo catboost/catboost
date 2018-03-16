@@ -192,7 +192,8 @@ void CalcLeafValuesIterationMulti(
 
 template <typename TError>
 void CalcLeafValuesMulti(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData* testData,
     const TSplitTree& tree,
     const TError& error,
     const TFold& ff,
@@ -201,15 +202,16 @@ void CalcLeafValuesMulti(
     TVector<TIndexType>* ind
 ) {
     auto& indices = *ind;
-    indices = BuildIndices(ff, tree, data, &ctx->LocalExecutor);
+    indices = BuildIndices(ff, tree, learnData, testData, &ctx->LocalExecutor);
 
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
     const int approxDimension = ff.GetApproxDimension();
     const int leafCount = tree.GetLeafCount();
+    const int learnSampleCount = learnData.GetSampleCount();
 
     TVector<TVector<double>> approx(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
-        approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + data.LearnSampleCount);
+        approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + learnSampleCount);
     }
 
     TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));

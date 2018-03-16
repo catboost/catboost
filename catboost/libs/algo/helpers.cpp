@@ -135,13 +135,13 @@ void ConfigureMalloc() {
 }
 
 void CalcErrors(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData& testData,
     const TVector<THolder<IMetric>>& errors,
-    bool hasTrain,
-    bool hasTest,
     TLearnContext* ctx
 ) {
-    if (hasTrain) {
+    if (learnData.GetSampleCount() > 0) {
+        const auto& data = learnData;
         ctx->LearnProgress.LearnErrorsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
             ctx->LearnProgress.LearnErrorsHistory.back().push_back(EvalErrors(
@@ -151,28 +151,21 @@ void CalcErrors(
                 data.QueryInfo,
                 data.Pairs,
                 errors[i],
-                /*queryStartIndex=*/0,
-                data.LearnQueryCount,
-                /*begin=*/0,
-                data.LearnSampleCount,
                 &ctx->LocalExecutor
             ));
         }
     }
-    if (hasTest) {
+    if (testData.GetSampleCount() > 0) {
+        const auto& data = testData;
         ctx->LearnProgress.TestErrorsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
             ctx->LearnProgress.TestErrorsHistory.back().push_back(EvalErrors(
-                ctx->LearnProgress.AvrgApprox,
+                ctx->LearnProgress.TestApprox,
                 data.Target,
                 data.Weights,
                 data.QueryInfo,
                 data.Pairs,
                 errors[i],
-                data.LearnQueryCount,
-                data.GetQueryCount(),
-                data.LearnSampleCount,
-                data.GetSampleCount(),
                 &ctx->LocalExecutor
             ));
         }

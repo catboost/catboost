@@ -188,9 +188,9 @@ void TEvalResult::OutputToFile(
         poolColumnsPrinter = MakeIntrusive<TPoolColumnsPrinter>(testFile, delimiter, hasHeader);
     }
 
-    TMap<TString, int> FeatureId;
+    TMap<TString, int> featureId;
     for (int idx = 0; idx < pool.FeatureId.ysize(); idx++) {
-        FeatureId[pool.FeatureId[idx]] = idx;
+        featureId[pool.FeatureId[idx]] = idx;
     }
 
     for (const auto& columnName : outputColumns) {
@@ -244,7 +244,7 @@ void TEvalResult::OutputToFile(
         if (columnName[0] == '#') {
             idx = FromString<int>(columnName.substr(1));
         } else {
-            idx = FeatureId[columnName];
+            idx = featureId[columnName];
         }
         columnPrinter.push_back(MakeHolder<TFactorPrinter>(poolColumnsPrinter, idx));
     }

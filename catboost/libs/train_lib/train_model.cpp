@@ -104,12 +104,11 @@ static void LoadPools(
     }
 }
 
-void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
+void Train(const TTrainData& learnData, const TTrainData& testData, TLearnContext* ctx, TVector<TVector<double>>* testMultiApprox) {
     TProfileInfo& profile = ctx->Profile;
 
-    const int sampleCount = data.GetSampleCount();
     const int approxDimension = testMultiApprox->ysize();
-    const bool hasTest = sampleCount > data.LearnSampleCount;
+    const bool hasTest = testData.GetSampleCount() > 0;
     auto trainOneIterationFunc = GetOneIterationFunc(ctx->Params.LossFunctionDescription->GetLossFunction());
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         ctx->Params.LossFunctionDescription,
@@ -129,7 +128,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     if (ctx->TryLoadProgress()) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*testMultiApprox)[dim].assign(
-                ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end());
+                ctx->LearnProgress.AvrgApprox[dim].begin(), ctx->LearnProgress.AvrgApprox[dim].end());
         }
     }
 
@@ -197,7 +196,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
         ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds);
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress.Folds,
-            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
+            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), learnData.AllFeatures.OneHotValues),
             static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
         );
     }
@@ -209,9 +208,9 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();
 
-        trainOneIterationFunc(data, ctx);
+        trainOneIterationFunc(learnData, &testData, ctx);
 
-        CalcErrors(data, metrics, /*hasTrain=*/true, hasTest, ctx);
+        CalcErrors(learnData, testData, metrics, ctx);
 
         profile.AddOperation("Calc errors");
 
@@ -222,7 +221,7 @@ void Train(const TTrainData& data, TLearnContext* ctx, TVector<TVector<double>>*
             if ((useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) || !useBestModel) {
                 for (int dim = 0; dim < approxDimension; ++dim) {
                     (*testMultiApprox)[dim].assign(
-                        ctx->LearnProgress.AvrgApprox[dim].begin() + data.LearnSampleCount, ctx->LearnProgress.AvrgApprox[dim].end()
+                        ctx->LearnProgress.TestApprox[dim].begin(), ctx->LearnProgress.TestApprox[dim].end()
                     );
                 }
             }
@@ -349,10 +348,11 @@ class TCPUModelTrainer : public IModelTrainer {
 
 
         ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
-        TTrainData trainData = BuildTrainData(lossFunction, learnPool, testPool);
+        TTrainData learnData = BuildTrainData(learnPool);
+        TTrainData testData = BuildTrainData(testPool);
 
         if (IsMultiClassError(lossFunction)) {
-             ctx.LearnProgress.ApproxDimension = GetClassesCount(trainData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
+             ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
          }
 
         TVector<THolder<IMetric>> metrics = CreateMetrics(
@@ -368,58 +368,57 @@ class TCPUModelTrainer : public IModelTrainer {
             }
         }
         if (hasQuerywiseMetric) {
-            CB_ENSURE(trainData.QueryId.size() == trainData.Target.size(), "Query ids not provided for querywise metric.");
+            CB_ENSURE(learnData.QueryId.size() == learnData.Target.size(), "Query ids not provided for querywise metric.");
+            CB_ENSURE(testData.QueryId.size() == testData.Target.size(), "Query ids not provided for querywise metric.");
         }
-        UpdateQueriesInfo(trainData.QueryId, trainData.SubgroupId, 0, trainData.LearnSampleCount, &trainData.QueryInfo);
-        trainData.LearnQueryCount = trainData.QueryInfo.ysize();
-        UpdateQueriesInfo(trainData.QueryId, trainData.SubgroupId, trainData.LearnSampleCount, trainData.GetSampleCount(), &trainData.QueryInfo);
-        UpdateQueriesPairs(trainData.Pairs, 0, trainData.Pairs.ysize(), /*invertedPermutation=*/{}, &trainData.QueryInfo);
-        trainData.LearnPairsCount = learnPool.Pairs.ysize();
+
+        UpdateQueriesInfo(learnData.QueryId, learnData.SubgroupId, 0, learnData.GetSampleCount(), &learnData.QueryInfo);
+        UpdateQueriesInfo(testData.QueryId, testData.SubgroupId, 0, testData.GetSampleCount(), &testData.QueryInfo);
+
+        UpdateQueriesPairs(learnData.Pairs, /*invertedPermutation=*/{}, &learnData.QueryInfo);
+        UpdateQueriesPairs(testData.Pairs, /*invertedPermutation=*/{}, &testData.QueryInfo);
 
         const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
-        PreprocessAndCheck(
-            ctx.Params.LossFunctionDescription,
-            trainData.LearnSampleCount,
-            trainData.QueryId,
-            trainData.Pairs,
-            classWeights,
-            &trainData.Weights,
-            &trainData.Target
-        );
+        Preprocess(ctx.Params.LossFunctionDescription, classWeights, learnData);
+        Preprocess(ctx.Params.LossFunctionDescription, classWeights, testData);
+        CheckConsistency(ctx.Params.LossFunctionDescription, learnData, testData);
 
-        ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(trainData.AllFeatures);
+        ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
+        ctx.LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData.AllFeatures);
 
         ctx.OutputMeta();
 
         GenerateBorders(learnPool, &ctx, &ctx.LearnProgress.FloatFeatures);
 
-        learnPool.Docs.Append(testPool.Docs);
-        const int factorsCount = learnPool.Docs.GetFactorsCount();
-        const int approxDim = learnPool.Docs.GetBaselineDimension();
-        bool hasQueryId = !learnPool.Docs.QueryId.empty();
-        bool hasSubgroupId = !learnPool.Docs.SubgroupId.empty();
-        auto learnPoolGuard = Finally([&] {
-            if (!allowClearPool) {
-                learnPool.Docs.Resize(trainData.LearnSampleCount, factorsCount, approxDim, hasQueryId, hasSubgroupId);
-            }
-        });
-
         const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
 
-        PrepareAllFeatures(
+        PrepareAllFeaturesLearn(
             ctx.CatFeatures,
             ctx.LearnProgress.FloatFeatures,
             ctx.Params.DataProcessingOptions->IgnoredFeatures,
-            trainData.LearnSampleCount,
+            /*ignoreRedundantCatFeatures=*/true,
             catFeatureParams.OneHotMaxSize,
             ctx.Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
-            allowClearPool,
+            /*clearPoolAfterBinarization=*/allowClearPool,
             ctx.LocalExecutor,
+            /*select=*/{},
             &learnPool.Docs,
-            &trainData.AllFeatures
+            &learnData.AllFeatures
         );
 
-        ctx.InitData(trainData);
+        PrepareAllFeaturesTest(
+            ctx.CatFeatures,
+            ctx.LearnProgress.FloatFeatures,
+            learnData.AllFeatures,
+            ctx.Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
+            /*clearPoolAfterBinarization=*/allowClearPool,
+            ctx.LocalExecutor,
+            /*select=*/{},
+            &testPool.Docs,
+            &testData.AllFeatures
+        );
+
+        ctx.InitContext(learnData, &testData);
 
         if (allowClearPool) {
             learnPool.Docs.Clear();
@@ -438,7 +437,7 @@ class TCPUModelTrainer : public IModelTrainer {
         evalResult->GetRawValuesRef().at(0).resize(ctx.LearnProgress.ApproxDimension);
         DumpMemUsage("Before start train");
 
-        Train(trainData, &ctx, &(evalResult->GetRawValuesRef().at(0)));
+        Train(learnData, testData, &ctx, &(evalResult->GetRawValuesRef()).at(0));
 
         TObliviousTrees obliviousTrees;
         THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
@@ -447,7 +446,7 @@ class TCPUModelTrainer : public IModelTrainer {
             for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
                 TVector<TModelSplit> modelSplits;
                 for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
-                    auto modelSplit = split.GetModelSplit(ctx, trainData);
+                    auto modelSplit = split.GetModelSplit(ctx, learnData);
                     modelSplits.push_back(modelSplit);
                     if (modelSplit.Type == ESplitType::OnlineCtr) {
                         featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
@@ -457,6 +456,7 @@ class TCPUModelTrainer : public IModelTrainer {
             }
             obliviousTrees = builder.Build();
         }
+
 
 //        TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
 //        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
@@ -469,7 +469,8 @@ class TCPUModelTrainer : public IModelTrainer {
             CalcFinalCtrs(
                 ctr.CtrType,
                 featureCombinationToProjectionMap.at(ctr.Projection),
-                trainData,
+                learnData,
+                &testData,
                 ctx.LearnProgress.AveragingFold.LearnPermutation,
                 ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
                 ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
@@ -601,11 +602,11 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, modelPtr, evalResult);
 }
 
-void TrainOneIteration(const TTrainData& trainData, TLearnContext* ctx) {
+void TrainOneIteration(const TTrainData& trainData, const TTrainData* testDataPtr, TLearnContext* ctx) {
     SetLogingLevel(ctx->Params.LoggingLevel);
 
     TTrainOneIterationFunc trainFunc;
     ELossFunction lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
 
-    GetOneIterationFunc(lossFunction)(trainData, ctx);
+    GetOneIterationFunc(lossFunction)(trainData, testDataPtr, ctx);
 }

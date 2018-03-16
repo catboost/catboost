@@ -90,11 +90,39 @@ void SplitPairs(
     for (const auto& pair : pairs) {
         bool isWinnerInTest = testDocsBegin <= pair.WinnerId && pair.WinnerId < testDocsEnd;
         bool isLoserInTest = testDocsBegin <= pair.LoserId && pair.LoserId < testDocsEnd;
-        CB_ENSURE(isWinnerInTest == isLoserInTest);
+        Y_VERIFY(isWinnerInTest == isLoserInTest);
         if (isWinnerInTest) {
             testPairs->emplace_back(pair.WinnerId, pair.LoserId, pair.Weight);
         } else {
             learnPairs->emplace_back(pair.WinnerId, pair.LoserId, pair.Weight);
+        }
+    }
+}
+
+void SplitPairsAndReindex(
+    const TVector<TPair>& pairs,
+    int testDocsBegin,
+    int testDocsEnd,
+    TVector<TPair>* learnPairs,
+    TVector<TPair>* testPairs
+) {
+    int testDocs = testDocsEnd - testDocsBegin;
+    for (const auto& pair : pairs) {
+        auto winnerId = pair.WinnerId;
+        auto loserId = pair.LoserId;
+        bool isWinnerInTest = testDocsBegin <= winnerId && winnerId < testDocsEnd;
+        bool isLoserInTest = testDocsBegin <= loserId && loserId < testDocsEnd;
+        Y_VERIFY(isWinnerInTest == isLoserInTest);
+        if (isWinnerInTest) {
+            winnerId -= testDocsBegin;
+            loserId -= testDocsBegin;
+            testPairs->emplace_back(winnerId, loserId, pair.Weight);
+        } else {
+            if (winnerId > testDocsBegin)
+                winnerId -= testDocs;
+            if (loserId > testDocsBegin)
+                loserId -= testDocs;
+            learnPairs->emplace_back(winnerId, loserId, pair.Weight);
         }
     }
 }

@@ -50,12 +50,46 @@ static TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& te
     return result;
 }
 
+static void PopulateData(const TPool& pool,
+                         const TVector<size_t>& indices,
+                         TTrainData* learnOrTestData) {
+    auto& data = *learnOrTestData;
+    const TDocumentStorage& docStorage = pool.Docs;
+    data.Target.yresize(indices.size());
+    data.Weights.yresize(indices.size());
+    for (size_t i = 0; i < indices.size(); ++i) {
+        data.Target[i] = docStorage.Target[indices[i]];
+        data.Weights[i] = docStorage.Weight[indices[i]];
+    }
+    for (int dim = 0; dim < docStorage.GetBaselineDimension(); ++dim) {
+        data.Baseline[dim].yresize(indices.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            data.Baseline[dim][i] = docStorage.Baseline[dim][indices[i]];
+        }
+    }
+
+    if (!docStorage.QueryId.empty()) {
+        data.QueryId.yresize(indices.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            data.QueryId[i] = docStorage.QueryId[indices[i]];
+        }
+    }
+    if (!docStorage.SubgroupId.empty()) {
+        data.SubgroupId.yresize(indices.size());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            data.SubgroupId[i] = docStorage.SubgroupId[indices[i]];
+        }
+    }
+    UpdateQueriesInfo(data.QueryId, data.SubgroupId, 0, data.GetSampleCount(), &data.QueryInfo);
+};
+
 static void PrepareFolds(
     const NCatboostOptions::TLossDescription& lossDescription,
     const TPool& pool,
     const TVector<THolder<TLearnContext>>& contexts,
     const TCrossValidationParams& cvParams,
-    TVector<TTrainData>* folds
+    TVector<TTrainData>* folds,
+    TVector<TTrainData>* testFolds
 ) {
     bool hasQuery = !pool.Docs.QueryId.empty();
     if (hasQuery) {
@@ -84,70 +118,59 @@ static void PrepareFolds(
     TVector<size_t> docIndices;
     docIndices.reserve(docCount);
     for (size_t foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
-        TTrainData fold;
-        fold.LearnSampleCount = docsInTrain[foldIdx].ysize();
-        fold.Target.reserve(docCount);
-        fold.Weights.reserve(docCount);
+        TTrainData learnData;
+        TTrainData testData;
 
         docIndices.clear();
         docIndices.insert(docIndices.end(), docsInTrain[foldIdx].begin(), docsInTrain[foldIdx].end());
         docIndices.insert(docIndices.end(), docsInTest[foldIdx].begin(), docsInTest[foldIdx].end());
-        for (auto idx : docIndices) {
-            fold.Target.push_back(pool.Docs.Target[idx]);
-            fold.Weights.push_back(pool.Docs.Weight[idx]);
-        }
-        for (int dim = 0; dim < pool.Docs.GetBaselineDimension(); ++dim) {
-            fold.Baseline[dim].reserve(pool.Docs.GetDocCount());
-            for (auto idx : docIndices) {
-                fold.Baseline[dim].push_back(pool.Docs.Baseline[dim][idx]);
-            }
-        }
-        if (hasQuery) {
-            fold.QueryId.reserve(pool.Docs.GetDocCount());
-            for (auto idx : docIndices) {
-                fold.QueryId.push_back(pool.Docs.QueryId[idx]);
-            }
-        }
-        if (!pool.Docs.SubgroupId.empty()) {
-            fold.SubgroupId.reserve(pool.Docs.GetDocCount());
-            for (auto idx : docIndices) {
-                fold.SubgroupId.push_back(pool.Docs.SubgroupId[idx]);
-            }
-        }
+
+        PopulateData(pool, docsInTrain[foldIdx], &learnData);
+        PopulateData(pool, docsInTest[foldIdx], &testData);
 
         if (!pool.Pairs.empty()) {
-            TVector<TPair> testPairs;
             int testDocsBegin = testDocsStartEndIndices[foldIdx].first;
             int testDocsEnd = testDocsStartEndIndices[foldIdx].second;
-            SplitPairs(pool.Pairs, testDocsBegin, testDocsEnd, &fold.Pairs, &testPairs);
-            fold.LearnPairsCount = fold.Pairs.ysize();
-            fold.Pairs.insert(fold.Pairs.end(), testPairs.begin(), testPairs.end());
-            ApplyPermutationToPairs(InvertPermutation(docIndices), &fold.Pairs);
+            SplitPairsAndReindex(pool.Pairs, testDocsBegin, testDocsEnd, &learnData.Pairs, &testData.Pairs);
         }
 
-        UpdateQueriesInfo(fold.QueryId, fold.SubgroupId, 0, fold.LearnSampleCount, &fold.QueryInfo);
-        fold.LearnQueryCount = fold.QueryInfo.ysize();
-        UpdateQueriesInfo(fold.QueryId, fold.SubgroupId, fold.LearnSampleCount, fold.GetSampleCount(), &fold.QueryInfo);
-        UpdateQueriesPairs(fold.Pairs, 0, fold.Pairs.ysize(), /*invertedPermutation=*/{}, &fold.QueryInfo);
+        UpdateQueriesPairs(learnData.Pairs, /*invertedPermutation=*/{}, &learnData.QueryInfo);
+        UpdateQueriesPairs(testData.Pairs, /*invertedPermutation=*/{}, &testData.QueryInfo);
 
         const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
-        PreprocessAndCheck(lossDescription, fold.LearnSampleCount, fold.QueryId, fold.Pairs, classWeights, &fold.Weights, &fold.Target);
+        Preprocess(lossDescription, classWeights, learnData);
+        Preprocess(lossDescription, classWeights, testData);
 
-        PrepareAllFeaturesFromPermutedDocs(
-            docIndices,
+        PrepareAllFeaturesLearn(
             contexts[foldIdx]->CatFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
-            fold.LearnSampleCount,
+            /*ignoreRedundantFeatures=*/true,
             (size_t)contexts[foldIdx]->Params.CatFeatureParams->OneHotMaxSize,
             contexts[foldIdx]->Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
-            /*allowClearPool*/ false,
+            /*clearPool=*/false,
             contexts[foldIdx]->LocalExecutor,
+            docsInTrain[foldIdx],
             &pool.Docs,
-            &fold.AllFeatures
+            &learnData.AllFeatures
         );
 
-        folds->push_back(fold);
+        PrepareAllFeaturesTest(
+            contexts[foldIdx]->CatFeatures,
+            contexts[foldIdx]->LearnProgress.FloatFeatures,
+            learnData.AllFeatures,
+            contexts[foldIdx]->Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
+            /*clearPool=*/false,
+            contexts[foldIdx]->LocalExecutor,
+            docsInTest[foldIdx],
+            &pool.Docs,
+            &testData.AllFeatures
+        );
+
+        CheckConsistency(lossDescription, learnData, testData);
+
+        folds->push_back(learnData);
+        testFolds->push_back(testData);
     }
 }
 
@@ -268,19 +291,21 @@ void CrossValidate(
         contexts[i]->LearnProgress.FloatFeatures = floatFeatures;
     }
 
-    TVector<TTrainData> folds;
-    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &folds);
+    TVector<TTrainData> learnFolds;
+    TVector<TTrainData> testFolds;
+    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &learnFolds, &testFolds);
 
-    for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
-        contexts[foldIdx]->InitData(folds[foldIdx]);
+    for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
+        contexts[foldIdx]->InitContext(learnFolds[foldIdx], &testFolds[foldIdx]);
+    }
 
+    for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
         TLearnContext& ctx = *contexts[foldIdx];
-        const TTrainData& data = folds[foldIdx];
         if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
             ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds);
             ctx.PrevTreeLevelStats.Create(
                 ctx.LearnProgress.Folds,
-                CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), data.AllFeatures.OneHotValues),
+                CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), learnFolds[foldIdx].AllFeatures.OneHotValues),
                 static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth)
             );
         }
@@ -340,14 +365,13 @@ void CrossValidate(
         &logger
     );
 
-
     TProfileInfo& profile = ctx->Profile;
     for (ui32 iteration = 0; iteration < ctx->Params.BoostingOptions->IterationCount; ++iteration) {
         profile.StartNextIteration();
 
-        for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
-            TrainOneIteration(folds[foldIdx], contexts[foldIdx].Get());
-            CalcErrors(folds[foldIdx], metrics, /*hasTrain=*/true, /*hasTest=*/true, contexts[foldIdx].Get());
+        for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
+            TrainOneIteration(learnFolds[foldIdx], &testFolds[foldIdx], contexts[foldIdx].Get());
+            CalcErrors(learnFolds[foldIdx], testFolds[foldIdx], metrics, contexts[foldIdx].Get());
         }
 
         TOneInterationLogger oneIterLogger(logger);
@@ -355,7 +379,7 @@ void CrossValidate(
             const auto& metric = metrics[metricIdx];
             TVector<double> trainFoldsMetric;
             TVector<double> testFoldsMetric;
-            for (size_t foldIdx = 0; foldIdx < folds.size(); ++foldIdx) {
+            for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
                 trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.LearnErrorsHistory.back()[metricIdx]);
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + learnToken,
@@ -368,7 +392,7 @@ void CrossValidate(
                 );
             }
 
-            TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, folds.size());
+            TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
 
             (*results)[metricIdx].AppendOneIterationResults(cvResults);
 

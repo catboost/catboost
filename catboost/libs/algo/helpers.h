@@ -16,9 +16,8 @@ int GetClassesCount(const TVector<float>& target, int classesCount);
 void ConfigureMalloc();
 
 void CalcErrors(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData& testData,
     const TVector<THolder<IMetric>>& errors,
-    bool hasTrain,
-    bool hasTest,
     TLearnContext* ctx
 );

@@ -18,11 +18,10 @@ int GetRedundantSplitIdx(int curDepth, const TVector<TIndexType>& indices);
 void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TIndexType>* indices);
 
 TVector<TIndexType> BuildIndices(const TFold& fold,
-                          const TSplitTree& tree,
-                          const TTrainData& data,
-                          NPar::TLocalExecutor* localExecutor);
-
-int GetDocCount(const TAllFeatures& features);
+                                 const TSplitTree& tree,
+                                 const TTrainData& learnData,
+                                 const TTrainData* testData,
+                                 NPar::TLocalExecutor* localExecutor);
 
 struct TFullModel;
 

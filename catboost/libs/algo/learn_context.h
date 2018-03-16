@@ -24,6 +24,7 @@ struct TLearnProgress {
     TVector<TFold> Folds;
     TFold AveragingFold;
     TVector<TVector<double>> AvrgApprox;
+    TVector<TVector<double>> TestApprox;
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
@@ -118,7 +119,7 @@ public:
     }
 
     void OutputMeta();
-    void InitData(const TTrainData& data);
+    void InitContext(const TTrainData& learnData, const TTrainData* testData);
     void SaveProgress();
     bool TryLoadProgress();
 

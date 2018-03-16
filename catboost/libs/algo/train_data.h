@@ -7,9 +7,6 @@
 
 class TTrainData {
 public:
-    int LearnSampleCount = 0;
-    int LearnQueryCount = 0;
-    int LearnPairsCount = 0;
     TAllFeatures AllFeatures;
     TVector<TVector<double>> Baseline;
     TVector<float> Target;

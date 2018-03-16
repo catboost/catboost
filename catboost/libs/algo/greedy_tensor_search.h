@@ -8,7 +8,8 @@
 
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
 
-void GreedyTensorSearch(const TTrainData& data,
+void GreedyTensorSearch(const TTrainData& learnData,
+                        const TTrainData* testData,
                         const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,

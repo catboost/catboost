@@ -149,9 +149,12 @@ void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TInde
 
 TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,
-                                 const TTrainData& data,
+                                 const TTrainData& learnData,
+                                 const TTrainData* testData,
                                  NPar::TLocalExecutor* localExecutor) {
-                                 TVector<TIndexType> indices(fold.EffectiveDocCount);
+    int learnSampleCount = learnData.GetSampleCount();
+    int tailSampleCount = fold.EffectiveDocCount - learnSampleCount;
+
     TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
     for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
         const auto& split = tree.Splits[splitIdx];
@@ -161,15 +164,19 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
     }
 
     const int blockSize = 1000;
-    NPar::TLocalExecutor::TExecRangeParams learnBlockParams(0, data.LearnSampleCount);
+
+    TVector<TIndexType> indices(learnSampleCount + tailSampleCount);
+
+    NPar::TLocalExecutor::TExecRangeParams learnBlockParams(0, learnSampleCount);
     learnBlockParams.SetBlockSize(blockSize);
 
-    localExecutor->ExecRange([&](int blockIdx) {
+    auto updateLearnIndex = [&](int blockIdx) {
         for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
             const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
-                OfflineCtrBlock<ui8, IsTrueHistogram>(learnBlockParams, blockIdx, fold, GetFloatHistogram(split, data.AllFeatures).data(),
+                OfflineCtrBlock<ui8, IsTrueHistogram>(learnBlockParams, blockIdx, fold,
+                    GetFloatHistogram(split, learnData.AllFeatures).data(),
                     GetFeatureSplitIdx(split), splitWeight, indices.data());
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
@@ -178,54 +185,47 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
                 })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-                OfflineCtrBlock<int, IsTrueOneHotFeature>(learnBlockParams, blockIdx, fold, GetRemappedCatFeatures(split, data.AllFeatures).data(),
+                OfflineCtrBlock<int, IsTrueOneHotFeature>(learnBlockParams, blockIdx, fold,
+                    GetRemappedCatFeatures(split, learnData.AllFeatures).data(),
                     split.BinBorder, splitWeight, indices.data());
             }
         }
-    }, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    };
 
-    NPar::TLocalExecutor::TExecRangeParams tailBlockParams(data.LearnSampleCount, fold.EffectiveDocCount);
+    NPar::TLocalExecutor::TExecRangeParams tailBlockParams(0, tailSampleCount);
     tailBlockParams.SetBlockSize(blockSize);
 
-    localExecutor->ExecRange([&](int blockIdx) {
+    auto updateTailIndex = [&](int blockIdx) {
+        TIndexType* tailIndices = indices.data() + learnSampleCount;
         for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
             const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
                 const ui8 featureSplitIdx = GetFeatureSplitIdx(split);
-                const ui8* floatHistogramData = GetFloatHistogram(split, data.AllFeatures).data();
+                const ui8* floatHistogramData = GetFloatHistogram(split, testData->AllFeatures).data();
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    indices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
+                    tailIndices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
                 })(blockIdx);
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    indices[doc] += GetCtrSplit(split, doc, splitOnlineCtr) * splitWeight;
+                    tailIndices[doc] += GetCtrSplit(split, doc + learnSampleCount, splitOnlineCtr) * splitWeight;
                 })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
                 const int featureSplitValue = split.BinBorder;
-                const int* featureValueData = GetRemappedCatFeatures(split, data.AllFeatures).data();
+                const int* featureValueData = GetRemappedCatFeatures(split, testData->AllFeatures).data();
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    indices[doc] += IsTrueOneHotFeature(featureValueData[doc], featureSplitValue) * splitWeight;
+                    tailIndices[doc] += IsTrueOneHotFeature(featureValueData[doc], featureSplitValue) * splitWeight;
                 })(blockIdx);
             }
         }
-    }, 0, tailBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    };
+
+    localExecutor->ExecRange(updateLearnIndex, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(updateTailIndex, 0, tailBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     return indices;
-}
-
-int GetDocCount(const TAllFeatures& features) {
-    for (int i = 0; i < features.FloatHistograms.ysize(); ++i) {
-        if (!features.FloatHistograms[i].empty())
-            return features.FloatHistograms[i].ysize();
-    }
-    for (int i = 0; i < features.CatFeaturesRemapped.ysize(); ++i) {
-        if (!features.CatFeaturesRemapped[i].empty())
-            return features.CatFeaturesRemapped[i].ysize();
-    }
-    return 0;
 }
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {

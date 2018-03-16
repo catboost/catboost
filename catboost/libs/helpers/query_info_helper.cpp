@@ -1,7 +1,8 @@
 #include "query_info_helper.h"
 #include "exception.h"
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int begin, int end, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
+    int begin = beginDoc, end = endDoc;
     if (begin == end) {
         return;
     }
@@ -48,7 +49,8 @@ TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int 
     return queriesInfoForDocs;
 }
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, int begin, int end, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
+    int begin = beginPair, end = endPair;
     if (begin == end) {
         return;
     }

@@ -11,6 +11,7 @@ SIZE(MEDIUM)
 
 PEERDIR(
     catboost/pytest/lib
+    contrib/python/numpy
 )
 
 DEPENDS(

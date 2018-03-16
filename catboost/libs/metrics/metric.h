@@ -6,6 +6,7 @@
 
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/metric_options.h>
 
@@ -13,8 +14,6 @@
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/metric_options.h>
 
 inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;
@@ -651,16 +650,12 @@ inline TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TStr
 }
 
 double EvalErrors(
-    const TVector<TVector<double>>& avrgApprox,
+    const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& queriesInfo,
     const TVector<TPair>& pairs,
     const THolder<IMetric>& error,
-    int queryStartIndex,
-    int queryEndIndex,
-    int begin,
-    int end,
     NPar::TLocalExecutor* localExecutor
 );
 
@@ -673,10 +668,9 @@ inline bool IsMaxOptimal(const IMetric& metric) {
 
 inline void CheckTarget(const TVector<float>& target, ELossFunction lossFunction) {
     if (lossFunction == ELossFunction::CrossEntropy) {
-        float minTarget = *MinElement(target.begin(), target.end());
-        float maxTarget = *MaxElement(target.begin(), target.end());
-        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
-        CB_ENSURE(maxTarget <= 1, "Max target greater than 1: " + ToString(minTarget));
+        auto targetBounds = CalcMinMax(target);
+        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
+        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
     }
 
     if (lossFunction == ELossFunction::QuerySoftMax) {

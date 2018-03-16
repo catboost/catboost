@@ -156,31 +156,10 @@ struct TDocumentStorage {
         Timestamp.clear();
         Timestamp.shrink_to_fit();
     }
-
-    inline void Append(const TDocumentStorage& documents) {
-        if (!documents.Factors.empty()) {
-            Y_ASSERT(GetFactorsCount() == documents.GetFactorsCount());
-            for (int factorIdx = 0; factorIdx < GetFactorsCount(); ++factorIdx) {
-                Factors[factorIdx].insert(Factors[factorIdx].end(), documents.Factors[factorIdx].begin(), documents.Factors[factorIdx].end());
-            }
-        }
-        if (!documents.Baseline.empty()) {
-            Y_ASSERT(GetBaselineDimension() == documents.GetBaselineDimension());
-            for (int dim = 0; dim < GetBaselineDimension(); ++dim) {
-                Baseline[dim].insert(Baseline[dim].end(), documents.Baseline[dim].begin(), documents.Baseline[dim].end());
-            }
-        }
-        Target.insert(Target.end(), documents.Target.begin(), documents.Target.end());
-        Weight.insert(Weight.end(), documents.Weight.begin(), documents.Weight.end());
-        Id.insert(Id.end(), documents.Id.begin(), documents.Id.end());
-        QueryId.insert(QueryId.end(), documents.QueryId.begin(), documents.QueryId.end());
-        SubgroupId.insert(SubgroupId.end(), documents.SubgroupId.begin(), documents.SubgroupId.end());
-        Timestamp.insert(Timestamp.end(), documents.Timestamp.begin(), documents.Timestamp.end());
-    }
 };
 
 struct TPool {
-    mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are processed by PrepareAllFeatures and PrepareAllFeaturesFromPermutedDocs to reduce memory footprint
+    mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are binarized, to reduce memory footprint
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
     THashMap<int, TString> CatFeaturesHashToString;

@@ -95,12 +95,12 @@ struct TCandidatesInfoList {
 
 using TCandidateList = TVector<TCandidatesInfoList>;
 
-static void AddFloatFeatures(const TTrainData& data,
+static void AddFloatFeatures(const TTrainData& learnData,
                              TLearnContext* ctx,
                              TBucketStatsCache* statsFromPrevTree,
                              TCandidateList* candList) {
-    for (int f = 0; f < data.AllFeatures.FloatHistograms.ysize(); ++f) {
-        if (data.AllFeatures.FloatHistograms[f].empty()) {
+    for (int f = 0; f < learnData.AllFeatures.FloatHistograms.ysize(); ++f) {
+        if (learnData.AllFeatures.FloatHistograms[f].empty()) {
             continue;
         }
         TCandidateInfo split;
@@ -115,13 +115,13 @@ static void AddFloatFeatures(const TTrainData& data,
     }
 }
 
-static void AddOneHotFeatures(const TTrainData& data,
+static void AddOneHotFeatures(const TTrainData& learnData,
                               TLearnContext* ctx,
                               TBucketStatsCache* statsFromPrevTree,
                               TCandidateList* candList) {
-    for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-        if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-            !data.AllFeatures.IsOneHot[cf]) {
+    for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+        if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
+            !learnData.AllFeatures.IsOneHot[cf]) {
             continue;
         }
 
@@ -185,14 +185,14 @@ static void DropStatsForProjection(const TFold& fold,
         }
     }
 }
-static void AddSimpleCtrs(const TTrainData& data,
+static void AddSimpleCtrs(const TTrainData& learnData,
                           TFold* fold,
                           TLearnContext* ctx,
                           TBucketStatsCache* statsFromPrevTree,
                           TCandidateList* candList) {
-    for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-        if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-            data.AllFeatures.IsOneHot[cf]) {
+    for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+        if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
+            learnData.AllFeatures.IsOneHot[cf]) {
             continue;
         }
 
@@ -208,7 +208,7 @@ static void AddSimpleCtrs(const TTrainData& data,
     }
 }
 
-static void AddTreeCtrs(const TTrainData& data,
+static void AddTreeCtrs(const TTrainData& learnData,
                         const TSplitTree& currentTree,
                         TFold* fold,
                         TLearnContext* ctx,
@@ -232,9 +232,9 @@ static void AddTreeCtrs(const TTrainData& data,
         if (baseProj.IsEmpty()) {
             continue;
         }
-        for (int cf = 0; cf < data.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-            if (data.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-                data.AllFeatures.IsOneHot[cf] ||
+        for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
+            if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
+                learnData.AllFeatures.IsOneHot[cf] ||
                 ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
                 continue;
             }
@@ -349,7 +349,8 @@ static void Bootstrap(const NCatboostOptions::TOption<NCatboostOptions::TBootstr
     ctx->SampledDocs.Sample(*fold, indices, &ctx->Rand, &ctx->LocalExecutor);
 }
 
-void GreedyTensorSearch(const TTrainData& data,
+void GreedyTensorSearch(const TTrainData& learnData,
+                        const TTrainData* testData,
                         const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
@@ -359,42 +360,46 @@ void GreedyTensorSearch(const TTrainData& data,
     TSplitTree currentSplitTree;
     TrimOnlineCTRcache({fold});
 
-    TVector<TIndexType> indices(data.LearnSampleCount); // always for all documents
+    int learnSampleCount = learnData.GetSampleCount();
+    int testSampleCount = testData ? testData->GetSampleCount() : 0;
+    TVector<TIndexType> indices(learnSampleCount); // always for all documents
     MATRIXNET_INFO_LOG << "\n";
 
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get());
     const auto& samplingConfig = ctx->Params.ObliviousTreeOptions->BootstrapConfig;
     if (isSamplingPerTree) {
-        Bootstrap(samplingConfig, indices, data.LearnSampleCount, fold, ctx);
+        Bootstrap(samplingConfig, indices, learnSampleCount, fold, ctx);
         ctx->PrevTreeLevelStats.GarbageCollect();
     }
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidateList candList;
-        AddFloatFeatures(data, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddOneHotFeatures(data, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddSimpleCtrs(data, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddTreeCtrs(data, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddFloatFeatures(learnData, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddOneHotFeatures(learnData, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddSimpleCtrs(learnData, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddTreeCtrs(learnData, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
 
         auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
-        SelectCtrsToDropAfterCalc(ctx->Params.SystemOptions->CpuUsedRamLimit, data.GetSampleCount(), ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
+        SelectCtrsToDropAfterCalc(ctx->Params.SystemOptions->CpuUsedRamLimit, learnSampleCount + testSampleCount, ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation
         if (!isSamplingPerTree) {
-            Bootstrap(samplingConfig, indices, data.LearnSampleCount, fold, ctx);
+            Bootstrap(samplingConfig, indices, learnSampleCount, fold, ctx);
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
-        double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(data.LearnSampleCount, modelLength);
+        double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(learnSampleCount, modelLength);
 
         TVector<size_t> candFeatureValueCount(candList.ysize(), 1);
         const ui64 randSeed = ctx->Rand.GenRand();
-        CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
+        Y_VERIFY(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
+
         ctx->LocalExecutor.ExecRange([&](int id) {
             auto& candidate = candList[id];
             if (candidate.Candidates[0].SplitCandidate.Type == ESplitType::OnlineCtr) {
                 const auto& proj = candidate.Candidates[0].SplitCandidate.Ctr.Projection;
                 if (fold->GetCtrRef(proj).Feature.empty()) {
-                    ComputeOnlineCTRs(data,
+                    ComputeOnlineCTRs(learnData,
+                                      testData,
                                       *fold,
                                       proj,
                                       ctx,
@@ -402,13 +407,14 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
                 candFeatureValueCount[id] = fold->GetCtrRef(proj).FeatureValueCount;
             }
+
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor.ExecRange([&](int oneCandidate) {
                 if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
                     const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
                     Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
                 }
-                allScores[oneCandidate] = CalcScore(data.AllFeatures,
+                allScores[oneCandidate] = CalcScore(learnData.AllFeatures,
                                                     splitCounts,
                                                     fold->GetAllCtrs(),
                                                     ctx->SampledDocs,
@@ -439,6 +445,7 @@ void GreedyTensorSearch(const TTrainData& data,
                 }
             }
         }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+
         size_t maxFeatureValueCount = 1;
         for (size_t featureValueCount : candFeatureValueCount) {
             maxFeatureValueCount = Max(maxFeatureValueCount, featureValueCount);
@@ -483,7 +490,8 @@ void GreedyTensorSearch(const TTrainData& data,
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             const auto& proj = bestSplit.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
-                ComputeOnlineCTRs(data,
+                ComputeOnlineCTRs(learnData,
+                                  testData,
                                   *fold,
                                   proj,
                                   ctx,
@@ -491,7 +499,8 @@ void GreedyTensorSearch(const TTrainData& data,
                 DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
             }
         }
-        SetPermutedIndices(bestSplit, data.AllFeatures, curDepth + 1, *fold, &indices, ctx);
+
+        SetPermutedIndices(bestSplit, learnData.AllFeatures, curDepth + 1, *fold, &indices, ctx);
         if (isSamplingPerTree) {
             ctx->SampledDocs.UpdateIndices(indices, &ctx->LocalExecutor);
             ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);

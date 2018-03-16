@@ -198,8 +198,8 @@ public:
         bool writeHeader = true);
 
 private:
-    TVector<TVector<TVector<double>>> RawValues;
-    TVector<TVector<TVector<double>>> Approxes;
+    TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
+    TVector<TVector<TVector<double>>> Approxes; // [evalIter][dim][docIdx]
 };
 
 template <typename T>

@@ -29,31 +29,26 @@ class TLearnContext;
 class TTrainData;
 
 
-void ComputeOnlineCTRs(const TTrainData& data,
+void ComputeOnlineCTRs(const TTrainData& learnData,
+                       const TTrainData* testData,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TFold* fold);
 
-void ComputeOnlineCTRs(const TTrainData& data,
+void ComputeOnlineCTRs(const TTrainData& learnData,
+                       const TTrainData* testData,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,
                        TOnlineCTR* dst);
-
-struct TCalcOnlineCTRsBatchTask {
-    TProjection Projection;
-    TFold* Fold;
-    TOnlineCTR* Ctr;
-};
-
-void CalcOnlineCTRsBatch(const TVector<TCalcOnlineCTRsBatchTask>& tasks, const TTrainData& data, TLearnContext* ctx);
 
 class TCtrValueTable;
 
 void CalcFinalCtrs(
     const ECtrType ctrType,
     const TProjection& projection,
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData* testData,
     const TVector<size_t>& learnPermutation,
     const TVector<int>& permutedTargetClass,
     int targetClassesCount,

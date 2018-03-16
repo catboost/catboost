@@ -454,7 +454,8 @@ void CalcLeafValuesIterationSimple(
 
 template <typename TError>
 void CalcLeafValuesSimple(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData* testData,
     const TSplitTree& tree,
     const TError& error,
     const TFold& ff,
@@ -463,11 +464,11 @@ void CalcLeafValuesSimple(
     TVector<TIndexType>* ind
 ) {
     auto& indices = *ind;
-    indices = BuildIndices(ff, tree, data, &ctx->LocalExecutor);
+    indices = BuildIndices(ff, tree, learnData, testData, &ctx->LocalExecutor);
 
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
     const int leafCount = tree.GetLeafCount();
-    const int learnSampleCount = data.LearnSampleCount;
+    const int learnSampleCount = learnData.GetSampleCount();
 
     TVector<TVector<double>> approxes(1);
     approxes[0].assign(bt.Approx[0].begin(), bt.Approx[0].begin() + learnSampleCount);
@@ -533,7 +534,8 @@ void CalcLeafValuesSimple(
 
 template <typename TError>
 void CalcLeafValues(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData* testData,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -543,22 +545,23 @@ void CalcLeafValues(
 ) {
     const int approxDimension = ctx->LearnProgress.AveragingFold.GetApproxDimension();
     if (approxDimension == 1) {
-        CalcLeafValuesSimple(data, tree, error, fold, ctx, leafValues, ind);
+        CalcLeafValuesSimple(learnData, testData, tree, error, fold, ctx, leafValues, ind);
     } else {
-        CalcLeafValuesMulti(data, tree, error, fold, ctx, leafValues, ind);
+        CalcLeafValuesMulti(learnData, testData, tree, error, fold, ctx, leafValues, ind);
     }
 }
 
 // output is permuted (learnSampleCount samples are permuted by LearnPermutation, test is indexed directly)
 template <typename TError>
 void CalcApproxForLeafStruct(
-    const TTrainData& data,
+    const TTrainData& learnData,
+    const TTrainData* testData,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta// [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    TVector<TIndexType> indices = BuildIndices(fold, tree, data, &ctx->LocalExecutor);
+    TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testData, &ctx->LocalExecutor);
     CalcApproxDelta(fold, tree, error, ctx, approxesDelta, &indices);
 }

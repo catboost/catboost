@@ -1,5 +1,6 @@
 #include "target_classifier.h"
 
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
@@ -12,9 +13,10 @@ static TVector<float> GetMultiClassBorders(int cnt) {
     return borders;
 }
 
-static TVector<float> SelectBorders(const TVector<float>& target, int learnSampleCount,
-                                    int targetBorderCount, EBorderSelectionType targetBorderType) {
-    TVector<float> learnTarget(target.begin(), target.begin() + learnSampleCount);
+static TVector<float> SelectBorders(const TVector<float>& target,
+                                    int targetBorderCount,
+                                    EBorderSelectionType targetBorderType) {
+    TVector<float> learnTarget(target);
 
     THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
     TVector<float> borders(borderSet.begin(), borderSet.end());
@@ -26,7 +28,6 @@ static TVector<float> SelectBorders(const TVector<float>& target, int learnSampl
 }
 
 TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
-                                        int learnSampleCount,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,
@@ -35,11 +36,10 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
         return TTargetClassifier();
     }
 
-    CB_ENSURE(learnSampleCount > 0, "train should not be empty");
+    CB_ENSURE(!target.empty(), "train target should not be empty");
 
-    float min = *MinElement(target.begin(), target.begin() + learnSampleCount);
-    float max = *MaxElement(target.begin(), target.begin() + learnSampleCount);
-    CB_ENSURE(min != max, "target in train should not be constant");
+    TMinMax<float> targetBounds = CalcMinMax(target);
+    CB_ENSURE(targetBounds.Min != targetBounds.Max, "target in train should not be constant");
 
     switch (loss) {
         case ELossFunction::RMSE:
@@ -57,7 +57,6 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
         case ELossFunction::UserQuerywiseMetric:
             return TTargetClassifier(SelectBorders(
                 target,
-                learnSampleCount,
                 targetBorderCount,
                 targetBorderType));
 
@@ -69,7 +68,6 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
             Y_ASSERT(objectiveDescriptor.Defined());
             return TTargetClassifier(SelectBorders(
                 target,
-                learnSampleCount,
                 targetBorderCount,
                 targetBorderType));
         }

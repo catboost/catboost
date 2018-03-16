@@ -3,6 +3,7 @@ import pytest
 import os
 import filecmp
 import csv
+import numpy as np
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 
@@ -2452,3 +2453,25 @@ def test_without_cat_features(boosting_type):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_no_target():
+    train_path = yatest.common.test_output_path('train')
+    cd_path = yatest.common.test_output_path('train.cd')
+    pairs_path = yatest.common.test_output_path('pairs')
+
+    np.savetxt(train_path, [[0], [1], [2], [3], [4]], delimiter='\t', fmt='%.4f')
+    np.savetxt(cd_path, [('0', 'Num')], delimiter='\t', fmt='%s')
+    np.savetxt(pairs_path, [[0, 1], [0, 2], [0, 3], [2, 4]], delimiter='\t', fmt='%i')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', train_path,
+        '--cd', cd_path,
+        '--learn-pairs', pairs_path
+    )
+    try:
+        yatest.common.execute(cmd)
+    except yatest.common.ExecutionError, error:
+        assert 'TCatboostException' in str(error)

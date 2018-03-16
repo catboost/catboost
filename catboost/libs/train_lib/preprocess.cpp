@@ -1,5 +1,6 @@
 #include "preprocess.h"
 
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/metric.h>
 
 static int CountGroups(const TVector<ui32>& queryIds) {
@@ -38,23 +39,21 @@ static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<T
 void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
     CheckTarget(target, lossFunction);
     if (lossFunction == ELossFunction::Logloss) {
-        float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
-        float maxTarget = *MaxElement(target.begin(), target.begin() + learnSampleCount);
-        CB_ENSURE(minTarget == 0, "All train targets are greater than border");
-        CB_ENSURE(maxTarget == 1, "All train targets are smaller than border");
+        auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
+        CB_ENSURE(targetBounds.Min == 0, "All train targets are greater than border");
+        CB_ENSURE(targetBounds.Max == 1, "All train targets are smaller than border");
     }
 
     if (lossFunction != ELossFunction::PairLogit) {
-        float minTarget = *MinElement(target.begin(), target.begin() + learnSampleCount);
-        float maxTarget = *MaxElement(target.begin(), target.begin() + learnSampleCount);
-        CB_ENSURE(minTarget != maxTarget, "All train targets are equal");
+        auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
+        CB_ENSURE(targetBounds.Min != targetBounds.Max, "All train targets are equal");
     }
 }
 
 static void CheckBaseline(ELossFunction lossFunction,
                    const TVector<TVector<double>>& trainBaseline,
-                   const TVector<TVector<double>>& testBaseline,
-                   int testDocs) {
+                   const TVector<TVector<double>>& testBaseline) {
+    size_t testDocs = testBaseline.size() ? testBaseline[0].size() : 0;
     bool trainHasBaseline = trainBaseline.ysize() != 0;
     bool testHasBaseline = trainHasBaseline;
     if (testDocs != 0) {
@@ -78,79 +77,66 @@ static void CheckBaseline(ELossFunction lossFunction,
     }
 }
 
-void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescription,
-                        int learnSampleCount,
-                        const TVector<ui32>& queryId,
-                        const TVector<TPair>& pairs,
-                        const TVector<float>& classWeights,
-                        TVector<float>* weights,
-                        TVector<float>* target) {
-    CB_ENSURE(learnSampleCount != 0, "Train dataset is empty");
-
+void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
+                const TVector<float>& classWeights,
+                TTrainData& learnOrTestData) {
+    auto& data = learnOrTestData;
     if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
-        PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), target);
-    }
-
-    float minWeight = *MinElement(weights->begin(), weights->begin() + learnSampleCount);
-    float maxWeight = *MaxElement(weights->begin(), weights->begin() + learnSampleCount);
-    CB_ENSURE(minWeight >= 0, "Has negative weight: " + ToString(minWeight));
-    CB_ENSURE(maxWeight > 0, "All weights are 0");
-
-    if (lossDescription.GetLossFunction() == ELossFunction::PairLogit) {
-        CB_ENSURE(minWeight == maxWeight, "Pairwise loss doesn't support document weights");
+        PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &data.Target);
     }
 
     if (!classWeights.empty()) {
         // TODO(annaveronika): check class weight not negative.
-        int dataSize = target->ysize();
+        int dataSize = data.Target.ysize();
         for (int i = 0; i < dataSize; ++i) {
-            CB_ENSURE(target->at(i) < classWeights.ysize(), "class " + ToString((*target)[i]) + " is missing in class weights");
-            (*weights)[i] *= classWeights[(*target)[i]];
+            CB_ENSURE(data.Target[i] < classWeights.ysize(), "class " + ToString(data.Target[i]) + " is missing in class weights");
+            data.Weights[i] *= classWeights[data.Target[i]];
         }
     }
-
-    CheckTrainTarget(*target, learnSampleCount, lossDescription.GetLossFunction());
-
-    bool hasQuery = !queryId.empty();
-    if (hasQuery) {
-        bool isGroupIdCorrect = AreQueriesGrouped(queryId);
-        if (learnSampleCount < target->ysize()) {
-            isGroupIdCorrect &= queryId[learnSampleCount - 1] != queryId[learnSampleCount];
-        }
-        CB_ENSURE(isGroupIdCorrect, "Train and eval group ids should have distinct group ids. And group ids in train and eval should be grouped.");
-    }
-    if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(!queryId.empty(), "You should provide GroupId for Pairwise Errors." );
-        CB_ENSURE(ArePairsGroupedByQuery(queryId, pairs), "Two objects in a pair should have same GroupId");
-    }
-
 }
 
-TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& learnPool, const TPool& testPool) {
-    TTrainData trainData;
-    trainData.LearnSampleCount = learnPool.Docs.GetDocCount();
-    trainData.Target.reserve(learnPool.Docs.GetDocCount() + testPool.Docs.GetDocCount());
-    trainData.Pairs.reserve(learnPool.Pairs.size() + testPool.Pairs.size());
-    trainData.Pairs.insert(trainData.Pairs.end(), learnPool.Pairs.begin(), learnPool.Pairs.end());
-    trainData.Pairs.insert(trainData.Pairs.end(), testPool.Pairs.begin(), testPool.Pairs.end());
-    for (int pairInd = learnPool.Pairs.ysize(); pairInd < trainData.Pairs.ysize(); ++pairInd) {
-        trainData.Pairs[pairInd].WinnerId += trainData.LearnSampleCount;
-        trainData.Pairs[pairInd].LoserId += trainData.LearnSampleCount;
-    }
-    trainData.Target = learnPool.Docs.Target;
-    trainData.Weights = learnPool.Docs.Weight;
-    trainData.QueryId = learnPool.Docs.QueryId;
-    trainData.SubgroupId = learnPool.Docs.SubgroupId;
-    trainData.Baseline = learnPool.Docs.Baseline;
-    trainData.Target.insert(trainData.Target.end(), testPool.Docs.Target.begin(), testPool.Docs.Target.end());
-    trainData.Weights.insert(trainData.Weights.end(), testPool.Docs.Weight.begin(), testPool.Docs.Weight.end());
-    trainData.QueryId.insert(trainData.QueryId.end(), testPool.Docs.QueryId.begin(), testPool.Docs.QueryId.end());
-    trainData.SubgroupId.insert(trainData.SubgroupId.end(), testPool.Docs.SubgroupId.begin(), testPool.Docs.SubgroupId.end());
+TTrainData BuildTrainData(const TPool& pool) {
+    TTrainData data;
+    data.Target = pool.Docs.Target;
+    data.Weights = pool.Docs.Weight;
+    data.QueryId = pool.Docs.QueryId;
+    data.SubgroupId = pool.Docs.SubgroupId;
+    data.Baseline = pool.Docs.Baseline;
+    data.Pairs = pool.Pairs;
+    return data;
+}
 
-    CheckBaseline(lossFunction, learnPool.Docs.Baseline, testPool.Docs.Baseline, testPool.Docs.GetDocCount());
+void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
+                      const TTrainData& learnData,
+                     const TTrainData& testData) {
+    CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
 
-    for (int dim = 0; dim < testPool.Docs.GetBaselineDimension(); ++dim) {
-        trainData.Baseline[dim].insert(trainData.Baseline[dim].end(), testPool.Docs.Baseline[dim].begin(), testPool.Docs.Baseline[dim].end());
+    CheckBaseline(lossDescription.GetLossFunction(), learnData.Baseline, testData.Baseline);
+
+    TMinMax<float> weightBounds = CalcMinMax(learnData.Weights);
+    CB_ENSURE(weightBounds.Min >= 0, "Has negative weight: " + ToString(weightBounds.Min));
+    CB_ENSURE(weightBounds.Max > 0, "All weights are 0");
+
+    if (lossDescription.GetLossFunction() == ELossFunction::PairLogit) {
+        CB_ENSURE(weightBounds.Min == weightBounds.Max, "Pairwise loss doesn't support document weights");
     }
-    return trainData;
+
+    CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction());
+
+    bool learnHasQuery = !learnData.QueryId.empty();
+    bool testHasQuery = !testData.QueryId.empty();
+
+    if (learnHasQuery) {
+        CB_ENSURE(AreQueriesGrouped(learnData.QueryId), "Train pool should be grouped by GroupId");
+        if (testHasQuery) {
+            CB_ENSURE(AreQueriesGrouped(testData.QueryId), "Test pool should be grouped by GroupId");
+            CB_ENSURE(learnData.QueryId.back() != testData.QueryId.front(), " Train and test pools should have different GroupId");
+        }
+    }
+
+    if (IsPairwiseError(lossDescription.GetLossFunction())) {
+        CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors." );
+        CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");
+        CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");
+    }
 }

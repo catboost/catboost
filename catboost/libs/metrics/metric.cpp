@@ -1628,25 +1628,29 @@ TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics)
 }
 
 double EvalErrors(
-    const TVector<TVector<double>>& avrgApprox,
+    const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& queriesInfo,
     const TVector<TPair>& pairs,
     const THolder<IMetric>& error,
-    int queryStartIndex,
-    int queryEndIndex,
-    int begin,
-    int end,
     NPar::TLocalExecutor* localExecutor
 ) {
     TMetricHolder metric;
     if (error->GetErrorType() == EErrorType::PerObjectError) {
+        auto avrgApprox = approx;
+        int begin = 0, end = target.ysize();
+        Y_VERIFY(approx[0].ysize() == end - begin);
         metric = error->Eval(avrgApprox, target, weight, queriesInfo, begin, end, *localExecutor);
     } else if (error->GetErrorType() == EErrorType::PairwiseError) {
+        auto avrgApprox = approx;
+        int begin = 0, end = target.ysize();
+        Y_VERIFY(approx[0].ysize() == end - begin);
         metric = error->EvalPairwise(avrgApprox, pairs, begin, end);
     } else {
-        CB_ENSURE(error->GetErrorType() == EErrorType::QuerywiseError);
+        Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError);
+        auto avrgApprox = approx;
+        int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
         metric = error->Eval(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
     return error->GetFinalError(metric);

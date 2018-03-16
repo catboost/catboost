@@ -1,4 +1,5 @@
 #include "train.h"
+#include <catboost/libs/helpers/query_info_helper.h>
 
 class TLoglossError;
 class TCrossEntropyError;
@@ -28,7 +29,7 @@ TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, float bestPossib
 }
 
 template <typename TError>
-void TrainOneIter(const TTrainData& data,  TLearnContext* ctx);
+void TrainOneIter(const TTrainData& data, const TTrainData* testDataPtr, TLearnContext* ctx);
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
     switch (lossFunction) {

@@ -6,13 +6,14 @@
 
 #include <util/generic/vector.h>
 
-// Preprocessing of weights and targets. Loss specific check that target, weights and queryId are correct.
-void PreprocessAndCheck(const NCatboostOptions::TLossDescription& lossDescription,
-                        int learnSampleCount,
-                        const TVector<ui32>& queryId,
-                        const TVector<TPair>& pairs,
-                        const TVector<float>& classWeights,
-                        TVector<float>* weights,
-                        TVector<float>* target);
+/// Preprocess targets and weights of the `data` as required by loss.
+void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
+                const TVector<float>& classWeights,
+                TTrainData& learnOrTestData);
 
-TTrainData BuildTrainData(ELossFunction lossFunction, const TPool& train, const TPool& test);
+TTrainData BuildTrainData(const TPool& pool);
+
+/// Check consistency of the data with each other and with loss, after Preprocess.
+void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
+                      const TTrainData& learnData,
+                      const TTrainData& testData);

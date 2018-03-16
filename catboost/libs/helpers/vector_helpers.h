@@ -12,11 +12,27 @@ static TVector<const T*> GetConstPointers(const TVector<THolder<T>>& pointers) {
     return result;
 }
 
+template <typename T>
+struct TMinMax {
+    T Min;
+    T Max;
+};
+
+template <typename TForwardIterator, typename T = typename std::iterator_traits<TForwardIterator>::value_type>
+inline TMinMax<T> CalcMinMax(TForwardIterator begin, TForwardIterator end) {
+    auto minmax = std::minmax_element(begin, end);
+    Y_VERIFY(minmax.first != end);
+    return {*minmax.first, *minmax.second};
+}
+
+template <typename T>
+inline TMinMax<T> CalcMinMax(const TVector<T>& v) {
+    return CalcMinMax(v.begin(), v.end());
+}
 inline bool IsConst(const TVector<float>& values) {
     if (values.empty()) {
         return true;
     }
-    float minValue = *MinElement(values.begin(), values.end());
-    float maxValue = *MaxElement(values.begin(), values.end());
-    return minValue == maxValue;
+    auto bounds = CalcMinMax(values);
+    return bounds.Min == bounds.Max;
 }

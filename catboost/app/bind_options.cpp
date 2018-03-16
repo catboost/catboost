@@ -79,7 +79,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .StoreValue(&loadParamsPtr->HasHeader,
                     true);
 
-    parser->AddCharOption('X', "xross validation, test on fold n of k, n is 0-based")
+    parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             Split(str,
@@ -87,7 +87,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->CvParams.Inverted = false;
         });
 
-    parser->AddCharOption('Y', "inverted xross validation, train on fold n of k, n is 0-based")
+    parser->AddCharOption('Y', "inverted cross validation, train on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             Split(str,
