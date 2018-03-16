@@ -120,9 +120,10 @@ def validate_test(kw):
     else:
         try:
             timeout = int(valid_kw.get('TEST-TIMEOUT', size_timeout[size]) or size_timeout[size])
+            script_rel_path = valid_kw.get('SCRIPT-REL-PATH')
             if timeout < 0:
                 raise Exception("Timeout must be > 0")
-            if size_timeout[size] < timeout and in_autocheck:
+            if size_timeout[size] < timeout and in_autocheck and script_rel_path != 'java.style':
                 suggested_size = None
                 for s, t in size_timeout.items():
                     if timeout <= t:
@@ -382,6 +383,7 @@ def onadd_check(unit, *args):
     check_type = flat_args[0]
     test_dir = unit.resolve(os.path.join(unit.path()))
 
+    test_timeout = ''
     if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES"]:
         script_rel_path = "py.lint.pylint"
     elif check_type == "JAVA_STYLE":
@@ -396,13 +398,14 @@ def onadd_check(unit, *args):
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
         flat_args[1] = allowed_levels[check_level]
         script_rel_path = "java.style"
+        test_timeout = '120'
     else:
         script_rel_path = check_type
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
     test_record = {
         'TEST-NAME': check_type.lower(),
-        'TEST-TIMEOUT': '',
+        'TEST-TIMEOUT': test_timeout,
         'SCRIPT-REL-PATH': script_rel_path,
         'TESTED-PROJECT-NAME': os.path.basename(test_dir),
         'SOURCE-FOLDER-PATH': test_dir,
