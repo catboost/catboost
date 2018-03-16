@@ -117,7 +117,8 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     //const auto sampleCount = data.GetSampleCount();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
-    if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && IsCategoricalFeaturesEmpty(learnData.AllFeatures)) {
+    const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);
+    if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && noCtrs) {
         foldCount = 1;
     }
     LearnProgress.Folds.reserve(foldCount);
@@ -134,6 +135,9 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     ui32 foldPermutationBlockSize = boostingOptions.PermutationBlockSize;
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
         foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
+    }
+    if (IsPlainMode(Params.BoostingOptions->BoostingType) and noCtrs) {
+        foldPermutationBlockSize = learnData.GetSampleCount();
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params);
 
