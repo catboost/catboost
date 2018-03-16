@@ -112,7 +112,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     );
 
     ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
-        plotCalcer.ProceedDataSet(poolPart);
+        plotCalcer.ProceedDataSet(poolPart, !poolPart.Docs.QueryId.empty());
     });
 
     plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath).ClearTempFiles();

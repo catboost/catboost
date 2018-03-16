@@ -56,7 +56,7 @@ TVector<TVector<double>> EvalMetrics(
         tmpDir,
         metrics
     );
-    plotCalcer.ProceedDataSet(pool);
+    plotCalcer.ProceedDataSet(pool, /*isProcessBoundaryGroups=*/false);
 
     TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
 

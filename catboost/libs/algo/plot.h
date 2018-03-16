@@ -53,7 +53,7 @@ public:
         DeleteTmpDirOnExitFlag = flag;
     }
 
-    TMetricsPlotCalcer& ProceedDataSet(const TPool& pool);
+    TMetricsPlotCalcer& ProceedDataSet(const TPool& rawPool, bool isProcessBoundaryGroups);
     TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile);
     TVector<TVector<double>> GetMetricsScore();
 
@@ -142,6 +142,8 @@ private:
         return *writer;
     }
 
+    TPool ProcessBoundaryGroups(const TPool& rawPool);
+
 private:
 
     struct TNonAdditiveMetricData {
@@ -181,6 +183,8 @@ private:
     TVector<ui32> Iterations;
 
     TNonAdditiveMetricData NonAdditiveMetricsData;
+
+    TPool LastGroupPool;
 };
 
 TMetricsPlotCalcer CreateMetricCalcer(

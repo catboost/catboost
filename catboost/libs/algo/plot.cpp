@@ -77,7 +77,58 @@ void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx,
     };
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& pool) {
+static void ResizePool(int size, const TPool& basePool, TPool* pool) {
+    pool->Docs.Resize(
+        size,
+        basePool.Docs.GetFactorsCount(),
+        basePool.Docs.GetBaselineDimension(),
+        !basePool.Docs.QueryId.empty(),
+        !basePool.Docs.SubgroupId.empty()
+    );
+}
+
+TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
+    TPool resultPool;
+    resultPool.Docs.Swap(LastGroupPool.Docs);
+
+    const int offset = resultPool.Docs.GetDocCount();
+    const int rawPoolSize = rawPool.Docs.GetDocCount();
+    ResizePool(offset + rawPoolSize, rawPool, &resultPool);
+    for (int docId = 0; docId < rawPoolSize; ++docId) {
+        resultPool.Docs.AssignDoc(offset + docId, rawPool.Docs, docId);
+    }
+
+    int lastQuerySize = 0;
+    const ui32 lastQueryId = rawPool.Docs.QueryId.back();
+    for (auto queryIdIt = rawPool.Docs.QueryId.rbegin(); queryIdIt != rawPool.Docs.QueryId.rend(); ++queryIdIt) {
+        if (lastQueryId == *queryIdIt) {
+            ++lastQuerySize;
+        } else {
+            break;
+        }
+    }
+    ResizePool(lastQuerySize, resultPool, &LastGroupPool);
+    const int newResultPoolSize = offset + rawPoolSize - lastQuerySize;
+    for (int docId = 0; docId < lastQuerySize; ++docId) {
+        LastGroupPool.Docs.AssignDoc(docId, resultPool.Docs, newResultPoolSize + docId);
+    }
+
+    ResizePool(newResultPoolSize, resultPool, &resultPool);
+    CB_ENSURE(resultPool.Docs.GetDocCount() != 0, "The size of the queries should be less than block-size parameter.");
+    return resultPool;
+}
+
+TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& rawPool, bool isProcessBoundaryGroups) {
+    const TPool* poolPointer;
+    THolder<TPool> tmpPoolHolder;
+    if (isProcessBoundaryGroups) {
+        tmpPoolHolder = MakeHolder<TPool>(ProcessBoundaryGroups(rawPool));
+        poolPointer = tmpPoolHolder.Get();
+    } else {
+        poolPointer = &rawPool;
+    }
+    const TPool& pool = *poolPointer;
+
     EnsureCorrectParams();
     const ui32 docCount = pool.Docs.GetDocCount();
 
@@ -208,6 +259,9 @@ TMetricsPlotCalcer CreateMetricCalcer(
 }
 
 TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
+    if (LastGroupPool.Docs.GetDocCount() != 0) {
+        ProceedDataSet(LastGroupPool, /*isProcessBoundaryGroups=*/false);
+    }
     if (HasNonAdditiveMetric()) {
         ComputeNonAdditiveMetrics();
     }

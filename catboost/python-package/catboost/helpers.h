@@ -63,7 +63,7 @@ public:
     }
 
     void AddPool(const TPool& pool) {
-        MetricPlotCalcer.ProceedDataSet(pool);
+        MetricPlotCalcer.ProceedDataSet(pool, !pool.Docs.QueryId.empty());
     }
 
     TVector<const IMetric*> GetMetricRawPtrs() const {

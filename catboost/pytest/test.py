@@ -2475,3 +2475,46 @@ def test_no_target():
         yatest.common.execute(cmd)
     except yatest.common.ExecutionError, error:
         assert 'TCatboostException' in str(error)
+
+
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
+def test_eval_metrics(loss_function):
+    train, test, cd, metric = data_file('adult', 'train_small'), data_file('adult', 'test_small'), data_file('adult', 'train.cd'), loss_function
+    if loss_function == 'QueryRMSE':
+        train, test, cd, metric = data_file('querywise', 'train'), data_file('querywise', 'test'), data_file('querywise', 'train.cd'), 'PFound'
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_path = yatest.common.test_output_path('output.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', metric,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false'
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metric,
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100'
+    )
+    yatest.common.execute(cmd)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=2)[:, 1], 8)
+    assert np.all(first_metrics == second_metrics)
