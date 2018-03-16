@@ -136,7 +136,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
         foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
     }
-    if (IsPlainMode(Params.BoostingOptions->BoostingType) and noCtrs) {
+    if (IsPlainMode(Params.BoostingOptions->BoostingType) && noCtrs) {
         foldPermutationBlockSize = learnData.GetSampleCount();
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params);
