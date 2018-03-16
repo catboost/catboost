@@ -7,7 +7,6 @@
 #include <library/threading/local_executor/local_executor.h>
 
 void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
-                                        const TPool& pool,
                                         const TVector<float>& target,
                                         const TVector<float>& weights,
                                         const TVector<TQueryInfo>& queriesInfo,
@@ -25,7 +24,7 @@ void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
             MetricPlots[metricId].resize(plotSize);
         }
         if (Metrics[metricId]->IsAdditiveMetric()) {
-            MetricPlots[metricId][plotLineIndex].Add(ComputeMetric(*Metrics[metricId], pool, target, weights, queriesInfo, cursor));
+            MetricPlots[metricId][plotLineIndex].Add(ComputeMetric(*Metrics[metricId], target, weights, queriesInfo, cursor));
         } else {
             CB_ENSURE(Metrics[metricId]->GetErrorType() == EErrorType::PerObjectError, "Error: we don't support non-additive pairwise metrics currenty");
         }
@@ -46,7 +45,6 @@ void TMetricsPlotCalcer::ProceedMetrics(const TVector<TVector<double>>& cursor,
 }
 
 TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
-                                                const TPool& pool,
                                                 const TVector<float>& target,
                                                 const TVector<float>& weights,
                                                 const TVector<TQueryInfo>& queriesInfo,
@@ -58,10 +56,8 @@ TMetricHolder TMetricsPlotCalcer::ComputeMetric(const IMetric& metric,
     const auto queryCount = static_cast<int>(queriesInfo.size());
     if (metric.GetErrorType() == EErrorType::PerObjectError) {
         return metric.Eval(approx, target, weights, queriesInfo, 0, docCount, Executor);
-    } else if (metric.GetErrorType() == EErrorType::PairwiseError) {
-        return metric.EvalPairwise(approx, pool.Pairs, 0, docCount);
     } else {
-        CB_ENSURE(metric.GetErrorType() == EErrorType::QuerywiseError);
+        CB_ENSURE(metric.GetErrorType() == EErrorType::QuerywiseError || metric.GetErrorType() == EErrorType::PairwiseError);
         return metric.Eval(approx, target, weights, queriesInfo, 0, queryCount, Executor);
     }
 }
@@ -146,7 +142,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& rawPool, boo
 
     for (ui32 nextBatchStart = First; nextBatchStart < Last; nextBatchStart += Step) {
         ui32 nextBatchEnd = Min<ui32>(Last, nextBatchStart + Step);
-        ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
+        ProceedMetrics(cursor, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
         modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
                                           (int)nextBatchStart,
                                           (int)nextBatchEnd,
@@ -155,7 +151,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(const TPool& rawPool, boo
         currentIter = nextBatchEnd;
         ++idx;
     }
-    ProceedMetrics(cursor, pool, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
+    ProceedMetrics(cursor, pool.Docs.Target, pool.Docs.Weight, queriesInfo, idx, currentIter);
     return *this;
 }
 

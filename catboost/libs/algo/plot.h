@@ -107,7 +107,6 @@ private:
     void ComputeNonAdditiveMetrics();
 
     void ProceedMetrics(const TVector<TVector<double>>& cursor,
-                        const TPool& pool,
                         const TVector<float>& target,
                         const TVector<float>& weights,
                         const TVector<TQueryInfo>& queriesInfo,
@@ -115,7 +114,6 @@ private:
                         ui32 modelIterationIndex);
 
     TMetricHolder ComputeMetric(const IMetric& metric,
-                               const TPool& pool,
                                const TVector<float>& target,
                                const TVector<float>& weights,
                                const TVector<TQueryInfo>& queriesInfo,

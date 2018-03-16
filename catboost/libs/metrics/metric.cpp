@@ -24,42 +24,11 @@ static inline TString AddBorderIfNotDefault(const TString& description, double b
     }
 }
 
-TMetricHolder TMetric::EvalPairwise(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<TPair>& /*pairs*/,
-    int /*begin*/,
-    int /*end*/
-) const {
-    CB_ENSURE(false, "This eval is only for Pairwise");
-}
-
 EErrorType TMetric::GetErrorType() const {
     return EErrorType::PerObjectError;
 }
 
 double TMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Error / (error.Weight + 1e-38);
-}
-
-/* TPairMetric */
-
-TMetricHolder TPairwiseMetric::Eval(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int /*begin*/,
-    int /*end*/,
-    NPar::TLocalExecutor& /*executor*/
-) const {
-    CB_ENSURE(false, "This eval is not implemented for Pairwise");
-}
-
-EErrorType TPairwiseMetric::GetErrorType() const {
-    return EErrorType::PairwiseError;
-}
-
-double TPairwiseMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Error / (error.Weight + 1e-38);
 }
 
@@ -444,33 +413,38 @@ void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*
 
 /* PairLogit */
 
-TMetricHolder TPairLogitMetric::EvalPairwise(
+TMetricHolder TPairLogitMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<TPair>& pairs,
-    int begin,
-    int end
+    const TVector<float>& /*target*/,
+    const TVector<float>& /*weight*/,
+    const TVector<TQueryInfo>& queriesInfo,
+    int queryStartIndex,
+    int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
 
-    TVector<double> approxExpShifted(end - begin);
-    for (int docId = begin; docId < end; ++docId) {
-        approxExpShifted[docId - begin] = exp(approx[0][docId]);
-    }
-
     TMetricHolder error;
-    for (const auto& pair : pairs) {
-        if (pair.WinnerId < begin || pair.WinnerId >= end ||
-            pair.LoserId < begin || pair.LoserId >= end) {
-            continue;
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int begin = queriesInfo[queryIndex].Begin;
+        int end = queriesInfo[queryIndex].End;
+
+        TVector<double> approxExpShifted(end - begin);
+        for (int docId = begin; docId < end; ++docId) {
+            approxExpShifted[docId - begin] = exp(approx[0][docId]);
         }
 
-        float w = pair.Weight;
-        double expWinner = approxExpShifted[pair.WinnerId - begin];
-        double expLoser = approxExpShifted[pair.LoserId - begin];
-        error.Error += -w * log(expWinner / (expWinner + expLoser));
-        error.Weight += w;
+        for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
+            for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
+                error.Error += -competitor.Weight * log(approxExpShifted[docId] / (approxExpShifted[docId] + approxExpShifted[competitor.Id]));
+                error.Weight += competitor.Weight;
+            }
+        }
     }
     return error;
+}
+
+EErrorType TPairLogitMetric::GetErrorType() const {
+    return EErrorType::PairwiseError;
 }
 
 TString TPairLogitMetric::GetDescription() const {
@@ -1178,29 +1152,33 @@ void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* PairAccuracy */
 
-TMetricHolder TPairAccuracyMetric::EvalPairwise(
+TMetricHolder TPairAccuracyMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<TPair>& pairs,
-    int begin,
-    int end
+    const TVector<float>& /*target*/,
+    const TVector<float>& /*weight*/,
+    const TVector<TQueryInfo>& queriesInfo,
+    int queryStartIndex,
+    int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
 
     TMetricHolder error;
-    for (const auto& pair : pairs) {
-        if (pair.WinnerId < begin || pair.WinnerId >= end ||
-            pair.LoserId < begin || pair.LoserId >= end) {
-            continue;
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int begin = queriesInfo[queryIndex].Begin;
+        for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
+            for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
+                if (approx[0][begin + docId] > approx[0][begin + competitor.Id]) {
+                    error.Error += competitor.Weight;
+                }
+                error.Weight += competitor.Weight;
+            }
         }
-
-        float w = pair.Weight;
-        if (approx[0][pair.WinnerId] > approx[0][pair.LoserId]) {
-            error.Error += w;
-        }
-        error.Weight += w;
     }
-
     return error;
+}
+
+EErrorType TPairAccuracyMetric::GetErrorType() const {
+    return EErrorType::PairwiseError;
 }
 
 TString TPairAccuracyMetric::GetDescription() const {
@@ -1228,15 +1206,6 @@ TMetricHolder TCustomMetric::Eval(
     NPar::TLocalExecutor& /* executor */
 ) const {
     return Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
-}
-
-TMetricHolder TCustomMetric::EvalPairwise(
-        const TVector<TVector<double>>& /*approx*/,
-        const TVector<TPair>& /*pairs*/,
-        int /*begin*/,
-        int /*end*/
-    ) const {
-    CB_ENSURE(false, "This eval is only for PairLogit");
 }
 
 TString TCustomMetric::GetDescription() const {
@@ -1632,7 +1601,6 @@ double EvalErrors(
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& queriesInfo,
-    const TVector<TPair>& pairs,
     const THolder<IMetric>& error,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -1642,13 +1610,8 @@ double EvalErrors(
         int begin = 0, end = target.ysize();
         Y_VERIFY(approx[0].ysize() == end - begin);
         metric = error->Eval(avrgApprox, target, weight, queriesInfo, begin, end, *localExecutor);
-    } else if (error->GetErrorType() == EErrorType::PairwiseError) {
-        auto avrgApprox = approx;
-        int begin = 0, end = target.ysize();
-        Y_VERIFY(approx[0].ysize() == end - begin);
-        metric = error->EvalPairwise(avrgApprox, pairs, begin, end);
     } else {
-        Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError);
+        Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
         auto avrgApprox = approx;
         int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
         metric = error->Eval(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);

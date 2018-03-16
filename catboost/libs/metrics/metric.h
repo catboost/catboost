@@ -71,12 +71,6 @@ struct IMetric {
         int end,
         NPar::TLocalExecutor& executor
     ) const = 0;
-    virtual TMetricHolder EvalPairwise(
-        const TVector<TVector<double>>& approx,
-        const TVector<TPair>& pairs,
-        int begin,
-        int end
-    ) const = 0;
     virtual TString GetDescription() const = 0;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
     virtual EErrorType GetErrorType() const = 0;
@@ -88,12 +82,6 @@ struct IMetric {
 };
 
 struct TMetric: public IMetric {
-    virtual TMetricHolder EvalPairwise(
-        const TVector<TVector<double>>& approx,
-        const TVector<TPair>& pairs,
-        int begin,
-        int end
-    ) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
 };
@@ -136,26 +124,6 @@ struct TAdditiveMetric: public TMetric {
 struct TNonAdditiveMetric: public TMetric {
     bool IsAdditiveMetric() const final {
         return false;
-    }
-};
-
-struct TPairwiseMetric : public IMetric {
-    virtual TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const override;
-    virtual EErrorType GetErrorType() const override;
-    virtual double GetFinalError(const TMetricHolder& error) const override;
-};
-
-struct TPairwiseAdditiveMetric : public TPairwiseMetric {
-    bool IsAdditiveMetric() const final {
-        return true;
     }
 };
 
@@ -294,13 +262,16 @@ struct TMultiClassOneVsAllMetric : public TAdditiveMetric<TMultiClassOneVsAllMet
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
-struct TPairLogitMetric : public TPairwiseAdditiveMetric {
-    virtual TMetricHolder EvalPairwise(
+struct TPairLogitMetric : public TAdditiveMetric<TPairLogitMetric> {
+    TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<TPair>& pairs,
-        int begin,
-        int end
-    ) const override;
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+    ) const;
+    virtual EErrorType GetErrorType() const override;
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
@@ -524,13 +495,16 @@ struct TMCCMetric : public TNonAdditiveMetric {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
-struct TPairAccuracyMetric : public TPairwiseAdditiveMetric {
-    virtual TMetricHolder EvalPairwise(
+struct TPairAccuracyMetric : public TAdditiveMetric<TPairAccuracyMetric> {
+    TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<TPair>& pairs,
-        int begin,
-        int end
-    ) const override;
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+    ) const;
+    virtual EErrorType GetErrorType() const override;
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
@@ -546,12 +520,6 @@ public:
         int begin,
         int end,
         NPar::TLocalExecutor& executor
-    ) const override;
-    virtual TMetricHolder EvalPairwise(
-        const TVector<TVector<double>>& approx,
-        const TVector<TPair>& pairs,
-        int begin,
-        int end
     ) const override;
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
@@ -654,7 +622,6 @@ double EvalErrors(
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& queriesInfo,
-    const TVector<TPair>& pairs,
     const THolder<IMetric>& error,
     NPar::TLocalExecutor* localExecutor
 );

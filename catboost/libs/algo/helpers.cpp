@@ -149,7 +149,6 @@ void CalcErrors(
                 data.Target,
                 data.Weights,
                 data.QueryInfo,
-                data.Pairs,
                 errors[i],
                 &ctx->LocalExecutor
             ));
@@ -164,7 +163,6 @@ void CalcErrors(
                 data.Target,
                 data.Weights,
                 data.QueryInfo,
-                data.Pairs,
                 errors[i],
                 &ctx->LocalExecutor
             ));
