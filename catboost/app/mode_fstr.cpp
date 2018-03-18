@@ -25,16 +25,8 @@ int mode_fstr(int argc, const char* argv[]) {
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
         });
-    parser.AddLongOption("train-path", "path to training pool (for Doc mode only). If provided, is used for calculating leaf document counts.")
-            .OptionalArgument("train-path")
-            .DefaultValue("")
-            .Handler1T<TString>([&params](const TString& trainPath) {
-                params.TrainPath = trainPath;
-            });
-
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
-    bool poolTrainIsProvided = !params.TrainPath.empty();
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
@@ -62,11 +54,10 @@ int mode_fstr(int argc, const char* argv[]) {
             CalcAndOutputInteraction(model, pool, nullptr, &params.OutputPath);
             break;
         case EFstrType::Doc:
-            TPool poolTrain;
-            if (poolTrainIsProvided)
-                ReadPool(params.CdFile, params.TrainPath, params.PairsFile, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &poolTrain);
-            CalcAndOutputDocFstr(model, pool, poolTrain, poolTrainIsProvided, params.OutputPath, params.ThreadCount);
+            CalcAndOutputDocFstr(model, pool, params.OutputPath, params.ThreadCount);
             break;
+        default:
+            Y_ASSERT(false);
     }
 
     return 0;

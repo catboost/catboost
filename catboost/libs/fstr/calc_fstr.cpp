@@ -62,7 +62,7 @@ static TVector<TMxTree> BuildTrees(const THashMap<TFeature, int, TFeatureHash>& 
     return trees;
 }
 
-TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model) {
+static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model) {
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
     TVector<TVector<ui64>> leavesStatistics(treeCount, TVector<ui64>{});
     for (size_t index = 0; index < treeCount; ++index) {
@@ -333,7 +333,7 @@ TVector<TVector<double>> GetFeatureImportances(const TFullModel& model, const TP
         case EFstrType::Interaction:
             return CalcInteraction(model, pool);
         case EFstrType::Doc:
-            return CalcFeatureImportancesForDocuments(model, pool, pool, true, threadCount);
+            return CalcFeatureImportancesForDocuments(model, pool, threadCount);
         default:
             Y_UNREACHABLE();
     }

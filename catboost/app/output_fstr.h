@@ -107,20 +107,13 @@ inline void CalcAndOutputInteraction(const TFullModel& model,
 }
 
 inline void CalcAndOutputDocFstr(const TFullModel& model,
-                                 const TPool& pool,
-                                 const TPool& poolTrain,
-                                 bool computeLeafDocumentCountFromPoolTrain,
-                                 const TString& docFstrPath,
-                                 int threadCount) {
+                              const TPool& pool,
+                              const TString& docFstrPath,
+                              int threadCount) {
     CB_ENSURE(pool.Docs.GetDocCount(), "Pool should not be empty");
     int featureCount = pool.Docs.GetFactorsCount();
-    if (computeLeafDocumentCountFromPoolTrain) {
-        CB_ENSURE(poolTrain.Docs.GetDocCount(), "If training pool is provided, it should not be empty");
-        int featureCountTrain = poolTrain.Docs.GetFactorsCount();
-        CB_ENSURE(featureCount == featureCountTrain, "If a training pool is provided, it should have the same number of features as the test pool");
-    }
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
-    TVector<TVector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, poolTrain, computeLeafDocumentCountFromPoolTrain, threadCount);
+    TVector<TVector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);
     OutputFeatureImportanceMatrix(effect, docFstrPath);
 }

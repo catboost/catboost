@@ -97,4 +97,3 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatu
 TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool& pool, int threadCount);
 TVector<TVector<double>> CalcInteraction(const TFullModel& model, const TPool& pool);
 TVector<TVector<double>> GetFeatureImportances(const TFullModel& model, const TPool& pool, const TString& type, int threadCount);
-TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model);
