@@ -24,6 +24,7 @@ def parse_args():
     parser.add_option('--log-path')
     parser.add_option('--gcov-report-path')
     parser.add_option('--source-root')
+    parser.add_option('--java-args', action='append', default=[])
     return parser.parse_args()
 
 
@@ -95,7 +96,7 @@ def main(opts, props_args):
             '-Dsonar.core.codeCoveragePlugin=jacoco',
             '-Dsonar.jacoco.reportPath=' + jacoco_report_path
         ]
-    java_args = ['-Djava.net.preferIPv6Addresses=true', '-Djava.net.preferIPv4Addresses=false']
+    java_args = ['-{}'.format(i) for i in opts.java_args] + ['-Djava.net.preferIPv6Addresses=true', '-Djava.net.preferIPv4Addresses=false']
 
     sonar_cmd = [
         opts.java_binary_path,
