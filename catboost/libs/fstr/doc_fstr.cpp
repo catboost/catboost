@@ -4,7 +4,6 @@
 
 #include <catboost/libs/model/split.h>
 #include <catboost/libs/algo/index_calcer.h>
-#include <iostream>
 
 using TTreeFunction = std::function<void(const TFullModel& model,
                                          const TVector<ui8>& binarizedFeatures,
@@ -49,7 +48,7 @@ TVector<TVector<TIndexType>> BuildIndicesWithoutFeature(const TFullModel& model,
                                                         const TVector<ui8>& binarizedFeatures,
                                                         const size_t ignoredFeatureIdx,
                                                         const TCommonContext& ctx) {
-    TVector<TIndexType> indicesSource = BuildIndicesForBinTree(model, binaaa```rizedFeatures, treeId);
+    TVector<TIndexType> indicesSource = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
     auto samplesCount = indicesSource.size();
     TVector<TVector<TIndexType>> indices(samplesCount, TVector<TIndexType>(1));
     for (int i = 0; i < indicesSource.ysize(); ++i) {

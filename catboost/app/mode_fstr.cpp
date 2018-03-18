@@ -10,7 +10,6 @@
 #include <library/getopt/small/last_getopt.h>
 
 #include <util/system/fs.h>
-#include <iostream>
 #include <util/string/iterator.h>
 
 int mode_fstr(int argc, const char* argv[]) {
