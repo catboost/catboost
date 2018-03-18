@@ -4,4 +4,6 @@
 
 TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                             const TPool& pool,
+                                                            const TPool& poolTrain,
+                                                            bool computeLeafDocumentCountFromPoolTrain,
                                                             const int threadCount);

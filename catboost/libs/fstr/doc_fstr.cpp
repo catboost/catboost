@@ -1,8 +1,10 @@
 #include "doc_fstr.h"
 #include "feature_str.h"
+#include "calc_fstr.h"
 
 #include <catboost/libs/model/split.h>
 #include <catboost/libs/algo/index_calcer.h>
+#include <iostream>
 
 using TTreeFunction = std::function<void(const TFullModel& model,
                                          const TVector<ui8>& binarizedFeatures,
@@ -47,7 +49,7 @@ TVector<TVector<TIndexType>> BuildIndicesWithoutFeature(const TFullModel& model,
                                                         const TVector<ui8>& binarizedFeatures,
                                                         const size_t ignoredFeatureIdx,
                                                         const TCommonContext& ctx) {
-    TVector<TIndexType> indicesSource = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
+    TVector<TIndexType> indicesSource = BuildIndicesForBinTree(model, binaaa```rizedFeatures, treeId);
     auto samplesCount = indicesSource.size();
     TVector<TVector<TIndexType>> indices(samplesCount, TVector<TIndexType>(1));
     for (int i = 0; i < indicesSource.ysize(); ++i) {
@@ -112,6 +114,8 @@ static TVector<TVector<double>> MapFunctionToTrees(
 static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                                    const TVector<ui8>& binarizedFeatures,
                                                                    const TVector<TVector<TVector<double>>>& approx,
+                                                                   const TVector<TVector<ui64>>& leafDocumentCounts,
+                                                                   bool computeLeafDocumentCountsFromPoolTrain,
                                                                    TCommonContext* ctx) {
     const int approxDimension = model.ObliviousTrees.ApproxDimension;
     const int docCount = approx[0][0].ysize();
@@ -123,6 +127,15 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                            const TCommonContext& ctx,
                                                            TVector<TVector<double>>* resultPtr) { // [docId][featureId]
         TVector<TVector<double>>& result = *resultPtr;
+
+        // Normalizing constant: max number of documents in leaves of this tree
+        double maxLeafDocumentCount = 0;
+        if (computeLeafDocumentCountsFromPoolTrain) {
+            for (ui64 currentLeafDocumentCount: leafDocumentCounts[treeIdx])
+                if (currentLeafDocumentCount > maxLeafDocumentCount)
+                    maxLeafDocumentCount = static_cast<double>(currentLeafDocumentCount);
+        }
+
         for (size_t featureId = 0; featureId < featureCount; ++featureId) {
             TVector<TVector<TIndexType>> indices = BuildIndicesWithoutFeature(model,
                                                                               treeIdx,
@@ -131,11 +144,20 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                                               ctx);
             for (int dim = 0; dim < approxDimension; ++dim) {
                 for (int doc = 0; doc < docCount; ++doc) {
-                    double leafValue = 0;
+                    double leafValue = 0, leafWeight = 0;
                     for (int leafIdx = 0; leafIdx < indices[doc].ysize(); ++leafIdx) {
-                        leafValue += model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
+                        double currentWeight;
+                        if (computeLeafDocumentCountsFromPoolTrain)
+                            currentWeight = static_cast<double>(leafDocumentCounts[treeIdx][leafIdx]) / maxLeafDocumentCount;
+                        else
+                            currentWeight = 1;
+                        leafValue += currentWeight * model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
+                        leafWeight += currentWeight;
                     }
-                    leafValue /= static_cast<double>(indices[doc].ysize());
+                    if (leafWeight > 0)
+                        leafValue /= leafWeight;
+                    else
+                        leafValue = 0; // todo may be incorrect when baseline is provided
                     result[featureId][doc] += approx[treeIdx][dim][doc] - leafValue;
                 }
             }
@@ -163,6 +185,8 @@ static void CalcApproxForTree(const TFullModel& model, const TVector<ui8>& binar
 
 TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                             const TPool& pool,
+                                                            const TPool& poolTrain,
+                                                            bool computeLeafDocumentCountsFromPoolTrain,
                                                             const int threadCount) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     CB_ENSURE(model.GetTreeCount() != 0, "Model is empty. Did you fit the model?");
@@ -182,7 +206,13 @@ TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         CalcApproxForTree(model, binarizedFeatures, treeIdx, &approx[treeIdx]);
     }
-    TVector<TVector<double>> result = CalcFeatureImportancesForDocuments(model, binarizedFeatures, approx, &ctx);
+
+    // Calculate weights of leaf values, if requested
+    TVector<TVector<ui64>> leafDocumentCounts;
+    if (computeLeafDocumentCountsFromPoolTrain){
+        leafDocumentCounts = CollectLeavesStatistics(poolTrain, model);
+    }
+    TVector<TVector<double>> result = CalcFeatureImportancesForDocuments(model, binarizedFeatures, approx, leafDocumentCounts, computeLeafDocumentCountsFromPoolTrain, &ctx);
 
     return result;
 }

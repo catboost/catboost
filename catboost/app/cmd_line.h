@@ -11,6 +11,7 @@ struct TAnalyticalModeCommonParams {
     TString ModelFileName;
     TString OutputPath;
     TString InputPath;
+    TString TrainPath;
     TString CdFile;
     TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
     TVector<TString> OutputColumnsIds = {"DocId", "RawFormulaVal"};
