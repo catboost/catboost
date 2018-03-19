@@ -94,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_custom.cpp"/>
@@ -138,6 +139,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
