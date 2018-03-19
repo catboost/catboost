@@ -1,3 +1,7 @@
+LICENSE(
+    MIT
+)
+
 RECURSE(
     common
     dec
