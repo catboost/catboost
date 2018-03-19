@@ -9,6 +9,12 @@ def _get_ya_config():
         import pytest
         return pytest.config
     except (ImportError, AttributeError):
+        try:
+            import library.python.testing.recipe
+            if library.python.testing.recipe.ya:
+                return library.python.testing.recipe
+        except (ImportError, AttributeError):
+            pass
         raise NotImplementedError("yatest.common.* is only available from the testing runtime")
 
 
