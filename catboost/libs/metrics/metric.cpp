@@ -1,5 +1,6 @@
 #include "metric.h"
 #include "auc.h"
+#include "doc_comparator.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/loss_description.h>
@@ -1328,9 +1329,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
             }
             std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize, approxWithDoc.end(),
                     [&](std::pair<double, int> left, std::pair<double, int> right) -> bool {
-                        return left.first != right.first
-                            ? left.first > right.first
-                            : target[left.second] < target[right.second];
+                        return CompareDocs(left.first, target[left.second], right.first, target[right.second]);
                     });
             for (int i = 0; i < TopSize; ++i) {
                 targetSum += target[approxWithDoc[i].second];

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "metric_holder.h"
+#include "doc_comparator.h"
+
 #include <util/system/types.h>
 #include <util/generic/utility.h>
 #include <util/generic/algorithm.h>
@@ -21,7 +23,7 @@ public:
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
         Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
-            return approxes[left] != approxes[right] ? approxes[left] > approxes[right] : relevs[left] < relevs[right];
+            return CompareDocs(approxes[left], relevs[left], approxes[right], relevs[right]);
         });
 
         double pLook = 1, pFound = 0;
