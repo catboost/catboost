@@ -1326,8 +1326,12 @@ TMetricHolder TQueryAverage::EvalSingleThread(
                 approxWithDoc[i].first = approx[0][docId];
                 approxWithDoc[i].second = docId;;
             }
-            std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize,
-                             approxWithDoc.end(), std::greater<>());
+            std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize, approxWithDoc.end(),
+                    [&](std::pair<double, int> left, std::pair<double, int> right) -> bool {
+                        return left.first != right.first
+                            ? left.first > right.first
+                            : target[left.second] < target[right.second];
+                    });
             for (int i = 0; i < TopSize; ++i) {
                 targetSum += target[approxWithDoc[i].second];
             }

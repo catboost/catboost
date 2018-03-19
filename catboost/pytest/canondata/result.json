@@ -1629,21 +1629,21 @@
     ],
     "test.test_queryaverage[Ordered]": [
         {
-            "checksum": "cd75778cb3d37e1ed662d44f7ba6f9c3",
+            "checksum": "72bd33fc862586a7adb5051c7a28e764",
             "uri": "file://test.test_queryaverage_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "df057bc8a5beb40eeb6675c6d0f51e08",
+            "checksum": "2b52cd066b2b0cfd8f6f71968e00a2db",
             "uri": "file://test.test_queryaverage_Ordered_/test_error.tsv"
         }
     ],
     "test.test_queryaverage[Plain]": [
         {
-            "checksum": "15fa73d2c8a80f52a29352a058d00c12",
+            "checksum": "9c179ac33e917bf375ab13b063643207",
             "uri": "file://test.test_queryaverage_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "fc1e7fb2ed97c93ab020857cd845f8cc",
+            "checksum": "2724c1217c3f1f19e4b5007263d661d1",
             "uri": "file://test.test_queryaverage_Plain_/test_error.tsv"
         }
     ],
