@@ -579,6 +579,7 @@ def onjava_test(unit, *args):
         'TAG': serialize_list(get_values_list(unit, 'TEST_TAGS_VALUE')),
         'SIZE': unit.get('TEST_SIZE_NAME') or '',
         'REQUIREMENTS': serialize_list(get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
+        'TEST-RECIPES': base64.b64encode(unit.get('RECIPE_COMMAND_VALUE') or ''),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
