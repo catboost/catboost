@@ -109,6 +109,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\ders_holder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\doc_comparator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\pfound.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\sample.h"/>
