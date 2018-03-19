@@ -5,11 +5,14 @@
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
 
+#include <library/binsaver/bin_saver.h>
+
 struct TSum {
     TVector<double> SumDerHistory;
     TVector<double> SumDer2History;
     double SumWeights;
 
+    TSum() = default;
     TSum(int iterationCount)
         : SumDerHistory(iterationCount)
         , SumDer2History(iterationCount)
@@ -39,6 +42,7 @@ struct TSum {
         SumDerHistory[gradientIteration] += delta;
         SumDer2History[gradientIteration] += der2;
     }
+    SAVELOAD(SumDerHistory, SumDer2History, SumWeights);
 };
 
 struct TSumMulti {

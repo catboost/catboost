@@ -207,6 +207,9 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "gpu_ram_part", &systemOptions, &seenKeys);
         CopyOptionWithNewKey(plainOptions, "pinned_memory_size",
                              "pinned_memory_bytes", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "node_type", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "node_port", &systemOptions, &seenKeys);
+        CopyOption(plainOptions, "file_with_hosts", &systemOptions, &seenKeys);
 
 
         //rest

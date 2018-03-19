@@ -57,6 +57,7 @@ struct TBucketStats {
         SumWeight -= other.SumWeight;
         Count -= other.Count;
     }
+    SAVELOAD(SumWeightedDelta, SumWeight, SumDelta, Count);
 };
 
 static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");

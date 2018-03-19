@@ -509,8 +509,9 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgro
         if y is None:
             raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
-                 subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
+                            subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
+
 
 class CatBoost(_CatBoostBase):
     """
@@ -667,7 +668,6 @@ class CatBoost(_CatBoostBase):
             path = os.path.join(train_dir, filename)
             if os.path.exists(path):
                 os.remove(path)
-
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description):
         params = self._get_init_train_params()

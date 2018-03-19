@@ -78,7 +78,7 @@ void SetPermutedIndices(const TSplit& split,
                         int curDepth,
                         const TFold& fold,
                         TVector<TIndexType>* indices,
-                        TLearnContext* ctx) {
+                        NPar::TLocalExecutor* localExecutor) {
     CB_ENSURE(curDepth > 0);
 
     const int blockSize = 1000;
@@ -88,37 +88,41 @@ void SetPermutedIndices(const TSplit& split,
     const int splitWeight = 1 << (curDepth - 1);
     TIndexType* indicesData = indices->data();
     if (split.Type == ESplitType::FloatFeature) {
-        ctx->LocalExecutor.ExecRange([&](int blockIdx) {
+        localExecutor->ExecRange([&](int blockIdx) {
             OfflineCtrBlock<ui8, IsTrueHistogram>(blockParams, blockIdx, fold, GetFloatHistogram(split, features).data(),
                                                   GetFeatureSplitIdx(split), splitWeight, indicesData);
         }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else if (split.Type == ESplitType::OnlineCtr) {
         auto& ctr = fold.GetCtr(split.Ctr.Projection);
-        ctx->LocalExecutor.ExecRange([&] (int i) {
+        localExecutor->ExecRange([&] (int i) {
             indicesData[i] += GetCtrSplit(split, i, ctr) * splitWeight;
         }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        ctx->LocalExecutor.ExecRange([&] (int blockIdx) {
+        localExecutor->ExecRange([&] (int blockIdx) {
             OfflineCtrBlock<int, IsTrueOneHotFeature>(blockParams, blockIdx, fold, GetRemappedCatFeatures(split, features).data(),
                                                       split.BinBorder, splitWeight, indicesData);
         }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
-int GetRedundantSplitIdx(int curDepth, const TVector<TIndexType>& indices) {
-    TVector<bool> isEmpty(1 << curDepth, true);
+TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices) {
+    TVector<bool> isLeafEmpty(1 << curDepth, true);
     for (const auto& idx : indices) {
-        isEmpty[idx] = false;
+        isLeafEmpty[idx] = false;
     }
+    return isLeafEmpty;
+}
 
-    for (int splitIdx = 0; splitIdx < curDepth; ++splitIdx) {
+int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty) {
+    const int leafCount = isLeafEmpty.ysize();
+    for (int splitIdx = 0; (1 << splitIdx) < leafCount; ++splitIdx) {
         bool isRedundantSplit = true;
-        for (int idx = 0; idx < (1 << curDepth); ++idx) {
+        for (int idx = 0; idx < leafCount; ++idx) {
             if (idx & (1 << splitIdx)) {
                 continue;
             }
-            if (!isEmpty[idx] && !isEmpty[idx ^ (1 << splitIdx)]) {
+            if (!isLeafEmpty[idx] && !isLeafEmpty[idx ^ (1 << splitIdx)]) {
                 isRedundantSplit = false;
                 break;
             }
@@ -129,22 +133,6 @@ int GetRedundantSplitIdx(int curDepth, const TVector<TIndexType>& indices) {
     }
 
     return -1;
-}
-
-void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TIndexType>* indices) {
-    if (redundantIdx != curDepth - 1) {
-        for (auto& idx : *indices) {
-            bool isTrueBack = (idx >> (curDepth - 1)) & 1;
-            bool isTrueRedundant = (idx >> redundantIdx) & 1;
-            idx ^= isTrueRedundant << redundantIdx;
-            idx ^= isTrueBack << redundantIdx;
-        }
-    }
-
-    tree->Splits.erase(tree->Splits.begin() + redundantIdx);
-    for (auto& idx : *indices) {
-        idx &= (1 << (curDepth - 1)) - 1;
-    }
 }
 
 TVector<TIndexType> BuildIndices(const TFold& fold,

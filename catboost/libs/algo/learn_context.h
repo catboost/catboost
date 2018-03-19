@@ -16,6 +16,8 @@
 #include <library/json/json_reader.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <library/par/par.h>
+
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
 
@@ -112,11 +114,14 @@ public:
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
+        , RootEnvironment(nullptr)
+        , SharedTrainData(nullptr)
         , Profile((int)Params.BoostingOptions->IterationCount) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: except learn on CPU task type, got " << taskType);
     }
+    ~TLearnContext();
 
     void OutputMeta();
     void InitContext(const TDataset& learnData, const TDataset* testData);
@@ -132,6 +137,8 @@ public:
     TCalcScoreFold SmallestSplitSideDocs;
     TCalcScoreFold SampledDocs;
     TBucketStatsCache PrevTreeLevelStats;
+    TObj<NPar::IRootEnvironment> RootEnvironment;
+    TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
 };
 

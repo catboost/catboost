@@ -2,8 +2,11 @@
 
 #include "projection.h"
 
+#include <library/binsaver/bin_saver.h>
+
 struct TCtr {
     Y_SAVELOAD_DEFINE(Projection, CtrIdx, TargetBorderIdx, PriorIdx, BorderCount);
+    SAVELOAD(Projection, CtrIdx, TargetBorderIdx, PriorIdx, BorderCount);
 
     TProjection Projection;
     ui8 CtrIdx = 0;
@@ -46,9 +49,10 @@ struct THash<TCtr> {
 struct TSplitCandidate {
     TCtr Ctr;
     int FeatureIdx = -1;
-    ESplitType Type;
+    ESplitType Type = ESplitType::FloatFeature;
 
     Y_SAVELOAD_DEFINE(Ctr, FeatureIdx, Type);
+    SAVELOAD(Ctr, FeatureIdx, Type);
 
     static const size_t FloatFeatureBaseHash;
     static const size_t CtrBaseHash;
@@ -103,6 +107,8 @@ struct TSplit : public TSplitCandidate {
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;
     }
+    using TBase = TSplitCandidate;
+    SAVELOAD_BASE(BinBorder);
 };
 
 struct TSplitTree {
@@ -110,6 +116,10 @@ struct TSplitTree {
 
     void AddSplit(const TSplit& split) {
         Splits.push_back(split);
+    }
+
+    void DeleteSplit(int splitIdx) {
+        Splits.erase(Splits.begin() + splitIdx);
     }
 
     inline int GetLeafCount() const {
@@ -150,4 +160,5 @@ struct TSplitTree {
     }
 
     Y_SAVELOAD_DEFINE(Splits)
+    SAVELOAD(Splits);
 };

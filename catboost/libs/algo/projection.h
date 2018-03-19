@@ -46,6 +46,7 @@ struct TBinFeature {
     }
 
     Y_SAVELOAD_DEFINE(FloatFeature, SplitIdx);
+    SAVELOAD(FloatFeature, SplitIdx);
 };
 
 template <>
@@ -61,6 +62,7 @@ struct TProjection {
     TVector<TOneHotSplit> OneHotFeatures;
 
     Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
+    SAVELOAD(CatFeatures, BinFeatures, OneHotFeatures);
 
     void Add(const TProjection& proj) {
         CatFeatures.insert(CatFeatures.end(), proj.CatFeatures.begin(), proj.CatFeatures.end());

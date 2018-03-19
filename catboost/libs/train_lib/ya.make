@@ -11,6 +11,7 @@ SRCS(
 PEERDIR(
     catboost/libs/data
     catboost/libs/algo
+    catboost/libs/distributed
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/loggers

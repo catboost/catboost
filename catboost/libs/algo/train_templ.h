@@ -4,7 +4,10 @@
 #include "fold.h"
 #include "greedy_tensor_search.h"
 #include "online_ctr.h"
+#include "tensor_search_helpers.h"
 
+#include <catboost/libs/distributed/worker.h>
+#include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/logging/profile_info.h>
 
@@ -32,62 +35,6 @@ void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCoun
         value -= avrg;
     }
 }
-
-template <typename TError>
-TError BuildError(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
-    return TError(IsStoreExpApprox(params));
-}
-
-template <typename TError>
-void CalcWeightedDerivatives(const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    const TError& error,
-    int tailFinish,
-    int tailQueryFinish,
-    TLearnContext* ctx,
-    TVector<TVector<double>>* derivatives
-) {
-    if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
-        TVector<TDer1Der2> ders((*derivatives)[0].ysize());
-        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
-        for (int docId = 0; docId < ders.ysize(); ++docId) {
-            (*derivatives)[0][docId] = ders[docId].Der1;
-        }
-    } else {
-        int approxDimension = approx.ysize();
-        NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
-        blockParams.SetBlockSize(1000);
-
-        Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
-        if (approxDimension == 1) {
-            ctx->LocalExecutor.ExecRange([&](int blockId) {
-                const int blockOffset = blockId * blockParams.GetBlockSize();
-                error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                    approx[0].data(),
-                    nullptr, // no approx deltas
-                    target.data(),
-                    weight.data(),
-                    (*derivatives)[0].data());
-            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-        } else {
-            ctx->LocalExecutor.ExecRange([&](int blockId) {
-                TVector<double> curApprox(approxDimension);
-                TVector<double> curDelta(approxDimension);
-                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
-                    for (int dim = 0; dim < approxDimension; ++dim) {
-                        curApprox[dim] = approx[dim][z];
-                    }
-                    error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
-                    for (int dim = 0; dim < approxDimension; ++dim) {
-                        (*derivatives)[dim][z] = curDelta[dim];
-                    }
-                })(blockId);
-            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-        }
-    }
-}
 }
 
 template <typename TError>
@@ -111,26 +58,7 @@ void UpdateLearningFold(
         &approxDelta
     );
 
-    const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
-    const double learningRate = ctx->Params.BoostingOptions->LearningRate;
-
-    for (int bodyTailId = 0; bodyTailId < fold->BodyTailArr.ysize(); ++bodyTailId) {
-        TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            double* approxDeltaData = approxDelta[bodyTailId][dim].data();
-            double* approxData = bt.Approx[dim].data();
-            ctx->LocalExecutor.ExecRange(
-                [=](int z) {
-                    approxData[z] = UpdateApprox<TError::StoreExpApprox>(
-                        approxData[z],
-                        ApplyLearningRate<TError::StoreExpApprox>(approxDeltaData[z], learningRate)
-                    );
-                },
-                NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(1000),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
-        }
-    }
+    UpdateBodyTailApprox<TError::StoreExpApprox>(approxDelta, ctx->Params.BoostingOptions->LearningRate, &ctx->LocalExecutor, fold);
 }
 
 template <typename TError>
@@ -227,20 +155,14 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
     TSplitTree bestSplitTree;
     {
         TFold* takenFold = &ctx->LearnProgress.Folds[ctx->Rand.GenRand() % foldCount];
-        ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
-            TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailId];
-            CalcWeightedDerivatives<TError>(
-                bt.Approx,
-                takenFold->LearnTarget,
-                takenFold->LearnWeights,
-                takenFold->LearnQueriesInfo,
-                error,
-                bt.TailFinish,
-                bt.TailQueryFinish,
-                ctx,
-                &bt.WeightedDerivatives
-            );
-        }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        if (ctx->Params.SystemOptions->IsSingleHost()) {
+            ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
+                CalcWeightedDerivatives(error, bodyTailId, takenFold, &ctx->LocalExecutor);
+            }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            Y_ASSERT(takenFold->BodyTailArr.ysize() == 1);
+            MapSetDerivatives<TError>(ctx);
+        }
         profile.AddOperation("Calc derivatives");
 
         GreedyTensorSearch(
@@ -305,9 +227,13 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation
 
-        ctx->LocalExecutor.ExecRange([&](int foldId) {
-            UpdateLearningFold(learnData, testData, error, bestSplitTree, trainFolds[foldId], ctx);
-        }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+        if (ctx->Params.SystemOptions->IsSingleHost()) {
+            ctx->LocalExecutor.ExecRange([&](int foldId) {
+                UpdateLearningFold(learnData, testData, error, bestSplitTree, trainFolds[foldId], ctx);
+            }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            MapSetApproxes<TError>(bestSplitTree, ctx);
+        }
 
         profile.AddOperation("CalcApprox tree struct and update tree structure approx");
         CheckInterrupted(); // check after long-lasting operation

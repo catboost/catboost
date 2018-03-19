@@ -1,0 +1,5 @@
+RECURSE(
+    common
+    dec
+    enc
+)

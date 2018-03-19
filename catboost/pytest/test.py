@@ -4,6 +4,7 @@ import os
 import filecmp
 import csv
 import numpy as np
+import time
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 
@@ -2453,6 +2454,40 @@ def test_without_cat_features(boosting_type):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_dist_train():
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('higgs', 'train_small'),
+        '-t', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--random-strength', '0',
+        '--has-time',
+        '--bootstrap-type', 'No',
+        '--boosting-type', 'Plain',
+    )
+
+    eval_0_path = yatest.common.test_output_path('test_0.eval')
+    yatest.common.execute(cmd + ('--eval-file', eval_0_path,))
+
+    worker_0 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', '8090', ), wait=False)
+    worker_1 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', '8091', ), wait=False)
+    while worker_0.std_out == '' or worker_1.std_out == '':
+        time.sleep(1)
+
+    eval_1_path = yatest.common.test_output_path('test_1.eval')
+    yatest.common.execute(
+        cmd + ('--node-type', 'Master', '--file-with-hosts', data_file('higgs', 'hosts.txt'), '--eval-file', eval_1_path,)
+    )
+    assert(filecmp.cmp(eval_0_path, eval_1_path))
+
+    return [local_canonical_file(eval_0_path)]
 
 
 def test_no_target():

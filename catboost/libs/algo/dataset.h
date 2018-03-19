@@ -5,6 +5,8 @@
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 
+#include <library/binsaver/bin_saver.h>
+
 class TDataset {
 public:
     TAllFeatures AllFeatures;
@@ -23,4 +25,5 @@ public:
     ssize_t GetQueryCount() const {
         return QueryInfo.ysize();
     }
+    SAVELOAD(AllFeatures, Baseline, Target, Weights, QueryId, SubgroupId, QueryInfo, Pairs);
 };

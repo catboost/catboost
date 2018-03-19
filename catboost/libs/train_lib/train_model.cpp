@@ -6,6 +6,8 @@
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/distributed/master.h>
+#include <catboost/libs/distributed/worker.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
@@ -437,7 +439,15 @@ class TCPUModelTrainer : public IModelTrainer {
         evalResult->GetRawValuesRef().at(0).resize(ctx.LearnProgress.ApproxDimension);
         DumpMemUsage("Before start train");
 
-        Train(learnData, testData, &ctx, &(evalResult->GetRawValuesRef()).at(0));
+        const auto& systemOptions = ctx.Params.SystemOptions;
+        if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
+            InitializeMaster(&ctx);
+            CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
+            CB_ENSURE(learnPool.CatFeatures.empty(), "Distributed training requires all numeric data");
+            CB_ENSURE(ctx.LearnProgress.ApproxDimension == 1, "Distributed training requires 1D approxes");
+            MapBuildPlainFold(learnData, &ctx);
+        }
+        Train(learnData, testData, &ctx, &(evalResult->GetRawValuesRef().at(0)));
 
         TObliviousTrees obliviousTrees;
         THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
@@ -522,6 +532,22 @@ class TCPUModelTrainer : public IModelTrainer {
 
         int threadCount = GetThreadCount(catBoostOptions);
 
+        if (catBoostOptions.SystemOptions->IsWorker()) {
+            TLearnContext ctx(
+                trainJson,
+                /*objectiveDescriptor*/ Nothing(),
+                /*evalMetricDescriptor*/ Nothing(),
+                outputOptions,
+                /*featureCount*/ 0,
+                /*sortedCatFeatures*/ {},
+                /*featuresId*/ {}
+            );
+            SetWorkerParams(ctx.Params);
+            SetWorkerCustomObjective(ctx.ObjectiveDescriptor);
+            RunWorker(threadCount, catBoostOptions.SystemOptions->NodePort);
+            return;
+        }
+
         TProfileInfo profile;
         TPool learnPool, testPool;
         LoadPools(loadOptions, threadCount, catBoostOptions.DataProcessingOptions->ClassNames, &profile, &learnPool, &testPool);
@@ -591,6 +617,25 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
     outputFilesOptionsJson["result_model_file"] = outputModelPath;
     outputOptions.Load(outputFilesOptionsJson);
+
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(trainOptions);
+
+    if (taskType == ETaskType::CPU && catBoostOptions.SystemOptions->IsWorker()) {
+        TLearnContext ctx(
+            trainOptions,
+            objectiveDescriptor,
+            evalMetricDescriptor,
+            outputOptions,
+            /*featureCount*/ 0,
+            /*sortedCatFeatures*/ {},
+            /*featuresId*/ {}
+        );
+        SetWorkerParams(ctx.Params);
+        SetWorkerCustomObjective(ctx.ObjectiveDescriptor);
+        RunWorker(catBoostOptions.SystemOptions->NumThreads, catBoostOptions.SystemOptions->NodePort);
+        return;
+    }
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {

@@ -649,6 +649,12 @@
             "uri": "file://test.test_deep_tree_classification_Plain-8_/test.eval"
         }
     ],
+    "test.test_dist_train": [
+        {
+            "checksum": "d54d893ccf2f4cf1807d6884d09c427f",
+            "uri": "file://test.test_dist_train/test_0.eval"
+        }
+    ],
     "test.test_doc_id[Ordered-Logloss]": [
         {
             "checksum": "a4cdad0fcb84d63f5a845b32523515a9",

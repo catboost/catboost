@@ -3,6 +3,8 @@
 #include <util/generic/vector.h>
 #include <util/ysaveload.h>
 
+#include <library/binsaver/bin_saver.h>
+
 class TTargetClassifier {
 public:
     int GetTargetClass(double target) const {
@@ -27,6 +29,7 @@ public:
         return Borders == other.Borders;
     }
     Y_SAVELOAD_DEFINE(Borders);
+    SAVELOAD(Borders);
 
 private:
     TVector<float> Borders;

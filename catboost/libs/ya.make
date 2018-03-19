@@ -16,4 +16,5 @@ RECURSE(
     data/ut
     options
     options/ut
+    distributed
 )

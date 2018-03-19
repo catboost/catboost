@@ -31,12 +31,6 @@ class TDataset;
 
 void ComputeOnlineCTRs(const TDataset& learnData,
                        const TDataset* testData,
-                       const TProjection& proj,
-                       TLearnContext* ctx,
-                       TFold* fold);
-
-void ComputeOnlineCTRs(const TDataset& learnData,
-                       const TDataset* testData,
                        const TFold& fold,
                        const TProjection& proj,
                        TLearnContext* ctx,

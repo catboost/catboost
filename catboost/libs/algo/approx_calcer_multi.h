@@ -108,15 +108,18 @@ void CalcApproxDeltaIterationMulti(
 template <typename TError>
 void CalcApproxDeltaMulti(
     const TFold& ff,
-    const TSplitTree& tree,
+    int leafCount,
     const TError& error,
+    const TVector<TIndexType>& indices,
     TLearnContext* ctx,
-    TVector<TVector<TVector<double>>>* approxDelta,
-    TVector<TIndexType>* ind
+    TVector<TVector<TVector<double>>>* approxDelta
 ) {
-    auto& indices = *ind;
     approxDelta->resize(ff.BodyTailArr.ysize());
     const int approxDimension = ff.GetApproxDimension();
+    const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
+    const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
+    const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
+    const float l2Regularizer = treeLearnerOptions.L2Reg;
     ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
         const TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
 
@@ -130,12 +133,7 @@ void CalcApproxDeltaMulti(
             }
         }
 
-        const int leafCount = tree.GetLeafCount();
         TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
-        const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
-        const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
-        const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
-        const float l2Regularizer = treeLearnerOptions.L2Reg;
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
@@ -192,22 +190,16 @@ void CalcLeafValuesIterationMulti(
 
 template <typename TError>
 void CalcLeafValuesMulti(
-    const TDataset& learnData,
-    const TDataset* testData,
-    const TSplitTree& tree,
+    int learnSampleCount,
+    int leafCount,
     const TError& error,
     const TFold& ff,
+    const TVector<TIndexType>& indices,
     TLearnContext* ctx,
-    TVector<TVector<double>>* leafValues,
-    TVector<TIndexType>* ind
+    TVector<TVector<double>>* leafValues
 ) {
-    auto& indices = *ind;
-    indices = BuildIndices(ff, tree, learnData, testData, &ctx->LocalExecutor);
-
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
     const int approxDimension = ff.GetApproxDimension();
-    const int leafCount = tree.GetLeafCount();
-    const int learnSampleCount = learnData.GetSampleCount();
 
     TVector<TVector<double>> approx(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {

@@ -1,0 +1,10 @@
+RECURSE(
+    io
+    io/fuzz
+    io/ut
+    io/list_codings
+    misc
+    misc/ut
+    push_parser
+    push_parser/ut
+)

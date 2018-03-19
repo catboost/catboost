@@ -3,6 +3,8 @@
 #include <util/random/normal.h>
 #include <util/random/fast.h>
 
+#include <library/binsaver/bin_saver.h>
+
 const double MINIMAL_SCORE = -1e38;
 
 struct TRandomScore {
@@ -22,4 +24,5 @@ struct TRandomScore {
     double GetInstance(TRng& rand) const {
         return Val + NormalDistribution<double>(rand, 0, StDev);
     }
+    SAVELOAD(Val, StDev);
 };

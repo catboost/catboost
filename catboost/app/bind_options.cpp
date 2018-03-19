@@ -635,6 +635,30 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["devices"] = devices;
         });
 
+    parser
+        .AddLongOption("node-type")
+        .RequiredArgument("String")
+        .Help("One of Master, Worker, SingleHost; default is SingleHost")
+        .Handler1T<TString>([plainJsonPtr](const TString& nodeType) {
+            (*plainJsonPtr)["node_type"] = nodeType;
+        });
+
+    parser
+        .AddLongOption("node-port")
+        .RequiredArgument("int")
+        .Help("TCP port for this worker; default is 0")
+        .Handler1T<int>([plainJsonPtr](int nodePort) {
+            (*plainJsonPtr)["node_port"] = nodePort;
+        });
+
+    parser
+        .AddLongOption("file-with-hosts")
+        .RequiredArgument("String")
+        .Help("File listing <worker's IP address>:<worker's TCP port> for all workers employed by this master; default is hosts.txt")
+        .Handler1T<TString>([plainJsonPtr](const TString& nodeFile) {
+            (*plainJsonPtr)["file_with_hosts"] = nodeFile;
+        });
+
     parser.AddLongOption('r', "seed")
         .AddLongName("random-seed")
         .RequiredArgument("count")

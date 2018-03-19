@@ -421,24 +421,6 @@ void ComputeOnlineCTRs(const TDataset& learnData,
     }
 }
 
-void ComputeOnlineCTRs(const TDataset& learnData,
-                       const TDataset* testData,
-                       const TProjection& proj,
-                       TLearnContext* ctx,
-                       TFold* fold) {
-    TOnlineCTRHash& ctrs = fold->GetCtrs(proj);
-    if (ctrs.has(proj)) {
-        return;
-    }
-
-    ComputeOnlineCTRs(learnData,
-                      testData,
-                      *fold,
-                      proj,
-                      ctx,
-                      &ctrs[proj]);
-}
-
 void CalcFinalCtrsImpl(
     const ECtrType ctrType,
     const ui64 ctrLeafCountLimit,

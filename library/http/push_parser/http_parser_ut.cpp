@@ -1,0 +1,224 @@
+#include "http_parser.h"
+
+#include <library/unittest/registar.h>
+
+#include <util/stream/str.h>
+
+namespace {
+    template <size_t N>
+    bool Parse(THttpParser& p, const char (&data)[N]) {
+        return p.Parse(data, N - 1);
+    }
+
+    TString MakeEncodedRequest(const TString& encoding, const TString& data) {
+        TStringStream msg;
+        msg << "POST / HTTP/1.1\r\n"
+               "Content-Encoding: "
+            << encoding << " \r\n"
+                           "Content-Length: "
+            << +data << "\r\n\r\n"
+            << data;
+        return msg.Str();
+    }
+}
+
+SIMPLE_UNIT_TEST_SUITE(THttpParser) {
+    SIMPLE_UNIT_TEST(TParsingToEof) {
+        {
+            THttpParser p(THttpParser::Request);
+            UNIT_ASSERT(!Parse(p, "GET "));
+            UNIT_ASSERT(!Parse(p, "/test/test?text=123 HTTP/1.0\r"));
+            UNIT_ASSERT(!Parse(p, "\nHost: yabs.yandex.ru"));
+            UNIT_ASSERT(!Parse(p, "\r\nAccept-eNcoding: *\r\n"));
+            UNIT_ASSERT(!Parse(p, "Accept-eNcoding:\r\n"));
+            UNIT_ASSERT(!Parse(p, "Accept-eNcoding: , ,\r\n"));
+            UNIT_ASSERT(Parse(p, "\r\n"));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), false);
+            UNIT_ASSERT_VALUES_EQUAL(p.GetBestCompressionScheme(), "gzip");
+            ui64 cl;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+        }
+        {
+            THttpParser p(THttpParser::Request);
+            UNIT_ASSERT(!Parse(p, "GET"));
+            UNIT_ASSERT(!Parse(p, " /test/test?text=123 HTTP/1.1\r"));
+            UNIT_ASSERT(!Parse(p, "\nHost: yabs.yandex.ru"));
+            UNIT_ASSERT(!Parse(p, "\r\nAccept-eNcoding: yyy123\r\n"));
+            UNIT_ASSERT(!Parse(p, "Accept-eNcoding: aaa\r\n"));
+            UNIT_ASSERT(!Parse(p, "Accept-eNcoding: y-LZQ, y-Lzo , bbb\r\n"));
+            UNIT_ASSERT(!Parse(p, "accept-encoding:ccc\r\n"));
+            UNIT_ASSERT(Parse(p, "\r\n"));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
+            UNIT_ASSERT_VALUES_EQUAL(p.GetBestCompressionScheme(), "y-lzo");
+            ui64 cl;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+        }
+        {
+            THttpParser p(THttpParser::Request);
+            UNIT_ASSERT(!Parse(p, "GET /"));
+            UNIT_ASSERT(!Parse(p, "test/test?text=123 HTTP/1."));
+            UNIT_ASSERT(Parse(p, "0\r\nHost: yabs.yandex.ru\r\n\r\n"));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), false);
+            UNIT_ASSERT_VALUES_EQUAL(p.GetBestCompressionScheme(), "");
+            ui64 cl;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+        }
+        {
+            THttpParser p;
+            UNIT_ASSERT(!Parse(p, "HT"));
+            UNIT_ASSERT(!Parse(p, "TP/1.0 200 OK\r"));
+            UNIT_ASSERT(!Parse(p, "\nContent-Type: text/plain; charset=utf-8\r\n"
+                                  "\r\n"));
+            UNIT_ASSERT(Parse(p, ""));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 200u);
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), false);
+            ui64 cl;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+        }
+        {
+            THttpParser p;
+            UNIT_ASSERT(!Parse(p, "H"));
+            UNIT_ASSERT(!Parse(p, "TTP/1.1 200 OK\r"));
+            UNIT_ASSERT(!Parse(p, "\n"));
+            UNIT_ASSERT(!Parse(p, "Content-Type: text/plain; charset=utf-8\r\n"
+                                  "\r\n"));
+            UNIT_ASSERT(Parse(p, ""));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 200u);
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
+            ui64 cl;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TParsingToContentLength) {
+        THttpParser p;
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 404 OK"));
+        UNIT_ASSERT(!Parse(p, "\r\nConnection: close\r"));
+        UNIT_ASSERT(!Parse(p, "\nContent-Length: 10\r"));
+        UNIT_ASSERT(Parse(p, "\n\r\n0123456789"));
+
+        UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 404u);
+        UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), false);
+        ui64 cl = 0;
+        UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), true);
+        UNIT_ASSERT_VALUES_EQUAL(cl, 10u);
+        UNIT_ASSERT_VALUES_EQUAL(p.Content(), "0123456789");
+    }
+
+    SIMPLE_UNIT_TEST(TParsingChunkedContent) {
+        {
+            THttpParser p;
+            UNIT_ASSERT(!Parse(p, "HTTP/1.1 333 OK\r\nC"));
+            UNIT_ASSERT(!Parse(p, "onnection: Keep-Alive\r\n"));
+            UNIT_ASSERT(!Parse(p, "Transfer-Encoding: chunked\r\n\r\n"));
+            UNIT_ASSERT(Parse(p, "8\r\n01234567\r\n0\r\n\r\n---"));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 333u);
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
+            ui64 cl = 0;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+            UNIT_ASSERT_VALUES_EQUAL(p.Content(), "01234567");
+
+            THttpHeaders::TConstIterator it = p.Headers().Begin();
+            UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Connection: Keep-Alive"));
+            UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Transfer-Encoding: chunked"));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.GetExtraDataSize(), 3u);
+        }
+        {
+            //parse by tiny blocks (1 byte)
+            THttpParser p;
+            const char msg[] = "HTTP/1.1 333 OK\r\n"
+                               "Connection: Keep-Alive\r\n"
+                               "Transfer-Encoding: chunked\r\n\r\n"
+                               "8 ; key=value \r\n01234567\r\n"
+                               "0\r\n\r\n";
+
+            for (size_t i = 0; i < (sizeof(msg) - 2); ++i) {
+                UNIT_ASSERT(!p.Parse(msg + i, 1));
+            }
+            UNIT_ASSERT(p.Parse(msg + sizeof(msg) - 2, 1));
+
+            UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 333u);
+            UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
+            ui64 cl = 0;
+            UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+            UNIT_ASSERT_VALUES_EQUAL(p.Content(), "01234567");
+
+            THttpHeaders::TConstIterator it = p.Headers().Begin();
+            UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Connection: Keep-Alive"));
+            UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Transfer-Encoding: chunked"));
+
+            THttpParser p2;
+            UNIT_ASSERT(!p2.Parse(msg, sizeof(msg) - 2));
+            UNIT_ASSERT(p2.Parse(msg + sizeof(msg) - 2, 1));
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TParsingEncodedContent) {
+        /// parse request with encoded content
+        TString testLine = "test line";
+        {
+            // test deflate
+            THttpParser p(THttpParser::Request);
+            TString zlibTestLine = "\x78\x9C\x2B\x49\x2D\x2E\x51\xC8\xC9\xCC\x4B\x05\x00\x11\xEE\x03\x89";
+            TString msg = MakeEncodedRequest("deflate", zlibTestLine);
+            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
+            // test gzip
+            THttpParser p(THttpParser::Request);
+            TString gzipTestLine(STRINGBUF(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"));
+            TString msg = MakeEncodedRequest("gzip", gzipTestLine);
+            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
+            // test unknown compressor
+            THttpParser p(THttpParser::Request);
+            TString content = "some trash";
+            TString msg = MakeEncodedRequest("unknown", content);
+            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+        }
+        {
+            // test broken deflate
+            THttpParser p(THttpParser::Request);
+            TString content(STRINGBUF("some trash ....................."));
+            TString msg = MakeEncodedRequest("deflate", content);
+            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+        }
+        {
+            // test broken gzip
+            THttpParser p(THttpParser::Request);
+            TString content(STRINGBUF(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09some trash\x00\x00\x00"));
+            TString msg = MakeEncodedRequest("gzip", content);
+            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+        }
+    }
+
+    SIMPLE_UNIT_TEST(TParsingMultilineHeaders) {
+        THttpParser p;
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 444 OK\r\n"));
+        UNIT_ASSERT(!Parse(p, "Vary: Accept-Encoding, \r\n"));
+        UNIT_ASSERT(!Parse(p, "\tAccept-Language\r\n"
+                              "Host: \tany.com\t \r\n\r\n"
+                              "01234567"));
+        UNIT_ASSERT(Parse(p, ""));
+
+        UNIT_ASSERT_VALUES_EQUAL(p.Content(), "01234567");
+
+        THttpHeaders::TConstIterator it = p.Headers().Begin();
+        UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Vary: Accept-Encoding, \tAccept-Language"));
+        UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Host: any.com"));
+    }
+}

@@ -3,6 +3,7 @@ RECURSE(
     api/helpers
     api/ut
     jemalloc
+    nalf
     system
 )
 

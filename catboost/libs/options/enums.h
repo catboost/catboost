@@ -177,3 +177,9 @@ enum class ELaunchMode {
     Eval,
     CV
 };
+
+enum class ENodeType {
+    Master,
+    Worker,
+    SingleHost
+};

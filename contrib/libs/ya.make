@@ -2,6 +2,7 @@
 
 RECURSE(
     base64
+    brotli
     clapack
     coreml
     crcutil

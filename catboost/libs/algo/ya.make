@@ -19,6 +19,7 @@ SRCS(
     score_calcer.cpp
     split.cpp
     target_classifier.cpp
+    tensor_search_helpers.cpp
     train.cpp
     train_one_iter_cross_entropy.cpp
     train_one_iter_custom.cpp

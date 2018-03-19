@@ -11,11 +11,11 @@ void SetPermutedIndices(const TSplit& split,
                         int curDepth,
                         const TFold& fold,
                         TVector<TIndexType>* indices,
-                        TLearnContext* ctx);
+                        NPar::TLocalExecutor* localExecutor);
 
-int GetRedundantSplitIdx(int curDepth, const TVector<TIndexType>& indices);
+TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices);
 
-void DeleteSplit(int curDepth, int redundantIdx, TSplitTree* tree, TVector<TIndexType>* indices);
+int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 
 TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,

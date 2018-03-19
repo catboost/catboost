@@ -22,5 +22,14 @@ namespace NCatboostOptions {
         TGpuOnlyOption<TString> Devices;
         TGpuOnlyOption<double> GpuRamPart;
         TGpuOnlyOption<ui64> PinnedMemorySize;
+
+        TCpuOnlyOption<ENodeType> NodeType;
+        TCpuOnlyOption<TString> FileWithHosts;
+        TCpuOnlyOption<ui32> NodePort;
+
+        static ui32 GetUnusedNodePort() { return 0; }
+        bool IsMaster() const;
+        bool IsWorker() const;
+        bool IsSingleHost() const;
     };
 }

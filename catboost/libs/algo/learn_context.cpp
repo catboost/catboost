@@ -1,6 +1,7 @@
 #include "learn_context.h"
 #include "error_functions.h"
 
+#include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/options/defaults_helper.h>
 
@@ -66,6 +67,13 @@ TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
         return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
     }
     return JoinFsPaths(namePrefix + filename);
+}
+
+
+TLearnContext::~TLearnContext() {
+    if (Params.SystemOptions->IsMaster()) {
+        FinalizeMaster(this);
+    }
 }
 
 void TLearnContext::OutputMeta() {
@@ -149,7 +157,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
                     testData,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
-                    foldPermutationBlockSize,
+                    (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
                     LearnProgress.ApproxDimension,
                     storeExpApproxes,
                     Rand
@@ -178,7 +186,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
         testData,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),
-        foldPermutationBlockSize,
+        /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
         Rand
