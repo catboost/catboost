@@ -1,6 +1,7 @@
 #include "env.h"
 
 #include <util/generic/string.h>
+#include <util/generic/yexception.h>
 
 #ifdef _win_
 #include <util/generic/vector.h>
