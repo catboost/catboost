@@ -143,13 +143,10 @@ def get_svn_scm_data(info):
     return scm_data
 
 
-def get_hg_info_cmd(arc_root, branch=None, python_cmd=[sys.executable]):
+def get_hg_info_cmd(arc_root, python_cmd=[sys.executable]):
     ya_path = os.path.join(arc_root, 'ya')
-    hg_cmd = python_cmd + [ya_path, '-v', '--no-report', 'tool', 'hg']
-    if not branch:
-        hg_cmd += ['branch']
-    else:
-        hg_cmd += ['log', '-b', branch, '-l1']
+    hg_cmd = python_cmd + [ya_path, '-v', '--no-report', 'tool', 'hg', '-R', arc_root]
+    hg_cmd += ['log', '-r', '.']
     return hg_cmd
 
 
@@ -161,21 +158,13 @@ def get_hg_field(hg_info, field):
 
 
 def get_hg_dict(arc_root, python_cmd=[sys.executable]):
-    old_cwd = os.getcwd()
-    try:
-        os.chdir(arc_root)
-        hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
-        info = {}
-        if hg_info:
-            branch = hg_info.strip()
-            info['branch'] = branch
-        hg_info = system_command_call(get_hg_info_cmd(arc_root, branch=branch, python_cmd=python_cmd))
-        if hg_info:
-            info['hash'] = get_hg_field(hg_info, 'changeset')
-            info['author'] = get_hg_field(hg_info, 'user')
-            info['date'] = get_hg_field(hg_info, 'date')
-    finally:
-        os.chdir(old_cwd)
+    info = {}
+    hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
+    if hg_info:
+        info['branch'] = get_hg_field(hg_info, 'branch')
+        info['hash'] = get_hg_field(hg_info, 'changeset')
+        info['author'] = get_hg_field(hg_info, 'user')
+        info['date'] = get_hg_field(hg_info, 'date')
     return info
 
 
