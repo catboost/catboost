@@ -329,11 +329,14 @@ def main(header, footer, line):
         else:
             scm_data = "Svn info:\n" + indent + "no hg info\n"
     else:
-        rev_dict = {}
-        scm_data = "Svn info:\n" + indent + "no svn info\n"
+        rev_dict = get_svn_dict(arc_root, arc_root, python_cmd=python_cmd) or {}
+        if rev_dict:
+            rev_dict['vcs'] = 'svn'
+            scm_data = get_svn_scm_data(rev_dict)
+        else:
+            scm_data = "Svn info:\n" + indent + "no svn info\n"
 
     result = open(sys.argv[1], 'w')
-
     header(result)
     print >>result, line("PROGRAM_VERSION", scm_data + "\n" + get_other_data(arc_root, build_root, local_data_file))
     print >>result, line("SCM_DATA", scm_data)
