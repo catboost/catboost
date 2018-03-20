@@ -40,6 +40,12 @@ def save_in_file(filepath, data):
             print >> file_handler, data
 
 
+def prepare_recipes(data):
+    data = data.replace('"USE_RECIPE_DELIM"', "\n")
+    data = data.replace("$TEST_RECIPES_VALUE", "")
+    return base64.b64encode(data or "")
+
+
 def validate_test(kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
@@ -308,7 +314,7 @@ def onadd_ytest(unit, *args):
         'BUILD-FOLDER-PATH': strip_roots(unit.path()),
         'BINARY-PATH': strip_roots(os.path.join(unit.path(), unit.filename())),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
-        'TEST-RECIPES': base64.b64encode(unit.get('RECIPE_COMMAND_VALUE') or ''),
+        'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + (unit.get(['__test_data']) or '').split(' ') + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
@@ -579,7 +585,7 @@ def onjava_test(unit, *args):
         'TAG': serialize_list(get_values_list(unit, 'TEST_TAGS_VALUE')),
         'SIZE': unit.get('TEST_SIZE_NAME') or '',
         'REQUIREMENTS': serialize_list(get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
-        'TEST-RECIPES': base64.b64encode(unit.get('RECIPE_COMMAND_VALUE') or ''),
+        'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
@@ -675,6 +681,7 @@ def _dump_test(
             'SOURCE-FOLDER-PATH': test_dir,
             'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
             'TEST-DATA': serialize_list(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED')),
+            'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
             'SPLIT-FACTOR': split_factor,
             'FORK-MODE': fork_mode,
             'FORK-TEST-FILES': fork_test_files,
@@ -707,10 +714,6 @@ def onsetup_pytest_bin(unit, *args):
         unit.onno_platform()
         unit.onadd_pytest_script(["PY_TEST"])
 
-def onuse_recipe(unit, *args):
-    recipe_cmd = unit.get(["RECIPE_COMMAND_VALUE"]) or ''
-    recipe_cmd += "\n" + subprocess.list2cmdline(args)
-    unit.set(["RECIPE_COMMAND_VALUE", recipe_cmd])
 
 def onrun(unit, *args):
     exectest_cmd = unit.get(["EXECTEST_COMMAND_VALUE"]) or ''
