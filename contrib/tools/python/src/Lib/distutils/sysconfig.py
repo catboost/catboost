@@ -397,7 +397,7 @@ def _init_posix():
     # _sysconfigdata is generated at build time, see the sysconfig module
     #from _sysconfigdata import build_time_vars
     global _config_vars
-    _config_vars = {}
+    _config_vars = {'SO': '.so'}
     #_config_vars.update(build_time_vars)
 
 
