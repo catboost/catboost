@@ -4,7 +4,7 @@ import math
 import numpy as np
 from pandas import read_table, DataFrame, Series
 
-from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
+from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 import yatest.common
@@ -38,22 +38,6 @@ CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
 
 model_diff_tool = yatest.common.binary_path("catboost/tools/model_comparator/model_comparator")
-
-
-class LogStdout:
-    def __init__(self, file):
-        self.log_file = file
-
-    def __enter__(self):
-        import sys
-        self.saved_stdout = sys.stdout
-        sys.stdout = self.log_file
-        return self.saved_stdout
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        import sys
-        sys.stdout = self.saved_stdout
-        self.log_file.close()
 
 
 def compare_canonical_models(*args, **kwargs):
@@ -746,44 +730,3 @@ def test_eval_metrics(loss_function):
     first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 8)
     second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric][1:], 8)
     assert np.all(first_metrics == second_metrics)
-
-
-def test_verbose_int():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    tmpfile = 'test_data_dumps'
-
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=5)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 2)
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=False)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
-
-    log_files = []
-    for i in range(3):
-        log_files.append(JSON_LOG_PATH[:-5]+str(i)+JSON_LOG_PATH[-5:])
-
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[0]}, verbose=5)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 2)
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[1]}, verbose=False)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[2]}, verbose=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
-
-    canonical_files = []
-
-    for log_file in log_files:
-        canonical_files.append(local_canonical_file(remove_time_from_json(log_file)))
-    return canonical_files
