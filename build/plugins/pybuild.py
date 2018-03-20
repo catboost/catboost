@@ -223,6 +223,18 @@ def onpy_register(unit, *args):
             unit.on_py_register([name])
 
 
+def onpy3_register(unit, *args):
+    for name in args:
+        if '=' in name:
+            fullname, shortname = name.split('=', 1)
+            assert '.' not in shortname, shortname
+            assert fullname == shortname or fullname.endswith('.' + shortname), fullname
+            unit.on_py3_register([fullname])
+            unit.oncflags(['-DPyInit_{}=PyInit_{}'.format(shortname, mangle(fullname))])
+        else:
+            unit.on_py3_register([name])
+
+
 def onpy_main(unit, arg):
     """
         @usage: PY_MAIN(pkg.mod[:func])
