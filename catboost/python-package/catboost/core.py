@@ -1948,19 +1948,29 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None):
+def train(params=None, pool=None, iterations=None, evals=None, verbose=None, dtrain=None, logging_level=None, num_boost_round=None, eval_set=None, plot=None):
     """
     Train CatBoost model.
 
     Parameters
     ----------
-    pool : Pool or tuple (X, y)
-        Data to train on.
-
     params : dict
         Parameters for CatBoost.
         If  None, all params are set to their defaults.
         If  dict, overriding parameters present in the dict.
+
+    pool : Pool or tuple (X, y)
+        Data to train on.
+
+    iterations : int
+        Number of boosting iterations. Can be set in params dict.
+
+    evals : Pool or tuple (X, y)
+        Synonym for evals. Only one of these parameters should be set.
+
+    verbose : bool
+        If set to True, then logging_level is set to Verbose, otherwise
+        logging_level is set to Silent.
 
     dtrain : Pool or tuple (X, y)
         Synonym for pool parameter. Only one of these parameters should be set.
@@ -1972,21 +1982,11 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
             - 'Info'
             - 'Debug'
 
-    verbose : bool
-        If set to True, then logging_level is set to Verbose, otherwise
-        logging_level is set to Silent.
-
-    iterations : int
-        Number of boosting iterations. Can be set in params dict.
-
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
     eval_set : Pool or tuple (X, y)
         Dataset for evaluation.
-
-    evals : Pool or tuple (X, y)
-        Synonym for evals. Only one of these parameters should be set.
 
     plot : bool, optional (default=False)
         If True, drow train and eval error in Jupyter notebook
