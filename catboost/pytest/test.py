@@ -2553,3 +2553,27 @@ def test_eval_metrics(loss_function):
     first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
     second_metrics = np.round(np.loadtxt(eval_path, skiprows=2)[:, 1], 8)
     assert np.all(first_metrics == second_metrics)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_ctr_leaf_count_limit(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '--ctr-leaf-count-limit', '10',
+        '-i', '30',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

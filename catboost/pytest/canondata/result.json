@@ -417,6 +417,18 @@
             "uri": "file://test.test_ctr_buckets_Plain_/test.eval"
         }
     ],
+    "test.test_ctr_leaf_count_limit[Ordered]": [
+        {
+            "checksum": "7e992e97ca9d2bbe5697c5a34dc5ce56",
+            "uri": "file://test.test_ctr_leaf_count_limit_Ordered_/test.eval"
+        }
+    ],
+    "test.test_ctr_leaf_count_limit[Plain]": [
+        {
+            "checksum": "ee1beac619998e353f2c2e6d045ca44f",
+            "uri": "file://test.test_ctr_leaf_count_limit_Plain_/test.eval"
+        }
+    ],
     "test.test_ctr_type[Ordered-BinarizedTargetMeanValue:TargetBorderCount=10]": [
         {
             "checksum": "1867acc43f458e697bec8e38a31a7b6a",

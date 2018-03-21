@@ -80,7 +80,7 @@ void UseReindexHash(const TDenseHash<ui64, ui32>& reindexHash, ui64* begin, ui64
        if (it != reindexHash.end()) {
            *hash = it.Value();
        } else {
-           *hash = reindexHash.Size();
+           *hash = reindexHash.Size() - 1;
        }
     }
 }
