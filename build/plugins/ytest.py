@@ -331,7 +331,7 @@ def onadd_ytest(unit, *args):
 
     # use all cores if fuzzing requested
     if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
-        test_record['REQUIREMENTS'] = serialize_list(filter(None, deserialize_list(test_record['REQUIREMENTS']) + ["cpu:all"]))
+        test_record['REQUIREMENTS'] = serialize_list(filter(None, deserialize_list(test_record['REQUIREMENTS']) + ["cpu:all", "ram:all"]))
 
     data = dump_test(test_record)
     if data:
