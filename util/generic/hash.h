@@ -163,8 +163,8 @@ struct __yhashtable_const_iterator {
 template <class Alloc>
 class _allocator_base: private Alloc {
 public:
-    _allocator_base(const Alloc& allocator)
-        : Alloc(allocator)
+    _allocator_base(const Alloc& other)
+        : Alloc(other)
     {
     }
 
@@ -227,8 +227,8 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    _yhashtable_buckets(const Alloc& allocator)
-        : base_type(allocator)
+    _yhashtable_buckets(const Alloc& other)
+        : base_type(other)
         , Data(nullptr)
         , Size(0)
     {

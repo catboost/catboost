@@ -270,10 +270,10 @@ void TPointerTest::TestAutoToHolder() {
     UNIT_ASSERT_VALUES_EQUAL(cnt, 0);
 
     {
-        class B: public A {
+        class B1: public A {
         };
 
-        TAutoPtr<B> x(new B());
+        TAutoPtr<B1> x(new B1());
         THolder<A> y = x;
     }
 

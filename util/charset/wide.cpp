@@ -372,20 +372,20 @@ static TUtf16String ToSmthRet(const TWtringBuf text, size_t pos, size_t count, F
 }
 
 TUtf16String ToLowerRet(const TWtringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [](const wchar16* text, size_t length, wchar16* out) {
-        ToLower(text, length, out);
+    return ToSmthRet(text, pos, count, [](const wchar16* theText, size_t length, wchar16* out) {
+        ToLower(theText, length, out);
     });
 }
 
 TUtf16String ToUpperRet(const TWtringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [](const wchar16* text, size_t length, wchar16* out) {
-        ToUpper(text, length, out);
+    return ToSmthRet(text, pos, count, [](const wchar16* theText, size_t length, wchar16* out) {
+        ToUpper(theText, length, out);
     });
 }
 
 TUtf16String ToTitleRet(const TWtringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [](const wchar16* text, size_t length, wchar16* out) {
-        ToTitle(text, length, out);
+    return ToSmthRet(text, pos, count, [](const wchar16* theText, size_t length, wchar16* out) {
+        ToTitle(theText, length, out);
     });
 }
 

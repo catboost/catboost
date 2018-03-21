@@ -1002,8 +1002,8 @@ public:
         return *This();
     }
 
-    TDerived& assign(const TCharType* begin, const TCharType* end) {
-        return assign(begin, end - begin);
+    TDerived& assign(const TCharType* first, const TCharType* last) {
+        return assign(first, last - first);
     }
 
     TDerived& assign(const TCharType* pc, size_t pos, size_t n) {
@@ -1103,8 +1103,8 @@ public:
         return *This();
     }
 
-    inline TDerived& append(const TCharType* begin, const TCharType* end) {
-        return append(begin, end - begin);
+    inline TDerived& append(const TCharType* first, const TCharType* last) {
+        return append(first, last - first);
     }
 
     inline TDerived& append(const TCharType* pc, size_t len) {

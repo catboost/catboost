@@ -216,8 +216,8 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
                         break;
                     }
                     case 1: {
-                        int unused;
-                        Stack.Dequeue(&unused);
+                        int unusedInt;
+                        Stack.Dequeue(&unusedInt);
                         break;
                     }
                     case 2: {
