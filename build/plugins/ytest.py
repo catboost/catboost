@@ -46,7 +46,7 @@ def prepare_recipes(data):
     return base64.b64encode(data or "")
 
 
-def validate_test(kw):
+def validate_test(kw, is_fuzz_test):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
@@ -103,9 +103,11 @@ def validate_test(kw):
                     if ram_errors:
                         req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Ram))
             elif req_name == 'cpu':
+                if req_value.strip() == 'all' and is_fuzz_test:
+                    pass
                 # XXX
                 # errors += reqs.check_cpu(mr.resolve_value(req_value), size)
-                if reqs.check_cpu(mr.resolve_value(req_value), size):
+                elif reqs.check_cpu(mr.resolve_value(req_value), size):
                     req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
 
             requirements[req_name] = req_value
@@ -222,8 +224,8 @@ def validate_test(kw):
     return valid_kw, errors
 
 
-def dump_test(kw):
-    valid_kw, errors = validate_test(kw)
+def dump_test(kw, is_fuzz_test=False):
+    valid_kw, errors = validate_test(kw, is_fuzz_test)
     if errors:
         for e in errors:
             ymake.report_configure_error(e)
@@ -329,11 +331,12 @@ def onadd_ytest(unit, *args):
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
 
-    # use all cores if fuzzing requested
-    if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
+    is_fuzz_test = flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes'
+    if is_fuzz_test:
+        # use all cores if fuzzing requested
         test_record['REQUIREMENTS'] = serialize_list(filter(None, deserialize_list(test_record['REQUIREMENTS']) + ["cpu:all", "ram:all"]))
 
-    data = dump_test(test_record)
+    data = dump_test(test_record, is_fuzz_test=is_fuzz_test)
     if data:
         unit.set_property(["DART_DATA", data])
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
