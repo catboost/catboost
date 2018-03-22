@@ -578,6 +578,12 @@ namespace {
             : Func(func)
         {
         }
+
+        TThrFuncObj(TThreadFunction&& func)
+            : Func(std::move(func))
+        {
+        }
+
         void Process(void*) override {
             THolder<TThrFuncObj> self(this);
             Func();
@@ -609,7 +615,7 @@ void IMtpQueue::SafeAdd(IObjectInQueue* obj) {
 }
 
 void IMtpQueue::SafeAddFunc(TThreadFunction func) {
-    Y_ENSURE(AddFunc(func), STRINGBUF("can not add function to queue"));
+    Y_ENSURE(AddFunc(std::move(func)), STRINGBUF("can not add function to queue"));
 }
 
 void IMtpQueue::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
@@ -617,7 +623,7 @@ void IMtpQueue::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
 }
 
 bool IMtpQueue::AddFunc(TThreadFunction func) {
-    THolder<IObjectInQueue> wrapper(new ::TThrFuncObj(func));
+    THolder<IObjectInQueue> wrapper(new ::TThrFuncObj(std::move(func)));
     bool added = Add(wrapper.Get());
     if (added) {
         wrapper.Release();
