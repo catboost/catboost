@@ -61,8 +61,9 @@ static const TRecvMMsgFunc RecvMMsgFunc = GetAddressOf<TRecvMMsgFunc>("recvmmsg"
 ///////////////////////////////////////////////////////////////////////////////
 
 bool ReadTos(const TMsgHdr& msgHdr, ui8* tos) {
-
 #ifdef _win_
+    Y_UNUSED(msgHdr);
+    Y_UNUSED(tos);
     return false;
 #else
     cmsghdr* cmsg = CMSG_FIRSTHDR(&msgHdr);
