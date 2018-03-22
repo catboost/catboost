@@ -384,7 +384,6 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_VALUES_EQUAL(d1, d2);
     }
 
-
     SIMPLE_UNIT_TEST(TestFromValueForTInstant) {
         // check that FromValue creates the same TInstant
         TInstant i1 = TInstant::MicroSeconds(12345);

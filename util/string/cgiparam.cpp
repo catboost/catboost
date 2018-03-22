@@ -33,7 +33,7 @@ bool TCgiParameters::Erase(const TStringBuf name, const TStringBuf val) {
     const auto pair = equal_range(name);
 
     bool found = false;
-    for (auto it = pair.first; it != pair.second; ) {
+    for (auto it = pair.first; it != pair.second;) {
         if (val == it->second) {
             it = erase(it);
             found = true;

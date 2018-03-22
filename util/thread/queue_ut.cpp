@@ -146,8 +146,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
         TMtpQueue queue(TMtpQueue::NonBlockingMode, TMtpQueue::CatchingMode);
         queue.Start(2);
 
-        queue.SafeAddFunc([data = TFailOnCopy()]() {
-        });
+        queue.SafeAddFunc([data = TFailOnCopy()](){});
 
         queue.Stop();
     }

@@ -86,7 +86,6 @@ SIMPLE_UNIT_TEST_SUITE(TCgiParametersTest) {
         UNIT_ASSERT_VALUES_EQUAL(c.Print(), "aaa=1&bbb=&par=3");
     }
 
-
     SIMPLE_UNIT_TEST(TestReplaceUnescaped1) {
         TCgiParameters c;
         c.ScanAddAll("many_keys=1&aaa=1&many_keys=2&bbb&many_keys=3");
