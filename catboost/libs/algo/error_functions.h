@@ -451,7 +451,7 @@ public:
                 for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
                     double firstDocDer = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
                     weightedDers[docId - begin] += competitor.Weight * firstDocDer;
-                    weightedDers[competitor.Id] -= competitor.Weight * (1 - firstDocDer);
+                    weightedDers[competitor.Id] -= competitor.Weight * firstDocDer;
                 }
             }
             for (int docId = begin; docId < end; ++docId) {

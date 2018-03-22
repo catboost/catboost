@@ -43,6 +43,7 @@ void UpdateLearningFold(
     const TDataset* testData,
     const TError& error,
     const TSplitTree& bestSplitTree,
+    ui64 randomSeed,
     TFold* fold,
     TLearnContext* ctx
 ) {
@@ -54,6 +55,7 @@ void UpdateLearningFold(
         error,
         *fold,
         bestSplitTree,
+        randomSeed,
         ctx,
         &approxDelta
     );
@@ -143,21 +145,21 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     TProfileInfo& profile = ctx->Profile;
 
-    auto splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
+    const TVector<int> splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
 
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.TreeStruct.ysize();
+    const double modelLength = currentIteration * ctx->Params.BoostingOptions->LearningRate;
 
     CheckInterrupted(); // check after long-lasting operation
-
-    double modelLength = currentIteration * ctx->Params.BoostingOptions->LearningRate;
 
     TSplitTree bestSplitTree;
     {
         TFold* takenFold = &ctx->LearnProgress.Folds[ctx->Rand.GenRand() % foldCount];
+        const TVector<ui64> randomSeeds = GenRandUI64Vector(takenFold->BodyTailArr.ysize(), ctx->Rand.GenRand());
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
-                CalcWeightedDerivatives(error, bodyTailId, takenFold, &ctx->LocalExecutor);
+                CalcWeightedDerivatives(error, bodyTailId, ctx->Params, randomSeeds[bodyTailId], takenFold, &ctx->LocalExecutor);
             }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
             Y_ASSERT(takenFold->BodyTailArr.ysize() == 1);
@@ -228,8 +230,9 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
         CheckInterrupted(); // check after long-lasting operation
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
+            const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->Rand.GenRand());
             ctx->LocalExecutor.ExecRange([&](int foldId) {
-                UpdateLearningFold(learnData, testData, error, bestSplitTree, trainFolds[foldId], ctx);
+                UpdateLearningFold(learnData, testData, error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
             }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
             MapSetApproxes<TError>(bestSplitTree, ctx);

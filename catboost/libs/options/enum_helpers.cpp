@@ -29,13 +29,20 @@ bool IsMultiClassError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::MultiClassOneVsAll);
 }
 
-bool IsPairwiseError(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::PairLogit);
+bool IsQuerywiseError(ELossFunction lossFunction) {
+    return (
+        lossFunction == ELossFunction::QueryRMSE ||
+        lossFunction == ELossFunction::QuerySoftMax ||
+        lossFunction == ELossFunction::PairLogit ||
+        lossFunction == ELossFunction::YetiRank
+    );
 }
 
-bool IsQuerywiseError(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::QueryRMSE ||
-            lossFunction == ELossFunction::QuerySoftMax);
+bool IsPairwiseError(ELossFunction lossFunction) {
+    return (
+        lossFunction == ELossFunction::PairLogit ||
+        lossFunction == ELossFunction::YetiRank
+    );
 }
 
 bool IsPlainMode(EBoostingType boostingType) {

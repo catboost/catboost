@@ -357,15 +357,16 @@ class TCPUModelTrainer : public IModelTrainer {
              ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
          }
 
-        TVector<THolder<IMetric>> metrics = CreateMetrics(
-            ctx.Params.LossFunctionDescription,
-            ctx.Params.MetricOptions,
-            ctx.EvalMetricDescriptor,
-            1
-        );
+        TVector<ELossFunction> metrics = {ctx.Params.LossFunctionDescription->GetLossFunction()};
+        if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
+            metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
+        }
+        for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
+            metrics.push_back(metric.GetLossFunction());
+        }
         bool hasQuerywiseMetric = false;
         for (const auto& metric : metrics) {
-            if (metric.Get()->GetErrorType() == EErrorType::QuerywiseError) {
+            if (IsQuerywiseError(metric)) {
                 hasQuerywiseMetric = true;
             }
         }

@@ -15,13 +15,11 @@ static int UpdateSize(int size, const TVector<TQueryInfo>& queryInfo, const TVec
 }
 
 static int SelectMinBatchSize(int learnSampleCount) {
-    int size = learnSampleCount > 500 ? Min<int>(100, learnSampleCount / 50) : 1;
-    return size;
+    return learnSampleCount > 500 ? Min<int>(100, learnSampleCount / 50) : 1;
 }
 
 static double SelectTailSize(int oldSize, double multiplier) {
-    int size = ceil(oldSize * multiplier);
-    return size;
+    return ceil(oldSize * multiplier);
 }
 
 static void InitFromBaseline(
@@ -79,6 +77,7 @@ TFold BuildDynamicFold(
     int approxDimension,
     double multiplier,
     bool storeExpApproxes,
+    bool hasPairwiseWeights,
     TRestorableFastRng64& rand
 ) {
     const int learnSampleCount = learnData.GetSampleCount();
@@ -117,6 +116,11 @@ TFold BuildDynamicFold(
         }
         queryIndices = GetQueryIndicesForDocs(ff.LearnQueriesInfo, learnSampleCount);
     }
+    TVector<float> pairwiseWeights;
+    if (hasPairwiseWeights) {
+        pairwiseWeights.resize(learnSampleCount);
+        CalcPairwiseWeights(ff.LearnQueriesInfo, ff.LearnQueriesInfo.ysize(), &pairwiseWeights);
+    }
 
     ff.EffectiveDocCount = learnSampleCount;
 
@@ -137,6 +141,11 @@ TFold BuildDynamicFold(
         }
         bt.WeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
         bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
+        if (hasPairwiseWeights) {
+            bt.PairwiseWeights.resize(bt.TailFinish);
+            bt.PairwiseWeights.insert(bt.PairwiseWeights.begin(), pairwiseWeights.begin(), pairwiseWeights.begin() + bt.TailFinish);
+            bt.SamplePairwiseWeights.resize(bt.TailFinish);
+        }
         ff.BodyTailArr.emplace_back(std::move(bt));
         leftPartLen = bt.TailFinish;
     }
@@ -151,6 +160,7 @@ TFold BuildPlainFold(
     int permuteBlockSize,
     int approxDimension,
     bool storeExpApproxes,
+    bool hasPairwiseWeights,
     TRestorableFastRng64& rand
 ) {
     const int learnSampleCount = learnData.GetSampleCount();
@@ -201,6 +211,11 @@ TFold BuildPlainFold(
     bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
     bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
+    if (hasPairwiseWeights) {
+        bt.PairwiseWeights.resize(learnSampleCount);
+        CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);
+        bt.SamplePairwiseWeights.resize(learnSampleCount);
+    }
     if (!learnData.Baseline.empty()) {
         InitFromBaseline(0, learnSampleCount, learnData.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
     }

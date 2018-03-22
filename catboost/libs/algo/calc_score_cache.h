@@ -100,6 +100,8 @@ struct TCalcScoreFold {
     struct TBodyTail {
         TUnsizedVector<TUnsizedVector<double>> WeightedDerivatives;
         TUnsizedVector<TUnsizedVector<double>> SampleWeightedDerivatives;
+        TUnsizedVector<float> PairwiseWeights;
+        TUnsizedVector<float> SamplePairwiseWeights;
 
         TAtomic BodyFinish = 0;
         TAtomic TailFinish = 0;
@@ -164,4 +166,5 @@ private:
     int BodyTailCount;
     int ApproxDimension;
     float BernoulliSampleRate;
+    bool HasPairwiseWeights;
 };

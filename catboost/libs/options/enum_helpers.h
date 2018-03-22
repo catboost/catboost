@@ -9,9 +9,9 @@ bool IsClassificationLoss(const TString& lossDescription);
 
 bool IsMultiClassError(ELossFunction lossFunction);
 
-bool IsPairwiseError(ELossFunction lossFunction);
-
 bool IsQuerywiseError(ELossFunction lossFunction);
+
+bool IsPairwiseError(ELossFunction lossFunction);
 
 bool IsPlainMode(EBoostingType boostingType);
 

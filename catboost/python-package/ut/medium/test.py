@@ -743,8 +743,8 @@ def test_eval_metrics(loss_function):
     model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric})
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
-    first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 8)
-    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric][1:], 8)
+    first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 10)
+    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric][1:], 10)
     assert np.all(first_metrics == second_metrics)
 
 

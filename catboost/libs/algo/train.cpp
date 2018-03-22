@@ -70,6 +70,9 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
         case ELossFunction::QuerySoftMax:
             return TrainOneIter<TQuerySoftMaxError>;
             break;
+        case ELossFunction::YetiRank:
+            return TrainOneIter<TPairLogitError>;
+            break;
         case ELossFunction::Custom:
             return TrainOneIter<TCustomError>;
             break;

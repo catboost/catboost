@@ -52,20 +52,20 @@ inline bool IsStoreExpApprox(const NCatboostOptions::TCatBoostOptions& options) 
         ELossFunction::LogLinQuantile,
         ELossFunction::Poisson,
         ELossFunction::CrossEntropy,
-        ELossFunction::PairLogit
+        ELossFunction::PairLogit,
+        ELossFunction::YetiRank
     );
 }
 
-inline TVector<float> CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo) {
-    TVector<float> weights(queriesInfo.back().End);
-    for (const auto& queryInfo : queriesInfo) {
+inline void CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo, int queriesCount, TVector<float>* pairwiseWeights) {
+    Fill(pairwiseWeights->begin(), pairwiseWeights->end(), 0);
+    for (int queryIndex = 0; queryIndex < queriesCount; ++queryIndex) {
+        const auto& queryInfo = queriesInfo[queryIndex];
         for (int docId = 0; docId < queryInfo.Competitors.ysize(); ++docId) {
             for (const auto& competitor : queryInfo.Competitors[docId]) {
-                weights[queryInfo.Begin + docId] += competitor.Weight;
-                weights[queryInfo.Begin + competitor.Id] += competitor.Weight;
+                (*pairwiseWeights)[queryInfo.Begin + docId] += competitor.Weight;
+                (*pairwiseWeights)[queryInfo.Begin + competitor.Id] += competitor.Weight;
             }
         }
     }
-    return weights;
 }
-

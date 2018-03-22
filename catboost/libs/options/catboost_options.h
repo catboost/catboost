@@ -58,7 +58,7 @@ namespace NCatboostOptions {
             SetLeavesEstimationDefault();
             SetCtrDefaults();
 
-            if (IsQuerywiseError(LossFunctionDescription->GetLossFunction()) || DataProcessingOptions->HasTimeFlag) {
+            if (DataProcessingOptions->HasTimeFlag) {
                 BoostingOptions->PermutationCount = 1;
             }
         }

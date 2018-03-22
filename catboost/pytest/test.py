@@ -191,10 +191,6 @@ def test_pairlogit(boosting_type):
         yatest.common.execute(cmd)
 
     run_catboost(output_eval_path, 'train.pairs')
-    output_weighted_eval_path = yatest.common.test_output_path('test_weighted.eval')
-    run_catboost(output_weighted_eval_path, 'train.pairs.weighted')
-
-    assert filecmp.cmp(output_eval_path, output_weighted_eval_path)
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path),
@@ -246,6 +242,52 @@ def test_pairlogit_approx_on_full_history():
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_yetirank(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'YetiRank',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_yetirank_with_params(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'YetiRank:PermutationCount=5;Lambda=0.9',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
 

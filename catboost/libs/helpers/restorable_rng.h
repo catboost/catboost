@@ -2,6 +2,7 @@
 
 #include <util/random/fast.h>
 #include <util/ysaveload.h>
+#include <util/generic/vector.h>
 
 struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
     template<typename T>
@@ -47,3 +48,5 @@ private:
     TFastRng64 Rng;
     ui64 CallCount = 0;
 };
+
+TVector<ui64> GenRandUI64Vector(int size, ui64 randomSeed);

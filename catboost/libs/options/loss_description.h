@@ -47,8 +47,8 @@ namespace NCatboostOptions {
     };
 
     inline double GetLogLossBorder(const TLossDescription& lossFunctionConfig) {
-        CB_ENSURE(lossFunctionConfig.GetLossFunction() == ELossFunction::Logloss);
-        auto& lossParams = lossFunctionConfig.GetLossParams();
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Logloss);
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("border")) {
             return FromString<float>(lossParams.at("border"));
         }
@@ -56,11 +56,30 @@ namespace NCatboostOptions {
     }
 
     inline double GetAlpha(const TLossDescription& lossFunctionConfig) {
-        auto& lossParams = lossFunctionConfig.GetLossParams();
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("alpha")) {
             return FromString<float>(lossParams.at("alpha"));
         }
         return 0.5;
+    }
+
+    inline int GetYetiRankPermutations(const TLossDescription& lossFunctionConfig) {
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank);
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
+        if (lossParams.has("permutations")) {
+            return FromString<int>(lossParams.at("permutations"));
+        }
+        return 10;
+    }
+
+    inline double GetYetiRankDecay(const TLossDescription& lossFunctionConfig) {
+        CB_ENSURE(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank);
+        auto& lossParams = lossFunctionConfig.GetLossParams();
+        if (lossParams.has("decay")) {
+            return FromString<double>(lossParams.at("decay"));
+        }
+        //TODO(nikitxskv): try to find the best default
+        return 0.99;
     }
 }
 

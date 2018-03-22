@@ -594,10 +594,8 @@ private:
     int TopSize;
 };
 
+TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
-TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
-TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension);
-TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
 TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
     const NCatboostOptions::TCpuOnlyOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
@@ -605,17 +603,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     int approxDimension
 );
 
-
-inline TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim) {
-    TVector<THolder<IMetric>> metrics;
-    for (const auto& metricDescription : description) {
-        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
-        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
-            metrics.push_back(std::move(metricsBatch[i]));
-        }
-    }
-    return metrics;
-}
+TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
 
 double EvalErrors(
     const TVector<TVector<double>>& approx,

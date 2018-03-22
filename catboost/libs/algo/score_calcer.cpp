@@ -209,13 +209,17 @@ inline static void CalcStatsKernel(const TIsCaching& isCaching,
     if (isCaching) {
         Fill(stats + indexer.CalcSize(depth - 1), stats + indexer.CalcSize(depth), TBucketStats{0, 0, 0, 0});
     } else {
-       Fill(stats, stats + indexer.CalcSize(depth), TBucketStats{0, 0, 0, 0});
+        Fill(stats, stats + indexer.CalcSize(depth), TBucketStats{0, 0, 0, 0});
     }
+
+    const bool hasPairwiseWeights = !bt.PairwiseWeights.empty();
+    const float* weightsData = hasPairwiseWeights ? GetDataPtr(bt.PairwiseWeights) : GetDataPtr(fold.LearnWeights);
+    const float* sampleWeightsData = hasPairwiseWeights ? GetDataPtr(bt.SamplePairwiseWeights) : GetDataPtr(fold.SampleWeights);
     if (isPlainMode) {
-        UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), GetDataPtr(fold.SampleWeights), 0, bt.TailFinish, stats);
+        UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), sampleWeightsData, 0, bt.TailFinish, stats);
     } else {
-        UpdateDeltaCount(singleIdx, GetDataPtr(bt.WeightedDerivatives[dim]), GetDataPtr(fold.LearnWeights), bt.BodyFinish, stats);
-        UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), GetDataPtr(fold.SampleWeights), bt.BodyFinish, bt.TailFinish, stats);
+        UpdateDeltaCount(singleIdx, GetDataPtr(bt.WeightedDerivatives[dim]), weightsData, bt.BodyFinish, stats);
+        UpdateWeighted(singleIdx, GetDataPtr(bt.SampleWeightedDerivatives[dim]), sampleWeightsData, bt.BodyFinish, bt.TailFinish, stats);
     }
     if (isCaching) {
         FixUpStats(depth, indexer, fold.SmallestSplitSideValue, stats);

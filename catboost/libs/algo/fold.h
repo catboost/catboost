@@ -24,6 +24,8 @@ struct TFold {
         TVector<TVector<double>> WeightedDerivatives;
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
         TVector<TVector<double>> SampleWeightedDerivatives;
+        TVector<float> PairwiseWeights;
+        TVector<float> SamplePairwiseWeights;
 
         int BodyQueryFinish = 0;
         int TailQueryFinish = 0;
@@ -106,6 +108,7 @@ TFold BuildDynamicFold(
     int approxDimension,
     double multiplier,
     bool storeExpApproxes,
+    bool hasPairwiseWeights,
     TRestorableFastRng64& rand
 );
 
@@ -117,5 +120,6 @@ TFold BuildPlainFold(
     int permuteBlockSize,
     int approxDimension,
     bool storeExpApproxes,
+    bool hasPairwiseWeights,
     TRestorableFastRng64& rand
 );

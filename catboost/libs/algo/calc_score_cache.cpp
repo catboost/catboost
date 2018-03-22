@@ -88,6 +88,7 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
     SampleWeights.yresize(DocCount);
     Control.yresize(DocCount);
     BodyTailCount = GetMaxBodyTailCount(folds);
+    HasPairwiseWeights = !folds[0].BodyTailArr[0].PairwiseWeights.empty();
     Y_ASSERT(BodyTailCount > 0);
     BodyTailArr.yresize(BodyTailCount);
     ApproxDimension = folds[0].GetApproxDimension();
@@ -95,12 +96,16 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
         BodyTailArr[bodyTailIdx].WeightedDerivatives.yresize(ApproxDimension);
         BodyTailArr[bodyTailIdx].SampleWeightedDerivatives.yresize(ApproxDimension);
+        const int bodyFinish = GetMaxBodyFinish(folds, bodyTailIdx);
+        Y_ASSERT(bodyFinish > 0);
+        const int tailFinish = GetMaxTailFinish(folds, bodyTailIdx);
+        Y_ASSERT(tailFinish > 0);
+        if (HasPairwiseWeights) {
+            BodyTailArr[bodyTailIdx].PairwiseWeights.yresize(tailFinish);
+            BodyTailArr[bodyTailIdx].SamplePairwiseWeights.yresize(tailFinish);
+        }
         for (int dimIdx = 0; dimIdx < ApproxDimension; ++dimIdx) {
-            int bodyFinish = GetMaxBodyFinish(folds, bodyTailIdx);
-            Y_ASSERT(bodyFinish > 0);
             BodyTailArr[bodyTailIdx].WeightedDerivatives[dimIdx].yresize(bodyFinish);
-            int tailFinish = GetMaxTailFinish(folds, bodyTailIdx);
-            Y_ASSERT(tailFinish > 0);
             BodyTailArr[bodyTailIdx].SampleWeightedDerivatives[dimIdx].yresize(tailFinish);
         }
     }
@@ -146,6 +151,10 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
         const auto srcTailBlock = srcBlock.Clip(srcBodyTail.TailFinish);
         int bodyCount = 0;
         int tailCount = 0;
+        if (HasPairwiseWeights) {
+            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.PairwiseWeights), GetElement<float>, dstBlock.GetRef(dstBodyTail.PairwiseWeights), &tailCount);
+            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.SamplePairwiseWeights), GetElement<float>, dstBlock.GetRef(dstBodyTail.SamplePairwiseWeights), &tailCount);
+        }
         for (int dim = 0; dim < ApproxDimension; ++dim) {
             SetElements(srcControlRef, srcBodyBlock.GetConstRef(srcBodyTail.WeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.WeightedDerivatives[dim]), &bodyCount);
             SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.SampleWeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.SampleWeightedDerivatives[dim]), &tailCount);

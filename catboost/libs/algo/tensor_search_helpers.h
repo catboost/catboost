@@ -5,6 +5,8 @@
 #include "fold.h"
 #include "calc_score_cache.h"
 #include "error_functions.h"
+#include "yetirank_helpers.h"
+#include "approx_calcer.h"
 
 #include <catboost/libs/options/enums.h>
 
@@ -78,25 +80,36 @@ template<>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 
 template <typename TError>
-inline void CalcWeightedDerivatives(const TError& error,
+inline void CalcWeightedDerivatives(
+    const TError& error,
     int bodyTailIdx,
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui64 randomSeed,
     TFold* takenFold,
-    NPar::TLocalExecutor* localExecutor) {
-    const TVector<TVector<double>>& approx = takenFold->BodyTailArr[bodyTailIdx].Approx;
+    NPar::TLocalExecutor* localExecutor
+) {
+    TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
+    const TVector<TVector<double>>& approx = bt.Approx;
     const TVector<float>& target = takenFold->LearnTarget;
     const TVector<float>& weight = takenFold->LearnWeights;
-    TVector<TVector<double>>* derivatives = &takenFold->BodyTailArr[bodyTailIdx].WeightedDerivatives;
+    TVector<TVector<double>>* weightedDerivatives = &bt.WeightedDerivatives;
 
     if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
-        const int tailQueryFinish = takenFold->BodyTailArr[bodyTailIdx].TailQueryFinish;
-        const auto& queriesInfo = takenFold->LearnQueriesInfo;
-        TVector<TDer1Der2> ders((*derivatives)[0].ysize());
+        TVector<TQueryInfo> recalculatedQueriesInfo;
+        const bool isYetiRank = params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank;
+        if (isYetiRank) {
+            YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
+        }
+        const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
+
+        const int tailQueryFinish = bt.TailQueryFinish;
+        TVector<TDer1Der2> ders((*weightedDerivatives)[0].ysize());
         error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
-            (*derivatives)[0][docId] = ders[docId].Der1;
+            (*weightedDerivatives)[0][docId] = ders[docId].Der1;
         }
     } else {
-        const int tailFinish = takenFold->BodyTailArr[bodyTailIdx].TailFinish;
+        const int tailFinish = bt.TailFinish;
         const int approxDimension = approx.ysize();
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
         blockParams.SetBlockSize(1000);
@@ -110,7 +123,7 @@ inline void CalcWeightedDerivatives(const TError& error,
                     nullptr, // no approx deltas
                     target.data(),
                     weight.data(),
-                    (*derivatives)[0].data());
+                    (*weightedDerivatives)[0].data());
             }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
             localExecutor->ExecRange([&](int blockId) {
@@ -122,7 +135,7 @@ inline void CalcWeightedDerivatives(const TError& error,
                     }
                     error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
                     for (int dim = 0; dim < approxDimension; ++dim) {
-                        (*derivatives)[dim][z] = curDelta[dim];
+                        (*weightedDerivatives)[dim][z] = curDelta[dim];
                     }
                 })(blockId);
             }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);

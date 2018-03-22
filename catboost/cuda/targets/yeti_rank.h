@@ -163,11 +163,8 @@ namespace NCatboostCuda {
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
-            const auto& options = targetOptions.GetLossParams();
 
-            if (options.has("PermutationCount")) {
-                PermutationCount = FromString<ui32>(options.at("PermutationCount"));
-            }
+            PermutationCount = NCatboostOptions::GetYetiRankPermutations(targetOptions);
             const auto& grouping = TParent::GetSamplesGrouping();
             for (ui32 qid = 0; qid < grouping.GetQueryCount(); ++qid) {
                 const auto querySize = grouping.GetQuerySize(qid);

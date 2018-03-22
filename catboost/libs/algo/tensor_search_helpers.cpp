@@ -38,10 +38,18 @@ static void CalcWeightedData(int learnSampleCount,
         if (!IsPlainMode(boostingType)) {
             begin = bt.BodyFinish;
         }
+        const float* sampleWeightsData = ff.SampleWeights.data();
+        if (!bt.PairwiseWeights.empty()) {
+            const float* pairwiseWeightsData = bt.PairwiseWeights.data();
+            float* samplePairwiseWeightsData = bt.SamplePairwiseWeights.data();
+            localExecutor->ExecRange([=](int z) {
+                samplePairwiseWeightsData[z] = pairwiseWeightsData[z] * sampleWeightsData[z];
+            }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)
+             , NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
         for (int dim = 0; dim < approxDimension; ++dim) {
             const double* weightedDerivativesData = bt.WeightedDerivatives[dim].data();
             double* sampleWeightedDerivativesData = bt.SampleWeightedDerivatives[dim].data();
-            const float* sampleWeightsData = ff.SampleWeights.data();
             localExecutor->ExecRange([=](int z) {
                 sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
             }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)

@@ -8,6 +8,7 @@
 #include "index_calcer.h"
 #include "learn_context.h"
 #include "error_functions.h"
+#include "yetirank_helpers.h"
 
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -211,9 +212,8 @@ void CalcApproxDersRange(
 template <typename TError>
 void UpdateBucketsSimple(
     const TVector<TIndexType>& indices,
-    const TVector<float>& targets,
-    const TVector<float>& weights,
-    const TVector<TQueryInfo>& queriesInfo,
+    const TFold& ff,
+    const TFold::TBodyTail& bt,
     const TVector<double>& approxes,
     const TVector<double>& approxDeltas,
     const TError& error,
@@ -221,6 +221,8 @@ void UpdateBucketsSimple(
     int queryCount,
     int iteration,
     ELeavesEstimation estimationMethod,
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor,
     TVector<TSum>* buckets,
     TVector<TDer1Der2>* scratchDers
@@ -228,8 +230,8 @@ void UpdateBucketsSimple(
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcApproxDersRange(
             indices,
-            targets,
-            weights,
+            ff.LearnTarget,
+            ff.LearnWeights,
             approxes,
             approxDeltas,
             error,
@@ -243,10 +245,20 @@ void UpdateBucketsSimple(
     } else {
         Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+
+        TVector<TQueryInfo> recalculatedQueriesInfo;
+        TVector<float> recalculatedPairwiseWeights;
+        const bool isYetiRank = params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank;
+        if (isYetiRank) {
+            YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
+        }
+        const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
+        const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.LearnWeights : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+
         CalculateDersForQueries(
             approxes,
             approxDeltas,
-            targets,
+            ff.LearnTarget,
             weights,
             queriesInfo,
             error,
@@ -291,23 +303,33 @@ inline void CalcMixedModelSimple(const TVector<TSum>& buckets,
 template <typename TError>
 void CalcTailModelSimple(
     const TVector<TIndexType>& indices,
-    const TVector<float>& targets,
-    const TVector<float>& weights,
-    const TVector<TQueryInfo>& queriesInfo,
+    const TFold& ff,
     const TFold::TBodyTail& bt,
     const TError& error,
     int iteration,
     float l2Regularizer,
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui64 randomSeed,
+    NPar::TLocalExecutor* localExecutor,
     TLearnContext* ctx,
     TVector<TSum>* buckets,
     TVector<double>* approxDeltas,
     TVector<TDer1Der2>* weightedDers
 ) {
+    TVector<TQueryInfo> recalculatedQueriesInfo;
+    TVector<float> recalculatedPairwiseWeights;
+    const bool isYetiRank = params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank;
+    if (isYetiRank) {
+        YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
+    }
+    const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
+    const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.LearnWeights : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+
     if (error.GetErrorType() == EErrorType::PerObjectError) {
-        CalcShiftedApproxDers(bt.Approx[0], *approxDeltas, targets, weights, error, bt.BodyFinish, bt.TailFinish, weightedDers, ctx);
+        CalcShiftedApproxDers(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, weightedDers, ctx);
     } else {
         Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
-        CalculateDersForQueries(bt.Approx[0], *approxDeltas, targets, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, weightedDers);
+        CalculateDersForQueries(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, weightedDers);
     }
     TSum* bucketsData = buckets->data();
     const TIndexType* indicesData = indices.data();
@@ -345,19 +367,15 @@ void CalcApproxDeltaSimple(
     int leafCount,
     const TError& error,
     const TVector<TIndexType>& indices,
+    ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta
 ) {
-    TVector<float> pairwiseWeights;
-    if (error.GetErrorType() == EErrorType::PairwiseError) {
-        pairwiseWeights = CalcPairwiseWeights(ff.LearnQueriesInfo);
-    }
-    const TVector<float>& weights = error.GetErrorType() == EErrorType::PairwiseError ? pairwiseWeights : ff.LearnWeights;
-
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = static_cast<int>(treeLearnerOptions.LeavesEstimationIterations);
     const float l2Regularizer = treeLearnerOptions.L2Reg;
     approxesDelta->resize(ff.BodyTailArr.ysize());
+    const TVector<ui64> randomSeeds = GenRandUI64Vector(ff.BodyTailArr.ysize(), randomSeed);
     ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
         const TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
 
@@ -381,13 +399,13 @@ void CalcApproxDeltaSimple(
         TVector<TSum> buckets(leafCount, TSum(gradientIterations)); // thread scratch
         TVector<double> curLeafValues; // thread scratch
         for (int it = 0; it < gradientIterations; ++it) {
-            UpdateBucketsSimple(indices, ff.LearnTarget, weights, ff.LearnQueriesInfo, bt.Approx[0], resArr[0], error, bt.BodyFinish, bt.BodyQueryFinish, it, estimationMethod, &localExecutor, &buckets, &weightedDers);
+            UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr[0], error, bt.BodyFinish, bt.BodyQueryFinish, it, estimationMethod, ctx->Params, randomSeeds[bodyTailId], &localExecutor, &buckets, &weightedDers);
             CalcMixedModelSimple(buckets, it, ctx->Params, &curLeafValues);
             if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
                 UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, &ctx->LocalExecutor, &curLeafValues, &resArr[0]);
             } else {
                 UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.BodyFinish, &ctx->LocalExecutor, &curLeafValues, &resArr[0]);
-                CalcTailModelSimple(indices, ff.LearnTarget, weights, ff.LearnQueriesInfo, bt, error, it, l2Regularizer, ctx, &buckets, &resArr[0], &weightedDers);
+                CalcTailModelSimple(indices, ff, bt, error, it, l2Regularizer, ctx->Params, randomSeeds[bodyTailId], &localExecutor, ctx, &buckets, &resArr[0], &weightedDers);
             }
         }
     }, 0, ff.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -399,12 +417,13 @@ void CalcApproxDelta(
     int leafCount,
     const TError& error,
     const TVector<TIndexType>& indices,
+    ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta
 ) {
     const int approxDimension = ff.GetApproxDimension();
     if (approxDimension == 1) {
-        CalcApproxDeltaSimple(ff, leafCount, error, indices, ctx, approxesDelta);
+        CalcApproxDeltaSimple(ff, leafCount, error, indices, randomSeed, ctx, approxesDelta);
     } else {
         CalcApproxDeltaMulti(ff, leafCount, error, indices, ctx, approxesDelta);
     }
@@ -425,12 +444,6 @@ void CalcLeafValuesSimple(
         : learnSampleCount;
     TVector<TDer1Der2> weightedDers(scratchSize);
 
-    TVector<float> pairwiseWeights;
-    if (error.GetErrorType() == EErrorType::PairwiseError) {
-        pairwiseWeights = CalcPairwiseWeights(ff.LearnQueriesInfo);
-    }
-    const TVector<float>& weights = error.GetErrorType() == EErrorType::PairwiseError ? pairwiseWeights : ff.LearnWeights;
-
     const int queryCount = ff.LearnQueriesInfo.ysize();
     const auto& learnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = learnerOptions.LeavesEstimationIterations;
@@ -442,7 +455,7 @@ void CalcLeafValuesSimple(
     TVector<TSum> buckets(leafCount, gradientIterations); // scratch
     TVector<double> curLeafValues; // scratch vector
     for (int it = 0; it < gradientIterations; ++it) {
-        UpdateBucketsSimple(indices, ff.LearnTarget, weights, ff.LearnQueriesInfo, approxes, /*approxDeltas*/ {}, error, learnSampleCount, queryCount, it, estimationMethod, &localExecutor, &buckets, &weightedDers);
+        UpdateBucketsSimple(indices, ff, bt, approxes, /*approxDeltas*/ {}, error, learnSampleCount, queryCount, it, estimationMethod, ctx->Params, ctx->Rand.GenRand(), &localExecutor, &buckets, &weightedDers);
         CalcMixedModelSimple(buckets, it, ctx->Params, &curLeafValues);
         UpdateApproxDeltas<TError::StoreExpApprox>(indices, learnSampleCount, &ctx->LocalExecutor, &curLeafValues, &approxes);
     }
@@ -488,10 +501,11 @@ void CalcApproxForLeafStruct(
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
+    ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
     const TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testData, &ctx->LocalExecutor);
     const int leafCount = tree.GetLeafCount();
-    CalcApproxDelta(fold, leafCount, error, indices, ctx, approxesDelta);
+    CalcApproxDelta(fold, leafCount, error, indices, randomSeed, ctx, approxesDelta);
 }

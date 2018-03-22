@@ -148,6 +148,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
         foldPermutationBlockSize = learnData.GetSampleCount();
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params);
+    const bool hasPairwiseWeights = IsPairwiseError(Params.LossFunctionDescription->GetLossFunction());
 
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
         for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
@@ -160,6 +161,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
                     (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
                     LearnProgress.ApproxDimension,
                     storeExpApproxes,
+                    hasPairwiseWeights,
                     Rand
                 )
             );
@@ -175,6 +177,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
                     LearnProgress.ApproxDimension,
                     boostingOptions.FoldLenMultiplier,
                     storeExpApproxes,
+                    hasPairwiseWeights,
                     Rand
                 )
             );
@@ -189,6 +192,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
         /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
+        hasPairwiseWeights,
         Rand
     );
 

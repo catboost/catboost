@@ -1356,7 +1356,7 @@ void TQueryAverage::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* Create */
 
-inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
     TSet<ELossFunction> metricsWithParams = {
         ELossFunction::Quantile,
         ELossFunction::LogLinQuantile,
@@ -1368,7 +1368,8 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         ELossFunction::F1,
         ELossFunction::TotalF1,
         ELossFunction::PFound,
-        ELossFunction::CtrFactor
+        ELossFunction::CtrFactor,
+        ELossFunction::YetiRank
     };
     if (!metricsWithParams.has(metric)) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
@@ -1450,6 +1451,10 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
 
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
+            return result;
+
+        case ELossFunction::YetiRank:
+            result.emplace_back(new TPFoundMetric());
             return result;
 
         case ELossFunction::PFound: {
@@ -1545,7 +1550,24 @@ inline TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
     }
 }
 
-TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension) {
+    ELossFunction metric = ParseLossType(description);
+    TMap<TString, TString> params = ParseLossParams(description);
+    return CreateMetric(metric, params, approxDimension);
+}
+
+TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim) {
+    TVector<THolder<IMetric>> metrics;
+    for (const auto& metricDescription : description) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
+        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
+            metrics.push_back(std::move(metricsBatch[i]));
+        }
+    }
+    return metrics;
+}
+
+static TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension) {
     auto metric = description.GetLossFunction();
     return CreateMetric(metric, description.GetLossParams(), approxDimension);
 }
@@ -1558,7 +1580,7 @@ TVector<THolder<IMetric>> CreateMetrics(
 ) {
     TVector<THolder<IMetric>> errors;
 
-    if(evalMetricOptions->EvalMetric.IsSet()) {
+    if (evalMetricOptions->EvalMetric.IsSet()) {
         if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
             errors.emplace_back(new TCustomMetric(*evalMetricDescriptor));
         } else {
@@ -1583,12 +1605,6 @@ TVector<THolder<IMetric>> CreateMetrics(
         }
     }
     return errors;
-}
-
-TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension) {
-    ELossFunction metric = ParseLossType(description);
-    TMap<TString, TString> params = ParseLossParams(description);
-    return CreateMetric(metric, params, approxDimension);
 }
 
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {

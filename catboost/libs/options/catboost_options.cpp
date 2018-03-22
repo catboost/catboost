@@ -66,7 +66,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::YetiRank: {
-            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
@@ -258,6 +258,10 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
         }
     }
 
+    if (taskType == ETaskType::GPU) {
+        CB_ENSURE(!LossFunctionDescription->GetLossParams().has("decay"), "GPU implementation doesn't support decay parameter yet.");
+    }
+
     if ((ctrType == ECtrType::FeatureFreq) && borderSelectionType == EBorderSelectionType::Uniform) {
         MATRIXNET_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for combinations-ctrs instead" << Endl;
     }
@@ -300,9 +304,6 @@ void TCatboostOptions::Validate() const {
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
-
-        CB_ENSURE(!(IsPairwiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
-                  "This leaf estimation method is not supported for pairwise error");
     }
 
 

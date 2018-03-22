@@ -17,6 +17,7 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         trainData->TrainData.GetSampleCount(),
         trainData->ApproxDimension,
         trainData->StoreExpApprox,
+        trainData->HasPairwiseWeights,
         *localData.Rand);
     Y_ASSERT(plainFold.BodyTailArr.ysize() == 1);
     localData.SampledDocs.Create({plainFold}, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
@@ -161,10 +162,10 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         : localData.PlainFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
     TVector<TDer1Der2> weightedDers;
     weightedDers.yresize(scratchSize);
+
     UpdateBucketsSimple(localData.Indices,
-        localData.PlainFold.LearnTarget,
-        error.GetErrorType() == EErrorType::PairwiseError ? localData.PairwiseWeights : localData.PlainFold.LearnWeights,
-        localData.PlainFold.LearnQueriesInfo,
+        localData.PlainFold,
+        localData.PlainFold.BodyTailArr[0],
         localData.PlainFold.BodyTailArr[0].Approx[0],
         localData.ApproxDeltas[0],
         error,
@@ -172,6 +173,8 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         localData.PlainFold.BodyTailArr[0].BodyQueryFinish,
         localData.GradientIteration,
         estimationMethod,
+        localData.Params,
+        localData.Rand->GenRand(),
         &NPar::LocalExecutor(),
         &localData.Buckets,
         &weightedDers);
@@ -196,9 +199,6 @@ template void TBucketSimpleUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUse
 void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(localData.PlainFold.GetApproxDimension() == 1);
-    if (IsPairwiseError(localData.Params.LossFunctionDescription->GetLossFunction())) {
-        localData.PairwiseWeights = CalcPairwiseWeights(localData.PlainFold.LearnQueriesInfo);
-    }
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     localData.Indices = BuildIndices(localData.PlainFold,
         splitTree->Data,
@@ -262,6 +262,8 @@ void TDerivativeSetter<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*
     Y_ASSERT(localData.PlainFold.BodyTailArr.ysize() == 1);
     CalcWeightedDerivatives(BuildError<TError>(localData.Params, localData.Objective),
         /*bodyTailIdx*/ 0,
+        localData.Params,
+        localData.Rand->GenRand(),
         &localData.PlainFold,
         &NPar::LocalExecutor());
 }
