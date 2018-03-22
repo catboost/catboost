@@ -91,6 +91,33 @@ def _cast_to_base_types(value):
     return value
 
 
+def _process_verbose(verbose=None, verbose_eval=None, logging_level=None):
+    if verbose_eval is not None:
+        if verbose is not None:
+            raise CatboostError('Only one of the parameters verbose and verbose_eval should be set.')
+        verbose = verbose_eval
+
+    metric_period = None
+
+    if verbose is not None:
+        if logging_level is not None:
+            raise CatboostError("Only one of the parameters verbose and logging_level should be set.")
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        if type(verbose) == int:
+            if verbose <= 0:
+                raise CatboostError('verbose should be positive.')
+            metric_period = verbose
+            verbose = True
+
+        if verbose:
+            logging_level = 'Verbose'
+        else:
+            logging_level = 'Silent'
+
+    return (metric_period, logging_level)
+
+
 class Pool(_PoolBase):
     """
     Pool used in CatBoost as data structure to train model from.
@@ -509,7 +536,7 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgro
         if y is None:
             raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
-                            subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
+                          subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
 
 
@@ -548,17 +575,6 @@ class CatBoost(_CatBoostBase):
                 del params[param]
         kwargs.update(params.get('kwargs', {}))
         params['kwargs'] = kwargs
-
-        if 'verbose' in params:
-            if not isinstance(params['verbose'], bool):
-                raise CatboostError('verbose should be bool')
-            if 'logging_level' in params:
-                raise CatboostError('only one of parameters logging_level, verbose should be set.')
-            if params['verbose'] is True:
-                params['logging_level'] = 'Verbose'
-            else:
-                params['logging_level'] = 'Silent'
-            del params['verbose']
 
         self._check_params(params)
         params = self._params_type_cast(params)
@@ -663,30 +679,40 @@ class CatBoost(_CatBoostBase):
             params['iterations'] = params['num_boost_round']
             del params['num_boost_round']
 
+        if 'verbose_eval' in params:
+            if 'verbose' in params or 'logging_level' in params:
+                raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
+            params['verbose'] = params['verbose_eval']
+            del params['verbose_eval']
+
+        if 'verbose' in params:
+            if 'logging_level' in params or 'verbose_eval' in params:
+                raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
+            metric_period, logging_level = _process_verbose(verbose=params['verbose'])
+            del params['verbose']
+            if metric_period is not None:
+                if 'metric_period' in params:
+                    raise CatboostError('If verbose (verbose_eval) is int, metric_period should not be set.')
+                params['metric_period'] = metric_period
+            params['logging_level'] = logging_level
+
     def _clear_tsv_files(self, train_dir):
         for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
             path = os.path.join(train_dir, filename)
             if os.path.exists(path):
                 os.remove(path)
 
-    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description):
+    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
         calc_feature_importance = True
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
-        if verbose is not None:
-            if not isinstance(verbose, bool):
-                raise CatboostError('verbose should be bool.')
-            if logging_level is not None:
-                raise CatboostError('only one of parameters logging_level, verbose should be set.')
-            if logging_level is not None:
-                raise CatboostError('only one of parameters logging_level, verbose should be set.')
-            if verbose:
-                logging_level = 'Verbose'
-            else:
-                logging_level = 'Silent'
 
+        metric_period, logging_level = _process_verbose(verbose=verbose, verbose_eval=verbose_eval, logging_level=logging_level)
+
+        if metric_period is not None:
+            params['metric_period'] = metric_period
         if logging_level is not None:
             params['logging_level'] = logging_level
         if use_best_model is not None:
@@ -736,7 +762,7 @@ class CatBoost(_CatBoostBase):
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, subgroup_id=None, pairs_weight=None,
-            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
+            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None):
         """
         Fit the CatBoost model.
 
@@ -795,8 +821,14 @@ class CatBoost(_CatBoostBase):
                 - 'Info'
                 - 'Debug'
 
-        verbose : bool, if set to True, logging_level is set to Verbose. If set
-            to False, logging_level is set to Silent.
+        verbose : bool or int
+            If verbose is bool, then if set to True, logging_level is set to Verbose,
+            if set to False, logging_level is set to Silent.
+            If verbose is int, metric_period is set to verbose value and
+            logging_level is set to Verbose.
+
+        verbose_eval : bool or int
+            Synonym for verbose. Only one of these parameters should be set.
 
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
@@ -805,7 +837,8 @@ class CatBoost(_CatBoostBase):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline,
+                         use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1508,7 +1541,8 @@ class CatBoostClassifier(CatBoost):
     def classes_(self):
         return getattr(self, "_classes", None)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
+    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None):
         """
         Fit the CatBoost model.
 
@@ -1539,6 +1573,12 @@ class CatBoostClassifier(CatBoost):
             A list of (X, y) tuple pairs to use as a validation set for
             early-stopping
 
+        verbose : bool or int
+            If verbose is bool, then if set to True, logging_level is set to Verbose,
+            if set to False, logging_level is set to Silent.
+            If verbose is int, metric_period is set to verbose value and
+            logging_level is set to Verbose.
+
         logging_level : string, optional (default=None)
             Possible values:
                 - 'Silent'
@@ -1549,11 +1589,14 @@ class CatBoostClassifier(CatBoost):
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
 
+        verbose_eval : bool or int
+            Synonym for verbose. Only one of these parameters should be set.
+
         Returns
         -------
         model : CatBoost
         """
-        self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -1815,7 +1858,8 @@ class CatBoostRegressor(CatBoost):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None):
+    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
+            logging_level=None, plot=False, column_description=None, verbose_eval=None):
         """
         Fit the CatBoost model.
 
@@ -1846,6 +1890,12 @@ class CatBoostRegressor(CatBoost):
             A list of (X, y) tuple pairs to use as a validation set for
             early-stopping
 
+        verbose : bool or int
+            If verbose is bool, then if set to True, logging_level is set to Verbose,
+            if set to False, logging_level is set to Silent.
+            If verbose is int, metric_period is set to verbose value and
+            logging_level is set to Verbose.
+
         logging_level : string, optional (default=None)
             Possible values:
                 - 'Silent'
@@ -1856,11 +1906,14 @@ class CatBoostRegressor(CatBoost):
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
 
+        verbose_eval : bool or int
+            Synonym for verbose. Only one of these parameters should be set.
+
         Returns
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description)
+        return self._fit(X, y, cat_features, None, sample_weight, None, None, None, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -1948,7 +2001,7 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def train(params=None, pool=None, iterations=None, evals=None, verbose=None, dtrain=None, logging_level=None, num_boost_round=None, eval_set=None, plot=None):
+def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None):
     """
     Train CatBoost model.
 
@@ -1982,6 +2035,18 @@ def train(params=None, pool=None, iterations=None, evals=None, verbose=None, dtr
             - 'Info'
             - 'Debug'
 
+    verbose : bool or int
+        If verbose is bool, then if set to True, logging_level is set to Verbose,
+        if set to False, logging_level is set to Silent.
+        If verbose is int, metric_period is set to verbose value and
+        logging_level is set to Verbose.
+
+    verbose_eval : bool or int
+        Synonym for verbose. Only one of these parameters should be set.
+
+    iterations : int
+        Number of boosting iterations. Can be set in params dict.
+
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
@@ -2005,9 +2070,6 @@ def train(params=None, pool=None, iterations=None, evals=None, verbose=None, dtr
         else:
             raise CatboostError("Only one of the parameters pool and dtrain should be set.")
 
-    if verbose is not None and logging_level is not None:
-        raise CatboostError("Only one of the parameters verbose and logging_level should be set.")
-
     if num_boost_round is not None:
         if iterations is None:
             iterations = num_boost_round
@@ -2021,13 +2083,13 @@ def train(params=None, pool=None, iterations=None, evals=None, verbose=None, dtr
 
     model = CatBoost(params)
 
-    model.fit(X=pool, eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot)
+    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose, verbose_eval=verbose_eval)
     return model
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
-       shuffle=True, logging_level=None, stratified=False, as_pandas=True):
+       shuffle=True, logging_level=None, stratified=False, as_pandas=True, verbose=None, verbose_eval=None):
     """
     Cross-validate the CatBoost model.
 
@@ -2088,6 +2150,15 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         Return pd.DataFrame when pandas is installed.
         If False or pandas is not installed, return dict.
 
+    verbose : bool or int
+        If verbose is bool, then if set to True, logging_level is set to Verbose,
+        if set to False, logging_level is set to Silent.
+        If verbose is int, metric_period is set to verbose value and
+        logging_level is set to Verbose.
+
+    verbose_eval : bool or int
+        Synonym for verbose. Only one of these parameters should be set.
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2098,10 +2169,19 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
-    if logging_level:
+
+    metric_period, logging_level = _process_verbose(verbose=verbose, verbose_eval=verbose_eval, logging_level=logging_level)
+
+    if logging_level is not None:
         params = deepcopy(params)
         params.update({
             'logging_level': logging_level
+        })
+
+    if metric_period is not None:
+        params = deepcopy(params)
+        params.update({
+            'metric_period': metric_period
         })
 
     if dtrain is not None:

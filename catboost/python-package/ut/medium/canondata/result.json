@@ -107,6 +107,20 @@
         "checksum": "e03c466814b8446c48121628df23adb7",
         "uri": "file://test.test_staged_predict/predictions.npy"
     },
+    "test.test_verbose_int": [
+        {
+            "checksum": "002aea59e221d0cc8a304726dfe26879",
+            "uri": "file://test.test_verbose_int/catboost_training0.json"
+        },
+        {
+            "checksum": "e4de23269c0857815c3b0aa8e98f27ed",
+            "uri": "file://test.test_verbose_int/catboost_training1.json"
+        },
+        {
+            "checksum": "e4de23269c0857815c3b0aa8e98f27ed",
+            "uri": "file://test.test_verbose_int/catboost_training2.json"
+        }
+    ],
     "test.test_zero_baseline": {
         "checksum": "1d006e52bd9bc2a841727100300b8137",
         "uri": "file://test.test_zero_baseline/model.bin"
