@@ -112,6 +112,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_per_object.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tree_print.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\yetirank_helpers.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
@@ -143,6 +144,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\yetirank_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
