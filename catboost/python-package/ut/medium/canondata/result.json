@@ -109,15 +109,15 @@
     },
     "test.test_verbose_int": [
         {
-            "checksum": "002aea59e221d0cc8a304726dfe26879",
+            "checksum": "4a2c2cda1a5f0e109dccd7ea1c78f617",
             "uri": "file://test.test_verbose_int/catboost_training0.json"
         },
         {
-            "checksum": "e4de23269c0857815c3b0aa8e98f27ed",
+            "checksum": "3196b5da6fdf04dbc7cc713b333c7bcd",
             "uri": "file://test.test_verbose_int/catboost_training1.json"
         },
         {
-            "checksum": "e4de23269c0857815c3b0aa8e98f27ed",
+            "checksum": "3196b5da6fdf04dbc7cc713b333c7bcd",
             "uri": "file://test.test_verbose_int/catboost_training2.json"
         }
     ],
