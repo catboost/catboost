@@ -33,14 +33,14 @@
     }                                                                                                                          \
                                                                                                                                \
     Y_DECLARE_UNUSED                                                                                                           \
-    static inline void prefix##Base64Decode(const TStringBuf& src, TString& dst) {                                              \
+    static inline void prefix##Base64Decode(const TStringBuf& src, TString& dst) {                                             \
         dst.ReserveAndResize(Base64DecodeBufSize(src.size()));                                                                 \
         dst.resize(::NB64Etalon::prefix##Base64Decode(src, dst.begin()).size());                                               \
     }                                                                                                                          \
                                                                                                                                \
     Y_DECLARE_UNUSED                                                                                                           \
-    static inline TString prefix##Base64Decode(const TStringBuf& s) {                                                           \
-        TString ret;                                                                                                            \
+    static inline TString prefix##Base64Decode(const TStringBuf& s) {                                                          \
+        TString ret;                                                                                                           \
         prefix##Base64Decode(s, ret);                                                                                          \
         return ret;                                                                                                            \
     }                                                                                                                          \
@@ -59,14 +59,14 @@
     }                                                                                                                          \
                                                                                                                                \
     Y_DECLARE_UNUSED                                                                                                           \
-    static inline void prefix##Base64Encode(const TStringBuf& src, TString& dst) {                                              \
+    static inline void prefix##Base64Encode(const TStringBuf& src, TString& dst) {                                             \
         dst.ReserveAndResize(Base64EncodeBufSize(src.size()));                                                                 \
         dst.resize(::NB64Etalon::prefix##Base64Encode(src, dst.begin()).size());                                               \
     }                                                                                                                          \
                                                                                                                                \
     Y_DECLARE_UNUSED                                                                                                           \
-    static inline TString prefix##Base64Encode(const TStringBuf& s) {                                                           \
-        TString ret;                                                                                                            \
+    static inline TString prefix##Base64Encode(const TStringBuf& s) {                                                          \
+        TString ret;                                                                                                           \
         prefix##Base64Encode(s, ret);                                                                                          \
         return ret;                                                                                                            \
     }

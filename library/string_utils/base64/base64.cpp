@@ -198,7 +198,8 @@ size_t Base64StrictDecode(void* out, const char* b, const char* e) {
         constexpr char padding = 65;
         if (Y_UNLIKELY(zeroth == invalid || first == invalid ||
                        second == invalid || third == invalid ||
-                       zeroth == padding || first == padding)) {
+                       zeroth == padding || first == padding))
+        {
             ythrow yexception() << "invalid character in input";
         }
 

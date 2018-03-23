@@ -126,4 +126,3 @@ inline TString Base64EncodeUrl(const TStringBuf s) {
     Base64EncodeUrl(s, ret);
     return ret;
 }
-
