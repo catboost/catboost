@@ -298,14 +298,11 @@ class TCPUModelTrainer : public IModelTrainer {
         auto sortedCatFeatures = learnPool.CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
 
-        auto outputOptionsFinal = outputOptions;
         if (testPool.Docs.GetDocCount() != 0) {
             CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
             auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());
             CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
-            bool hasTestLabels = !IsConst(testPool.Docs.Target);
-            UpdateUseBestModel(hasTestLabels, &outputOptionsFinal.UseBestModel);
         }
 
         if ((modelPtr == nullptr) == outputOptions.GetResultModelFilename().empty()) {
@@ -321,7 +318,7 @@ class TCPUModelTrainer : public IModelTrainer {
             jsonParams,
             objectiveDescriptor,
             evalMetricDescriptor,
-            outputOptionsFinal,
+            outputOptions,
             featureCount,
             sortedCatFeatures,
             learnPool.FeatureId
@@ -346,8 +343,14 @@ class TCPUModelTrainer : public IModelTrainer {
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
         auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
-        UpdateBoostingTypeOption(learnPool.Docs.GetDocCount(), &ctx.Params.BoostingOptions->BoostingType);
-
+        SetDataDependantDefaults(
+            learnPool.Docs.GetDocCount(),
+            testPool.Docs.GetDocCount(),
+            !IsConst(testPool.Docs.Target),
+            learnPool.MetaInfo.HasWeights,
+            &ctx.OutputOptions.UseBestModel,
+            &ctx.Params
+        );
 
         ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
         TDataset learnData = BuildTrainData(learnPool);
@@ -355,7 +358,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (IsMultiClassError(lossFunction)) {
              ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
-         }
+        }
 
         TVector<ELossFunction> metrics = {ctx.Params.LossFunctionDescription->GetLossFunction()};
         if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {

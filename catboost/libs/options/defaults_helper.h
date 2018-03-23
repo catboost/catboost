@@ -2,6 +2,8 @@
 
 #include "enums.h"
 #include "cat_feature_options.h"
+#include "catboost_options.h"
+
 #include <util/system/types.h>
 
 const ui32 FoldPermutationBlockSizeNotSet = 0;
@@ -46,4 +48,28 @@ inline void UpdateUseBestModel(bool hasTestLabels, NCatboostOptions::TOption<boo
     if (useBestModel->NotSet() && hasTestLabels) {
         *useBestModel = true;
     }
+}
+
+inline void UpdateLeavesEstimation(bool hasWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+    if (hasWeights && IsClassificationLoss(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
+        catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod = ELeavesEstimation::Gradient;
+        catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations = 40;
+    }
+}
+
+inline void SetDataDependantDefaults(
+    int learnPoolSize,
+    int testPoolSize,
+    bool hasTestLabels,
+    bool hasWeights,
+    NCatboostOptions::TOption<bool>* useBestModel,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    if (testPoolSize != 0) {
+        UpdateUseBestModel(hasTestLabels, useBestModel);
+    }
+    UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
+
+    // TODO(nikitxskv): Remove it when the l2 normalization will be added.
+    UpdateLeavesEstimation(hasWeights, catBoostOptions);
 }

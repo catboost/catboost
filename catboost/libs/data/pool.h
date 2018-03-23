@@ -14,11 +14,11 @@ struct TPoolMetaInfo {
     ui32 ColumnsCount;
     ui32 BaselineCount;
 
-    bool HasGroupIds;
-    bool HasSubgroupIds;
-    bool HasDocIds;
-    bool HasWeights;
-    bool HasTimestamp;
+    bool HasGroupIds = false;
+    bool HasSubgroupIds = false;
+    bool HasDocIds = false;
+    bool HasWeights = false;
+    bool HasTimestamp = false;
 };
 
 struct TDocInfo {

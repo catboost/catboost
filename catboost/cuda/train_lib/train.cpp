@@ -238,6 +238,9 @@ namespace NCatboostCuda {
         }
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
+
+        // TODO(nikitxskv): Remove it when the l2 normalization will be added.
+        UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
 
 
