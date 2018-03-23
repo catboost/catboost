@@ -53,6 +53,11 @@ def py_program(unit):
     unit.onadd_check_py_imports()
 
 
+def py3_program(unit):
+    unit.onpeerdir(['library/python/runtime_py3/main'])
+    #unit.onadd_check_py_imports()
+
+
 def onpy_srcs(unit, *args):
     """
         PY_SRCS() - is rule to build extended versions of Python interpreters and containing all application code in its executable file. It can be used to collect only the executables but not shared libraries, and, in particular, not to collect the modules that are imported using import directive.
@@ -196,6 +201,91 @@ def onpy_srcs(unit, *args):
         unit.onpy_srcs([arg])
 
 
+def onpy3_srcs(unit, *args):
+    # Each file arg must either be a path, or "${...}/buildpath=modname", where
+    # "${...}/buildpath" part will be used as a file source in a future macro,
+    # and "modname" will be used as a module name.
+    unit.onuse_python3([])
+
+    if '/library/python/runtime_py3' not in unit.path():
+        unit.onpeerdir(['library/python/runtime_py3'])
+
+    if unit.get('MODULE_TYPE') == 'PROGRAM':
+        py3_program(unit)
+
+    ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+    cython_directives = []
+
+    pyxs_c = []
+    pyxs_cpp = []
+    pyxs = pyxs_cpp
+    pys = []
+
+    args = iter(args)
+    for arg in args:
+        # Namespace directives.
+        if arg == 'TOP_LEVEL':
+            ns = ''
+        elif arg == 'NAMESPACE':
+            ns = next(args) + '.'
+        # Cython directives.
+        elif arg == 'CYTHON_C':
+            pyxs = pyxs_c
+        elif arg == 'CYTHON_CPP':
+            pyxs = pyxs_cpp
+        elif arg == 'CYTHON_DIRECTIVE':
+            cython_directives += ['-X', next(args)]
+        # Unsupported but legal PROTO_LIBRARY arguments.
+        elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
+            pass
+        # Sources.
+        else:
+            if '=' in arg:
+                path, mod = arg.split('=', 1)
+            else:
+                path = arg
+                if arg == '__main__.py' or arg.endswith('/__main__.py'):
+                    mod = '__main__'
+                else:
+                    mod = ns + stripext(arg).replace('/', '.')
+
+            pathmod = (path, mod)
+
+            if path.endswith('.py'):
+                pys.append(pathmod)
+            elif path.endswith('.pyx'):
+                pyxs.append(pathmod)
+            else:
+                ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
+
+    if pyxs:
+        for pyxs, cython in [
+            (pyxs_c, unit.onbuildwith_cython_c),
+            (pyxs_cpp, unit.onbuildwith_cython_cpp),
+        ]:
+            for path, mod in pyxs:
+                cython([
+                    path,
+                    '--module-name', mod,
+                    '--init-name', 'PyInit_' + mangle(mod),
+                ] + cython_directives)
+                unit.onpy3_register([mod])
+
+    if pys:
+        res = []
+
+        for path, mod in pys:
+            root_rel_path = rootrel_arc_src(path, unit)
+            dest = 'py/' + mod.replace('.', '/') + '.py'
+            res += [
+                'DEST', dest, path
+                # TODO Compile and add .pyc
+            ]
+
+        unit.onresource_files(res)
+        #add_python_lint_checks(unit, [path for path, mod in pys])
+
+
 def ontest_srcs(unit, *args):
     used = set(args) & {"NAMESPACE", "TOP_LEVEL", "__main__.py"}
     if used:
@@ -247,4 +337,11 @@ def onpy_main(unit, arg):
         arg += ':main'
 
     py_program(unit)
+    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
+
+def onpy3_main(unit, arg):
+    if ':' not in arg:
+        arg += ':main'
+
+    py3_program(unit)
     unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
