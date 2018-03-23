@@ -41,6 +41,7 @@ def main():
 
     skip_prefix_list = [
         '-fsanitize=',
+        '-fsanitize-coverage=',
         '-fsanitize-blacklist=',
     ]
     for prefix in skip_prefix_list:
