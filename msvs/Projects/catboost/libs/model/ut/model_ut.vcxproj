@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\formula_evaluator_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\leaf_weights_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\model_serialization_ut.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ut\model_test_helpers.h"/>
   </ItemGroup>

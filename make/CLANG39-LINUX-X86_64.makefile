@@ -5487,6 +5487,7 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_sr
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
         ::\
+        $(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o\
@@ -5503,17 +5504,17 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
 
-$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o\
+$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp\
+        $(SOURCE_ROOT)/catboost/libs/model/model_stats.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=r3378004 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_stats.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=r3378004 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         ::\
@@ -5643,6 +5644,16 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=r3378004 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o\
         ::\
@@ -15295,7 +15306,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h'
 	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/flatc' '$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf'
@@ -15310,6 +15321,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o'
