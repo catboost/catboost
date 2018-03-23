@@ -18,11 +18,11 @@ namespace NCatboostOptions {
             , LeavesEstimationIterations("leaf_estimation_iterations", 1)
             , LeavesEstimationMethod("leaf_estimation_method", ELeavesEstimation::Gradient)
             , L2Reg("l2_leaf_reg", 3.0)
-            , ModelSizeReg("model_size_reg", 0.5)
             , RandomStrength("random_strength", 1.0)
             , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
             , Rsm("rsm", 1.0, taskType)
             , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTreeLevel, taskType)
+            , ModelSizeReg("model_size_reg", 0.5, taskType)
             , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
             , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
             , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
@@ -89,12 +89,12 @@ namespace NCatboostOptions {
         TOption<ui32> LeavesEstimationIterations;
         TOption<ELeavesEstimation> LeavesEstimationMethod;
         TOption<float> L2Reg;
-        TOption<float> ModelSizeReg;
         TOption<float> RandomStrength;
         TOption<TBootstrapConfig> BootstrapConfig;
 
         TCpuOnlyOption<float> Rsm;
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
+        TCpuOnlyOption<float> ModelSizeReg;
 
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;
