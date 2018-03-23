@@ -787,3 +787,23 @@ def test_verbose_int():
     for log_file in log_files:
         canonical_files.append(local_canonical_file(remove_time_from_json(log_file)))
     return canonical_files
+
+
+def test_eval_set():
+    dataset = [(1, 2, 3, 4), (2, 2, 3, 4), (3, 2, 3, 4), (4, 2, 3, 4)]
+    labels = [1, 2, 3, 4]
+    train_pool = Pool(dataset, labels, cat_features=[0, 3, 2])
+
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0, "json_log": JSON_LOG_PATH})
+
+    eval_dataset = [(5, 6, 6, 6), (6, 6, 6, 6)]
+    eval_labels = [5, 6]
+    eval_pool = (eval_dataset, eval_labels)
+
+    model.fit(train_pool, eval_set=eval_pool)
+
+    eval_pools = [eval_pool]
+
+    model.fit(train_pool, eval_set=eval_pools)
+
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))

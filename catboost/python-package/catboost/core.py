@@ -727,17 +727,25 @@ class CatBoost(_CatBoostBase):
 
         allow_clear_pool = not isinstance(X, Pool)
 
-        if eval_set is None:
+        if eval_set is None or (isinstance(eval_set, list) and len(eval_set) == 0):
             if self.get_param('use_best_model'):
-                raise CatboostError("For use param {'use_best_model': True} need initialize 'eval_set'.")
+                raise CatboostError("For use param {'use_best_model': True} need initialize non-empty 'eval_set'.")
             eval_set = Pool(None)
         elif not isinstance(eval_set, Pool):
             if isinstance(eval_set, STRING_TYPES):
                 eval_set = Pool(eval_set, column_description=column_description)
             else:
-                if len(eval_set) != 2:
-                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or filename.".format(np.shape(eval_set)))
-                eval_set = Pool(eval_set[0], eval_set[1], cat_features=cat_features)
+                if isinstance(eval_set, tuple):
+                    eval_set = [eval_set]
+                if not isinstance(eval_set, list):
+                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or [(X, y)] or filename.".format(np.shape(eval_set)))
+
+                if len(eval_set) != 1:
+                    raise CatboostError("Multiple validation sets in eval_set is not supported yet. One validation set should be used.")
+
+                if len(eval_set[0]) != 2:
+                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or [(X, y)] or filename.".format(np.shape(eval_set)))
+                eval_set = Pool(eval_set[0][0], eval_set[0][1], cat_features=train_pool.get_cat_feature_indices())
 
         if plot:
             train_dir = self.get_param('train_dir') or '.'
@@ -2019,7 +2027,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         Number of boosting iterations. Can be set in params dict.
 
     evals : Pool or tuple (X, y)
-        Synonym for evals. Only one of these parameters should be set.
+        Synonym for eval_set. Only one of these parameters should be set.
 
     verbose : bool
         If set to True, then logging_level is set to Verbose, otherwise
@@ -2050,7 +2058,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
-    eval_set : Pool or tuple (X, y)
+    eval_set : Pool or tuple (X, y) or list [(X, y)]
         Dataset for evaluation.
 
     plot : bool, optional (default=False)
@@ -2080,6 +2088,11 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         params.update({
             'iterations': iterations
         })
+
+    if evals is not None:
+        if eval_set is not None:
+            raise CatboostError('Only one of the parameters evals, eval_set should be set.')
+        eval_set = evals
 
     model = CatBoost(params)
 

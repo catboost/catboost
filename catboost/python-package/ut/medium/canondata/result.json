@@ -27,6 +27,10 @@
         "checksum": "42b6bcb3ee10b0bee3dd4950f421dcf9",
         "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
     },
+    "test.test_eval_set": {
+        "checksum": "ed5465d3d8509d4baac47a4ca7c12e88",
+        "uri": "file://test.test_eval_set/catboost_training.json"
+    },
     "test.test_feature_importance": {
         "checksum": "4bce7203f37025085cc824cfa40c63a8",
         "uri": "file://test.test_feature_importance/feature_importance.npy"
