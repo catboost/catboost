@@ -229,7 +229,8 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
     TObliviousTreeBuilder treeBuilder(floatFeatures, TVector<TCatFeature>());
     for (size_t i = 0; i < trees.size(); ++i) {
         TVector<TModelSplit> splits(trees[i].begin(), trees[i].end());
-        treeBuilder.AddTree(splits, leafValues[i]);
+        TVector<float> emptyLeafWeights(0);
+        treeBuilder.AddTree(splits, leafValues[i], emptyLeafWeights);
     }
     fullModel->ObliviousTrees = treeBuilder.Build();
     fullModel->ModelInfo.clear();

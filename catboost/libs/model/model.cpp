@@ -174,6 +174,14 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
             oneTreeLeafValues.end()
         );
     }
+    TVector<float> flatLeafWeights;
+    for (const auto& oneTreeLeafWeights: LeafWeights) {
+        flatLeafWeights.insert(
+                flatLeafWeights.end(),
+                oneTreeLeafWeights.begin(),
+                oneTreeLeafWeights.end()
+        );
+    }
     return NCatBoostFbs::CreateTObliviousTreesDirect(
         serializer.FlatbufBuilder,
         ApproxDimension,
@@ -184,7 +192,8 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         &floatFeaturesOffsets,
         &oneHotFeaturesOffsets,
         &ctrFeaturesOffsets,
-        &flatLeafValues
+        &flatLeafValues,
+        &flatLeafWeights
     );
 }
 

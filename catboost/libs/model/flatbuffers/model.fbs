@@ -7,6 +7,7 @@ table TKeyValue {
     Value:string (required);
 }
 //
+
 table TObliviousTrees {
     ApproxDimension:int;
     TreeSplits:[int];
@@ -19,6 +20,7 @@ table TObliviousTrees {
     CtrFeatures:[TCtrFeature];
 
     LeafValues:[double];
+    LeafWeights:[float];
 }
 
 table TModelCore {

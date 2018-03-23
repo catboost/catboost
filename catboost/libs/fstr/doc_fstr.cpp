@@ -109,6 +109,10 @@ static TVector<TVector<double>> MapFunctionToTrees(
     return result[0];
 }
 
+static bool ModelHasLeafWeightsStats(const TFullModel& model) {
+    return !model.ObliviousTrees.LeafWeights.empty();
+}
+
 static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                                    const TVector<ui8>& binarizedFeatures,
                                                                    const TVector<TVector<TVector<double>>>& approx,
@@ -116,6 +120,19 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
     const int approxDimension = model.ObliviousTrees.ApproxDimension;
     const int docCount = approx[0][0].ysize();
     const size_t featureCount = model.ObliviousTrees.GetFlatFeatureVectorExpectedSize();
+
+    const TVector<TVector<float>>& leafWeightsStats = model.ObliviousTrees.LeafWeights;
+    bool modelHasLeafWeightsStats = ModelHasLeafWeightsStats(model);
+    double maxLeafWeight = 0;
+    if (modelHasLeafWeightsStats) {
+        for (size_t i = 0; i < leafWeightsStats.size(); ++i) {
+            float maxLeafWeightForTree = *MaxElement(leafWeightsStats[i].begin(), leafWeightsStats[i].end());
+            if (maxLeafWeightForTree > maxLeafWeight) {
+                maxLeafWeight = maxLeafWeightForTree;
+            }
+        }
+        CB_ENSURE(maxLeafWeight > 0, "Maximum weight of documents in leaves should be positive.");
+    }
 
     const TTreeFunction CalcFeatureImportanceForTree = [&](const TFullModel& model,
                                                            const TVector<ui8>& binarizedFeatures,
@@ -131,11 +148,23 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                                               ctx);
             for (int dim = 0; dim < approxDimension; ++dim) {
                 for (int doc = 0; doc < docCount; ++doc) {
-                    double leafValue = 0;
+                    double leafValue = 0, weightedLeafValue = 0, leafWeight = 0, currentLeafWeight;
                     for (int leafIdx = 0; leafIdx < indices[doc].ysize(); ++leafIdx) {
-                        leafValue += model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
+                        if (modelHasLeafWeightsStats) {
+                            currentLeafWeight = leafWeightsStats[treeIdx][leafIdx] / maxLeafWeight;
+                        } else {
+                            currentLeafWeight = 1;
+                        }
+                        double currentValue = model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
+                        leafValue += currentValue;
+                        weightedLeafValue += currentLeafWeight * currentValue;
+                        leafWeight += currentLeafWeight;
                     }
-                    leafValue /= static_cast<double>(indices[doc].ysize());
+                    if (leafWeight > 0) {
+                        leafValue = weightedLeafValue / leafWeight;
+                    } else {
+                        leafValue /= static_cast<double>(indices[doc].ysize()); // TODO(bshar): can this be wrong? e.g. when baseline is provided?
+                    }
                     result[featureId][doc] += approx[treeIdx][dim][doc] - leafValue;
                 }
             }

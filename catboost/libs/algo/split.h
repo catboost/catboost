@@ -162,3 +162,9 @@ struct TSplitTree {
     Y_SAVELOAD_DEFINE(Splits)
     SAVELOAD(Splits);
 };
+
+struct TTreeStats {
+    TVector<float> LeafWeightsSum;
+
+    Y_SAVELOAD_DEFINE(LeafWeightsSum);
+};

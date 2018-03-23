@@ -64,7 +64,7 @@ static TVector<TMxTree> BuildTrees(const THashMap<TFeature, int, TFeatureHash>& 
 
 static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model) {
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
-    TVector<TVector<ui64>> leavesStatistics(treeCount, TVector<ui64>{});
+    TVector<TVector<ui64>> leavesStatistics(treeCount);
     for (size_t index = 0; index < treeCount; ++index) {
         leavesStatistics[index].resize(model.ObliviousTrees.LeafValues[index].size() / model.ObliviousTrees.ApproxDimension);
     }

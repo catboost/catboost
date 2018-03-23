@@ -1,14 +1,14 @@
 {
     "test.test_class_weights": {
-        "checksum": "d18c49f2a26cce0d0349e413190866d8",
+        "checksum": "adb99e5f200120a82a53fd3b2136a7aa",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
-        "checksum": "8f13f204d889e0d7df961fbd8c95fafd",
+        "checksum": "e06d7864ba90c715cda15ecc40ad13a6",
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
-        "checksum": "3255157acd617883b21a9f480f651507",
+        "checksum": "c2e021b8a48c6f7a4a29fa8c0f2c55eb",
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_coreml_import_export": {
@@ -24,7 +24,7 @@
         "uri": "file://test.test_cv_with_not_binarized_target/catboost_training.json"
     },
     "test.test_doc_feature_importance": {
-        "checksum": "42b6bcb3ee10b0bee3dd4950f421dcf9",
+        "checksum": "258125051039007c8d7e200e3c1641c1",
         "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
     },
     "test.test_eval_set": {
@@ -36,15 +36,15 @@
         "uri": "file://test.test_feature_importance/feature_importance.npy"
     },
     "test.test_fit_data": {
-        "checksum": "8b28ead672174dc17322c162341c08cc",
+        "checksum": "4c3db059b44189871e33c578cb3fb2d8",
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "1194ec6f25fbc885ff8d069bb2e29387",
+        "checksum": "54a5cdf8a42a72488a31b075442c6ed6",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "df7d8efba440d8eea5d823bd1ea1a1ee",
+        "checksum": "00d4ce7d81a06e92d339fed8f466d272",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
@@ -56,7 +56,7 @@
         "uri": "file://test.test_multiclass/predictions.npy"
     },
     "test.test_non_ones_weight": {
-        "checksum": "12a2b3305d7e3a5dac4c75732c23f74f",
+        "checksum": "41f04bac5f1ef8909ea31b8b1ab9de56",
         "uri": "file://test.test_non_ones_weight/model.bin"
     },
     "test.test_ntree_limit": {
@@ -64,15 +64,15 @@
         "uri": "file://test.test_ntree_limit/predictions.npy"
     },
     "test.test_od": {
-        "checksum": "6157910e193ca3e1f94421509c1287e0",
+        "checksum": "3a70a188c18716aee91bfa6d44834e14",
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_one_doc_feature_importance": {
-        "checksum": "9ee2cfbf18373e7afceb4aadca5398b0",
+        "checksum": "296eb0436c78183dc26646dd987cffd5",
         "uri": "file://test.test_one_doc_feature_importance/feature_importance.npy"
     },
     "test.test_ones_weight": {
-        "checksum": "1ac7414307102ef717c3a395bd54f08f",
+        "checksum": "2508c9fa479a5094abf2d959c1113f3d",
         "uri": "file://test.test_ones_weight/model.bin"
     },
     "test.test_predict_class": {
@@ -88,23 +88,23 @@
         "uri": "file://test.test_predict_class_raw/predictions.npy"
     },
     "test.test_predict_regress": {
-        "checksum": "cdcbc29e47269517b1f13fd1c868f95f",
+        "checksum": "af8734c8f58463ad6fb15f992bc59043",
         "uri": "file://test.test_predict_regress/model.bin"
     },
     "test.test_predict_sklearn_class": {
-        "checksum": "9946816601b1323d2ff3a280f8ff6d99",
+        "checksum": "8384afdcccaaf2e176a1cd0023013b3e",
         "uri": "file://test.test_predict_sklearn_class/model.bin"
     },
     "test.test_predict_sklearn_regress": {
-        "checksum": "cdcbc29e47269517b1f13fd1c868f95f",
+        "checksum": "af8734c8f58463ad6fb15f992bc59043",
         "uri": "file://test.test_predict_sklearn_regress/model.bin"
     },
     "test.test_priors": {
-        "checksum": "86519e8010f61771dc89fd5e9f32ba9f",
+        "checksum": "9fa4cba708a528832a8d8d3f162ec8dd",
         "uri": "file://test.test_priors/model.bin"
     },
     "test.test_regression_ctr": {
-        "checksum": "49211a3256d27ec94f7e648d2fed5eb8",
+        "checksum": "ab9db526fc1e032233157b51cf4bbfc0",
         "uri": "file://test.test_regression_ctr/model.bin"
     },
     "test.test_staged_predict": {
@@ -126,7 +126,7 @@
         }
     ],
     "test.test_zero_baseline": {
-        "checksum": "1ac7414307102ef717c3a395bd54f08f",
+        "checksum": "2508c9fa479a5094abf2d959c1113f3d",
         "uri": "file://test.test_zero_baseline/model.bin"
     }
 }

@@ -90,6 +90,9 @@ struct TObliviousTrees {
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
     TVector<TVector<double>> LeafValues;
 
+    //! Leaf weights layout: [treeIndex][leafId]
+    TVector<TVector<float>> LeafWeights;
+
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
     TVector<TCatFeature> CatFeatures;
 
@@ -132,6 +135,15 @@ struct TObliviousTrees {
             for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
                 const auto treeLeafCout = ApproxDimension * (1 << TreeSizes[treeId]);
                 LeafValues[treeId].assign(leafValIter, leafValIter + treeLeafCout);
+                leafValIter += treeLeafCout;
+            }
+        }
+        if (fbObj->LeafWeights()) {
+            LeafWeights.resize(TreeSizes.size());
+            auto leafValIter = fbObj->LeafWeights()->begin();
+            for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
+                const auto treeLeafCout = (1 << TreeSizes[treeId]);
+                LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
                 leafValIter += treeLeafCout;
             }
         }

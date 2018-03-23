@@ -466,7 +466,7 @@ class TCPUModelTrainer : public IModelTrainer {
                         featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
                     }
                 }
-                builder.AddTree(modelSplits, ctx.LearnProgress.LeafValues[treeId]);
+                builder.AddTree(modelSplits, ctx.LearnProgress.LeafValues[treeId], ctx.LearnProgress.TreeStats[treeId].LeafWeightsSum);
             }
             obliviousTrees = builder.Build();
         }

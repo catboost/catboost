@@ -12,7 +12,10 @@ TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFl
     }
 }
 
-void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits, const TVector<TVector<double>>& treeLeafValues) {
+void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
+                                    const TVector<TVector<double>>& treeLeafValues,
+                                    const TVector<float>& treeLeafWeights
+) {
     auto& leafValues = LeafValues.emplace_back();
     if (ApproxDimension == 0) {
         ApproxDimension = treeLeafValues.ysize();
@@ -25,6 +28,9 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits, con
         for (size_t leafId = 0; leafId < leafCount; ++leafId) {
             leafValues[leafId * ApproxDimension + dimension] = treeLeafValues[dimension][leafId];
         }
+    }
+    if (!treeLeafWeights.empty()) {
+        LeafWeights.push_back(TVector<float>(treeLeafWeights));
     }
     Trees.emplace_back(modelSplits);
 }
@@ -57,6 +63,7 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
     TObliviousTrees result;
     result.ApproxDimension = ApproxDimension;
     result.LeafValues = LeafValues;
+    result.LeafWeights = LeafWeights;
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
             result.TreeSplits.push_back(binFeatureIndexes.at(split));

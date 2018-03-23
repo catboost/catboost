@@ -34,6 +34,7 @@ struct TLearnProgress {
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
     TVector<TSplitTree> TreeStruct;
+    TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
 
     TVector<TVector<double>> LearnErrorsHistory;

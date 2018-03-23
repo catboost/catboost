@@ -800,7 +800,7 @@
         }
     ],
     "test.test_fstr[Ordered-Doc]": {
-        "checksum": "ddc8753aa71c9fd53874e01477c54fb2",
+        "checksum": "331627bad49cbbce63b7c4fde3f5ad59",
         "uri": "file://test.test_fstr_Ordered-Doc_/fstr.tsv"
     },
     "test.test_fstr[Ordered-FeatureImportance]": {
@@ -820,7 +820,7 @@
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-Doc]": {
-        "checksum": "65f86ff1d19ea9334305b19cbe04f865",
+        "checksum": "0803f7d2b679224adc60a91f85d0801f",
         "uri": "file://test.test_fstr_Plain-Doc_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {

@@ -78,11 +78,16 @@ namespace NCatboostCuda {
             return LeafValues;
         }
 
+        const TVector<float>& GetWeights() const {
+            return LeafWeights;
+        }
+
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues);
 
     private:
         TObliviousTreeStructure ModelStructure;
         TVector<float> LeafValues;
+        TVector<float> LeafWeights;
     };
 }
 

@@ -85,7 +85,11 @@ void UpdateAveragingFold(
         treeValues,
         &indices
     );
-
+    auto& currentTreeStats = ctx->LearnProgress.TreeStats.emplace_back();
+    currentTreeStats.LeafWeightsSum.resize((*treeValues)[0].size());
+    for (auto docId = 0; docId < learnData.GetSampleCount(); ++docId) {
+        currentTreeStats.LeafWeightsSum[indices[ctx->LearnProgress.AveragingFold.LearnPermutation[docId]]] += learnData.Weights[docId];
+    }
     // TODO(nikitxskv): if this will be a bottleneck, we can use precalculated counts.
     if (IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         NormalizeLeafValues(indices, learnData.GetSampleCount(), treeValues);
