@@ -6,17 +6,6 @@
 #include <util/stream/file.h>
 
 SIMPLE_UNIT_TEST_SUITE(TMD5Test) {
-    SIMPLE_UNIT_TEST(TestOverflow) {
-        if (sizeof(size_t) > sizeof(unsigned int)) {
-            const size_t len = (size_t)(5) + (size_t)Max<unsigned int>();
-            TArrayHolder<char> buf = new char[len];
-
-            memset(buf.Get(), 0, len);
-
-            UNIT_ASSERT_VALUES_EQUAL(MD5::Calc(TStringBuf(buf.Get(), len)), "6e92cd744269e7ce7f65df408e2ed4d3");
-        }
-    }
-
     SIMPLE_UNIT_TEST(TestMD5) {
         // echo -n 'qwertyuiopqwertyuiopasdfghjklasdfghjkl' | md5sum
         char b[] = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";

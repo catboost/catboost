@@ -18,7 +18,9 @@ public:
         const char* buf = (const char*)data;
 
         while (len) {
-            const unsigned int buffSz = (unsigned int)Min((size_t)Max<unsigned int>(), len);
+            // NOTE: we don't want buffSz to be near Max<unsigned int>()
+            // because otherwise integer overflow might happen in UpdatePart
+            const unsigned int buffSz = Min(size_t(Max<unsigned int>() / 2), len);
 
             UpdatePart(buf, buffSz);
             buf += buffSz;
@@ -31,7 +33,6 @@ public:
         return Update(~data, +data);
     }
 
-    void UpdatePart(const void* data, unsigned int len);
     void Pad();
     unsigned char* Final(unsigned char[16]);
 
@@ -53,6 +54,9 @@ public:
     static TString CalcRaw(const TStringBuf& data); // 16-byte raw
 
     static bool IsMD5(const TStringBuf& data);
+
+private:
+    void UpdatePart(const void* data, unsigned int len);
 
 private:
     ui32 State[4];            /* state (ABCD) */
