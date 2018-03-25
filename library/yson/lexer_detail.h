@@ -159,11 +159,11 @@ public:
 
     void GetToken(TToken* token)
     {
-        char ch = TBase::SkipSpaceAndGetChar();
-        auto state = GetStartState(ch);
+        char ch1 = TBase::SkipSpaceAndGetChar();
+        auto state = GetStartState(ch1);
         auto stateBits = static_cast<unsigned>(state);
 
-        if (ch == '\0') {
+        if (ch1 == '\0') {
             *token = TToken::EndOfStream;
             return;
         }
@@ -193,15 +193,15 @@ public:
                     *token = TToken(value);
                 } else if (state == EReadStartCase::Percent) {
                     TBase::Advance(1);
-                    char ch = TBase::template GetChar<true>();
-                    if (ch == 't' || ch == 'f') {
+                    char ch3 = TBase::template GetChar<true>();
+                    if (ch3 == 't' || ch3 == 'f') {
                         *token = TToken(TBase::template ReadBoolean<true>());
                     } else {
                         *token = TToken(TBase::template ReadNanOrInf<true>());
                     }
                 } else { // None
                     Y_ASSERT(state == EReadStartCase::None);
-                    ythrow TYsonException() << Sprintf("Unexpected %c", ch);
+                    ythrow TYsonException() << Sprintf("Unexpected %c", ch1);
                 }
             } else { // BinaryScalar = x01b
                 TBase::Advance(1);
