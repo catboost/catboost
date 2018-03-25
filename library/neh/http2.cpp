@@ -1513,8 +1513,8 @@ namespace {
             void Send(TAtomicBase requestId, TData& data, const TString& compressionScheme, const THttpVersion& ver, const TString& headers) {
                 class THttpResponseFormatter {
                 public:
-                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& headers) {
-                        Header.Reserve(128 + +contentEncoding + +headers);
+                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders) {
+                        Header.Reserve(128 + +contentEncoding + +theHeaders);
                         PrintHttpVersion(Header, theVer);
                         Header << STRINGBUF(" 200 Ok");
                         if (Compress(theData, contentEncoding)) {
@@ -1525,8 +1525,8 @@ namespace {
                             // since HTTP/1.1 Keep-Alive is default behaviour
                             Header << STRINGBUF("\r\nConnection: Keep-Alive");
                         }
-                        if (headers) {
-                            Header << headers;
+                        if (theHeaders) {
+                            Header << theHeaders;
                         }
                         Header << STRINGBUF("\r\n\r\n");
 
@@ -1545,8 +1545,8 @@ namespace {
 
                 class TBuffers: public THttpResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& headers)
-                        : THttpResponseFormatter(theData, contentEncoding, theVer, headers)
+                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders)
+                        : THttpResponseFormatter(theData, contentEncoding, theVer, theHeaders)
                         , IOVec(Parts, 2)
                     {
                     }
