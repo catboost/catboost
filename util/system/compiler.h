@@ -454,7 +454,7 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic ignored \"-Wshadow\"")
 #elif defined(_MSC_VER)
 #define Y_PRAGMA_NO_WSHADOW \
-    Y_PRAGMA("warning(disable:4456 4457)")
+    Y_PRAGMA(warning(disable:4456 4457))
 #else
 #define Y_PRAGMA_NO_WSHADOW
 #endif
