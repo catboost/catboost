@@ -54,7 +54,7 @@ ENDIF()
 
 IF (OS_LINUX)
     RECURSE(
-    
+    ibdrv
 )
 ENDIF()
 

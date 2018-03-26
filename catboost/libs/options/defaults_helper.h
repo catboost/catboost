@@ -51,7 +51,10 @@ inline void UpdateUseBestModel(bool hasTestLabels, NCatboostOptions::TOption<boo
 }
 
 inline void UpdateLeavesEstimation(bool hasWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    if (hasWeights && IsClassificationLoss(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
+    if (
+        hasWeights && IsClassificationLoss(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
+        !IsMultiClassError(catBoostOptions->LossFunctionDescription->GetLossFunction())
+    ) {
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod = ELeavesEstimation::Gradient;
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations = 40;
     }

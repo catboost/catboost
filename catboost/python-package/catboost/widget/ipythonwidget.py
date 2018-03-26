@@ -1,5 +1,4 @@
 import os
-import csv
 import time
 import json
 from threading import Thread
@@ -40,7 +39,7 @@ class CatboostIpythonWidget(DOMWidget):
 
     def _get_subdirectories(self, a_dir):
         return [{'name': name, 'path': os.path.join(a_dir, name)}
-            for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
+                for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
     def _update_data(self, subdirs=False):
         data = {}
@@ -78,12 +77,10 @@ class CatboostIpythonWidget(DOMWidget):
         training_json = os.path.join(path, 'catboost_training.json')
 
         if os.path.isfile(training_json):
-             with open(training_json, 'r') as json_data:
+            with open(training_json, 'r') as json_data:
                 training_data = json.load(json_data)
-
                 data['meta'] = training_data['meta']
                 data['iterations'] = training_data['iterations']
-
         else:
             return None
 
@@ -122,4 +119,3 @@ class CatboostIpythonWidget(DOMWidget):
         """.format(css, js)
 
         display(HTML(html))
-
