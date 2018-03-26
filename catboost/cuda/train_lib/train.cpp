@@ -91,7 +91,7 @@ namespace NCatboostCuda {
                 }
             }
         }
-        if (catBoostOptions.BoostingOptions->BoostingType == EDataPartitionType::DocParallel) {
+        if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel) {
             CB_ENSURE(couldUsedDocParallelBoosting, "Can't use doc-parallel data partition for non-power of two device currently. We'll fix it in upcoming release. Please use FeatureParallel mode instead");
 
         }
