@@ -540,6 +540,23 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgro
     return train_pool
 
 
+def _clear_training_files(train_dir):
+    for filename in ['catboost_training.json']:
+        path = os.path.join(train_dir, filename)
+        if os.path.exists(path):
+            os.remove(path)
+
+
+def _get_catboost_widget(train_dir):
+    _clear_training_files(train_dir)
+    try:
+        from .widget import CatboostIpythonWidget
+        return CatboostIpythonWidget(train_dir)
+    except ImportError as e:
+        warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
+        raise ImportError(str(e))
+
+
 class CatBoost(_CatBoostBase):
     """
     CatBoost model, that contains training, prediction and evaluation.
@@ -702,6 +719,9 @@ class CatBoost(_CatBoostBase):
             if os.path.exists(path):
                 os.remove(path)
 
+    def _get_train_dir(self):
+        return self.get_param('train_dir') or '.'
+
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
@@ -748,16 +768,9 @@ class CatBoost(_CatBoostBase):
                 eval_set = Pool(eval_set[0][0], eval_set[0][1], cat_features=train_pool.get_cat_feature_indices())
 
         if plot:
-            train_dir = self.get_param('train_dir') or '.'
-            self._clear_tsv_files(train_dir)
+            widget = _get_catboost_widget(self._get_train_dir())
+            widget._run_update()
 
-            try:
-                from .widget import CatboostIpythonWidget
-                widget = CatboostIpythonWidget(train_dir)
-                widget._run_update()
-            except ImportError as e:
-                warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
-                raise ImportError(str(e))
         with log_fixup():
             self._train(train_pool, eval_set, params, allow_clear_pool)
         if calc_feature_importance:
@@ -978,7 +991,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
@@ -993,10 +1006,13 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid metric type: must be string().")
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
-        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
+        if plot:
+            widget = _get_catboost_widget(self._get_train_dir())
+            widget._run_update()
+        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, self._get_train_dir(), tmp_dir)
         return dict(zip(metrics, metrics_score))
 
-    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False):
         """
         Calculate metrics.
 
@@ -1027,11 +1043,14 @@ class CatBoost(_CatBoostBase):
             The name of the temporary directory for intermediate results.
             If None, then the name will be generated.
 
+        plot : bool, optional (default=False)
+            If True, drow train and eval error in Jupyter notebook
+
         Returns
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot)
 
     def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
@@ -2102,7 +2121,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
-       shuffle=True, logging_level=None, stratified=False, as_pandas=True, verbose=None, verbose_eval=None):
+       shuffle=True, logging_level=None, stratified=False, as_pandas=True, verbose=None, verbose_eval=None, plot=False):
     """
     Cross-validate the CatBoost model.
 
@@ -2172,6 +2191,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     verbose_eval : bool or int
         Synonym for verbose. Only one of these parameters should be set.
 
+    plot : bool, optional (default=False)
+        If True, drow train and eval error in Jupyter notebook
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2217,6 +2239,11 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if seed is not None:
         partition_random_seed = seed
+
+    if plot:
+        train_dir = params.get('train_dir') or '.'
+        widget = _get_catboost_widget(train_dir)
+        widget._run_update()
 
     with log_fixup():
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)

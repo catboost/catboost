@@ -113,7 +113,7 @@
     },
     "test.test_verbose_int": [
         {
-            "checksum": "4a2c2cda1a5f0e109dccd7ea1c78f617",
+            "checksum": "1927167718a6428c0213c386556d4c25",
             "uri": "file://test.test_verbose_int/catboost_training0.json"
         },
         {

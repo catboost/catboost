@@ -31,6 +31,7 @@ TVector<TVector<double>> EvalMetrics(
     int end,
     int evalPeriod,
     int threadCount,
+    const TString& resultDir,
     const TString& tmpDir
 );
 

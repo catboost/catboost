@@ -115,7 +115,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         plotCalcer.ProceedDataSet(poolPart, !poolPart.Docs.QueryId.empty());
     });
 
-    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath).ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, /*saveOnlyLogFiles=*/false).ClearTempFiles();
 
     return 0;
 }

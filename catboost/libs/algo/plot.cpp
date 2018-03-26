@@ -270,25 +270,29 @@ TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
     return metricsScore;
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile, bool saveOnlyLogFiles) {
     TFsPath trainDirPath(resultDir);
     if (!resultDir.empty() && !trainDirPath.Exists()) {
         trainDirPath.MkDir();
     }
 
-    TOFStream statsStream(JoinFsPaths(resultDir, "partial_stats.tsv"));
-    const char sep = '\t';
-    WriteHeaderForPartialStats(&statsStream, sep);
-    WritePartialStats(&statsStream, sep);
+    if (!saveOnlyLogFiles) {
+        TOFStream statsStream(JoinFsPaths(resultDir, "partial_stats.tsv"));
+        const char sep = '\t';
+        WriteHeaderForPartialStats(&statsStream, sep);
+        WritePartialStats(&statsStream, sep);
+    }
 
     TString token = "eval_dataset";
 
     TLogger logger;
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
+    if (!saveOnlyLogFiles) {
+        logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
+    }
     logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
 
     auto metaJson = GetJsonMeta(Iterations.back() + 1, ""/*optionalExperimentName*/, Metrics, {}/*learnSetNames*/, {token}, ELaunchMode::Eval);
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "eval.json"), metaJson)));
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "catboost_training.json"), metaJson)));
 
     TVector<TVector<double>> results = GetMetricsScore();
     for (int iteration = 0; iteration < results[0].ysize(); ++iteration) {

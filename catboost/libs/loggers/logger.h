@@ -90,6 +90,7 @@ public:
     explicit TJsonLoggingBackend(const TString& fileName, const NJson::TJsonValue& metaJson, int writePeriod = 1)
         : File(fileName, CreateAlways)
         , WritePeriod(writePeriod)
+        , IterationsCount(metaJson["iteration_count"].GetInteger())
     {
         TString metaString = "{\n\"meta\":" + ToString<NJson::TJsonValue>(metaJson) + ",\n\"iterations\":[\n]}";
         File.Write(metaString.data(), metaString.length());
@@ -110,7 +111,7 @@ public:
     }
 
     void Flush(const int currentIteration) {
-        if (IterationJson.IsDefined() && currentIteration % WritePeriod == 0) {
+        if (IterationJson.IsDefined() && (currentIteration % WritePeriod == 0 || currentIteration == IterationsCount - 1)) {
             IterationJson.InsertValue("iteration", currentIteration);
 
             TString iterationInfo = ",";
@@ -128,6 +129,7 @@ public:
 private:
     TFile File;
     int WritePeriod;
+    int IterationsCount;
     NJson::TJsonValue IterationJson;
 };
 

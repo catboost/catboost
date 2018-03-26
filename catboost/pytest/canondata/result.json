@@ -883,7 +883,7 @@
     ],
     "test.test_json_logging_metric_period": [
         {
-            "checksum": "56eac1a74fbbe8410022dd511d1b1acf",
+            "checksum": "ab3309af2548fc59e8667a5341b8b044",
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],

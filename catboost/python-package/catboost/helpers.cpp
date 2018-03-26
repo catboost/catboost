@@ -41,6 +41,7 @@ TVector<TVector<double>> EvalMetrics(
     int end,
     int evalPeriod,
     int threadCount,
+    const TString& resultDir,
     const TString& tmpDir
 ) {
     NPar::TLocalExecutor executor;
@@ -60,6 +61,6 @@ TVector<TVector<double>> EvalMetrics(
 
     TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
 
-    plotCalcer.ClearTempFiles();
+    plotCalcer.SaveResult(resultDir, /*metricsFile=*/"", /*saveOnlyLogFiles=*/true).ClearTempFiles();
     return metricsScore;
 }

@@ -54,7 +54,7 @@ public:
     }
 
     TMetricsPlotCalcer& ProceedDataSet(const TPool& rawPool, bool isProcessBoundaryGroups);
-    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile);
+    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveOnlyLogFiles);
     TVector<TVector<double>> GetMetricsScore();
 
     void ClearTempFiles() {

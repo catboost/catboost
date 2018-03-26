@@ -44,7 +44,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int end,
         int evalPeriod,
         int threadCount,
-        const TString& tmpDiri
+        const TString& resultDir,
+        const TString& tmpDir
     ) nogil except +ProcessException
 
     cdef cppclass TMetricsPlotCalcerPythonWrapper:
@@ -923,7 +924,7 @@ cdef class _CatBoost:
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
-    cpdef _base_eval_metrics(self, _PoolBase pool, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count, str tmp_dir):
+    cpdef _base_eval_metrics(self, _PoolBase pool, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count, str result_dir, str tmp_dir):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] metricsDescription
         for metric_description in metrics_description:
@@ -938,6 +939,7 @@ cdef class _CatBoost:
             ntree_end,
             eval_period,
             thread_count,
+            TString(<const char*>result_dir),
             TString(<const char*>tmp_dir)
         )
         return [[value for value in vec] for vec in metrics]
@@ -1090,8 +1092,8 @@ class _CatBoostBase(object):
     def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, tmp_dir):
-        return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
+    def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
+        return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
