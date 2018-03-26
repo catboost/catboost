@@ -201,6 +201,38 @@ SIMPLE_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_EQUAL(data, expected);
     }
 
+    SIMPLE_UNIT_TEST(EraseNodesIfTest) {
+        TMap<int, int> map{{1, 1}, {2, 2}, {3, 5}};
+        TMap<int, int> expectedMap{{1, 1}};
+        EraseNodesIf(map, [](auto p) { return p.first >= 2; });
+        UNIT_ASSERT_EQUAL(map, expectedMap);
+
+        TMultiMap<int, int> multiMap{{1, 1}, {1, 3}, {2, 2}, {3, 5}};
+        TMultiMap<int, int> expectedMultiMap{{1, 1}, {1, 3}};
+        EraseNodesIf(multiMap, [](auto p) { return p.first >= 2; });
+        UNIT_ASSERT_EQUAL(multiMap, expectedMultiMap);
+
+        TSet<int> set{1, 2, 3, 4, 5, 6, 7};
+        TSet<int> expectedSet{1, 3, 5, 7};
+        EraseNodesIf(set, [](int i) { return i % 2 == 0; });
+        UNIT_ASSERT_EQUAL(set, expectedSet);
+
+        TMultiSet<int> multiSet{1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 7};
+        TMultiSet<int> expectedMultiSet{1, 1, 3, 5, 5, 5, 7};
+        EraseNodesIf(multiSet, [](int i) { return i % 2 == 0; });
+        UNIT_ASSERT_EQUAL(multiSet, expectedMultiSet);
+
+        THashMap<int, int> hashMap{{1, 0}, {3, 0}, {4, 0}, {10, 0}, {2, 0}, {5, 2}};
+        THashMap<int, int> expectedHashMap{{1, 0}, {3, 0}, {5, 2}};
+        EraseNodesIf(hashMap, [](auto p) { return p.first % 2 == 0; });
+        UNIT_ASSERT_EQUAL(hashMap, expectedHashMap);
+
+        THashMultiMap<int, int> hashMultiMap{{1, 0}, {3, 0}, {4, 0}, {10, 0}, {2, 0}, {5, 0}, {1, 0}, {1, 0}, {2, 0}, {2, 2}};
+        THashMultiMap<int, int> expectedHashMultiMap{{1, 0}, {1, 0}, {1, 0}, {3, 0}, {5, 0}};
+        EraseNodesIf(hashMultiMap, [](auto p) { return p.first % 2 == 0; });
+        UNIT_ASSERT_EQUAL(hashMultiMap, expectedHashMultiMap);
+    }
+
     SIMPLE_UNIT_TEST(NthElementTest) {
         {
             TVector<TString> v;

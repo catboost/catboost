@@ -328,6 +328,17 @@ void EraseIf(C& c, P p) {
     c.erase(std::remove_if(c.begin(), c.end(), p), c.end());
 }
 
+template <class C, class P>
+void EraseNodesIf(C& c, P p) {
+    for (auto iter = c.begin(), last = c.end(); iter != last;) {
+        if (p(*iter)) {
+            c.erase(iter++);
+        } else {
+            ++iter;
+        }
+    }
+}
+
 template <class T1, class T2>
 static inline bool Equal(T1 f1, T1 l1, T2 f2) {
     return std::equal(f1, l1, f2);
