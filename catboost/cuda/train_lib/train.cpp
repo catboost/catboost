@@ -82,12 +82,12 @@ namespace NCatboostCuda {
             return;
         } else {
             if (catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain) {
-                if (!couldUsedDocParallelBoosting) {
-                    MATRIXNET_WARNING_LOG << "Can't used doc-parallel data-partition for non-power of 2 device count. It could be more efficient to use less devices, but with doc-parallel mode."<<Endl;
-                    return;
-                }
                 if (catBoostOptions.BoostingOptions->DataPartitionType.NotSet()) {
-                    catBoostOptions.BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
+                    if (!couldUsedDocParallelBoosting) {
+                        MATRIXNET_WARNING_LOG << "Can't used doc-parallel data-partition for non-power of 2 device count. It could be more efficient to use less devices, but with doc-parallel mode."<<Endl;
+                    } else {
+                        catBoostOptions.BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
+                    }
                 }
             }
         }
