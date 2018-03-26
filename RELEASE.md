@@ -1,10 +1,10 @@
 # Release 0.7
-## Breaking changes:
-- Changed parameter order in train() function to be consistant with other GBDT libraries.
-- `use_best_model` is set to True by default if `eval_set` labels are present
+## Breaking changes
+- Changed parameter order in [`train()`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_train-docpage/) function to be consistant with other GBDT libraries.
+- `use_best_model` is set to True by default if `eval_set` labels are present.
 
-## New functionality:
-- New ranking mode YetiRank optimizes NDGC and PFound.
+## Major Features And Improvements
+- New ranking mode [`YetiRank`](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions__ranking) optimizes `NDGC` and `PFound`.
 - New visualisation for `eval_metrics` and `cv` in Jupyter notebook.
 - Improved per document feature importance.
 - Supported `verbose`=`int`: if `verbose` > 1, `metric_period` is set to this value.
@@ -12,7 +12,7 @@
 - Binary classification leaf estimation defaults are changed for weighted datasets so that training converges for any weights.
 - Add `model_size_reg` parameter to control model size. Fix `ctr_leaf_count_limit` parameter, also to control model size.
 - Beta version of distributed CPU training with only float features support.
-- Add `subgroupId` to Python/R-packages
+- Add `subgroupId` to [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_pool-docpage/)/[R-packages](https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_pool-docpage/).
 - Add groupwise metrics support in `eval_metrics`.
 
 ## Thanks to our Contributors
