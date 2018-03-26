@@ -1,0 +1,222 @@
+{
+    "parserOptions": {
+    },
+    "rules": {
+        // common
+        "indent": [
+            2,
+            4,
+            {"SwitchCase": 1}
+        ],
+        "linebreak-style": [
+            2,
+            "unix"
+        ],
+        "semi": [
+            2,
+            "always"
+        ],
+        "no-trailing-spaces": [
+            2,
+            {"skipBlankLines": true}
+        ],
+
+        // restricted
+        "block-scoped-var": 2,
+        "curly": 2,
+        "dot-location": [
+            2,
+            "property"
+        ],
+        "dot-notation": [
+            2,
+            {"allowKeywords": false, "allowPattern": ".*"}
+        ],
+        "quote-props": [
+            2,
+            "as-needed",
+            {"keywords": true, "unnecessary": false}
+        ],
+        "eqeqeq": 2,
+        "no-alert": 2,
+        "no-eq-null": 2,
+        "no-eval": 2,
+        "no-implied-eval": 2,
+        "no-extra-bind": 2,
+        "no-lone-blocks": 2,
+        "no-loop-func": 2,
+        "no-multi-spaces": [
+            2,
+            {"exceptions": {"VariableDeclarator": true}}
+        ],
+        "no-native-reassign": 2,
+        "no-new-wrappers": 2,
+        "no-octal-escape": 2,
+        "no-octal": 2,
+        "no-proto": 2,
+        "no-return-assign": 2,
+        "no-script-url": 2,
+        "no-self-compare": 2,
+        "no-sequences": 2,
+        "no-unused-expressions": 2,
+        "no-useless-call": 2,
+        "no-void": 2,
+        "no-with": 2,
+        "wrap-iife": [
+            2,
+            "any"
+        ],
+        "yoda": [
+            2,
+            "never", {"onlyEquality": true}
+        ],
+        "no-catch-shadow": 2,
+        "no-label-var": 2,
+        "no-shadow-restricted-names": 2,
+        "no-undef": 2,
+
+        // style
+        "array-bracket-spacing": [
+            2,
+            "never"
+        ],
+        "brace-style": [
+            2,
+            "1tbs",
+            {"allowSingleLine": false}
+        ],
+        "comma-spacing": [
+            2,
+            {"before": false, "after": true}
+        ],
+        "comma-style": [
+            2,
+            "last"
+        ],
+        "computed-property-spacing": [
+            2,
+            "never"
+        ],
+        "key-spacing": [
+            2,
+            {"beforeColon": false, "afterColon": true}
+        ],
+        "new-cap": [
+            2,
+            {"capIsNewExceptions": [
+                "RAWINC",
+                "INCLUDE",
+                "StatLogIdOnly",
+                "Lang",
+                "BannerExists",
+                "Banner",
+                "Bench",
+                "LangGeo",
+                "I18N",
+                "Deferred",
+                "Stat",
+                "ThirdPartyContent",
+                "StatLogGetRoot",
+                "StatLogSearch",
+                "Event"
+            ], "newIsCapExceptions": [
+                "Ya.share2"
+            ]}
+        ],
+        "new-parens": 2,
+        "no-new-object": 2,
+        "no-spaced-func": 2,
+        "no-unneeded-ternary": 2,
+        "object-curly-spacing": [
+            2,
+            "never"
+        ],
+        "operator-linebreak": [2, "after"],
+        "semi-spacing": 2,
+        "keyword-spacing": 2,
+        "space-in-parens": [
+            2,
+            "never"
+        ],
+        "space-infix-ops": [
+            2,
+            {"int32Hint": false}
+        ],
+        "max-depth": [2, 5],
+        "max-len": [2, 180, 4],
+        "max-params": [2, 4],
+        "no-bitwise": 2,
+        "space-before-blocks": [
+            2,
+            "always"
+        ],
+        "quotes": [
+            2,
+            "single",
+            "avoid-escape"
+        ],
+
+        // warnings
+        "camelcase": [
+            1,
+            {"properties": "always"}
+        ],
+        "valid-jsdoc": [
+            1,
+            {"requireReturn": false, "requireParamDescription": false, "requireReturnDescription": false}
+        ],
+        "no-unexpected-multiline": 1,
+        "guard-for-in": 1,
+        "no-caller": 1,
+        "no-labels": [1, {"allowLoop": false, "allowSwitch": false}],
+        "no-multi-str": 1,
+        "no-new": 1,
+        "radix": 1,
+        "no-undef-init": 1,
+        "handle-callback-err": [
+            1,
+            "^(err|error)$"
+        ],
+        "no-nested-ternary": 1,
+        "id-length": [
+            1,
+            {"min": 1, "max": 30}
+        ],
+        "no-lonely-if": 1,
+        "no-use-before-define": [
+            1,
+            "nofunc"
+        ]
+    },
+    "env": {
+        "browser": true,
+        "jquery": true,
+        "node": true,
+        "qunit": true,
+        "mocha": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "INCLUDE": true,
+        "RAWINC": true,
+        "error": true,
+        "home": true,
+        "x": true,
+        "BEM": true,
+        "BEMHTML": true,
+        "MBEM": true,
+        "include": true,
+        "csh_ifmsid": true,
+        "BannerExists": true,
+        "Banner": true,
+        "Bench": true,
+        "setCounter": true,
+        "StatLogSearch": true,
+        "LangGeo": true,
+        "views": true,
+        "Ya": true,
+        "Promise": true,
+        "sinon": true,
+        "gemini": true
+    }
+}

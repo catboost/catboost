@@ -1,0 +1,22 @@
+{
+"meta":{
+	"launch_mode":"Train",
+	"name":"experiment",
+	"iteration_count":20,
+	"learn_metrics":[
+		{"best_value":"Min","name":"MAPE"},
+		{"best_value":"Min","name":"RMSE"},
+		{"best_value":"Max","name":"AUC"}
+	],
+	"test_sets":["test"],
+	"test_metrics":[
+		{"best_value":"Min","name":"MAPE"},
+		{"best_value":"Min","name":"RMSE"},
+		{"best_value":"Max","name":"AUC"}
+	],
+	"learn_sets":["learn"]
+},
+"iterations":[
+{"learn":["inf","inf",0.5],"iteration":0,"passed_time":0.0009625287001,"remaining_time":0.0182880453,"test":["inf","inf",0.5]},
+{"learn":["nan","nan",1],"iteration":19,"passed_time":0.001608976648,"remaining_time":0.01448078983,"test":["nan","nan",1]}
+]}

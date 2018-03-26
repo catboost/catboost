@@ -1,6 +1,26 @@
-var moduleBase = '@jupyter-widgets/base';
+var debug = false;
 
-define('catboost_module', [moduleBase], function(widgets) {
+if (debug) {
+    require.config({
+        shim:{
+            "custom/CatboostIpythonPlotly":{
+                deps:["custom/plotly-basic.min"]
+            }
+        }
+    })
+
+    require.undef('catboost_module');
+    require.undef('custom/CatboostIpythonPlotly');
+}
+
+var moduleBase = '@jupyter-widgets/base';
+var modules = [moduleBase];
+
+if (debug) {
+    modules.push('custom/CatboostIpythonPlotly');
+}
+
+define('catboost_module', modules, function(widgets) {
     var getInstance = function(el) {
             var id = $(el).attr('catboost-id');
 
@@ -22,6 +42,9 @@ define('catboost_module', [moduleBase], function(widgets) {
             var catboostIpython = new CatboostIpython();
             catboostIpython.index = window.catboostIpythonIndex;
             catboostIpython.plotly = window.Plotly;
+            if (debug) {
+                catboostIpython.loadStyles('/custom/CatboostIpython.css', function(){catboostIpython.resizeCharts();})
+            }
 
             window.catboostIpythonInstances[window.catboostIpythonIndex] = catboostIpython;
 
@@ -72,58 +95,44 @@ define('catboost_module', [moduleBase], function(widgets) {
 
             for (var path in data) {
                 if (data.hasOwnProperty(path)) {
-                    this.process_row(parent, data[path], {name: 'learn_error', type: 'learn'});
-                    this.process_row(parent, data[path], {name: 'test_error', type: 'test'});
+                    this.process_row(parent, data[path])
                 }
             }
         },
 
-        process_row: function(parent, data, params) {
+        process_row: function(parent, data) {
             var catboostIpython = getInstance(parent),
                 path = data.path,
-                items = data.content.rows[params.name],
-                chunks = [],
-                chunkItems,
-                firstIndex = 1;
+                content = data.content,
+                items = content.data.iterations,
+                firstIndex = 0,
+                chunks = [];
 
-            if (!items.length) {
+            if (!items || !items.length) {
                 return;
             }
 
-            if (!catboostIpython.lastIndexes[path]) {
-                catboostIpython.lastIndexes[path] = {};
+            if (!catboostIpython.lastIndex) {
+                catboostIpython.lastIndex = {}
             }
 
-            // file can contains unfinished lines
-            // so we need to read it again to fix incorrect displayed data
-            /*
-            if (!catboostIpython.lastIndexes[path][params.type]) {
-                firstIndex = 1;
-            } else {
-                firstIndex = Math.max(catboostIpython.lastIndexes[path][params.type] - 1, 1);
+            if (catboostIpython.lastIndex[path]) {
+                firstIndex = catboostIpython.lastIndex[path] + 1;
             }
-            */
 
-            catboostIpython.lastIndexes[path][params.type] = items.length;
+            catboostIpython.lastIndex[path] = items.length - 1;
 
             for (var i = firstIndex; i < items.length; i++) {
-                chunkItems = items[i].map(function(item) {
-                    return Number(item);
-                });
-
-                chunks.push(chunkItems);
+                chunks.push(items[i]);
             }
 
-            catboostIpython.addMeta(data.path, data.content.rows['meta']);
-
-            catboostIpython.setTime(data.path, data.content.rows['time_left']);
+            catboostIpython.addMeta(data.path, content.data.meta);
 
             catboostIpython.addPoints(parent, {
                 chunks: chunks,
-                path: data.path,
                 train: data.name,
-                fields: items[0]
-            }, params.type);
+                path: data.path
+            });
         },
 
         render_charts: function () {

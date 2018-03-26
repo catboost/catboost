@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+import json
 from threading import Thread
 from IPython.core.display import display, HTML
 from traitlets import Unicode, Dict, default
@@ -39,7 +40,7 @@ class CatboostIpythonWidget(DOMWidget):
 
     def _get_subdirectories(self, a_dir):
         return [{'name': name, 'path': os.path.join(a_dir, name)}
-                    for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
+            for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
     def _update_data(self, subdirs=False):
         data = {}
@@ -63,63 +64,34 @@ class CatboostIpythonWidget(DOMWidget):
             }
 
             if not need_update:
-                need_update = data[path]['content']['passed_iterations'] < data[path]['content']['total_iterations']
+                need_update = data[path]['content']['passed_iterations'] + 1 < data[path]['content']['total_iterations']
 
         self.data = data
         self._need_update = need_update
 
     def _update_data_from_dir(self, path):
         data = {
-            'learn_error': [],
-            'test_error': [],
-            'time_left': '',
-            'meta': []
+            'iterations': {},
+            'meta': {}
         }
 
-        meta_tsv = os.path.join(path, 'meta.tsv')
-        if os.path.isfile(meta_tsv):
-            with open(meta_tsv, 'r') as meta_in:
-                data['meta'] = {}
-                for row in list(csv.reader(meta_in, delimiter='\t')):
-                    if not len(row):
-                        continue
+        training_json = os.path.join(path, 'catboost_training.json')
 
-                    if row[0] != 'loss':
-                        data['meta'][row[0]] = row[1]
-                    else:
-                        data['meta'][row[0] + '_' + row[1]] = row[2]
+        if os.path.isfile(training_json):
+             with open(training_json, 'r') as json_data:
+                training_data = json.load(json_data)
 
-        logs = {
-            'test_error': data['meta']['testErrorLog'] if 'testErrorLog' in data['meta'] else 'test_error.tsv',
-            'learn_error': data['meta']['learnErrorLog'] if 'learnErrorLog' in data['meta'] else 'learn_error.tsv',
-            'time_left': data['meta']['timeLeft'] if 'timeLeft' in data['meta'] else 'time_left.tsv'
-        }
+                data['meta'] = training_data['meta']
+                data['iterations'] = training_data['iterations']
 
-        for error_type in logs:
-            file_path = os.path.join(path, logs[error_type])
-            if os.path.isfile(file_path):
-                with open(file_path, 'r') as f:
-                    data[error_type] = list(csv.reader(f, delimiter='\t'))
-
-        passed_test_iterations = len(data['test_error']) - 1
-        passed_learn_iterations = len(data['learn_error']) - 1
-        passed_iterations = 0
-
-        if (passed_test_iterations > 0 and passed_learn_iterations > 0):
-            passed_iterations = min(passed_test_iterations, passed_learn_iterations)
-        elif passed_test_iterations > 0:
-            passed_iterations = passed_test_iterations
-        elif passed_learn_iterations > 0:
-            passed_iterations = passed_learn_iterations
-
-        if data['meta'] and data['meta']['iterCount']:
-            return {
-                'passed_iterations': passed_iterations,
-                'total_iterations': int(data['meta']['iterCount']),
-                'rows': data
-            }
         else:
             return None
+
+        return {
+            'passed_iterations': data['iterations'][-1]['iteration'],
+            'total_iterations': data['meta']['iteration_count'],
+            'data': data
+        }
 
     @staticmethod
     def _get_static_path(file_name):
@@ -150,3 +122,4 @@ class CatboostIpythonWidget(DOMWidget):
         """.format(css, js)
 
         display(HTML(html))
+
