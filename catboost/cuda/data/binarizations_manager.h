@@ -265,7 +265,7 @@ namespace NCatboostCuda {
 
         ui32 GetBinCount(ui32 localId) const {
             if (Borders.has(localId)) {
-                return Borders.at(localId).size() + 1;
+                return Borders.at(localId).size() + 1 + (GetNanMode(localId) != ENanMode::Forbidden);
             } else if (IsCat(localId)) {
                 return GetUniqueValues(localId);
             } else if (InverseCtrs.has(localId)) {
