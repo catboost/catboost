@@ -158,12 +158,12 @@ namespace NCatboostCuda {
                 const ui64 cindexOffset = loadOffset + (i / featuresPerInt) * docCount;
                 const ui32 foldCount = Grid.Folds[feature];
                 CB_ENSURE(foldCount <= maxFolds, TStringBuilder() << "Fold count " << foldCount << " max folds " << maxFolds << " (" << Policy << ")");
-                TCFeature cudaFeature = {cindexOffset,
-                                         mask,
-                                         shift,
-                                         foldOffset,
-                                         foldCount,
-                                         Grid.IsOneHot[feature]};
+                TCFeature cudaFeature {cindexOffset,
+                                       mask,
+                                       shift,
+                                       foldOffset,
+                                       foldCount,
+                                       Grid.IsOneHot[feature]};
                 foldOffset += foldCount;
                 (*features).push_back(cudaFeature);
             }
