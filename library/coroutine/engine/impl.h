@@ -211,7 +211,6 @@ public:
         , Func_(func)
         , Arg_(arg)
         , Name_(name)
-        , SwitchCount_(0)
         , Cancelled_(false)
         , Scheduled_(false)
     {
@@ -226,10 +225,7 @@ public:
 
     inline void SwitchTo(TCont* next) noexcept {
         DBGOUT(PCORO(this) << " switch to " << PCORO(next));
-        if (next == this) {
-            return;
-        }
-        SwitchCount_ += 1;
+
         Context()->SwitchTo(next->Context());
     }
 
@@ -263,10 +259,6 @@ public:
 
     inline const char* Name() const noexcept {
         return Name_;
-    }
-
-    inline ui64 GetSwitchCount() const noexcept {
-        return SwitchCount_;
     }
 
     void PrintMe(IOutputStream& out) const noexcept;
@@ -487,7 +479,6 @@ private:
     void* Arg_;
     const char* Name_;
     TIntrusiveList<TJoinWait> Waiters_;
-    ui64 SwitchCount_;
     bool Cancelled_;
     bool Scheduled_;
 };
