@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\groupid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\pair.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\query.h"/>
   </ItemGroup>
