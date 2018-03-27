@@ -248,9 +248,9 @@ namespace NCatboostCuda {
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
-    class TСtrsWriter {
+    class TCtrsWriter {
     public:
-        TСtrsWriter(TBinarizedFeaturesManager& featuresManager,
+        TCtrsWriter(TBinarizedFeaturesManager& featuresManager,
                     TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                     TBatchedBinarizedCtrsCalcer& binarizedCtrCalcer,
                     ui32 dataSetId,

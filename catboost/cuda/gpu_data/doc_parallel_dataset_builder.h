@@ -180,7 +180,7 @@ namespace NCatboostCuda {
                                                        LinkedTest,
                                                        LinkedTest ? &testIndices : nullptr);
 
-                TСtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
+                TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                            compressedIndexBuilder,
                                                            ctrsCalcer,
                                                            permutationIndependentCompressedDataSetId,
@@ -207,7 +207,7 @@ namespace NCatboostCuda {
                                                                linkedTest,
                                                                testIndicesPtr);
 
-                        TСtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
+                        TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                                    compressedIndexBuilder,
                                                                    ctrsCalcer,
                                                                    ds.PermutationDependentFeatures,

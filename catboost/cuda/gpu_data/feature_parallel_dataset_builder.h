@@ -208,7 +208,7 @@ namespace NCatboostCuda {
                                                        LinkedTest,
                                                        LinkedTest ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices() : nullptr);
 
-                TСtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
+                TCtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
                                                                compressedIndexBuilder,
                                                                ctrsCalcer,
                                                                permutationIndependentCompressedDataSetId,
@@ -237,7 +237,7 @@ namespace NCatboostCuda {
                                                                linkedTest,
                                                                testIndices);
 
-                        TСtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
+                        TCtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
                                                                        compressedIndexBuilder,
                                                                        ctrsCalcer,
                                                                        ds.PermutationDependentFeatures,
