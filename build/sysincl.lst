@@ -4641,6 +4641,7 @@ vasprintf.h
 #endif
 #if defined(_LINUX_ANDROID)
 android/api-level.h
+android/ndk-version.h
 #endif
 #if defined(__HP_aCC)
 acxx_demangle.h
