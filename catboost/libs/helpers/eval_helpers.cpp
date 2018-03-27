@@ -140,7 +140,7 @@ void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& po
                     CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId in CD file)");
                     break;
                 case (EColumn::GroupId):
-                    CB_ENSURE(pool.MetaInfo.HasGroupIds, "bad output column name " << name << " (No GroupId in CD file)");
+                    CB_ENSURE(pool.MetaInfo.GroupIdColumn >= 0, "bad output column name " << name << " (No GroupId in CD file)");
                     break;
                 case (EColumn::Timestamp):
                     CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp in CD file)");
@@ -169,6 +169,33 @@ void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& po
         CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
     }
     CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
+}
+
+namespace {
+    class TGroupIdPrinter: public IColumnPrinter {
+    public:
+        TGroupIdPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr, int groupIdColumn, const TVector<TGroupId>& ref, const TString& header)
+            : PrinterPtr(printerPtr)
+            , GroupIdColumn(groupIdColumn)
+            , Ref(ref)
+            , Header(header) {}
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            const TString& cell = PrinterPtr->GetCell(docIndex, GroupIdColumn);
+            Y_VERIFY(Ref[docIndex] == CalcGroupIdFor(cell));
+            *outStream << cell;
+        }
+
+    private:
+        TIntrusivePtr<TPoolColumnsPrinter> PrinterPtr;
+        int GroupIdColumn;
+        const TVector<TGroupId>& Ref;
+        TString Header;
+    };
 }
 
 void TEvalResult::OutputToFile(
@@ -220,7 +247,7 @@ void TEvalResult::OutputToFile(
                 continue;
             }
             if (outputType == EColumn::GroupId) {
-                columnPrinter.push_back(MakeHolder<TVectorPrinter<ui32>>(pool.Docs.QueryId, columnName));
+                columnPrinter.push_back(MakeHolder<TGroupIdPrinter>(poolColumnsPrinter, pool.MetaInfo.GroupIdColumn, pool.Docs.QueryId, columnName));
                 continue;
             }
             if (outputType == EColumn::Baseline) {

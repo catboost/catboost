@@ -70,6 +70,10 @@ public:
     }
 
     void OutputDoc(IOutputStream* outStream, int docId, size_t docIndex) {
+        *outStream << GetCell(docIndex, docId);
+    }
+
+    const TString& GetCell(size_t docIndex, int colId) {
         if (docIndex == DocIndex + 1) {
             DocIndex++;
             TString line;
@@ -80,7 +84,7 @@ public:
             }
         }
         CB_ENSURE(docIndex == DocIndex, "only serial lines possible to output");
-        *outStream << Factors[docId];
+        return Factors[colId];
     }
 
 private:
@@ -108,9 +112,6 @@ private:
     TIntrusivePtr<TPoolColumnsPrinter> PrinterPtr;
     int FactorId;
 };
-
-
-void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& pool, bool CV_mode=false);
 
 class TEvalPrinter: public IColumnPrinter {
 public:
@@ -162,6 +163,8 @@ private:
     TVector<TString> Header;
     TVector<TVector<TVector<double>>> Approxes;
 };
+
+void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& pool, bool CV_mode=false);
 
 class TEvalResult {
 public:

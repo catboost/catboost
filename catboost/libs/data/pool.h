@@ -1,7 +1,8 @@
 #pragma once
 
-#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
@@ -14,7 +15,7 @@ struct TPoolMetaInfo {
     ui32 ColumnsCount;
     ui32 BaselineCount;
 
-    bool HasGroupIds = false;
+    int GroupIdColumn = -1;
     bool HasSubgroupIds = false;
     bool HasDocIds = false;
     bool HasWeights = false;
@@ -43,7 +44,7 @@ struct TDocumentStorage {
     TVector<float> Target; // [docIdx]
     TVector<float> Weight; // [docIdx]
     TVector<TString> Id; // [docIdx]
-    TVector<ui32> QueryId; // [docIdx]
+    TVector<TGroupId> QueryId; // [docIdx]
     TVector<ui32> SubgroupId; // [docIdx]
     TVector<ui64> Timestamp; // [docIdx]
 

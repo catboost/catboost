@@ -2,8 +2,8 @@
 #include <catboost/cuda/cuda_lib/helpers.h>
 #include <util/random/shuffle.h>
 
-void NCatboostCuda::GroupSamples(const TVector<ui32>& qid, TVector<TVector<ui32>>* qdata) {
-    TSet<ui32> knownQids;
+void NCatboostCuda::GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata) {
+    TSet<TGroupId> knownQids;
     for (ui32 i = 0; i < qid.size(); ++i) {
         auto current = qid[i];
         CB_ENSURE(knownQids.count(current) == 0, "Error: queryIds should be groupped");

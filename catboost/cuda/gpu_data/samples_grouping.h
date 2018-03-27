@@ -57,14 +57,14 @@ namespace NCatboostCuda {
     //zero-based group indices
     class TQueriesGrouping: public IQueriesGrouping {
     public:
-        TQueriesGrouping(const TVector<ui32>& queryIds,
-                         const THashMap<ui32, TVector<TPair>>& pairs) {
+        TQueriesGrouping(const TVector<TGroupId>& queryIds,
+                         const THashMap<TGroupId, TVector<TPair>>& pairs) {
             auto groupedSamples = GroupSamples(queryIds);
             QuerySizes = ComputeGroupSizes(groupedSamples);
             QueryOffsets = ComputeGroupOffsets(groupedSamples);
             QueryIds.resize(queryIds.size());
 
-            TVector<ui32> inverseGids;
+            TVector<TGroupId> inverseGids;
             {
                 ui32 cursor = 0;
                 for (ui32 i = 0; i < QuerySizes.size(); ++i) {
@@ -78,7 +78,7 @@ namespace NCatboostCuda {
 
             if (pairs.size()) {
                 for (ui32 i = 0; i < inverseGids.size(); ++i) {
-                    ui32 gid = inverseGids[i];
+                    TGroupId gid = inverseGids[i];
                     QueryPairOffsets.push_back(FlatQueryPairs.size());
                     if (pairs.has(gid)) {
                         ui32 queryOffset = QueryOffsets[i];

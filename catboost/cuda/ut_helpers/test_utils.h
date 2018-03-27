@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/data_types/groupid.h>
 #include <util/generic/vector.h>
 #include <util/generic/set.h>
 #include <util/stream/file.h>
@@ -7,7 +8,7 @@
 struct TUnitTestPool {
     TVector<float> Features;
     TVector<float> Targets;
-    TVector<ui32> Qids;
+    TVector<TGroupId> Qids;
     TVector<ui32> Gids;
     TVector<TVector<ui32>> Queries;
 
@@ -28,7 +29,7 @@ struct TUnitTestPool {
 struct TBinarizedPool {
     TVector<TVector<ui8>> Features;
     TVector<float> Targets;
-    TVector<ui32> Qids;
+    TVector<TGroupId> Qids;
     TVector<TVector<ui32>> CatFeatures;
     TVector<TVector<int>> Queries;
     ui32 NumSamples;

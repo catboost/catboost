@@ -7,7 +7,7 @@ TPoolStructure;
 
 required TargetColumn = FloatColumn;
 optional DocIdColumn = IntColumn;
-optional QueryIdColun = IntColumn;
+optional QueryIdColumn = IntColumn;
 optional WeightColumn = FloatColumn;
 optional BaselineColumnColumn = FloatColumn;
 

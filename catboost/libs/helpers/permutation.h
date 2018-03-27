@@ -24,7 +24,7 @@ TVector<IndexType> InvertPermutation(const TVector<IndexType>& permutation) {
 }
 
 template<typename TDataType, typename TRandGen>
-void Shuffle(const TVector<ui32>& queryId, TRandGen& rand, TVector<TDataType>* indices) {
+void Shuffle(const TVector<TGroupId>& queryId, TRandGen& rand, TVector<TDataType>* indices) {
     if (queryId.empty()) {
         Shuffle(indices->begin(), indices->end(), rand);
         return;

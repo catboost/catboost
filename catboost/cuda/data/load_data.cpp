@@ -13,7 +13,7 @@ namespace NCatboostCuda {
         DataProvider.Timestamp.resize(newDataSize);
 
         for (ui32 i = Cursor; i < DataProvider.QueryIds.size(); ++i) {
-            DataProvider.QueryIds[i] = i;
+            DataProvider.QueryIds[i] = TGroupId(i);
             DataProvider.SubgroupIds[i] = i;
         }
 
@@ -29,9 +29,9 @@ namespace NCatboostCuda {
         DataProvider.DocIds.resize(newDataSize);
     }
 
-    inline bool HasQueryIds(const TVector<ui32>& qids) {
+    inline bool HasQueryIds(const TVector<TGroupId>& qids) {
         for (ui32 i = 0; i < qids.size(); ++i) {
-            if (qids[i] != i) {
+            if (qids[i] != TGroupId(i)) {
                 return true;
             }
         }

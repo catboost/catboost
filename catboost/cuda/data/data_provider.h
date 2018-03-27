@@ -90,7 +90,7 @@ namespace NCatboostCuda {
             return QueryIds.size() == Targets.size();
         }
 
-        const TVector<ui32>& GetQueryIds() const {
+        const TVector<TGroupId>& GetQueryIds() const {
             CB_ENSURE(HasQueries(), "Current mode need query ids but they were not found in loaded data");
             return QueryIds;
         }
@@ -130,14 +130,14 @@ namespace NCatboostCuda {
             HasTimeFlag = flag;
         }
 
-        const THashMap<ui32, TVector<TPair>>& GetPairs() const {
+        const THashMap<TGroupId, TVector<TPair>>& GetPairs() const {
             return QueryPairs;
         };
 
     private:
         void FillQueryPairs(const TVector<TPair>& pairs) {
             CB_ENSURE(QueryIds.size(), "Error: provide query ids");
-            THashMap<ui32, ui32> queryOffsets;
+            THashMap<TGroupId, ui32> queryOffsets;
             for (ui32 doc = 0; doc < QueryIds.size(); ++doc) {
                 const auto queryId = QueryIds[doc];
                 if (!queryOffsets.has(queryId)) {
@@ -175,12 +175,12 @@ namespace NCatboostCuda {
         TVector<float> Weights;
         TVector<TVector<float>> Baseline;
 
-        TVector<ui32> QueryIds;
+        TVector<TGroupId> QueryIds;
         TVector<ui32> SubgroupIds;
         TVector<ui32> DocIds;
         TVector<ui64> Timestamp;
 
-        THashMap<ui32, TVector<TPair>> QueryPairs;
+        THashMap<TGroupId, TVector<TPair>> QueryPairs;
 
         TMap<ui32, ui32> IndicesToLocalIndicesRemap;
 

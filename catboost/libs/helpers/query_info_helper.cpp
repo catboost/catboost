@@ -1,7 +1,7 @@
 #include "query_info_helper.h"
 #include "exception.h"
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
     int begin = beginDoc, end = endDoc;
     if (begin == end) {
         return;
@@ -16,7 +16,7 @@ void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subg
         return;
     }
 
-    ui32 currentQueryId = queriesId[begin];
+    TGroupId currentQueryId = queriesId[begin];
     int currentQuerySize = 0;
     for (int docId = begin; docId < end; ++docId) {
         if (currentQueryId == queriesId[docId]) {

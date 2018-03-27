@@ -6,10 +6,10 @@
 #include "approx_util.h"
 #include "projection.h"
 
-#include <catboost/libs/model/online_ctr.h>
-#include <catboost/libs/helpers/clear_array.h>
-#include <catboost/libs/data_types/query.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/data_types/query.h>
+#include <catboost/libs/helpers/clear_array.h>
+#include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <util/generic/vector.h>

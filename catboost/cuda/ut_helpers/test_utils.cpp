@@ -1,5 +1,6 @@
 #include "test_utils.h"
 #include <catboost/cuda/utils/cpu_random.h>
+#include <util/stream/str.h>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ void GenerateTestPool(TBinarizedPool& pool,
     pool.Targets.clear();
     pool.Queries.clear();
     pool.Qids.clear();
-    ui32 qid = 100000;
+    TGroupId qid = TGroupId(100000);
     pool.CatFeatures.resize(catFeatures);
     pool.NumCatFeatures = catFeatures;
 
@@ -50,7 +51,10 @@ void GenerateTestPool(TBinarizedPool& pool,
 void SavePoolToFile(TBinarizedPool& pool, const char* filename) {
     TOFStream output(filename);
     for (ui32 doc = 0; doc < pool.NumSamples; ++doc) {
-        output << pool.Qids[doc] << "\t" << pool.Targets[doc] << "\tFakeUrl";
+        TStringStream qid;
+        qid << pool.Qids[doc];
+        output << qid.Str() << "\t" << pool.Targets[doc] << "\tFakeUrl";
+        pool.Qids[doc] = CalcGroupIdFor(qid.Str());
         for (ui32 f = 0; f < pool.NumCatFeatures; ++f) {
             output << "\t" << pool.CatFeatures[f][doc];
         }
@@ -70,7 +74,7 @@ void GenerateTestPool(TUnitTestPool& pool, ui32 numFeatures) {
     pool.Targets.clear();
     pool.Queries.clear();
     pool.Qids.clear();
-    ui32 qid = 1000000;
+    TGroupId qid = TGroupId(1000000);
     for (ui32 i = 0; i < numSamples; ++i) {
         if (i % samplesPerQuery == 0) {
             qid += 10;
@@ -99,8 +103,12 @@ void GenerateTestPool(TUnitTestPool& pool, ui32 numFeatures) {
 
 void SavePoolToFile(TUnitTestPool& pool, const char* filename) {
     TOFStream output(filename);
+
     for (ui32 i = 0; i < pool.NumSamples; ++i) {
-        output << pool.Qids[i] << "\t" << pool.Targets[i] << "\tFakeUrl\t" << pool.Gids[i];
+        TStringStream qid;
+        qid << pool.Qids[i];
+        output << qid.Str() << "\t" << pool.Targets[i] << "\tFakeUrl\t" << pool.Gids[i];
+        pool.Qids[i] = CalcGroupIdFor(qid.Str());
         for (ui32 j = 0; j < pool.NumFeatures; ++j) {
             output << "\t" << pool.Features[pool.NumSamples * j + i];
         }

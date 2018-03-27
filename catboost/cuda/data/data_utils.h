@@ -12,9 +12,9 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
-    void GroupSamples(const TVector<ui32>& qid, TVector<TVector<ui32>>* qdata);
+    void GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata);
 
-    inline TVector<TVector<ui32>> GroupSamples(const TVector<ui32>& qid) {
+    inline TVector<TVector<ui32>> GroupSamples(const TVector<TGroupId>& qid) {
         TVector<TVector<ui32>> qdata;
         GroupSamples(qid, &qdata);
         return qdata;
@@ -67,7 +67,7 @@ namespace NCatboostCuda {
     }
 
     template <class TIndicesType>
-    inline void QueryConsistentShuffle(ui64 seed, ui32 blockSize, const TVector<ui32>& queryIds, TVector<TIndicesType>* orderPtr) {
+    inline void QueryConsistentShuffle(ui64 seed, ui32 blockSize, const TVector<TGroupId>& queryIds, TVector<TIndicesType>* orderPtr) {
         auto grouppedQueries = GroupSamples(queryIds);
         auto offsets = ComputeGroupOffsets(grouppedQueries);
         TVector<ui32> order;

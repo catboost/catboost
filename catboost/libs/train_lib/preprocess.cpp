@@ -3,12 +3,12 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/metric.h>
 
-static int CountGroups(const TVector<ui32>& queryIds) {
+static int CountGroups(const TVector<TGroupId>& queryIds) {
     if (queryIds.empty()) {
         return 0;
     }
     int result = 1;
-    ui32 id = queryIds[0];
+    TGroupId id = queryIds[0];
     for (int i = 1; i < queryIds.ysize(); ++i) {
        if (queryIds[i] != id) {
            result++;
@@ -18,7 +18,7 @@ static int CountGroups(const TVector<ui32>& queryIds) {
     return result;
 }
 
-static bool AreQueriesGrouped(const TVector<ui32>& queryIds) {
+static bool AreQueriesGrouped(const TVector<TGroupId>& queryIds) {
     int groupCount = CountGroups(queryIds);
 
     auto queryIdsCopy = queryIds;
@@ -27,7 +27,7 @@ static bool AreQueriesGrouped(const TVector<ui32>& queryIds) {
     return groupCount == sortedGroupCount;
 }
 
-static bool ArePairsGroupedByQuery(const TVector<ui32>& queryId, const TVector<TPair>& pairs) {
+static bool ArePairsGroupedByQuery(const TVector<TGroupId>& queryId, const TVector<TPair>& pairs) {
     for (const auto& pair : pairs) {
         if (queryId[pair.WinnerId] != queryId[pair.LoserId]) {
             return false;

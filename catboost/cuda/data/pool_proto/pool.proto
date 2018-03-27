@@ -18,6 +18,10 @@ message TUnsignedIntegerColumn {
     repeated uint32 Values = 1 [packed = true];
 }
 
+message TUnsignedInteger64Column {
+    repeated uint64 Values = 1 [packed = true];
+}
+
 message TIntegerColumn {
     repeated int32 Values = 1 [packed = true];
 }

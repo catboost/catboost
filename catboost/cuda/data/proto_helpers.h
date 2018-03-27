@@ -22,7 +22,7 @@ namespace NCatboostCuda {
     }
 
     inline void ReadUnsignedInt64Column(TIFStream& input, TVector<ui64>& dst) {
-        NCompressedPool::TUnsignedIntegerColumn column;
+        NCompressedPool::TUnsignedInteger64Column column;
         ReadMessage(input, column);
         dst.resize((unsigned long)column.GetValues().size());
         std::copy(column.GetValues().begin(), column.GetValues().end(), dst.begin());

@@ -113,7 +113,7 @@ namespace NCatboostCuda {
             DataProvider.Weights[GetLineIdx(localIdx)] = value;
         }
 
-        void AddQueryId(ui32 localIdx, ui32 queryId) override {
+        void AddQueryId(ui32 localIdx, TGroupId queryId) override {
             DataProvider.QueryIds[GetLineIdx(localIdx)] = queryId;
         }
 

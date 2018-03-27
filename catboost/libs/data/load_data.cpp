@@ -1,24 +1,24 @@
 #include "load_data.h"
 #include "load_helpers.h"
 
-#include <catboost/libs/helpers/mem_usage.h>
-#include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/model/split.h>
 #include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/model/split.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/digest/city.h>
-#include <util/generic/set.h>
-#include <util/generic/map.h>
 #include <util/generic/hash_set.h>
-#include <util/string/cast.h>
-#include <util/string/split.h>
-#include <util/string/iterator.h>
-#include <util/system/fs.h>
-#include <util/system/event.h>
+#include <util/generic/map.h>
+#include <util/generic/set.h>
 #include <util/stream/file.h>
+#include <util/string/cast.h>
+#include <util/string/iterator.h>
+#include <util/string/split.h>
+#include <util/system/event.h>
+#include <util/system/fs.h>
 
 class TPoolBuilder: public IPoolBuilder {
 public:
@@ -33,15 +33,15 @@ public:
         NextCursor = 0;
         FactorCount = poolMetaInfo.FactorCount;
         BaselineCount = poolMetaInfo.BaselineCount;
-
-        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, poolMetaInfo.HasGroupIds, poolMetaInfo.HasSubgroupIds);
+        bool haveGroupId = poolMetaInfo.GroupIdColumn >= 0;
+        Pool->Docs.Resize(docCount, FactorCount, BaselineCount, haveGroupId, poolMetaInfo.HasSubgroupIds);
         Pool->CatFeatures = poolMetaInfo.CatFeatureIds;
 
         Pool->MetaInfo.ColumnsCount = poolMetaInfo.ColumnsCount;
         Pool->MetaInfo.BaselineCount = poolMetaInfo.BaselineCount;
         Pool->MetaInfo.HasDocIds = poolMetaInfo.HasDocIds;
         Pool->MetaInfo.HasWeights = poolMetaInfo.HasWeights;
-        Pool->MetaInfo.HasGroupIds = poolMetaInfo.HasGroupIds;
+        Pool->MetaInfo.GroupIdColumn = poolMetaInfo.GroupIdColumn;
         Pool->MetaInfo.HasSubgroupIds = poolMetaInfo.HasSubgroupIds;
         Pool->MetaInfo.HasTimestamp = poolMetaInfo.HasTimestamp;
     }
@@ -86,7 +86,7 @@ public:
         Pool->Docs.Weight[Cursor + localIdx] = value;
     }
 
-    void AddQueryId(ui32 localIdx, ui32 value) override {
+    void AddQueryId(ui32 localIdx, TGroupId value) override {
         Pool->Docs.QueryId[Cursor + localIdx] = value;
     }
 
@@ -254,6 +254,15 @@ static ui32 CountColumns(const TVector<TColumn>& columnsDescription, const EColu
         }
     );
 }
+static int FindFirstColumnAfterIdx(const EColumn columnType, const TVector<TColumn>& columnDescriptions, int afterIdx) {
+    for (int idx = afterIdx + 1; idx < columnDescriptions.ysize(); ++idx) {
+        if (columnDescriptions[idx].Type == columnType) {
+            afterIdx = idx;
+            break;
+        }
+    }
+    return afterIdx;
+}
 
 TPoolReader::TPoolReader(
     const TString& cdFile,
@@ -299,7 +308,7 @@ TPoolReader::TPoolReader(
 
     const ui32 groupIdColumns = CountColumns(ColumnsDescription, EColumn::GroupId);
     CB_ENSURE(groupIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
-    PoolMetaInfo.HasGroupIds = (bool)groupIdColumns;
+    PoolMetaInfo.GroupIdColumn = FindFirstColumnAfterIdx(EColumn::GroupId, ColumnsDescription, -1);
 
     const ui32 subgroupIdColumns = CountColumns(ColumnsDescription, EColumn::SubgroupId);
     CB_ENSURE(subgroupIdColumns <= 1, "Too many SubgroupId columns.");
@@ -423,7 +432,7 @@ void TPoolReader::ProcessBlock() {
                 }
                 case EColumn::GroupId: {
                     CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
-                    PoolBuilder.AddQueryId(lineIdx, FromString<ui32>(token));
+                    PoolBuilder.AddQueryId(lineIdx, CalcGroupIdFor(token));
                     break;
                 }
                 case EColumn::SubgroupId: {

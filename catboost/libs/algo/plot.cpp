@@ -95,7 +95,7 @@ TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
     }
 
     int lastQuerySize = 0;
-    const ui32 lastQueryId = rawPool.Docs.QueryId.back();
+    const TGroupId lastQueryId = rawPool.Docs.QueryId.back();
     for (auto queryIdIt = rawPool.Docs.QueryId.rbegin(); queryIdIt != rawPool.Docs.QueryId.rend(); ++queryIdIt) {
         if (lastQueryId == *queryIdIt) {
             ++lastQuerySize;

@@ -2,9 +2,10 @@
 #include "dataset.h"
 #include "helpers.h"
 
-#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 
 static int UpdateSize(int size, const TVector<TQueryInfo>& queryInfo, const TVector<int>& queryIndices, int learnSampleCount) {
     size = Min(size, learnSampleCount);
@@ -104,12 +105,13 @@ TFold BuildDynamicFold(
     TVector<int> queryIndices;
     if (!learnData.QueryId.empty()) {
         if (shuffle) {
-            TVector<ui32> queriesId, subgroupId;
-            ff.AssignPermuted(learnData.QueryId, &queriesId);
+            TVector<TGroupId> groupIds;
+            TVector<ui32> subgroupId;
+            ff.AssignPermuted(learnData.QueryId, &groupIds);
             if (!learnData.SubgroupId.empty()) {
                 ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
             }
-            UpdateQueriesInfo(queriesId, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
+            UpdateQueriesInfo(groupIds, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
             UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
         } else {
             ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
@@ -186,14 +188,15 @@ TFold BuildPlainFold(
     TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     if (shuffle) {
-        TVector<ui32> queriesId, subgroupId;
+        TVector<TGroupId> groupIds;
+        TVector<ui32> subgroupId;
         if (!learnData.QueryId.empty()) {
-            ff.AssignPermuted(learnData.QueryId, &queriesId);
+            ff.AssignPermuted(learnData.QueryId, &groupIds);
         }
         if (!learnData.SubgroupId.empty()) {
             ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
         }
-        UpdateQueriesInfo(queriesId, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
+        UpdateQueriesInfo(groupIds, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
         UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
     } else {
         ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());

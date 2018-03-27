@@ -1,10 +1,11 @@
 #pragma once
 
+#include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/query.h>
 
 #include <util/generic/vector.h>
 
-void UpdateQueriesInfo(const TVector<ui32>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo);
 
 TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
 
