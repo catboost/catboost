@@ -118,7 +118,9 @@ void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
     CB_ENSURE(weightBounds.Max > 0, "All weights are 0");
 
     if (lossDescription.GetLossFunction() == ELossFunction::PairLogit) {
-        CB_ENSURE(weightBounds.Min == weightBounds.Max, "Pairwise loss doesn't support document weights");
+        if (weightBounds.Min != weightBounds.Max) {
+            MATRIXNET_WARNING_LOG << "Pairwise loss doesn't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
+        }
     }
 
     CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction());
