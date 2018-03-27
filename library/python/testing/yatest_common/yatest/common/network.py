@@ -167,31 +167,31 @@ class PortManager(object):
             return self._capture_port_no_lock(port, sock_type)
 
     def _capture_port_no_lock(self, port, sock_type):
-            if port in self._filelocks:
+        if port in self._filelocks:
+            return False
+
+        sock = socket.socket(socket.AF_INET6, sock_type)
+        try:
+            sock.bind(('::', port))
+        except socket.error as e:
+            if e.errno == errno.EADDRINUSE:
                 return False
+        finally:
+            sock.close()
 
-            sock = socket.socket(socket.AF_INET6, sock_type)
-            try:
-                sock.bind(('::', port))
-            except socket.error as e:
-                if e.errno == errno.EADDRINUSE:
-                    return False
-            finally:
-                sock.close()
+        if self._sync_dir:
+            # yatest.common should try do be hermetic and don't have peerdirs
+            # otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work
+            import library.python.filelock
 
-            if self._sync_dir:
-                # yatest.common should try do be hermetic and don't have peerdirs
-                # otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work
-                import library.python.filelock
-
-                filelock = library.python.filelock.FileLock(os.path.join(self._sync_dir, str(port)))
-                if not filelock.acquire(blocking=False):
-                    return False
-                self._filelocks[port] = filelock
-            else:
-                # Remember given port without lock
-                self._filelocks[port] = None
-            return True
+            filelock = library.python.filelock.FileLock(os.path.join(self._sync_dir, str(port)))
+            if not filelock.acquire(blocking=False):
+                return False
+            self._filelocks[port] = filelock
+        else:
+            # Remember given port without lock
+            self._filelocks[port] = None
+        return True
 
     def _no_random_ports(self):
         return os.environ.get("NO_RANDOM_PORTS")
