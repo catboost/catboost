@@ -1,6 +1,6 @@
 #pragma once
 #if defined _linux_ && !defined CATBOOST_OPENSOURCE
-#include <contrib/libs/ibdrv/iface.h> // Y_IGNORE
+#include <contrib/libs/ibdrv/iface.h>
 #endif
 
 namespace NNetliba_v12
