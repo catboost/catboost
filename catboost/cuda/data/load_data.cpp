@@ -158,7 +158,9 @@ namespace NCatboostCuda {
                                                   floatFeature->GetValues().size(),
                                                   nanMode,
                                                   borders);
-                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(borders.size() + 1));
+
+                const int binCount = borders.size() + 1 + ENanMode::Forbidden != nanMode;
+                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
                                                                                     floatFeature->GetValues().size(),
