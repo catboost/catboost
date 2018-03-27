@@ -144,6 +144,61 @@ public:
 
     using const_iterator = const TCharType*;
 
+    template <typename TBase>
+    struct TReverseIteratorBase {
+        constexpr TReverseIteratorBase() noexcept = default;
+        explicit constexpr TReverseIteratorBase(TBase p)
+            : P_(p)
+        {
+        }
+
+        TReverseIteratorBase operator++() noexcept {
+            --P_;
+            return *this;
+        }
+
+        TReverseIteratorBase operator++(int) noexcept {
+            TReverseIteratorBase old(*this);
+            --P_;
+            return old;
+        }
+
+        TReverseIteratorBase& operator--() noexcept {
+            ++P_;
+            return *this;
+        }
+
+        TReverseIteratorBase operator--(int) noexcept {
+            TReverseIteratorBase old(*this);
+            ++P_;
+            return old;
+        }
+
+        constexpr auto operator*() const noexcept -> std::remove_pointer_t<TBase>& {
+            return *TBase(*this);
+        }
+
+        explicit constexpr operator TBase() const noexcept {
+            return TBase(P_ - 1);
+        }
+
+        constexpr auto operator-(const TReverseIteratorBase o) const noexcept {
+            return o.P_ - P_;
+        }
+
+        constexpr bool operator==(const TReverseIteratorBase o) const noexcept {
+            return P_ == o.P_;
+        }
+
+        constexpr bool operator!=(const TReverseIteratorBase o) const noexcept {
+            return !(*this == o);
+        }
+
+    private:
+        TBase P_ = nullptr;
+    };
+    using const_reverse_iterator = TReverseIteratorBase<const_iterator>;
+
     static inline size_t StrLen(const TCharType* s) noexcept {
         return s ? TTraits::GetLength(s) : 0;
     }
@@ -187,6 +242,22 @@ public:
 
     inline const_iterator cend() const noexcept {
         return end();
+    }
+
+    inline const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(Ptr() + size());
+    }
+
+    inline const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(Ptr());
+    }
+
+    inline const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
+    }
+
+    inline const_reverse_iterator crend() const noexcept {
+        return rend();
     }
 
     inline TCharType back() const noexcept {
@@ -646,7 +717,9 @@ public:
     using traits_type = TTraits;
 
     using iterator = TCharType*;
+    using reverse_iterator = typename TBase:: template TReverseIteratorBase<iterator>;
     using const_iterator = typename TBase::const_iterator;
+    using const_reverse_iterator = typename TBase::const_reverse_iterator;
 
     struct TUninitialized {
         explicit TUninitialized(size_t size)
@@ -785,10 +858,26 @@ public:
         return Data_ + length();
     }
 
+    reverse_iterator rbegin() {
+        Detach();
+
+        return reverse_iterator(Data_ + length());
+    }
+
+    reverse_iterator rend() {
+        Detach();
+
+        return reverse_iterator(Data_);
+    }
+
     using TBase::begin;  //!< const_iterator TStringBase::begin() const
     using TBase::cbegin; //!< const_iterator TStringBase::cbegin() const
     using TBase::cend;   //!< const_iterator TStringBase::cend() const
     using TBase::end;    //!< const_iterator TStringBase::end() const
+    using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
+    using TBase::crbegin; //!< const_reverse_iterator TStringBase::crbegin() const
+    using TBase::crend;   //!< const_reverse_iterator TStringBase::crend() const
+    using TBase::rend;    //!< const_reverse_iterator TStringBase::rend() const
 
     inline size_t reserve() const noexcept {
         return GetData()->BufLen;
