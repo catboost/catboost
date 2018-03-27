@@ -86,14 +86,14 @@ class PortManager(object):
     def _release_port_no_lock(self, port):
         filelock = self._filelocks.pop(port, None)
         if filelock:
-            self._relase_filelock(filelock)
+            self._release_filelock(filelock)
 
     def release(self):
         with self._lock:
             while self._filelocks:
                 _, filelock = self._filelocks.popitem()
                 if filelock:
-                    self._relase_filelock(filelock)
+                    self._release_filelock(filelock)
 
     def get_port_range(self, start_port, count):
         assert count > 0
@@ -124,7 +124,7 @@ class PortManager(object):
             raise PortManagerException("Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
                 start_port, count, self._valid_range, self._filelocks))
 
-    def _relase_filelock(self, filelock):
+    def _release_filelock(self, filelock):
         try:
             os.unlink(filelock.path)
         except OSError:
