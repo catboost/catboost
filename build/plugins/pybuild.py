@@ -217,7 +217,11 @@ def onpy3_srcs(unit, *args):
     if unit.get('MODULE_TYPE') == 'PROGRAM':
         py3_program(unit)
 
-    ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+    py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
+    if py_namespace_value == ".":
+        ns = ""
+    else:
+        ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
     cython_directives = []
 
     pyxs_c = []
