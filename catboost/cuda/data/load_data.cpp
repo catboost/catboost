@@ -159,7 +159,7 @@ namespace NCatboostCuda {
                                                   nanMode,
                                                   borders);
 
-                const int binCount = borders.size() + 1 + ENanMode::Forbidden != nanMode;
+                const int binCount = static_cast<const int>(borders.size() + 1 + (ENanMode::Forbidden != nanMode));
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
