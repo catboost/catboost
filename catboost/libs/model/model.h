@@ -91,7 +91,7 @@ struct TObliviousTrees {
     TVector<TVector<double>> LeafValues;
 
     //! Leaf weights layout: [treeIndex][leafId]
-    TVector<TVector<float>> LeafWeights;
+    TVector<TVector<double>> LeafWeights;
 
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
     TVector<TCatFeature> CatFeatures;

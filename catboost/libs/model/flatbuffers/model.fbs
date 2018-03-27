@@ -20,7 +20,7 @@ table TObliviousTrees {
     CtrFeatures:[TCtrFeature];
 
     LeafValues:[double];
-    LeafWeights:[float];
+    LeafWeights:[double];
 }
 
 table TModelCore {

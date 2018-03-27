@@ -6,4 +6,4 @@
 
 #include <util/generic/vector.h>
 
-TVector<TVector<float>> ComputeTotalLeafWeights(const TPool& pool, const TFullModel& model);
+TVector<TVector<double>> ComputeTotalLeafWeights(const TPool& pool, const TFullModel& model);

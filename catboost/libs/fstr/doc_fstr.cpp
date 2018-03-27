@@ -121,7 +121,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
     const int docCount = approx[0][0].ysize();
     const size_t featureCount = model.ObliviousTrees.GetFlatFeatureVectorExpectedSize();
 
-    const TVector<TVector<float>>& leafWeightsStats = model.ObliviousTrees.LeafWeights;
+    const TVector<TVector<double>>& leafWeightsStats = model.ObliviousTrees.LeafWeights;
     bool modelHasLeafWeightsStats = ModelHasLeafWeightsStats(model);
     double maxLeafWeight = 0;
     if (modelHasLeafWeightsStats) {

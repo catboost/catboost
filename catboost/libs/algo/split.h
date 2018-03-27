@@ -164,7 +164,7 @@ struct TSplitTree {
 };
 
 struct TTreeStats {
-    TVector<float> LeafWeightsSum;
+    TVector<double> LeafWeightsSum;
 
     Y_SAVELOAD_DEFINE(LeafWeightsSum);
 };

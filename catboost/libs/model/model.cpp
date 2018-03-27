@@ -174,7 +174,7 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
             oneTreeLeafValues.end()
         );
     }
-    TVector<float> flatLeafWeights;
+    TVector<double> flatLeafWeights;
     for (const auto& oneTreeLeafWeights: LeafWeights) {
         flatLeafWeights.insert(
                 flatLeafWeights.end(),

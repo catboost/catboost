@@ -66,14 +66,14 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
     return deserializedModel;
 }
 
-static void CheckWeights(const TVector<float>& docWeights, const TVector<TVector<float>>& leafWeights) {
-    float trueWeightSum = 0;
-    for (float weight : docWeights) {
+static void CheckWeights(const TVector<float>& docWeights, const TVector<TVector<double>>& leafWeights) {
+    double trueWeightSum = 0;
+    for (auto weight : docWeights) {
         trueWeightSum += weight;
     }
-    for (const TVector<float>& leafWeightsInTree : leafWeights) {
-        float weightSumInTree = 0;
-        for (float weight : leafWeightsInTree) {
+    for (const auto& leafWeightsInTree : leafWeights) {
+        double weightSumInTree = 0;
+        for (const auto& weight : leafWeightsInTree) {
             weightSumInTree += weight;
         }
         UNIT_ASSERT_EQUAL(trueWeightSum, weightSumInTree);

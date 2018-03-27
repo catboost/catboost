@@ -12,15 +12,19 @@ public:
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues,
-            const TVector<float>& treeLeafWeights);
-
+            const TVector<double>& treeLeafWeights);
+    void AddTree(
+            const TVector<TModelSplit>& modelSplits,
+            const TVector<TVector<double>>& treeLeafValues) {
+        AddTree(modelSplits, treeLeafValues, TVector<double>());
+    }
     TObliviousTrees Build();
 private:
     int ApproxDimension = 0;
 
     TVector<TVector<TModelSplit>> Trees;
     TVector<TVector<double>> LeafValues;
-    TVector<TVector<float>> LeafWeights;
+    TVector<TVector<double>> LeafWeights;
     TVector<TFloatFeature> FloatFeatures;
     TVector<TCatFeature> CatFeatures;
 };
