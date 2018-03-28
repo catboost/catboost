@@ -146,6 +146,8 @@ def get_svn_scm_data(info):
 def get_hg_info_cmd(arc_root, python_cmd=[sys.executable]):
     ya_path = os.path.join(arc_root, 'ya')
     hg_cmd = python_cmd + [ya_path, '-v', '--no-report', 'tool', 'hg', '-R', arc_root]
+    # suppress user .hgrc settings
+    hg_cmd += ['--config', 'alias.log=log', '--config', 'defaults.log=']
     hg_cmd += ['log', '-r', '.']
     return hg_cmd
 
