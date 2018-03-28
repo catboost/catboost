@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\code_writer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\coreml_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.cpp"/>
@@ -114,6 +115,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\split.h;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\split.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\code_writer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\coreml_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.h"/>
