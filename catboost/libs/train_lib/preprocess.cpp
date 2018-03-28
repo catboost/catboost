@@ -108,7 +108,7 @@ TDataset BuildTrainData(const TPool& pool) {
 
 void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
                       const TDataset& learnData,
-                     const TDataset& testData) {
+                      const TDataset& testData) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
 
     CheckBaseline(lossDescription.GetLossFunction(), learnData.Baseline, testData.Baseline);
@@ -137,7 +137,8 @@ void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors." );
+        CB_ENSURE(!learnData.Pairs.empty(), "You should provide learn pairs for Pairwise Errors.");
+        CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors.");
         CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");
         CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");
     }
