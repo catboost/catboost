@@ -1166,7 +1166,7 @@ class CatBoost(_CatBoostBase):
         fname : string
             Output file name.
         format : string
-            Either 'cbm' for catboost binary format, or 'coreml' to export into Apple CoreML format.
+            Either 'cbm' for catboost binary format, or 'coreml' to export into Apple CoreML format, or 'cpp' to export as C++ code.
         export_parameters : dict
             Parameters for CoreML export:
                 * prediction_type : string - either 'probability' or 'raw'

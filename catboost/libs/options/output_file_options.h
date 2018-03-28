@@ -17,6 +17,7 @@ namespace NCatboostOptions {
             , JsonLogPath("json_log", "catboost_training.json")
             , ProfileLogPath("profile_log", "catboost_profile.log")
             , LearnErrorLogPath("learn_error_log", "learn_error.tsv")
+            , ModelFormats("model_format", {EModelType::CatboostBinary})
             , TestErrorLogPath("test_error_log", "test_error.tsv")
             , TimeLeftLog("time_left_log", "time_left.tsv")
             , ResultModelPath("result_model_file", "")
@@ -89,6 +90,10 @@ namespace NCatboostOptions {
             return MetaFile.Get();
         }
 
+        const TVector<EModelType>& GetModelFormats() const {
+            return ModelFormats.Get();
+        }
+
         const TString& GetJsonLogFilename() const {
             return JsonLogPath.Get();
         }
@@ -100,7 +105,6 @@ namespace NCatboostOptions {
         const TString& GetResultModelFilename() const {
             return ResultModelPath.Get();
         }
-
 
         const TString& GetSnapshotFilename() const {
             return SnapshotPath.Get();
@@ -152,10 +156,10 @@ namespace NCatboostOptions {
 
         bool operator==(const TOutputFilesOptions& rhs) const {
             return std::tie(TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                            SnapshotPath, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
+                            SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
                             EvalFileName, FstrRegularFileName, FstrInternalFileName) ==
                    std::tie(rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath, rhs.LearnErrorLogPath, rhs.TestErrorLogPath,
-                            rhs.TimeLeftLog, rhs.ResultModelPath, rhs.SnapshotPath, rhs.SaveSnapshotFlag,
+                            rhs.TimeLeftLog, rhs.ResultModelPath, rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag,
                             rhs.AllowWriteFilesFlag, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
                             rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName);
         }
@@ -168,7 +172,7 @@ namespace NCatboostOptions {
             CheckedLoad(options,
                         &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
                         &ResultModelPath,
-                        &SnapshotPath, &SaveSnapshotFlag, &AllowWriteFilesFlag, &UseBestModel, &SnapshotSaveIntervalSeconds,
+                        &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &UseBestModel, &SnapshotSaveIntervalSeconds,
                         &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &PredictionTypes);
             Validate();
         }
@@ -176,7 +180,7 @@ namespace NCatboostOptions {
         void Save(NJson::TJsonValue* options) const {
             SaveFields(options,
                        TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                       SnapshotPath, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
+                       SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
                        EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, PredictionTypes);
         }
 
@@ -210,6 +214,7 @@ namespace NCatboostOptions {
         TOption<TString> JsonLogPath;
         TOption<TString> ProfileLogPath;
         TOption<TString> LearnErrorLogPath;
+        TOption<TVector<EModelType>> ModelFormats;
         TOption<TString> TestErrorLogPath;
         TOption<TString> TimeLeftLog;
         TOption<TString> ResultModelPath;

@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     coreml_helpers.cpp
+    code_writer.cpp
     ctr_data.cpp
     ctr_provider.cpp
     ctr_value_table.cpp

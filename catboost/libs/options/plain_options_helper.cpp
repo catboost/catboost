@@ -109,6 +109,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_regular_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_internal_file", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "model_format",  &outputFilesJson, &seenKeys);
 
 
         //boosting options

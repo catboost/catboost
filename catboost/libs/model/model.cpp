@@ -3,6 +3,7 @@
 #include "formula_evaluator.h"
 #include "static_ctr_provider.h"
 #include "flatbuffers_serializer_helper.h"
+#include "code_writer.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/json_helper.h>
@@ -93,18 +94,29 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
-void ExportModel(const TFullModel& model, const TString& modelFile, const EModelType format, const TString& userParametersJSON) {
+void OutputModelCPP(const TFullModel& model, const TString& modelFile) {
+    TCatboostModelToCppConverter cppConverter(modelFile);
+    cppConverter.Write(model);
+}
+
+void ExportModel(const TFullModel& model, const TString& modelFile, const EModelType format, const TString& userParametersJSON, bool addFileFormatExtension) {
     switch (format) {
         case EModelType::CatboostBinary:
-            CB_ENSURE(userParametersJSON.empty(), "user params for mode not supported");
-            OutputModel(model, modelFile);
+            CB_ENSURE(userParametersJSON.empty(), "JSON user params for CatBoost model export are not supported");
+            OutputModel(model, addFileFormatExtension ? modelFile + ".bin" : modelFile);
             break;
         case EModelType::AppleCoreML:
-            TStringInput is(userParametersJSON);
-            NJson::TJsonValue params;
-            NJson::ReadJsonTree(&is, &params);
+            {
+                TStringInput is(userParametersJSON);
+                NJson::TJsonValue params;
+                NJson::ReadJsonTree(&is, &params);
 
-            OutputModelCoreML(model, modelFile, params);
+                OutputModelCoreML(model, addFileFormatExtension ? modelFile + ".mlmodel" : modelFile, params);
+            }
+            break;
+        case EModelType::CPP:
+            CB_ENSURE(userParametersJSON.empty(), "JSON user params for model export to C++ are not supported");
+            OutputModelCPP(model, addFileFormatExtension ? modelFile + ".cpp" : modelFile);
             break;
     }
 }

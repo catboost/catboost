@@ -5,6 +5,8 @@
 
 #include "static_ctr_provider.h"
 
+#include <catboost/libs/options/enums.h>
+
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
 #include <catboost/libs/cat_feature/cat_feature.h>
@@ -512,11 +514,6 @@ struct TFullModel {
     }
 };
 
-enum class EModelType {
-    CatboostBinary,
-    AppleCoreML
-};
-
 void OutputModel(const TFullModel& model, const TString& modelFile);
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format = EModelType::CatboostBinary);
@@ -527,8 +524,13 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
  * @param modelFile
  * @param format
  * @param userParametersJSON
+ * @param addFileFormatExtension
  */
-void ExportModel(const TFullModel& model, const TString& modelFile, EModelType format = EModelType::CatboostBinary, const TString& userParametersJSON = "");
+void ExportModel(const TFullModel& model,
+                 const TString& modelFile,
+                 EModelType format = EModelType::CatboostBinary,
+                 const TString& userParametersJSON = "",
+                 bool addFileFormatExtension = false);
 
 /**
  * Serialize model to string

@@ -506,6 +506,15 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr).InsertValue("store_all_simple_ctr", true);
         });
 
+    parser.AddLongOption("model-format")
+        .RequiredArgument("comma separated list of formats")
+        .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
+            for (const auto& format : StringSplitter(formatsLine).Split(',')) {
+                (*plainJsonPtr)["model_format"].AppendValue(format.Token());
+            }
+        })
+        .Help("Format of model output file. Supported values {CatboostBinary, AppleCoreML, CPP}. Corresponding extensions will be added to model-file if more than one format set.");
+
     parser.AddLongOption("one-hot-max-size")
         .RequiredArgument("size_t")
         .Handler1T<size_t>([plainJsonPtr](const size_t oneHotMaxSize) {

@@ -523,7 +523,15 @@ class TCPUModelTrainer : public IModelTrainer {
 
             Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator, ctx.LocalExecutor);
             MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
-            OutputModel(Model, outputOptions.CreateResultModelFullPath());
+
+            bool addFileFormatExtension = outputOptions.GetModelFormats().size() > 1;
+            TString outputFile = outputOptions.CreateResultModelFullPath();
+            if (addFileFormatExtension && outputFile.EndsWith(".bin")) {
+                outputFile = outputFile.substr(0, outputFile.length() - 4);
+            }
+            for (const auto& format: outputOptions.GetModelFormats()) {
+                ExportModel(Model, outputFile, format, "", addFileFormatExtension);
+            }
         }
     }
 

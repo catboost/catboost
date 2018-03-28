@@ -183,3 +183,9 @@ enum class ENodeType {
     Worker,
     SingleHost
 };
+
+enum class EModelType {
+    CatboostBinary,
+    AppleCoreML,
+    CPP
+};
