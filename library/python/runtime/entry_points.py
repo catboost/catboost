@@ -6,7 +6,15 @@ def repl():
     py_main = __res.find('PY_MAIN')
 
     if py_main:
-        mod_name, func_name = py_main.split(':', 1)
+        py_main_split = py_main.split(':', 1)
+        if len(py_main_split) == 2:
+            mod_name, func_name = py_main_split
+        else:
+            mod_name, func_name = py_main_split[0], 'main'
+
+        if not mod_name:
+            mod_name = 'library.python.runtime.entry_points'
+
         try:
             import importlib
             mod = importlib.import_module(mod_name)
