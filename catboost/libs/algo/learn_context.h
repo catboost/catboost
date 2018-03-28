@@ -68,8 +68,8 @@ public:
 
 public:
     NCatboostOptions::TCatBoostOptions Params;
-    const TMaybe<TCustomObjectiveDescriptor>& ObjectiveDescriptor;
-    const TMaybe<TCustomMetricDescriptor>& EvalMetricDescriptor;
+    const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
+    const TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
     TFeaturesLayout Layout;
     THashSet<int> CatFeatures;
     TCtrHelper CtrsHelper;
