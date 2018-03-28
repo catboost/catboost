@@ -924,17 +924,20 @@ cdef class _CatBoost:
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
-    cpdef _base_eval_metrics(self, _PoolBase pool, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count, str result_dir, str tmp_dir):
+    cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, str result_dir, str tmp_dir):
+        result_dir = to_binary_str(result_dir)
+        tmp_dir = to_binary_str(tmp_dir)
         thread_count = UpdateThreadCount(thread_count);
-        cdef TVector[TString] metricsDescription
-        for metric_description in metrics_description:
-            metricsDescription.push_back(TString(<const char*>metric_description))
+        cdef TVector[TString] metricDescriptions
+        for metric_description in metric_descriptions:
+            metric_description = to_binary_str(metric_description)
+            metricDescriptions.push_back(TString(<const char*>metric_description))
 
         cdef TVector[TVector[double]] metrics
         metrics = EvalMetrics(
             dereference(self.__model),
             dereference(pool.__pool),
-            metricsDescription,
+            metricDescriptions,
             ntree_start,
             ntree_end,
             eval_period,
