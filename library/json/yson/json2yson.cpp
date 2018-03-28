@@ -47,10 +47,15 @@ namespace NJson2Yson {
         }
     }
 
+
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter) {
+        NYT::TYson2JsonCallbacksAdapter adapter(ysonWriter);
+        WriteJsonValue(inputValue, &adapter);
+    }
+
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream) {
         NYT::TYsonWriter ysonWriter(outputStream, NYT::YF_BINARY, NYT::YT_NODE, false);
-        NYT::TYson2JsonCallbacksAdapter adapter(&ysonWriter);
-        WriteJsonValue(inputValue, &adapter);
+        SerializeJsonValueAsYson(inputValue, &ysonWriter);
     }
 
     void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue) {
