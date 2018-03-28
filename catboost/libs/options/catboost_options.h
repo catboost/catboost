@@ -138,3 +138,15 @@ inline TCatboostOptions FromString<TCatboostOptions>(const TString& str) {
     NJson::ReadJsonTree(TStringBuf(str), &json, true);
     return NCatboostOptions::LoadOptions(json);
 }
+
+inline TVector<int> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
+    TVector<int> result;
+    auto& dataProcessingOptions = catBoostJsonOptions["data_processing_options"];
+    if (dataProcessingOptions.IsMap()) {
+        auto& ignoredFeatures = dataProcessingOptions["ignored_features"];
+        if (ignoredFeatures.IsArray()) {
+            NCatboostOptions::TJsonFieldHelper<TVector<int>>::Read(ignoredFeatures, &result);
+        }
+    }
+    return result;
+}

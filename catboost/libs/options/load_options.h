@@ -22,6 +22,7 @@ namespace NCatboostOptions {
 
         bool HasHeader = false;
         char Delimiter = '\t';
+        TVector<int> IgnoredFeatures;
 
         TPoolLoadParams() = default;
 
@@ -45,5 +46,4 @@ namespace NCatboostOptions {
             }
         }
     };
-
 }

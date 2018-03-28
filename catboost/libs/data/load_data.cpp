@@ -268,6 +268,7 @@ TPoolReader::TPoolReader(
     const TString& cdFile,
     const TString& poolFile,
     const TString& pairsFile,
+    const TVector<int>& ignoredFeatures,
     char fieldDelimiter,
     bool hasHeader,
     const TVector<TString>& classNames,
@@ -325,8 +326,18 @@ TPoolReader::TPoolReader(
             return IsFactorColumn(x.Type);
         }
     );
-
     CB_ENSURE(PoolMetaInfo.FactorCount > 0, "Pool should have at least one factor");
+
+    int featureCount = static_cast<int>(PoolMetaInfo.FactorCount);
+    int ignoredFeatureCount = 0;
+    FeatureIgnored.resize(featureCount, false);
+    for (int featureId : ignoredFeatures) {
+        CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
+        ignoredFeatureCount += FeatureIgnored[featureId] == false;
+        FeatureIgnored[featureId] = true;
+    }
+    CB_ENSURE(featureCount - ignoredFeatureCount > 0, "All features are requested to be ignored");
+
     PoolMetaInfo.CatFeatureIds = GetCategFeatures(ColumnsDescription);
 
     if (HasHeader) {
@@ -393,27 +404,32 @@ void TPoolReader::ProcessBlock() {
         for (const auto& token : tokens) {
             switch (ColumnsDescription[tokenCount].Type) {
                 case EColumn::Categ: {
-                    if (IsNan(token)) {
-                        features[featureId] = PoolBuilder.GetCatFeatureValue("nan");
-                    } else {
-                        features[featureId] = PoolBuilder.GetCatFeatureValue(token);
+                    if (!FeatureIgnored[featureId]) {
+                        if (IsNan(token)) {
+                            features[featureId] = PoolBuilder.GetCatFeatureValue("nan");
+                        } else {
+                            features[featureId] = PoolBuilder.GetCatFeatureValue(token);
+                        }
                     }
                     ++featureId;
                     break;
                 }
                 case EColumn::Num: {
-                    float val;
-                    if (!TryFromString<float>(token, val)) {
-                        if (IsNan(token)) {
-                            val = std::numeric_limits<float>::quiet_NaN();
-                        } else {
-                            CB_ENSURE(token.length() != 0, "Empty values for Num type columns are not supported (row: " <<
-                                LinesRead + lineIdx + 1 << ", column: " << tokenCount + 1 << ").");
-                            CB_ENSURE(false, "Factor " << token << " in column " << tokenCount + 1 << " and row " << LinesRead + lineIdx + 1 <<
-                                " is declared as numeric and cannot be parsed as float. Try correcting column description file.");
+                    if (!FeatureIgnored[featureId]) {
+                        float val;
+                        if (!TryFromString<float>(token, val)) {
+                            if (IsNan(token)) {
+                                val = std::numeric_limits<float>::quiet_NaN();
+                            } else {
+                                CB_ENSURE(token.length() != 0, "Empty values for Num type columns are not supported (row: " <<
+                                    LinesRead + lineIdx + 1 << ", column: " << tokenCount + 1 << ").");
+                                CB_ENSURE(false, "Factor " << featureId << " (column " << tokenCount + 1 << ") is declared `Num`," <<
+                                    " but has value '" << token << "' in row " << LinesRead + lineIdx + 1 <<
+                                    " that cannot be parsed as float. Try correcting column description file.");
+                            }
                         }
+                        features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
                     }
-                    features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
                     ++featureId;
                     break;
                 }
@@ -479,6 +495,7 @@ void ReadPool(
     const TString& cdFile,
     const TString& poolFile,
     const TString& pairsFile,
+    const TVector<int>& ignoredFeatures,
     int threadCount,
     bool verbose,
     char fieldDelimiter,
@@ -489,13 +506,14 @@ void ReadPool(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     TPoolBuilder builder(pool, &localExecutor);
-    ReadPool(cdFile, poolFile, pairsFile, verbose, fieldDelimiter, hasHeader, classNames, &localExecutor, &builder);
+    ReadPool(cdFile, poolFile, pairsFile, ignoredFeatures, verbose, fieldDelimiter, hasHeader, classNames, &localExecutor, &builder);
 }
 
 void ReadPool(
     const TString& cdFile,
     const TString& poolFile,
     const TString& pairsFile,
+    const TVector<int>& ignoredFeatures,
     bool verbose,
     char fieldDelimiter,
     bool hasHeader,
@@ -508,7 +526,7 @@ void ReadPool(
     } else {
         SetSilentLogingMode();
     }
-    TPoolReader poolReader(cdFile, poolFile, pairsFile, fieldDelimiter, hasHeader, classNames, 10000, poolBuilder, localExecutor);
+    TPoolReader poolReader(cdFile, poolFile, pairsFile, ignoredFeatures, fieldDelimiter, hasHeader, classNames, 10000, poolBuilder, localExecutor);
     StartBuilder(poolReader.FeatureIds, poolReader.PoolMetaInfo, CountLines(poolFile), hasHeader, 0, poolBuilder);
     while (poolReader.ReadBlock()) {
         poolReader.ProcessBlock();
@@ -528,5 +546,5 @@ void ReadPool(
     TVector<TString> noNames;
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
-    ReadPool(cdFile, poolFile, pairsFile, verbose, '\t', false, noNames, &localExecutor, &poolBuilder);
+    ReadPool(cdFile, poolFile, pairsFile, {}, verbose, '\t', false, noNames, &localExecutor, &poolBuilder);
 }

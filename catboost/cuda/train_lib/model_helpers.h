@@ -41,6 +41,7 @@ namespace NCatboostCuda {
         ReadPool(poolLoadOptions.CdFile,
                  poolLoadOptions.LearnFile,
                  "",
+                 poolLoadOptions.IgnoredFeatures,
                  numThreads,
                  false,
                  poolLoadOptions.Delimiter,

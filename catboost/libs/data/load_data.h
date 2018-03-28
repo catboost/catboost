@@ -12,6 +12,7 @@
 #include <util/system/spinlock.h>
 #include <util/stream/file.h>
 #include <util/string/vector.h>
+#include <util/generic/set.h>
 
 #include <string>
 
@@ -70,7 +71,7 @@ void FinalizeBuilder(const TVector<TColumn>& ColumnsDescription, const TString& 
 
 class TPoolReader {
 public:
-    TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, char fieldDelimiter,
+    TPoolReader(const TString& cdFile, const TString& poolFile, const TString& pairsFile, const TVector<int>& ignoredFeatures, char fieldDelimiter,
                 bool hasHeader, const TVector<TString>& classNames, int blockSize, IPoolBuilder* poolBuilder, NPar::TLocalExecutor* localExecutor);
 
     bool ReadBlock();
@@ -84,6 +85,7 @@ public:
     TVector<TColumn> ColumnsDescription;
 
 private:
+    TVector<bool> FeatureIgnored;
     size_t LinesRead;
     char FieldDelimiter;
     bool HasHeader;
@@ -105,6 +107,7 @@ THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecut
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               const TString& pairsFile,
+              const TVector<int>& ignoredFeatures,
               int threadCount,
               bool verbose,
               char fieldDelimiter,
@@ -115,6 +118,7 @@ void ReadPool(const TString& cdFile,
 void ReadPool(const TString& cdFile,
               const TString& poolFile,
               const TString& pairsFile,
+              const TVector<int>& ignoredFeatures,
               bool verbose,
               char fieldDelimiter,
               bool hasHeader,

@@ -623,6 +623,42 @@ def test_ignored_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_ignored_features_not_read():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    input_cd_path = data_file('adult', 'train.cd')
+    cd_path = yatest.common.test_output_path('train.cd')
+
+    with open(input_cd_path, "rt") as f:
+        cd_lines = f.readlines()
+    with open(cd_path, "wt") as f:
+        for cd_line in cd_lines:
+            # Corrupt some features by making them 'Num'
+            if cd_line.split() == ('5', 'Categ'):  # column 5 --> feature 4
+                cd_line = cd_line.replace('Categ', 'Num')
+            if cd_line.split() == ('7', 'Categ'):  # column 7 --> feature 6
+                cd_line = cd_line.replace('Categ', 'Num')
+            f.write(cd_line)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '-I', '4:6',  # Ignore the corrupted features
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+    # Not needed: return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_baseline(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

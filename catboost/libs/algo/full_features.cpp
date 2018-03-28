@@ -262,7 +262,9 @@ namespace {
                 int lastFeatureIdx = Min((blockId + 1) * BlockSize, FeatureCount);
                 for (int featureIdx = blockId * BlockSize; featureIdx  < lastFeatureIdx; ++featureIdx) {
                     if (IgnoredFeatures.has(featureIdx)) {
-                        //TODO(dbakshee): clear data from `docStorage`?
+                        if (clearPool) {
+                            ClearVector(&docStorage->Factors[featureIdx]);
+                        }
                         continue;
                     }
                     if (CategFeatures.has(featureIdx)) {

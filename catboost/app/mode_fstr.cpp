@@ -38,7 +38,8 @@ int mode_fstr(int argc, const char* argv[]) {
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
     TPool pool;
-    ReadPool(params.CdFile, params.InputPath, params.PairsFile, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &pool);
+    ReadPool(params.CdFile, params.InputPath, params.PairsFile, /*ignoredFeatures*/ {}, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &pool);
+    // TODO(noxoomo): have ignoredFeatures and const features saved in the model file
 
     switch (params.FstrType) {
         case EFstrType::FeatureImportance:

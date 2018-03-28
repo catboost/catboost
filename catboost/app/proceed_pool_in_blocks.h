@@ -16,6 +16,7 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
 
     THolder<IPoolBuilder> poolBuilder = InitBuilder(&pool, &localExecutor);
     TPoolReader poolReader(params.CdFile, params.InputPath, params.PairsFile,
+                           /*ignoredFeatures*/ {},
                            params.Delimiter, params.HasHeader, params.ClassNames,
                            blockSize, poolBuilder.Get(), &localExecutor);
     int offset = 0;

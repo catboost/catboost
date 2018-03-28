@@ -95,6 +95,7 @@ cdef extern from "catboost/libs/data/load_data.h":
         const TString& cdFile,
         const TString& poolFile,
         const TString& pairsFile,
+        const TVector[int]& ignoredFeatures,
         int threadCount,
         bool_t verbose,
         const char fieldDelimiter,
@@ -558,16 +559,18 @@ cdef class _PoolBase:
         cd_file = to_binary_str(cd_file)
         pairs_file = to_binary_str(pairs_file)
         thread_count = UpdateThreadCount(thread_count);
-        cdef TVector[TString] emptyVec
+        cdef TVector[TString] emptyStringVec
+        cdef TVector[int] emptyIntVec
         ReadPool(
             TString(<char*>cd_file),
             TString(<char*>pool_file),
             TString(<char*>pairs_file),
+            emptyIntVec,
             thread_count,
             False,
             ord(delimiter),
             has_header,
-            emptyVec,
+            emptyStringVec,
             self.__pool
         )
         if len([target for target in self.__pool.Docs.Target]) > 1:

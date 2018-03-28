@@ -36,6 +36,8 @@ int mode_fit(int argc, const char* argv[]) {
         NCatboostOptions::PlainJsonToOptions(fromFileParams, &catBoostJsonOptions, &outputOptionsJson);
     }
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+
+    poolLoadOptions.IgnoredFeatures = GetOptionIgnoredFeatures(catBoostJsonOptions);
     poolLoadOptions.Validate();
 
     auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
