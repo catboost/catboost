@@ -506,8 +506,8 @@
                 "strip": { "bottle": "clang39", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true}
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "DARWIN"}}
             ],
             "params": {
                 "type": "clang",
@@ -739,8 +739,8 @@
                 "strip": { "bottle": "clang50", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "DARWIN"}}
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
             ],
             "params": {
                 "type": "clang",
@@ -2207,7 +2207,7 @@
         },
         "clang50": {
             "formula": {
-                "sandbox_id": [168054294, 220049371],
+                "sandbox_id": [232256948, 220049371],
                 "match": "CLANG"
             },
             "executable": {

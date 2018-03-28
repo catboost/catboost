@@ -6,6 +6,7 @@
         "173608117": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608117", 
         "173608136": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608136", 
         "173608153": "https://storage.mds.yandex.net/get-devtools-opensource/250854/173608153", 
+        "244387436": "https://storage.mds.yandex.net/get-devtools-opensource/373962/244387436", 
         "289123862": "https://storage.mds.yandex.net/get-devtools-opensource/233854/289123862", 
         "289123926": "https://storage.mds.yandex.net/get-devtools-opensource/479623/289123926", 
         "300008394": "https://storage.mds.yandex.net/get-devtools-opensource/233854/300008394", 
@@ -144,6 +145,7 @@
         "499863263": "https://storage.mds.yandex.net/get-devtools-opensource/233854/499863263", 
         "499863831": "https://storage.mds.yandex.net/get-devtools-opensource/250854/499863831", 
         "499863978": "https://storage.mds.yandex.net/get-devtools-opensource/233854/499863978", 
+        "499943029": "https://storage.mds.yandex.net/get-devtools-opensource/479623/499943029", 
         "503036426": "https://storage.mds.yandex.net/get-devtools-opensource/479623/503036426", 
         "503036528": "https://storage.mds.yandex.net/get-devtools-opensource/250854/503036528", 
         "503036643": "https://storage.mds.yandex.net/get-devtools-opensource/233854/503036643", 
@@ -198,7 +200,8 @@
         "525750135": "https://storage.mds.yandex.net/get-devtools-opensource/471749/525750135", 
         "525970713": "https://storage.mds.yandex.net/get-devtools-opensource/471749/525970713", 
         "525970831": "https://storage.mds.yandex.net/get-devtools-opensource/479623/525970831", 
-        "525970972": "https://storage.mds.yandex.net/get-devtools-opensource/471749/525970972"
+        "525970972": "https://storage.mds.yandex.net/get-devtools-opensource/471749/525970972", 
+        "526275170": "https://storage.mds.yandex.net/get-devtools-opensource/373962/526275170"
     }, 
     "tasks": {
         "123001907": {
@@ -425,6 +428,9 @@
             "linux": "499863978", 
             "win32": "499863831"
         }, 
+        "220049371": {
+            "Darwin-14.5.0-x86_64-i386-64bit": "499943029"
+        }, 
         "221419942": {
             "darwin": "503036426", 
             "linux": "503036643", 
@@ -517,6 +523,9 @@
             "darwin": "525970713", 
             "linux": "525970972", 
             "win32": "525970831"
+        }, 
+        "232256948": {
+            "Linux-4.4.68-33-x86_64-with-Ubuntu-12.04-precise": "526275170"
         }, 
         "48027726": {
             "linux": "103177511"
