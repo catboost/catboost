@@ -154,28 +154,28 @@ namespace NPar {
         selectedComps->resize(0);
         for (int i = 0; i < job->ExecList.ysize(); ++i) {
             TJobParams& params = job->ExecList[i];
-            int hostId = params.HostId;
+            int hostId1 = params.HostId;
             int compId = 0x7fffffff;
-            if (hostId == TJobDescription::ANYWHERE_HOST_ID) {
+            if (hostId1 == TJobDescription::ANYWHERE_HOST_ID) {
                 // execute anywhere, but require all hostIds available
                 if (anywhereList.empty()) {
-                    for (int hostId = 0; hostId < hostIdCount; ++hostId) {
-                        const TVector<int>& hh = subsetHostId2Computer[hostId];
-                        if (checkHostId2Computer[hostId].empty())
+                    for (int hostId2 = 0; hostId2 < hostIdCount; ++hostId2) {
+                        const TVector<int>& hh = subsetHostId2Computer[hostId2];
+                        if (checkHostId2Computer[hostId2].empty())
                             return false;
                         if (!hh.empty()) {
-                            for (int i = 0; i < hh.ysize(); ++i)
-                                anywhereList.push_back(hh[i]);
+                            for (int j = 0; j < hh.ysize(); ++j)
+                                anywhereList.push_back(hh[j]);
                         }
                     }
                     Shuffle(anywhereList.begin(), anywhereList.end());
                 }
                 compId = anywhereList[anywherePtr++ % anywhereList.size()];
             } else {
-                const TVector<int>& hh = subsetHostId2Computer[hostId];
+                const TVector<int>& hh = subsetHostId2Computer[hostId1];
                 if (hh.empty())
                     return false;
-                compId = hh[++perHostIdCounter[hostId] % hh.size()]; // use comps in sequence to distribute load evenly
+                compId = hh[++perHostIdCounter[hostId1] % hh.size()]; // use comps in sequence to distribute load evenly
             }
             params.CompId = compId;
             if (compId >= selectedComps->ysize())

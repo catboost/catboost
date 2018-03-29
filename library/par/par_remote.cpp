@@ -134,8 +134,8 @@ namespace NPar {
         Y_VERIFY(!reqId.IsEmpty());
         PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " Register cancel callback for request: " << GetGuidAsString(reqId) << Endl;
         TIntrusivePtr<TQueryResultDst> queryResultDst;
-        auto functor = [notify](TIntrusivePtr<TQueryResultDst>& queryResultDst) {
-            queryResultDst->CallbackVector.push_back(notify);
+        auto functor = [notify](TIntrusivePtr<TQueryResultDst>& theQueryResultDst) {
+            theQueryResultDst->CallbackVector.push_back(notify);
         };
         if (!IncomingRequestsData.LockedValueModify(reqId, functor)) {
             PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() <<" No such request in map, probably already sent reply" << Endl;
@@ -284,8 +284,8 @@ namespace NPar {
         for (int i = 0; i < searcherCount; ++i) {
             TParHostStats tmpStats;
             SerializeFromMem(&res.at(i), tmpStats);
-            for (size_t i = 0; i < static_cast<size_t>(ETimingTag::TimingsCount); ++i) {
-                *masterTimings.Timings[i] += *tmpStats.ParTimings.Timings[i];
+            for (size_t j = 0; j < static_cast<size_t>(ETimingTag::TimingsCount); ++j) {
+                *masterTimings.Timings[j] += *tmpStats.ParTimings.Timings[j];
             }
         }
         DEBUG_LOG << "Cumulative timings: " << Endl;

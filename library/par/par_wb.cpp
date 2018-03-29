@@ -56,8 +56,8 @@ namespace NPar {
                 TWBCopyCompInfo& info = i->second;
                 int compId = i->first;
                 if (compId == localCompId) {
-                    for (int i = 0; i < info.Data.ysize(); ++i) {
-                        writeBuffer->GetData(info.Data[i], &Result[info.OriginalPlace[i]], TLocalDataBuffer::DO_COPY);
+                    for (int j = 0; j < info.Data.ysize(); ++j) {
+                        writeBuffer->GetData(info.Data[j], &Result[info.OriginalPlace[j]], TLocalDataBuffer::DO_COPY);
                     }
                 } else {
                     TVector<char> buf;
