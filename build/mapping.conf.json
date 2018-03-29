@@ -208,7 +208,8 @@
         "526647417": "https://storage.mds.yandex.net/get-devtools-opensource/373962/526647417", 
         "527543793": "https://storage.mds.yandex.net/get-devtools-opensource/373962/527543793", 
         "527543865": "https://storage.mds.yandex.net/get-devtools-opensource/373962/527543865", 
-        "527543954": "https://storage.mds.yandex.net/get-devtools-opensource/373962/527543954"
+        "527543954": "https://storage.mds.yandex.net/get-devtools-opensource/373962/527543954", 
+        "527715206": "https://storage.mds.yandex.net/get-devtools-opensource/471749/527715206"
     }, 
     "tasks": {
         "123001907": {
@@ -543,6 +544,9 @@
             "darwin": "527543793", 
             "linux": "527543954", 
             "win32": "527543865"
+        }, 
+        "232858106": {
+            "Linux-4.4.68-33-x86_64-with-Ubuntu-12.04-precise": "527715206"
         }, 
         "48027726": {
             "linux": "103177511"
