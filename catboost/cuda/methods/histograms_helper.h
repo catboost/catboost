@@ -311,10 +311,10 @@ namespace NCatboostCuda {
                     histHelper.GatherHistogramsByLeaves(ReducedHistograms, streamId);
                     {
                         auto guard = profiler.Profile(TStringBuilder() << "Reduce " << ReducedHistograms.GetObjectsSlice().Size() << " histograms");
-                        NCudaLib::TReducer<TCudaBuffer<float, NCudaLib::TStripeMapping>> reducer(streamId);
-                        reducer(ReducedHistograms,
-                                reducedMapping,
-                                IsReduceCompressed());
+                        ReduceScatter(ReducedHistograms,
+                                      reducedMapping,
+                                      IsReduceCompressed(),
+                                      streamId);
                     }
 
                     auto guard = profiler.Profile(

@@ -74,28 +74,17 @@ namespace NCatboostCuda {
     }
 
     inline void UpdateDataPartitionType(const TBinarizedFeaturesManager& featuresManager,
-                                        NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                        ui32 devCount) {
+                                        NCatboostOptions::TCatBoostOptions& catBoostOptions) {
 
-        const bool couldUsedDocParallelBoosting = (1 << IntLog2(devCount)) == devCount;
         if (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1 && featuresManager.GetCatFeatureIds().size()) {
             return;
         } else {
             if (catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain) {
                 if (catBoostOptions.BoostingOptions->DataPartitionType.NotSet()) {
-                    if (!couldUsedDocParallelBoosting) {
-                        MATRIXNET_WARNING_LOG << "Can't used doc-parallel data-partition for non-power of 2 device count. It could be more efficient to use less devices, but with doc-parallel mode."<<Endl;
-                    } else {
-                        catBoostOptions.BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
-                    }
+                    catBoostOptions.BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
                 }
             }
         }
-        if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel) {
-            CB_ENSURE(couldUsedDocParallelBoosting, "Can't use doc-parallel data partition for non-power of two device currently. We'll fix it in upcoming release. Please use FeatureParallel mode instead");
-
-        }
-
     }
 
     inline bool HasCtrs(const TBinarizedFeaturesManager& featuresManager) {
@@ -249,11 +238,7 @@ namespace NCatboostCuda {
         } else {
             catBoostOptions.CatFeatureParams = snapshotOptions->CatFeatureParams;
         }
-        {
-           const ui32 devCount = NCudaLib::GetEnabledDevices(catBoostOptions.SystemOptions->Devices,
-                                                             NCudaLib::GetDevicesProvider().GetDeviceCount()).size();
-            UpdateDataPartitionType(featuresManager, catBoostOptions, devCount);
-        }
+        UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
 
         // TODO(nikitxskv): Remove it when the l2 normalization will be added.

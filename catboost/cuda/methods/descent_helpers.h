@@ -166,8 +166,7 @@ namespace NCatboostCuda {
             MoveDirection.resize(CurrentPoint.Point.size());
 
             for (ui32 i = 0; i < CurrentPoint.Gradient.size(); ++i) {
-                MoveDirection[i] =
-                    CurrentPoint.Hessian[i] > 0 ? CurrentPoint.Gradient[i] / (CurrentPoint.Hessian[i] + 1e-20f) : 0;
+                MoveDirection[i] = CurrentPoint.Hessian[i] > 0 ? CurrentPoint.Gradient[i] / (CurrentPoint.Hessian[i] + 1e-20f) : 0;
             }
         }
 

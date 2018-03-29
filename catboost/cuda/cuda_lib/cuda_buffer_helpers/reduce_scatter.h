@@ -9,6 +9,7 @@
 #include <catboost/cuda/cuda_lib/peer_devices.h>
 #include <cmath>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_staged_operation.h>
+#include <catboost/cuda/utils/helpers.h>
 
 namespace NKernelHost {
     template <typename T>
@@ -76,6 +77,10 @@ namespace NCudaLib {
     using TRemoteReadAndReduceTask = TThroughHostStagedRecvTask<T, TReduceOperator<T>>;
 
 #endif
+    enum class EReduceAlgorithm {
+        Ring,
+        Tree
+    };
 
     template <class T>
     struct TReduceBinaryContext {
@@ -247,7 +252,7 @@ namespace NCudaLib {
         Y_SAVELOAD_DEFINE(LocalReduces);
 #endif
     private:
-        template <class TBuffer>
+        template <class TBuffer, EReduceAlgorithm>
         friend class TReducer;
 
         TVector<TLocalHostReduce> LocalReduces;
@@ -256,7 +261,9 @@ namespace NCudaLib {
 #endif
     };
 
-    template <class TBuffer>
+
+
+    template <class TBuffer, EReduceAlgorithm Method = EReduceAlgorithm::Tree>
     class TReducer {
     private:
     public:
@@ -273,87 +280,152 @@ namespace NCudaLib {
         }
     };
 
+
+    struct TReduceTask {
+        ui32 ReadDevice;
+        ui32 WriteDevice;
+
+        TSlice FromSlice;
+        TSlice ToSlice;
+    };
+
+
+    template <EReduceAlgorithm>
+    class TPassTasksGenerator;
+
+    template<>
+    class TPassTasksGenerator<EReduceAlgorithm::Ring> {
+    private:
+        const TStripeMapping& ResultMapping;
+        ui32 DevCount;
+
+        ui64 GetSrcOffset(ui32 dev) const {
+            return ResultMapping.GetObjectsSlice().Size() * dev;
+        }
+
+    public:
+        TPassTasksGenerator(const TStripeMapping& resultMapping,
+                            ui32 devCount)
+                : ResultMapping(resultMapping)
+                  , DevCount(devCount) {
+        }
+
+
+        //
+        inline TVector<TReduceTask> PassTasks(ui32 pass) const {
+            pass = DevCount - pass - 1;
+
+            TVector<TReduceTask> tasks;
+            for (ui32 dev = 0; dev < DevCount; ++dev) {
+                //pass0: DevCount - 1
+                //pass1: DevCount - 2
+                //pass3: DevCount - 3
+                //...
+                //last: DevCount - (DevCount - 2) - 1 => 1
+                const ui32 workingPart = (dev + pass) % DevCount;
+                TReduceTask reduceTask;
+
+                //this dev
+                reduceTask.ReadDevice = dev;
+                //next dev in ring
+                reduceTask.WriteDevice = (dev + 1) % DevCount;
+
+                TSlice slice = ResultMapping.DeviceSlice(workingPart);
+
+                reduceTask.FromSlice = slice;
+                reduceTask.FromSlice += GetSrcOffset(reduceTask.ReadDevice);
+
+                reduceTask.ToSlice = slice;
+                reduceTask.ToSlice += GetSrcOffset(reduceTask.WriteDevice);
+
+                tasks.push_back(reduceTask);
+            }
+            return tasks;
+        }
+
+        inline ui32 GetPassCount() const {
+            return DevCount - 1;
+        }
+    };
+
+    template<>
+    class TPassTasksGenerator<EReduceAlgorithm::Tree> {
+    private:
+        const TStripeMapping& ResultMapping;
+        ui32 DevCount;
+        ui32 PassCount;
+
+        ui64 GetSrcOffset(ui32 dev) const {
+            return ResultMapping.GetObjectsSlice().Size() * dev;
+        }
+
+    public:
+        TPassTasksGenerator(const TStripeMapping& resultMapping,
+                            ui32 devCount)
+                : ResultMapping(resultMapping)
+                  , DevCount(devCount)
+                  , PassCount(IntLog2(DevCount))
+        {
+        }
+
+        //on each pass parts with pass-bit == 0 will flow left, and with pass bit == 1 will flow right
+        //on each pass — reduce between dev and (dev | mask) (pass bit in first dev should be zero)
+        inline TVector<TReduceTask> PassTasks(ui32 pass) const {
+            const ui32 mask = 1 << pass;
+            TVector<TReduceTask> tasks;
+
+            for (ui32 dev = 0; dev < (1 << PassCount); ++dev) {
+                if (mask & dev) {
+                    continue; //pass bit is not zero
+                }
+
+                ui32 fixedBits = dev & ((1 << pass) - 1);
+                ui32 partsCount = 1 << (PassCount - pass);
+
+                for (ui32 rest = 0; rest < partsCount; ++rest) {
+                    const ui32 partId = rest << pass | fixedBits;
+                    TReduceTask reduceTask;
+
+                    bool flowRight = (bool)(partId & mask);
+
+                    reduceTask.ReadDevice =  flowRight ? dev : (dev | mask);
+                    reduceTask.WriteDevice = flowRight ? (dev | mask) : dev;
+
+                    if (reduceTask.ReadDevice >= DevCount || reduceTask.WriteDevice >= DevCount) {
+                        continue;
+                    }
+
+                    TSlice slice = ResultMapping.DeviceSlice(partId);
+                    if (slice.IsEmpty()) {
+                        continue;
+                    }
+
+                    reduceTask.FromSlice = slice;
+                    reduceTask.FromSlice += GetSrcOffset(reduceTask.ReadDevice);
+
+                    reduceTask.ToSlice = slice;
+                    reduceTask.ToSlice += GetSrcOffset(reduceTask.WriteDevice);
+
+                    tasks.push_back(reduceTask);
+                }
+            }
+            return tasks;
+        }
+
+        inline ui32 GetPassCount() const {
+            return PassCount;
+        }
+    };
+
+
     //make from (dev0, ABCD) (dev1, ABCD),  (dev2 , ABCD) (dev3, ABCD) (dev0, A), (dev1, B), (dev2, C), (dev3, D)
     //this version trade off some speed to memory (use memory for one extra block if we don't have peer access support
-    //and works fro single-host only
-    template <class T>
-    class TReducer<TCudaBuffer<T, TStripeMapping>> {
+    template <class T, EReduceAlgorithm ReduceType>
+    class TReducer<TCudaBuffer<T, TStripeMapping>, ReduceType> {
     private:
         ui32 Stream = 0;
 
         using TKernel = TReduceBinaryStreamTask<T>;
-
-        struct TReduceTask {
-            ui32 ReadDevice;
-            ui32 WriteDevice;
-
-            TSlice FromSlice;
-            TSlice ToSlice;
-        };
-
-        class TPassTasksGenerator {
-        private:
-            const TStripeMapping& ResultMapping;
-            ui32 DevCount;
-            ui32 PassCount;
-
-            ui64 GetSrcOffset(ui32 dev) const {
-                return ResultMapping.GetObjectsSlice().Size() * dev;
-            }
-
-        public:
-            TPassTasksGenerator(const TStripeMapping& resultMapping,
-                                ui32 devCount)
-                : ResultMapping(resultMapping)
-                , DevCount(devCount)
-                , PassCount((ui32)log2(DevCount))
-            {
-            }
-
-            //on each pass parts with pass-bit == 0 will flow left, and with pass bit == 1 will flow right
-            //on each pass — reduce between dev and (dev | mask) (pass bit in first dev should be zero)
-            inline TVector<TReduceTask> PassTasks(ui32 pass) const {
-                const ui32 mask = 1 << pass;
-                TVector<TReduceTask> tasks;
-
-                for (ui32 dev = 0; dev < DevCount; ++dev) {
-                    if (mask & dev) {
-                        continue; //pass bit is not zero
-                    }
-
-                    ui32 fixedBits = dev & ((1 << pass) - 1);
-                    ui32 partsCount = 1 << (PassCount - pass);
-
-                    for (ui32 rest = 0; rest < partsCount; ++rest) {
-                        const ui32 partId = rest << pass | fixedBits;
-                        TReduceTask reduceTask;
-
-                        bool flowRight = (bool)(partId & mask);
-                        reduceTask.ReadDevice = flowRight ? dev : (dev | mask);
-                        reduceTask.WriteDevice = flowRight ? (dev | mask) : dev;
-
-                        TSlice slice = ResultMapping.DeviceSlice(partId);
-                        if (slice.IsEmpty()) {
-                            continue;
-                        }
-
-                        reduceTask.FromSlice = slice;
-                        reduceTask.FromSlice += GetSrcOffset(reduceTask.ReadDevice);
-
-                        reduceTask.ToSlice = slice;
-                        reduceTask.ToSlice += GetSrcOffset(reduceTask.WriteDevice);
-
-                        tasks.push_back(reduceTask);
-                    }
-                }
-                return tasks;
-            }
-
-            inline ui32 GetPassCount() const {
-                return PassCount;
-            }
-        };
-
     public:
         using TBuffer = TCudaBuffer<T, TStripeMapping>;
 
@@ -387,7 +459,7 @@ namespace NCudaLib {
                 CB_ENSURE(columnCount == 1, "Error: expected 1 column for this operation");
             }
 
-            TPassTasksGenerator tasksGenerator(resultMapping, devCount);
+            TPassTasksGenerator<ReduceType> tasksGenerator(resultMapping, devCount);
             for (ui32 pass = 0; pass < tasksGenerator.GetPassCount(); ++pass) {
                 auto tasks = tasksGenerator.PassTasks(pass);
                 TStreamSectionTaskLauncher streamSectionLauncher;
@@ -439,8 +511,7 @@ namespace NCudaLib {
 
                 streamSectionLauncher.LaunchTask(workingDevs.Build(), [&](ui32 dev) {
                     return std::move(kernels[dev]);
-                },
-                                                 Stream);
+                }, Stream);
             }
 
             auto localShifts = manager.CreateDistributedObject<TSlice>(TSlice(0, 0));
@@ -461,4 +532,31 @@ namespace NCudaLib {
             return (*this)(data, afterMapping, compressFlag);
         }
     };
+
+    template <class T, EReduceAlgorithm Algorithm>
+    inline void RunReduceScatter(TCudaBuffer<T, NCudaLib::TStripeMapping>& data,
+                                 NCudaLib::TStripeMapping& reducedMapping,
+                                 bool compress,
+                                 ui32 streamId) {
+
+        NCudaLib::TReducer<TCudaBuffer<T, NCudaLib::TStripeMapping>, Algorithm> reducer(streamId);
+        reducer(data,
+                reducedMapping,
+                compress);
+    }
+
+}
+
+template <class T>
+inline void ReduceScatter(TCudaBuffer<T, NCudaLib::TStripeMapping>& data,
+                          NCudaLib::TStripeMapping& reducedMapping,
+                          bool compress,
+                          ui32 streamId) {
+    const bool isPowerOfTwoDevice = IsPowerOfTwo(NCudaLib::GetCudaManager().GetDeviceCount());
+    //TODO(noxoomo): tree-reduce for non power of two devices + performance check
+    if (isPowerOfTwoDevice) {
+        NCudaLib::RunReduceScatter<T, NCudaLib::EReduceAlgorithm::Tree>(data, reducedMapping, compress, streamId);
+    } else {
+        NCudaLib::RunReduceScatter<T, NCudaLib::EReduceAlgorithm::Ring>(data, reducedMapping, compress, streamId);
+    }
 }

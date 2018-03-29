@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include "helpers.h"
 #include <cmath>
 
 #include <catboost/libs/helpers/exception.h>
@@ -14,14 +16,6 @@
 #include <util/string/builder.h>
 #include <util/generic/ymath.h>
 
-inline ui32 IntLog2(ui32 values) {
-    return (ui32)ceil(log2(values));
-}
-
-template <class T, class U>
-inline T CeilDivide(T x, U y) {
-    return (x + y - 1) / y;
-}
 
 template <class TStorageType>
 class TIndexHelper {
@@ -94,7 +88,7 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
         NPar::LocalExecutor().BlockedLoopBody(params, [&](int i) {
             const ui32 offset = indexHelper.Offset((ui32)i);
             const ui32 shift = indexHelper.Shift((ui32)i);
-            CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key" << data[i]);
+            CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key " << data[i]);
             dst[offset] |= static_cast<ui64>(data[i]) << shift;
         })(blockIdx);
     },
@@ -141,6 +135,3 @@ inline TBinType Binarize(const TVector<float>& borders,
     return index;
 }
 
-inline int StringToIntHash(const TStringBuf& buf) {
-    return CalcCatFeatureHash(buf);
-}

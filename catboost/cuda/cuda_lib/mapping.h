@@ -222,7 +222,7 @@ namespace NCudaLib {
         }
 
         TSlice DeviceSlice(ui32 dev) const {
-            return Slices[dev];
+            return dev < Slices.size() ? Slices[dev] : TSlice(0, 0);
         }
 
         TSlice GetObjectsSlice() const {
