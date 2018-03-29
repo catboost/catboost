@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_cuda_manager.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_memory_pool.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_reduce.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_reduce_ring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\ut\test_serialization.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
