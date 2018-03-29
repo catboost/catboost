@@ -758,6 +758,9 @@
                 "platform" : {
                     "LINUX": [
                         "contrib/libs/platform/linux"
+                    ],
+                    "DARWIN": [
+                        "contrib/libs/platform/darwin/sdk"
                     ]
                 },
                 "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
