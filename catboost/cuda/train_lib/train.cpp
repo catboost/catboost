@@ -236,11 +236,12 @@ namespace NCatboostCuda {
         UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
                                  &catBoostOptions.BoostingOptions->BoostingType);
 
-        bool hasTestLabels = testProvider.Get() != nullptr;
-        if (hasTestLabels) {
-            hasTestLabels = !IsConst(testProvider->GetTargets());
+        bool hasTest = testProvider.Get() != nullptr;
+        bool hasTestConstTarget = true;
+        if (hasTest) {
+            hasTestConstTarget = IsConst(testProvider->GetTargets());
         }
-        UpdateUseBestModel(hasTestLabels, &outputOptions.UseBestModel);
+        UpdateUseBestModel(hasTest, hasTestConstTarget, &outputOptions.UseBestModel);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         if (snapshotOptions.Get() == nullptr) {

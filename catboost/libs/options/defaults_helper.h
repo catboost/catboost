@@ -44,9 +44,13 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
     }
 }
 
-inline void UpdateUseBestModel(bool hasTestLabels, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && hasTestLabels) {
+inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostOptions::TOption<bool>* useBestModel) {
+    if (useBestModel->NotSet() && hasTest && !hasTestConstTarget) {
         *useBestModel = true;
+    }
+    if (!hasTest && *useBestModel) {
+        MATRIXNET_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
+        *useBestModel = false;
     }
 }
 
@@ -63,14 +67,12 @@ inline void UpdateLeavesEstimation(bool hasWeights, NCatboostOptions::TCatBoostO
 inline void SetDataDependantDefaults(
     int learnPoolSize,
     int testPoolSize,
-    bool hasTestLabels,
+    bool hasTestConstTarget,
     bool hasWeights,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
-    if (testPoolSize != 0) {
-        UpdateUseBestModel(hasTestLabels, useBestModel);
-    }
+    UpdateUseBestModel(testPoolSize, hasTestConstTarget, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
 
     // TODO(nikitxskv): Remove it when the l2 normalization will be added.

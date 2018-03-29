@@ -127,7 +127,6 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
     TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
-    CB_ENSURE(hasTest || !useBestModel, "cannot select best model, no test provided");
 
     if (ctx->TryLoadProgress()) {
         for (int dim = 0; dim < approxDimension; ++dim) {
@@ -348,7 +347,7 @@ class TCPUModelTrainer : public IModelTrainer {
         SetDataDependantDefaults(
             learnPool.Docs.GetDocCount(),
             testPool.Docs.GetDocCount(),
-            !IsConst(testPool.Docs.Target),
+            IsConst(testPool.Docs.Target),
             learnPool.MetaInfo.HasWeights,
             &ctx.OutputOptions.UseBestModel,
             &ctx.Params

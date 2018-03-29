@@ -387,13 +387,6 @@ def test_invalid_loss_regressor():
         model.fit(pool)
 
 
-def test_no_eval_set():
-    with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier()
-        model.fit(pool, use_best_model=True)
-
-
 def test_fit_no_label():
     with pytest.raises(CatboostError):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
