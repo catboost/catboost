@@ -205,14 +205,14 @@ SIMPLE_UNIT_TEST_SUITE(TAsio) {
 
             for (ui16 port = 10000; port < 40000; ++port) {
                 ep.SetPort(port);
-                TErrorCode ec;
-                a.Bind(ep, ec);
-                if (!ec) {
+                TErrorCode ec1;
+                a.Bind(ep, ec1);
+                if (!ec1) {
                     bindedPort = port;
                     {
-                        TErrorCode ec;
-                        a.Listen(100, ec);
-                        if (!ec) {
+                        TErrorCode ec2;
+                        a.Listen(100, ec2);
+                        if (!ec2) {
                             break;
                         }
                     }
