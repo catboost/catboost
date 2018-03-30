@@ -255,6 +255,10 @@ namespace NCatboostCuda {
                                       TCtrDataSetVisitor&& visitor) {
             NCudaLib::RunPerDeviceSubtasks([&](ui32 device) {
                 {
+                    const ui32 catFeatureCount = DataSet.GetCatFeatures().GetDeviceFeatures(device).size();
+                    if (catFeatureCount == 0) {
+                        return;
+                    }
                     //this visit order should be best for cache hit
                     TVector<TTreeCtrDataSet*> cachedDataSets;
                     TVector<TTreeCtrDataSet*> withoutCachedIndexDataSets;
@@ -518,6 +522,9 @@ namespace NCatboostCuda {
                              TVector<TTreeCtrDataSetPtr>& dst) {
             const auto& catFeatures = DataSet.GetCatFeatures();
             auto& devFeatures = catFeatures.GetDeviceFeatures(deviceId);
+            if (devFeatures.size() == 0) {
+                return;
+            }
             const ui32 maxPackSize = PackSizeEstimators[deviceId]->GetMaxPackSize();
             CB_ENSURE(maxPackSize, "Error: not enough memory for building ctrs");
 
