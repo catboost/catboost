@@ -540,6 +540,14 @@ def _kill_process_tree(process_pid, target_pid_signal=None):
         _nix_kill_process_tree(process_pid, target_pid_signal)
 
 
+def _nix_get_proc_children(pid):
+    try:
+        cmd = ["pgrep", "-P", str(pid)]
+        return [int(p) for p in subprocess.check_output(cmd).split()]
+    except Exception:
+        return []
+
+
 def _nix_kill_process_tree(pid, target_pid_signal=None):
     """
     Kills the process tree.
@@ -556,21 +564,16 @@ def _nix_kill_process_tree(pid, target_pid_signal=None):
     try_to_send_signal(pid, signal.SIGSTOP)  # Stop the process to prevent it from starting any child processes.
 
     # Get the child process PID list.
-    try:
-        pgrep_command = ["pgrep", "-P", str(pid)]
-        child_pids = subprocess.check_output(pgrep_command).split()
-    except Exception:
-        yatest_logger.debug("Process with pid {pid} does not have child processes".format(pid=pid))
-    else:
-        # Stop the child processes.
-        for child_pid in child_pids:
-            try:
-                # Kill the child recursively.
-                _kill_process_tree(int(child_pid))
-            except Exception as e:
-                # Skip the error and continue killing.
-                yatest_logger.debug("Killing child pid {pid} failed: {error}".format(pid=child_pid, error=e))
-                continue
+    child_pids = _nix_get_proc_children(pid)
+    # Stop the child processes.
+    for child_pid in child_pids:
+        try:
+            # Kill the child recursively.
+            _kill_process_tree(int(child_pid))
+        except Exception as e:
+            # Skip the error and continue killing.
+            yatest_logger.debug("Killing child pid {pid} failed: {error}".format(pid=child_pid, error=e))
+            continue
 
     try_to_send_signal(pid, target_pid_signal or signal.SIGKILL)  # Kill the root process.
 
