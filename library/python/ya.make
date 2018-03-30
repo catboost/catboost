@@ -8,6 +8,8 @@ RECURSE(
     func/ut
     pytest
     pytest/allure
+    pytest/empty
+    pytest/plugins
     runtime
     strings
     strings/ut

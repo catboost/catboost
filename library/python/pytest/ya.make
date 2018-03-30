@@ -25,8 +25,3 @@ IF (NOT OS_WINDOWS)
 ENDIF()
 
 END()
-
-RECURSE(
-    plugins
-    empty
-)
