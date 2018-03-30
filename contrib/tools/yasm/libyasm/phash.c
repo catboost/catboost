@@ -97,9 +97,9 @@ phash_lookup(
     register size_t length,   /* the length of the key */
     register unsigned long level) /* the previous hash, or an arbitrary value */
 {
-    register unsigned long a,b,c;
-    register size_t len;
-    register const unsigned char *k = (const unsigned char *)sk;
+    unsigned long a,b,c;
+    size_t len;
+    const unsigned char *k = (const unsigned char *)sk;
 
     /* Set up the internal state */
     len = length;
@@ -194,9 +194,9 @@ phash_checksum(
     register size_t len,
     register unsigned long *state)
 {
-    register unsigned long a,b,c,d,e,f,g,h;
-    register size_t length;
-    register const unsigned char *k = (const unsigned char *)sk;
+    unsigned long a,b,c,d,e,f,g,h;
+    size_t length;
+    const unsigned char *k = (const unsigned char *)sk;
 
     /* Use the length and level; add in the golden ratio. */
     length = len;

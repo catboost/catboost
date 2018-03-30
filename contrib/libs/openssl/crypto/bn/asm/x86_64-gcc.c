@@ -70,7 +70,7 @@
  *                      want to keep the value of zero;
  */
 # define mul_add(r,a,word,carry) do {   \
-        register BN_ULONG high,low;     \
+        BN_ULONG high,low;     \
         asm ("mulq %3"                  \
                 : "=a"(low),"=d"(high)  \
                 : "a"(word),"m"(a)      \
@@ -87,7 +87,7 @@
         } while (0)
 
 # define mul(r,a,word,carry) do {       \
-        register BN_ULONG high,low;     \
+        BN_ULONG high,low;     \
         asm ("mulq %3"                  \
                 : "=a"(low),"=d"(high)  \
                 : "a"(word),"g"(a)      \

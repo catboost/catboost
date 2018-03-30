@@ -293,11 +293,11 @@ __kmp_wait_yield( volatile UT * spinner,
                   )
 {
     // note: we may not belong to a team at this point
-    register volatile UT         * spin          = spinner;
-    register          UT           check         = checker;
-    register          kmp_uint32   spins;
-    register          kmp_uint32 (*f) ( UT, UT ) = pred;
-    register          UT           r;
+    volatile UT         * spin          = spinner;
+             UT           check         = checker;
+             kmp_uint32   spins;
+             kmp_uint32 (*f) ( UT, UT ) = pred;
+             UT           r;
 
     KMP_FSYNC_SPIN_INIT( obj, (void*) spin );
     KMP_INIT_YIELD( spins );
@@ -2190,10 +2190,10 @@ __kmp_dist_get_bounds(
 ) {
     typedef typename traits_t< T >::unsigned_t  UT;
     typedef typename traits_t< T >::signed_t    ST;
-    register kmp_uint32  team_id;
-    register kmp_uint32  nteams;
-    register UT          trip_count;
-    register kmp_team_t *team;
+    kmp_uint32  team_id;
+    kmp_uint32  nteams;
+    UT          trip_count;
+    kmp_team_t *team;
     kmp_info_t * th;
 
     KMP_DEBUG_ASSERT( plastiter && plower && pupper );
@@ -2261,8 +2261,8 @@ __kmp_dist_get_bounds(
             *plastiter = ( team_id == trip_count - 1 );
     } else {
         if( __kmp_static == kmp_sch_static_balanced ) {
-            register UT chunk = trip_count / nteams;
-            register UT extras = trip_count % nteams;
+            UT chunk = trip_count / nteams;
+            UT extras = trip_count % nteams;
             *plower += incr * ( team_id * chunk + ( team_id < extras ? team_id : extras ) );
             *pupper = *plower + chunk * incr - ( team_id < extras ? 0 : incr );
             if( plastiter != NULL )
@@ -2270,7 +2270,7 @@ __kmp_dist_get_bounds(
         } else {
             register T chunk_inc_count =
                 ( trip_count / nteams + ( ( trip_count % nteams ) ? 1 : 0) ) * incr;
-            register T upper = *pupper;
+            T upper = *pupper;
             KMP_DEBUG_ASSERT( __kmp_static == kmp_sch_static_greedy );
                 // Unknown static scheduling type.
             *plower += team_id * chunk_inc_count;
@@ -2543,11 +2543,11 @@ __kmp_wait_yield_4(volatile kmp_uint32 * spinner,
                    )
 {
     // note: we may not belong to a team at this point
-    register volatile kmp_uint32         * spin          = spinner;
-    register          kmp_uint32           check         = checker;
-    register          kmp_uint32   spins;
-    register          kmp_uint32 (*f) ( kmp_uint32, kmp_uint32 ) = pred;
-    register          kmp_uint32           r;
+    volatile kmp_uint32         * spin          = spinner;
+             kmp_uint32           check         = checker;
+             kmp_uint32   spins;
+             kmp_uint32 (*f) ( kmp_uint32, kmp_uint32 ) = pred;
+             kmp_uint32           r;
 
     KMP_FSYNC_SPIN_INIT( obj, (void*) spin );
     KMP_INIT_YIELD( spins );
@@ -2576,11 +2576,11 @@ __kmp_wait_yield_8( volatile kmp_uint64 * spinner,
                     )
 {
     // note: we may not belong to a team at this point
-    register volatile kmp_uint64         * spin          = spinner;
-    register          kmp_uint64           check         = checker;
-    register          kmp_uint32   spins;
-    register          kmp_uint32 (*f) ( kmp_uint64, kmp_uint64 ) = pred;
-    register          kmp_uint64           r;
+    volatile kmp_uint64         * spin          = spinner;
+             kmp_uint64           check         = checker;
+             kmp_uint32   spins;
+             kmp_uint32 (*f) ( kmp_uint64, kmp_uint64 ) = pred;
+             kmp_uint64           r;
 
     KMP_FSYNC_SPIN_INIT( obj, (void*) spin );
     KMP_INIT_YIELD( spins );

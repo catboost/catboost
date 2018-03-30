@@ -269,12 +269,12 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 static void ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
     void **avalue, ffi_cif *cif)
 {
-    register unsigned int i, reg_mask = 0;
-    register void **p_argv;
-    register ffi_type **p_arg;
-    register char *reg_base = stack;
-    register char *stack_base = stack + 20;
-    register unsigned int stack_offset = 0;
+    unsigned int i, reg_mask = 0;
+    void **p_argv;
+    ffi_type **p_arg;
+    char *reg_base = stack;
+    char *stack_base = stack + 20;
+    unsigned int stack_offset = 0;
 
 #ifdef DEBUG
     /* Debugging */

@@ -682,7 +682,7 @@ make_one_const(int type, union Constant *storage, chainp values)
 #endif
 {
     union Constant *Const;
-    register char **L;
+    char **L;
 
     if (type == TYCHAR) {
 	char *str, *str_ptr;
@@ -745,7 +745,7 @@ rdname(infile, vargroupp, name)
 rdname(FILE *infile, int *vargroupp, char *name)
 #endif
 {
-    register int i, c;
+    int i, c;
 
     c = getc (infile);
 
@@ -776,7 +776,7 @@ rdlong(infile, n)
 rdlong(FILE *infile, ftnint *n)
 #endif
 {
-    register int c;
+    int c;
 
     for (c = getc (infile); !feof (infile) && isspace (c); c = getc (infile))
 	;

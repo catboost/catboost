@@ -946,7 +946,7 @@ PyDoc_STRVAR(translate__doc__,
 static PyObject *
 strop_translate(PyObject *self, PyObject *args)
 {
-    register char *input, *table, *output;
+    char *input, *table, *output;
     Py_ssize_t i;
     int c, changed = 0;
     PyObject *input_obj;
@@ -1027,7 +1027,7 @@ strop_translate(PyObject *self, PyObject *args)
 static Py_ssize_t
 mymemfind(const char *mem, Py_ssize_t len, const char *pat, Py_ssize_t pat_len)
 {
-    register Py_ssize_t ii;
+    Py_ssize_t ii;
 
     /* pattern can not occur in the last pat_len-1 chars */
     len -= pat_len;
@@ -1052,7 +1052,7 @@ mymemfind(const char *mem, Py_ssize_t len, const char *pat, Py_ssize_t pat_len)
 static Py_ssize_t
 mymemcnt(const char *mem, Py_ssize_t len, const char *pat, Py_ssize_t pat_len)
 {
-    register Py_ssize_t offset = 0;
+    Py_ssize_t offset = 0;
     Py_ssize_t nfound = 0;
 
     while (len >= 0) {

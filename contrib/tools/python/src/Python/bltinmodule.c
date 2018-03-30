@@ -245,7 +245,7 @@ builtin_filter(PyObject *self, PyObject *args)
 {
     PyObject *func, *seq, *result, *it, *arg;
     Py_ssize_t len;   /* guess for result list size */
-    register Py_ssize_t j;
+    Py_ssize_t j;
 
     if (!PyArg_UnpackTuple(args, "filter", 2, 2, &func, &seq))
         return NULL;
@@ -947,7 +947,7 @@ builtin_map(PyObject *self, PyObject *args)
     PyObject *func, *result;
     sequence *seqs = NULL, *sqp;
     Py_ssize_t n, len;
-    register int i, j;
+    int i, j;
 
     n = PyTuple_Size(args);
     if (n < 2) {
@@ -2960,7 +2960,7 @@ static PyObject *
 filterunicode(PyObject *func, PyObject *strobj)
 {
     PyObject *result;
-    register Py_ssize_t i, j;
+    Py_ssize_t i, j;
     Py_ssize_t len = PyUnicode_GetSize(strobj);
     Py_ssize_t outlen = len;
 

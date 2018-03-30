@@ -166,7 +166,7 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int max, min, dif;
-    register BN_ULONG t1, t2, *ap, *bp, *rp;
+    BN_ULONG t1, t2, *ap, *bp, *rp;
     int i, carry;
 #if defined(IRIX_CC_BUG) && !defined(LINT)
     int dummy;

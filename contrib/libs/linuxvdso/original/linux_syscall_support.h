@@ -1194,7 +1194,7 @@ struct kernel_stat {
 
     #undef  LSS_BODY
     #define LSS_BODY(type, name, args...)                                     \
-          register long __res_r0 __asm__("r0");                               \
+          long __res_r0 __asm__("r0");                               \
           long __res;                                                         \
           __SYS_REG(name)                                                     \
           __asm__ __volatile__ (__syscall_safe(name)                          \
@@ -1287,7 +1287,7 @@ struct kernel_stat {
     LSS_INLINE int LSS_NAME(clone)(int (*fn)(void *), void *child_stack,
                                    int flags, void *arg, int *parent_tidptr,
                                    void *newtls, int *child_tidptr) {
-      register long __res __asm__("r5");
+      long __res __asm__("r5");
       {
         if (fn == NULL || child_stack == NULL) {
             __res = -EINVAL;
@@ -1302,7 +1302,7 @@ struct kernel_stat {
         void * tmp_ptid  = parent_tidptr;
         void * tmp_tls   = newtls;
 
-        register int  *__ctid  __asm__("r4") = child_tidptr;
+        int  *__ctid  __asm__("r4") = child_tidptr;
 
         /* Push "arg" and "fn" onto the stack that will be
          * used by the child.
@@ -1311,10 +1311,10 @@ struct kernel_stat {
         *(--tmp_stack) = (int) fn;
 
         /* We must load r0..r3 last after all possible function calls.  */
-        register int   __flags __asm__("r0") = tmp_flags;
-        register void *__stack __asm__("r1") = tmp_stack;
-        register void *__ptid  __asm__("r2") = tmp_ptid;
-        register void *__tls   __asm__("r3") = tmp_tls;
+        int   __flags __asm__("r0") = tmp_flags;
+        void *__stack __asm__("r1") = tmp_stack;
+        void *__ptid  __asm__("r2") = tmp_ptid;
+        void *__tls   __asm__("r3") = tmp_tls;
 
         /* %r0 = syscall(%r0 = flags,
          *               %r1 = child_stack,
@@ -1382,7 +1382,7 @@ struct kernel_stat {
 
     #undef  LSS_BODY
     #define LSS_BODY(type,name,r7,...)                                        \
-          register unsigned long __v0 __asm__("$2") = __NR_##name;            \
+          unsigned long __v0 __asm__("$2") = __NR_##name;            \
           __asm__ __volatile__ ("syscall\n"                                   \
                                 : "=&r"(__v0), r7 (__r7)                      \
                                 : "0"(__v0), ##__VA_ARGS__                    \
@@ -1391,26 +1391,26 @@ struct kernel_stat {
     #undef _syscall0
     #define _syscall0(type, name)                                             \
       type LSS_NAME(name)() {                                                 \
-        register unsigned long __r7 __asm__("$7");                            \
+        unsigned long __r7 __asm__("$7");                            \
         LSS_BODY(type, name, "=r");                                           \
       }
     #undef _syscall1
     #define _syscall1(type, name, type1, arg1)                                \
       type LSS_NAME(name)(type1 arg1) {                                       \
-        register unsigned long __r7 __asm__("$7");                            \
+        unsigned long __r7 __asm__("$7");                            \
         LSS_REG(4, arg1); LSS_BODY(type, name, "=r", "r"(__r4));              \
       }
     #undef _syscall2
     #define _syscall2(type, name, type1, arg1, type2, arg2)                   \
       type LSS_NAME(name)(type1 arg1, type2 arg2) {                           \
-        register unsigned long __r7 __asm__("$7");                            \
+        unsigned long __r7 __asm__("$7");                            \
         LSS_REG(4, arg1); LSS_REG(5, arg2);                                   \
         LSS_BODY(type, name, "=r", "r"(__r4), "r"(__r5));                     \
       }
     #undef _syscall3
     #define _syscall3(type, name, type1, arg1, type2, arg2, type3, arg3)      \
       type LSS_NAME(name)(type1 arg1, type2 arg2, type3 arg3) {               \
-        register unsigned long __r7 __asm__("$7");                            \
+        unsigned long __r7 __asm__("$7");                            \
         LSS_REG(4, arg1); LSS_REG(5, arg2); LSS_REG(6, arg3);                 \
         LSS_BODY(type, name, "=r", "r"(__r4), "r"(__r5), "r"(__r6));          \
       }
@@ -1432,7 +1432,7 @@ struct kernel_stat {
                           type5 arg5) {                                       \
         LSS_REG(4, arg1); LSS_REG(5, arg2); LSS_REG(6, arg3);                 \
         LSS_REG(7, arg4);                                                     \
-        register unsigned long __v0 __asm__("$2");                            \
+        unsigned long __v0 __asm__("$2");                            \
         __asm__ __volatile__ (".set noreorder\n"                              \
                               "lw    $2, %6\n"                                \
                               "subu  $29, 32\n"                               \
@@ -1469,7 +1469,7 @@ struct kernel_stat {
                           type5 arg5, type6 arg6) {                           \
         LSS_REG(4, arg1); LSS_REG(5, arg2); LSS_REG(6, arg3);                 \
         LSS_REG(7, arg4);                                                     \
-        register unsigned long __v0 __asm__("$2");                            \
+        unsigned long __v0 __asm__("$2");                            \
         __asm__ __volatile__ (".set noreorder\n"                              \
                               "lw    $2, %6\n"                                \
                               "lw    $8, %7\n"                                \
@@ -1501,13 +1501,13 @@ struct kernel_stat {
     LSS_INLINE int LSS_NAME(clone)(int (*fn)(void *), void *child_stack,
                                    int flags, void *arg, int *parent_tidptr,
                                    void *newtls, int *child_tidptr) {
-      register unsigned long __v0 __asm__("$2");
-      register unsigned long __r7 __asm__("$7") = (unsigned long)newtls;
+      unsigned long __v0 __asm__("$2");
+      unsigned long __r7 __asm__("$7") = (unsigned long)newtls;
       {
-        register int   __flags __asm__("$4") = flags;
-        register void *__stack __asm__("$5") = child_stack;
-        register void *__ptid  __asm__("$6") = parent_tidptr;
-        register int  *__ctid  __asm__("$8") = child_tidptr;
+        int   __flags __asm__("$4") = flags;
+        void *__stack __asm__("$5") = child_stack;
+        void *__ptid  __asm__("$6") = parent_tidptr;
+        int  *__ctid  __asm__("$8") = child_tidptr;
         __asm__ __volatile__(
           #if _MIPS_SIM == _MIPS_SIM_ABI32 && _MIPS_SZPTR == 32
                              "subu  $29,24\n"
@@ -1639,13 +1639,13 @@ struct kernel_stat {
     #define LSS_BODY(nr, type, name, args...)                                 \
         long __sc_ret, __sc_err;                                              \
         {                                                                     \
-                        register unsigned long __sc_0 __asm__ ("r0");         \
-                        register unsigned long __sc_3 __asm__ ("r3");         \
-                        register unsigned long __sc_4 __asm__ ("r4");         \
-                        register unsigned long __sc_5 __asm__ ("r5");         \
-                        register unsigned long __sc_6 __asm__ ("r6");         \
-                        register unsigned long __sc_7 __asm__ ("r7");         \
-                        register unsigned long __sc_8 __asm__ ("r8");         \
+                        unsigned long __sc_0 __asm__ ("r0");         \
+                        unsigned long __sc_3 __asm__ ("r3");         \
+                        unsigned long __sc_4 __asm__ ("r4");         \
+                        unsigned long __sc_5 __asm__ ("r5");         \
+                        unsigned long __sc_6 __asm__ ("r6");         \
+                        unsigned long __sc_7 __asm__ ("r7");         \
+                        unsigned long __sc_8 __asm__ ("r8");         \
                                                                               \
             LSS_LOADARGS_##nr(name, args);                                    \
             __asm__ __volatile__                                              \
@@ -1711,13 +1711,13 @@ struct kernel_stat {
                                    void *newtls, int *child_tidptr) {
       long __ret, __err;
       {
-        register int (*__fn)(void *)    __asm__ ("r8")  = fn;
-        register void *__cstack                 __asm__ ("r4")  = child_stack;
-        register int __flags                    __asm__ ("r3")  = flags;
-        register void * __arg                   __asm__ ("r9")  = arg;
-        register int * __ptidptr                __asm__ ("r5")  = parent_tidptr;
-        register void * __newtls                __asm__ ("r6")  = newtls;
-        register int * __ctidptr                __asm__ ("r7")  = child_tidptr;
+        int (*__fn)(void *)    __asm__ ("r8")  = fn;
+        void *__cstack                 __asm__ ("r4")  = child_stack;
+        int __flags                    __asm__ ("r3")  = flags;
+        void * __arg                   __asm__ ("r9")  = arg;
+        int * __ptidptr                __asm__ ("r5")  = parent_tidptr;
+        void * __newtls                __asm__ ("r6")  = newtls;
+        int * __ctidptr                __asm__ ("r7")  = child_tidptr;
         __asm__ __volatile__(
             /* check for fn == NULL
              * and child_stack == NULL
@@ -2054,13 +2054,13 @@ struct kernel_stat {
     #define LSS_SC_BODY(nr, type, opt, args...)                               \
         long __sc_ret, __sc_err;                                              \
         {                                                                     \
-          register unsigned long __sc_0 __asm__ ("r0") = __NR_socketcall;     \
-          register unsigned long __sc_3 __asm__ ("r3") = opt;                 \
-          register unsigned long __sc_4 __asm__ ("r4");                       \
-          register unsigned long __sc_5 __asm__ ("r5");                       \
-          register unsigned long __sc_6 __asm__ ("r6");                       \
-          register unsigned long __sc_7 __asm__ ("r7");                       \
-          register unsigned long __sc_8 __asm__ ("r8");                       \
+          unsigned long __sc_0 __asm__ ("r0") = __NR_socketcall;     \
+          unsigned long __sc_3 __asm__ ("r3") = opt;                 \
+          unsigned long __sc_4 __asm__ ("r4");                       \
+          unsigned long __sc_5 __asm__ ("r5");                       \
+          unsigned long __sc_6 __asm__ ("r6");                       \
+          unsigned long __sc_7 __asm__ ("r7");                       \
+          unsigned long __sc_8 __asm__ ("r8");                       \
           LSS_SC_LOADARGS_##nr(args);                                         \
           __asm__ __volatile__                                                \
               ("stwu 1, -48(1)\n\t"                                           \
@@ -2119,9 +2119,9 @@ struct kernel_stat {
      * both file handles through CPU registers.
      */
     LSS_INLINE int LSS_NAME(pipe)(int *p) {
-      register unsigned long __v0 __asm__("$2") = __NR_pipe;
-      register unsigned long __v1 __asm__("$3");
-      register unsigned long __r7 __asm__("$7");
+      unsigned long __v0 __asm__("$2") = __NR_pipe;
+      unsigned long __v1 __asm__("$3");
+      unsigned long __r7 __asm__("$7");
       __asm__ __volatile__ ("syscall\n"
                             : "=&r"(__v0), "=&r"(__v1), "+r" (__r7)
                             : "0"(__v0)

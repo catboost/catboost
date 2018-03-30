@@ -371,10 +371,10 @@ void private_DES_set_key_unchecked(const_DES_cblock *key,
 {
     static const int shifts2[16] =
         { 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0 };
-    register DES_LONG c, d, t, s, t2;
-    register const unsigned char *in;
-    register DES_LONG *k;
-    register int i;
+    DES_LONG c, d, t, s, t2;
+    const unsigned char *in;
+    DES_LONG *k;
+    int i;
 
 #ifdef OPENBSD_DEV_CRYPTO
     memcpy(schedule->key, key, sizeof schedule->key);

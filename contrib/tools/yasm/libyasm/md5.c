@@ -187,7 +187,7 @@ yasm_md5_final(unsigned char digest[16], yasm_md5_context *ctx)
 void
 yasm_md5_transform(unsigned long buf[4], const unsigned char inraw[64])
 {
-        register unsigned long a, b, c, d;
+        unsigned long a, b, c, d;
         unsigned long in[16];
         int i;
 

@@ -110,12 +110,12 @@ return_type (ffi_type *arg)
 
 void ffi_prep_args(char *stack, extended_cif *ecif)
 {
-  register unsigned int i;
-  register int tmp;
-  register unsigned int avn;
-  register void **p_argv;
-  register char *argp;
-  register ffi_type **p_arg;
+  unsigned int i;
+  int tmp;
+  unsigned int avn;
+  void **p_argv;
+  char *argp;
+  ffi_type **p_arg;
   int greg, ireg;
 #if defined(__SH4__)
   int freg = 0;

@@ -731,7 +731,7 @@ __kmp_is_ticket_lock_nestable( kmp_ticket_lock_t *lck )
 static kmp_uint32
 __kmp_bakery_check(kmp_uint value, kmp_uint checker)
 {
-    register kmp_uint32 pause;
+    kmp_uint32 pause;
 
     if (value == checker) {
         return TRUE;
@@ -1210,7 +1210,7 @@ __forceinline static int
 __kmp_acquire_queuing_lock_timed_template( kmp_queuing_lock_t *lck,
   kmp_int32 gtid )
 {
-    register kmp_info_t *this_thr    = __kmp_thread_from_gtid( gtid );
+    kmp_info_t *this_thr    = __kmp_thread_from_gtid( gtid );
     volatile kmp_int32  *head_id_p   = & lck->lk.head_id;
     volatile kmp_int32  *tail_id_p   = & lck->lk.tail_id;
     volatile kmp_uint32 *spin_here_p;
@@ -1488,7 +1488,7 @@ __kmp_test_queuing_lock_with_checks( kmp_queuing_lock_t *lck, kmp_int32 gtid )
 int
 __kmp_release_queuing_lock( kmp_queuing_lock_t *lck, kmp_int32 gtid )
 {
-    register kmp_info_t *this_thr;
+    kmp_info_t *this_thr;
     volatile kmp_int32 *head_id_p = & lck->lk.head_id;
     volatile kmp_int32 *tail_id_p = & lck->lk.tail_id;
 

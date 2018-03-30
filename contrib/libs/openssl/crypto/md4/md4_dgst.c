@@ -89,7 +89,7 @@ fips_md_init(MD4)
 void md4_block_data_order(MD4_CTX *c, const void *data_, size_t num)
 {
     const unsigned char *data = data_;
-    register unsigned MD32_REG_T A, B, C, D, l;
+    unsigned MD32_REG_T A, B, C, D, l;
 # ifndef MD32_XARRAY
     /* See comment in crypto/sha/sha_locl.h for details. */
     unsigned MD32_REG_T XX0, XX1, XX2, XX3, XX4, XX5, XX6, XX7,

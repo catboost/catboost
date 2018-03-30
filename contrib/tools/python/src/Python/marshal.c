@@ -502,7 +502,7 @@ r_string(char *s, Py_ssize_t n, RFILE *p)
 static int
 r_short(RFILE *p)
 {
-    register short x;
+    short x;
     x = r_byte(p);
     x |= r_byte(p) << 8;
     /* Sign-extension, in case short greater than 16 bits */
@@ -513,8 +513,8 @@ r_short(RFILE *p)
 static long
 r_long(RFILE *p)
 {
-    register long x;
-    register FILE *fp = p->fp;
+    long x;
+    FILE *fp = p->fp;
     if (fp) {
         x = getc(fp);
         x |= (long)getc(fp) << 8;

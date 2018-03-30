@@ -62,9 +62,9 @@
 void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
                     const BF_KEY *schedule, unsigned char *ivec, int encrypt)
 {
-    register BF_LONG tin0, tin1;
-    register BF_LONG tout0, tout1, xor0, xor1;
-    register long l = length;
+    BF_LONG tin0, tin1;
+    BF_LONG tout0, tout1, xor0, xor1;
+    long l = length;
     BF_LONG tin[2];
 
     if (encrypt) {

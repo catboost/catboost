@@ -878,7 +878,7 @@ brel(  kmp_info_t *th, void *buf )
            released,  since  it's  negative to indicate that the buffer is
            allocated. */
 
-        register bufsize size = b->bh.bb.bsize;
+        bufsize size = b->bh.bb.bsize;
 
         /* Make the previous buffer the one we're working on. */
         KMP_DEBUG_ASSERT(BH((char *) b - b->bh.bb.prevfree)->bb.bsize == b->bh.bb.prevfree);

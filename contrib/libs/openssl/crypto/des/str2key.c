@@ -63,7 +63,7 @@ void DES_string_to_key(const char *str, DES_cblock *key)
 {
     DES_key_schedule ks;
     int i, length;
-    register unsigned char j;
+    unsigned char j;
 
     memset(key, 0, 8);
     length = strlen(str);
@@ -101,7 +101,7 @@ void DES_string_to_2keys(const char *str, DES_cblock *key1, DES_cblock *key2)
 {
     DES_key_schedule ks;
     int i, length;
-    register unsigned char j;
+    unsigned char j;
 
     memset(key1, 0, 8);
     memset(key2, 0, 8);

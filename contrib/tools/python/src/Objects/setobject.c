@@ -75,13 +75,13 @@ NULL if the rich comparison returns an error.
 static setentry *
 set_lookkey(PySetObject *so, PyObject *key, register long hash)
 {
-    register Py_ssize_t i;
-    register size_t perturb;
-    register setentry *freeslot;
-    register size_t mask = so->mask;
+    Py_ssize_t i;
+    size_t perturb;
+    setentry *freeslot;
+    size_t mask = so->mask;
     setentry *table = so->table;
-    register setentry *entry;
-    register int cmp;
+    setentry *entry;
+    int cmp;
     PyObject *startkey;
 
     i = hash & mask;
@@ -157,12 +157,12 @@ set_lookkey(PySetObject *so, PyObject *key, register long hash)
 static setentry *
 set_lookkey_string(PySetObject *so, PyObject *key, register long hash)
 {
-    register Py_ssize_t i;
-    register size_t perturb;
-    register setentry *freeslot;
-    register size_t mask = so->mask;
+    Py_ssize_t i;
+    size_t perturb;
+    setentry *freeslot;
+    size_t mask = so->mask;
     setentry *table = so->table;
-    register setentry *entry;
+    setentry *entry;
 
     /* Make sure this function doesn't have to handle non-string keys,
        including subclasses of str; e.g., one reason to subclass
@@ -211,7 +211,7 @@ Eats a reference to key.
 static int
 set_insert_key(register PySetObject *so, PyObject *key, long hash)
 {
-    register setentry *entry;
+    setentry *entry;
 
     assert(so->lookup != NULL);
     entry = so->lookup(so, key, hash);
@@ -247,11 +247,11 @@ is responsible for incref'ing `key`.
 static void
 set_insert_clean(register PySetObject *so, PyObject *key, long hash)
 {
-    register size_t i;
-    register size_t perturb;
-    register size_t mask = (size_t)so->mask;
+    size_t i;
+    size_t perturb;
+    size_t mask = (size_t)so->mask;
     setentry *table = so->table;
-    register setentry *entry;
+    setentry *entry;
 
     i = hash & mask;
     entry = &table[i];
@@ -360,7 +360,7 @@ set_table_resize(PySetObject *so, Py_ssize_t minused)
 static int
 set_add_entry(register PySetObject *so, setentry *entry)
 {
-    register Py_ssize_t n_used;
+    Py_ssize_t n_used;
     PyObject *key = entry->key;
     long hash = entry->hash;
 
@@ -379,8 +379,8 @@ set_add_entry(register PySetObject *so, setentry *entry)
 static int
 set_add_key(register PySetObject *so, PyObject *key)
 {
-    register long hash;
-    register Py_ssize_t n_used;
+    long hash;
+    Py_ssize_t n_used;
 
     if (!PyString_CheckExact(key) ||
         (hash = ((PyStringObject *) key)->ob_shash) == -1) {
@@ -405,7 +405,7 @@ set_add_key(register PySetObject *so, PyObject *key)
 
 static int
 set_discard_entry(PySetObject *so, setentry *oldentry)
-{       register setentry *entry;
+{       setentry *entry;
     PyObject *old_key;
 
     entry = (so->lookup)(so, oldentry->key, oldentry->hash);
@@ -424,8 +424,8 @@ set_discard_entry(PySetObject *so, setentry *oldentry)
 static int
 set_discard_key(PySetObject *so, PyObject *key)
 {
-    register long hash;
-    register setentry *entry;
+    long hash;
+    setentry *entry;
     PyObject *old_key;
 
     assert (PyAnySet_Check(so));
@@ -530,7 +530,7 @@ set_next(PySetObject *so, Py_ssize_t *pos_ptr, setentry **entry_ptr)
 {
     Py_ssize_t i;
     Py_ssize_t mask;
-    register setentry *table;
+    setentry *table;
 
     assert (PyAnySet_Check(so));
     i = *pos_ptr;
@@ -550,7 +550,7 @@ set_next(PySetObject *so, Py_ssize_t *pos_ptr, setentry **entry_ptr)
 static void
 set_dealloc(PySetObject *so)
 {
-    register setentry *entry;
+    setentry *entry;
     Py_ssize_t fill = so->fill;
     PyObject_GC_UnTrack(so);
     Py_TRASHCAN_SAFE_BEGIN(so)
@@ -650,8 +650,8 @@ set_merge(PySetObject *so, PyObject *otherset)
     PySetObject *other;
     PyObject *key;
     long hash;
-    register Py_ssize_t i;
-    register setentry *entry;
+    Py_ssize_t i;
+    setentry *entry;
 
     assert (PyAnySet_Check(so));
     assert (PyAnySet_Check(otherset));
@@ -719,8 +719,8 @@ set_contains_entry(PySetObject *so, setentry *entry)
 static PyObject *
 set_pop(PySetObject *so)
 {
-    register Py_ssize_t i = 0;
-    register setentry *entry;
+    Py_ssize_t i = 0;
+    setentry *entry;
     PyObject *key;
 
     assert (PyAnySet_Check(so));
@@ -844,8 +844,8 @@ static PyMethodDef setiter_methods[] = {
 static PyObject *setiter_iternext(setiterobject *si)
 {
     PyObject *key;
-    register Py_ssize_t i, mask;
-    register setentry *entry;
+    Py_ssize_t i, mask;
+    setentry *entry;
     PySetObject *so = si->si_set;
 
     if (so == NULL)
@@ -999,7 +999,7 @@ PyDoc_STRVAR(update_doc,
 static PyObject *
 make_new_set(PyTypeObject *type, PyObject *iterable)
 {
-    register PySetObject *so = NULL;
+    PySetObject *so = NULL;
 
     if (dummy == NULL) { /* Auto-initialize dummy */
         dummy = PyString_FromString("<dummy key>");

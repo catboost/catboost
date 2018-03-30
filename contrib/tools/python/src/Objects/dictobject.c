@@ -240,7 +240,7 @@ PyDict_Fini(void)
 PyObject *
 PyDict_New(void)
 {
-    register PyDictObject *mp;
+    PyDictObject *mp;
     if (dummy == NULL) { /* Auto-initialize dummy */
         dummy = PyString_FromString("<dummy key>");
         if (dummy == NULL)
@@ -319,13 +319,13 @@ PyDictEntry*.
 static PyDictEntry *
 lookdict(PyDictObject *mp, PyObject *key, register long hash)
 {
-    register size_t i;
-    register size_t perturb;
-    register PyDictEntry *freeslot;
-    register size_t mask = (size_t)mp->ma_mask;
+    size_t i;
+    size_t perturb;
+    PyDictEntry *freeslot;
+    size_t mask = (size_t)mp->ma_mask;
     PyDictEntry *ep0 = mp->ma_table;
-    register PyDictEntry *ep;
-    register int cmp;
+    PyDictEntry *ep;
+    int cmp;
     PyObject *startkey;
 
     i = (size_t)hash & mask;
@@ -407,12 +407,12 @@ lookdict(PyDictObject *mp, PyObject *key, register long hash)
 static PyDictEntry *
 lookdict_string(PyDictObject *mp, PyObject *key, register long hash)
 {
-    register size_t i;
-    register size_t perturb;
-    register PyDictEntry *freeslot;
-    register size_t mask = (size_t)mp->ma_mask;
+    size_t i;
+    size_t perturb;
+    PyDictEntry *freeslot;
+    size_t mask = (size_t)mp->ma_mask;
     PyDictEntry *ep0 = mp->ma_table;
-    register PyDictEntry *ep;
+    PyDictEntry *ep;
 
     /* Make sure this function doesn't have to handle non-string keys,
        including subclasses of str; e.g., one reason to subclass
@@ -544,7 +544,7 @@ Returns -1 if an error occurred, or 0 on success.
 static int
 insertdict(register PyDictObject *mp, PyObject *key, long hash, PyObject *value)
 {
-    register PyDictEntry *ep;
+    PyDictEntry *ep;
 
     assert(mp->ma_lookup != NULL);
     ep = mp->ma_lookup(mp, key, hash);
@@ -568,11 +568,11 @@ static void
 insertdict_clean(register PyDictObject *mp, PyObject *key, long hash,
                  PyObject *value)
 {
-    register size_t i;
-    register size_t perturb;
-    register size_t mask = (size_t)mp->ma_mask;
+    size_t i;
+    size_t perturb;
+    size_t mask = (size_t)mp->ma_mask;
     PyDictEntry *ep0 = mp->ma_table;
-    register PyDictEntry *ep;
+    PyDictEntry *ep;
 
     MAINTAIN_TRACKING(mp, key, value);
     i = hash & mask;
@@ -753,8 +753,8 @@ static int
 dict_set_item_by_hash_or_entry(register PyObject *op, PyObject *key,
                                long hash, PyDictEntry *ep, PyObject *value)
 {
-    register PyDictObject *mp;
-    register Py_ssize_t n_used;
+    PyDictObject *mp;
+    Py_ssize_t n_used;
 
     mp = (PyDictObject *)op;
     assert(mp->ma_fill <= mp->ma_mask);  /* at least one empty slot */
@@ -797,7 +797,7 @@ dict_set_item_by_hash_or_entry(register PyObject *op, PyObject *key,
 int
 PyDict_SetItem(register PyObject *op, PyObject *key, PyObject *value)
 {
-    register long hash;
+    long hash;
 
     if (!PyDict_Check(op)) {
         PyErr_BadInternalCall();
@@ -821,9 +821,9 @@ PyDict_SetItem(register PyObject *op, PyObject *key, PyObject *value)
 int
 PyDict_DelItem(PyObject *op, PyObject *key)
 {
-    register PyDictObject *mp;
-    register long hash;
-    register PyDictEntry *ep;
+    PyDictObject *mp;
+    long hash;
+    PyDictEntry *ep;
     PyObject *old_value, *old_key;
 
     if (!PyDict_Check(op)) {
@@ -943,9 +943,9 @@ PyDict_Clear(PyObject *op)
 int
 PyDict_Next(PyObject *op, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue)
 {
-    register Py_ssize_t i;
-    register Py_ssize_t mask;
-    register PyDictEntry *ep;
+    Py_ssize_t i;
+    Py_ssize_t mask;
+    PyDictEntry *ep;
 
     if (!PyDict_Check(op))
         return 0;
@@ -970,9 +970,9 @@ PyDict_Next(PyObject *op, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue)
 int
 _PyDict_Next(PyObject *op, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue, long *phash)
 {
-    register Py_ssize_t i;
-    register Py_ssize_t mask;
-    register PyDictEntry *ep;
+    Py_ssize_t i;
+    Py_ssize_t mask;
+    PyDictEntry *ep;
 
     if (!PyDict_Check(op))
         return 0;
@@ -999,7 +999,7 @@ _PyDict_Next(PyObject *op, Py_ssize_t *ppos, PyObject **pkey, PyObject **pvalue,
 static void
 dict_dealloc(register PyDictObject *mp)
 {
-    register PyDictEntry *ep;
+    PyDictEntry *ep;
     Py_ssize_t fill = mp->ma_fill;
     PyObject_GC_UnTrack(mp);
     Py_TRASHCAN_SAFE_BEGIN(mp)
@@ -1022,8 +1022,8 @@ dict_dealloc(register PyDictObject *mp)
 static int
 dict_print(register PyDictObject *mp, register FILE *fp, register int flags)
 {
-    register Py_ssize_t i;
-    register Py_ssize_t any;
+    Py_ssize_t i;
+    Py_ssize_t any;
     int status;
 
     status = Py_ReprEnter((PyObject*)mp);
@@ -1220,8 +1220,8 @@ static PyMappingMethods dict_as_mapping = {
 static PyObject *
 dict_keys(register PyDictObject *mp)
 {
-    register PyObject *v;
-    register Py_ssize_t i, j;
+    PyObject *v;
+    Py_ssize_t i, j;
     PyDictEntry *ep;
     Py_ssize_t mask, n;
 
@@ -1254,8 +1254,8 @@ dict_keys(register PyDictObject *mp)
 static PyObject *
 dict_values(register PyDictObject *mp)
 {
-    register PyObject *v;
-    register Py_ssize_t i, j;
+    PyObject *v;
+    Py_ssize_t i, j;
     PyDictEntry *ep;
     Py_ssize_t mask, n;
 
@@ -1288,8 +1288,8 @@ dict_values(register PyDictObject *mp)
 static PyObject *
 dict_items(register PyDictObject *mp)
 {
-    register PyObject *v;
-    register Py_ssize_t i, j, n;
+    PyObject *v;
+    Py_ssize_t i, j, n;
     Py_ssize_t mask;
     PyObject *item, *key, *value;
     PyDictEntry *ep;
@@ -1549,8 +1549,8 @@ PyDict_Update(PyObject *a, PyObject *b)
 int
 PyDict_Merge(PyObject *a, PyObject *b, int override)
 {
-    register PyDictObject *mp, *other;
-    register Py_ssize_t i;
+    PyDictObject *mp, *other;
+    Py_ssize_t i;
     PyDictEntry *entry;
 
     /* We accept for the argument either a concrete dictionary object,
@@ -2525,8 +2525,8 @@ static PyMethodDef dictiter_methods[] = {
 static PyObject *dictiter_iternextkey(dictiterobject *di)
 {
     PyObject *key;
-    register Py_ssize_t i, mask;
-    register PyDictEntry *ep;
+    Py_ssize_t i, mask;
+    PyDictEntry *ep;
     PyDictObject *d = di->di_dict;
 
     if (d == NULL)
@@ -2597,8 +2597,8 @@ PyTypeObject PyDictIterKey_Type = {
 static PyObject *dictiter_iternextvalue(dictiterobject *di)
 {
     PyObject *value;
-    register Py_ssize_t i, mask;
-    register PyDictEntry *ep;
+    Py_ssize_t i, mask;
+    PyDictEntry *ep;
     PyDictObject *d = di->di_dict;
 
     if (d == NULL)
@@ -2669,8 +2669,8 @@ PyTypeObject PyDictIterValue_Type = {
 static PyObject *dictiter_iternextitem(dictiterobject *di)
 {
     PyObject *key, *value, *result = di->di_result;
-    register Py_ssize_t i, mask;
-    register PyDictEntry *ep;
+    Py_ssize_t i, mask;
+    PyDictEntry *ep;
     PyDictObject *d = di->di_dict;
 
     if (d == NULL)

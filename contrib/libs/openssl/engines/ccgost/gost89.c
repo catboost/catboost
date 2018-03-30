@@ -241,7 +241,7 @@ static word32 f(gost_ctx * c, word32 x)
 /* Low-level encryption routine - encrypts one 64 bit block*/
 void gostcrypt(gost_ctx * c, const byte * in, byte * out)
 {
-    register word32 n1, n2;     /* As named in the GOST */
+    word32 n1, n2;     /* As named in the GOST */
     n1 = in[0] | (in[1] << 8) | (in[2] << 16) | ((word32) in[3] << 24);
     n2 = in[4] | (in[5] << 8) | (in[6] << 16) | ((word32) in[7] << 24);
     /* Instead of swapping halves, swap names each round */
@@ -295,7 +295,7 @@ void gostcrypt(gost_ctx * c, const byte * in, byte * out)
 /* Low-level decryption routine. Decrypts one 64-bit block */
 void gostdecrypt(gost_ctx * c, const byte * in, byte * out)
 {
-    register word32 n1, n2;     /* As named in the GOST */
+    word32 n1, n2;     /* As named in the GOST */
     n1 = in[0] | (in[1] << 8) | (in[2] << 16) | ((word32) in[3] << 24);
     n2 = in[4] | (in[5] << 8) | (in[6] << 16) | ((word32) in[7] << 24);
 
@@ -458,7 +458,7 @@ void gost_destroy(gost_ctx * c)
  */
 void mac_block(gost_ctx * c, byte * buffer, const byte * block)
 {
-    register word32 n1, n2;     /* As named in the GOST */
+    word32 n1, n2;     /* As named in the GOST */
     int i;
     for (i = 0; i < 8; i++) {
         buffer[i] ^= block[i];

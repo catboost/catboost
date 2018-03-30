@@ -228,7 +228,7 @@ fwd_strcpy(register char *t, register char *s)
     extern int max_line_len;
     extern FILEP c_file;
     extern char tr_tab[];	/* in output.c */
-    register char *Tr = tr_tab;
+    char *Tr = tr_tab;
     int ch, cmax, inc, ind;
     static int extra_indent, last_indent, set_cursor = 1;
 

@@ -1215,7 +1215,7 @@ indenterror(struct tok_state *tok)
 static int
 tok_get(register struct tok_state *tok, char **p_start, char **p_end)
 {
-    register int c;
+    int c;
     int blankline;
 
     *p_start = *p_end = NULL;
@@ -1225,8 +1225,8 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
 
     /* Get indentation level */
     if (tok->atbol) {
-        register int col = 0;
-        register int altcol = 0;
+        int col = 0;
+        int altcol = 0;
         tok->atbol = 0;
         for (;;) {
             c = tok_nextc(tok);

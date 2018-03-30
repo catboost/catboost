@@ -37,7 +37,7 @@ s_reset(stack *s)
 static int
 s_push(register stack *s, dfa *d, node *parent)
 {
-    register stackentry *top;
+    stackentry *top;
     if (s->s_top == s->s_base) {
         fprintf(stderr, "s_push: parser stack overflow\n");
         return E_NOMEM;
@@ -120,7 +120,7 @@ static int
 push(register stack *s, int type, dfa *d, int newstate, int lineno, int col_offset)
 {
     int err;
-    register node *n;
+    node *n;
     n = s->s_top->s_parent;
     assert(!s_empty(s));
     err = PyNode_AddChild(n, type, (char *)NULL, lineno, col_offset);
@@ -137,12 +137,12 @@ static int
 classify(parser_state *ps, int type, char *str)
 {
     grammar *g = ps->p_grammar;
-    register int n = g->g_ll.ll_nlabels;
+    int n = g->g_ll.ll_nlabels;
 
     if (type == NAME) {
-        register char *s = str;
-        register label *l = g->g_ll.ll_label;
-        register int i;
+        char *s = str;
+        label *l = g->g_ll.ll_label;
+        int i;
         for (i = n; i > 0; i--, l++) {
             if (l->lb_type != NAME || l->lb_str == NULL ||
                 l->lb_str[0] != s[0] ||
@@ -160,8 +160,8 @@ classify(parser_state *ps, int type, char *str)
     }
 
     {
-        register label *l = g->g_ll.ll_label;
-        register int i;
+        label *l = g->g_ll.ll_label;
+        int i;
         for (i = n; i > 0; i--, l++) {
             if (l->lb_type == type && l->lb_str == NULL) {
                 D(printf("It's a token we know\n"));
@@ -220,7 +220,7 @@ int
 PyParser_AddToken(register parser_state *ps, register int type, char *str,
                   int lineno, int col_offset, int *expected_ret)
 {
-    register int ilabel;
+    int ilabel;
     int err;
 
     D(printf("Token %s/'%s' ... ", _PyParser_TokenNames[type], str));
@@ -233,15 +233,15 @@ PyParser_AddToken(register parser_state *ps, register int type, char *str,
     /* Loop until the token is shifted or an error occurred */
     for (;;) {
         /* Fetch the current dfa and state */
-        register dfa *d = ps->p_stack.s_top->s_dfa;
-        register state *s = &d->d_state[ps->p_stack.s_top->s_state];
+        dfa *d = ps->p_stack.s_top->s_dfa;
+        state *s = &d->d_state[ps->p_stack.s_top->s_state];
 
         D(printf(" DFA '%s', state %d:",
             d->d_name, ps->p_stack.s_top->s_state));
 
         /* Check accelerator */
         if (s->s_lower <= ilabel && ilabel < s->s_upper) {
-            register int x = s->s_accel[ilabel - s->s_lower];
+            int x = s->s_accel[ilabel - s->s_lower];
             if (x != -1) {
                 if (x & (1<<7)) {
                     /* Push non-terminal */

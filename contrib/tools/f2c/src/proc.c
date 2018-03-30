@@ -1040,11 +1040,11 @@ namelist(Namep np)
  LOCAL void
 docommon(Void)
 {
-    register Extsym *extptr;
-    register chainp q, q1;
+    Extsym *extptr;
+    chainp q, q1;
     struct Dimblock *t;
     expptr neltp;
-    register Namep comvar;
+    Namep comvar;
     ftnint size;
     int i, k, pref, type;
     extern int type_pref[];

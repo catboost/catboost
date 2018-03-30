@@ -64,9 +64,9 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
                         long length, RC5_32_KEY *ks, unsigned char *iv,
                         int encrypt)
 {
-    register unsigned long tin0, tin1;
-    register unsigned long tout0, tout1, xor0, xor1;
-    register long l = length;
+    unsigned long tin0, tin1;
+    unsigned long tout0, tout1, xor0, xor1;
+    long l = length;
     unsigned long tin[2];
 
     if (encrypt) {

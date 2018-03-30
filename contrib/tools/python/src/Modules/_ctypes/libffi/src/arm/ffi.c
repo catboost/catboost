@@ -43,7 +43,7 @@ int ffi_prep_args_VFP(char *stack, extended_cif *ecif, float *vfp_space);
 static char* ffi_align(ffi_type **p_arg, char *argp)
 {
   /* Align if necessary */
-  register size_t alignment = (*p_arg)->alignment;
+  size_t alignment = (*p_arg)->alignment;
   if (alignment < 4)
   {
     alignment = 4;
@@ -127,10 +127,10 @@ static size_t ffi_put_arg(ffi_type **arg_type, void **arg, char *stack)
 */
 int ffi_prep_args_SYSV(char *stack, extended_cif *ecif, float *vfp_space)
 {
-  register unsigned int i;
-  register void **p_argv;
-  register char *argp;
-  register ffi_type **p_arg;
+  unsigned int i;
+  void **p_argv;
+  char *argp;
+  ffi_type **p_arg;
   argp = stack;
   
 
@@ -154,10 +154,10 @@ int ffi_prep_args_SYSV(char *stack, extended_cif *ecif, float *vfp_space)
 
 int ffi_prep_args_VFP(char *stack, extended_cif *ecif, float *vfp_space)
 {
-  register unsigned int i, vi = 0;
-  register void **p_argv;
-  register char *argp, *regp, *eo_regp;
-  register ffi_type **p_arg;
+  unsigned int i, vi = 0;
+  void **p_argv;
+  char *argp, *regp, *eo_regp;
+  ffi_type **p_arg;
   char stack_used = 0;
   char done_with_regs = 0;
   char is_vfp_type;
@@ -411,10 +411,10 @@ ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
 			    float *vfp_stack)
 /*@=exportheader@*/
 {
-  register unsigned int i;
-  register void **p_argv;
-  register char *argp;
-  register ffi_type **p_arg;
+  unsigned int i;
+  void **p_argv;
+  char *argp;
+  ffi_type **p_arg;
 
   argp = stack;
 
@@ -452,10 +452,10 @@ ffi_prep_incoming_args_VFP(char *stack, void **rvalue,
 			    float *vfp_stack)
 /*@=exportheader@*/
 {
-  register unsigned int i, vi = 0;
-  register void **p_argv;
-  register char *argp, *regp, *eo_regp;
-  register ffi_type **p_arg;
+  unsigned int i, vi = 0;
+  void **p_argv;
+  char *argp, *regp, *eo_regp;
+  ffi_type **p_arg;
   char done_with_regs = 0;
   char stack_used = 0;
   char is_vfp_type;

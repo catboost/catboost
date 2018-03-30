@@ -1144,7 +1144,7 @@ out_call(FILE *outfile, int op, int ftype, expptr len, expptr name, expptr args)
 				   routine */
     int done_once;		/* Used for writing commas to   outfile   */
     int narg, t;
-    register expptr q;
+    expptr q;
     long L;
     Argtypes *at;
     Atype *A, *Ac;
@@ -1431,7 +1431,7 @@ char tr_tab[Table_size];
 out_init(Void)
 {
     extern int tab_size;
-    register char *s;
+    char *s;
 
     s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_+-.";
     while(*s)

@@ -69,9 +69,9 @@ void CAST_cfb64_encrypt(const unsigned char *in, unsigned char *out,
                         long length, const CAST_KEY *schedule,
                         unsigned char *ivec, int *num, int enc)
 {
-    register CAST_LONG v0, v1, t;
-    register int n = *num;
-    register long l = length;
+    CAST_LONG v0, v1, t;
+    int n = *num;
+    long l = length;
     CAST_LONG ti[2];
     unsigned char *iv, c, cc;
 

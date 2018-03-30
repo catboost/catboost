@@ -1682,14 +1682,14 @@ putcall(p0, temp)
 putcall(expptr p0, Addrp *temp)
 #endif
 {
-    register Exprp p = (Exprp)p0;
+    Exprp p = (Exprp)p0;
     chainp arglist;		/* Pointer to actual arguments, if any */
     chainp charsp;		/* List of copies of the variables which
 				   hold the lengths of character
 				   parameters (other than procedure
 				   parameters) */
     chainp cp;			/* Iterator over argument lists */
-    register expptr q;		/* Pointer to the current argument */
+    expptr q;		/* Pointer to the current argument */
     Addrp fval;			/* Function return value */
     int type;			/* type of the call - presumably this was
 				   set elsewhere */

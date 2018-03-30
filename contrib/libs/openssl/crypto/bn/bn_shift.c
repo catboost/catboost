@@ -62,7 +62,7 @@
 
 int BN_lshift1(BIGNUM *r, const BIGNUM *a)
 {
-    register BN_ULONG *ap, *rp, t, c;
+    BN_ULONG *ap, *rp, t, c;
     int i;
 
     bn_check_top(r);

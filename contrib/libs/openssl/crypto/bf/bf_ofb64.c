@@ -68,11 +68,11 @@ void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
                       long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num)
 {
-    register BF_LONG v0, v1, t;
-    register int n = *num;
-    register long l = length;
+    BF_LONG v0, v1, t;
+    int n = *num;
+    long l = length;
     unsigned char d[8];
-    register char *dp;
+    char *dp;
     BF_LONG ti[2];
     unsigned char *iv;
     int save = 0;

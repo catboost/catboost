@@ -348,8 +348,8 @@ stringlib_splitlines(PyObject* str_obj,
        and the appends only done when the prealloc buffer is full.
        That's too much work for little gain.*/
 
-    register Py_ssize_t i;
-    register Py_ssize_t j;
+    Py_ssize_t i;
+    Py_ssize_t j;
     PyObject *list = PyList_New(0);
     PyObject *sub;
 

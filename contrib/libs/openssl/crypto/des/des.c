@@ -350,7 +350,7 @@ void doencryption(void)
     extern unsigned long time();
 #endif
 
-    register int i;
+    int i;
     DES_key_schedule ks, ks2;
     DES_cblock iv, iv2;
     char *p;
@@ -761,7 +761,7 @@ int uuencode(unsigned char *in, int num, unsigned char *out)
 {
     int j, i, n, tot = 0;
     DES_LONG l;
-    register unsigned char *p;
+    unsigned char *p;
     p = out;
 
     for (j = 0; j < num; j += 45) {

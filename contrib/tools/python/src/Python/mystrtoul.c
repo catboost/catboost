@@ -94,9 +94,9 @@ static int digitlimit[] = {
 unsigned long
 PyOS_strtoul(register char *str, char **ptr, int base)
 {
-    register unsigned long result = 0; /* return value of the function */
-    register int c;             /* current input character */
-    register int ovlimit;       /* required digits to overflow */
+    unsigned long result = 0; /* return value of the function */
+    int c;             /* current input character */
+    int ovlimit;       /* required digits to overflow */
 
     /* skip leading white space */
     while (*str && isspace(Py_CHARMASK(*str)))
@@ -207,7 +207,7 @@ PyOS_strtoul(register char *str, char **ptr, int base)
         if (ovlimit > 0) /* no overflow check required */
             result = result * base + c;
         else { /* requires overflow check */
-            register unsigned long temp_result;
+            unsigned long temp_result;
 
             if (ovlimit < 0) /* guaranteed overflow */
                 goto overflowed;

@@ -190,7 +190,7 @@ static
 int dInfoCalc_SetFromAbsDate(register struct date_info *dinfo,
 							 npy_int64 absdate, int calendar)
 {
-    register npy_int64 year;
+    npy_int64 year;
     npy_int64 yearoffset;
     int leap,dayoffset;
     int *monthoffset;
@@ -236,7 +236,7 @@ int dInfoCalc_SetFromAbsDate(register struct date_info *dinfo,
     /* Now iterate to find the month */
     monthoffset = month_offset[leap];
     {
-        register int month;
+        int month;
 
         for (month = 1; month < 13; month++) {
             if (monthoffset[month] >= dayoffset)

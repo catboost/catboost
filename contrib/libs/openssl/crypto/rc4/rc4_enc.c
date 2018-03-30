@@ -71,8 +71,8 @@
 void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
          unsigned char *outdata)
 {
-    register RC4_INT *d;
-    register RC4_INT x, y, tx, ty;
+    RC4_INT *d;
+    RC4_INT x, y, tx, ty;
     size_t i;
 
     x = key->x;

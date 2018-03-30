@@ -239,7 +239,7 @@ Get a list of all keys in the database.");
 static PyObject *
 dbm_keys(register dbmobject *dp, PyObject *unused)
 {
-    register PyObject *v, *item;
+    PyObject *v, *item;
     datum key, nextkey;
     int err;
 
@@ -300,7 +300,7 @@ returns the starting key.");
 static PyObject *
 dbm_firstkey(register dbmobject *dp, PyObject *unused)
 {
-    register PyObject *v;
+    PyObject *v;
     datum key;
 
     check_dbmobject_open(dp);
@@ -330,7 +330,7 @@ to create a list in memory that contains them all:\n\
 static PyObject *
 dbm_nextkey(register dbmobject *dp, PyObject *args)
 {
-    register PyObject *v;
+    PyObject *v;
     datum key, nextkey;
 
     if (!PyArg_ParseTuple(args, "s#:nextkey", &key.dptr, &key.dsize))

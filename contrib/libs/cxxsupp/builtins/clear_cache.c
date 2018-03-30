@@ -99,7 +99,7 @@ void __clear_cache(void *start, void *end) {
 
         sysarch(ARM_SYNC_ICACHE, &arg);
     #elif defined(__ANDROID__)
-         register int start_reg __asm("r0") = (int) (intptr_t) start;
+         int start_reg __asm("r0") = (int) (intptr_t) start;
          const register int end_reg __asm("r1") = (int) (intptr_t) end;
          const register int flags __asm("r2") = 0;
          const register int syscall_nr __asm("r7") = __ARM_NR_cacheflush;

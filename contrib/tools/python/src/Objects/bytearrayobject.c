@@ -939,9 +939,9 @@ bytearray_repr(PyByteArrayObject *self)
         return NULL;
     }
     else {
-        register Py_ssize_t i;
-        register char c;
-        register char *p;
+        Py_ssize_t i;
+        char c;
+        char *p;
         int quote;
 
         /* Figure out which quote to use; single is preferred */
@@ -1442,9 +1442,9 @@ table, which must be a bytes object of length 256.");
 static PyObject *
 bytearray_translate(PyByteArrayObject *self, PyObject *args)
 {
-    register char *input, *output;
-    register const char *table;
-    register Py_ssize_t i, c;
+    char *input, *output;
+    const char *table;
+    Py_ssize_t i, c;
     PyObject *input_obj = (PyObject*)self;
     const char *output_start;
     Py_ssize_t inlen;

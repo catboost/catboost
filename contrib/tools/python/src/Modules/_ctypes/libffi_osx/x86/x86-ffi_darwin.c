@@ -39,10 +39,10 @@ void ffi_prep_args(char *stack, extended_cif *ecif);
 
 void ffi_prep_args(char *stack, extended_cif *ecif)
 {
-    register unsigned int i;
-    register void **p_argv;
-    register char *argp;
-    register ffi_type **p_arg;
+    unsigned int i;
+    void **p_argv;
+    char *argp;
+    ffi_type **p_arg;
     
     argp = stack;
     
@@ -266,10 +266,10 @@ static void
 ffi_prep_incoming_args_SYSV(char *stack, void **rvalue, void **avalue,
                             ffi_cif *cif)
 {
-    register unsigned int i;
-    register void **p_argv;
-    register char *argp;
-    register ffi_type **p_arg;
+    unsigned int i;
+    void **p_argv;
+    char *argp;
+    ffi_type **p_arg;
     
     argp = stack;
     

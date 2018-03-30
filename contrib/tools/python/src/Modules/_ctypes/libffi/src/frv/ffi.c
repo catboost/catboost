@@ -36,11 +36,11 @@
 
 void *ffi_prep_args(char *stack, extended_cif *ecif)
 {
-  register unsigned int i;
-  register void **p_argv;
-  register char *argp;
-  register ffi_type **p_arg;
-  register int count = 0;
+  unsigned int i;
+  void **p_argv;
+  char *argp;
+  ffi_type **p_arg;
+  int count = 0;
 
   p_argv = ecif->avalue;
   argp = stack;
@@ -169,12 +169,12 @@ void ffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
   /* This function is called by a trampoline.  The trampoline stows a
      pointer to the ffi_closure object in gr7.  We must save this
      pointer in a place that will persist while we do our work.  */
-  register ffi_closure *creg __asm__ ("gr7");
+  ffi_closure *creg __asm__ ("gr7");
   ffi_closure *closure = creg;
 
   /* Arguments that don't fit in registers are found on the stack
      at a fixed offset above the current frame pointer.  */
-  register char *frame_pointer __asm__ ("fp");
+  char *frame_pointer __asm__ ("fp");
   char *stack_args = frame_pointer + 16;
 
   /* Lay the register arguments down in a continuous chunk of memory.  */
@@ -228,7 +228,7 @@ void ffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
       /* The caller allocates space for the return structure, and
        passes a pointer to this space in gr3.  Use this value directly
        as the return value.  */
-      register void *return_struct_ptr __asm__("gr3");
+      void *return_struct_ptr __asm__("gr3");
       (closure->fun) (cif, return_struct_ptr, avalue, closure->user_data);
     }
   else
@@ -256,7 +256,7 @@ ffi_prep_closure_loc (ffi_closure* closure,
   unsigned long fn = (long) ffi_closure_eabi;
   unsigned long cls = (long) codeloc;
 #ifdef __FRV_FDPIC__
-  register void *got __asm__("gr15");
+  void *got __asm__("gr15");
 #endif
   int i;
 

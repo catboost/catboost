@@ -143,7 +143,7 @@ void ffi_call(ffi_cif *cif, void(*fn)(void), void *rvalue, void **avalue)
 */
 void ffi_prep_args(unsigned char *stack, extended_cif *ecif)
 {
-   register unsigned int i = 0;
+   unsigned int i = 0;
    void **p_argv;
    unsigned char *argp;
    ffi_type **p_arg;

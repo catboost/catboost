@@ -49,9 +49,9 @@ __kmp_linear_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid
                             USE_ITT_BUILD_ARG(void * itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_linear_gather);
-    register kmp_team_t *team = this_thr->th.th_team;
-    register kmp_bstate_t *thr_bar = & this_thr->th.th_bar[bt].bb;
-    register kmp_info_t **other_threads = team->t.t_threads;
+    kmp_team_t *team = this_thr->th.th_team;
+    kmp_bstate_t *thr_bar = & this_thr->th.th_bar[bt].bb;
+    kmp_info_t **other_threads = team->t.t_threads;
 
     KA_TRACE(20, ("__kmp_linear_barrier_gather: T#%d(%d:%d) enter for barrier type %d\n",
                   gtid, team->t.t_id, tid, bt));
@@ -75,11 +75,11 @@ __kmp_linear_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid
         kmp_flag_64 flag(&thr_bar->b_arrived, other_threads[0]);
         flag.release();
     } else {
-        register kmp_balign_team_t *team_bar = &team->t.t_bar[bt];
-        register int nproc = this_thr->th.th_team_nproc;
-        register int i;
+        kmp_balign_team_t *team_bar = &team->t.t_bar[bt];
+        int nproc = this_thr->th.th_team_nproc;
+        int i;
         // Don't have to worry about sleep bit here or atomic since team setting
-        register kmp_uint64 new_state = team_bar->b_arrived + KMP_BARRIER_STATE_BUMP;
+        kmp_uint64 new_state = team_bar->b_arrived + KMP_BARRIER_STATE_BUMP;
 
         // Collect all the worker team member threads.
         for (i=1; i<nproc; ++i) {
@@ -126,13 +126,13 @@ __kmp_linear_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, int gti
                              USE_ITT_BUILD_ARG(void *itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_linear_release);
-    register kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
-    register kmp_team_t *team;
+    kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
+    kmp_team_t *team;
 
     if (KMP_MASTER_TID(tid)) {
-        register unsigned int i;
-        register kmp_uint32 nproc = this_thr->th.th_team_nproc;
-        register kmp_info_t **other_threads;
+        unsigned int i;
+        kmp_uint32 nproc = this_thr->th.th_team_nproc;
+        kmp_info_t **other_threads;
 
         team = __kmp_threads[gtid]->th.th_team;
         KMP_DEBUG_ASSERT(team != NULL);
@@ -221,15 +221,15 @@ __kmp_tree_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid, 
                           USE_ITT_BUILD_ARG(void *itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_tree_gather);
-    register kmp_team_t *team = this_thr->th.th_team;
-    register kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
-    register kmp_info_t **other_threads = team->t.t_threads;
-    register kmp_uint32 nproc = this_thr->th.th_team_nproc;
-    register kmp_uint32 branch_bits = __kmp_barrier_gather_branch_bits[bt];
-    register kmp_uint32 branch_factor = 1 << branch_bits;
-    register kmp_uint32 child;
-    register kmp_uint32 child_tid;
-    register kmp_uint64 new_state;
+    kmp_team_t *team = this_thr->th.th_team;
+    kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
+    kmp_info_t **other_threads = team->t.t_threads;
+    kmp_uint32 nproc = this_thr->th.th_team_nproc;
+    kmp_uint32 branch_bits = __kmp_barrier_gather_branch_bits[bt];
+    kmp_uint32 branch_factor = 1 << branch_bits;
+    kmp_uint32 child;
+    kmp_uint32 child_tid;
+    kmp_uint64 new_state;
 
     KA_TRACE(20, ("__kmp_tree_barrier_gather: T#%d(%d:%d) enter for barrier type %d\n",
                   gtid, team->t.t_id, tid, bt));
@@ -248,8 +248,8 @@ __kmp_tree_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid, 
         new_state = team->t.t_bar[bt].b_arrived + KMP_BARRIER_STATE_BUMP;
         child = 1;
         do {
-            register kmp_info_t *child_thr = other_threads[child_tid];
-            register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+            kmp_info_t *child_thr = other_threads[child_tid];
+            kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
 #if KMP_CACHE_MANAGE
             // Prefetch next thread's arrived count
             if (child+1 <= branch_factor && child_tid+1 < nproc)
@@ -283,7 +283,7 @@ __kmp_tree_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid, 
     }
 
     if (!KMP_MASTER_TID(tid)) { // Worker threads
-        register kmp_int32 parent_tid = (tid - 1) >> branch_bits;
+        kmp_int32 parent_tid = (tid - 1) >> branch_bits;
 
         KA_TRACE(20, ("__kmp_tree_barrier_gather: T#%d(%d:%d) releasing T#%d(%d:%d) "
                       "arrived(%p): %llu => %llu\n", gtid, team->t.t_id, tid,
@@ -316,13 +316,13 @@ __kmp_tree_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, int gtid,
                            USE_ITT_BUILD_ARG(void *itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_tree_release);
-    register kmp_team_t *team;
-    register kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
-    register kmp_uint32 nproc;
-    register kmp_uint32 branch_bits = __kmp_barrier_release_branch_bits[bt];
-    register kmp_uint32 branch_factor = 1 << branch_bits;
-    register kmp_uint32 child;
-    register kmp_uint32 child_tid;
+    kmp_team_t *team;
+    kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
+    kmp_uint32 nproc;
+    kmp_uint32 branch_bits = __kmp_barrier_release_branch_bits[bt];
+    kmp_uint32 branch_factor = 1 << branch_bits;
+    kmp_uint32 child;
+    kmp_uint32 child_tid;
 
     // Perform a tree release for all of the threads that have been gathered
     if (!KMP_MASTER_TID(tid)) { // Handle fork barrier workers who aren't part of a team yet
@@ -371,12 +371,12 @@ __kmp_tree_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, int gtid,
     child_tid = (tid << branch_bits) + 1;
 
     if (child_tid < nproc) {
-        register kmp_info_t **other_threads = team->t.t_threads;
+        kmp_info_t **other_threads = team->t.t_threads;
         child = 1;
         // Parent threads release all their children
         do {
-            register kmp_info_t *child_thr = other_threads[child_tid];
-            register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+            kmp_info_t *child_thr = other_threads[child_tid];
+            kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
 #if KMP_CACHE_MANAGE
             // Prefetch next thread's go count
             if (child+1 <= branch_factor && child_tid+1 < nproc)
@@ -419,15 +419,15 @@ __kmp_hyper_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid,
                            USE_ITT_BUILD_ARG(void *itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_hyper_gather);
-    register kmp_team_t *team = this_thr->th.th_team;
-    register kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
-    register kmp_info_t **other_threads = team->t.t_threads;
-    register kmp_uint64 new_state = KMP_BARRIER_UNUSED_STATE;
-    register kmp_uint32 num_threads = this_thr->th.th_team_nproc;
-    register kmp_uint32 branch_bits = __kmp_barrier_gather_branch_bits[bt];
-    register kmp_uint32 branch_factor = 1 << branch_bits;
-    register kmp_uint32 offset;
-    register kmp_uint32 level;
+    kmp_team_t *team = this_thr->th.th_team;
+    kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
+    kmp_info_t **other_threads = team->t.t_threads;
+    kmp_uint64 new_state = KMP_BARRIER_UNUSED_STATE;
+    kmp_uint32 num_threads = this_thr->th.th_team_nproc;
+    kmp_uint32 branch_bits = __kmp_barrier_gather_branch_bits[bt];
+    kmp_uint32 branch_factor = 1 << branch_bits;
+    kmp_uint32 offset;
+    kmp_uint32 level;
 
     KA_TRACE(20, ("__kmp_hyper_barrier_gather: T#%d(%d:%d) enter for barrier type %d\n",
                   gtid, team->t.t_id, tid, bt));
@@ -445,11 +445,11 @@ __kmp_hyper_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid,
     kmp_flag_64 p_flag(&thr_bar->b_arrived);
     for (level=0, offset=1; offset<num_threads; level+=branch_bits, offset<<=branch_bits)
     {
-        register kmp_uint32 child;
-        register kmp_uint32 child_tid;
+        kmp_uint32 child;
+        kmp_uint32 child_tid;
 
         if (((tid >> level) & (branch_factor - 1)) != 0) {
-            register kmp_int32 parent_tid = tid & ~((1 << (level + branch_bits)) -1);
+            kmp_int32 parent_tid = tid & ~((1 << (level + branch_bits)) -1);
 
             KA_TRACE(20, ("__kmp_hyper_barrier_gather: T#%d(%d:%d) releasing T#%d(%d:%d) "
                           "arrived(%p): %llu => %llu\n", gtid, team->t.t_id, tid,
@@ -471,10 +471,10 @@ __kmp_hyper_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr, int gtid,
         for (child=1, child_tid=tid+(1 << level); child<branch_factor && child_tid<num_threads;
              child++, child_tid+=(1 << level))
         {
-            register kmp_info_t *child_thr = other_threads[child_tid];
-            register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+            kmp_info_t *child_thr = other_threads[child_tid];
+            kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
 #if KMP_CACHE_MANAGE
-            register kmp_uint32 next_child_tid = child_tid + (1 << level);
+            kmp_uint32 next_child_tid = child_tid + (1 << level);
             // Prefetch next thread's arrived count
             if (child+1 < branch_factor && next_child_tid < num_threads)
                 KMP_CACHE_PREFETCH(&other_threads[next_child_tid]->th.th_bar[bt].bb.b_arrived);
@@ -525,16 +525,16 @@ __kmp_hyper_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, int gtid
                             USE_ITT_BUILD_ARG(void *itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_hyper_release);
-    register kmp_team_t    *team;
-    register kmp_bstate_t  *thr_bar       = & this_thr -> th.th_bar[ bt ].bb;
-    register kmp_info_t   **other_threads;
-    register kmp_uint32     num_threads;
-    register kmp_uint32     branch_bits   = __kmp_barrier_release_branch_bits[ bt ];
-    register kmp_uint32     branch_factor = 1 << branch_bits;
-    register kmp_uint32     child;
-    register kmp_uint32     child_tid;
-    register kmp_uint32     offset;
-    register kmp_uint32     level;
+    kmp_team_t    *team;
+    kmp_bstate_t  *thr_bar       = & this_thr -> th.th_bar[ bt ].bb;
+    kmp_info_t   **other_threads;
+    kmp_uint32     num_threads;
+    kmp_uint32     branch_bits   = __kmp_barrier_release_branch_bits[ bt ];
+    kmp_uint32     branch_factor = 1 << branch_bits;
+    kmp_uint32     child;
+    kmp_uint32     child_tid;
+    kmp_uint32     offset;
+    kmp_uint32     level;
 
     /* Perform a hypercube-embedded tree release for all of the threads that have been gathered.
        If KMP_REVERSE_HYPER_BAR is defined (default) the threads are released in the reverse
@@ -620,10 +620,10 @@ __kmp_hyper_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, int gtid
         {
             if (child_tid >= num_threads) continue;  // Child doesn't exist so keep going
             else {
-                register kmp_info_t *child_thr = other_threads[child_tid];
-                register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+                kmp_info_t *child_thr = other_threads[child_tid];
+                kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
 #if KMP_CACHE_MANAGE
-                register kmp_uint32 next_child_tid = child_tid - (1 << level);
+                kmp_uint32 next_child_tid = child_tid - (1 << level);
                 // Prefetch next thread's go count
 # ifdef KMP_REVERSE_HYPER_BAR
                 if (child-1 >= 1 && next_child_tid < num_threads)
@@ -732,11 +732,11 @@ __kmp_hierarchical_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr,
                                   USE_ITT_BUILD_ARG(void * itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_hier_gather);
-    register kmp_team_t *team = this_thr->th.th_team;
-    register kmp_bstate_t *thr_bar = & this_thr->th.th_bar[bt].bb;
-    register kmp_uint32 nproc = this_thr->th.th_team_nproc;
-    register kmp_info_t **other_threads = team->t.t_threads;
-    register kmp_uint64 new_state;
+    kmp_team_t *team = this_thr->th.th_team;
+    kmp_bstate_t *thr_bar = & this_thr->th.th_bar[bt].bb;
+    kmp_uint32 nproc = this_thr->th.th_team_nproc;
+    kmp_info_t **other_threads = team->t.t_threads;
+    kmp_uint64 new_state;
 
     int level = team->t.t_level;
 #if OMP_40_ENABLED
@@ -761,7 +761,7 @@ __kmp_hierarchical_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr,
     (void)__kmp_init_hierarchical_barrier_thread(bt, thr_bar, nproc, gtid, tid, team);
 
     if (thr_bar->my_level) { // not a leaf (my_level==0 means leaf)
-        register kmp_int32 child_tid;
+        kmp_int32 child_tid;
         new_state = (kmp_uint64)team->t.t_bar[bt].b_arrived + KMP_BARRIER_STATE_BUMP;
         if (__kmp_dflt_blocktime == KMP_MAX_BLOCKTIME && thr_bar->use_oncore_barrier) {
             if (thr_bar->leaf_kids) { // First, wait for leaf children to check-in on my b_arrived flag
@@ -786,8 +786,8 @@ __kmp_hierarchical_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr,
                 kmp_uint32 last = tid+thr_bar->skip_per_level[d+1], skip = thr_bar->skip_per_level[d];
                 if (last > nproc) last = nproc;
                 for (child_tid=tid+skip; child_tid<(int)last; child_tid+=skip) {
-                    register kmp_info_t *child_thr = other_threads[child_tid];
-                    register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+                    kmp_info_t *child_thr = other_threads[child_tid];
+                    kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
                     KA_TRACE(20, ("__kmp_hierarchical_barrier_gather: T#%d(%d:%d) wait T#%d(%d:%d) "
                                   "arrived(%p) == %llu\n",
                                   gtid, team->t.t_id, tid, __kmp_gtid_from_tid(child_tid, team),
@@ -809,8 +809,8 @@ __kmp_hierarchical_barrier_gather(enum barrier_type bt, kmp_info_t *this_thr,
                 kmp_uint32 last = tid+thr_bar->skip_per_level[d+1], skip = thr_bar->skip_per_level[d];
                 if (last > nproc) last = nproc;
                 for (child_tid=tid+skip; child_tid<(int)last; child_tid+=skip) {
-                    register kmp_info_t *child_thr = other_threads[child_tid];
-                    register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+                    kmp_info_t *child_thr = other_threads[child_tid];
+                    kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
                     KA_TRACE(20, ("__kmp_hierarchical_barrier_gather: T#%d(%d:%d) wait T#%d(%d:%d) "
                                   "arrived(%p) == %llu\n",
                                   gtid, team->t.t_id, tid, __kmp_gtid_from_tid(child_tid, team),
@@ -864,9 +864,9 @@ __kmp_hierarchical_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, i
                                    USE_ITT_BUILD_ARG(void * itt_sync_obj) )
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_hier_release);
-    register kmp_team_t *team;
-    register kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
-    register kmp_uint32 nproc;
+    kmp_team_t *team;
+    kmp_bstate_t *thr_bar = &this_thr->th.th_bar[bt].bb;
+    kmp_uint32 nproc;
     bool team_change = false; // indicates on-core barrier shouldn't be used
 
     if (KMP_MASTER_TID(tid)) {
@@ -959,7 +959,7 @@ __kmp_hierarchical_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, i
 
     // Now, release my children
     if (thr_bar->my_level) { // not a leaf
-        register kmp_int32 child_tid;
+        kmp_int32 child_tid;
         kmp_uint32 last;
         if (__kmp_dflt_blocktime == KMP_MAX_BLOCKTIME && thr_bar->use_oncore_barrier) {
             if (KMP_MASTER_TID(tid)) { // do a flat release
@@ -969,7 +969,7 @@ __kmp_hierarchical_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, i
                 ngo_load(&thr_bar->th_fixed_icvs);
                 // This loops over all the threads skipping only the leaf nodes in the hierarchy
                 for (child_tid=thr_bar->skip_per_level[1]; child_tid<(int)nproc; child_tid+=thr_bar->skip_per_level[1]) {
-                    register kmp_bstate_t *child_bar = &team->t.t_threads[child_tid]->th.th_bar[bt].bb;
+                    kmp_bstate_t *child_bar = &team->t.t_threads[child_tid]->th.th_bar[bt].bb;
                     KA_TRACE(20, ("__kmp_hierarchical_barrier_release: T#%d(%d:%d) releasing T#%d(%d:%d)"
                                   " go(%p): %u => %u\n",
                                   gtid, team->t.t_id, tid, __kmp_gtid_from_tid(child_tid, team),
@@ -992,8 +992,8 @@ __kmp_hierarchical_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, i
                     last = tid+thr_bar->skip_per_level[1];
                     if (last > nproc) last = nproc;
                     for (child_tid=tid+1+old_leaf_kids; child_tid<(int)last; ++child_tid) { // skip_per_level[0]=1
-                        register kmp_info_t   *child_thr = team->t.t_threads[child_tid];
-                        register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+                        kmp_info_t   *child_thr = team->t.t_threads[child_tid];
+                        kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
                         KA_TRACE(20, ("__kmp_hierarchical_barrier_release: T#%d(%d:%d) releasing"
                                       " T#%d(%d:%d) go(%p): %u => %u\n",
                                       gtid, team->t.t_id, tid, __kmp_gtid_from_tid(child_tid, team),
@@ -1015,8 +1015,8 @@ __kmp_hierarchical_barrier_release(enum barrier_type bt, kmp_info_t *this_thr, i
                 kmp_uint32 skip = thr_bar->skip_per_level[d];
                 if (last > nproc) last = nproc;
                 for (child_tid=tid+skip; child_tid<(int)last; child_tid+=skip) {
-                    register kmp_info_t   *child_thr = team->t.t_threads[child_tid];
-                    register kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
+                    kmp_info_t   *child_thr = team->t.t_threads[child_tid];
+                    kmp_bstate_t *child_bar = &child_thr->th.th_bar[bt].bb;
                     KA_TRACE(20, ("__kmp_hierarchical_barrier_release: T#%d(%d:%d) releasing T#%d(%d:%d)"
                                   " go(%p): %u => %u\n",
                                   gtid, team->t.t_id, tid, __kmp_gtid_from_tid(child_tid, team),
@@ -1048,10 +1048,10 @@ __kmp_barrier(enum barrier_type bt, int gtid, int is_split, size_t reduce_size,
               void *reduce_data, void (*reduce)(void *, void *))
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_barrier);
-    register int tid = __kmp_tid_from_gtid(gtid);
-    register kmp_info_t *this_thr = __kmp_threads[gtid];
-    register kmp_team_t *team = this_thr->th.th_team;
-    register int status = 0;
+    int tid = __kmp_tid_from_gtid(gtid);
+    kmp_info_t *this_thr = __kmp_threads[gtid];
+    kmp_team_t *team = this_thr->th.th_team;
+    int status = 0;
     ident_t *loc = __kmp_threads[gtid]->th.th_ident;
 #if OMPT_SUPPORT
     ompt_task_id_t my_task_id;
@@ -1346,9 +1346,9 @@ void
 __kmp_join_barrier(int gtid)
 {
     KMP_TIME_DEVELOPER_BLOCK(KMP_join_barrier);
-    register kmp_info_t *this_thr = __kmp_threads[gtid];
-    register kmp_team_t *team;
-    register kmp_uint nproc;
+    kmp_info_t *this_thr = __kmp_threads[gtid];
+    kmp_team_t *team;
+    kmp_uint nproc;
     kmp_info_t *master_thread;
     int tid;
 #ifdef KMP_DEBUG
@@ -1563,8 +1563,8 @@ __kmp_fork_barrier(int gtid, int tid)
 #endif /* USE_ITT_BUILD && USE_ITT_NOTIFY */
 
 #ifdef KMP_DEBUG
-        register kmp_info_t **other_threads = team->t.t_threads;
-        register int i;
+        kmp_info_t **other_threads = team->t.t_threads;
+        int i;
 
         // Verify state
         KMP_MB();

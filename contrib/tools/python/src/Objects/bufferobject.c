@@ -309,9 +309,9 @@ buffer_hash(PyBufferObject *self)
 {
     void *ptr;
     Py_ssize_t size;
-    register Py_ssize_t len;
-    register unsigned char *p;
-    register long x;
+    Py_ssize_t len;
+    unsigned char *p;
+    long x;
 
     if ( self->b_hash != -1 )
         return self->b_hash;
@@ -432,7 +432,7 @@ static PyObject *
 buffer_repeat(PyBufferObject *self, Py_ssize_t count)
 {
     PyObject *ob;
-    register char *p;
+    char *p;
     void *ptr;
     Py_ssize_t size;
 

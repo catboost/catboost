@@ -733,10 +733,10 @@ gl_unpackrect(PyObject *self, PyObject *args)
     char *s;
     PyObject *unpacked, *packed;
     int pixcount, packedcount;
-    register unsigned char *p;
-    register unsigned long *parray;
+    unsigned char *p;
+    unsigned long *parray;
     if (!unpacktab_inited) {
-        register int white;
+        int white;
         for (white = 256; --white >= 0; )
             unpacktab[white] = white * 0x010101L;
         unpacktab_inited++;
@@ -770,21 +770,21 @@ gl_unpackrect(PyObject *self, PyObject *args)
     p = (unsigned char *) PyString_AsString(packed);
     if (packfactor == 1 && width*height > 0) {
         /* Just expand bytes to longs */
-        register int x = width * height;
+        int x = width * height;
         do {
             *parray++ = unpacktab[*p++];
         } while (--x >= 0);
     }
     else {
-        register int y;
+        int y;
         for (y = 0; y < height-packfactor+1;
              y += packfactor, parray += packfactor*width) {
-            register int x;
+            int x;
             for (x = 0; x < width-packfactor+1; x += packfactor) {
-                register unsigned long pixel = unpacktab[*p++];
-                register int i;
+                unsigned long pixel = unpacktab[*p++];
+                int i;
                 for (i = packfactor*width; (i-=width) >= 0;) {
-                    register int j;
+                    int j;
                     for (j = packfactor; --j >= 0; )
                         parray[i+x+j] = pixel;
                 }

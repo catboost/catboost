@@ -130,7 +130,7 @@ fips_md_init(MD2)
 
 int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
 {
-    register UCHAR *p;
+    UCHAR *p;
 
     if (len == 0)
         return 1;
@@ -167,8 +167,8 @@ int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
 
 static void md2_block(MD2_CTX *c, const unsigned char *d)
 {
-    register MD2_INT t, *sp1, *sp2;
-    register int i, j;
+    MD2_INT t, *sp1, *sp2;
+    int i, j;
     MD2_INT state[48];
 
     sp1 = c->state;
@@ -201,8 +201,8 @@ static void md2_block(MD2_CTX *c, const unsigned char *d)
 int MD2_Final(unsigned char *md, MD2_CTX *c)
 {
     int i, v;
-    register UCHAR *cp;
-    register MD2_INT *p1, *p2;
+    UCHAR *cp;
+    MD2_INT *p1, *p2;
 
     cp = c->data;
     p1 = c->state;

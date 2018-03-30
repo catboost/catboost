@@ -51,7 +51,7 @@ int PyCodec_Register(PyObject *search_function)
 static
 PyObject *normalizestring(const char *string)
 {
-    register size_t i;
+    size_t i;
     size_t len = strlen(string);
     char *p;
     PyObject *v;
@@ -66,7 +66,7 @@ PyObject *normalizestring(const char *string)
         return NULL;
     p = PyString_AS_STRING(v);
     for (i = 0; i < len; i++) {
-        register char ch = string[i];
+        char ch = string[i];
         if (ch == ' ')
             ch = '-';
         else

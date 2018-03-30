@@ -58,11 +58,11 @@ return_type (ffi_type *arg)
 
 void ffi_prep_args(char *stack, extended_cif *ecif)
 {
-  register unsigned int i;
-  register unsigned int avn;
-  register void **p_argv;
-  register char *argp;
-  register ffi_type **p_arg;
+  unsigned int i;
+  unsigned int avn;
+  void **p_argv;
+  char *argp;
+  ffi_type **p_arg;
 
   argp = stack;
 

@@ -119,8 +119,8 @@ int MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
 
 static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
 {
-    register DES_LONG tin0, tin1;
-    register DES_LONG ttin0, ttin1;
+    DES_LONG tin0, tin1;
+    DES_LONG ttin0, ttin1;
     DES_LONG d[2], dd[2];
     DES_key_schedule k;
     unsigned char *p;

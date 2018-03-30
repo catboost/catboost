@@ -296,7 +296,7 @@ match_table(register char *norm_input, arg_info *table, int entries, boolean use
 #endif
 {
     char low_input[MAX_INPUT_SIZE];
-    register int i;
+    int i;
     int best_index = -1, best_length = 0;
 
 /* FUNCTION BODY */
@@ -361,7 +361,7 @@ match(char *norm_input, char *low_input, arg_info *entry, boolean use_prefix)
 
 /* Pointers for the required strings (lowered or nonlowered) */
 
-    register char *input, *prefix, *string;
+    char *input, *prefix, *string;
 
 /* FUNCTION BODY */
 
@@ -408,7 +408,7 @@ lower_string(char *dest, char *src)
 #endif
 {
     char *result = dest;
-    register int c;
+    int c;
 
     if (dest == NULL || src == NULL)
 	result = NULL;

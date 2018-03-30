@@ -48,7 +48,7 @@ show_track(void)
 PyObject *
 PyTuple_New(register Py_ssize_t size)
 {
-    register PyTupleObject *op;
+    PyTupleObject *op;
     Py_ssize_t i;
     if (size < 0) {
         PyErr_BadInternalCall();
@@ -135,8 +135,8 @@ PyTuple_GetItem(register PyObject *op, register Py_ssize_t i)
 int
 PyTuple_SetItem(register PyObject *op, register Py_ssize_t i, PyObject *newitem)
 {
-    register PyObject *olditem;
-    register PyObject **p;
+    PyObject *olditem;
+    PyObject **p;
     if (!PyTuple_Check(op) || op->ob_refcnt != 1) {
         Py_XDECREF(newitem);
         PyErr_BadInternalCall();
@@ -212,8 +212,8 @@ PyTuple_Pack(Py_ssize_t n, ...)
 static void
 tupledealloc(register PyTupleObject *op)
 {
-    register Py_ssize_t i;
-    register Py_ssize_t len =  Py_SIZE(op);
+    Py_ssize_t i;
+    Py_ssize_t len =  Py_SIZE(op);
     PyObject_GC_UnTrack(op);
     Py_TRASHCAN_SAFE_BEGIN(op)
     if (len > 0) {
@@ -341,9 +341,9 @@ Done:
 static long
 tuplehash(PyTupleObject *v)
 {
-    register long x, y;
-    register Py_ssize_t len = Py_SIZE(v);
-    register PyObject **p;
+    long x, y;
+    Py_ssize_t len = Py_SIZE(v);
+    PyObject **p;
     long mult = 1000003L;
     x = 0x345678L;
     p = v->ob_item;
@@ -394,9 +394,9 @@ static PyObject *
 tupleslice(register PyTupleObject *a, register Py_ssize_t ilow,
            register Py_ssize_t ihigh)
 {
-    register PyTupleObject *np;
+    PyTupleObject *np;
     PyObject **src, **dest;
-    register Py_ssize_t i;
+    Py_ssize_t i;
     Py_ssize_t len;
     if (ilow < 0)
         ilow = 0;
@@ -435,8 +435,8 @@ PyTuple_GetSlice(PyObject *op, Py_ssize_t i, Py_ssize_t j)
 static PyObject *
 tupleconcat(register PyTupleObject *a, register PyObject *bb)
 {
-    register Py_ssize_t size;
-    register Py_ssize_t i;
+    Py_ssize_t size;
+    Py_ssize_t i;
     PyObject **src, **dest;
     PyTupleObject *np;
     if (!PyTuple_Check(bb)) {
@@ -836,8 +836,8 @@ PyTypeObject PyTuple_Type = {
 int
 _PyTuple_Resize(PyObject **pv, Py_ssize_t newsize)
 {
-    register PyTupleObject *v;
-    register PyTupleObject *sv;
+    PyTupleObject *v;
+    PyTupleObject *sv;
     Py_ssize_t i;
     Py_ssize_t oldsize;
 

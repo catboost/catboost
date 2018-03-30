@@ -232,7 +232,7 @@ long
 PyLong_AsLongAndOverflow(PyObject *vv, int *overflow)
 {
     /* This version by Tim Peters */
-    register PyLongObject *v;
+    PyLongObject *v;
     unsigned long x, prev;
     long res;
     Py_ssize_t i;
@@ -362,7 +362,7 @@ _PyLong_AsInt(PyObject *obj)
 
 Py_ssize_t
 PyLong_AsSsize_t(PyObject *vv) {
-    register PyLongObject *v;
+    PyLongObject *v;
     size_t x, prev;
     Py_ssize_t i;
     int sign;
@@ -408,7 +408,7 @@ PyLong_AsSsize_t(PyObject *vv) {
 unsigned long
 PyLong_AsUnsignedLong(PyObject *vv)
 {
-    register PyLongObject *v;
+    PyLongObject *v;
     unsigned long x, prev;
     Py_ssize_t i;
 
@@ -452,7 +452,7 @@ PyLong_AsUnsignedLong(PyObject *vv)
 unsigned long
 PyLong_AsUnsignedLongMask(PyObject *vv)
 {
-    register PyLongObject *v;
+    PyLongObject *v;
     unsigned long x;
     Py_ssize_t i;
     int sign;
@@ -1015,7 +1015,7 @@ PyLong_AsUnsignedLongLong(PyObject *vv)
 unsigned PY_LONG_LONG
 PyLong_AsUnsignedLongLongMask(PyObject *vv)
 {
-    register PyLongObject *v;
+    PyLongObject *v;
     unsigned PY_LONG_LONG x;
     Py_ssize_t i;
     int sign;
@@ -1050,7 +1050,7 @@ PY_LONG_LONG
 PyLong_AsLongLongAndOverflow(PyObject *vv, int *overflow)
 {
     /* This version by Tim Peters */
-    register PyLongObject *v;
+    PyLongObject *v;
     unsigned PY_LONG_LONG x, prev;
     PY_LONG_LONG res;
     Py_ssize_t i;
@@ -1454,7 +1454,7 @@ long_to_decimal_string(PyObject *aa, int addL)
 PyAPI_FUNC(PyObject *)
 _PyLong_Format(PyObject *aa, int base, int addL, int newstyle)
 {
-    register PyLongObject *a = (PyLongObject *)aa;
+    PyLongObject *a = (PyLongObject *)aa;
     PyStringObject *str;
     Py_ssize_t i, sz;
     Py_ssize_t size_a;
@@ -1850,7 +1850,7 @@ that triggers it(!).  Instead the code was tested by artificially allocating
 just 1 digit at the start, so that the copying code was exercised for every
 digit beyond the first.
 ***/
-        register twodigits c;           /* current input character */
+        twodigits c;           /* current input character */
         Py_ssize_t size_z;
         int i;
         int convwidth;

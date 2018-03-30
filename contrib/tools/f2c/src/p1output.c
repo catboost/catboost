@@ -56,7 +56,7 @@ p1_comment(str)
 p1_comment(char *str)
 #endif
 {
-    register unsigned char *pointer, *ustr;
+    unsigned char *pointer, *ustr;
 
     if (!str)
 	return;
@@ -539,7 +539,7 @@ p1comp_goto(expptr index, int count, struct Labelblock **labels)
 {
     struct Constblock c;
     int i;
-    register struct Labelblock *L;
+    struct Labelblock *L;
 
     p1put (P1_COMP_GOTO);
     p1_expr (index);

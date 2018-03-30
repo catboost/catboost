@@ -141,9 +141,9 @@ static inline int ffi_struct_type(ffi_type *t)
 
 void ffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
 {
-  register unsigned int i;
-  register ffi_type **p_arg;
-  register void **p_argv;
+  unsigned int i;
+  ffi_type **p_arg;
+  void **p_argv;
   unsigned int slot = FIRST_ARG_SLOT;
   char *dest_cpy;
   size_t len;
@@ -426,7 +426,7 @@ ffi_status ffi_closure_inner_pa32(ffi_closure *closure, UINT32 *stack)
   char *tmp;
   int i, avn;
   unsigned int slot = FIRST_ARG_SLOT;
-  register UINT32 r28 asm("r28");
+  UINT32 r28 asm("r28");
 
   cif = closure->cif;
 
