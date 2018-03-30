@@ -80,8 +80,10 @@
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b63m5bhri2fxbkjw6ribo4mgni.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_emd3yoiirtsosqeezjafdyavpa.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_urzaofl4g6hglfyuybn6nz7ife.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\ifdq5bapvnlrtdhisi7rvolc5m.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_4iik7ydbhieveasfjecuejk3su.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_2ibixrosgzoowakbfpksdbht4q.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -195,6 +197,34 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj;</Outputs>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_gsrnb3qhv2cwsyhpcxddepxgwe.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_mmgy5ukfyuc4szabyaq2c4ygpm.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -840,6 +870,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\setuptools\easy_install.py;$(SolutionDir)..\contrib\python\setuptools\pkg_resources\__init__.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\__init__.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\archive_util.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\__init__.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\alias.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\bdist_egg.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\bdist_rpm.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\bdist_wininst.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\build_clib.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\build_ext.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\build_py.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\develop.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\easy_install.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\egg_info.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\install.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\install_egg_info.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\install_lib.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\install_scripts.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\py36compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\register.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\rotate.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\saveopts.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\sdist.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\setopt.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\test.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\upload.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\command\upload_docs.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\config.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\dep_util.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\depends.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\dist.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\extension.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\glob.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\launch.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\lib2to3_ex.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\monkey.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\msvc.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\namespaces.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\package_index.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\py26compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\py27compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\py31compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\py33compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\py36compat.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\sandbox.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\site-patch.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\ssl_support.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\unicode_utils.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\version.py;$(SolutionDir)..\contrib\python\setuptools\setuptools\windows_support.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\easy_install.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\pkg_resources\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\archive_util.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\alias.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\bdist_egg.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\bdist_rpm.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\bdist_wininst.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_clib.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_ext.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_py.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\develop.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\easy_install.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\egg_info.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\install.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\install_egg_info.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\install_lib.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\install_scripts.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\py36compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\register.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\rotate.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\saveopts.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\sdist.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\setopt.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\test.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\upload.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\upload_docs.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\config.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\dep_util.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\depends.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\dist.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\extension.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\glob.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\launch.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\lib2to3_ex.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\monkey.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\msvc.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\namespaces.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\package_index.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\py26compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\py27compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\py31compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\py33compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\py36compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\sandbox.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\site-patch.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\ssl_support.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\unicode_utils.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\version.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\windows_support.py.yapyc;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\setuptools\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.yasm" "$(SolutionDir)../contrib/python/setuptools/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_pwtrb2zmowealtr3l2mhdkw3pu.rodata" "$(SolutionDir)../contrib/python/setuptools/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_3xfwwy5i7qffyj26junnidns44.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.yasm" "$(SolutionDir)../contrib/python/setuptools/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_pwtrb2zmowealtr3l2mhdkw3pu.rodata" "$(SolutionDir)../contrib/python/setuptools/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_3xfwwy5i7qffyj26junnidns44.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_ifdq5bapvnlrtdhisi7rvolc5m.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\setuptools\.dist-info\METADATA;$(SolutionDir)..\contrib\python\setuptools\.dist-info\entry_points.txt;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_ifdq5bapvnlrtdhisi7rvolc5m.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_pwtrb2zmowealtr3l2mhdkw3pu.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_3xfwwy5i7qffyj26junnidns44.rodata;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\setuptools\easy_install.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -887,6 +944,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/ifdq5bapvnlrtdhisi7rvolc5m.cpp" "_pwtrb2zmowealtr3l2mhdkw3pu=/fs/contrib/python/setuptools/.dist-info/METADATA" "_3xfwwy5i7qffyj26junnidns44=/fs/contrib/python/setuptools/.dist-info/entry_points.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp" "_mmi46xrthelci5wjafdbq64mfa=/py_code/setuptools.unicode_utils" "_vpif25uyjeovcp2n75wq7orlme=/py_modules/setuptools.version" "_6fspikjlqnrn6i5sf6aqimfvhe=resfs/src//py_modules/setuptools.version" "_y3enakq555b2xe6kjvb63evw2i=/py_code/setuptools.version" "_llg5qxke6aznpqexojucddrvvq=/py_modules/setuptools.windows_support" "_acjextqy2xns5ptg2kmuqurbo4=resfs/src//py_modules/setuptools.windows_support" "_wecyyv46nowqduir6zpyugohu4=/py_code/setuptools.windows_support"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -918,6 +979,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/ifdq5bapvnlrtdhisi7rvolc5m.cpp" "_pwtrb2zmowealtr3l2mhdkw3pu=/fs/contrib/python/setuptools/.dist-info/METADATA" "_3xfwwy5i7qffyj26junnidns44=/fs/contrib/python/setuptools/.dist-info/entry_points.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp" "_mmi46xrthelci5wjafdbq64mfa=/py_code/setuptools.unicode_utils" "_vpif25uyjeovcp2n75wq7orlme=/py_modules/setuptools.version" "_6fspikjlqnrn6i5sf6aqimfvhe=resfs/src//py_modules/setuptools.version" "_y3enakq555b2xe6kjvb63evw2i=/py_code/setuptools.version" "_llg5qxke6aznpqexojucddrvvq=/py_modules/setuptools.windows_support" "_acjextqy2xns5ptg2kmuqurbo4=resfs/src//py_modules/setuptools.windows_support" "_wecyyv46nowqduir6zpyugohu4=/py_code/setuptools.windows_support"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -930,9 +995,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp	$B/contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp	$B/contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp	$B/contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp	$B/contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp	$B/contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp	</Message>
+      <Message>$B/contrib/python/setuptools/2ibixrosgzoowakbfpksdbht4q.cpp	$B/contrib/python/setuptools/b63m5bhri2fxbkjw6ribo4mgni.cpp	$B/contrib/python/setuptools/emd3yoiirtsosqeezjafdyavpa.cpp	$B/contrib/python/setuptools/gsrnb3qhv2cwsyhpcxddepxgwe.cpp	$B/contrib/python/setuptools/ifdq5bapvnlrtdhisi7rvolc5m.cpp	$B/contrib/python/setuptools/mmgy5ukfyuc4szabyaq2c4ygpm.cpp	$B/contrib/python/setuptools/urzaofl4g6hglfyuybn6nz7ife.cpp	</Message>
       <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\2ibixrosgzoowakbfpksdbht4q.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b63m5bhri2fxbkjw6ribo4mgni.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\emd3yoiirtsosqeezjafdyavpa.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\gsrnb3qhv2cwsyhpcxddepxgwe.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\ifdq5bapvnlrtdhisi7rvolc5m.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\mmgy5ukfyuc4szabyaq2c4ygpm.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\urzaofl4g6hglfyuybn6nz7ife.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
