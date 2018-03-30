@@ -11,6 +11,10 @@ PY_SRCS(
     six.py
 )
 
+RESOURCE(
+    .dist-info/METADATA /fs/contrib/python/six/.dist-info/METADATA
+)
+
 NO_LINT()
 
 END()

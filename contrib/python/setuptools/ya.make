@@ -71,4 +71,9 @@ PY_SRCS(
     setuptools/windows_support.py
 )
 
+RESOURCE(
+    .dist-info/METADATA /fs/contrib/python/setuptools/.dist-info/METADATA
+    .dist-info/entry_points.txt /fs/contrib/python/setuptools/.dist-info/entry_points.txt
+)
+
 END()

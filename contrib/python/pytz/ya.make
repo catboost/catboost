@@ -17,6 +17,7 @@ PY_SRCS(
 )
 
 RESOURCE(
+    .dist-info/METADATA /fs/contrib/python/pytz/.dist-info/METADATA
     pytz/zoneinfo/Africa/Abidjan /pytz_data/zoneinfo/Africa/Abidjan
     pytz/zoneinfo/Africa/Accra /pytz_data/zoneinfo/Africa/Accra
     pytz/zoneinfo/Africa/Addis_Ababa /pytz_data/zoneinfo/Africa/Addis_Ababa
