@@ -115,26 +115,11 @@ TDataProvider TCatBoostProtoPoolReader::Read(TIFStream& input) {
     }
 
     if (poolStructure.GetTimestampColumn()) {
-        ReadUnsignedInt64Column(input, dataProvider.Timestamp);
+        ReadUnsignedIntColumn(input, dataProvider.Timestamp);
     }
 
     if (poolStructure.GetGroupIdColumn()) {
-        // TODO(dbakshee): fixup this to ReadUnsignedIntColumn(input, dataProvider.QueryIds);
-        if (sizeof(TGroupId) == sizeof(ui32)) {
-            TVector<ui32> queryIds;
-            ReadUnsignedIntColumn(input, queryIds);
-            dataProvider.QueryIds.resize(queryIds.size());
-            for (size_t i = 0; i < queryIds.size(); ++i) {
-                dataProvider.QueryIds[i] = TGroupId(queryIds[i]);
-            }
-        } else {
-            TVector<ui64> queryIds;
-            ReadUnsignedInt64Column(input, queryIds);
-            dataProvider.QueryIds.resize(queryIds.size());
-            for (size_t i = 0; i < queryIds.size(); ++i) {
-                dataProvider.QueryIds[i] = TGroupId(queryIds[i]);
-            }
-        }
+        ReadUnsignedIntColumn(input, dataProvider.QueryIds);
     }
     if (poolStructure.GetSubgroupIdColumn()) {
         ReadUnsignedIntColumn(input, dataProvider.SubgroupIds);
