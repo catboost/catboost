@@ -42,7 +42,3 @@ IF (SANITIZER_TYPE STREQUAL "memory")
 ENDIF()
 
 END()
-
-RECURSE(
-    
-)
