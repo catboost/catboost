@@ -1443,8 +1443,9 @@ class CatBoostClassifier(CatBoost):
             - 'CPU'
             - 'GPU'
     device_config : string, [default=None], deprecated, use devices instead
-    devices : string, [default=None], GPU devices to use.
-        Format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
+    devices : list or string, [default=None], GPU devices to use.
+        String format is: '0' for 1 device or '0:1:3' for multiple devices or '0-3' for range of devices.
+        List format is : [0] for 1 device or [0,1,3] for multiple devices.
 
     bootstrap_type : string, Bayesian, Bernoulli, Poisson.
         Default bootstrap is Bayesian.

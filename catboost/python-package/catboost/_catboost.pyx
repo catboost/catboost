@@ -499,6 +499,10 @@ cdef class _PreprocessParams:
         is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
 
+        devices = params.get('devices')
+        if devices is not None and isinstance(devices, list):
+            params['devices'] = ':'.join(map(str, devices))
+
         params_to_json = params
 
         if is_custom_objective or is_custom_eval_metric:
