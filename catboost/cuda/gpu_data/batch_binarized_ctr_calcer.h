@@ -117,6 +117,12 @@ namespace NCatboostCuda {
                                           ->BuildBorders(sortedFeatureCpu,
                                                          binarizationDescription.BorderCount);
 
+
+                            //hack to work with constant ctr's
+                            if (borders.size() == 0) {
+                                borders.push_back(0.5);
+                            }
+
                             with_lock (lock) {
                                 if (FeaturesManager.HasBorders(featureId)) {
                                     borders = FeaturesManager.GetBorders(featureId);
@@ -142,7 +148,7 @@ namespace NCatboostCuda {
                                                              borders);
 
                         dst.BinCount = borders.size() + 1;
-                        ;
+
 
                         if (LinkedTest) {
                             auto& testDst = (*testCtrs)[writeIndex];
