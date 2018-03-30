@@ -63,6 +63,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
 
     SIMPLE_UNIT_TEST(TestZeroInitWithDefaultZeros) {
         struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
+            TStructWithPaddingBytes() : TZeroInit<TStructWithPaddingBytes>() {}
             bool Field1_ = static_cast<bool>(0);
             // here between Field1_ and Field2_ will be padding bytes
             i64 Field2_ = 0;
@@ -80,6 +81,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
 
     SIMPLE_UNIT_TEST(TestZeroInitWithDefaultNonZeros) {
         struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
+            TStructWithPaddingBytes() : TZeroInit<TStructWithPaddingBytes>() {}
             bool Field1_ = true;
             // here between Field1_ and Field2_ will be padding bytes
             i64 Field2_ = 100500;

@@ -8,7 +8,7 @@
 
 template <class T>
 inline bool IsZero(const T* begin, const T* end) {
-    return std::find_if(begin, end, std::bind2nd(std::not_equal_to<T>(), T(0))) == end;
+    return std::find_if(begin, end, [](const T& other) { return other != T(0); }) == end;
 }
 
 template <size_t Size>

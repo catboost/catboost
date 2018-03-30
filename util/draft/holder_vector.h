@@ -45,10 +45,6 @@ public:
         PushBack(t.Release());
     }
 
-    void PushBack(std::auto_ptr<T>& t) {
-        PushBack(t.release());
-    }
-
     void PushBack(std::unique_ptr<T>&& t) {
         PushBack(t.release());
     }
