@@ -1541,6 +1541,7 @@ class CatBoostClassifier(CatBoost):
         eta=None,
         max_bin=None,
         scale_pos_weight=None,
+        gpu_cat_features_storage=None,
         **kwargs
     ):
         if objective is not None:
@@ -1866,6 +1867,7 @@ class CatBoostRegressor(CatBoost):
         objective=None,
         eta=None,
         max_bin=None,
+        gpu_cat_features_storage=None,
         **kwargs
     ):
         if objective is not None:
