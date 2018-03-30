@@ -2268,7 +2268,7 @@ __kmp_dist_get_bounds(
             if( plastiter != NULL )
                 *plastiter = ( team_id == nteams - 1 );
         } else {
-            register T chunk_inc_count =
+            T chunk_inc_count =
                 ( trip_count / nteams + ( ( trip_count % nteams ) ? 1 : 0) ) * incr;
             T upper = *pupper;
             KMP_DEBUG_ASSERT( __kmp_static == kmp_sch_static_greedy );

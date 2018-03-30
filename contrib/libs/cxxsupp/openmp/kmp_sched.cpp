@@ -282,7 +282,7 @@ __kmp_for_static_init(
                     if( plastiter != NULL )
                         *plastiter = ( tid == nth - 1 );
                 } else {
-                    register T big_chunk_inc_count = ( trip_count/nth +
+                    T big_chunk_inc_count = ( trip_count/nth +
                                                      ( ( trip_count % nth ) ? 1 : 0) ) * incr;
                     T old_upper = *pupper;
 
@@ -473,7 +473,7 @@ __kmp_dist_for_static_init(
             if( plastiter != NULL )
                 *plastiter = ( team_id == nteams - 1 );
         } else {
-            register T chunk_inc_count =
+            T chunk_inc_count =
                 ( trip_count / nteams + ( ( trip_count % nteams ) ? 1 : 0) ) * incr;
             T upper = *pupper;
             KMP_DEBUG_ASSERT( __kmp_static == kmp_sch_static_greedy );
@@ -540,7 +540,7 @@ __kmp_dist_for_static_init(
                         if( *plastiter != 0 && !( tid == nth - 1 ) )
                             *plastiter = 0;
                 } else {
-                    register T chunk_inc_count =
+                    T chunk_inc_count =
                         ( trip_count / nth + ( ( trip_count % nth ) ? 1 : 0) ) * incr;
                     T upper = *pupperDist;
                     KMP_DEBUG_ASSERT( __kmp_static == kmp_sch_static_greedy );
