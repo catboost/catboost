@@ -76,7 +76,7 @@ def validate_test(kw, is_fuzz_test):
     tags = get_list("TAG")
     is_fat = 'ya:fat' in tags
     requirements = {}
-    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb'}
+    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault'}
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
@@ -109,7 +109,11 @@ def validate_test(kw, is_fuzz_test):
                 # errors += reqs.check_cpu(mr.resolve_value(req_value), size)
                 elif reqs.check_cpu(mr.resolve_value(req_value), size):
                     req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
-
+            elif req_name == "sb_vault":
+                if not re.match("\w+=(value|file)\:\w+\:\w+", req_value):
+                    errors.append("sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(req_value))
+                    continue
+                req_value = ",".join(filter(None, [requirements.get(req_name), req_value]))
             requirements[req_name] = req_value
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
