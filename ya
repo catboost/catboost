@@ -8,8 +8,9 @@ import json
 
 
 
-URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/250854/0b6018efbadc54bf35243ad3071a5dba"]
-MD5 = "0b6018efbadc54bf35243ad3071a5dba"
+
+URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/233854/1ebd1eb06c75c510d4f246bb708468d8"]
+MD5 = "1ebd1eb06c75c510d4f246bb708468d8"
 
 RETRIES = 5
 HASH_PREFIX = 10
