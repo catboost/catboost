@@ -1,1 +1,1 @@
-from .ipythonwidget import CatboostIpythonWidget  # noqa
+from .ipythonwidget import MetricVisualizer  # noqa

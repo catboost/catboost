@@ -1,6 +1,6 @@
 from .core import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train  # noqa
 try:
-    from .widget import CatboostIpythonWidget  # noqa
+    from .widget import MetricVisualizer  # noqa
 except:
     pass
 

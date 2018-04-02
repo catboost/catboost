@@ -7,7 +7,7 @@ from traitlets import Unicode, Dict, default
 from ipywidgets import DOMWidget, Layout, widget_serialization
 
 
-class CatboostIpythonWidget(DOMWidget):
+class MetricVisualizer(DOMWidget):
     _view_name = Unicode('CatboostIpythonWidgetView').tag(sync=True)
     _view_module = Unicode('catboost_module').tag(sync=True)
 
@@ -21,7 +21,7 @@ class CatboostIpythonWidget(DOMWidget):
     def _default_layout(self):
         return Layout(height='500px', align_self='stretch')
 
-    def update_widget(self, subdirs=False):
+    def start(self, subdirs=False):
         # wait for start train (meta.tsv)
         self._init_static()
         time.sleep(1.0)
@@ -34,7 +34,7 @@ class CatboostIpythonWidget(DOMWidget):
             time.sleep(2.0)
 
     def _run_update(self):
-        thread = Thread(target=self.update_widget, args=())
+        thread = Thread(target=self.start, args=())
         thread.start()
 
     def _get_subdirectories(self, a_dir):
