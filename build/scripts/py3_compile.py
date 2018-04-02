@@ -8,8 +8,6 @@ import sys
 
 
 def main():
-    raise Exception(locale.getpreferredencoding(False))
-
     srcpathx, in_fname, out_fname = sys.argv[1:]
     srcpath = srcpathx[:-1]
 
