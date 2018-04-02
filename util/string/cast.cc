@@ -72,7 +72,7 @@ namespace {
         static_assert(std::is_unsigned<T>::value, "TBasicIntFormatter can only handle unsigned integers.");
 
         static inline size_t Format(T value, TChar* buf, size_t len) {
-            Y_ENSURE(len, STRINGBUF("zero length"));
+            Y_ENSURE(len, AsStringBuf("zero length"));
 
             TChar* tmp = buf;
 
@@ -83,7 +83,7 @@ namespace {
                 value = nextVal;
             } while (value && --len);
 
-            Y_ENSURE(!value, STRINGBUF("not enough room in buffer"));
+            Y_ENSURE(!value, AsStringBuf("not enough room in buffer"));
 
             const size_t result = tmp - buf;
 
@@ -111,7 +111,7 @@ namespace {
             using TUFmt = TBasicIntFormatter<std::make_unsigned_t<T>, base, TChar>;
 
             if (std::is_signed<T>::value && value < 0) {
-                Y_ENSURE(len >= 2, STRINGBUF("not enough room in buffer"));
+                Y_ENSURE(len >= 2, AsStringBuf("not enough room in buffer"));
 
                 *buf = '-';
 
@@ -134,7 +134,7 @@ namespace {
     static inline size_t FormatFlt(T t, char* buf, size_t len) {
         const int ret = snprintf(buf, len, TFltModifiers<T>::ModifierWrite, t);
 
-        Y_ENSURE(ret >= 0 && (size_t)ret <= len, STRINGBUF("cannot format float"));
+        Y_ENSURE(ret >= 0 && (size_t)ret <= len, AsStringBuf("cannot format float"));
 
         return (size_t)ret;
     }
@@ -329,17 +329,17 @@ namespace {
 
         switch (status) {
             case PS_EMPTY_STRING:
-                ythrow TFromStringException() << STRINGBUF("Cannot parse empty string as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse empty string as number. ");
             case PS_PLUS_STRING:
-                ythrow TFromStringException() << STRINGBUF("Cannot parse string \"+\" as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse string \"+\" as number. ");
             case PS_MINUS_STRING:
-                ythrow TFromStringException() << STRINGBUF("Cannot parse string \"-\" as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse string \"-\" as number. ");
             case PS_BAD_SYMBOL:
-                ythrow TFromStringException() << STRINGBUF("Unexpected symbol \"") << EscapeC(*pos) << STRINGBUF("\" at pos ") << (pos - data) << STRINGBUF(" in string ") << TStringType(data, len).Quote() << STRINGBUF(". ");
+                ythrow TFromStringException() << AsStringBuf("Unexpected symbol \"") << EscapeC(*pos) << AsStringBuf("\" at pos ") << (pos - data) << AsStringBuf(" in string ") << TStringType(data, len).Quote() << AsStringBuf(". ");
             case PS_OVERFLOW:
-                ythrow TFromStringException() << STRINGBUF("Integer overflow in string ") << TStringType(data, len).Quote() << STRINGBUF(". ");
+                ythrow TFromStringException() << AsStringBuf("Integer overflow in string ") << TStringType(data, len).Quote() << AsStringBuf(". ");
             default:
-                ythrow yexception() << STRINGBUF("Unknown error code in string converter. ");
+                ythrow yexception() << AsStringBuf("Unknown error code in string converter. ");
         }
     }
 
@@ -384,7 +384,7 @@ namespace {
             return ret;
         }
 
-        ythrow TFromStringException() << STRINGBUF("cannot parse float(") << TStringBuf(data, len) << STRINGBUF(")");
+        ythrow TFromStringException() << AsStringBuf("cannot parse float(") << TStringBuf(data, len) << AsStringBuf(")");
     }
 
 #define DEF_FLT_MOD(type, modifierWrite, modifierRead)                    \
@@ -465,7 +465,7 @@ DEF_FLT_SPEC(long double)
 
 template <>
 size_t ToStringImpl<bool>(bool t, char* buf, size_t len) {
-    Y_ENSURE(len, STRINGBUF("zero length"));
+    Y_ENSURE(len, AsStringBuf("zero length"));
     *buf = t ? '1' : '0';
     return 1;
 }
@@ -501,7 +501,7 @@ bool FromStringImpl<bool>(const char* data, size_t len) {
     bool result;
 
     if (!TryFromStringImpl<bool>(data, len, result)) {
-        ythrow TFromStringException() << STRINGBUF("Cannot parse bool(") << TStringBuf(data, len) << STRINGBUF("). ");
+        ythrow TFromStringException() << AsStringBuf("Cannot parse bool(") << TStringBuf(data, len) << AsStringBuf("). ");
     }
 
     return result;
@@ -674,7 +674,7 @@ template <>
 double FromStringImpl<double>(const char* data, size_t len) {
     double d = 0.0;
     if (!TryFromStringImpl(data, len, d)) {
-        ythrow TFromStringException() << STRINGBUF("cannot parse float(") << TStringBuf(data, len) << STRINGBUF(")");
+        ythrow TFromStringException() << AsStringBuf("cannot parse float(") << TStringBuf(data, len) << AsStringBuf(")");
     }
     return d;
 }

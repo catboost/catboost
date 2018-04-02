@@ -117,9 +117,9 @@ TString FloatToStringWithNanInf(double value)
         return ::ToString(value);
     }
 
-    static const auto nanLiteral = STRINGBUF("%nan");
-    static const auto infLiteral = STRINGBUF("%inf");
-    static const auto negativeInfLiteral = STRINGBUF("%-inf");
+    static const auto nanLiteral = AsStringBuf("%nan");
+    static const auto infLiteral = AsStringBuf("%inf");
+    static const auto negativeInfLiteral = AsStringBuf("%-inf");
 
     TStringBuf str;
     if (std::isnan(value)) {

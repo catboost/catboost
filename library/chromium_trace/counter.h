@@ -15,7 +15,7 @@ namespace NChromiumTrace {
     public:
         template <typename TChar, size_t size>
         TCounter(const TChar(&name)[size])
-            : TCounter(STRINGBUF(name), STRINGBUF("sample"))
+            : TCounter(AsStringBuf(name), AsStringBuf("sample"))
         {
         }
 

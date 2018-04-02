@@ -147,12 +147,12 @@ private:
             TStringBuilder msgs;
             for (const TString& m : ErrorMessages) {
                 if (msgs) {
-                    msgs << STRINGBUF("\n");
+                    msgs << AsStringBuf("\n");
                 }
                 msgs << m;
             }
             if (msgs) {
-                msgs << STRINGBUF("\n");
+                msgs << AsStringBuf("\n");
             }
             TraceSubtestFinished(~descr->test->unit->name, descr->test->name, "fail", msgs, descr->Context);
             ErrorMessages.clear();

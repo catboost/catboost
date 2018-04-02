@@ -104,26 +104,26 @@ namespace NNeh { namespace NHttp {
             TRequestData::TPtr req(new TRequestData(50 + +loc.Service + +msg.Data + +loc.Host));
             TMemoryOutput out(~req->Mem, +req->Mem);
 
-            out << STRINGBUF("GET /") << loc.Service;
+            out << AsStringBuf("GET /") << loc.Service;
 
             if (!!msg.Data) {
                 out << '?' << msg.Data;
             }
 
-            out << STRINGBUF(" HTTP/1.1\r\nHost: ") << loc.Host;
+            out << AsStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
 
             if (!!loc.Port) {
-                out << STRINGBUF(":") << loc.Port;
+                out << AsStringBuf(":") << loc.Port;
             }
 
-            out << STRINGBUF("\r\n\r\n");
+            out << AsStringBuf("\r\n\r\n");
 
             req->AddPart(~req->Mem, out.Buf() - ~req->Mem);
             return req;
         }
 
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("http");
+            return AsStringBuf("http");
         }
     };
 
@@ -132,14 +132,14 @@ namespace NNeh { namespace NHttp {
             TRequestData::TPtr req(new TRequestData(100 + +loc.Service + +loc.Host));
             TMemoryOutput out(~req->Mem, +req->Mem);
 
-            out << STRINGBUF("POST /") << loc.Service
-                << STRINGBUF(" HTTP/1.1\r\nHost: ") << loc.Host;
+            out << AsStringBuf("POST /") << loc.Service
+                << AsStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
 
             if (!!loc.Port) {
-                out << STRINGBUF(":") << loc.Port;
+                out << AsStringBuf(":") << loc.Port;
             }
 
-            out << STRINGBUF("\r\nContent-Length: ") << +msg.Data << STRINGBUF("\r\n\r\n");
+            out << AsStringBuf("\r\nContent-Length: ") << +msg.Data << AsStringBuf("\r\n\r\n");
 
             req->AddPart(~req->Mem, out.Buf() - ~req->Mem);
             req->AddPart(~msg.Data, +msg.Data);
@@ -147,7 +147,7 @@ namespace NNeh { namespace NHttp {
         }
 
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("post");
+            return AsStringBuf("post");
         }
     };
 
@@ -159,7 +159,7 @@ namespace NNeh { namespace NHttp {
         }
 
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("full");
+            return AsStringBuf("full");
         }
     };
 

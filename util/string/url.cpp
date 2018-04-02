@@ -151,17 +151,17 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDe
     const size_t schemeSize = GetSchemePrefixSize(url);
     const TStringBuf scheme = url.Head(schemeSize);
 
-    const bool isHttp = (schemeSize == 0 || scheme == STRINGBUF("http://"));
+    const bool isHttp = (schemeSize == 0 || scheme == AsStringBuf("http://"));
 
     TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
 
     if (trimDefaultPort) {
         const size_t pos = hostAndPort.find(':');
         if (pos != TStringBuf::npos) {
-            const bool isHttps = (scheme == STRINGBUF("https://"));
+            const bool isHttps = (scheme == AsStringBuf("https://"));
 
             const TStringBuf port = hostAndPort.Tail(pos + 1);
-            if ((isHttp && port == STRINGBUF("80")) || (isHttps && port == STRINGBUF("443"))) {
+            if ((isHttp && port == AsStringBuf("80")) || (isHttps && port == AsStringBuf("443"))) {
                 // trimming default port
                 hostAndPort = hostAndPort.Head(pos);
             }
@@ -204,9 +204,9 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
         }
     } else {
         host = hostAndPort;
-        if (scheme == STRINGBUF("https://")) {
+        if (scheme == AsStringBuf("https://")) {
             port = 443;
-        } else if (scheme == STRINGBUF("http://")) {
+        } else if (scheme == AsStringBuf("http://")) {
             port = 80;
         }
     }

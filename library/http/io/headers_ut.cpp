@@ -147,7 +147,7 @@ void THttpHeadersTest::TestAddHeaderTemplateness() {
     THttpHeaders h1;
     h1.AddHeader("h1", "v1");
     h1.AddHeader("h2", TString("v2"));
-    h1.AddHeader("h3", STRINGBUF("v3"));
+    h1.AddHeader("h3", AsStringBuf("v3"));
     h1.AddHeader("h4", TCharFixedString("v4"));
 
     THeadersExistence h2;

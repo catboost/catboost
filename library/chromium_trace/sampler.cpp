@@ -24,8 +24,8 @@ void TSamplerThread::AddSampler(TSamplerFunction sampler) {
 void TSamplerThread::RunSamplers() {
     TCompleteEventGuard traceOverhead(
         Tracer,
-        STRINGBUF("RunSamplers"),
-        STRINGBUF("func,overhead"));
+        AsStringBuf("RunSamplers"),
+        AsStringBuf("func,overhead"));
 
     for (const auto& sampler : Samplers) {
         try {
@@ -36,7 +36,7 @@ void TSamplerThread::RunSamplers() {
 }
 
 void* TSamplerThread::ThreadProc() noexcept {
-    Tracer->AddCurrentThreadName(STRINGBUF("TraceSampler"));
+    Tracer->AddCurrentThreadName(AsStringBuf("TraceSampler"));
     Tracer->AddCurrentThreadIndex(10000);  // Stick it to the bottom
 
     while (true) {

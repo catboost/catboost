@@ -174,7 +174,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         {
             // test gzip
             THttpParser p(THttpParser::Request);
-            TString gzipTestLine(STRINGBUF(
+            TString gzipTestLine(AsStringBuf(
                 "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", gzipTestLine);
@@ -191,14 +191,14 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         {
             // test broken deflate
             THttpParser p(THttpParser::Request);
-            TString content(STRINGBUF("some trash ....................."));
+            TString content(AsStringBuf("some trash ....................."));
             TString msg = MakeEncodedRequest("deflate", content);
             UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
         }
         {
             // test broken gzip
             THttpParser p(THttpParser::Request);
-            TString content(STRINGBUF(
+            TString content(AsStringBuf(
                 "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09some trash\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", content);

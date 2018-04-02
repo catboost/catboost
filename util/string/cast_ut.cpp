@@ -445,7 +445,7 @@ SIMPLE_UNIT_TEST_SUITE(TCastTest) {
     SIMPLE_UNIT_TEST(TestAutoDetectType) {
         UNIT_ASSERT_DOUBLES_EQUAL((float)FromString("0.0001"), 0.0001, EPS);
         UNIT_ASSERT_DOUBLES_EQUAL((double)FromString("0.0015", sizeof("0.0015") - 2), 0.001, EPS);
-        UNIT_ASSERT_DOUBLES_EQUAL((long double)FromString(STRINGBUF("0.0001")), 0.0001, EPS);
+        UNIT_ASSERT_DOUBLES_EQUAL((long double)FromString(AsStringBuf("0.0001")), 0.0001, EPS);
         UNIT_ASSERT_DOUBLES_EQUAL((float)FromString(TString("10E-5")), 10E-5, EPS);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("da"), true);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("no"), false);
@@ -505,13 +505,13 @@ SIMPLE_UNIT_TEST_SUITE(TCastTest) {
 
     SIMPLE_UNIT_TEST(TryStringBuf) {
         {
-            constexpr TStringBuf hello = STRINGBUF("hello");
+            constexpr TStringBuf hello = AsStringBuf("hello");
             TStringBuf out;
             UNIT_ASSERT(TryFromString(hello, out));
             UNIT_ASSERT_VALUES_EQUAL(hello, out);
         }
         {
-            constexpr TStringBuf empty = STRINGBUF("");
+            constexpr TStringBuf empty = AsStringBuf("");
             TStringBuf out;
             UNIT_ASSERT(TryFromString(empty, out));
             UNIT_ASSERT_VALUES_EQUAL(empty, out);

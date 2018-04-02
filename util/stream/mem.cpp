@@ -40,13 +40,13 @@ TMemoryOutput::~TMemoryOutput() = default;
 
 void TMemoryOutput::DoWrite(const void* buf, size_t len) {
     char* end = Buf_ + len;
-    Y_ENSURE(end <= End_, STRINGBUF("memory output stream exhausted"));
+    Y_ENSURE(end <= End_, AsStringBuf("memory output stream exhausted"));
 
     memcpy(Buf_, buf, len);
     Buf_ = end;
 }
 
 void TMemoryOutput::DoWriteC(char c) {
-    Y_ENSURE(Buf_ < End_, STRINGBUF("memory output stream exhausted"));
+    Y_ENSURE(Buf_ < End_, AsStringBuf("memory output stream exhausted"));
     *Buf_++ = c;
 }

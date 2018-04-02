@@ -292,7 +292,7 @@ size_t TMtpQueue::Size() const noexcept {
 }
 
 bool TMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE(Impl_.Get(), STRINGBUF("mtp queue not started"));
+    Y_ENSURE(Impl_.Get(), AsStringBuf("mtp queue not started"));
 
     if (Impl_->NeedRestart()) {
         Start(Impl_->GetThreadCountExpected(), Impl_->GetMaxQueueSize());
@@ -387,7 +387,7 @@ public:
 
             Obj_ = obj;
 
-            Y_ENSURE(!AllDone_, STRINGBUF("adding to a stopped queue"));
+            Y_ENSURE(!AllDone_, AsStringBuf("adding to a stopped queue"));
         }
 
         CondReady_.Signal();
@@ -488,7 +488,7 @@ TAdaptiveMtpQueue::TAdaptiveMtpQueue(IThreadPool* pool)
 TAdaptiveMtpQueue::~TAdaptiveMtpQueue() = default;
 
 bool TAdaptiveMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE(Impl_.Get(), STRINGBUF("mtp queue not started"));
+    Y_ENSURE(Impl_.Get(), AsStringBuf("mtp queue not started"));
 
     Impl_->Add(obj);
 
@@ -512,7 +512,7 @@ size_t TAdaptiveMtpQueue::Size() const noexcept {
 }
 
 void TAdaptiveMtpQueue::SetMaxIdleTime(TDuration interval) {
-    Y_ENSURE(Impl_.Get(), STRINGBUF("mtp queue not started"));
+    Y_ENSURE(Impl_.Get(), AsStringBuf("mtp queue not started"));
 
     Impl_->SetMaxIdleTime(interval);
 }
@@ -534,7 +534,7 @@ TSimpleMtpQueue::~TSimpleMtpQueue() {
 }
 
 bool TSimpleMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE(Slave_.Get(), STRINGBUF("mtp queue not started"));
+    Y_ENSURE(Slave_.Get(), AsStringBuf("mtp queue not started"));
 
     return Slave_->Add(obj);
 }
@@ -611,15 +611,15 @@ namespace {
 }
 
 void IMtpQueue::SafeAdd(IObjectInQueue* obj) {
-    Y_ENSURE(Add(obj), STRINGBUF("can not add object to queue"));
+    Y_ENSURE(Add(obj), AsStringBuf("can not add object to queue"));
 }
 
 void IMtpQueue::SafeAddFunc(TThreadFunction func) {
-    Y_ENSURE(AddFunc(std::move(func)), STRINGBUF("can not add function to queue"));
+    Y_ENSURE(AddFunc(std::move(func)), AsStringBuf("can not add function to queue"));
 }
 
 void IMtpQueue::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
-    Y_ENSURE(AddAndOwn(obj), STRINGBUF("can not add to queue and own"));
+    Y_ENSURE(AddAndOwn(obj), AsStringBuf("can not add to queue and own"));
 }
 
 bool IMtpQueue::AddFunc(TThreadFunction func) {

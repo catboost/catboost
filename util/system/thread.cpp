@@ -122,7 +122,7 @@ namespace {
             Handle = reinterpret_cast<HANDLE>(::_beginthreadex(nullptr, (unsigned)StackSize(*P_), Proxy, (void*)P_.Get(), 0, nullptr));
 #endif
 
-            Y_ENSURE(Handle, STRINGBUF("failed to create a thread"));
+            Y_ENSURE(Handle, AsStringBuf("failed to create a thread"));
 
             //do not do this, kids, at home
             P_->Ref();
@@ -144,7 +144,7 @@ namespace {
     {                                                  \
         const int err_ = x;                            \
         if (err_) {                                    \
-            ythrow TSystemError(err_) << STRINGBUF(y); \
+            ythrow TSystemError(err_) << AsStringBuf(y); \
         }                                              \
     }
 

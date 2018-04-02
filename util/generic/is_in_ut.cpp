@@ -81,12 +81,12 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         UNIT_ASSERT(IsIn({6}, 6));
         UNIT_ASSERT(!IsIn({6}, 7));
         UNIT_ASSERT(!IsIn(std::initializer_list<int>(), 6));
-        UNIT_ASSERT(IsIn({STRINGBUF("abc"), STRINGBUF("def")}, STRINGBUF("abc")));
-        UNIT_ASSERT(IsIn({STRINGBUF("abc"), STRINGBUF("def")}, STRINGBUF("def")));
-        UNIT_ASSERT(IsIn({"abc", "def"}, STRINGBUF("def")));
+        UNIT_ASSERT(IsIn({AsStringBuf("abc"), AsStringBuf("def")}, AsStringBuf("abc")));
+        UNIT_ASSERT(IsIn({AsStringBuf("abc"), AsStringBuf("def")}, AsStringBuf("def")));
+        UNIT_ASSERT(IsIn({"abc", "def"}, AsStringBuf("def")));
         UNIT_ASSERT(IsIn({abc, def}, def)); // direct pointer comparison
-        UNIT_ASSERT(!IsIn({STRINGBUF("abc"), STRINGBUF("def")}, STRINGBUF("ghi")));
-        UNIT_ASSERT(!IsIn({"abc", "def"}, STRINGBUF("ghi")));
+        UNIT_ASSERT(!IsIn({AsStringBuf("abc"), AsStringBuf("def")}, AsStringBuf("ghi")));
+        UNIT_ASSERT(!IsIn({"abc", "def"}, AsStringBuf("ghi")));
         UNIT_ASSERT(!IsIn({"abc", "def"}, TString("ghi")));
 
         const TStringBuf str = "abc////";

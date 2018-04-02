@@ -466,53 +466,53 @@ SIMPLE_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
     SIMPLE_UNIT_TEST(TestTInstantTryParse) {
         {
-            const auto s = STRINGBUF("2009-09-19 03:37:08.1+04:00");
+            const auto s = AsStringBuf("2009-09-19 03:37:08.1+04:00");
             const auto i = TInstant::ParseIso8601(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseIso8601(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = STRINGBUF("2009-09aslkdjfkljasdjfl4:00");
+            const auto s = AsStringBuf("2009-09aslkdjfkljasdjfl4:00");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseIso8601(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseIso8601(s, iTry));
         }
         {
-            const auto s = STRINGBUF("Wed, 14 Oct 2009 16:55:33 GMT");
+            const auto s = AsStringBuf("Wed, 14 Oct 2009 16:55:33 GMT");
             const auto i = TInstant::ParseRfc822(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseRfc822(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = STRINGBUF("Wed, alsdjflkasjdfl:55:33 GMT");
+            const auto s = AsStringBuf("Wed, alsdjflkasjdfl:55:33 GMT");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseRfc822(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseRfc822(s, iTry));
         }
         {
-            const auto s = STRINGBUF("20091014165533Z");
+            const auto s = AsStringBuf("20091014165533Z");
             const auto i = TInstant::ParseX509Validity(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = STRINGBUF("200asdfasdf533Z");
+            const auto s = AsStringBuf("200asdfasdf533Z");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
         }
         {
-            const auto s = STRINGBUF("990104074212Z");
+            const auto s = AsStringBuf("990104074212Z");
             const auto i = TInstant::ParseX509Validity(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = STRINGBUF("9901asdf4212Z");
+            const auto s = AsStringBuf("9901asdf4212Z");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));

@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
     bool raw;
     while (*argv) {
         TString compressed;
-        if (STRINGBUF("-") == *argv) {
+        if (AsStringBuf("-") == *argv) {
             argv++;
             compressed = Compress(TStringBuf(*argv));
             raw = true;

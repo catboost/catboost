@@ -139,7 +139,7 @@ void TDirectIOBufferedFile::WriteToFile(const void* buf, size_t len, ui64 positi
         SetDirectIO(IsAligned(buf) && IsAligned(len) && IsAligned(position));
 
         if (File.Pwrite(buf, len, position) < 0) {
-            ythrow yexception() << STRINGBUF("error while pwrite file: ") << LastSystemError() << STRINGBUF("(") << LastSystemErrorText() << STRINGBUF(")");
+            ythrow yexception() << AsStringBuf("error while pwrite file: ") << LastSystemError() << AsStringBuf("(") << LastSystemErrorText() << AsStringBuf(")");
         }
 
         FlushedBytes = Max(FlushedBytes, position + len);

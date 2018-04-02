@@ -30,7 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCIHash) {
     }
 
     SIMPLE_UNIT_TEST(Test1) {
-        UNIT_ASSERT_VALUES_EQUAL(TCIOps()("aBc3"), TCIOps()(STRINGBUF("AbC3")));
+        UNIT_ASSERT_VALUES_EQUAL(TCIOps()("aBc3"), TCIOps()(AsStringBuf("AbC3")));
         UNIT_ASSERT(TCIOps()("aBc4", "AbC4"));
     }
 }

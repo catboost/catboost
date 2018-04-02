@@ -11,7 +11,7 @@ using namespace NKikimr::NUdf;
 
 extern "C" UDF_API void Register(IRegistrator& registrator, ui32 flags)
 {
-    RegisterYqlPythonUdf(registrator, flags, STRINGBUF("@MODULE_NAME@"), STRINGBUF("@PACKAGE_NAME@"), EPythonFlavor::@FLAVOR@);
+    RegisterYqlPythonUdf(registrator, flags, AsStringBuf("@MODULE_NAME@"), AsStringBuf("@PACKAGE_NAME@"), EPythonFlavor::@FLAVOR@);
     }
 
     extern "C" UDF_API ui32 AbiVersion()

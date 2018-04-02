@@ -76,7 +76,7 @@ bool THttp2Options::UseResponseAsErrorMessage = false;
 bool THttp2Options::FullHeadersAsErrorMessage = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
-#define HTTP2_TRY_SET(optType, optName) if (name == STRINGBUF(#optName)) {\
+#define HTTP2_TRY_SET(optType, optName) if (name == AsStringBuf(#optName)) {\
         optName = FromString<optType>(value);\
     }
 
@@ -194,37 +194,37 @@ namespace {
 
     struct TRequestGet1: public TRequestGet {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("http");
+            return AsStringBuf("http");
         }
     };
 
     struct TRequestPost1: public TRequestPost {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("post");
+            return AsStringBuf("post");
         }
     };
 
     struct TRequestFull1: public TRequestFull {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("full");
+            return AsStringBuf("full");
         }
     };
 
     struct TRequestGet2: public TRequestGet {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("http2");
+            return AsStringBuf("http2");
         }
     };
 
     struct TRequestPost2: public TRequestPost {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("post2");
+            return AsStringBuf("post2");
         }
     };
 
     struct TRequestFull2: public TRequestFull {
         static inline TStringBuf Name() noexcept {
-            return STRINGBUF("full2");
+            return AsStringBuf("full2");
         }
     };
 
@@ -712,7 +712,7 @@ namespace {
             DBGOUT("receive:" << TStringBuf(Buff_.Get(), bytes));
             try {
                 if (!Prs_) {
-                    throw yexception() << STRINGBUF("receive some data while not in request");
+                    throw yexception() << AsStringBuf("receive some data while not in request");
                 }
                 DBGOUT("parse:");
                 while (!Prs_->Parse(Buff_.Get(), bytes)) {
@@ -1157,7 +1157,7 @@ namespace {
 
                 THttpHeaders hdrs = rsp->Headers();
                 for (auto h = hdrs.begin(); h < hdrs.end(); h++) {
-                   err << h->ToString() << STRINGBUF("\r\n");
+                   err << h->ToString() << AsStringBuf("\r\n");
                 }
 
                 message = err.Str();
@@ -1166,7 +1166,7 @@ namespace {
                 message = rsp->DecodedContent();
             } else {
                 TStringStream err;
-                err << STRINGBUF("request failed(") << rsp->FirstLine() << STRINGBUF(")");
+                err << AsStringBuf("request failed(") << rsp->FirstLine() << AsStringBuf(")");
                 message = err.Str();
             }
 
@@ -1299,7 +1299,7 @@ namespace {
 
         protected:
             TStringBuf Scheme() override {
-                return STRINGBUF("http");
+                return AsStringBuf("http");
             }
 
             TString RemoteHost() override {
@@ -1493,7 +1493,7 @@ namespace {
             }
 
             static void PrintHttpVersion(IOutputStream& out, const THttpVersion& ver) {
-                out << STRINGBUF("HTTP/") << ver.Major << STRINGBUF(".") << ver.Minor;
+                out << AsStringBuf("HTTP/") << ver.Major << AsStringBuf(".") << ver.Minor;
             }
 
         struct TResponseData : TThrRefBase {
@@ -1516,19 +1516,19 @@ namespace {
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders) {
                         Header.Reserve(128 + +contentEncoding + +theHeaders);
                         PrintHttpVersion(Header, theVer);
-                        Header << STRINGBUF(" 200 Ok");
+                        Header << AsStringBuf(" 200 Ok");
                         if (Compress(theData, contentEncoding)) {
-                            Header << STRINGBUF("\r\nContent-Encoding: ") << contentEncoding;
+                            Header << AsStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
-                        Header << STRINGBUF("\r\nContent-Length: ") << +theData;
+                        Header << AsStringBuf("\r\nContent-Length: ") << +theData;
                         if (Y_LIKELY(theVer.Major > 1 || theVer.Minor > 0)) {
                             // since HTTP/1.1 Keep-Alive is default behaviour
-                            Header << STRINGBUF("\r\nConnection: Keep-Alive");
+                            Header << AsStringBuf("\r\nConnection: Keep-Alive");
                         }
                         if (theHeaders) {
                             Header << theHeaders;
                         }
-                        Header << STRINGBUF("\r\n\r\n");
+                        Header << AsStringBuf("\r\n\r\n");
 
                         Body.swap(theData);
 
@@ -1572,7 +1572,7 @@ namespace {
                 public:
                     THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer) {
                         PrintHttpVersion(Answer, theVer);
-                        Answer << STRINGBUF(" ") << theHttpCode << STRINGBUF(" ");
+                        Answer << AsStringBuf(" ") << theHttpCode << AsStringBuf(" ");
                         if (+theDescr) {
                             // Reason-Phrase  = *<TEXT, excluding CR, LF>
                             // replace bad chars to '.'
@@ -1593,7 +1593,7 @@ namespace {
                         } else {
                             Answer << HttpCodeStr(static_cast<int>(theHttpCode));
                         }
-                        Answer << STRINGBUF("\r\n"
+                        Answer << AsStringBuf("\r\n"
                                "Content-Length:0\r\n\r\n");
 
                         Parts[0].buf = ~Answer;

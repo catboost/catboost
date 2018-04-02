@@ -69,7 +69,7 @@ TCodedOutput::TCodedOutput(IOutputStream* out, const ICodec* c, size_t bufLen)
     , S_(out)
 {
     if (bufLen > MAX_BUF_LEN) {
-        ythrow yexception() << STRINGBUF("too big buffer size: ") << bufLen;
+        ythrow yexception() << AsStringBuf("too big buffer size: ") << bufLen;
     }
 }
 
@@ -201,7 +201,7 @@ size_t TDecodedInput::DoUnboundedNext(const void** ptr) {
     auto codec = CodecByID(codecId);
 
     if (C_) {
-        Y_ENSURE(C_->Name() == codec->Name(), STRINGBUF("incorrect stream codec"));
+        Y_ENSURE(C_->Name() == codec->Name(), AsStringBuf("incorrect stream codec"));
     }
 
     if (codec->DecompressedLength(block) > MAX_BUF_LEN) {

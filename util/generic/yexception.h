@@ -48,7 +48,7 @@ namespace NPrivateException {
 
     template <class T>
     static inline T&& operator+(const TSourceLocation& sl, T&& t) {
-        return std::forward<T>(t << sl << STRINGBUF(": "));
+        return std::forward<T>(t << sl << AsStringBuf(": "));
     }
 }
 
@@ -127,7 +127,7 @@ Y_NO_RETURN void ThrowRangeError(const char* descr);
         }                                        \
     } while (false)
 
-#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX(CONDITION, yexception() << STRINGBUF("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
+#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX(CONDITION, yexception() << AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)
 
 /**

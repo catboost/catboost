@@ -402,7 +402,7 @@ namespace { namespace NUdp {
             }
 
             TStringBuf Scheme() override {
-                return STRINGBUF("udp");
+                return AsStringBuf("udp");
             }
 
             TString RemoteHost() override {
@@ -683,7 +683,7 @@ namespace { namespace NUdp {
         }
 
         TStringBuf Scheme() const noexcept override {
-            return STRINGBUF("udp");
+            return AsStringBuf("udp");
         }
     };
 }}

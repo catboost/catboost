@@ -126,9 +126,9 @@ TStringBuf TColors::ColorImpl(int val, int bold) const {
 
     if (ret.empty()) {
         if (val == 0 || val == 1) {
-            ret = TStringBuilder() << STRINGBUF("\033[") << val << STRINGBUF("m");
+            ret = TStringBuilder() << AsStringBuf("\033[") << val << AsStringBuf("m");
         } else {
-            ret = TStringBuilder() << STRINGBUF("\033[") << (bold ? 1 : 22) << STRINGBUF(";") << val << STRINGBUF("m");
+            ret = TStringBuilder() << AsStringBuf("\033[") << (bold ? 1 : 22) << AsStringBuf(";") << val << AsStringBuf("m");
         }
     }
 

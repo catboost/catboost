@@ -322,7 +322,7 @@ private:
 
     struct TTrEnc {
         inline void operator()(const TStringBuf& s) {
-            if (s == STRINGBUF("chunked")) {
+            if (s == AsStringBuf("chunked")) {
                 p->Chunked = true;
             }
         }
@@ -705,7 +705,7 @@ private:
 
     inline bool HasResponseBody() const noexcept {
         if (IsHttpResponse()) {
-            if (Request_ && Request_->FirstLine().StartsWith(STRINGBUF("HEAD")))
+            if (Request_ && Request_->FirstLine().StartsWith(AsStringBuf("HEAD")))
                 return false;
             if (FirstLine_.size() > 9 && strncmp(~FirstLine_ + 9, "204", 3) == 0)
                 return false;
@@ -877,13 +877,13 @@ private:
             const THttpInputHeader& header = *h;
             const TString hl = to_lower(header.Name());
 
-            if (hl == STRINGBUF("connection")) {
-                keepAlive = to_lower(header.Value()) == STRINGBUF("keep-alive");
-            } else if (hl == STRINGBUF("content-encoding")) {
+            if (hl == AsStringBuf("connection")) {
+                keepAlive = to_lower(header.Value()) == AsStringBuf("keep-alive");
+            } else if (hl == AsStringBuf("content-encoding")) {
                 encoder = TCodecFactory::Instance().FindEncoder(to_lower(header.Value()));
-            } else if (hl == STRINGBUF("transfer-encoding")) {
-                chunked = to_lower(header.Value()) == STRINGBUF("chunked");
-            } else if (hl == STRINGBUF("content-length")) {
+            } else if (hl == AsStringBuf("transfer-encoding")) {
+                chunked = to_lower(header.Value()) == AsStringBuf("chunked");
+            } else if (hl == AsStringBuf("content-length")) {
                 haveContentLength = true;
             }
         }
@@ -1014,17 +1014,17 @@ void SendMinimalHttpRequest(TSocket& s, const TStringBuf& host, const TStringBuf
     output.EnableCompression(false);
 
     const IOutputStream::TPart parts[] = {
-        IOutputStream::TPart(STRINGBUF("GET ")),
+        IOutputStream::TPart(AsStringBuf("GET ")),
         IOutputStream::TPart(request),
-        IOutputStream::TPart(STRINGBUF(" HTTP/1.1")),
+        IOutputStream::TPart(AsStringBuf(" HTTP/1.1")),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(STRINGBUF("Host: ")),
+        IOutputStream::TPart(AsStringBuf("Host: ")),
         IOutputStream::TPart(host),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(STRINGBUF("User-Agent: ")),
+        IOutputStream::TPart(AsStringBuf("User-Agent: ")),
         IOutputStream::TPart(agent),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(STRINGBUF("From: ")),
+        IOutputStream::TPart(AsStringBuf("From: ")),
         IOutputStream::TPart(from),
         IOutputStream::TPart::CrLf(),
         IOutputStream::TPart::CrLf(),

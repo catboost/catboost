@@ -43,17 +43,17 @@ TString TYsonTraceConsumer::GetCurrentJobId() {
 
 void TYsonTraceConsumer::AddEvent(const TDurationCompleteEvent& event, const TEventArgs* args) {
     BeginEvent('X', event.Origin);
-    Yson.OnKeyedItem(STRINGBUF("ts"));
+    Yson.OnKeyedItem(AsStringBuf("ts"));
     Yson.OnUint64Scalar(event.BeginTime.WallTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("tts"));
+    Yson.OnKeyedItem(AsStringBuf("tts"));
     Yson.OnUint64Scalar(event.BeginTime.ThreadCPUTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("dur"));
+    Yson.OnKeyedItem(AsStringBuf("dur"));
     Yson.OnUint64Scalar((event.EndTime.WallTime - event.BeginTime.WallTime).MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("tdur"));
+    Yson.OnKeyedItem(AsStringBuf("tdur"));
     Yson.OnUint64Scalar((event.EndTime.ThreadCPUTime - event.BeginTime.ThreadCPUTime).MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("name"));
+    Yson.OnKeyedItem(AsStringBuf("name"));
     Yson.OnStringScalar(event.Name);
-    Yson.OnKeyedItem(STRINGBUF("cat"));
+    Yson.OnKeyedItem(AsStringBuf("cat"));
     Yson.OnStringScalar(event.Categories);
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -61,13 +61,13 @@ void TYsonTraceConsumer::AddEvent(const TDurationCompleteEvent& event, const TEv
 
 void TYsonTraceConsumer::AddEvent(const TDurationBeginEvent& event, const TEventArgs* args) {
     BeginEvent('B', event.Origin);
-    Yson.OnKeyedItem(STRINGBUF("ts"));
+    Yson.OnKeyedItem(AsStringBuf("ts"));
     Yson.OnUint64Scalar(event.Time.WallTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("tts"));
+    Yson.OnKeyedItem(AsStringBuf("tts"));
     Yson.OnUint64Scalar(event.Time.ThreadCPUTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("name"));
+    Yson.OnKeyedItem(AsStringBuf("name"));
     Yson.OnStringScalar(event.Name);
-    Yson.OnKeyedItem(STRINGBUF("cat"));
+    Yson.OnKeyedItem(AsStringBuf("cat"));
     Yson.OnStringScalar(event.Categories);
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -75,9 +75,9 @@ void TYsonTraceConsumer::AddEvent(const TDurationBeginEvent& event, const TEvent
 
 void TYsonTraceConsumer::AddEvent(const TDurationEndEvent& event, const TEventArgs* args) {
     BeginEvent('E', event.Origin);
-    Yson.OnKeyedItem(STRINGBUF("ts"));
+    Yson.OnKeyedItem(AsStringBuf("ts"));
     Yson.OnUint64Scalar(event.Time.WallTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("tts"));
+    Yson.OnKeyedItem(AsStringBuf("tts"));
     Yson.OnUint64Scalar(event.Time.ThreadCPUTime.MicroSeconds());
     WriteFlow(event.Flow);
     EndEvent(args);
@@ -85,18 +85,18 @@ void TYsonTraceConsumer::AddEvent(const TDurationEndEvent& event, const TEventAr
 
 void TYsonTraceConsumer::AddEvent(const TCounterEvent& event, const TEventArgs* args) {
     BeginEvent('C', event.Origin);
-    Yson.OnKeyedItem(STRINGBUF("ts"));
+    Yson.OnKeyedItem(AsStringBuf("ts"));
     Yson.OnUint64Scalar(event.Time.WallTime.MicroSeconds());
-    Yson.OnKeyedItem(STRINGBUF("name"));
+    Yson.OnKeyedItem(AsStringBuf("name"));
     Yson.OnStringScalar(event.Name);
-    Yson.OnKeyedItem(STRINGBUF("cat"));
+    Yson.OnKeyedItem(AsStringBuf("cat"));
     Yson.OnStringScalar(event.Categories);
     EndEvent(args);
 }
 
 void TYsonTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs* args) {
     BeginEvent('M', event.Origin);
-    Yson.OnKeyedItem(STRINGBUF("name"));
+    Yson.OnKeyedItem(AsStringBuf("name"));
     Yson.OnStringScalar(event.Name);
     EndEvent(args);
 }
@@ -106,17 +106,17 @@ void TYsonTraceConsumer::BeginEvent(char type, const TEventOrigin& origin) {
     char ph[2] = {type, 0};
 
     if (JobId) {
-        Yson.OnKeyedItem(STRINGBUF("host"));
+        Yson.OnKeyedItem(AsStringBuf("host"));
         Yson.OnStringScalar(HostName());
-        Yson.OnKeyedItem(STRINGBUF("job_id"));
+        Yson.OnKeyedItem(AsStringBuf("job_id"));
         Yson.OnStringScalar(JobId);
     }
 
-    Yson.OnKeyedItem(STRINGBUF("ph"));
-    Yson.OnStringScalar(STRINGBUF(ph));
-    Yson.OnKeyedItem(STRINGBUF("pid"));
+    Yson.OnKeyedItem(AsStringBuf("ph"));
+    Yson.OnStringScalar(AsStringBuf(ph));
+    Yson.OnKeyedItem(AsStringBuf("pid"));
     Yson.OnUint64Scalar(origin.ProcessId);
-    Yson.OnKeyedItem(STRINGBUF("tid"));
+    Yson.OnKeyedItem(AsStringBuf("tid"));
     Yson.OnUint64Scalar(origin.ThreadId);
 }
 
@@ -128,7 +128,7 @@ void TYsonTraceConsumer::EndEvent(const TEventArgs* args) {
 }
 
 void TYsonTraceConsumer::WriteArgs(const TEventArgs& args) {
-    Yson.OnKeyedItem(STRINGBUF("args"));
+    Yson.OnKeyedItem(AsStringBuf("args"));
     Yson.OnBeginMap();
     for (const auto& item : args.Items) {
         Yson.OnKeyedItem(item.Name);
@@ -143,16 +143,16 @@ void TYsonTraceConsumer::WriteFlow(const TEventFlow& flow) {
     }
 
     if (flow.Type == EFlowType::Producer || flow.Type == EFlowType::Step) {
-        Yson.OnKeyedItem(STRINGBUF("flow_out"));
+        Yson.OnKeyedItem(AsStringBuf("flow_out"));
         Yson.OnBooleanScalar(true);
     }
 
     if (flow.Type == EFlowType::Consumer || flow.Type == EFlowType::Step) {
-        Yson.OnKeyedItem(STRINGBUF("flow_in"));
+        Yson.OnKeyedItem(AsStringBuf("flow_in"));
         Yson.OnBooleanScalar(true);
     }
 
     TString bindId = TStringBuilder() << JobId << "::" << flow.BindId;
-    Yson.OnKeyedItem(STRINGBUF("bind_id"));
+    Yson.OnKeyedItem(AsStringBuf("bind_id"));
     Yson.OnStringScalar(bindId);
 }

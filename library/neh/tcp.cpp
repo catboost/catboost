@@ -180,7 +180,7 @@ namespace { namespace NNehTCP {
             }
 
             TStringBuf Scheme() override {
-                return STRINGBUF("tcp");
+                return AsStringBuf("tcp");
             }
 
             TString RemoteHost() override {
@@ -662,7 +662,7 @@ namespace { namespace NNehTCP {
         }
 
         TStringBuf Scheme() const noexcept override {
-            return STRINGBUF("tcp");
+            return AsStringBuf("tcp");
         }
     };
 }}

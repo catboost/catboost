@@ -17,8 +17,8 @@ static inline size_t ToReserve(const T& t) {
 }
 
 void TPathSplitTraitsUnix::DoParseFirstPart(const TStringBuf part) {
-    if (part == STRINGBUF(".")) {
-        push_back(STRINGBUF("."));
+    if (part == AsStringBuf(".")) {
+        push_back(AsStringBuf("."));
 
         return;
     }
@@ -46,8 +46,8 @@ void TPathSplitTraitsUnix::DoParsePart(const TStringBuf part0) {
 void TPathSplitTraitsWindows::DoParseFirstPart(const TStringBuf part0) {
     TStringBuf part(part0);
 
-    if (part == STRINGBUF(".")) {
-        push_back(STRINGBUF("."));
+    if (part == AsStringBuf(".")) {
+        push_back(AsStringBuf("."));
 
         return;
     }
@@ -107,9 +107,9 @@ TString TPathSplitStore::DoReconstruct(const TStringBuf slash) const {
 }
 
 void TPathSplitStore::AppendComponent(const TStringBuf comp) {
-    if (!comp || comp == STRINGBUF(".")) {
+    if (!comp || comp == AsStringBuf(".")) {
         ; // ignore
-    } else if (comp == STRINGBUF("..") && !empty() && back() != STRINGBUF("..")) {
+    } else if (comp == AsStringBuf("..") && !empty() && back() != AsStringBuf("..")) {
         pop_back();
     } else {
         // push back first .. also

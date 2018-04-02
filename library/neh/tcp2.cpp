@@ -40,7 +40,7 @@ namespace NNeh {
     TDuration TTcp2Options::ServerOutputDeadline = TDuration::Seconds(10);
 
     bool TTcp2Options::Set(TStringBuf name, TStringBuf value) {
-#define TCP2_TRY_SET(optType, optName) if (name == STRINGBUF(#optName)) {\
+#define TCP2_TRY_SET(optType, optName) if (name == AsStringBuf(#optName)) {\
             optName = FromString<optType>(value);\
         }
 
@@ -127,7 +127,7 @@ namespace { namespace NNehTcp2 {
             }
 
             TStringStream ss;
-            ss << STRINGBUF("tcp2 err_code=") << ErrorCode;
+            ss << AsStringBuf("tcp2 err_code=") << ErrorCode;
             return ss.Str();
         }
 
@@ -201,14 +201,14 @@ namespace { namespace NNehTcp2 {
             {
                 const TBaseHeader& hdr = BaseHeader();
                 if (BaseHeader().HeaderLength > 32000) { //some heuristic header size limit
-                    throw yexception() << STRINGBUF("to large neh/tcp2 header size: ") << BaseHeader().HeaderLength;
+                    throw yexception() << AsStringBuf("to large neh/tcp2 header size: ") << BaseHeader().HeaderLength;
                 }
                 //header completed
                 Header_.Reserve(hdr.HeaderLength);
             }
             const TBaseHeader& hdr = BaseHeader(); //reallocation can move Header_ data to another place, so use fresh 'hdr'
             if (Y_UNLIKELY(hdr.Version != 1)) {
-                throw yexception() << STRINGBUF("unsupported protocol version: ") << static_cast<unsigned>(hdr.Version);
+                throw yexception() << AsStringBuf("unsupported protocol version: ") << static_cast<unsigned>(hdr.Version);
             }
             RequireBytesForComplete_ = hdr.HeaderLength - sizeof(TBaseHeader);
             return useBytes + LoadHeader(buf + useBytes, len - useBytes);
@@ -228,21 +228,21 @@ namespace { namespace NNehTcp2 {
 
             if (hdr.Type == TBaseHeader::Request) {
                 if (Header_.Size() < sizeof(TRequestHeader)) {
-                    throw yexception() << STRINGBUF("invalid request header size");
+                    throw yexception() << AsStringBuf("invalid request header size");
                 }
                 InitContentLoading(RequestHeader().ContentLength);
             } else if (hdr.Type == TBaseHeader::Response) {
                 if (Header_.Size() < sizeof(TResponseHeader)) {
-                    throw yexception() << STRINGBUF("invalid response header size");
+                    throw yexception() << AsStringBuf("invalid response header size");
                 }
                 InitContentLoading(ResponseHeader().ContentLength);
             } else if (hdr.Type == TBaseHeader::Cancel) {
                 if (Header_.Size() < sizeof(TCancelHeader)) {
-                    throw yexception() << STRINGBUF("invalid cancel header size");
+                    throw yexception() << AsStringBuf("invalid cancel header size");
                 }
                 return useBytes;
             } else {
-                throw yexception() << STRINGBUF("unsupported request type: ") << static_cast<unsigned>(hdr.Type);
+                throw yexception() << AsStringBuf("unsupported request type: ") << static_cast<unsigned>(hdr.Type);
             }
             return useBytes + (this->*Loader_)(buf + useBytes, len - useBytes);
         }
@@ -1036,7 +1036,7 @@ namespace { namespace NNehTcp2 {
                     it->second->OnResponse(Msg_);
                     ReqsInFly_.erase(it);
                 } else {
-                    throw yexception() << STRINGBUF("unsupported message type: ") << hdr.Type;
+                    throw yexception() << AsStringBuf("unsupported message type: ") << hdr.Type;
                 }
             }
 
@@ -1158,7 +1158,7 @@ namespace { namespace NNehTcp2 {
             ~TRequest() override;
 
             TStringBuf Scheme() override {
-                return STRINGBUF("tcp2");
+                return AsStringBuf("tcp2");
             }
 
             TString RemoteHost() override;
@@ -1636,7 +1636,7 @@ namespace { namespace NNehTcp2 {
         }
 
         TStringBuf Scheme() const noexcept override {
-            return STRINGBUF("tcp2");
+            return AsStringBuf("tcp2");
         }
 
         bool SetOption(TStringBuf name, TStringBuf value) override {

@@ -26,7 +26,7 @@ namespace NNeh {
     TDuration TNetLibaOptions::AckTailEffect = TDuration::Seconds(30);
 
     bool TNetLibaOptions::Set(TStringBuf name, TStringBuf value) {
-#define NETLIBA_TRY_SET(optType, optName) if (name == STRINGBUF(#optName)) {\
+#define NETLIBA_TRY_SET(optType, optName) if (name == AsStringBuf(#optName)) {\
             optName = FromString<optType>(value);\
         }
 
@@ -301,7 +301,7 @@ namespace { namespace NNetLiba {
             }
 
             TStringBuf Scheme() override {
-                return STRINGBUF("netliba");
+                return AsStringBuf("netliba");
             }
 
             TString RemoteHost() override {
@@ -496,7 +496,7 @@ namespace { namespace NNetLiba {
         }
 
         TStringBuf Scheme() const noexcept override {
-            return STRINGBUF("netliba");
+            return AsStringBuf("netliba");
         }
     };
 }}

@@ -123,7 +123,7 @@ namespace {
                 na = ThreadedResolve(host, rt.Info.Port);
             } else {
                 Y_ASSERT(0);
-                throw yexception() << STRINGBUF("invalid resolve method");
+                throw yexception() << AsStringBuf("invalid resolve method");
             }
 
             return new TResolvedHost(originalHost, *na);

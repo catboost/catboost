@@ -22,7 +22,7 @@ SIMPLE_UNIT_TEST_SUITE(TCGIEscapeTest) {
     SIMPLE_UNIT_TEST(StringBuf) {
         char tmp[100];
 
-        UNIT_ASSERT_VALUES_EQUAL(CgiEscape(tmp, "!@#$%^&*()"), STRINGBUF("!@%23$%25^%26*%28%29"));
+        UNIT_ASSERT_VALUES_EQUAL(CgiEscape(tmp, "!@#$%^&*()"), AsStringBuf("!@%23$%25^%26*%28%29"));
     }
 
     SIMPLE_UNIT_TEST(StrokaRet) {
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(TCGIUnescapeTest) {
     SIMPLE_UNIT_TEST(StringBuf) {
         char tmp[100];
 
-        UNIT_ASSERT_VALUES_EQUAL(CgiUnescape(tmp, "!@%23$%25^%26*%28%29"), STRINGBUF("!@#$%^&*()"));
+        UNIT_ASSERT_VALUES_EQUAL(CgiUnescape(tmp, "!@%23$%25^%26*%28%29"), AsStringBuf("!@#$%^&*()"));
     }
 
     SIMPLE_UNIT_TEST(TestValidZeroTerm) {

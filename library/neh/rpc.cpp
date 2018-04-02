@@ -45,7 +45,7 @@ namespace {
                     }
 
                     if (Y_UNLIKELY(it == srvs.end())) {
-                        it = srvs.find(STRINGBUF("*"));
+                        it = srvs.find(AsStringBuf("*"));
                     }
 
                     if (Y_UNLIKELY(it == srvs.end())) {
@@ -158,7 +158,7 @@ namespace {
                 try {
                     SyncStop();
                 } catch (...) {
-                    Cdbg << STRINGBUF("neh rpc ~loop_func: ") << CurrentExceptionMessage() << Endl;
+                    Cdbg << AsStringBuf("neh rpc ~loop_func: ") << CurrentExceptionMessage() << Endl;
                 }
             }
 

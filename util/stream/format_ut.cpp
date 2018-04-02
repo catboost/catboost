@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
     SIMPLE_UNIT_TEST(TestHexText) {
         {
             TStringStream ss;
-            ss << HexText(STRINGBUF("abcи"));
+            ss << HexText(AsStringBuf("abcи"));
             UNIT_ASSERT_VALUES_EQUAL("61 62 63 D0 B8", ss.Str());
         }
         {
@@ -76,9 +76,9 @@ SIMPLE_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
     }
 
     SIMPLE_UNIT_TEST(TestBinText) {
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(STRINGBUF("\1"))), "00000001");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(STRINGBUF("\1\1"))), "00000001 00000001");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(STRINGBUF("aaa"))), "01100001 01100001 01100001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("\1"))), "00000001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("\1\1"))), "00000001 00000001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("aaa"))), "01100001 01100001 01100001");
     }
 
     SIMPLE_UNIT_TEST(TestPrec) {

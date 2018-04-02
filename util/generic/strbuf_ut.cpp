@@ -9,7 +9,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(*~str, 'q');
         UNIT_ASSERT_EQUAL(+str, 6);
 
-        TStringBuf str1(STRINGBUF("qwe\0rty"));
+        TStringBuf str1(AsStringBuf("qwe\0rty"));
         TStringBuf str2(str1.data());
         UNIT_ASSERT_VALUES_UNEQUAL(str1, str2);
         UNIT_ASSERT_VALUES_EQUAL(+str1, 7);
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
     SIMPLE_UNIT_TEST(TestConstExpr) {
         static constexpr TStringBuf str1("qwe\0rty", 7);
         static constexpr TStringBuf str2(str1.Data(), str1.size());
-        static constexpr TStringBuf str3 = STRINGBUF("qwe\0rty");
+        static constexpr TStringBuf str3 = AsStringBuf("qwe\0rty");
 
         UNIT_ASSERT_VALUES_EQUAL(str1.Size(), 7);
 
@@ -31,8 +31,8 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
     SIMPLE_UNIT_TEST(TestAfter) {
         TStringBuf str("qwerty");
 
-        UNIT_ASSERT_EQUAL(str.After('w'), STRINGBUF("erty"));
-        UNIT_ASSERT_EQUAL(str.After('x'), STRINGBUF("qwerty"));
+        UNIT_ASSERT_EQUAL(str.After('w'), AsStringBuf("erty"));
+        UNIT_ASSERT_EQUAL(str.After('x'), AsStringBuf("qwerty"));
         UNIT_ASSERT_EQUAL(str.After('y'), TStringBuf());
         UNIT_ASSERT_STRINGS_EQUAL(str.After('='), str);
     }
@@ -40,9 +40,9 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
     SIMPLE_UNIT_TEST(TestBefore) {
         TStringBuf str("qwerty");
 
-        UNIT_ASSERT_EQUAL(str.Before('w'), STRINGBUF("q"));
-        UNIT_ASSERT_EQUAL(str.Before('x'), STRINGBUF("qwerty"));
-        UNIT_ASSERT_EQUAL(str.Before('y'), STRINGBUF("qwert"));
+        UNIT_ASSERT_EQUAL(str.Before('w'), AsStringBuf("q"));
+        UNIT_ASSERT_EQUAL(str.Before('x'), AsStringBuf("qwerty"));
+        UNIT_ASSERT_EQUAL(str.Before('y'), AsStringBuf("qwert"));
         UNIT_ASSERT_EQUAL(str.Before('q'), TStringBuf());
     }
 
@@ -112,7 +112,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
     SIMPLE_UNIT_TEST(TestEmpty) {
         UNIT_ASSERT(TStringBuf().Empty());
-        UNIT_ASSERT(!STRINGBUF("q").Empty());
+        UNIT_ASSERT(!AsStringBuf("q").Empty());
     }
 
     SIMPLE_UNIT_TEST(TestShift) {
@@ -125,10 +125,10 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
         str = qw;
         UNIT_ASSERT_EQUAL(str.SubStr(1), str + 1);
-        UNIT_ASSERT_EQUAL(str + 2, STRINGBUF("erty"));
+        UNIT_ASSERT_EQUAL(str + 2, AsStringBuf("erty"));
         UNIT_ASSERT_EQUAL(str += 3, qw.SubStr(3));
         str.Chop(1);
-        UNIT_ASSERT_EQUAL(str, STRINGBUF("rt"));
+        UNIT_ASSERT_EQUAL(str, AsStringBuf("rt"));
     }
 
     SIMPLE_UNIT_TEST(TestSplit) {
@@ -137,19 +137,19 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
         rt = qw;
         lt = rt.NextTok('r');
-        UNIT_ASSERT_EQUAL(lt, STRINGBUF("qwe"));
-        UNIT_ASSERT_EQUAL(rt, STRINGBUF("ty"));
+        UNIT_ASSERT_EQUAL(lt, AsStringBuf("qwe"));
+        UNIT_ASSERT_EQUAL(rt, AsStringBuf("ty"));
 
         lt = qw;
         rt = lt.SplitOff('r');
-        UNIT_ASSERT_EQUAL(lt, STRINGBUF("qwe"));
-        UNIT_ASSERT_EQUAL(rt, STRINGBUF("ty"));
+        UNIT_ASSERT_EQUAL(lt, AsStringBuf("qwe"));
+        UNIT_ASSERT_EQUAL(rt, AsStringBuf("ty"));
 
         rt = qw;
         lt = rt.NextTok('r');
         TStringBuf ty = rt.NextTok('r'); // no 'r' in "ty"
         UNIT_ASSERT_EQUAL(rt.Size(), 0);
-        UNIT_ASSERT_EQUAL(ty, STRINGBUF("ty"));
+        UNIT_ASSERT_EQUAL(ty, AsStringBuf("ty"));
     }
 
     SIMPLE_UNIT_TEST(TestNextTok) {
@@ -163,19 +163,19 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
     SIMPLE_UNIT_TEST(TestNextStringTok) {
         TStringBuf buf1("a@@b@@c");
-        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), STRINGBUF("a"));
-        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), STRINGBUF("b"));
-        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), STRINGBUF("c"));
+        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), AsStringBuf("a"));
+        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), AsStringBuf("b"));
+        UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), AsStringBuf("c"));
         UNIT_ASSERT_EQUAL(buf1, TStringBuf());
 
         TStringBuf buf2("a@@b@@c");
-        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), STRINGBUF("c"));
-        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), STRINGBUF("b"));
-        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), STRINGBUF("a"));
+        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), AsStringBuf("c"));
+        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), AsStringBuf("b"));
+        UNIT_ASSERT_EQUAL(buf2.RNextTok("@@"), AsStringBuf("a"));
         UNIT_ASSERT_EQUAL(buf2, TStringBuf());
 
         TStringBuf buf3("a@@b@@c");
-        UNIT_ASSERT_EQUAL(buf3.RNextTok("@@@"), STRINGBUF("a@@b@@c"));
+        UNIT_ASSERT_EQUAL(buf3.RNextTok("@@@"), AsStringBuf("a@@b@@c"));
         UNIT_ASSERT_EQUAL(buf3, TStringBuf());
     }
 
@@ -191,7 +191,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
     }
 
     SIMPLE_UNIT_TEST(TestRFind) {
-        TStringBuf buf1 = STRINGBUF("123123456");
+        TStringBuf buf1 = AsStringBuf("123123456");
         UNIT_ASSERT_EQUAL(buf1.rfind('3'), 5);
         UNIT_ASSERT_EQUAL(buf1.rfind('4'), 6);
         UNIT_ASSERT_EQUAL(buf1.rfind('7'), TStringBuf::npos);
@@ -210,11 +210,11 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
     SIMPLE_UNIT_TEST(TestRNextTok) {
         TStringBuf buf1("a.b.c");
-        UNIT_ASSERT_EQUAL(buf1.RNextTok('.'), STRINGBUF("c"));
-        UNIT_ASSERT_EQUAL(buf1, STRINGBUF("a.b"));
+        UNIT_ASSERT_EQUAL(buf1.RNextTok('.'), AsStringBuf("c"));
+        UNIT_ASSERT_EQUAL(buf1, AsStringBuf("a.b"));
 
         TStringBuf buf2("a");
-        UNIT_ASSERT_EQUAL(buf2.RNextTok('.'), STRINGBUF("a"));
+        UNIT_ASSERT_EQUAL(buf2.RNextTok('.'), AsStringBuf("a"));
         UNIT_ASSERT_EQUAL(buf2, TStringBuf());
 
         TStringBuf buf3("ab cd ef"), tok;
@@ -226,12 +226,12 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
 
     SIMPLE_UNIT_TEST(TestRSplitOff) {
         TStringBuf buf1("a.b.c");
-        UNIT_ASSERT_EQUAL(buf1.RSplitOff('.'), STRINGBUF("a.b"));
-        UNIT_ASSERT_EQUAL(buf1, STRINGBUF("c"));
+        UNIT_ASSERT_EQUAL(buf1.RSplitOff('.'), AsStringBuf("a.b"));
+        UNIT_ASSERT_EQUAL(buf1, AsStringBuf("c"));
 
         TStringBuf buf2("a");
         UNIT_ASSERT_EQUAL(buf2.RSplitOff('.'), TStringBuf());
-        UNIT_ASSERT_EQUAL(buf2, STRINGBUF("a"));
+        UNIT_ASSERT_EQUAL(buf2, AsStringBuf("a"));
     }
 
     SIMPLE_UNIT_TEST(TestCBeginCEnd) {

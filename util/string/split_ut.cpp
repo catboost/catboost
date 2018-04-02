@@ -154,7 +154,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TCharDelimiter<const char> delim(' ');
 
         TVector<i32> test;
-        SplitConvertStringTo(TStringBuf(~data), STRINGBUF(" "), &test);
+        SplitConvertStringTo(TStringBuf(~data), AsStringBuf(" "), &test);
         Cmp(good, test);
 
         test.clear();
@@ -170,7 +170,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TCharDelimiter<const char> delim(' ');
 
         TSet<i32> test;
-        SplitConvertStringTo(TStringBuf(~data), STRINGBUF(" "), &test);
+        SplitConvertStringTo(TStringBuf(~data), AsStringBuf(" "), &test);
         Cmp(good, test);
     }
 

@@ -403,10 +403,10 @@ protected:
     template <bool AllowFinish>
     double ReadNanOrInf()
     {
-        static const auto nanString = STRINGBUF("nan");
-        static const auto infString = STRINGBUF("inf");
-        static const auto plusInfString = STRINGBUF("+inf");
-        static const auto minusInfString = STRINGBUF("-inf");
+        static const auto nanString = AsStringBuf("nan");
+        static const auto infString = AsStringBuf("inf");
+        static const auto plusInfString = AsStringBuf("+inf");
+        static const auto minusInfString = AsStringBuf("-inf");
 
         TStringBuf expectedString;
         double expectedValue;
@@ -545,8 +545,8 @@ protected:
     {
         Buffer_.clear();
 
-        static auto trueString = STRINGBUF("true");
-        static auto falseString = STRINGBUF("false");
+        static auto trueString = AsStringBuf("true");
+        static auto falseString = AsStringBuf("false");
 
         auto throwIncorrectBoolean = [&] () {
             ythrow TYsonException() << Sprintf("Incorrect boolean string %s",

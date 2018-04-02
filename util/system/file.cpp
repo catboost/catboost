@@ -553,9 +553,9 @@ TString DecodeOpenMode(ui32 mode0) {
     if ((mode & flag) == flag) { \
         mode &= ~flag;           \
         if (r) {                 \
-            r << STRINGBUF("|"); \
+            r << AsStringBuf("|"); \
         }                        \
-        r << STRINGBUF(#flag);   \
+        r << AsStringBuf(#flag);   \
     }
 
     F(RdWr)
@@ -590,7 +590,7 @@ TString DecodeOpenMode(ui32 mode0) {
 
     if (mode != 0) {
         if (r) {
-            r << STRINGBUF("|");
+            r << AsStringBuf("|");
         }
 
         r << Hex(mode);

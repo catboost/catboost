@@ -372,8 +372,8 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
     }
 
     SIMPLE_UNIT_TEST(TestNoexceptConstruction) {
-        UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(STRINGBUF("not a number"))), yexception);
-        UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(STRINGBUF("not a number"))), yexception);
+        UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(AsStringBuf("not a number"))), yexception);
+        UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(AsStringBuf("not a number"))), yexception);
     }
 
     SIMPLE_UNIT_TEST(TestFromValueForTDuration) {

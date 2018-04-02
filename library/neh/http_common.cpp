@@ -94,22 +94,22 @@ namespace {
     void SafeWriteHeaders(IOutputStream& out, TStringBuf hdrs) {
         TStringBuf msgHdr;
         while (hdrs.ReadLine(msgHdr)) {
-            if (!!msgHdr && !AsciiHasPrefixIgnoreCase(msgHdr, STRINGBUF("Content-Length"))) {
-                out << msgHdr << STRINGBUF("\r\n");
+            if (!!msgHdr && !AsciiHasPrefixIgnoreCase(msgHdr, AsStringBuf("Content-Length"))) {
+                out << msgHdr << AsStringBuf("\r\n");
             }
         }
     }
 
     void WriteHeaderHost(IOutputStream& out, const TStringBuf& host, const TStringBuf& port) {
-        out << STRINGBUF("Host: ") << host;
+        out << AsStringBuf("Host: ") << host;
         if (!!port) {
-            out << STRINGBUF(":") << port;
+            out << AsStringBuf(":") << port;
         }
-        out << STRINGBUF("\r\n");
+        out << AsStringBuf("\r\n");
     }
 
     void WriteHeaderHostIfNot(IOutputStream& out, const TStringBuf& host, const TStringBuf& port, const TStringBuf& headers) {
-        const auto hostPos = headers.find(STRINGBUF("Host:"));
+        const auto hostPos = headers.find(AsStringBuf("Host:"));
         if (hostPos == TString::npos || (hostPos != 0 && headers[hostPos-1] != '\n')) {
             WriteHeaderHost(out, host, port);
         }
@@ -137,16 +137,16 @@ namespace {
 
         switch (requestType) {
             case ERequestType::Post:
-                out << STRINGBUF("POST");
+                out << AsStringBuf("POST");
                 break;
             case ERequestType::Get:
-                out << STRINGBUF("GET");
+                out << AsStringBuf("GET");
                 break;
             case ERequestType::Put:
-                out << STRINGBUF("PUT");
+                out << AsStringBuf("PUT");
                 break;
             case ERequestType::Delete:
-                out << STRINGBUF("DELETE");
+                out << AsStringBuf("DELETE");
                 break;
             default:
                 Y_ASSERT(false);
@@ -154,24 +154,24 @@ namespace {
 
         out << ' ';
         if (isAbsoluteUri) {
-            out << loc.Scheme << STRINGBUF("://") << loc.Host << ':' << loc.Port;
+            out << loc.Scheme << AsStringBuf("://") << loc.Host << ':' << loc.Port;
         }
         out << '/' << loc.Service;
 
         WriteUrl(urlParams, out);
-        out << STRINGBUF(" HTTP/1.1\r\n");
+        out << AsStringBuf(" HTTP/1.1\r\n");
 
         WriteHeaderHostIfNot(out, loc.Host, loc.Port, headers);
         SafeWriteHeaders(out, headers);
         if (!IsEmpty(content)) {
-            if (!!contentType && headers.find(STRINGBUF("Content-Type:")) == TString::npos) {
-                out << STRINGBUF("Content-Type: ") << contentType << STRINGBUF("\r\n");
+            if (!!contentType && headers.find(AsStringBuf("Content-Type:")) == TString::npos) {
+                out << AsStringBuf("Content-Type: ") << contentType << AsStringBuf("\r\n");
             }
-            out << STRINGBUF("Content-Length: ") << contentLength << STRINGBUF("\r\n");
-            out << STRINGBUF("\r\n");
+            out << AsStringBuf("Content-Length: ") << contentLength << AsStringBuf("\r\n");
+            out << AsStringBuf("\r\n");
             WriteImpl(content, out);
         } else {
-            out << STRINGBUF("\r\n");
+            out << AsStringBuf("\r\n");
         }
         return out.Str();
     }

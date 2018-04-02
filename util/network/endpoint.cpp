@@ -6,7 +6,7 @@ TEndpoint::TEndpoint(const TEndpoint::TAddrRef& addr)
     const sockaddr* sa = Addr_->Addr();
 
     if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6) {
-        ythrow yexception() << STRINGBUF("endpoint can contain only ipv4 or ipv6 address");
+        ythrow yexception() << AsStringBuf("endpoint can contain only ipv4 or ipv6 address");
     }
 }
 

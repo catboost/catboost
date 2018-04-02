@@ -58,7 +58,7 @@ namespace NBlockCodecs {
         }
 
         TStringBuf Name() const noexcept override {
-            return STRINGBUF("null");
+            return AsStringBuf("null");
         }
     };
 
@@ -85,7 +85,7 @@ namespace NBlockCodecs {
 
             WriteUnaligned(ptr, (ui64) + in);
 
-            return Base()->DoCompress(!in ? TData(STRINGBUF("")) : in, ptr + 1) + sizeof(*ptr);
+            return Base()->DoCompress(!in ? TData(AsStringBuf("")) : in, ptr + 1) + sizeof(*ptr);
         }
 
         size_t Decompress(const TData& in, void* out) const override {

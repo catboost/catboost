@@ -19,29 +19,29 @@ namespace {
 
 static const TExample CommonTestData[] = {
     // Should be valid UTF-8.
-    {STRINGBUF("http://ya.ru/"), STRINGBUF("http://ya.ru/")},
-    {STRINGBUF("http://ya.ru/\\x17\\n"), STRINGBUF("http://ya.ru/\x17\n")},
+    {AsStringBuf("http://ya.ru/"), AsStringBuf("http://ya.ru/")},
+    {AsStringBuf("http://ya.ru/\\x17\\n"), AsStringBuf("http://ya.ru/\x17\n")},
 
-    {STRINGBUF("http://ya.ru/\\0"), STRINGBUF("http://ya.ru/\0")},
-    {STRINGBUF("http://ya.ru/\\0\\0"), STRINGBUF("http://ya.ru/\0\0")},
-    {STRINGBUF("http://ya.ru/\\0\\0000"), STRINGBUF("http://ya.ru/\0\0"
+    {AsStringBuf("http://ya.ru/\\0"), AsStringBuf("http://ya.ru/\0")},
+    {AsStringBuf("http://ya.ru/\\0\\0"), AsStringBuf("http://ya.ru/\0\0")},
+    {AsStringBuf("http://ya.ru/\\0\\0000"), AsStringBuf("http://ya.ru/\0\0"
                                                     "0")},
-    {STRINGBUF("http://ya.ru/\\0\\0001"), STRINGBUF("http://ya.ru/\0\x00"
+    {AsStringBuf("http://ya.ru/\\0\\0001"), AsStringBuf("http://ya.ru/\0\x00"
                                                     "1")},
 
-    {STRINGBUF("\\2\\4\\00678"), STRINGBUF("\2\4\6"
+    {AsStringBuf("\\2\\4\\00678"), AsStringBuf("\2\4\6"
                                            "78")}, // \6 -> \006 because next char '7' is "octal"
-    {STRINGBUF("\\2\\4\\689"),
-     STRINGBUF("\2\4\6"
+    {AsStringBuf("\\2\\4\\689"),
+     AsStringBuf("\2\4\6"
                "89")}, // \6 -> \6 because next char '8' is not "octal"
 
-    {STRINGBUF("\\\"Hello\\\", Alice said."), STRINGBUF("\"Hello\", Alice said.")},
-    {STRINGBUF("Slash\\\\dash!"), STRINGBUF("Slash\\dash!")},
-    {STRINGBUF("There\\nare\\r\\nnewlines."), STRINGBUF("There\nare\r\nnewlines.")},
-    {STRINGBUF("There\\tare\\ttabs."), STRINGBUF("There\tare\ttabs.")},
+    {AsStringBuf("\\\"Hello\\\", Alice said."), AsStringBuf("\"Hello\", Alice said.")},
+    {AsStringBuf("Slash\\\\dash!"), AsStringBuf("Slash\\dash!")},
+    {AsStringBuf("There\\nare\\r\\nnewlines."), AsStringBuf("There\nare\r\nnewlines.")},
+    {AsStringBuf("There\\tare\\ttabs."), AsStringBuf("There\tare\ttabs.")},
 
-    {STRINGBUF("There are questions \\x3F\\x3F?"), STRINGBUF("There are questions ???")},
-    {STRINGBUF("There are questions \\x3F?"), STRINGBUF("There are questions ??")},
+    {AsStringBuf("There are questions \\x3F\\x3F?"), AsStringBuf("There are questions ???")},
+    {AsStringBuf("There are questions \\x3F?"), AsStringBuf("There are questions ??")},
 };
 
 SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {

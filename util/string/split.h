@@ -501,7 +501,7 @@ inline size_t Split(const TStringBuf s, const TSetDelimiter<const char>& delim, 
 template <class P, class D>
 void GetNext(TStringBuf& s, D delim, P& param) {
     TStringBuf next = s.NextTok(delim);
-    Y_ENSURE(next.IsInited(), STRINGBUF("Split: number of fields less than number of Split output arguments"));
+    Y_ENSURE(next.IsInited(), AsStringBuf("Split: number of fields less than number of Split output arguments"));
     param = FromString<P>(next);
 }
 
@@ -516,12 +516,12 @@ void GetNext(TStringBuf& s, D delim, TMaybe<P>& param) {
 }
 
 // example:
-// Split(STRINGBUF("Sherlock,2014,36.6"), ',', name, year, temperature);
+// Split(AsStringBuf("Sherlock,2014,36.6"), ',', name, year, temperature);
 template <class D, class P1, class P2>
 void Split(TStringBuf s, D delim, P1& p1, P2& p2) {
     GetNext(s, delim, p1);
     GetNext(s, delim, p2);
-    Y_ENSURE(!s.IsInited(), STRINGBUF("Split: number of fields more than number of Split output arguments"));
+    Y_ENSURE(!s.IsInited(), AsStringBuf("Split: number of fields more than number of Split output arguments"));
 }
 
 template <class D, class P1, class P2, class... Other>

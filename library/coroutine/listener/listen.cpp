@@ -239,7 +239,7 @@ public:
                 L_.PushBack(new TOneSocketListener(this, new TIPv6Addr(*sa.In6)));
                 break;
             default:
-                ythrow yexception() << STRINGBUF("unknown protocol");
+                ythrow yexception() << AsStringBuf("unknown protocol");
         }
     }
 
@@ -278,7 +278,7 @@ TContListener::~TContListener() {
 
 #define CHECK_IMPL                                       \
     while (!Impl_) {                                     \
-        ythrow yexception() << STRINGBUF("not running"); \
+        ythrow yexception() << AsStringBuf("not running"); \
     }
 
 void TContListener::Listen(const IRemoteAddr& addr) {

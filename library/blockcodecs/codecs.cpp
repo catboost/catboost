@@ -77,7 +77,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return STRINGBUF("fast");
+            return AsStringBuf("fast");
         }
     };
 
@@ -90,7 +90,7 @@ namespace {
         }
 
         static inline TStringBuf DPrefix() {
-            return STRINGBUF("safe");
+            return AsStringBuf("safe");
         }
     };
 
@@ -143,7 +143,7 @@ namespace {
             const int ret = fastlz_decompress(~in, +in, out, len);
 
             if (ret < 0 || (size_t)ret != len) {
-                ythrow TDataError() << STRINGBUF("can not decompress");
+                ythrow TDataError() << AsStringBuf("can not decompress");
             }
         }
 
@@ -267,7 +267,7 @@ namespace {
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
             if (+in <= LZMA_PROPS_SIZE) {
-                ythrow TDataError() << STRINGBUF("broken lzma stream");
+                ythrow TDataError() << AsStringBuf("broken lzma stream");
             }
 
             const unsigned char* props = (const unsigned char*)~in;
@@ -337,13 +337,13 @@ namespace {
     struct TZStd08Codec: public TAddLengthCodec<TZStd08Codec> {
         inline TZStd08Codec(unsigned level)
             : Level(level)
-            , MyName(STRINGBUF("zstd08_") + ToString(Level))
+            , MyName(AsStringBuf("zstd08_") + ToString(Level))
         {
         }
 
         static inline size_t CheckError(size_t ret, const char* what) {
             if (ZSTD_isError(ret)) {
-                ythrow yexception() << what << STRINGBUF(" zstd error: ") << ZSTD_getErrorName(ret);
+                ythrow yexception() << what << AsStringBuf(" zstd error: ") << ZSTD_getErrorName(ret);
             }
 
             return ret;
@@ -492,7 +492,7 @@ TCodecList NBlockCodecs::ListAllCodecs() {
 }
 
 TString NBlockCodecs::ListAllCodecsAsString() {
-    return JoinSeq(STRINGBUF(","), ListAllCodecs());
+    return JoinSeq(AsStringBuf(","), ListAllCodecs());
 }
 
 void ICodec::Encode(const TData& in, TBuffer& out) const {

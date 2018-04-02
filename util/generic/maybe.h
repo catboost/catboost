@@ -10,7 +10,7 @@
 namespace NMaybe {
     struct TPolicyUndefinedExcept {
         static void OnEmpty() {
-            ythrow yexception() << STRINGBUF("TMaybe is empty");
+            ythrow yexception() << AsStringBuf("TMaybe is empty");
         }
     };
 
@@ -666,7 +666,7 @@ static inline IOutputStream& operator<<(IOutputStream& out, const TMaybe<T, TPol
     if (maybe.Defined()) {
         out << *maybe;
     } else {
-        out << STRINGBUF("(empty maybe)");
+        out << AsStringBuf("(empty maybe)");
     }
     return out;
 }

@@ -38,20 +38,20 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
 SIMPLE_UNIT_TEST(EventArgs_Arg) {
     using TArg = TEventArgs::TArg;
 
-    TestSaveLoad(TArg(STRINGBUF("TestI64Arg"), i64(0xdeadbeef)));
-    TestSaveLoad(TArg(STRINGBUF("TestDoubleArg"), double(3.1415)));
-    TestSaveLoad(TArg(STRINGBUF("TestStringArg"), STRINGBUF("Hello World!")));
+    TestSaveLoad(TArg(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
+    TestSaveLoad(TArg(AsStringBuf("TestDoubleArg"), double(3.1415)));
+    TestSaveLoad(TArg(AsStringBuf("TestStringArg"), AsStringBuf("Hello World!")));
 }
 
 SIMPLE_UNIT_TEST(EventArgs) {
     TestSaveLoad(TEventArgs());
     TestSaveLoad(TEventArgs()
-        .Add(STRINGBUF("TestI64Arg"), i64(0xdeadbeef))
+        .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
     );
     TestSaveLoad(TEventArgs()
-        .Add(STRINGBUF("TestI64Arg"), i64(0xdeadbeef))
-        .Add(STRINGBUF("TestDoubleArg"), double(3.1415))
-        .Add(STRINGBUF("TestI64Arg"), STRINGBUF("Hello World!"))
+        .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
+        .Add(AsStringBuf("TestDoubleArg"), double(3.1415))
+        .Add(AsStringBuf("TestI64Arg"), AsStringBuf("Hello World!"))
     );
 }
 

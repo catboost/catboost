@@ -254,7 +254,7 @@ void THttpParser::OnEof() {
     if (Parser_ == &THttpParser::ContentParser && !HasContentLength_ && !ChunkInputState_) {
         return; //end of content determined by end of input
     }
-    throw THttpException() << STRINGBUF("incompleted http response");
+    throw THttpException() << AsStringBuf("incompleted http response");
 }
 
 bool THttpParser::DecodeContent() {
@@ -275,17 +275,17 @@ bool THttpParser::DecodeContent() {
 }
 
 void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val) {
-    if (name == STRINGBUF("connection")) {
-        KeepAlive_ = val == STRINGBUF("keep-alive");
-    } else if (name == STRINGBUF("content-length")) {
+    if (name == AsStringBuf("connection")) {
+        KeepAlive_ = val == AsStringBuf("keep-alive");
+    } else if (name == AsStringBuf("content-length")) {
         Y_ENSURE(+val, "NEH: Content-Length cannot be empty string. ");
         ContentLength_ = FromString<ui64>(val);
         HasContentLength_ = true;
-    } else if (name == STRINGBUF("transfer-encoding")) {
-        if (val == STRINGBUF("chunked")) {
+    } else if (name == AsStringBuf("transfer-encoding")) {
+        if (val == AsStringBuf("chunked")) {
             ChunkInputState_ = new TChunkInputState();
         }
-    } else if (name == STRINGBUF("accept-encoding")) {
+    } else if (name == AsStringBuf("accept-encoding")) {
         TStringBuf encodings(val);
         while (+encodings) {
             TStringBuf enc = encodings.NextTok(',').After(' ').Before(' ');
@@ -296,7 +296,7 @@ void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val)
             s.to_lower();
             AcceptEncodings_.insert(s);
         }
-    } else if (name == STRINGBUF("content-encoding")) {
+    } else if (name == AsStringBuf("content-encoding")) {
         TString s(val);
         s.to_lower();
         ContentEncoding_ = s;

@@ -224,7 +224,7 @@ public:
         Y_ENSURE(TextOutput, "Stream must be open. ");
         TString tmpString;
         google::protobuf::TextFormat::PrintToString(record, &tmpString);
-        *TextOutput << tmpString << STRINGBUF("\n"); // Extra Endline is the record separator, don't use Endl to avoid flushing.
+        *TextOutput << tmpString << AsStringBuf("\n"); // Extra Endline is the record separator, don't use Endl to avoid flushing.
     }
 
     void Finish() override {

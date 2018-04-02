@@ -34,7 +34,7 @@ TPooledSocket TSocketPool::AllocateMore(TConnectData* conn) {
         TSocketHolder s(cont->Socket(Addr_->Addr()->sa_family, SOCK_STREAM, 0));
 
         if (s == INVALID_SOCKET) {
-            ythrow TSystemError(errno) << STRINGBUF("can not create socket");
+            ythrow TSystemError(errno) << AsStringBuf("can not create socket");
         }
 
         SetCommonSockOpts(s, Addr_->Addr());
@@ -45,7 +45,7 @@ TPooledSocket TSocketPool::AllocateMore(TConnectData* conn) {
         if (ret == EINTR) {
             continue;
         } else if (ret) {
-            ythrow TSystemError(ret) << STRINGBUF("can not connect(") << cont->Name() << ')';
+            ythrow TSystemError(ret) << AsStringBuf("can not connect(") << cont->Name() << ')';
         }
 
         THolder<TPooledSocket::TImpl> res(new TPooledSocket::TImpl(s, this));

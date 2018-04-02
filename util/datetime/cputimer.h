@@ -12,7 +12,7 @@ private:
     TStringStream Message_;
 
 public:
-    TTimer(const TStringBuf message = STRINGBUF(" took: "));
+    TTimer(const TStringBuf message = AsStringBuf(" took: "));
     ~TTimer();
 };
 

@@ -79,11 +79,11 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         TStringBuf data = "aaaaaaaaaaaaaaaaaaaaaaa";
 
         for (auto codec : SupportedCodings()) {
-            if (codec == STRINGBUF("z-zlib-0")) {
+            if (codec == AsStringBuf("z-zlib-0")) {
                 continue;
             }
 
-            if (codec == STRINGBUF("z-null")) {
+            if (codec == AsStringBuf("z-null")) {
                 continue;
             }
 
@@ -626,7 +626,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
             }
 
         private:
-            TString Data_{STRINGBUF("HEAD / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n")};
+            TString Data_{AsStringBuf("HEAD / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n")};
             size_t Pos_{0};
             bool Eof_{false};
         };
@@ -654,6 +654,6 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         out << "";
         out.Finish();
         TString result = outBuf.Str();
-        UNIT_ASSERT(!result.Contains(STRINGBUF("0\r\n")))
+        UNIT_ASSERT(!result.Contains(AsStringBuf("0\r\n")))
     }
 } // THttpTest suite

@@ -36,8 +36,8 @@ namespace NChromiumTrace {
 
                     tracer.AddCounterNow(
                         Queue->Name,
-                        STRINGBUF("sample"),
-                        TEventArgs().Add(STRINGBUF("Size"), (i64) Queue->Size()));
+                        AsStringBuf("sample"),
+                        TEventArgs().Add(AsStringBuf("Size"), (i64) Queue->Size()));
                 }
             }
         };

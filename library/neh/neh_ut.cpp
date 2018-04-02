@@ -27,9 +27,9 @@ namespace {
 
 SIMPLE_UNIT_TEST_SUITE(Neh) {
     static const TString HTTPS_PARAMS = TStringBuilder()
-        << "cert=" << ArcadiaSourceRoot() << STRINGBUF("/library/neh/ut/server.pem")
+        << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
         << ';'
-        << "key=" << ArcadiaSourceRoot() << STRINGBUF("/library/neh/ut/server.pem")
+        << "key=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
         << '@';
 
     class TServer {
@@ -41,7 +41,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         }
 
         void ServeRequest(const IRequestRef& req) {
-            if (req->Data() == STRINGBUF("test_cancel")) {
+            if (req->Data() == AsStringBuf("test_cancel")) {
                 ReceiveTestCancel = true;
                 for (size_t i = 0; i < 100; ++i) {
                     if (req->Canceled()) {
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
                     }
                     Sleep(TDuration::MilliSeconds(10));
                 }
-            } else if (req->Data() == STRINGBUF("test_error_InternalError")) {
+            } else if (req->Data() == AsStringBuf("test_error_InternalError")) {
                 req->SendError(IRequest::InternalError, INTERNAL_ERROR_DETAILS);
             }
             TData res(~R_, ~R_ + +R_);
@@ -105,7 +105,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
                 ui16 port = basePort;
                 for (size_t i = 0; i < +protocols; ++i) {
                     TServiceInfo si(protocols[i].first);
-                    si.Addr << si.Protocol << STRINGBUF("://") << protocols[i].second << ("localhost:") << port++ << STRINGBUF("/test");
+                    si.Addr << si.Protocol << AsStringBuf("://") << protocols[i].second << ("localhost:") << port++ << AsStringBuf("/test");
                     svsInfo.push_back(si);
                     svs->Add(si.Addr.Str(), srv);
                 }
@@ -146,10 +146,10 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         //check receiving error
         for (size_t i = 0; i < +svsInfo; ++i) {
             const TString& protocol = svsInfo[i].Protocol;
-            if (protocol != STRINGBUF("udp") //udp can't detect request with unsupported service name (url-path)
-                && protocol != STRINGBUF("netliba") //some for netliba, tcp and inproc
-                && protocol != STRINGBUF("tcp")
-                && protocol != STRINGBUF("inproc"))
+            if (protocol != AsStringBuf("udp") //udp can't detect request with unsupported service name (url-path)
+                && protocol != AsStringBuf("netliba") //some for netliba, tcp and inproc
+                && protocol != AsStringBuf("tcp")
+                && protocol != AsStringBuf("inproc"))
             {
                 TString badAddr = svsInfo[i].Addr.Str() + "_unexisted_service";
                 TResponseRef res = Request(TMessage(badAddr, request))->Wait(TDuration::Seconds(3));
@@ -158,9 +158,9 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
                 UNIT_ASSERT_VALUES_EQUAL(res->Request.Addr, badAddr);
             }
             /*
-            if (svsInfo[i].Protocol != STRINGBUF("udp") //udp can't detect request to unbinded port
-                    && svsInfo[i].Protocol != STRINGBUF("tcp") //some for tcp & inproc
-                    && svsInfo[i].Protocol != STRINGBUF("inproc"))
+            if (svsInfo[i].Protocol != AsStringBuf("udp") //udp can't detect request to unbinded port
+                    && svsInfo[i].Protocol != AsStringBuf("tcp") //some for tcp & inproc
+                    && svsInfo[i].Protocol != AsStringBuf("inproc"))
             {
                 TString badAddr = svsInfo[i].Protocol + "://localhost:4/test";
                 TResponseRef res = Request(TMessage(badAddr, request))->Wait(TDuration::Seconds(3));
@@ -222,8 +222,8 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         //check canceling request
         for (size_t i = 0; i < +svsInfo; ++i) {
             const TString& protocol = svsInfo[i].Protocol;
-            if (protocol != STRINGBUF("udp") //udp & tcp not support canceling request
-                && protocol != STRINGBUF("tcp"))
+            if (protocol != AsStringBuf("udp") //udp & tcp not support canceling request
+                && protocol != AsStringBuf("tcp"))
             {
                 TInstant begin = TInstant::Now();
                 THandleRef h = Request(TMessage(svsInfo[i].Addr.Str(), "test_cancel"));

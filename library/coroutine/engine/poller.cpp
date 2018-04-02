@@ -323,29 +323,29 @@ TAutoPtr<IPollerFace> IPollerFace::Default() {
 }
 
 TAutoPtr<IPollerFace> IPollerFace::Construct(const TStringBuf& name) {
-    if (!name || name == STRINGBUF("default")) {
+    if (!name || name == AsStringBuf("default")) {
         return new TVirtualize<TCombinedPoller>();
     }
 
 #if defined(HAVE_KQUEUE_POLLER)
-    if (name == STRINGBUF("kqueue")) {
+    if (name == AsStringBuf("kqueue")) {
         return new TVirtualize<TPoller<TGenericPoller<TKqueuePoller<TWithoutLocking>>>>();
     }
 #endif
 
 #if defined(HAVE_EPOLL_POLLER)
-    if (name == STRINGBUF("epoll")) {
+    if (name == AsStringBuf("epoll")) {
         return new TVirtualize<TPoller<TGenericPoller<TEpollPoller<TWithoutLocking>>>>();
     }
 #endif
 
 #if defined(HAVE_SELECT_POLLER)
-    if (name == STRINGBUF("select")) {
+    if (name == AsStringBuf("select")) {
         return new TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>();
     }
 #endif
 
-    if (name == STRINGBUF("poll")) {
+    if (name == AsStringBuf("poll")) {
         return new TVirtualize<TPollPoller>();
     }
 

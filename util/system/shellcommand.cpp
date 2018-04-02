@@ -412,7 +412,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     TString cmd = UseShell ? "cmd /A /Q /S /C \"" + qcmd + "\"" : qcmd;
     // winapi can modify command text, copy it
 
-    Y_ENSURE(+cmd < MAX_COMMAND_LINE, STRINGBUF("Command is too long"));
+    Y_ENSURE(+cmd < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
     TTempArray<wchar_t> cmdcopy(MAX_COMMAND_LINE);
     Copy(~cmd, ~cmd + +cmd, cmdcopy.Data());
     *(cmdcopy.Data() + +cmd) = 0;
@@ -589,7 +589,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
 #endif
 
 void TShellCommand::TImpl::Run() {
-    Y_ENSURE(ExecutionStatus != SHELL_RUNNING, STRINGBUF("Process is already running"));
+    Y_ENSURE(ExecutionStatus != SHELL_RUNNING, AsStringBuf("Process is already running"));
     // Prepare I/O streams
     CollectedOutput.clear();
     CollectedError.clear();

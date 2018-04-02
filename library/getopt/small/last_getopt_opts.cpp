@@ -18,7 +18,7 @@ namespace NLastGetopt
 {
 
 static const TString DefaultHelp = "No help, sorry";
-static const TStringBuf SPad = STRINGBUF("  ");
+static const TStringBuf SPad = AsStringBuf("  ");
 
 
 

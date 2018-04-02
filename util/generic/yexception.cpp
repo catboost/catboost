@@ -13,7 +13,7 @@
 
 template <class E>
 static inline TString FormatExc(const E& e) {
-    return TString::Join(STRINGBUF("("), TypeName(&e), STRINGBUF(") "), e.what());
+    return TString::Join(AsStringBuf("("), TypeName(&e), AsStringBuf(") "), e.what());
 }
 
 TString CurrentExceptionMessage() {
@@ -25,7 +25,7 @@ TString CurrentExceptionMessage() {
             const TBackTrace* bt = e.BackTrace();
 
             if (bt) {
-                return TString::Join(bt->PrintToString(), STRINGBUF("\n"), FormatExc(e));
+                return TString::Join(bt->PrintToString(), AsStringBuf("\n"), FormatExc(e));
             }
 
             return FormatExc(e);
@@ -59,9 +59,9 @@ void ThrowRangeError(const char* descr) {
 void TSystemError::Init() {
     yexception& exc = *this;
 
-    exc << STRINGBUF("(");
+    exc << AsStringBuf("(");
     exc << TStringBuf(LastSystemErrorText(Status()));
-    exc << STRINGBUF(") ");
+    exc << AsStringBuf(") ");
 }
 
 static inline const char* ZeroTerminate(TTempBuf& buf) {
