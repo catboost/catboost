@@ -209,10 +209,11 @@ def onpy3_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
-    unit.onuse_python3([])
+    if '/contrib/tools/python3/src/Lib' not in unit.path():
+        unit.onuse_python3([])
 
-    if '/library/python/runtime_py3' not in unit.path():
-        unit.onpeerdir(['library/python/runtime_py3'])
+        if '/library/python/runtime_py3' not in unit.path():
+            unit.onpeerdir(['library/python/runtime_py3'])
 
     if unit.get('MODULE_TYPE') == 'PROGRAM':
         py3_program(unit)
@@ -284,10 +285,11 @@ def onpy3_srcs(unit, *args):
 
         for path, mod in pys:
             root_rel_path = rootrel_arc_src(path, unit)
+            unit.onpy3_compile_bytecode([root_rel_path + '-', path])
             dest = 'py/' + mod.replace('.', '/') + '.py'
             res += [
-                'DEST', dest, path
-                # TODO Compile and add .pyc
+                'DEST', dest, path,
+                'DEST', dest + '.yapyc', path + '.yapyc'
             ]
 
         unit.onresource_files(res)

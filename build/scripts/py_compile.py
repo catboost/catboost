@@ -3,6 +3,7 @@
 
 from __future__ import print_function, absolute_import, division
 
+import io
 import marshal
 import sys
 
@@ -11,7 +12,7 @@ def main():
     srcpathx, in_fname, out_fname = sys.argv[1:]
     srcpath = srcpathx[:-1]
 
-    with open(in_fname, 'r') as in_file:
+    with io.open(in_fname, 'r', encoding='utf-8') as in_file:
         source = in_file.read()
 
     code = compile(source, srcpath, 'exec', dont_inherit=True)
