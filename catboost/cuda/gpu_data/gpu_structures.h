@@ -29,12 +29,31 @@ struct TCFeature {
     //    global index (not feature-id, index in grid only)
     //    ui32 Index;
     bool OneHotFeature = false;
+
+    TCFeature() = default;
+
+    TCFeature(ui64 offset, ui32 mask, ui32 shift, ui32 firstFoldIndex, ui32 folds, bool oneHotFeature)
+        : Offset(offset)
+        , Mask(mask)
+        , Shift(shift)
+        , FirstFoldIndex(firstFoldIndex)
+        , Folds(folds)
+        , OneHotFeature(oneHotFeature)
+    {}
 };
 
 struct TBestSplitProperties {
     ui32 FeatureId = 0;
     ui32 BinId = 0;
     float Score = 0;
+
+    TBestSplitProperties() = default;
+
+    TBestSplitProperties(ui32 featureId, ui32 binId, float score)
+        : FeatureId(featureId)
+        , BinId(binId)
+        , Score(score)
+    {}
 
     bool operator<(const TBestSplitProperties& other) {
         if (Score < other.Score) {

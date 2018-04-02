@@ -17,6 +17,10 @@
 namespace NCatboostCuda {
     //just meta for printing/debugging
     struct TDataSetDescription {
+        TDataSetDescription() = default;
+        TDataSetDescription(const TString& name)
+            : Name(name)
+        {}
         TString Name = "";
     };
 
