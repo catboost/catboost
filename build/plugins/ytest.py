@@ -61,7 +61,7 @@ def validate_test(kw, is_fuzz_test):
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools") and not project_path.startswith("robot/gemini/pygemini/test"):
+        if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools"):
             errors.append("FLEUR test is not allowed here")
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
