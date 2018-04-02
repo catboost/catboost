@@ -501,4 +501,3 @@ constexpr inline TStringBufImpl<TChar> AsStringBuf(const TChar (&str)[size]) {
     return TStringBufImpl<TChar>(str, size - 1);
 }
 
-#define STRINGBUF(x) ::AsStringBuf<char>(x)
