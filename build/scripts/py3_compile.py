@@ -8,10 +8,12 @@ import sys
 
 
 def main():
+    raise Exception(locale.getpreferredencoding(False))
+
     srcpathx, in_fname, out_fname = sys.argv[1:]
     srcpath = srcpathx[:-1]
 
-    with open(in_fname, 'r') as in_file:
+    with open(in_fname, 'r', encoding='utf-8') as in_file:
         source = in_file.read()
 
     code = compile(source, srcpath, 'exec', dont_inherit=True)
