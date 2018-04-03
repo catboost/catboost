@@ -936,7 +936,7 @@ cdef class _CatBoost:
         stagedPredictIterator.set_model(self.__model)
         return stagedPredictIterator
 
-    cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, str result_dir, str tmp_dir):
+    cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
         result_dir = to_binary_str(result_dir)
         tmp_dir = to_binary_str(tmp_dir)
         thread_count = UpdateThreadCount(thread_count);
