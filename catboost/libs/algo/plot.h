@@ -14,55 +14,73 @@
 
 class TMetricsPlotCalcer {
 public:
-    TMetricsPlotCalcer(const TFullModel& model,
-                       NPar::TLocalExecutor& executor,
-                       const TString& tmpDir)
+    TMetricsPlotCalcer(
+        const TFullModel& model,
+        const TVector<THolder<IMetric>>& metrics,
+        NPar::TLocalExecutor& executor,
+        const TString& tmpDir,
+        ui32 first,
+        ui32 last,
+        ui32 step,
+        ui32 processIterationStep = -1
+    )
         : Model(model)
         , Executor(executor)
-        , First(0)
-        , Last(Model.ObliviousTrees.TreeSizes.size())
-        , Step(1)
+        , First(first)
+        , Last(last)
+        , Step(step)
         , TmpDir(tmpDir)
+        , ProcessedIterationsCount(0)
+        , ProcessedIterationsStep(processIterationStep)
     {
-    }
-
-    TMetricsPlotCalcer& SetCustomStep(ui32 step) {
-        Step = step;
         EnsureCorrectParams();
-        return *this;
-    }
-
-    TMetricsPlotCalcer& SetFirstIteration(ui32 first) {
-        First = first;
-        EnsureCorrectParams();
-        return *this;
-    }
-
-    TMetricsPlotCalcer& SetLastIteration(ui32 last) {
-        Last = last;
-        EnsureCorrectParams();
-        return *this;
-    }
-
-    TMetricsPlotCalcer& AddMetric(const IMetric& metric) {
-        Metrics.push_back(&metric);
-        return *this;
+        for (ui32 iteration = First; iteration < Last; iteration += Step) {
+            Iterations.push_back(iteration);
+        }
+        if (Iterations.back() != Last - 1) {
+            Iterations.push_back(Last - 1);
+        }
+        for (int metricIndex = 0; metricIndex < metrics.ysize(); ++metricIndex) {
+            const auto& metric = metrics[metricIndex];
+            if (metric->IsAdditiveMetric()) {
+                AdditiveMetrics.push_back(metric.Get());
+                AdditiveMetricsIndices.push_back(metricIndex);
+            } else {
+                NonAdditiveMetrics.push_back(metric.Get());
+                NonAdditiveMetricsIndices.push_back(metricIndex);
+                CB_ENSURE(metric->GetErrorType() == EErrorType::PerObjectError,
+                    "Error: we don't support non-additive querywise and pairwise metrics currenty");
+            }
+        }
+        AdditiveMetricPlots.resize(AdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
+        NonAdditiveMetricPlots.resize(NonAdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
     }
 
     void SetDeleteTmpDirOnExit(bool flag) {
         DeleteTmpDirOnExitFlag = flag;
     }
 
-    TMetricsPlotCalcer& ProceedDataSet(const TPool& rawPool, bool isProcessBoundaryGroups);
+    bool HasAdditiveMetric() const {
+        return !AdditiveMetrics.empty();
+    }
+
+    bool HasNonAdditiveMetric() const {
+        return !NonAdditiveMetrics.empty();
+    }
+
+    bool AreAllIterationsProcessed() const {
+        return ProcessedIterationsCount == Iterations.size();
+    }
+
+    TMetricsPlotCalcer& ProceedDataSetForAdditiveMetrics(const TPool& pool, bool isProcessBoundaryGroups);
+    TMetricsPlotCalcer& FinishProceedDataSetForAdditiveMetrics();
+    TMetricsPlotCalcer& ProceedDataSetForNonAdditiveMetrics(const TPool& pool);
+    TMetricsPlotCalcer& FinishProceedDataSetForNonAdditiveMetrics();
+
     TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveOnlyLogFiles);
     TVector<TVector<double>> GetMetricsScore();
 
     void ClearTempFiles() {
-        for (const auto& tmpFile : NonAdditiveMetricsData.ApproxFiles) {
-            if (!tmpFile.Empty()) {
-                NFs::Remove(tmpFile);
-            }
-        }
         if (DeleteTmpDirOnExitFlag) {
             NFs::RemoveRecursive(TmpDir);
         }
@@ -70,15 +88,23 @@ public:
 
 private:
 
+    TMetricsPlotCalcer& ProceedDataSet(
+        const TPool& rawPool,
+        ui32 beginIterationIndex,
+        ui32 endIterationIndex,
+        bool isProcessBoundaryGroups,
+        bool isAdditive
+    );
+
     template <class TOutput>
     void WritePartialStats(TOutput* output, const char sep) const
     {
         for (ui32 i = 0; i < Iterations.size(); ++i) {
             (*output) << Iterations[i] << sep;
 
-            for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
-                WriteMetricStats(MetricPlots[metricId][i], output);
-                if ((metricId + 1) != Metrics.size()) {
+            for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
+                WriteMetricStats(AdditiveMetricPlots[metricId][i], output);
+                if ((metricId + 1) != AdditiveMetrics.size()) {
                     (*output) << sep;
                 } else {
                     (*output) << "\n";
@@ -94,9 +120,9 @@ private:
         // TODO(annaveronika): create logger that outputs partial stats.
         // TODO(annaveronika): loss before first iteration should have iteration index -1.
         (*output) << "iter" << sep;
-        for (ui32 metricId = 0; metricId < Metrics.size(); ++metricId) {
-            WriteMetricColumns(*Metrics[metricId], output);
-            if ((metricId + 1) != Metrics.size()) {
+        for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
+            WriteMetricColumns(*AdditiveMetrics[metricId], output);
+            if ((metricId + 1) != AdditiveMetrics.size()) {
                 (*output) << sep;
             } else {
                 (*output) << "\n";
@@ -104,20 +130,15 @@ private:
         }
     }
 
-    void ComputeNonAdditiveMetrics();
+    void ComputeNonAdditiveMetrics(ui32 begin, ui32 end);
 
-    void ProceedMetrics(const TVector<TVector<double>>& cursor,
-                        const TVector<float>& target,
-                        const TVector<float>& weights,
-                        const TVector<TQueryInfo>& queriesInfo,
-                        ui32 plotLineIndex,
-                        ui32 modelIterationIndex);
-
-    TMetricHolder ComputeMetric(const IMetric& metric,
-                               const TVector<float>& target,
-                               const TVector<float>& weights,
-                               const TVector<TQueryInfo>& queriesInfo,
-                               const TVector<TVector<double>>& approx);
+    void ComputeAdditiveMetric(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weights,
+        const TVector<TQueryInfo>& queriesInfo,
+        ui32 plotLineIndex
+    );
 
     void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst);
 
@@ -155,16 +176,7 @@ private:
     void SaveApproxToFile(ui32 plotLineIndex, const TVector<TVector<double>>& approx);
 
     TVector<TVector<double>> LoadApprox(ui32 plotLineIndex);
-
-    bool HasNonAdditiveMetric() const {
-        for (const auto& metric : Metrics)
-        {
-            if (!metric->IsAdditiveMetric()) {
-                return true;
-            }
-        }
-        return false;
-    }
+    void DeleteApprox(ui32 plotLineIndex);
 
 private:
     const TFullModel& Model;
@@ -176,9 +188,17 @@ private:
     TString TmpDir;
     bool DeleteTmpDirOnExitFlag = false;
 
-    TVector<const IMetric*> Metrics;
-    TVector<TVector<TMetricHolder>> MetricPlots;
+    TVector<const IMetric*> AdditiveMetrics;
+    TVector<const IMetric*> NonAdditiveMetrics;
+    TVector<TVector<TMetricHolder>> AdditiveMetricPlots;
+    TVector<TVector<TMetricHolder>> NonAdditiveMetricPlots;
+    TVector<ui32> AdditiveMetricsIndices;
+    TVector<ui32> NonAdditiveMetricsIndices;
     TVector<ui32> Iterations;
+
+    ui32 ProcessedIterationsCount;
+    ui32 ProcessedIterationsStep;
+    THolder<IInputStream> LastApproxes;
 
     TNonAdditiveMetricData NonAdditiveMetricsData;
 
@@ -190,6 +210,7 @@ TMetricsPlotCalcer CreateMetricCalcer(
     int begin,
     int end,
     int evalPeriod,
+    int processedIterationsStep,
     NPar::TLocalExecutor& executor,
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics

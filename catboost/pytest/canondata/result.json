@@ -703,6 +703,12 @@
             "uri": "file://test.test_empty_eval_Plain_/test.eval"
         }
     ],
+    "test.test_eval_non_additive_metric": [
+        {
+            "checksum": "42aceabb74d006966da5908f8c0512aa",
+            "uri": "file://test.test_eval_non_additive_metric/test.eval"
+        }
+    ],
     "test.test_eval_period": {
         "checksum": "fefec6012ddd5d621be9823f94b68d3d",
         "uri": "file://test.test_eval_period/predict_test.eval"

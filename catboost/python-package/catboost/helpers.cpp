@@ -53,11 +53,22 @@ TVector<TVector<double>> EvalMetrics(
         begin,
         end,
         evalPeriod,
+        /*processedIterationsStep=*/50,
         executor,
         tmpDir,
         metrics
     );
-    plotCalcer.ProceedDataSet(pool, /*isProcessBoundaryGroups=*/false);
+
+    if (plotCalcer.HasAdditiveMetric()) {
+        plotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
+        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
+    }
+    if (plotCalcer.HasNonAdditiveMetric()) {
+        while (!plotCalcer.AreAllIterationsProcessed()) {
+            plotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+            plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
+        }
+    }
 
     TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
 

@@ -89,7 +89,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     if (plotParams.TmpDir == "-") {
         plotParams.TmpDir = TTempDir().Name();
     }
-    // TODO(annaveronika): if AUC is specified, we will use a lot of disc for approxes on every iteration. Need to make a warning at least or decide if we load pool in memory.
 
     TVector<TString> metricsDescription;
     for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
@@ -106,14 +105,26 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         plotParams.FirstIteration,
         plotParams.EndIteration,
         plotParams.Step,
+        /*processedIterationsStep=*/50, // TODO(nikitxskv): Make auto estimation of this parameter based on the free RAM and pool size.
         executor,
         plotParams.TmpDir,
         metrics
     );
 
-    ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
-        plotCalcer.ProceedDataSet(poolPart, !poolPart.Docs.QueryId.empty());
-    });
+    if (plotCalcer.HasAdditiveMetric()) {
+        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
+            plotCalcer.ProceedDataSetForAdditiveMetrics(poolPart, !poolPart.Docs.QueryId.empty());
+        });
+        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
+    }
+    if (plotCalcer.HasNonAdditiveMetric()) {
+        while (!plotCalcer.AreAllIterationsProcessed()) {
+            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
+                plotCalcer.ProceedDataSetForNonAdditiveMetrics(poolPart);
+            });
+            plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
+        }
+    }
 
     plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, /*saveOnlyLogFiles=*/false).ClearTempFiles();
 

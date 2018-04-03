@@ -52,6 +52,7 @@ public:
             begin,
             end,
             evalPeriod,
+            /*processedIterationsStep=*/-1,
             Executor,
             tmpDir,
             Metrics)) {
@@ -64,7 +65,13 @@ public:
     }
 
     void AddPool(const TPool& pool) {
-        MetricPlotCalcer.ProceedDataSet(pool, !pool.Docs.QueryId.empty());
+        if (MetricPlotCalcer.HasAdditiveMetric()) {
+            MetricPlotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
+        }
+        if (MetricPlotCalcer.HasNonAdditiveMetric()) {
+            MetricPlotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+        }
+
     }
 
     TVector<const IMetric*> GetMetricRawPtrs() const {
@@ -76,6 +83,12 @@ public:
     }
 
     TVector<TVector<double>> ComputeScores()  {
+        if (MetricPlotCalcer.HasAdditiveMetric()) {
+            MetricPlotCalcer.FinishProceedDataSetForAdditiveMetrics();
+        }
+        if (MetricPlotCalcer.HasNonAdditiveMetric()) {
+            MetricPlotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
+        }
         return MetricPlotCalcer.GetMetricsScore();
     }
 

@@ -739,6 +739,8 @@ def test_eval_metrics(loss_function):
     train, test, cd, metric = TRAIN_FILE, TEST_FILE, CD_FILE, loss_function
     if loss_function == 'QueryRMSE':
         train, test, cd, metric = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'PFound'
+    if loss_function == 'Logloss':
+        metric = 'AUC'
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
@@ -746,7 +748,7 @@ def test_eval_metrics(loss_function):
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
     first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 10)
-    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric][1:], 10)
+    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric], 10)
     assert np.all(first_metrics == second_metrics)
 
 
