@@ -22,7 +22,9 @@ def _read_file(filename):
 def recover_core_dump_file(binary_path, cwd, pid):
     system = platform.system().lower()
     if system.startswith("linux"):
+        import stat
         import resource
+
         logger.debug("hostname = '%s'", socket.gethostname())
         logger.debug("rlimit_core = '%s'", str(resource.getrlimit(resource.RLIMIT_CORE)))
         core_pattern = _read_file("/proc/sys/kernel/core_pattern")
@@ -35,6 +37,14 @@ def recover_core_dump_file(binary_path, cwd, pid):
         if not os.path.exists(core_dump_dir):
             logger.warning("Core dump dir doesn't exist: %s", core_dump_dir)
             return None
+        logger.debug(
+            "Core dump dir (%s) permission mask: %s (expected: %s (%s-dir, %s-sticky bit))",
+            core_dump_dir,
+            oct(os.stat(core_dump_dir)[stat.ST_MODE]),
+            oct(stat.S_IFDIR | stat.S_ISVTX | 0o777),
+            oct(stat.S_IFDIR),
+            oct(stat.S_ISVTX),
+        )
 
         # don't interpret a program for piping core dumps as a pattern
         if core_pattern and not core_pattern.startswith("|"):
@@ -66,7 +76,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
         logger.debug("Search for core dump files match pattern '%s' in '%s'", core_mask, core_dump_dir)
         files = glob.glob(os.path.join(core_dump_dir, core_mask))
-        logger.debug("Matched core dump files (%d): %s", len(files), ", ".join(files))
+        logger.debug("Matched core dump files (%d): [%s]", len(files), ", ".join(files))
         if len(files) == 1:
             return files[0]
         elif len(files) > 1:
