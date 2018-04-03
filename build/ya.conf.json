@@ -2038,7 +2038,7 @@
         },
         "coverage_uploader": {
             "formula": {
-                "sandbox_id": 221438945,
+                "sandbox_id": 234477050,
                 "match": "coverage_uploader"
             },
             "executable": {
