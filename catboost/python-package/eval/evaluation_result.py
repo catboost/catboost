@@ -3,8 +3,8 @@ import pandas as pd
 from enum import Enum
 from scipy.stats import wilcoxon
 
-from catboost import CatboostError, metric_description_or_str_to_str
-
+from catboost import CatboostError
+from catboost.core import metric_description_or_str_to_str
 
 def calc_wilcoxon_test(baseline, test):
     stat, pvalue = wilcoxon(baseline, test, zero_method="pratt")

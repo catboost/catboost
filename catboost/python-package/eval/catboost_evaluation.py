@@ -5,7 +5,7 @@ from copy import copy
 from enum import Enum
 
 from catboost import CatboostError, CatBoost
-from evaluation_result import EvaluationResults, MetricEvaluationResult
+from .evaluation_result import EvaluationResults, MetricEvaluationResult
 from ._fold_models_handler import FoldModelsHandler
 from ._readers import _SimpleStreamingFileReader
 from ._splitter import _Splitter
