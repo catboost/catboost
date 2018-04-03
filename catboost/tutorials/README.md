@@ -4,7 +4,7 @@
 
 * Main CatBoost tutorial with base features demonstration:
     * __catboost\_python\_tutorial.ipynb__
-        * This tutorial shows some base cases of using catboost, such as model training, cross-validation and predicting, as well as some usefull features like early stopping,  snapshot support, feature importances and parameters tuning.
+        * This tutorial shows some base cases of using catboost, such as model training, cross-validation and predicting, as well as some useful features like early stopping,  snapshot support, feature importances and parameters tuning.
 
 * CatBoost performance at different competitions:
     * __advanced\_tutorials/kaggle\_paribas.ipynb__
