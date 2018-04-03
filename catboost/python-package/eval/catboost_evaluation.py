@@ -32,8 +32,8 @@ class CatboostEvaluation(object):
                  path_to_dataset,
                  fold_size,
                  fold_count,
+                 column_description,
                  fold_offset=0,
-                 column_description=None,
                  group_column=None,
                  working_dir=None,
                  remove_models=True,
@@ -61,7 +61,7 @@ class CatboostEvaluation(object):
 
         self._current_dir = os.getcwd()
         self._path_to_dataset = os.path.join(self._current_dir, path_to_dataset)
-        self._column_description = os.path.join(self._current_dir, column_description)
+        self._column_description = os.path.join(self._current_dir, column_description) if column_description is not None else None
         self._fold_offset = fold_offset
         self._fold_count = fold_count
         self._fold_size = fold_size
