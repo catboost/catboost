@@ -118,11 +118,20 @@ def validate_test(kw, is_fuzz_test):
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
+    tags_changed = False
+    if 'ya:force_distbuild' in tags and 'ya:force_sandbox' in tags:
+        errors.append('Unable to use ya:force_distbuild and ya:force_sandbox tags simultaniously. ya:force_sandbox will be used.')
+        tags = filter(lambda o: o != "ya:force_distbuild", tags)
+        tags_changed = True
+
     if "ya:force_distbuild" in tags:
         invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'cpu')]
         if invalid_requirements_for_distbuild:
             errors.append('Invalid requirement for distbuild mode (tag ya:force_distbuild): {}'.format(', '.join(invalid_requirements_for_distbuild)))
             has_fatal_error = True
+
+    if tags_changed:
+        valid_kw['TAG'] = serialize_list(tags)
 
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
 
