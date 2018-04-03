@@ -3,8 +3,7 @@ import pandas as pd
 from enum import Enum
 from scipy.stats import wilcoxon
 
-from catboost import CatboostError
-from catboost._catboost import _metric_description_or_str_to_str
+from catboost import CatboostError, metric_description_or_str_to_str
 
 
 def calc_wilcoxon_test(baseline, test):
@@ -444,7 +443,7 @@ class EvaluationResults:
                 raise CatboostError("Duplicate metric {}".format(metric_description))
             if self._cases is None:
                 self._cases = result.get_cases()
-            key = _metric_description_or_str_to_str(metric_description)
+            key = metric_description_or_str_to_str(metric_description)
             self._results[key] = result
             self._metrics[key] = metric_description
 
@@ -454,7 +453,7 @@ class EvaluationResults:
         :param metric:
         :return: MetricEvaluationResult for specified metric
         """
-        return self._results[_metric_description_or_str_to_str(metric)]
+        return self._results[metric_description_or_str_to_str(metric)]
 
     def get_metrics(self):
         """

@@ -43,11 +43,12 @@ for so_path in so_paths:
         _reset_logger = _catboost._reset_logger
         _configure_malloc = _catboost._configure_malloc
         CatboostError = _catboost.CatboostError
+        _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
         break
     except ImportError:
         pass
 else:
-    from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc
+    from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc, _metric_description_or_str_to_str
 
 from contextlib import contextmanager
 
@@ -89,6 +90,10 @@ def _cast_to_base_types(value):
     if isinstance(value, FLOAT_TYPES):
         return float(value)
     return value
+
+
+def metric_description_or_str_to_str(description):
+    return _metric_description_or_str_to_str(description)
 
 
 def _process_verbose(verbose=None, verbose_eval=None, logging_level=None):
