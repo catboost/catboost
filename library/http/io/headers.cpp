@@ -64,6 +64,15 @@ THttpHeaders::THttpHeaders(IInputStream* stream) {
     }
 }
 
+bool THttpHeaders::HasHeader(const TString& header) const {
+    for (THeaders::const_iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
+        if (stricmp(~h->Name(), ~header) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void THttpHeaders::RemoveHeader(const TString& header) {
     for (THeaders::iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
         if (stricmp(~h->Name(), ~header) == 0) {

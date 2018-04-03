@@ -94,6 +94,9 @@ public:
     /// заголовок на новый.
     void AddOrReplaceHeader(const THttpInputHeader& header);
 
+    // Проверяет, есть ли такой заголовок
+    bool HasHeader(const TString& header) const;
+
     /// Удаляет заголовок, если он есть.
     void RemoveHeader(const TString& header);
 
