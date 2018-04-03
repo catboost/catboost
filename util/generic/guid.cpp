@@ -43,6 +43,20 @@ TString CreateGuidAsString() {
     return GetGuidAsString(guid);
 }
 
+static bool GetDigit(const char c, ui32& digit) {
+    digit = 0;
+    if ('0' <= c && c <= '9') {
+        digit = c - '0';
+    } else if ('a' <= c && c <= 'f') {
+        digit = c - 'a' + 10;
+    } else if ('A' <= c && c <= 'F') {
+        digit = c - 'A' + 10;
+    } else {
+        return false; // non-hex character
+    }
+    return true;
+}
+
 bool GetGuid(const TString& s, TGUID& result) {
     size_t partId = 0;
     ui64 partValue = 0;
@@ -63,14 +77,8 @@ bool GetGuid(const TString& s, TGUID& result) {
         }
 
         ui32 digit = 0;
-        if ('0' <= c && c <= '9') {
-            digit = c - '0';
-        } else if ('a' <= c && c <= 'f') {
-            digit = c - 'a' + 10;
-        } else if ('A' <= c && c <= 'F') {
-            digit = c - 'A' + 10;
-        } else {
-            return false; // non-hex character
+        if (!GetDigit(c, digit)) {
+            return false;
         }
 
         partValue = partValue * 16 + digit;
@@ -95,6 +103,52 @@ TGUID GetGuid(const TString& s) {
     TGUID result;
 
     if (GetGuid(s, result)) {
+        return result;
+    }
+
+    return TGUID();
+}
+
+bool GetUuid(const TString& s, TGUID& result) {
+    if (s.size() != 36) {
+        return false;
+    }
+
+    size_t partId = 0;
+    ui64 partValue = 0;
+    size_t digitCount = 0;
+
+    for (size_t i = 0; i < s.size(); ++i) {
+        const char c = s[i];
+
+        if (c == '-') {
+            if (i != 8 && i != 13 && i != 18 && i != 23) {
+                return false;
+            }
+            continue;
+        }
+
+        ui32 digit = 0;
+        if (!GetDigit(c, digit)) {
+            return false;
+        }
+
+        partValue = partValue * 16 + digit;
+
+        if (++digitCount == 8) {
+            result.dw[partId++] = partValue;
+            digitCount = 0;
+        }
+    }
+    return true;
+}
+
+// Parses GUID from uuid and checks that it's valid.
+// In case of error returns TGUID().
+TGUID GetUuid(const TString& s) {
+    TGUID result;
+
+    if (GetUuid(s, result)) {
         return result;
     }
 
