@@ -109,7 +109,7 @@ CatboostIpython.prototype.init = function() {
     };
     this.clickMode = false;
     this.logarithmMode = 'linear';
-    this.lastSmooth = 0.5;
+    this.lastSmooth = 0;
     this.layout = null;
     this.activeTab = '';
     this.meta = {};
@@ -198,7 +198,7 @@ CatboostIpython.prototype.addLayout = function(parent) {
 
     if (this.hasCVMode) {
         cvAreaControls =    '<div>' +
-                                '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-cvstddev' + this.index + '"></input>' +
+                                '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-cvstddev' + this.index + '"' + (this.stddevEnabled ? ' checked="checked"' : '') + '></input>' +
                                 '<label for="catboost-control2-cvstddev' + this.index + '" class="catboost-panel__controls2_label catboost-panel__controls2_label-long">Standard Deviation</label>' +
                             '</div>';
     }
@@ -206,12 +206,12 @@ CatboostIpython.prototype.addLayout = function(parent) {
     this.layout = $('<div class="catboost">' +
                         '<div class="catboost-panel">' +
                             '<div class="catboost-panel__controls">' +
-                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-learn' + this.index + '" checked="checked"></input>' +
+                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-learn' + this.index + '" ' + (!this.layoutDisabled.learn ? ' checked="checked"' : '') + '></input>' +
                                 '<label for="catboost-control-learn' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_learn_pic" style="border-color:#999"></div>Learn</label>' +
-                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-test' + this.index + '" checked="checked"></input>' +
+                                '<input type="checkbox" class="catboost-panel__controls_checkbox" id="catboost-control-test' + this.index + '" ' + (!this.layoutDisabled.test ? ' checked="checked"' : '') + '></input>' +
                                 '<label for="catboost-control-test' + this.index + '" class="catboost-panel__controls_label"><div class="catboost-panel__serie_test_pic" style="border-color:#999"></div>Eval</label>' +
                             '</div>' +
-                            '<div class="catboost-panel__series">' +
+                            '<div class="catboost-panel__series ' + (this.layoutDisabled.learn ? ' catboost-panel__series_learn_disabled' : '') + '">' +
                             '</div>' +
                             '<div class="catboost-panel__controls2">' +
                                 '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-clickmode' + this.index + '"></input>' +
@@ -221,8 +221,8 @@ CatboostIpython.prototype.addLayout = function(parent) {
                                 '<div>' +
                                     '<input type="checkbox" class="catboost-panel__control_checkbox" id="catboost-control2-smooth' + this.index + '"></input>' +
                                     '<label for="catboost-control2-smooth' + this.index + '" class="catboost-panel__controls2_label">Smooth</label>' +
-                                    '<input id="catboost-control2-slider' + this.index + '" disabled="disabled" class="catboost-panel__control_slider" type ="range" value="0.5" min="0" max="1" step ="0.01" for="rangeInputValue" name="rangeInput"/>' +
-                                    '<input id="catboost-control2-slidervalue' + this.index + '" disabled="disabled" class="catboost-panel__control_slidervalue" value="0.5" min="0" max="1" for="rangeInput" name="rangeInputValue"/>' +
+                                    '<input id="catboost-control2-slider' + this.index + '" disabled="disabled" class="catboost-panel__control_slider" type ="range" value="0" min="0" max="1" step ="0.01" for="rangeInputValue" name="rangeInput"/>' +
+                                    '<input id="catboost-control2-slidervalue' + this.index + '" disabled="disabled" class="catboost-panel__control_slidervalue" value="0" min="0" max="1" for="rangeInput" name="rangeInputValue"/>' +
                                 '</div>' +
                                 cvAreaControls +
                             '</div>' +
@@ -382,6 +382,17 @@ CatboostIpython.prototype.updateTracesVisibility = function() {
                             self.setTraceVisibility(trace, true);
                         });
 
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, best_point: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, true);
+                        });
+
                         self.filterTracesOne(traces, {cv_stddev_first: true}).forEach(function(trace) {
                             self.setTraceVisibility(trace, true);
                         });
@@ -447,9 +458,9 @@ CatboostIpython.prototype.redraw = function() {
         this.chartsToRedraw[this.activeTab] = false;
 
         this.updateTracesVisibility();
+        this.updateTracesCV();
         this.updateTracesBest();
         this.updateTracesValues();
-        this.updateTracesCV();
         this.updateTracesSmoothness();
 
         this.plotly.redraw(this.traces[this.activeTab].parent);
@@ -513,6 +524,8 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                     if (launchMode === 'CV') {
                         // we need to set launch mode before first getTrace call
                         self.hasCVMode = true;
+                        self.layoutDisabled.learn = true;
+                        self.setStddev(true);
                     }
 
                     var valuesOfSet = item[nameOfSet],
@@ -524,7 +537,9 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                         bestValueTrace = null;
 
                     if (type === 'test') {
-                        self.getTrace(parent, $.extend({best_point: true}, params));
+                        if (launchMode !== 'CV') {
+                            self.getTrace(parent, $.extend({best_point: true}, params));
+                        }
 
                         if (typeof self.lossFuncs[nameOfMetric] === 'number') {
                             bestValueTrace = self.getTrace(parent, $.extend({best_value: true}, params));
@@ -546,14 +561,19 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
 
                     if (launchMode === 'CV' && !cvAdded) {
                         cvAdded = true;
-                        self.getTrace(parent, $.extend({cv_avg: true}, params));
-                        self.getTrace(parent, $.extend({cv_avg: true, smoothed: true}, params));
 
                         self.getTrace(parent, $.extend({cv_stddev_first: true}, params));
                         self.getTrace(parent, $.extend({cv_stddev_last: true}, params));
 
                         self.getTrace(parent, $.extend({cv_stddev_first: true, smoothed: true}, params));
                         self.getTrace(parent, $.extend({cv_stddev_last: true, smoothed: true}, params));
+
+                        self.getTrace(parent, $.extend({cv_avg: true}, params));
+                        self.getTrace(parent, $.extend({cv_avg: true, smoothed: true}, params));
+
+                        if (type === 'test') {
+                            self.getTrace(parent, $.extend({cv_avg: true, best_point: true}, params));
+                        }
                     }
                 }
 
@@ -627,7 +647,7 @@ CatboostIpython.prototype.getChart = function(parent, params) {
         traces: [],
         layout: {
             xaxis: {
-                range: [0, Number(this.meta[params.path].iterCount)],
+                range: [0, Number(this.meta[params.path].iteration_count)],
                 type: 'linear',
                 tickmode: 'auto',
                 showspikes: true,
@@ -644,7 +664,7 @@ CatboostIpython.prototype.getChart = function(parent, params) {
             },
             separators: '. ',
             //hovermode: 'x',
-            margin: {l: 35, r: 0, t: 35, b: 30},
+            margin: {l: 38, r: 0, t: 35, b: 30},
             autosize: true,
             showlegend: false
         },
@@ -686,6 +706,8 @@ CatboostIpython.prototype.getTrace = function(parent, params) {
 
         var plotParams = {
                 color: this.getNextColor(params.path, params.smoothed ? 0.2 : 1),
+                fillsmoothcolor: this.getNextColor(params.path, 0.1),
+                fillcolor: this.getNextColor(params.path, 0.4),
                 hoverinfo: params.cv_avg ? 'skip' : 'text+x',
                 width: params.cv_avg ? 2 : 1,
                 dash: params.type === 'test' ? 'solid' : 'dot'
@@ -919,7 +941,7 @@ CatboostIpython.prototype.drawTrace = function(train, hash) {
                     '<div class="catboost-panel__serie_hint catboost-panel__serie__learn_hint">curr</div>' +
                     '<div class="catboost-panel__serie_hint catboost-panel__serie__test_hint">best</div>' +
                     '<div class="catboost-panel__serie_iteration" title="curr iteration"></div>' +
-                    '<div class="catboost-panel__serie_best_iteration" title="best iteration"></div>' +
+                    '<div class="catboost-panel__serie_best_iteration" title="best ' + (this.hasCVMode ? 'avg ' : '') + 'iteration"></div>' +
                     '<div class="catboost-panel__serie_scroll">' +
                         '<div class="catboost-panel__serie_names">' +
                             tracesNames +
@@ -1006,11 +1028,14 @@ CatboostIpython.prototype.updateTracesCV = function() {
 
 CatboostIpython.prototype.updateTracesCVAvg = function() {
     var tracesHash = this.groupTraces(),
-        avgTraces = this.filterTracesOne(tracesHash.traces, {cv_avg: true}),
+        avgTraces = this.filterTracesEvery(tracesHash.traces, this.getTraceDefParams({
+            cv_avg: true
+        })),
         self = this;
 
     avgTraces.forEach(function(trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
+                train: trace._params.train,
                 type: trace._params.type,
                 smoothed: trace._params.smoothed
             }));
@@ -1058,10 +1083,12 @@ CatboostIpython.prototype.updateTracesCVStdDev = function() {
 
     firstTraces.forEach(function(trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
+                train: trace._params.train,
                 type: trace._params.type,
                 smoothed: trace._params.smoothed
             })),
             lastTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
+                train: trace._params.train,
                 type: trace._params.type,
                 smoothed: trace._params.smoothed,
                 cv_stddev_last: true
@@ -1131,6 +1158,7 @@ CatboostIpython.prototype.updateTracesSmoothness = function() {
 
     smoothedTraces.forEach(function(trace) {
         var origTraces = self.filterTracesEvery(tracesHash.traces, self.getTraceDefParams({
+                train: trace._params.train,
                 type: trace._params.type,
                 indexOfSet: trace._params.indexOfSet,
                 cv_avg: trace._params.cv_avg,
@@ -1159,9 +1187,17 @@ CatboostIpython.prototype.highlightSmoothedTrace = function(trace, smoothedTrace
         smoothedTrace.line.color = trace._params.plotParams.color;
         trace.line.color = smoothedTrace._params.plotParams.color;
         trace.hoverinfo = 'skip';
+
+        if (trace._params.cv_stddev_last) {
+            trace.fillcolor = trace._params.plotParams.fillsmoothcolor;
+        }
     } else {
         trace.line.color = trace._params.plotParams.color;
         trace.hoverinfo = trace._params.plotParams.hoverinfo;
+
+        if (trace._params.cv_stddev_last) {
+            trace.fillcolor = trace._params.plotParams.fillcolor;
+        }
     }
 };
 
@@ -1206,15 +1242,25 @@ CatboostIpython.prototype.updateTraceBest = function(train, hash) {
 
     traces.forEach(function(trace) {
         var testTrace = self.filterTracesEvery(hash.traces, self.getTraceDefParams({
+                train: trace._params.train,
                 type: 'test',
                 indexOfSet: trace._params.indexOfSet
-            })),
-            bestValue = self.getBestValue(testTrace.length === 1 ? testTrace[0].y : []);
+            }));
+
+        if (self.hasCVMode) {
+            testTrace = self.filterTracesEvery(hash.traces, self.getTraceDefParams({
+                train: trace._params.train,
+                type: 'test',
+                cv_avg: true
+            }));
+        }
+
+        var bestValue = self.getBestValue(testTrace.length === 1 ? testTrace[0].y : []);
 
         if (bestValue.index !== -1) {
             trace.x[0] = bestValue.index;
             trace.y[0] = bestValue.best;
-            trace.hovertext[0] = bestValue.func + ' (' + trace._params.nameOfSet + '): ' + bestValue.index + ' ' + bestValue.best;
+            trace.hovertext[0] = bestValue.func + ' (' + (self.hasCVMode ? 'avg' : trace._params.nameOfSet) + '): ' + bestValue.index + ' ' + bestValue.best;
         }
     });
 };
@@ -1264,6 +1310,16 @@ CatboostIpython.prototype.updateTraceValues = function(name, hash, iteration, cl
         });
     });
 
+    if (this.hasCVMode) {
+        var testTrace = this.filterTracesEvery(hash.traces, this.getTraceDefParams({
+                type: 'test',
+                cv_avg: true
+            })),
+            bestValue = this.getBestValue(testTrace.length === 1 ? testTrace[0].y : []);
+
+            $('#' + id + ' .catboost-panel__serie_best_iteration', this.layout).html(bestValue.index > -1 ? bestValue.index : '');
+    }
+
     if (click) {
         this.clickMode = true;
 
@@ -1291,6 +1347,7 @@ CatboostIpython.prototype.getNextColor = function(path, opacity) {
     } else {
         color = this.colors[this.colorIndex];
         this.colorsByPath[path] = color;
+
         this.colorIndex++;
 
         if (this.colorIndex > this.colors.length - 1) {
