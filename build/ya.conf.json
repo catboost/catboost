@@ -2210,7 +2210,7 @@
         },
         "clang50": {
             "formula": {
-                "sandbox_id": [220049371, 232858106],
+                "sandbox_id": [220049371, 234642283],
                 "match": "CLANG"
             },
             "executable": {
