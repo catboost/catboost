@@ -5191,3 +5191,13 @@ mbsupport.h
 # end of libgit2 unused includes
 # xray includes
 xray/xray_interface.h
+attr/xattr.h
+fshelp.h
+mlib_image.h
+selinux/selinux.h
+sys/mntctl.h
+sys/mnttab.h
+sys/systeminfo.h
+sys/vfs.h
+sys/vfstab.h
+sys/vmount.h
