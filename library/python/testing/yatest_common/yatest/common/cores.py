@@ -76,7 +76,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
         logger.debug("Search for core dump files match pattern '%s' in '%s'", core_mask, core_dump_dir)
         files = glob.glob(os.path.join(core_dump_dir, core_mask))
-        logger.debug("Matched core dump files (%d): [%s]", len(files), ", ".join(files))
+        logger.debug("Matched core dump files (%d/%d): [%s]", len(files), len(os.listdir(core_dump_dir)), ", ".join(files))
         if len(files) == 1:
             return files[0]
         elif len(files) > 1:
