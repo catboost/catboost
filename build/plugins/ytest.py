@@ -119,9 +119,22 @@ def validate_test(kw, is_fuzz_test):
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
     tags_changed = False
+
+    if ('ya:force_distbuild' in tags or 'ya:force_sandbox' in tags) and ('ya:not_autocheck' in tags or 'ya:manual' in tags):
+        errors.append('Unable to use ya:force_distbuild or ya:force_sandbox with ya:not_autocheck or ya:manual tags simultaniously. ya:force_distbuild and ya:force_sandbox will be skipped.')
+        tags = filter(lambda o: o not in ('ya:force_distbuild', 'ya:force_sandbox'), tags)
+        tags_changed = True
+
     if 'ya:force_distbuild' in tags and 'ya:force_sandbox' in tags:
         errors.append('Unable to use ya:force_distbuild and ya:force_sandbox tags simultaniously. ya:force_sandbox will be used.')
         tags = filter(lambda o: o != "ya:force_distbuild", tags)
+        tags_changed = True
+
+    has_sb_tags = any([tag.startswith('sb:') for tag in tags])
+    if 'ya:force_distbuild' in tags and has_sb_tags:
+        errors.append('Unable to use ya:force_distbuild with sb:**** tags simultaniously. ya:force_sandbox will be used.')
+        tags = filter(lambda o: o != "ya:force_distbuild", tags)
+        tags.append('ya:force_sandbox')
         tags_changed = True
 
     if "ya:force_distbuild" in tags:
