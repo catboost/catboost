@@ -20,7 +20,7 @@ def _extract(src_file, dst_dir='.'):
 
 
 def _cached_dataset_load(url, dataset_name, train_file, test_file):
-    dir_path = os.path.join('datasets', dataset_name)
+    dir_path = os.path.join(os.path.dirname(__file__), 'cached_datasets', dataset_name)
     train_path = os.path.join(dir_path, train_file)
     test_path = os.path.join(dir_path, test_file)
     if not (os.path.exists(train_path) and os.path.exists(test_path)):
