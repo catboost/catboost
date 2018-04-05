@@ -15,7 +15,8 @@ test_that("model: catboost.train", {
   iterations <- 10
   params <- list(iterations = iterations,
                  loss_function = "Logloss",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 use_best_model = FALSE)
 
   model_train_test <- catboost.train(pool_train, pool_test, params)
   prediction_train_test <- catboost.predict(model_train_test, pool_test)
