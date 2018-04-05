@@ -14,7 +14,7 @@ Main advantages of CatBoost:
   - Superior quality when compared with other GBDT libraries.
   - Best in class inference speed.
   - Support for both numerical and categorical features.
-  - Fast GPU and multi-GPU (on one node) support for training.
+  - Fast GPU and multi-GPU support for training (compiled binaries and python package for learning on one host, build cmd-line MPI version from source to learn on several GPU machines).
   - Data visualization tools included.
 
 The following implementations are available:
