@@ -76,13 +76,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.obj"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\find_root\gbhzmp5woetlafsdginars36vy.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.yasm">
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\find_root\bd8b95203eeee07c22dbe99150.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.obj" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.obj" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.obj" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.obj" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,11 +101,11 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/find_root/_gbhzmp5woetlafsdginars36vy.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.obj;</Outputs>
+      <Message>$B/library/python/find_root/_bd8b95203eeee07c22dbe99150.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
@@ -137,7 +137,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.yasm" "$(SolutionDir)../library/python/find_root/__init__.py" "$(SolutionDir)$(Configuration)/library/python/find_root/_wna7z73xtgmfnjrr5ug4ikevw4.rodata" "-" "library/python/find_root/__init__.py" "_arbnbcpeyofu4ksookkyxwlr3u.rodata" "$(SolutionDir)$(Configuration)/library/python/find_root/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/find_root/_y7om6xi4lod7xwlpgr2d4p3gmi.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.yasm" "$(SolutionDir)../library/python/find_root/__init__.py" "$(SolutionDir)$(Configuration)/library/python/find_root/_b341fcff77999856a631ed0dc4.rodata" "-" "library/python/find_root/__init__.py" "_0442d089e4c38b4e2a4e72958b.rodata" "$(SolutionDir)$(Configuration)/library/python/find_root/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/find_root/_c7dccf5d1c5b87fbd96f34743e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -148,7 +148,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/_gbhzmp5woetlafsdginars36vy.yasm" "$(SolutionDir)../library/python/find_root/__init__.py" "$(SolutionDir)$(Configuration)/library/python/find_root/_wna7z73xtgmfnjrr5ug4ikevw4.rodata" "-" "library/python/find_root/__init__.py" "_arbnbcpeyofu4ksookkyxwlr3u.rodata" "$(SolutionDir)$(Configuration)/library/python/find_root/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/find_root/_y7om6xi4lod7xwlpgr2d4p3gmi.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/_bd8b95203eeee07c22dbe99150.yasm" "$(SolutionDir)../library/python/find_root/__init__.py" "$(SolutionDir)$(Configuration)/library/python/find_root/_b341fcff77999856a631ed0dc4.rodata" "-" "library/python/find_root/__init__.py" "_0442d089e4c38b4e2a4e72958b.rodata" "$(SolutionDir)$(Configuration)/library/python/find_root/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/find_root/_c7dccf5d1c5b87fbd96f34743e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -156,15 +156,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/find_root/_gbhzmp5woetlafsdginars36vy.yasm	</Message>
+      <Message>$B/library/python/find_root/_bd8b95203eeee07c22dbe99150.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\find_root\__init__.py;$(SolutionDir)$(Configuration)\library\python\find_root\__init__.py.yapyc;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\_gbhzmp5woetlafsdginars36vy.yasm;$(SolutionDir)$(Configuration)\library\python\find_root\_wna7z73xtgmfnjrr5ug4ikevw4.rodata;$(SolutionDir)$(Configuration)\library\python\find_root\_y7om6xi4lod7xwlpgr2d4p3gmi.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\_bd8b95203eeee07c22dbe99150.yasm;$(SolutionDir)$(Configuration)\library\python\find_root\_b341fcff77999856a631ed0dc4.rodata;$(SolutionDir)$(Configuration)\library\python\find_root\_c7dccf5d1c5b87fbd96f34743e.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="[_no_inputs_]">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/gbhzmp5woetlafsdginars36vy.cpp" "_wna7z73xtgmfnjrr5ug4ikevw4=/py_modules/library.python.find_root.__init__" "_arbnbcpeyofu4ksookkyxwlr3u=resfs/src//py_modules/library.python.find_root.__init__" "_y7om6xi4lod7xwlpgr2d4p3gmi=/py_code/library.python.find_root.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/bd8b95203eeee07c22dbe99150.cpp" "_b341fcff77999856a631ed0dc4=/py_modules/library.python.find_root.__init__" "_0442d089e4c38b4e2a4e72958b=resfs/src//py_modules/library.python.find_root.__init__" "_c7dccf5d1c5b87fbd96f34743e=/py_code/library.python.find_root.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\find_root
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/gbhzmp5woetlafsdginars36vy.cpp" "_wna7z73xtgmfnjrr5ug4ikevw4=/py_modules/library.python.find_root.__init__" "_arbnbcpeyofu4ksookkyxwlr3u=resfs/src//py_modules/library.python.find_root.__init__" "_y7om6xi4lod7xwlpgr2d4p3gmi=/py_code/library.python.find_root.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/find_root/bd8b95203eeee07c22dbe99150.cpp" "_b341fcff77999856a631ed0dc4=/py_modules/library.python.find_root.__init__" "_0442d089e4c38b4e2a4e72958b=resfs/src//py_modules/library.python.find_root.__init__" "_c7dccf5d1c5b87fbd96f34743e=/py_code/library.python.find_root.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/find_root/gbhzmp5woetlafsdginars36vy.cpp	</Message>
+      <Message>$B/library/python/find_root/bd8b95203eeee07c22dbe99150.cpp	</Message>
       <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\gbhzmp5woetlafsdginars36vy.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\find_root\bd8b95203eeee07c22dbe99150.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
