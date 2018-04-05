@@ -66,7 +66,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::YetiRank: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
@@ -86,6 +86,9 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
         treeConfig.LeavesEstimationMethod = defaultEstimationMethod;
+    } else {
+        CB_ENSURE(lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank,
+            "At the moment, in the YetiRank mode, changing the leaf_estimation_method parameter is prohibited.");
     }
 
     if (treeConfig.LeavesEstimationIterations.NotSet()) {
