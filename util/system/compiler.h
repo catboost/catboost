@@ -338,9 +338,17 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #define Y_WEAK
 #endif
 
-/// NVidia CUDA C++ Compiler does not know about noexcept keyword
-#if defined(__CUDACC__) && !defined(noexcept)
-#define noexcept throw ()
+#if defined(__CUDACC_VER_MAJOR__)
+#   define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
+#else
+#   define Y_CUDA_AT_LEAST(x, y) 0
+#endif
+
+// NVidia CUDA C++ Compiler did not know about noexcept keyword until version 9.0
+#if !Y_CUDA_AT_LEAST(9, 0)
+#   if defined(__CUDACC__) && !defined(noexcept)
+#       define noexcept throw ()
+#   endif
 #endif
 
 #if defined(__GNUC__)
