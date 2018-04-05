@@ -141,6 +141,10 @@ class Platform(object):
         return self.arch == 'aarch64'
 
     @property
+    def is_ppc64le(self):
+        return self.arch == 'ppc64le'
+
+    @property
     def os_variables(self):
         result = [
             self.os.upper(),  # 'LINUX' variable, for backward compatibility
@@ -1323,7 +1327,7 @@ class Linker(object):
     def _print_linker_selector(self):
         if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and self.tc.is_from_arcadia:
             default_linker = 'lld'
-            if is_positive('USE_LTO'):
+            if is_positive('USE_LTO') or self.build.target.is_ppc64le:
                 default_linker = 'gold'
 
             emit_big('''
