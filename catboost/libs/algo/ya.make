@@ -21,10 +21,9 @@ SRCS(
     target_classifier.cpp
     tensor_search_helpers.cpp
     train.cpp
-    train_one_iter_cross_entropy.cpp
     train_one_iter_custom.cpp
     train_one_iter_log_lin_quantile.cpp
-    train_one_iter_logloss.cpp
+    train_one_iter_cross_entropy.cpp
     train_one_iter_map.cpp
     train_one_iter_multi_class.cpp
     train_one_iter_multi_class_one_vs_all.cpp

@@ -115,9 +115,9 @@ private:
     }
 };
 
-class TLoglossError : public IDerCalcer<TLoglossError, /*StoreExpApproxParam*/ true> {
+class TCrossEntropyError : public IDerCalcer<TCrossEntropyError, /*StoreExpApproxParam*/ true> {
 public:
-    explicit TLoglossError(bool storeExpApprox) {
+    explicit TCrossEntropyError(bool storeExpApprox) {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
@@ -153,40 +153,6 @@ public:
         const double* approxes,
         const double* approxDeltas,
         const float* targets,
-        const float* weights,
-        TDer1Der2* ders
-    ) const;
-};
-
-class TCrossEntropyError : public IDerCalcer<TCrossEntropyError, /*StoreExpApproxParam*/ true> {
-public:
-    explicit TCrossEntropyError(bool storeExpApprox) {
-        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
-    }
-
-    double CalcDer(double approxExp, float prob) const {
-        // p * 1/(1+exp(x)) + (1-p) * (-exp(x)/(1+exp(x))) =
-        // (p - (1-p)exp(x)) / (1+exp(x))
-        return (prob - (1 - prob) * approxExp) / (1 + approxExp);
-    }
-
-    double CalcDer2(double approxExp, float = 0) const {
-        double p = approxExp / (1 + approxExp);
-        return -p * (1 - p);
-    }
-
-    void CalcDers(double approxExp, float prob, TDer1Der2* ders) const {
-        const double p = approxExp / (1 + approxExp);
-        ders->Der1 = (prob - (1 - prob) * approxExp) / (1 + approxExp);
-        ders->Der2 = -p * (1 - p);
-    }
-
-    void CalcDersRange(
-        int start,
-        int count,
-        const double* approxes,
-        const double* approxDelta,
-        const float* probs,
         const float* weights,
         TDer1Der2* ders
     ) const;

@@ -228,7 +228,6 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
     ApplyMapper<TApproxSimpleUpdater>(workerCount, ctx->SharedTrainData);
 }
 
-template void MapSetApproxes<TLoglossError>(const TSplitTree& splitTree, TLearnContext* ctx);
 template void MapSetApproxes<TCrossEntropyError>(const TSplitTree& splitTree, TLearnContext* ctx);
 template void MapSetApproxes<TRMSEError>(const TSplitTree& splitTree, TLearnContext* ctx);
 template void MapSetApproxes<TQuantileError>(const TSplitTree& splitTree, TLearnContext* ctx);
@@ -250,7 +249,6 @@ void MapSetDerivatives(TLearnContext* ctx) {
     ApplyMapper<TDerivativeSetter<TError>>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
 }
 
-template void MapSetDerivatives<TLoglossError>(TLearnContext* ctx);
 template void MapSetDerivatives<TCrossEntropyError>(TLearnContext* ctx);
 template void MapSetDerivatives<TRMSEError>(TLearnContext* ctx);
 template void MapSetDerivatives<TQuantileError>(TLearnContext* ctx);

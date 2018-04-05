@@ -395,13 +395,13 @@
     ],
     "test.test_crossentropy[Ordered]": [
         {
-            "checksum": "820d115a93d58db2fffd9a963cf6a3c9",
+            "checksum": "075c9db9688dfb5bf324f2c9c20b7fba",
             "uri": "file://test.test_crossentropy_Ordered_/test.eval"
         }
     ],
     "test.test_crossentropy[Plain]": [
         {
-            "checksum": "0f36b1670c41dc21c407163fa6bba3d1",
+            "checksum": "183cb3fd26ffc4c1205b065c701fa549",
             "uri": "file://test.test_crossentropy_Plain_/test.eval"
         }
     ],

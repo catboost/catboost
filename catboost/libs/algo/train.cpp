@@ -1,7 +1,6 @@
 #include "train.h"
 #include <catboost/libs/helpers/query_info_helper.h>
 
-class TLoglossError;
 class TCrossEntropyError;
 class TRMSEError;
 class TQuantileError;
@@ -34,8 +33,6 @@ void TrainOneIter(const TDataset& data, const TDataset* testDataPtr, TLearnConte
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
     switch (lossFunction) {
         case ELossFunction::Logloss:
-            return TrainOneIter<TLoglossError>;
-            break;
         case ELossFunction::CrossEntropy:
             return TrainOneIter<TCrossEntropyError>;
             break;
