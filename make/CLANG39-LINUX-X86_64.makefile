@@ -6293,10 +6293,9 @@ $(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a.mf\
         $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o\
-        $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o\
+        $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o\
-        $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/train.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/tensor_search_helpers.cpp.o\
         $(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o\
@@ -6320,7 +6319,7 @@ $(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a.mf\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-algo -o catboost/libs/algo/libcatboost-libs-algo.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a' '$(BUILD_ROOT)/catboost/libs/algo/yetirank_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/cv_data_partition.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tree_print.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_querywise.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_per_object.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_soft_max.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_poisson.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_pair_logit.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tensor_search_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/split.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/score_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/ctr_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_predictor.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/learn_context.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_hash_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/greedy_tensor_search.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/full_features.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/fold.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/features_layout.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/error_functions.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/apply.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/algo/libcatboost-libs-algo.a' '$(BUILD_ROOT)/catboost/libs/algo/yetirank_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/calc_score_cache.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/cv_data_partition.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tree_print.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_querywise.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_user_per_object.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_soft_max.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_query_rmse.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_poisson.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_pair_logit.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/tensor_search_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/split.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/score_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/ctr_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_predictor.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/learn_context.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_hash_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/index_calcer.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/greedy_tensor_search.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/full_features.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/fold.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/features_layout.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/error_functions.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/apply.cpp.o' '$(BUILD_ROOT)/catboost/libs/algo/plot.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/algo/yetirank_helpers.cpp.o\
         ::\
@@ -6466,14 +6465,14 @@ $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o' '$(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_map.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o\
+$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp\
+        $(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o' '$(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o\
         ::\
@@ -6492,15 +6491,6 @@ $(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o' '$(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/algo'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o' '$(SOURCE_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/algo/train.cpp.o\
         ::\
@@ -15405,10 +15395,9 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class_one_vs_all.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_multi_class.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_map.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_logloss.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_log_lin_quantile.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_custom.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train_one_iter_cross_entropy.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/train.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/tensor_search_helpers.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/algo/target_classifier.cpp.o'

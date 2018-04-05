@@ -99,7 +99,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_custom.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_log_lin_quantile.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_logloss.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_map.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class_one_vs_all.cpp"/>
