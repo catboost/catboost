@@ -878,7 +878,7 @@ template <unsigned> struct __static_assert_check {};
 #ifdef _LIBCPP_HAS_NO_DECLTYPE
 // GCC 4.6 provides __decltype in all standard modes.
 #if __has_keyword(__decltype) || _LIBCPP_CLANG_VER >= 304 || _GNUC_VER >= 406
-#  define decltype(__x) __decltype(__x)
+#  define decltype(__x, ...) __decltype(__x, __VA_ARGS__)
 #else
 #  define decltype(__x) __typeof__(__x)
 #endif
