@@ -2006,6 +2006,7 @@ class Perl(object):
         if self.perl is None:
             return
 
+        # noinspection PyTypeChecker
         config = dict(self._iter_config(['version', 'privlibexp', 'archlibexp']))
         self.version = config.get('version')
         self.privlib = config.get('privlibexp')
@@ -2093,8 +2094,16 @@ class Cuda(object):
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
         self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self._cuda_host_compiler_auto)
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
+        self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self._cuda_arcadia_includes_auto, convert=to_bool)
+
+        self.cuda_version_list = map(int, self.cuda_version.value.split('.'))
 
         self.nvcc_flags = []
+
+        if self.cuda_version_list >= [9, 0]:
+            self.nvcc_flags.append('-std=c++14')
+        else:
+            self.nvcc_flags.append('-std=c++11')
 
         if self.have_cuda.value:
             if self.cuda_host_compiler.value is not None:
@@ -2128,10 +2137,12 @@ class Cuda(object):
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
 
     def print_cu_source_cmd(self):
-        old = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC.o} -I$ARCADIA_ROOT --cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
-        new = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM $GCC_COMPILE_FLAGS $CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
+        includes = '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT'
 
-        cmd = new if self.cuda_use_clang.value else old
+        nvcc_cmd = ['$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC.o}', includes, '--cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}']
+        clang_cmd = ['$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC.o}', includes, '$CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}']
+
+        cmd = ' '.join(clang_cmd if self.cuda_use_clang.value else nvcc_cmd)
 
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
@@ -2193,6 +2204,9 @@ class Cuda(object):
                 return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
 
         return None
+
+    def _cuda_arcadia_includes_auto(self):
+        return self.cuda_version_list >= [9, 0]
 
 
 class Yasm(object):
