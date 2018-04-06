@@ -4573,6 +4573,10 @@ PyDoc_STRVAR(socket_doc,
 \n\
 See the socket module for documentation.");
 
+#ifndef SO_REUSEPORT
+int IsReusePortAvailableFromUtil();
+#endif
+
 PyMODINIT_FUNC
 init_socket(void)
 {
@@ -4910,6 +4914,10 @@ init_socket(void)
 #endif
 #ifdef  SO_REUSEPORT
     PyModule_AddIntConstant(m, "SO_REUSEPORT", SO_REUSEPORT);
+#else
+    if (IsReusePortAvailableFromUtil()) {
+        PyModule_AddIntConstant(m, "SO_REUSEPORT", 15);
+    }
 #endif
 #ifdef  SO_SNDBUF
     PyModule_AddIntConstant(m, "SO_SNDBUF", SO_SNDBUF);
