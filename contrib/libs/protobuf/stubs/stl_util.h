@@ -65,7 +65,9 @@ void STLDeleteContainerPointers(ForwardIterator begin,
 // place in open source code.  Feel free to fill this function in with your
 // own disgusting hack if you want the perf boost.
 inline void STLStringResizeUninitialized(string* s, size_t new_size) {
-  s->resize(new_size);
+// Yandex-specific: uninitialized resizing.
+  s->ReserveAndResize(new_size);
+// End of Yandex-specific.
 }
 
 // Return a mutable char* pointing to a string's internal buffer,
