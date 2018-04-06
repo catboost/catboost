@@ -9,8 +9,8 @@ RESOURCE(
     .dist-info/top_level.txt /fs/contrib/python/requests/.dist-info/top_level.txt
 )
 
-RESOURCE_FILES(
-    requests/cacert.pem
+PEERDIR(
+    certs
 )
 
 NO_LINT()

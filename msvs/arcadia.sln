@@ -153,6 +153,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-python-package-ut-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "model_comparator", "Projects\catboost\tools\model_comparator\model_comparator.vcxproj", "{F2890E3D-C0D6-F694-F586-9591CDA361D1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "certs", "Projects\certs\certs.vcxproj", "{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "Projects\contrib", "{7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "Projects\contrib\libs", "{5A6BA3D4-700F-320B-BC81-8F7B463F1DBE}"
@@ -783,6 +785,10 @@ Global
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Debug|x64.Build.0 = Debug|x64
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Release|x64.ActiveCfg = Release|x64
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Release|x64.Build.0 = Release|x64
+		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Debug|x64.ActiveCfg = Debug|x64
+		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Debug|x64.Build.0 = Debug|x64
+		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Release|x64.ActiveCfg = Release|x64
+		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Release|x64.Build.0 = Release|x64
 		{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}.Debug|x64.ActiveCfg = Debug|x64
 		{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}.Debug|x64.Build.0 = Debug|x64
 		{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}.Release|x64.ActiveCfg = Release|x64

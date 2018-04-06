@@ -75,10 +75,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\1d2f260e7114f80fc0ff220a7e.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.obj"/>
@@ -146,34 +144,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj;</Outputs>
     </CustomBuild>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.obj" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.obj;</Outputs>
-    </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -1265,33 +1235,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\adapters.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\adapters.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\status_codes.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\status_codes.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\api.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\api.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\compat.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\compat.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\auth.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\auth.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\__init__.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\utils.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\utils.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\certs.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\certs.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\hooks.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\hooks.py.yapyc;$(SolutionDir)..\contrib\python\requests\requests\structures.py;$(SolutionDir)$(Configuration)\contrib\python\requests\requests\structures.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_311fc4bf5e1d38c1d30c4207c1.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_39fd06c15d981aea5454e895ee.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_b6f50c57b98a220b4d2315b9cd.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_baab177c92ab11f4d63307f66e.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_be719a7c3cdac3c11dbff9ddb3.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_7ebc683c96c18fae48dd8f2be5.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_69ba2cf5429e81a1ebae182c16.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_1b36251c587104b9a663b9cc6c.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_d752ea1165992828514f5b74a1.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_d9a528338c442f8476c613df89.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_43e45367ce5842ae7160f61f6e.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_b5d844b2ff606550bb999bef9d.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_3a5e80f41e61d2768ca1564ae7.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_cc06b1fef73fefd28d1504dcf6.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_62abef16e2c8a4fb0629812d11.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_f9892145753c75a1ed98c8ef56.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_011d0f08cee3d025ef187dcd5c.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_6edcd3779ac12c122aa687d054.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_827007dc3762fa3db75c479fe3.rodata;$(SolutionDir)$(Configuration)\contrib\python\requests\_cbfbb88b0074ae9b59df441acb.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\cacert.pem">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.yasm" "-" "contrib/python/requests/requests/cacert.pem" "_679ad9c63ef302e25f23a0a1b0.rodata" "$(SolutionDir)../contrib/python/requests/requests/cacert.pem" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fae7d3cd1dc3021fd567571c3a.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.yasm" "-" "contrib/python/requests/requests/cacert.pem" "_679ad9c63ef302e25f23a0a1b0.rodata" "$(SolutionDir)../contrib/python/requests/requests/cacert.pem" "$(SolutionDir)$(Configuration)/contrib/python/requests/_fae7d3cd1dc3021fd567571c3a.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/requests/_1d2f260e7114f80fc0ff220a7e.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\requests\requests\cacert.pem;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1d2f260e7114f80fc0ff220a7e.yasm;$(SolutionDir)$(Configuration)\contrib\python\requests\_fae7d3cd1dc3021fd567571c3a.rodata;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\requests\requests\exceptions.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -1385,10 +1328,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/1d2f260e7114f80fc0ff220a7e.cpp" "_679ad9c63ef302e25f23a0a1b0=resfs/src/resfs/file/requests/cacert.pem" "_fae7d3cd1dc3021fd567571c3a=resfs/file/requests/cacert.pem"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "_a64d50680d116b182b7e34d9a0=resfs/src//py_modules/requests.packages.urllib3.util.request" "_5b3e9d84480cef1c2297add4e3=/py_code/requests.packages.urllib3.util.request" "_9a3f02fb8a59e9803c1d98fdb9=/py_modules/requests.packages.urllib3.util.response" "_f6bbdda1fae3c065cb445b48e7=resfs/src//py_modules/requests.packages.urllib3.util.response" "_77d7015e93ad0b94595e738286=/py_code/requests.packages.urllib3.util.response" "_f2120c4ff005fd37d24d851005=/py_modules/requests.packages.urllib3.contrib.__init__" "_7a48b2223608ecb6ed85293fa6=resfs/src//py_modules/requests.packages.urllib3.contrib.__init__" "_0957119d487e5923ddf71ee9cc=/py_code/requests.packages.urllib3.contrib.__init__" "_00571d8378e08b8ef0f1eb6a8d=/py_modules/requests.packages.urllib3.contrib.pyopenssl" "_c6bec50d4dc321563c53e1d848=resfs/src//py_modules/requests.packages.urllib3.contrib.pyopenssl" "_f4c48977d3fff6ea92ae851219=/py_code/requests.packages.urllib3.contrib.pyopenssl" "_3ff955e1cff5941d1288ec84e9=/py_modules/requests.packages.urllib3.contrib.ntlmpool" "_b2617f3478557b9189524aac66=resfs/src//py_modules/requests.packages.urllib3.contrib.ntlmpool" "_a10bb607bd8ff6196f2a922243=/py_code/requests.packages.urllib3.contrib.ntlmpool" "_981a59d49b793dde6aeeac1270=/py_modules/requests.packages.chardet.langbulgarianmodel" "_bfaf2bae5b024bdcce4e3619a8=resfs/src//py_modules/requests.packages.chardet.langbulgarianmodel" "_920c76eab3249adba229abbc4f=/py_code/requests.packages.chardet.langbulgarianmodel" "_ace95553c53b4463e78562d381=/py_modules/requests.packages.chardet.gb2312freq" "_02d2cf43102fd4b19cb12245dc=resfs/src//py_modules/requests.packages.chardet.gb2312freq" "_10b535e0e1094c2f75be1dbc38=/py_code/requests.packages.chardet.gb2312freq" "_8878311975707564babb657ce2=/py_modules/requests.packages.chardet.eucjpprober" "_9c1fbd9ef6eefb554414e2befb=resfs/src//py_modules/requests.packages.chardet.eucjpprober" "_dc7403ef562d0aa9fcb969381b=/py_code/requests.packages.chardet.eucjpprober" "_e4f6632ed5547238cdfdf52e3b=/py_modules/requests.packages.chardet.euckrfreq" "_9dea4ad7a7c0677a683c8812ba=resfs/src//py_modules/requests.packages.chardet.euckrfreq"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -1436,10 +1375,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/1d2f260e7114f80fc0ff220a7e.cpp" "_679ad9c63ef302e25f23a0a1b0=resfs/src/resfs/file/requests/cacert.pem" "_fae7d3cd1dc3021fd567571c3a=resfs/file/requests/cacert.pem"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "_a64d50680d116b182b7e34d9a0=resfs/src//py_modules/requests.packages.urllib3.util.request" "_5b3e9d84480cef1c2297add4e3=/py_code/requests.packages.urllib3.util.request" "_9a3f02fb8a59e9803c1d98fdb9=/py_modules/requests.packages.urllib3.util.response" "_f6bbdda1fae3c065cb445b48e7=resfs/src//py_modules/requests.packages.urllib3.util.response" "_77d7015e93ad0b94595e738286=/py_code/requests.packages.urllib3.util.response" "_f2120c4ff005fd37d24d851005=/py_modules/requests.packages.urllib3.contrib.__init__" "_7a48b2223608ecb6ed85293fa6=resfs/src//py_modules/requests.packages.urllib3.contrib.__init__" "_0957119d487e5923ddf71ee9cc=/py_code/requests.packages.urllib3.contrib.__init__" "_00571d8378e08b8ef0f1eb6a8d=/py_modules/requests.packages.urllib3.contrib.pyopenssl" "_c6bec50d4dc321563c53e1d848=resfs/src//py_modules/requests.packages.urllib3.contrib.pyopenssl" "_f4c48977d3fff6ea92ae851219=/py_code/requests.packages.urllib3.contrib.pyopenssl" "_3ff955e1cff5941d1288ec84e9=/py_modules/requests.packages.urllib3.contrib.ntlmpool" "_b2617f3478557b9189524aac66=resfs/src//py_modules/requests.packages.urllib3.contrib.ntlmpool" "_a10bb607bd8ff6196f2a922243=/py_code/requests.packages.urllib3.contrib.ntlmpool" "_981a59d49b793dde6aeeac1270=/py_modules/requests.packages.chardet.langbulgarianmodel" "_bfaf2bae5b024bdcce4e3619a8=resfs/src//py_modules/requests.packages.chardet.langbulgarianmodel" "_920c76eab3249adba229abbc4f=/py_code/requests.packages.chardet.langbulgarianmodel" "_ace95553c53b4463e78562d381=/py_modules/requests.packages.chardet.gb2312freq" "_02d2cf43102fd4b19cb12245dc=resfs/src//py_modules/requests.packages.chardet.gb2312freq" "_10b535e0e1094c2f75be1dbc38=/py_code/requests.packages.chardet.gb2312freq" "_8878311975707564babb657ce2=/py_modules/requests.packages.chardet.eucjpprober" "_9c1fbd9ef6eefb554414e2befb=resfs/src//py_modules/requests.packages.chardet.eucjpprober" "_dc7403ef562d0aa9fcb969381b=/py_code/requests.packages.chardet.eucjpprober" "_e4f6632ed5547238cdfdf52e3b=/py_modules/requests.packages.chardet.euckrfreq" "_9dea4ad7a7c0677a683c8812ba=resfs/src//py_modules/requests.packages.chardet.euckrfreq"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -1476,14 +1411,17 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/requests/12843501da04c15db0b6485e19.cpp	$B/contrib/python/requests/1b98fb28056853b746d43353fb.cpp	$B/contrib/python/requests/1d2f260e7114f80fc0ff220a7e.cpp	$B/contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp	$B/contrib/python/requests/64e6679738cb929092d96debb6.cpp	$B/contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp	$B/contrib/python/requests/b78fb86db3bc4eebbaab4f94bf.cpp	$B/contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp	$B/contrib/python/requests/f1df4834c89312aba35570b481.cpp	$B/contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp	$B/contrib/python/requests/f800854a3bc1457251bae73921.cpp	</Message>
+      <Message>$B/contrib/python/requests/12843501da04c15db0b6485e19.cpp	$B/contrib/python/requests/1b98fb28056853b746d43353fb.cpp	$B/contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp	$B/contrib/python/requests/64e6679738cb929092d96debb6.cpp	$B/contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp	$B/contrib/python/requests/b78fb86db3bc4eebbaab4f94bf.cpp	$B/contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp	$B/contrib/python/requests/f1df4834c89312aba35570b481.cpp	$B/contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp	$B/contrib/python/requests/f800854a3bc1457251bae73921.cpp	</Message>
       <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\12843501da04c15db0b6485e19.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\1b98fb28056853b746d43353fb.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\1d2f260e7114f80fc0ff220a7e.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\1dc8c30778b139b4fcd7e3e6bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\64e6679738cb929092d96debb6.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\81e2caac16df7b94227b7e9a95.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\b78fb86db3bc4eebbaab4f94bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\c3a54ef6046e83358ea0122c09.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f1df4834c89312aba35570b481.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f2e3f88e0068ad4858e780f535.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f800854a3bc1457251bae73921.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\12843501da04c15db0b6485e19.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\1b98fb28056853b746d43353fb.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\1dc8c30778b139b4fcd7e3e6bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\64e6679738cb929092d96debb6.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\81e2caac16df7b94227b7e9a95.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\b78fb86db3bc4eebbaab4f94bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\c3a54ef6046e83358ea0122c09.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f1df4834c89312aba35570b481.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f2e3f88e0068ad4858e780f535.cpp;$(SolutionDir)$(Configuration)\contrib\python\requests\f800854a3bc1457251bae73921.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
     </ProjectReference>

@@ -27,9 +27,10 @@ namespace NCatboostCuda {
         double GetGroupingLevel(ui32 featureId) const {
             const ui32 binCount = Manager->GetBinCount(featureId);
 
-            //binCount <= 128 does not use atomics and
+            //-x <= 128 does not use atomics and
             // should be groupped by binarization level for best performance
-            if (binCount <= 128 || Manager->IsCtr(featureId)) {
+            //+1 bin cause 129 bins, 128 borders
+            if (binCount <= 129 || Manager->IsCtr(featureId)) {
                 return binCount * 1.0 / 256;
             }
 
@@ -38,9 +39,17 @@ namespace NCatboostCuda {
             //and reduce atomic conflicts
             if (DataProvider && !Manager->IsCtr(featureId)) {
                 const ui32 dataProviderId = Manager->GetDataProviderId(featureId);
+
                 if (!DataProvider->HasFeatureId(dataProviderId)) {
                     return 2.0;
                 }
+                const IFeatureValuesHolder& featureValuesHolder = DataProvider->GetFeatureById(dataProviderId);
+                if (featureValuesHolder.GetType() == EFeatureValuesType::Float) {
+                    return 2.0;
+                } else {
+                    CB_ENSURE(featureValuesHolder.GetType() == EFeatureValuesType::BinarizedFloat);
+                }
+
                 return 1.0 + dynamic_cast<const TCompressedValuesHolderImpl&>(DataProvider->GetFeatureById(dataProviderId)).SparsityLevel();
             }
             return 2.0;
@@ -158,12 +167,12 @@ namespace NCatboostCuda {
                 const ui64 cindexOffset = loadOffset + (i / featuresPerInt) * docCount;
                 const ui32 foldCount = Grid.Folds[feature];
                 CB_ENSURE(foldCount <= maxFolds, TStringBuilder() << "Fold count " << foldCount << " max folds " << maxFolds << " (" << Policy << ")");
-                TCFeature cudaFeature {cindexOffset,
-                                       mask,
-                                       shift,
-                                       foldOffset,
-                                       foldCount,
-                                       Grid.IsOneHot[feature]};
+                TCFeature cudaFeature{cindexOffset,
+                                      mask,
+                                      shift,
+                                      foldOffset,
+                                      foldCount,
+                                      Grid.IsOneHot[feature]};
                 foldOffset += foldCount;
                 (*features).push_back(cudaFeature);
             }
