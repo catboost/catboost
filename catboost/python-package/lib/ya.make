@@ -25,6 +25,8 @@ PY_SRCS(
     __init__.py
     version.py
     core.py
+    datasets.py
+    utils.py
     _catboost.pyx
     widget/__init__.py
     widget/ipythonwidget.py
