@@ -6,6 +6,7 @@
 - Python wrapper: added methods to download datasets titanic and amazon, to make it easier to try the library (`catboost.datasets`).
 - Python wrapper: added method to write column desctiption file (`catboost.utils.create_cd`).
 - Made improvements to visualization.
+- Support non-numeric values in `GroupId` column.
 - [Tutorials](https://github.com/catboost/catboost/blob/master/catboost/tutorials/README.md) section updated.
 
 ## Bug Fixes and Other Changes
