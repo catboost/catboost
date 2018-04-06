@@ -13,5 +13,6 @@ Platform: Windows
 Platform: Unix
 Requires-Dist: six
 Requires-Dist: numpy
+Requires-Dist: pandas
 
-This is CatBoost Python package. An open-source gradient boosting on decision trees library with categorical features support out of the box. 
+This is CatBoost Python package. An open-source gradient boosting on decision trees library with categorical features support out of the box.
