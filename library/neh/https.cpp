@@ -1672,9 +1672,10 @@ namespace NHttps {
 
         class TRead: public IJob {
         public:
-            TRead(TIntrusivePtr<TSslServerIOStream> io, TServer* server)
+            TRead(TIntrusivePtr<TSslServerIOStream> io, TServer* server, bool selfRemove = false)
                 : IO_(io)
                 , Server_(server)
+                , SelfRemove(selfRemove)
             {
             }
 
@@ -1700,6 +1701,10 @@ namespace NHttps {
                 } catch(...) {
                     IO_->Close(false);
                 }
+
+                if (SelfRemove) {
+                    delete this;
+                }
             }
 
         private:
@@ -1711,6 +1716,7 @@ namespace NHttps {
         private:
             TIntrusivePtr<TSslServerIOStream> IO_;
             TServer* Server_;
+            bool SelfRemove = false;
         };
 
     public:
@@ -1780,7 +1786,7 @@ namespace NHttps {
                     return;
                 }
 
-                THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this));
+                THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this, /* selfRemove */ true));
                 E_.Create(*read, "https-response");
                 read.Release();
                 E_.Running()->ContPtr()->Yield();
