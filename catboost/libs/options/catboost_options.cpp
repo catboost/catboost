@@ -86,7 +86,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
         treeConfig.LeavesEstimationMethod = defaultEstimationMethod;
-    } else {
+    } else if (treeConfig.LeavesEstimationMethod != defaultEstimationMethod) {
         CB_ENSURE(lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank,
             "At the moment, in the YetiRank mode, changing the leaf_estimation_method parameter is prohibited.");
     }
@@ -120,7 +120,8 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
 
 void TCatboostOptions::Load(const NJson::TJsonValue& options) {
     ETaskType currentTaskType = TaskType;
-    CheckedLoad(options, &TaskType,
+    CheckedLoad(options,
+                &TaskType,
                 &SystemOptions, &BoostingOptions,
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
