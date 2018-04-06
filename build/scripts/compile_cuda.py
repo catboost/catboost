@@ -43,6 +43,7 @@ def main():
         '-fsanitize=',
         '-fsanitize-coverage=',
         '-fsanitize-blacklist=',
+        '--system-header-prefix',
     ]
     for prefix in skip_prefix_list:
         cflags = [i for i in cflags if not i.startswith(prefix)]
