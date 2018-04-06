@@ -1,11 +1,9 @@
-LIBRARY()
+RESOURCES_LIBRARY()
 
 
 
-NO_PLATFORM()
+INCLUDE(${ARCADIA_ROOT}/contrib/libs/platform/tools/misc/binutils/binutils.resource)
 
-PEERDIR(contrib/libs/platform/tools/misc/binutils)
-
-LDFLAGS("-fuse-ld=$(BINUTILS_ROOT)/bin/ld.gold")
+LDFLAGS_FIXED(-fuse-ld=$BINUTILS_ROOT_RESOURCE_GLOBAL/bin/ld.gold)
 
 END()

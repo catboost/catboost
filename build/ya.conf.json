@@ -639,7 +639,7 @@
                 "platform": {
                     "LINUX" : ["contrib/libs/platform/linux", "contrib/libs/platform/darwin/binutils"]
                 },
-                "target_opt": ["--target=x86_64-linux-gnu", "--sysroot=$OS_SDK_ROOT/", "-B$(BINUTILS_ROOT)/x86_64-linux-gnu/bin"]
+                "target_opt": ["--target=x86_64-linux-gnu", "--sysroot=$OS_SDK_ROOT/", "-B$BINUTILS_ROOT_RESOURCE_GLOBAL/x86_64-linux-gnu/bin"]
             },
             "env": {
                 "LD_LIBRARY_PATH": [
@@ -769,6 +769,43 @@
                 "LD_LIBRARY_PATH": [
                     "$(CLANG)/lib",
                     "$OS_SDK_ROOT/usr/lib/x86_64-linux-gnu"
+                ]
+            }
+        },
+        "clang50darwin_linux": {
+            "name": "clang50",
+            "tools": {
+                "cc": { "bottle": "clang50", "executable": "cc" },
+                "c++": { "bottle": "clang50", "executable": "c++" },
+                "gcov": { "bottle": "clang50", "executable": "gcov" },
+                "c++filt": { "bottle": "clang50", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang50", "executable": "llvm-symbolizer" },
+                "llvm-profdata": { "bottle": "clang50", "executable": "llvm-profdata" },
+                "llvm-cov": { "bottle": "clang50", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang50", "executable": "nm" },
+                "strip": { "bottle": "clang50", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "DARWIN"}, "target" : {"os": "LINUX"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "ar": "$(CLANG)/bin/llvm-ar",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "5.0",
+                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
+                "platform": {
+                    "LINUX" : ["contrib/libs/platform/linux", "contrib/libs/platform/darwin/binutils"]
+                },
+                "target_opt": ["--target=x86_64-linux-gnu", "--sysroot=$OS_SDK_ROOT/", "-B$BINUTILS_ROOT_RESOURCE_GLOBAL/x86_64-linux-gnu/bin"]
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib"
                 ]
             }
         },

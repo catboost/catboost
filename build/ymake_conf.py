@@ -1083,7 +1083,7 @@ class GnuToolchain(Toolchain):
             (['-mmacosx-version-min=10.9'], build.target.is_macos),
             (['-mios-version-min=7.0'], build.target.is_ios),
         ]))
-        self.default_os_sdk_root = '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk' if build.host.is_macos else '$OS_SDK_ROOT_RESOURCE_GLOBAL'
+        self.default_os_sdk_root = '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk' if build.target.is_macos else '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
     def print_toolchain(self):
         emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=':'))
