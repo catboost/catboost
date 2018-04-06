@@ -1,8 +1,14 @@
-# Release 0.7.1
+# Release 0.7.2
 ## Major Features And Improvements
 - GPU: New `DocParallel` mode for tasks without categorical features and with `—max-ctr-complextiy 1`. Provides best performance for pool with big number of documents.
 - GPU: Distributed training on several GPU host via MPI. See instruction how to build binary [here](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#multi-node-installation).
 - GPU: Up to 30% learning speed-up for Maxwell and later GPUs with binarization level > 32
+
+## Bug Fixes and Other Changes
+- Hotfixes for GPU version of python wrapper.
+
+# Release 0.7.1
+## Major Features And Improvements
 - Python wrapper: added methods to download datasets titanic and amazon, to make it easier to try the library (`catboost.datasets`).
 - Python wrapper: added method to write column desctiption file (`catboost.utils.create_cd`).
 - Made improvements to visualization.
