@@ -1,6 +1,6 @@
 # Release 0.7.2
 ## Major Features And Improvements
-- GPU: New `DocParallel` mode for tasks without categorical features and with `—max-ctr-complextiy 1`. Provides best performance for pool with big number of documents.
+- GPU: New `DocParallel` mode for tasks without categorical features and or with categorical features and `—max-ctr-complextiy 1`. Provides best performance for pools with big number of documents.
 - GPU: Distributed training on several GPU host via MPI. See instruction how to build binary [here](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#multi-node-installation).
 - GPU: Up to 30% learning speed-up for Maxwell and later GPUs with binarization level > 32
 
@@ -50,7 +50,7 @@ We are grateful to all who filed issues or helped resolve them, asked and answer
 - cv returns pandas.DataFrame by default if Pandas installed. See new parameter [`as_pandas`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_cv-docpage/).
 
 ## Major Features And Improvements
-- CatBoost build with make file. Now it’s possible to build command-line CPU version of CatBoost under Linux with [make file](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#make-install). 
+- CatBoost build with make file. Now it’s possible to build command-line CPU version of CatBoost under Linux with [make file](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/#make-install).
 - In column description column name `Target` is changed to `Label`. It will still work with previous name, but it is recommended to use the new one.
 - `eval-metrics` mode added into cmdline version. Metrics can be calculated for a given dataset using a previously [trained model](https://tech.yandex.com/catboost/doc/dg/concepts/cli-reference_eval-metrics-docpage/).
 - New classification metric `CtrFactor` is [added](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/).
@@ -110,7 +110,7 @@ We are grateful to all who filed issues or helped resolve them, asked and answer
 - Better logging for cross-validation, added [parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_cv-docpage/) `logging_level` and `metric_period` (should be set in training parameters) to cv.
 - Added a separate `train` [function](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_train-docpage/) that receives the parameters and returns a trained model.
 - Ranking mode `QueryRMSE` now supports default settings for dynamic boosting.
-- R-package pre-build binaries are included into release. 
+- R-package pre-build binaries are included into release.
 - We added many synonyms to our parameter names, now it is more convenient to try CatBoost if you are used to some other library.
 
 ## Bug Fixes and Other Changes
@@ -129,12 +129,12 @@ This release contains contributions from CatBoost team.
 We are grateful to all who filed issues or helped resolve them, asked and answered questions.
 
 # Release 0.5.2
-  
+
 ## Major Features And Improvements
-- We've made single document formula applier 4 times faster! 
-- `model.shrink` function added in [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_shrink-docpage/) and R wrappers. 
-- Added new [training parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `metric_period` that controls output frequency. 
-- Added new ranking [metric](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/) `QueryAverage`. 
+- We've made single document formula applier 4 times faster!
+- `model.shrink` function added in [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_shrink-docpage/) and R wrappers.
+- Added new [training parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `metric_period` that controls output frequency.
+- Added new ranking [metric](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/) `QueryAverage`.
 - This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_custom_loss_tutorial.md).
 
 ## Bug Fixes and Other Changes
@@ -160,7 +160,7 @@ Python:
    - Removed `priors`, `per_feature_priors`, `ctr_binarization`;
    - Added `simple_ctr`, `combintations_ctr`, `per_feature_ctr`;
    More details will be published in our documentation.
-  
+
 ## Major Features And Improvements
 - In Python we added a new method `eval_metrics`: now it's possible for a given model to calculate specified metric values for each iteration on specified dataset.
 - One command-line binary for CPU and GPU: in CatBoost you can switch between CPU and GPU training by changing single parameter value `task-type CPU` or `GPU` (task_type 'CPU', 'GPU' in python bindings). Windows build still contains two binaries.
