@@ -31,24 +31,33 @@ def get_so_paths(dir_name):
     list_dir = os.listdir(dir_name) if os.path.isdir(dir_name) else []
     return [os.path.join(dir_name, so_name) for so_name in list_dir if so_name.split('.')[-1] in ['so', 'pyd']]
 
-so_paths = get_so_paths('./gpu') + get_so_paths('./')
-for so_path in so_paths:
-    try:
-        _catboost = imp.load_dynamic('_catboost', so_path)
-        _PoolBase = _catboost._PoolBase
-        _CatBoostBase = _catboost._CatBoostBase
-        _MetricCalcerBase = _catboost._MetricCalcerBase
-        _cv = _catboost._cv
-        _set_logger = _catboost._set_logger
-        _reset_logger = _catboost._reset_logger
-        _configure_malloc = _catboost._configure_malloc
-        CatboostError = _catboost.CatboostError
-        _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
-        break
-    except ImportError:
-        pass
-else:
-    from _catboost import _PoolBase, _CatBoostBase, _MetricCalcerBase, CatboostError, _cv, _set_logger, _reset_logger, _configure_malloc, _metric_description_or_str_to_str
+
+def get_catboost_bin_module():
+    if '_catboost' in sys.modules:
+        return sys.modules['_catboost']
+    so_paths = get_so_paths('./gpu') + get_so_paths('./')
+    for so_path in so_paths:
+        try:
+            loaded_catboost = imp.load_dynamic('_catboost', so_path)
+            sys.modules['catboost._catboost'] = loaded_catboost
+            return loaded_catboost
+        except ImportError:
+            pass
+    import _catboost
+    return _catboost
+
+
+_catboost = get_catboost_bin_module()
+_PoolBase = _catboost._PoolBase
+_CatBoostBase = _catboost._CatBoostBase
+_MetricCalcerBase = _catboost._MetricCalcerBase
+_cv = _catboost._cv
+_set_logger = _catboost._set_logger
+_reset_logger = _catboost._reset_logger
+_configure_malloc = _catboost._configure_malloc
+CatboostError = _catboost.CatboostError
+_metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
+
 
 from contextlib import contextmanager
 
