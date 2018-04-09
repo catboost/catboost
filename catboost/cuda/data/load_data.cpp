@@ -182,9 +182,10 @@ namespace NCatboostCuda {
                 if (featureColumns[featureId] == nullptr && (!IsTest)) {
                     MATRIXNET_DEBUG_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                 }
-            } else {
+            } else if (featureColumns[featureId] != nullptr) {
                 if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId)) {
-                    FeaturesManager.SetFloatFeatureBordersForDataProviderId(featureId, std::move(grid[featureId]));
+                    FeaturesManager.SetFloatFeatureBordersForDataProviderId(featureId,
+                                                                            std::move(grid[featureId]));
                 }
             }
             if (featureColumns[featureId] != nullptr) {

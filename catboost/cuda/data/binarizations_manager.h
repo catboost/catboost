@@ -53,7 +53,13 @@ namespace NCatboostCuda {
 
         ENanMode GetNanMode(const ui32 featureId) const {
             CB_ENSURE(IsFloat(featureId));
-            return NanModes.at(FeatureManagerIdToDataProviderId[featureId]);
+            const ui32 dataProviderId = FeatureManagerIdToDataProviderId[featureId];
+            if (NanModes.has(dataProviderId)) {
+                return NanModes.at(dataProviderId);
+            } else {
+                MATRIXNET_WARNING_LOG << "NanMode called for feature without binarization" << Endl;
+                return ENanMode::Forbidden;
+            }
         }
 
         const TVector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const {
