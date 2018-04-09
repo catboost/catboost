@@ -60,7 +60,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;$(SolutionDir)../contrib/python/numpy/numpy/core/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -84,7 +84,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_55d18688fe4799d26528556818.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -370,6 +370,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\enc\libs-brotli-enc.vcxproj">
       <Project>81F8519B-E4FA-2A51-8D90-E6E1A0B110C3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>F42B3303-A85B-C579-9BF8-27924B30359B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>04A8455B-4404-6B67-F3CD-6366DEF170FE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>6C58A7BD-61C5-1C8D-6C74-836658D88AE1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6</Project>
     </ProjectReference>
@@ -396,6 +408,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
@@ -435,6 +450,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\contrib-python-Jinja2.vcxproj">
+      <Project>B46C97FC-90C9-6280-C8B1-5502ECC9CA85</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\contrib-python-MarkupSafe.vcxproj">
+      <Project>942BA312-AE11-50F0-703D-28FD53715B90</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
+      <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
+      <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
+      <Project>83EDB3BB-30AF-677F-74C1-971A8947E4E5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
+      <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
+      <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
+      <Project>2C53A7F8-146C-2E01-A4DD-B0D7D23E4518</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
+      <Project>794E1CFC-77F3-9455-DA27-A631729E33E2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\pycontrib-python-pandas.vcxproj">
+      <Project>50ABD1DF-7FBD-F57F-B784-76CA0F88E2F8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\contrib-python-pytz.vcxproj">
+      <Project>EB938BC9-AB3D-C838-C929-8506F46421C4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
+      <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
       <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
