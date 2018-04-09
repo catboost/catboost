@@ -480,8 +480,8 @@ def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-
-    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
+    assert(compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
 
 
 LOSS_FUNCTIONS_SHORT = ['Logloss', 'MultiClass']
@@ -693,7 +693,8 @@ def test_baseline(boosting_type):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
+    assert(compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -829,10 +830,13 @@ def test_all_targets(loss_function, boosting_type):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    # TODO(kirillovs): uncomment this after resolving MAPE problems
-    # assert(compare_evals(output_eval_path, formula_predict_path))
-
-    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
+    if loss_function == 'MAPE':
+        # TODO(kirillovs): uncomment this after resolving MAPE problems
+        # assert(compare_evals(output_eval_path, formula_predict_path))
+        return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
+    else:
+        assert(compare_evals(output_eval_path, formula_predict_path))
+        return [local_canonical_file(output_eval_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -1322,7 +1326,8 @@ def test_multi_targets(loss_function, boosting_type):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
+    assert(compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
 
 
 BORDER_TYPES = ['MinEntropy', 'Median', 'UniformAndQuantiles', 'MaxLogSum', 'GreedyLogSum', 'Uniform']
@@ -2379,6 +2384,7 @@ def test_output_columns_format():
         '--use-best-model', 'false',
         '-f', data_file('adult', 'train_small'),
         '--column-description', data_file('adult', 'train.cd'),
+        # Intentionally skipped: -t ...
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -2688,3 +2694,54 @@ def test_eval_non_additive_metric():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
+@pytest.mark.parametrize('max_ctr_complexity', [1, 2])
+def test_eval_eq_calc(boosting_type, max_ctr_complexity):
+    one_hot_max_size = 2
+    cd_path = yatest.common.test_output_path('cd.txt')
+    train_path = yatest.common.test_output_path('train.txt')
+    test_path = yatest.common.test_output_path('test.txt')
+    model_path = yatest.common.test_output_path('model.bin')
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    np.savetxt(cd_path, [['0', 'Target'],
+                         ['1', 'Categ'],
+                         ['2', 'Categ']
+                         ], fmt='%s', delimiter='\t')
+    np.savetxt(train_path, [['1', 'A', 'X'],
+                            ['1', 'B', 'Y'],
+                            ['1', 'C', 'Y'],
+                            ['0', 'A', 'Z'],
+                            ['0', 'B', 'Z'],
+                            ], fmt='%s', delimiter='\t')
+    np.savetxt(test_path, [['1', 'A', 'Y'],
+                           ['1', 'D', 'U'],
+                           ['1', 'D', 'U']
+                           ], fmt='%s', delimiter='\t')
+    cmd_fit = (CATBOOST_PATH, 'fit',
+               '--loss-function', 'Logloss',
+               '--boosting-type', boosting_type,
+               '--cd', cd_path,
+               '-f', train_path,
+               '-t', test_path,
+               '-m', model_path,
+               '--eval-file', test_eval_path,
+               '-i', '5',
+               '-r', '0',
+               '-T', '1',
+               '--max-ctr-complexity', str(max_ctr_complexity),
+               '--one-hot-max-size', str(one_hot_max_size),
+               )
+    cmd_calc = (CATBOOST_PATH, 'calc',
+                '--cd', cd_path,
+                '--input-path', test_path,
+                '-m', model_path,
+                '-T', '1',
+                '--output-path', calc_eval_path,
+                )
+    yatest.common.execute(cmd_fit)
+    yatest.common.execute(cmd_calc)
+    assert(compare_evals(test_eval_path, calc_eval_path))

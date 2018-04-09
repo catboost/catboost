@@ -3,40 +3,24 @@
         {
             "checksum": "8be24bbcc4e8e035e8951a290f84abb3",
             "uri": "file://test.test_all_targets_Ordered-CrossEntropy_/test.eval"
-        },
-        {
-            "checksum": "15eca099464b046667f778ffbf8adb9f",
-            "uri": "file://test.test_all_targets_Ordered-CrossEntropy_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-LogLinQuantile]": [
         {
             "checksum": "03565d5dc7e60b8d342f0eedddcba201",
             "uri": "file://test.test_all_targets_Ordered-LogLinQuantile_/test.eval"
-        },
-        {
-            "checksum": "74e12212419440609be59e197396855b",
-            "uri": "file://test.test_all_targets_Ordered-LogLinQuantile_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-Logloss]": [
         {
             "checksum": "8be24bbcc4e8e035e8951a290f84abb3",
             "uri": "file://test.test_all_targets_Ordered-Logloss_/test.eval"
-        },
-        {
-            "checksum": "15eca099464b046667f778ffbf8adb9f",
-            "uri": "file://test.test_all_targets_Ordered-Logloss_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-MAE]": [
         {
             "checksum": "1d99bcf30766ef3665669ee11451ce5e",
             "uri": "file://test.test_all_targets_Ordered-MAE_/test.eval"
-        },
-        {
-            "checksum": "60568c1dfe7a3fff60d7f848bcbe04b8",
-            "uri": "file://test.test_all_targets_Ordered-MAE_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-MAPE]": [
@@ -53,90 +37,54 @@
         {
             "checksum": "74a0347be271c81bfa915826c53a35e3",
             "uri": "file://test.test_all_targets_Ordered-MultiClassOneVsAll_/test.eval"
-        },
-        {
-            "checksum": "1bb3bf161bb07b627ca9d3323b5fa2ac",
-            "uri": "file://test.test_all_targets_Ordered-MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-MultiClass]": [
         {
             "checksum": "1aecae2d792eea16a3a4156aeaca641c",
             "uri": "file://test.test_all_targets_Ordered-MultiClass_/test.eval"
-        },
-        {
-            "checksum": "e8e8630afb0d39027fea0a796fe652f5",
-            "uri": "file://test.test_all_targets_Ordered-MultiClass_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-Poisson]": [
         {
             "checksum": "2693886984bd8a0f901ce41b563297ff",
             "uri": "file://test.test_all_targets_Ordered-Poisson_/test.eval"
-        },
-        {
-            "checksum": "0e22084d3a50098fc640d70cad0e7a6a",
-            "uri": "file://test.test_all_targets_Ordered-Poisson_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-Quantile]": [
         {
             "checksum": "1d99bcf30766ef3665669ee11451ce5e",
             "uri": "file://test.test_all_targets_Ordered-Quantile_/test.eval"
-        },
-        {
-            "checksum": "60568c1dfe7a3fff60d7f848bcbe04b8",
-            "uri": "file://test.test_all_targets_Ordered-Quantile_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Ordered-RMSE]": [
         {
             "checksum": "1efd5a6bea6ddcc5ac3d7eccafcac772",
             "uri": "file://test.test_all_targets_Ordered-RMSE_/test.eval"
-        },
-        {
-            "checksum": "7747b3268f1eb483319394adaaa048fe",
-            "uri": "file://test.test_all_targets_Ordered-RMSE_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-CrossEntropy]": [
         {
             "checksum": "66e4b605aa6e1eaae3a49e3adfcb33aa",
             "uri": "file://test.test_all_targets_Plain-CrossEntropy_/test.eval"
-        },
-        {
-            "checksum": "13fb4d3ff384054e7dcfbe06c73d5723",
-            "uri": "file://test.test_all_targets_Plain-CrossEntropy_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-LogLinQuantile]": [
         {
             "checksum": "8e89a867bc7ed54dccb2fc8ad4b5608e",
             "uri": "file://test.test_all_targets_Plain-LogLinQuantile_/test.eval"
-        },
-        {
-            "checksum": "89e3101b9d87ec7bebfc28fdcd63b653",
-            "uri": "file://test.test_all_targets_Plain-LogLinQuantile_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-Logloss]": [
         {
             "checksum": "66e4b605aa6e1eaae3a49e3adfcb33aa",
             "uri": "file://test.test_all_targets_Plain-Logloss_/test.eval"
-        },
-        {
-            "checksum": "13fb4d3ff384054e7dcfbe06c73d5723",
-            "uri": "file://test.test_all_targets_Plain-Logloss_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-MAE]": [
         {
             "checksum": "7a03d6468ffb2657f7b8e8d4f571af4e",
             "uri": "file://test.test_all_targets_Plain-MAE_/test.eval"
-        },
-        {
-            "checksum": "a9f5378b946e49d8b3497fd66159d66d",
-            "uri": "file://test.test_all_targets_Plain-MAE_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-MAPE]": [
@@ -153,50 +101,30 @@
         {
             "checksum": "f7decfd4f3a6917a4ce37faa2d2fb851",
             "uri": "file://test.test_all_targets_Plain-MultiClassOneVsAll_/test.eval"
-        },
-        {
-            "checksum": "1a8af2c547fe510e96ca09eef3ab4471",
-            "uri": "file://test.test_all_targets_Plain-MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-MultiClass]": [
         {
             "checksum": "2edc0d157d6f9cfb538bdba81a318601",
             "uri": "file://test.test_all_targets_Plain-MultiClass_/test.eval"
-        },
-        {
-            "checksum": "2922983e9098982397c4cf7200b2a6d6",
-            "uri": "file://test.test_all_targets_Plain-MultiClass_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-Poisson]": [
         {
             "checksum": "d4940acaf32190748e40da8a164f6f41",
             "uri": "file://test.test_all_targets_Plain-Poisson_/test.eval"
-        },
-        {
-            "checksum": "e8cb1c4ab4e228d5ef2e752291d8bf5d",
-            "uri": "file://test.test_all_targets_Plain-Poisson_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-Quantile]": [
         {
             "checksum": "7a03d6468ffb2657f7b8e8d4f571af4e",
             "uri": "file://test.test_all_targets_Plain-Quantile_/test.eval"
-        },
-        {
-            "checksum": "a9f5378b946e49d8b3497fd66159d66d",
-            "uri": "file://test.test_all_targets_Plain-Quantile_/predict_test.eval"
         }
     ],
     "test.test_all_targets[Plain-RMSE]": [
         {
             "checksum": "60965455136a270c12182f04a80a335f",
             "uri": "file://test.test_all_targets_Plain-RMSE_/test.eval"
-        },
-        {
-            "checksum": "5be0175d45e27d41095d5f3cd34b6982",
-            "uri": "file://test.test_all_targets_Plain-RMSE_/predict_test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[Ordered]": [
@@ -231,20 +159,12 @@
         {
             "checksum": "55ec3364bc5257166abe7c5003025513",
             "uri": "file://test.test_baseline_Ordered_/test.eval"
-        },
-        {
-            "checksum": "ae0c6166ee12baaf3e99037ef5064268",
-            "uri": "file://test.test_baseline_Ordered_/predict_test.eval"
         }
     ],
     "test.test_baseline[Plain]": [
         {
             "checksum": "6c04d015015c2b116efa9f0170d44314",
             "uri": "file://test.test_baseline_Plain_/test.eval"
-        },
-        {
-            "checksum": "5bf7eab9643404d69c7ec519ff5bbc03",
-            "uri": "file://test.test_baseline_Plain_/predict_test.eval"
         }
     ],
     "test.test_baseline_output": [
@@ -1041,80 +961,48 @@
         {
             "checksum": "efa944b014733e43364c196a18f65eb7",
             "uri": "file://test.test_multi_leaf_estimation_method_Ordered-Gradient_/test.eval"
-        },
-        {
-            "checksum": "ba88aecb23c15424169eeb7b5facc3f4",
-            "uri": "file://test.test_multi_leaf_estimation_method_Ordered-Gradient_/predict_test.eval"
         }
     ],
     "test.test_multi_leaf_estimation_method[Ordered-Newton]": [
         {
             "checksum": "a37bd4c06d528cffc9d05308dd01f30f",
             "uri": "file://test.test_multi_leaf_estimation_method_Ordered-Newton_/test.eval"
-        },
-        {
-            "checksum": "f5117518632312bdf2c09b9377f1b761",
-            "uri": "file://test.test_multi_leaf_estimation_method_Ordered-Newton_/predict_test.eval"
         }
     ],
     "test.test_multi_leaf_estimation_method[Plain-Gradient]": [
         {
             "checksum": "467bda3b6ca043f78461c848daa49e38",
             "uri": "file://test.test_multi_leaf_estimation_method_Plain-Gradient_/test.eval"
-        },
-        {
-            "checksum": "e16284442d535bee1782793c17055d44",
-            "uri": "file://test.test_multi_leaf_estimation_method_Plain-Gradient_/predict_test.eval"
         }
     ],
     "test.test_multi_leaf_estimation_method[Plain-Newton]": [
         {
             "checksum": "46702830e01de5e73c14677c4f71cc79",
             "uri": "file://test.test_multi_leaf_estimation_method_Plain-Newton_/test.eval"
-        },
-        {
-            "checksum": "bf8f078e7d6e108ff46a2def3b131012",
-            "uri": "file://test.test_multi_leaf_estimation_method_Plain-Newton_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[Ordered-MultiClassOneVsAll]": [
         {
             "checksum": "3a65d7da93e65bab25dc23904d0c83c6",
             "uri": "file://test.test_multi_targets_Ordered-MultiClassOneVsAll_/test.eval"
-        },
-        {
-            "checksum": "06caa41e73ee837d6d8fc7e3f0926595",
-            "uri": "file://test.test_multi_targets_Ordered-MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[Ordered-MultiClass]": [
         {
             "checksum": "19b2526bb05712c337b2537bbc16c78a",
             "uri": "file://test.test_multi_targets_Ordered-MultiClass_/test.eval"
-        },
-        {
-            "checksum": "ee36595f3434670b1e53e9e41cf3fbb3",
-            "uri": "file://test.test_multi_targets_Ordered-MultiClass_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[Plain-MultiClassOneVsAll]": [
         {
             "checksum": "4fa4e8cc3f8c7c2b023d3fe17f9b0af4",
             "uri": "file://test.test_multi_targets_Plain-MultiClassOneVsAll_/test.eval"
-        },
-        {
-            "checksum": "a54b1918197fece4a91a794c25578f79",
-            "uri": "file://test.test_multi_targets_Plain-MultiClassOneVsAll_/predict_test.eval"
         }
     ],
     "test.test_multi_targets[Plain-MultiClass]": [
         {
             "checksum": "c459f66bed792a59cff8e96ecc33a712",
             "uri": "file://test.test_multi_targets_Plain-MultiClass_/test.eval"
-        },
-        {
-            "checksum": "e1097834ed6ed062fc8116a117d3e85b",
-            "uri": "file://test.test_multi_targets_Plain-MultiClass_/predict_test.eval"
         }
     ],
     "test.test_nan_mode[Ordered-Max]": [

@@ -80,7 +80,7 @@ inline void BinarizeCatFeature(int featureIdx,
                 TCatFeaturesRemap::iterator it = uniqueFeaturesRemap.find(val, ctx);
                 if (it == uniqueFeaturesRemap.end()) {
                     int remap = static_cast<int>(uniqueFeaturesRemap.size());
-                    dstValues.push_back(remap);
+                    dstValues.push_back(val);
                     it = uniqueFeaturesRemap.emplace_direct(ctx, val, remap);
                     dstRemapped[i] = it->second;
                 } else {
