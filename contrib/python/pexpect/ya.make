@@ -9,7 +9,7 @@ LICENSE(
 
 
 PEERDIR(
-    contrib/python/ptyprocess-0.5
+    contrib/python/ptyprocess
 )
 
 PY_SRCS(

@@ -11,7 +11,7 @@ LICENSE(
 PEERDIR(
     contrib/python/backports-shutil_get_terminal_size
     contrib/python/decorator
-    contrib/python/pickleshare-0.6
+    contrib/python/pickleshare
     contrib/python/simplegeneric-0.8.1
     contrib/python/traitlets
     contrib/python/path.py

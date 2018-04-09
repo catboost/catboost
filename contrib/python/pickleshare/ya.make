@@ -1,5 +1,7 @@
 LIBRARY(pickleshare)
 
+VERSION(0.6)
+
 LICENSE(
     MIT
 )

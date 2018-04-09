@@ -19,9 +19,9 @@ RECURSE(
     path.py
     pathlib2
     pexpect
-    pickleshare-0.6
+    pickleshare
     prompt_toolkit
-    ptyprocess-0.5
+    ptyprocess
     py-1.4.30
     Pygments
     pyparsing

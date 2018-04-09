@@ -1,5 +1,7 @@
 LIBRARY(ptyprocess)
 
+VERSION(0.5)
+
 LICENSE(
     ISC
 )
