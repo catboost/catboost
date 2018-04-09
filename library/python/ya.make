@@ -11,6 +11,7 @@ RECURSE(
     pytest/empty
     pytest/plugins
     runtime
+    runtime/main
     strings
     strings/ut
     testing
