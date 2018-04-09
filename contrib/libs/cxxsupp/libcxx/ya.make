@@ -31,10 +31,10 @@ ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
     DEFAULT(CXX_RT "libcxxrt")
     IF (MUSL)
         ADDINCL(
-            GLOBAL contrib/libs/musl-1.1.18/arch/x86_64
-            GLOBAL contrib/libs/musl-1.1.18/arch/generic
-            GLOBAL contrib/libs/musl-1.1.18/include
-            GLOBAL contrib/libs/musl-1.1.18/extra
+            GLOBAL contrib/libs/musl-1.1.19/arch/x86_64
+            GLOBAL contrib/libs/musl-1.1.19/arch/generic
+            GLOBAL contrib/libs/musl-1.1.19/include
+            GLOBAL contrib/libs/musl-1.1.19/extra
         )
     ENDIF()
 ELSEIF (OS_WINDOWS)
