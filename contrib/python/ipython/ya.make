@@ -26,7 +26,7 @@ IF (OS_WINDOWS)
     )
 ELSE ()
     PEERDIR(
-        contrib/python/pexpect-4.0.1
+        contrib/python/pexpect
     )
 ENDIF ()
 

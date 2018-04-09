@@ -1,5 +1,7 @@
 LIBRARY(pexpect)
 
+VERSION(4.0.1)
+
 LICENSE(
     ISC
 )

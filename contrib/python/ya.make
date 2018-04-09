@@ -18,7 +18,7 @@ RECURSE(
     pandas/matplotlib
     path.py
     pathlib2
-    pexpect-4.0.1
+    pexpect
     pickleshare-0.6
     prompt_toolkit
     ptyprocess-0.5
