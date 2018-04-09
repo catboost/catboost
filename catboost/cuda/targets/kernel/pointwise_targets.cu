@@ -81,7 +81,7 @@ namespace NKernel {
         }
 
        __device__ __forceinline__ float Der2(float, float prediction) const {
-            return -__expf(prediction);
+            return __expf(prediction);
         }
     };
 
