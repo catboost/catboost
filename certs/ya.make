@@ -7,7 +7,3 @@ RESOURCE(
 )
 
 END()
-
-RECURSE(
-    tests
-)
