@@ -16,6 +16,7 @@ PEERDIR(
     catboost/libs/options
     library/containers/2d_array
     library/json/writer
+    contrib/python/pandas
 )
 
 SRCS(catboost/python-package/catboost/helpers.cpp)
