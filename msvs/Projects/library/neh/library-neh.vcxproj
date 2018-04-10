@@ -237,6 +237,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
       <Project>B74D5080-3614-52D8-BADE-8FF788EF3582</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
     </ProjectReference>

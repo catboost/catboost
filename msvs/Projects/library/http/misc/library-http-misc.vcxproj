@@ -76,10 +76,37 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\http\misc\httpcodes.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\http\misc\httpcodes.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\http\misc\httpdate.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\http\misc\httpreqdata.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\http\misc\parsed_request.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\misc\httpcodes.h"/>
+    <CustomBuild Include="$(SolutionDir)..\library\http\misc\httpcodes.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\http\misc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/http/misc/httpcodes.h" "--include-path" "library/http/misc/httpcodes.h" "--output" "$(SolutionDir)$(Configuration)/library/http/misc/httpcodes.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\http\misc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/http/misc/httpcodes.h" "--include-path" "library/http/misc/httpcodes.h" "--output" "$(SolutionDir)$(Configuration)/library/http/misc/httpcodes.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/http/misc/httpcodes.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\http\misc\httpcodes.h;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\http\misc\httpcodes.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\http\misc\httpdate.h"/>
     <ClInclude Include="$(SolutionDir)..\library\http\misc\httpreqdata.h"/>
     <ClInclude Include="$(SolutionDir)..\library\http\misc\parsed_request.h"/>
@@ -104,6 +131,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
       <Project>98B506A2-A065-0821-3BB0-07FDF5C590A5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>

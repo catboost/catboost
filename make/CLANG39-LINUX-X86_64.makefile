@@ -13637,12 +13637,13 @@ $(BUILD_ROOT)/library/http/misc/liblibrary-http-misc.a.mf\
         $(BUILD_ROOT)/library/http/misc/httpreqdata.cpp.o\
         $(BUILD_ROOT)/library/http/misc/httpdate.cpp.o\
         $(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o\
+        $(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/library/http/misc'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-http-misc -o library/http/misc/liblibrary-http-misc.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/http/misc/liblibrary-http-misc.a' '$(BUILD_ROOT)/library/http/misc/parsed_request.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpreqdata.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpdate.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/http/misc/liblibrary-http-misc.a' '$(BUILD_ROOT)/library/http/misc/parsed_request.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpreqdata.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpdate.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/library/http/misc/parsed_request.cpp.o\
         ::\
@@ -13671,6 +13672,21 @@ $(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o\
 
 	mkdir -p '$(BUILD_ROOT)/library/http/misc'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o' '$(SOURCE_ROOT)/library/http/misc/httpcodes.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp.o\
+        ::\
+        $(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/http/misc'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp.o' '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/library/http/misc/httpcodes.h\
+
+	mkdir -p '$(BUILD_ROOT)/library/http/misc'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/library/http/misc/httpcodes.h' --include-path library/http/misc/httpcodes.h --output '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp'
 
 $(BUILD_ROOT)/library/http/push_parser/liblibrary-http-push_parser.a\
 $(BUILD_ROOT)/library/http/push_parser/liblibrary-http-push_parser.a.mf\
@@ -16328,6 +16344,8 @@ clean\
 	rm -f '$(BUILD_ROOT)/library/http/misc/httpreqdata.cpp.o'
 	rm -f '$(BUILD_ROOT)/library/http/misc/httpdate.cpp.o'
 	rm -f '$(BUILD_ROOT)/library/http/misc/httpcodes.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp.o'
+	rm -f '$(BUILD_ROOT)/library/http/misc/httpcodes.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/library/http/push_parser/liblibrary-http-push_parser.a' '$(BUILD_ROOT)/library/http/push_parser/liblibrary-http-push_parser.a.mf'
 	rm -f '$(BUILD_ROOT)/library/http/push_parser/http_parser.cpp.o'
 	rm -f '$(BUILD_ROOT)/library/neh/asio/liblibrary-neh-asio.a' '$(BUILD_ROOT)/library/neh/asio/liblibrary-neh-asio.a.mf'
