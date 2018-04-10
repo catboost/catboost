@@ -2,6 +2,8 @@ LIBRARY()
 
 
 
+GENERATE_ENUM_SERIALIZATION(httpcodes.h)
+
 SRCS(
     httpcodes.cpp
     httpdate.cpp
