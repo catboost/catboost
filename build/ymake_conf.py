@@ -2198,8 +2198,7 @@ class Cuda(object):
 
         if version in ('8.0', '9.1'):
             if host.is_linux_x86_64 and target.is_linux_x86_64:
-                gcc_version = '6.1' if version == '9.1' else '4.9'
-                return '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/gcc/bin/g++-{}'.format(gcc_version)
+                return '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'
             if host.is_macos_x86_64 and target.is_macos_x86_64:
                 return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
 

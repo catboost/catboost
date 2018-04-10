@@ -22,6 +22,9 @@ def main():
         print >> sys.stderr, '{} not found'.format(executable)
         sys.exit(1)
 
+    if is_clang(command):
+        cflags.append('-Wno-unused-parameter')
+
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')
         cflags.remove('-fopenmp=libomp')
@@ -33,6 +36,7 @@ def main():
         '-fprofile-instr-generate',
         '-fcoverage-mapping',
         '/Zc:inline',  # disable unreferenced functions (kernel registrators) remove
+        '-Wno-c++17-extensions',
     ]
 
     for flag in skip_list:
