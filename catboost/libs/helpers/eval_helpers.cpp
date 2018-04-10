@@ -314,27 +314,7 @@ TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesRef() {
     return RawValues;
 }
 
-const TVector<TVector<double>>& TEvalResult::GetApproxesRef() const {
-    return Approxes.back();
-}
-
 void TEvalResult::ClearRawValues() {
     RawValues.clear();
     RawValues.resize(1);
-}
-
-void TEvalResult::ClearApproxes() {
-    Approxes.clear();
-}
-
-void TEvalResult::PostProcess(NPar::TLocalExecutor* executor) {
-    for (const auto& rawValues : RawValues) {
-        Approxes.push_back(PrepareEval(EPredictionType::RawFormulaVal, rawValues, executor));
-    }
-}
-
-void TEvalResult::PostProcess(int threadCount) {
-    NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(threadCount - 1);
-    PostProcess(&executor);
 }

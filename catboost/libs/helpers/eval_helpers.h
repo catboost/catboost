@@ -173,12 +173,7 @@ public:
     }
 
     TVector<TVector<TVector<double>>>& GetRawValuesRef();
-    const TVector<TVector<double>>& GetApproxesRef() const;
     void ClearRawValues();
-    void ClearApproxes();
-
-    void PostProcess(NPar::TLocalExecutor* executor);
-    void PostProcess(int threadCount);
 
     void OutputToFile(
         NPar::TLocalExecutor* executor,
@@ -202,7 +197,6 @@ public:
 
 private:
     TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
-    TVector<TVector<TVector<double>>> Approxes; // [evalIter][dim][docIdx]
 };
 
 template <typename T>

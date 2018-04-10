@@ -311,10 +311,8 @@ cdef extern from "catboost/libs/helpers/eval_helpers.h":
     ) nogil except +ProcessException
 
     cdef cppclass TEvalResult:
-        TVector[TVector[double]] GetApproxesRef() except * with gil
-        void PostProcess(int threadCount) except * with gil
+        TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil
-        void ClearApproxes() except * with gil
 
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
@@ -861,7 +859,7 @@ cdef class _CatBoost:
         with nogil:
             SetPythonInterruptHandler()
             try:
-                dereference(self.__test_eval).ClearApproxes()
+                dereference(self.__test_eval).ClearRawValues()
                 TrainModel(
                     prep_params.tree,
                     prep_params.customObjectiveDescriptor,
@@ -873,23 +871,22 @@ cdef class _CatBoost:
                     self.__model,
                     self.__test_eval
                 )
-                dereference(self.__test_eval).PostProcess(thread_count)
-                dereference(self.__test_eval).ClearRawValues()
             finally:
                 ResetPythonInterruptHandler()
 
     cpdef _set_test_eval(self, test_eval):
         cdef TVector[double] vector
+        self.__test_eval.ClearRawValues()
         for row in test_eval:
             for value in row:
                 vector.push_back(float(value))
-            self.__test_eval.GetApproxesRef().push_back(vector)
+            self.__test_eval.GetRawValuesRef()[0].push_back(vector)
             vector.clear()
 
     cpdef _get_test_eval(self):
         test_eval = []
-        for i in range(self.__test_eval.GetApproxesRef().size()):
-            test_eval.append([value for value in dereference(self.__test_eval).GetApproxesRef()[i]])
+        for i in range(self.__test_eval.GetRawValuesRef()[0].size()):
+            test_eval.append([value for value in dereference(self.__test_eval).GetRawValuesRef()[0][i]])
         if (len(test_eval) == 1):
             return test_eval[0]
         return test_eval
